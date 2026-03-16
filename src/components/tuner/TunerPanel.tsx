@@ -132,8 +132,8 @@ function TunerPanel({
             };
 
   return (
-    <div className="baseVertFlex w-full gap-4 border-y bg-secondary p-3 shadow-sm xs:rounded-lg xs:border sm:p-5 md:p-6">
-      <div className="baseVertFlex w-full gap-3 sm:flex-row sm:!items-center sm:!justify-between">
+    <div className="baseVertFlex w-full gap-4 border-y bg-secondary py-3 shadow-sm xs:rounded-lg xs:border sm:py-5 md:py-6">
+      <div className="baseVertFlex w-full gap-3 px-3 sm:flex-row sm:!items-center sm:!justify-between sm:px-5 md:px-6">
         <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[190px]">
           <button
             type="button"
@@ -217,308 +217,318 @@ function TunerPanel({
 
       {mode === "regular" ? (
         <>
-          <div className="baseVertFlex w-full rounded-md border bg-background p-3 sm:p-5">
-            <div className="relative h-[230px] w-full sm:h-[280px]">
-              <div className="baseVertFlex w-full gap-4">
-                <p className="font-semibold text-foreground">
-                  {formatNoteLabel(currentTarget)}
-                </p>
-                <div className="baseFlex gap-2">
-                  <div className="baseFlex w-20">
-                    {`${currentMicFrequency.toFixed(1)} Hz`}
-                  </div>
-                  /
-                  <div className="baseFlex w-20">
-                    {`${currentTargetFrequency.toFixed(1)} Hz`}
+          <div className="baseVertFlex w-full px-3 sm:px-5 md:px-6">
+            <div className="baseVertFlex w-full rounded-md border bg-background p-3 sm:p-5">
+              <div className="relative h-[230px] w-full sm:h-[280px]">
+                <div className="baseVertFlex w-full gap-4">
+                  <p className="font-semibold text-foreground">
+                    {formatNoteLabel(currentTarget)}
+                  </p>
+                  <div className="baseFlex gap-2">
+                    <div className="baseFlex w-20">
+                      {`${currentMicFrequency.toFixed(1)} Hz`}
+                    </div>
+                    /
+                    <div className="baseFlex w-20">
+                      {`${currentTargetFrequency.toFixed(1)} Hz`}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 sm:h-[180px] sm:w-[280px]">
-                <div
-                  className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full sm:h-[144px]"
-                  style={{ backgroundImage: regularSemicircleGradient }}
-                />
+                <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 sm:h-[180px] sm:w-[280px]">
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full sm:h-[144px]"
+                    style={{ backgroundImage: regularSemicircleGradient }}
+                  />
 
-                <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 sm:h-[144px]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 sm:h-[144px]" />
 
-                <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 sm:h-[146px]" />
+                  <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 sm:h-[146px]" />
 
-                <motion.div
-                  className="absolute bottom-0 h-[108px] w-[3px] rounded-full sm:h-[130px]"
-                  initial={false}
-                  style={{
-                    left: "calc(50% - 1.5px)",
-                    transformOrigin: "bottom center",
-                    transition:
-                      "background-color 0.6s ease, box-shadow 0.6s ease",
-                    ...regularNeedleStyle,
-                  }}
-                  animate={{ rotate: regularNeedleDegrees }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 22,
-                    mass: 0.6,
-                  }}
-                />
+                  <motion.div
+                    className="absolute bottom-0 h-[108px] w-[3px] rounded-full sm:h-[130px]"
+                    initial={false}
+                    style={{
+                      left: "calc(50% - 1.5px)",
+                      transformOrigin: "bottom center",
+                      transition:
+                        "background-color 0.6s ease, box-shadow 0.6s ease",
+                      ...regularNeedleStyle,
+                    }}
+                    animate={{ rotate: regularNeedleDegrees }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 260,
+                      damping: 22,
+                      mass: 0.6,
+                    }}
+                  />
 
-                <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-[12px] font-semibold text-foreground/70 sm:size-9 sm:text-base">
-                  ¢
-                </div>
-
-                {regularArcMarkerRatios.map((markerRatio) => {
-                  const angleRadians = markerRatio * (Math.PI / 2);
-                  const angleDegrees = markerRatio * 90;
-                  const xOffset = Math.sin(angleRadians) * 116;
-                  const yOffset = Math.cos(angleRadians) * 126;
-                  const tickHalfHeight = 4;
-
-                  return (
-                    <div
-                      key={`regular-tick-mobile-${markerRatio}`}
-                      className="absolute h-2 w-px bg-foreground/45 sm:hidden"
-                      style={{
-                        left: `calc(50% + ${xOffset}px)`,
-                        bottom: `${yOffset - tickHalfHeight}px`,
-                        transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
-                      }}
-                    />
-                  );
-                })}
-
-                {regularArcMarkerRatios.map((markerRatio) => {
-                  const angleRadians = markerRatio * (Math.PI / 2);
-                  const angleDegrees = markerRatio * 90;
-                  const xOffset = Math.sin(angleRadians) * 141;
-                  const yOffset = Math.cos(angleRadians) * 151;
-                  const tickHalfHeight = 5;
-
-                  return (
-                    <div
-                      key={`regular-tick-desktop-${markerRatio}`}
-                      className="absolute hidden h-2.5 w-px bg-foreground/45 sm:block"
-                      style={{
-                        left: `calc(50% + ${xOffset}px)`,
-                        bottom: `${yOffset - tickHalfHeight}px`,
-                        transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
-                      }}
-                    />
-                  );
-                })}
-
-                {regularArcMarkerRatios.map((markerRatio) => {
-                  const angleRadians = markerRatio * (Math.PI / 2);
-                  const xOffset = Math.sin(angleRadians) * 124;
-                  const yOffset = Math.cos(angleRadians) * 136;
-                  const markerValue = markerRatio * regularRangeCents;
-                  const markerLabel =
-                    Math.abs(markerValue) < 0.5
-                      ? "0"
-                      : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
-
-                  return (
-                    <div
-                      key={`regular-marker-mobile-${markerRatio}`}
-                      className={`absolute text-[10px] font-medium tabular-nums sm:hidden ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
-                      style={{
-                        left: `calc(50% + ${xOffset}px)`,
-                        bottom: `${yOffset}px`,
-                        transform: "translate(-50%, 50%)",
-                      }}
-                    >
-                      {markerLabel}
-                    </div>
-                  );
-                })}
-
-                {regularArcMarkerRatios.map((markerRatio) => {
-                  const angleRadians = markerRatio * (Math.PI / 2);
-                  const xOffset = Math.sin(angleRadians) * 152;
-                  const yOffset = Math.cos(angleRadians) * 164;
-                  const markerValue = markerRatio * regularRangeCents;
-                  const markerLabel =
-                    Math.abs(markerValue) < 0.5
-                      ? "0"
-                      : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
-
-                  return (
-                    <div
-                      key={`regular-marker-desktop-${markerRatio}`}
-                      className={`absolute hidden text-xs font-medium tabular-nums sm:block ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
-                      style={{
-                        left: `calc(50% + ${xOffset}px)`,
-                        bottom: `${yOffset}px`,
-                        transform: "translate(-50%, 50%)",
-                      }}
-                    >
-                      {markerLabel}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid w-full grid-cols-6 gap-1 rounded-md bg-background px-1 py-2 sm:gap-2 sm:px-2">
-            {targetNotes.map((note, index) => {
-              const selected = index === currentTargetIndex;
-              const tuned = completed || index < currentTargetIndex;
-
-              return (
-                <button
-                  type="button"
-                  key={`${note}-${index}`}
-                  className={`baseVertFlex relative min-h-[74px] gap-1 rounded-md px-1 py-2 text-sm transition-colors ${selected ? "bg-primary/10" : "bg-transparent"}`}
-                  onClick={() => {
-                    onSetCurrentTargetIndex(index);
-                  }}
-                  aria-current={selected ? "true" : "false"}
-                >
-                  {tuned && (
-                    <span className="baseFlex absolute right-1 top-1 rounded-full bg-primary p-0.5 text-primary-foreground">
-                      <Check className="size-2.5" />
-                    </span>
-                  )}
-
-                  <div className="baseFlex h-7 w-full">
-                    <motion.div
-                      className={`rounded-full ${selected ? "bg-primary" : "bg-foreground/35"}`}
-                      animate={{
-                        opacity: selected ? 1 : 0.75,
-                        scaleY: selected ? 1.04 : 1,
-                      }}
-                      transition={{ duration: 0.15 }}
-                      style={{
-                        width: `${stringThicknesses[index] ?? 3}px`,
-                        height: "30px",
-                      }}
-                    />
+                  <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-[12px] font-semibold text-foreground/70 sm:size-9 sm:text-base">
+                    ¢
                   </div>
 
-                  <span
-                    className={
-                      tuned
-                        ? "text-xs font-semibold text-primary sm:text-sm"
-                        : "text-xs text-foreground sm:text-sm"
-                    }
-                  >
-                    {formatNoteLabel(note)}
-                  </span>
-                </button>
-              );
-            })}
+                  {regularArcMarkerRatios.map((markerRatio) => {
+                    const angleRadians = markerRatio * (Math.PI / 2);
+                    const angleDegrees = markerRatio * 90;
+                    const xOffset = Math.sin(angleRadians) * 116;
+                    const yOffset = Math.cos(angleRadians) * 126;
+                    const tickHalfHeight = 4;
+
+                    return (
+                      <div
+                        key={`regular-tick-mobile-${markerRatio}`}
+                        className="absolute h-2 w-px bg-foreground/45 sm:hidden"
+                        style={{
+                          left: `calc(50% + ${xOffset}px)`,
+                          bottom: `${yOffset - tickHalfHeight}px`,
+                          transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
+                        }}
+                      />
+                    );
+                  })}
+
+                  {regularArcMarkerRatios.map((markerRatio) => {
+                    const angleRadians = markerRatio * (Math.PI / 2);
+                    const angleDegrees = markerRatio * 90;
+                    const xOffset = Math.sin(angleRadians) * 141;
+                    const yOffset = Math.cos(angleRadians) * 151;
+                    const tickHalfHeight = 5;
+
+                    return (
+                      <div
+                        key={`regular-tick-desktop-${markerRatio}`}
+                        className="absolute hidden h-2.5 w-px bg-foreground/45 sm:block"
+                        style={{
+                          left: `calc(50% + ${xOffset}px)`,
+                          bottom: `${yOffset - tickHalfHeight}px`,
+                          transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
+                        }}
+                      />
+                    );
+                  })}
+
+                  {regularArcMarkerRatios.map((markerRatio) => {
+                    const angleRadians = markerRatio * (Math.PI / 2);
+                    const xOffset = Math.sin(angleRadians) * 124;
+                    const yOffset = Math.cos(angleRadians) * 136;
+                    const markerValue = markerRatio * regularRangeCents;
+                    const markerLabel =
+                      Math.abs(markerValue) < 0.5
+                        ? "0"
+                        : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
+
+                    return (
+                      <div
+                        key={`regular-marker-mobile-${markerRatio}`}
+                        className={`absolute text-[10px] font-medium tabular-nums sm:hidden ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+                        style={{
+                          left: `calc(50% + ${xOffset}px)`,
+                          bottom: `${yOffset}px`,
+                          transform: "translate(-50%, 50%)",
+                        }}
+                      >
+                        {markerLabel}
+                      </div>
+                    );
+                  })}
+
+                  {regularArcMarkerRatios.map((markerRatio) => {
+                    const angleRadians = markerRatio * (Math.PI / 2);
+                    const xOffset = Math.sin(angleRadians) * 152;
+                    const yOffset = Math.cos(angleRadians) * 164;
+                    const markerValue = markerRatio * regularRangeCents;
+                    const markerLabel =
+                      Math.abs(markerValue) < 0.5
+                        ? "0"
+                        : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
+
+                    return (
+                      <div
+                        key={`regular-marker-desktop-${markerRatio}`}
+                        className={`absolute hidden text-xs font-medium tabular-nums sm:block ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+                        style={{
+                          left: `calc(50% + ${xOffset}px)`,
+                          bottom: `${yOffset}px`,
+                          transform: "translate(-50%, 50%)",
+                        }}
+                      >
+                        {markerLabel}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
 
-          <Button
-            size="sm"
-            disabled={currentTargetIndex === 0}
-            variant="outline"
-            className="w-full sm:hidden sm:w-auto"
-            onClick={onResetProgress}
-          >
-            Reset
-          </Button>
-        </>
-      ) : (
-        <div className="baseVertFlex w-full rounded-md border bg-background p-4 md:px-6 md:py-8">
-          <div className="w-full text-center text-lg font-semibold text-foreground">
-            {detectedNote ? formatNoteLabel(detectedNote) : "--"}
-          </div>
-
-          <div className="relative mt-4 w-full">
-            <div className="absolute left-1/2 top-0 z-10 w-[104px] -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-center text-sm font-semibold tabular-nums text-foreground sm:w-[118px] sm:text-base">
-              {`${currentMicFrequency.toFixed(1)} Hz`}
-            </div>
-
-            <div className="baseFlex mt-12 w-full !justify-between px-[1px] text-xs text-foreground/70 sm:hidden">
-              {mobileLabelTicks.map((tick) => (
-                <span key={`mobile-label-${tick}`}>{tick}</span>
-              ))}
-            </div>
-
-            <div className="baseFlex mt-14 !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 sm:!flex">
-              {centsTicks.map((tick) => (
-                <span key={tick}>{tick}</span>
-              ))}
-            </div>
-
-            <div className="relative mt-0 h-[180px] w-full rounded-md border bg-secondary px-4 py-6">
-              <motion.div
-                className="absolute inset-0 rounded-md"
-                style={{
-                  backgroundImage:
-                    "repeating-linear-gradient(90deg, transparent 0px, transparent 18px, hsl(var(--foreground) / 0.05) 19px, transparent 20px)",
-                }}
-                animate={{
-                  backgroundPositionX: signalDetected ? ["0px", "24px"] : "0px",
-                  opacity: signalDetected ? 1 : 0.35,
-                }}
-                transition={{
-                  duration: 0.35,
-                  ease: "linear",
-                  repeat: signalDetected ? Infinity : 0,
-                }}
-              />
-
-              <motion.div
-                className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
-                animate={{
-                  opacity: signalDetected ? [0.35, 0.8, 0.35] : 0.35,
-                }}
-                transition={{
-                  duration: 0.8,
-                  repeat: signalDetected ? Infinity : 0,
-                  ease: "linear",
-                }}
-              />
-
-              {centsTicks.map((tick) => {
-                const tickLeft = ((tick + 50) / 100) * 100;
+          <div className="baseVertFlex w-full md:px-6">
+            <div className="grid w-full grid-cols-6 gap-1 bg-background px-3 py-2 shadow-inner sm:gap-2 sm:px-2 md:rounded-md">
+              {targetNotes.map((note, index) => {
+                const selected = index === currentTargetIndex;
+                const tuned = completed || index < currentTargetIndex;
 
                 return (
-                  <div
-                    key={`tick-${tick}`}
-                    className="absolute top-[34%] h-[32%] w-px bg-foreground/25"
-                    style={{ left: `${tickLeft}%` }}
-                  />
+                  <button
+                    type="button"
+                    key={`${note}-${index}`}
+                    className={`baseVertFlex relative min-h-[74px] gap-1 rounded-md px-1 py-2 text-sm transition-colors ${selected ? "bg-primary/10" : "bg-transparent"}`}
+                    onClick={() => {
+                      onSetCurrentTargetIndex(index);
+                    }}
+                    aria-current={selected ? "true" : "false"}
+                  >
+                    {tuned && (
+                      <span className="baseFlex absolute right-1 top-1 rounded-full bg-primary p-0.5 text-primary-foreground">
+                        <Check className="size-2.5" />
+                      </span>
+                    )}
+
+                    <div className="baseFlex h-7 w-full">
+                      <motion.div
+                        className={`rounded-full ${selected ? "bg-primary" : "bg-foreground/35"}`}
+                        animate={{
+                          opacity: selected ? 1 : 0.75,
+                          scaleY: selected ? 1.04 : 1,
+                        }}
+                        transition={{ duration: 0.15 }}
+                        style={{
+                          width: `${stringThicknesses[index] ?? 3}px`,
+                          height: "30px",
+                        }}
+                      />
+                    </div>
+
+                    <span
+                      className={
+                        tuned
+                          ? "text-xs font-semibold text-primary sm:text-sm"
+                          : "text-xs text-foreground sm:text-sm"
+                      }
+                    >
+                      {formatNoteLabel(note)}
+                    </span>
+                  </button>
                 );
               })}
+            </div>
+          </div>
 
-              <motion.div
-                className="absolute inset-y-0"
-                animate={{ left: `${chromaticMarkerLeftPercent}%` }}
-                transition={{
-                  type: "spring",
-                  stiffness: 320,
-                  damping: 24,
-                  mass: 0.55,
-                }}
-              >
-                <div className="relative h-full -translate-x-1/2">
-                  <motion.div
-                    className="absolute top-1/2 h-14 w-[3px] -translate-y-1/2 rounded-full bg-primary"
-                    animate={{
-                      boxShadow: signalDetected
-                        ? [
-                            "0 0 0px hsl(var(--primary) / 0)",
-                            "0 0 12px hsl(var(--primary) / 0.65)",
-                            "0 0 0px hsl(var(--primary) / 0)",
-                          ]
-                        : "0 0 0px hsl(var(--primary) / 0)",
-                    }}
-                    transition={{
-                      duration: 0.7,
-                      repeat: signalDetected ? Infinity : 0,
-                      ease: "linear",
-                    }}
-                  />
+          <div className="baseFlex w-full px-3 sm:px-5 md:px-6">
+            <Button
+              size="sm"
+              disabled={currentTargetIndex === 0}
+              variant="outline"
+              className="w-full sm:hidden sm:w-auto"
+              onClick={onResetProgress}
+            >
+              Reset
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div className="baseFlex w-full px-3 sm:px-5 md:px-6">
+          <div className="baseVertFlex w-full rounded-md border bg-background p-4 md:px-6 md:py-8">
+            <div className="w-full text-center text-lg font-semibold text-foreground">
+              {detectedNote ? formatNoteLabel(detectedNote) : "--"}
+            </div>
 
-                  <div className="absolute bottom-3 left-1/2 w-[88px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-sm font-semibold tabular-nums text-primary">
-                    {`${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`}
+            <div className="relative mt-4 w-full">
+              <div className="absolute left-1/2 top-0 z-10 w-[104px] -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-center text-sm font-semibold tabular-nums text-foreground sm:w-[118px] sm:text-base">
+                {`${currentMicFrequency.toFixed(1)} Hz`}
+              </div>
+
+              <div className="baseFlex mt-12 w-full !justify-between px-[1px] text-xs text-foreground/70 sm:hidden">
+                {mobileLabelTicks.map((tick) => (
+                  <span key={`mobile-label-${tick}`}>{tick}</span>
+                ))}
+              </div>
+
+              <div className="baseFlex mt-14 !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 sm:!flex">
+                {centsTicks.map((tick) => (
+                  <span key={tick}>{tick}</span>
+                ))}
+              </div>
+
+              <div className="relative mt-0 h-[180px] w-full rounded-md border bg-secondary px-4 py-6">
+                <motion.div
+                  className="absolute inset-0 rounded-md"
+                  style={{
+                    backgroundImage:
+                      "repeating-linear-gradient(90deg, transparent 0px, transparent 18px, hsl(var(--foreground) / 0.05) 19px, transparent 20px)",
+                  }}
+                  animate={{
+                    backgroundPositionX: signalDetected
+                      ? ["0px", "24px"]
+                      : "0px",
+                    opacity: signalDetected ? 1 : 0.35,
+                  }}
+                  transition={{
+                    duration: 0.35,
+                    ease: "linear",
+                    repeat: signalDetected ? Infinity : 0,
+                  }}
+                />
+
+                <motion.div
+                  className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
+                  animate={{
+                    opacity: signalDetected ? [0.35, 0.8, 0.35] : 0.35,
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: signalDetected ? Infinity : 0,
+                    ease: "linear",
+                  }}
+                />
+
+                {centsTicks.map((tick) => {
+                  const tickLeft = ((tick + 50) / 100) * 100;
+
+                  return (
+                    <div
+                      key={`tick-${tick}`}
+                      className="absolute top-[34%] h-[32%] w-px bg-foreground/25"
+                      style={{ left: `${tickLeft}%` }}
+                    />
+                  );
+                })}
+
+                <motion.div
+                  className="absolute inset-y-0"
+                  animate={{ left: `${chromaticMarkerLeftPercent}%` }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 320,
+                    damping: 24,
+                    mass: 0.55,
+                  }}
+                >
+                  <div className="relative h-full -translate-x-1/2">
+                    <motion.div
+                      className="absolute top-1/2 h-14 w-[3px] -translate-y-1/2 rounded-full bg-primary"
+                      animate={{
+                        boxShadow: signalDetected
+                          ? [
+                              "0 0 0px hsl(var(--primary) / 0)",
+                              "0 0 12px hsl(var(--primary) / 0.65)",
+                              "0 0 0px hsl(var(--primary) / 0)",
+                            ]
+                          : "0 0 0px hsl(var(--primary) / 0)",
+                      }}
+                      transition={{
+                        duration: 0.7,
+                        repeat: signalDetected ? Infinity : 0,
+                        ease: "linear",
+                      }}
+                    />
+
+                    <div className="absolute bottom-3 left-1/2 w-[88px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-sm font-semibold tabular-nums text-primary">
+                      {`${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </div>
             </div>
           </div>
         </div>
