@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { get } from "@tonaljs/note";
 import { Button } from "~/components/ui/button";
+import { FaMicrophone } from "react-icons/fa";
 import TuningSelect from "~/components/ui/TuningSelect";
 
 const stringLabels = ["6", "5", "4", "3", "2", "1"];
@@ -75,48 +76,44 @@ function ChromaticTunerPanel({
     [currentTarget],
   );
   const currentMicFrequency = detectedFrequency ?? 0;
-  const regularMaxHzOffset = useMemo(() => {
-    if (currentTargetFrequency <= 0) return 1;
-
-    return currentTargetFrequency * (Math.pow(2, 50 / 1200) - 1);
-  }, [currentTargetFrequency]);
-  const regularRawHzOffset =
-    signalDetected && detectedFrequency !== null
-      ? detectedFrequency - currentTargetFrequency
-      : 0;
-  const clampedRegularHzOffset = Math.max(
-    -regularMaxHzOffset,
-    Math.min(regularMaxHzOffset, regularRawHzOffset),
-  );
-  const isInTune =
-    targetCentsOffset !== null && Math.abs(targetCentsOffset) <= toleranceCents;
   const hasRegularCents = signalDetected && targetCentsOffset !== null;
-  const clampedTargetCents = hasRegularCents
-    ? Math.max(-50, Math.min(50, targetCentsOffset))
-    : 0;
-  const absoluteTargetCents = Math.abs(clampedTargetCents);
+  const regularRawCentsOffset = hasRegularCents ? targetCentsOffset : 0;
+  const clampedRegularCentsOffset = Math.max(
+    -50,
+    Math.min(50, regularRawCentsOffset),
+  );
+  const absoluteRegularCentsOffset = Math.abs(clampedRegularCentsOffset);
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
-  const regularNeedleDegrees =
-    regularMaxHzOffset > 0
-      ? (clampedRegularHzOffset / regularMaxHzOffset) * 90
-      : 0;
+  const regularNeedleDegrees = (clampedRegularCentsOffset / 50) * 90;
   const chromaticMarkerLeftPercent = ((clampedDetectedCents + 50) / 100) * 100;
+  const regularSemicircleGradient = useMemo(() => {
+    const toAngle = (centsOffset: number) =>
+      Math.max(0, Math.min(180, ((centsOffset + 50) / 100) * 180));
+    const leftOrange = toAngle(-25);
+    const leftYellow = toAngle(-10);
+    const leftGreen = toAngle(-toleranceCents);
+    const rightGreen = toAngle(toleranceCents);
+    const rightYellow = toAngle(10);
+    const rightOrange = toAngle(25);
+
+    return `conic-gradient(from 270deg at 50% 100%, rgba(239, 68, 68, 0.2) 0deg ${leftOrange}deg, rgba(249, 115, 22, 0.2) ${leftOrange}deg ${leftYellow}deg, rgba(250, 204, 21, 0.2) ${leftYellow}deg ${leftGreen}deg, rgba(34, 197, 94, 0.18) ${leftGreen}deg ${rightGreen}deg, rgba(250, 204, 21, 0.2) ${rightGreen}deg ${rightYellow}deg, rgba(249, 115, 22, 0.2) ${rightYellow}deg ${rightOrange}deg, rgba(239, 68, 68, 0.2) ${rightOrange}deg 180deg, transparent 180deg 360deg)`;
+  }, [toleranceCents]);
   const regularNeedleStyle = !hasRegularCents
     ? {
         backgroundColor: "hsl(var(--primary))",
         boxShadow: "0 0 10px hsl(var(--primary) / 0.45)",
       }
-    : absoluteTargetCents <= 5
+    : absoluteRegularCentsOffset <= toleranceCents
       ? {
           backgroundColor: "rgb(34 197 94)",
           boxShadow: "0 0 10px rgba(34, 197, 94, 0.45)",
         }
-      : absoluteTargetCents <= 10
+      : absoluteRegularCentsOffset <= 10
         ? {
             backgroundColor: "rgb(250 204 21)",
             boxShadow: "0 0 10px rgba(250, 204, 21, 0.45)",
           }
-        : absoluteTargetCents <= 25
+        : absoluteRegularCentsOffset <= 25
           ? {
               backgroundColor: "rgb(249 115 22)",
               boxShadow: "0 0 10px rgba(249, 115, 22, 0.45)",
@@ -151,7 +148,7 @@ function ChromaticTunerPanel({
         </div>
 
         <div className="baseFlex w-full !justify-between gap-4 sm:w-auto">
-          <div className="baseFlex gap-2 sm:gap-4">
+          <div className="baseFlex gap-2 sm:gap-3">
             <p className="text-sm font-semibold text-foreground/80">Tuning</p>
             <TuningSelect />
           </div>
@@ -168,9 +165,10 @@ function ChromaticTunerPanel({
           ) : (
             <Button
               size="sm"
-              className="w-full sm:hidden sm:w-auto"
+              className="baseFlex w-full gap-2 sm:hidden sm:w-auto"
               onClick={() => void onStartListening()}
             >
+              <FaMicrophone />
               Start
             </Button>
           )}
@@ -189,9 +187,10 @@ function ChromaticTunerPanel({
           ) : (
             <Button
               size="sm"
-              className="hidden w-full sm:block sm:w-auto"
+              className="hidden w-full gap-2 px-8 sm:flex sm:w-auto"
               onClick={() => void onStartListening()}
             >
+              <FaMicrophone />
               Start
             </Button>
           )}
@@ -227,6 +226,11 @@ function ChromaticTunerPanel({
               </div>
 
               <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 sm:h-[180px] sm:w-[280px]">
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full sm:h-[144px]"
+                  style={{ backgroundImage: regularSemicircleGradient }}
+                />
+
                 <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 sm:h-[144px]" />
 
                 <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 sm:h-[146px]" />
@@ -250,19 +254,59 @@ function ChromaticTunerPanel({
                   }}
                 />
 
-                <div className="absolute bottom-0 left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-[9px] font-semibold text-foreground/70 sm:size-9 sm:text-[10px]">
-                  Hz
+                <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-[12px] font-semibold text-foreground/70 sm:size-9 sm:text-base">
+                  ¢
                 </div>
+
+                {regularArcMarkerRatios.map((markerRatio) => {
+                  const angleRadians = markerRatio * (Math.PI / 2);
+                  const angleDegrees = markerRatio * 90;
+                  const xOffset = Math.sin(angleRadians) * 116;
+                  const yOffset = Math.cos(angleRadians) * 126;
+                  const tickHalfHeight = 4;
+
+                  return (
+                    <div
+                      key={`regular-tick-mobile-${markerRatio}`}
+                      className="absolute h-2 w-px bg-foreground/45 sm:hidden"
+                      style={{
+                        left: `calc(50% + ${xOffset}px)`,
+                        bottom: `${yOffset - tickHalfHeight}px`,
+                        transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
+                      }}
+                    />
+                  );
+                })}
+
+                {regularArcMarkerRatios.map((markerRatio) => {
+                  const angleRadians = markerRatio * (Math.PI / 2);
+                  const angleDegrees = markerRatio * 90;
+                  const xOffset = Math.sin(angleRadians) * 141;
+                  const yOffset = Math.cos(angleRadians) * 151;
+                  const tickHalfHeight = 5;
+
+                  return (
+                    <div
+                      key={`regular-tick-desktop-${markerRatio}`}
+                      className="absolute hidden h-2.5 w-px bg-foreground/45 sm:block"
+                      style={{
+                        left: `calc(50% + ${xOffset}px)`,
+                        bottom: `${yOffset - tickHalfHeight}px`,
+                        transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
+                      }}
+                    />
+                  );
+                })}
 
                 {regularArcMarkerRatios.map((markerRatio) => {
                   const angleRadians = markerRatio * (Math.PI / 2);
                   const xOffset = Math.sin(angleRadians) * 124;
                   const yOffset = Math.cos(angleRadians) * 136;
-                  const markerValue = markerRatio * regularMaxHzOffset;
+                  const markerValue = markerRatio * 50;
                   const markerLabel =
-                    Math.abs(markerValue) < 0.05
+                    Math.abs(markerValue) < 0.5
                       ? "0"
-                      : `${markerValue > 0 ? "+" : ""}${markerValue.toFixed(1)}`;
+                      : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
 
                   return (
                     <div
@@ -283,11 +327,11 @@ function ChromaticTunerPanel({
                   const angleRadians = markerRatio * (Math.PI / 2);
                   const xOffset = Math.sin(angleRadians) * 152;
                   const yOffset = Math.cos(angleRadians) * 164;
-                  const markerValue = markerRatio * regularMaxHzOffset;
+                  const markerValue = markerRatio * 50;
                   const markerLabel =
-                    Math.abs(markerValue) < 0.05
+                    Math.abs(markerValue) < 0.5
                       ? "0"
-                      : `${markerValue > 0 ? "+" : ""}${markerValue.toFixed(1)}`;
+                      : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
 
                   return (
                     <div
