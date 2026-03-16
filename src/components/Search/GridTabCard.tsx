@@ -134,13 +134,11 @@ function GridTabCard({
 
   function getDynamicWidth() {
     if (largeVariant) return 400;
-    if (
-      pinnedTabType !== undefined &&
-      !isAboveExtraSmallViewportWidth &&
-      asPath === "/explore"
-    ) {
-      return 300;
+
+    if (pinnedTabType !== undefined && !isAboveExtraSmallViewportWidth) {
+      return 320;
     }
+
     if (isAboveExtraSmallViewportWidth) {
       return 330;
     }
@@ -150,8 +148,11 @@ function GridTabCard({
 
   function getDynamicHeight() {
     if (largeVariant) return 185;
-    if (pinnedTabType !== undefined || isAboveExtraSmallViewportWidth)
+
+    if (pinnedTabType !== undefined || isAboveExtraSmallViewportWidth) {
       return 152;
+    }
+
     return 129;
   }
 
