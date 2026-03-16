@@ -117,7 +117,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
       <div className="baseVertFlex w-full gap-4">
         <AnimatePresence mode="popLayout">
-          {isFetchingUserMetadata ? (
+          {!userMetadata ? (
             <motion.div
               key={"userMetadataLoading"}
               initial={{ opacity: 0 }}
@@ -126,16 +126,16 @@ function UserProfile({ uniqueKey }: UserProfile) {
               transition={{ duration: 0.25 }}
               className="baseVertFlex w-full gap-4 px-2 lg:!flex-row lg:!items-end lg:!justify-between lg:px-0"
             >
-              <div className="baseVertFlex !items-start gap-2 text-foreground">
-                <div className="baseFlex gap-1">User</div>
+              <div className="baseVertFlex mt-[11px] !items-start gap-2 text-foreground">
+                <p>User</p>
 
-                <div className="baseFlex gap-2">
+                <div className="baseFlex mt-[3px] gap-2">
                   <div className="pulseAnimation size-9 rounded-full bg-foreground/50 md:size-10"></div>
 
                   <div className="pulseAnimation h-[38px] w-36 rounded-md bg-foreground/50"></div>
                 </div>
 
-                <div className="baseVertFlex mt-6 !items-start gap-2 font-medium sm:text-lg lg:pb-0 2xl:hidden">
+                <div className="baseVertFlex mt-[20px] !items-start gap-2 font-medium sm:text-lg lg:pb-0 2xl:hidden">
                   <div className="baseFlex w-full !justify-between gap-16">
                     <div className="baseFlex gap-2">
                       <BsMusicNoteBeamed className="size-4 sm:size-5" />
@@ -219,7 +219,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                 </div>
               </div>
 
-              <div className="baseFlex mt-[10px] gap-2 lg:hidden">
+              <div className="baseFlex mt-[20px] gap-2 lg:hidden">
                 <div className="h-2 w-8 rounded-full bg-accent" />
                 <div className="h-2 w-8 rounded-full bg-foreground" />
               </div>
