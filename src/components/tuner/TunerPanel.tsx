@@ -9,7 +9,8 @@ import TuningSelect from "~/components/ui/TuningSelect";
 const stringLabels = ["6", "5", "4", "3", "2", "1"];
 const centsTicks = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
 const mobileLabelTicks = [-50, -25, 0, 25, 50];
-const regularArcMarkerRatios = [-1, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1];
+const regularRangeCents = 25;
+const regularArcMarkerRatios = [-1, -0.4, -0.2, 0, 0.2, 0.4, 1];
 const stringThicknesses = [8, 7, 6, 5, 4, 3];
 
 function frequencyFromMidi(midi: number) {
@@ -79,16 +80,23 @@ function TunerPanel({
   const hasRegularCents = signalDetected && targetCentsOffset !== null;
   const regularRawCentsOffset = hasRegularCents ? targetCentsOffset : 0;
   const clampedRegularCentsOffset = Math.max(
-    -50,
-    Math.min(50, regularRawCentsOffset),
+    -regularRangeCents,
+    Math.min(regularRangeCents, regularRawCentsOffset),
   );
   const absoluteRegularCentsOffset = Math.abs(clampedRegularCentsOffset);
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
-  const regularNeedleDegrees = (clampedRegularCentsOffset / 50) * 90;
+  const regularNeedleDegrees =
+    (clampedRegularCentsOffset / regularRangeCents) * 90;
   const chromaticMarkerLeftPercent = ((clampedDetectedCents + 50) / 100) * 100;
   const regularSemicircleGradient = useMemo(() => {
     const toAngle = (centsOffset: number) =>
-      Math.max(0, Math.min(180, ((centsOffset + 50) / 100) * 180));
+      Math.max(
+        0,
+        Math.min(
+          180,
+          ((centsOffset + regularRangeCents) / (regularRangeCents * 2)) * 180,
+        ),
+      );
     const leftOrange = toAngle(-25);
     const leftYellow = toAngle(-10);
     const leftGreen = toAngle(-toleranceCents);
@@ -303,7 +311,7 @@ function TunerPanel({
                   const angleRadians = markerRatio * (Math.PI / 2);
                   const xOffset = Math.sin(angleRadians) * 124;
                   const yOffset = Math.cos(angleRadians) * 136;
-                  const markerValue = markerRatio * 50;
+                  const markerValue = markerRatio * regularRangeCents;
                   const markerLabel =
                     Math.abs(markerValue) < 0.5
                       ? "0"
@@ -328,7 +336,7 @@ function TunerPanel({
                   const angleRadians = markerRatio * (Math.PI / 2);
                   const xOffset = Math.sin(angleRadians) * 152;
                   const yOffset = Math.cos(angleRadians) * 164;
-                  const markerValue = markerRatio * 50;
+                  const markerValue = markerRatio * regularRangeCents;
                   const markerLabel =
                     Math.abs(markerValue) < 0.5
                       ? "0"
