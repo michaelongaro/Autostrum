@@ -211,18 +211,19 @@ function TunerPanel({
         <>
           <div className="baseVertFlex w-full rounded-md border bg-background p-3 sm:p-5">
             <div className="relative h-[230px] w-full sm:h-[280px]">
-              <div className="absolute left-3 top-3 text-xs font-medium text-foreground/80 sm:text-sm">
+              <div className="baseVertFlex w-full gap-4">
                 <p className="font-semibold text-foreground">
                   {formatNoteLabel(currentTarget)}
                 </p>
-              </div>
-
-              <div className="absolute right-3 top-3 text-xs font-semibold text-foreground/80 sm:text-sm">
-                <p>{`${currentTargetFrequency.toFixed(1)} Hz`}</p>
-              </div>
-
-              <div className="absolute left-1/2 top-3 w-[104px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-xs font-semibold tabular-nums text-foreground sm:w-[118px] sm:text-sm">
-                {`${currentMicFrequency.toFixed(1)} Hz`}
+                <div className="baseFlex gap-2">
+                  <div className="baseFlex w-20">
+                    {`${currentMicFrequency.toFixed(1)} Hz`}
+                  </div>
+                  /
+                  <div className="baseFlex w-20">
+                    {`${currentTargetFrequency.toFixed(1)} Hz`}
+                  </div>
+                </div>
               </div>
 
               <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 sm:h-[180px] sm:w-[280px]">
