@@ -75,18 +75,18 @@ function DesktopHeader() {
                 size={"lg"}
                 asChild
                 style={{
-                  backgroundColor: asPath.includes("/metronome")
+                  backgroundColor: asPath.includes("/tools")
                     ? "hsl(var(--accent))"
                     : undefined,
-                  color: asPath.includes("/metronome")
+                  color: asPath.includes("/tools")
                     ? "hsl(var(--accent-foreground))"
                     : undefined,
                 }}
-                className={classes.metronome}
+                className={classes.tools}
               >
                 <Link
                   prefetch={false}
-                  href={"/metronome"}
+                  href={"/tools"}
                   className="baseFlex !size-12 !rounded-full !p-0"
                 >
                   <PiMetronome className="size-6" />
@@ -94,7 +94,7 @@ function DesktopHeader() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side={"bottom"}>
-              <p>Metronome</p>
+              <p>Tools</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

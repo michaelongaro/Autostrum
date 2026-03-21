@@ -2,9 +2,9 @@ import { type Dispatch, type SetStateAction, useMemo } from "react";
 import { FaBook } from "react-icons/fa";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
-import TuningFork from "~/components/ui/icons/TuningFork";
 import { Label } from "~/components/ui/label";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
 import {
   Select,
   SelectContent,
@@ -251,13 +251,7 @@ function PlaybackTopMetadata({
                       {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
                     </div>
 
-                    <Button
-                      variant={"outline"}
-                      className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
-                    >
-                      <TuningFork className="size-4" />
-                      <span className="hidden sm:block">Tuner</span>
-                    </Button>
+                    <PlaybackTunerDialog />
 
                     {!viewportLabel.includes("mobile") && (
                       <Button

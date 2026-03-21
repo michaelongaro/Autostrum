@@ -12,7 +12,7 @@
     grid-template-columns:
       175px 1fr 48px 48px minmax(350px, 450px) 48px 48px 1fr 48px 48px;
     grid-template-areas:
-      "logo . metronome tuner search explore create . theme authentication";
+      "logo . tools tuner search explore create . theme authentication";
     align-items: center;
   }
 }
@@ -44,8 +44,8 @@
   filter: brightness(0.95);
 }
 
-.metronome {
-  grid-area: metronome;
+.tools {
+  grid-area: tools;
 }
 
 .tuner {

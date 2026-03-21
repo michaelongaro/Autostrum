@@ -21,7 +21,27 @@
   <priority>0.7</priority>
 </url>    
 <url>
-  <loc>https://www.autostrum.com/metronome</loc>
+  <loc>https://www.autostrum.com/tools</loc>
+  <lastmod>2026-03-21</lastmod>
+  <priority>0.8</priority>
+</url>
+<url>
+  <loc>https://www.autostrum.com/tools/metronome</loc>
+  <lastmod>2026-03-21</lastmod>
+  <priority>0.7</priority>
+</url>
+<url>
+  <loc>https://www.autostrum.com/tools/warmups</loc>
+  <lastmod>2026-03-21</lastmod>
+  <priority>0.6</priority>
+</url>
+<url>
+  <loc>https://www.autostrum.com/tools/scales</loc>
+  <lastmod>2026-03-21</lastmod>
+  <priority>0.6</priority>
+</url>
+<url>
+  <loc>https://www.autostrum.com/tools/note-trainer</loc>
   <lastmod>2025-06-18</lastmod>
   <priority>0.6</priority>
 </url> 

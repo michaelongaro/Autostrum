@@ -7,6 +7,20 @@ await import("./src/env.js");
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: false,
+  async redirects() {
+    return [
+      {
+        source: "/metronome",
+        destination: "/tools",
+        permanent: true,
+      },
+      {
+        source: "/tools/",
+        destination: "/tools",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
