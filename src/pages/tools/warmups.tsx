@@ -1,14 +1,9 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import { IoMusicalNotes } from "react-icons/io5";
+import PracticePlaybackPanel from "~/components/tools/PracticePlaybackPanel";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
-
-const starterWarmups = [
-  "1-2-3-4 Chromatic Ladder",
-  "Spider Walk (String Skips)",
-  "Alternate Picking Endurance",
-  "Legato Finger Independence",
-];
+import { warmupExercises } from "~/data/tools/practiceExercises";
 
 function WarmupsPage() {
   return (
@@ -27,23 +22,13 @@ function WarmupsPage() {
       <ToolRouteHeader
         icon={<IoMusicalNotes className="size-5" />}
         title="Warm-up Exercises"
-        description="Warm-up playback integration is now scaffolded for the existing practice engine. This page will next be connected to generated practice metadata and transport controls."
+        description="Practice warm-up drills using the same playback engine and modal flow as tab practice."
       />
 
-      <div className="baseVertFlex w-full items-start gap-3 rounded-lg border bg-secondary p-4 shadow-md">
-        <p className="text-sm font-medium">Starter library (MVP set)</p>
-
-        <ul className="grid w-full gap-2 sm:grid-cols-2">
-          {starterWarmups.map((exercise) => (
-            <li
-              key={exercise}
-              className="rounded-md border bg-background px-3 py-2 text-sm"
-            >
-              {exercise}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <PracticePlaybackPanel
+        exercises={warmupExercises}
+        emptyStateLabel="No warm-up exercises are configured yet."
+      />
     </motion.div>
   );
 }

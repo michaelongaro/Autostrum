@@ -1,14 +1,9 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import { IoGitNetwork } from "react-icons/io5";
+import PracticePlaybackPanel from "~/components/tools/PracticePlaybackPanel";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
-
-const starterScales = [
-  "Minor Pentatonic Position 1",
-  "Major Scale 3 Notes per String",
-  "Natural Minor (Aeolian) Shape",
-  "Blues Scale Extension Pattern",
-];
+import { scaleExercises } from "~/data/tools/practiceExercises";
 
 function ScalesPage() {
   return (
@@ -27,23 +22,13 @@ function ScalesPage() {
       <ToolRouteHeader
         icon={<IoGitNetwork className="size-5" />}
         title="Scales Practice"
-        description="Scale sessions are prepared to reuse the current playback architecture. The next implementation step connects each pattern to compiled metadata and loop-aware controls."
+        description="Run scale patterns through the same compile + playback modal engine used for tab practice."
       />
 
-      <div className="baseVertFlex w-full items-start gap-3 rounded-lg border bg-secondary p-4 shadow-md">
-        <p className="text-sm font-medium">Starter scale set (MVP)</p>
-
-        <ul className="grid w-full gap-2 sm:grid-cols-2">
-          {starterScales.map((scale) => (
-            <li
-              key={scale}
-              className="rounded-md border bg-background px-3 py-2 text-sm"
-            >
-              {scale}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <PracticePlaybackPanel
+        exercises={scaleExercises}
+        emptyStateLabel="No scale exercises are configured yet."
+      />
     </motion.div>
   );
 }

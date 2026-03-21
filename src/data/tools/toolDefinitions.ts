@@ -17,7 +17,7 @@ export const toolDefinitions: ToolDefinition[] = [
       "Structured finger-independence and dexterity drills with guided tempo progression.",
     category: "Practice",
     href: "/tools/warmups",
-    status: "in-progress",
+    status: "available",
   },
   {
     id: "scales",
@@ -26,7 +26,7 @@ export const toolDefinitions: ToolDefinition[] = [
       "Practice common guitar scale patterns across positions with repeat-focused sessions.",
     category: "Practice",
     href: "/tools/scales",
-    status: "in-progress",
+    status: "available",
   },
   {
     id: "metronome",
