@@ -19,6 +19,12 @@ type PracticePlaybackPanelProps = {
   emptyStateLabel: string;
 };
 
+type PlaybackSpeedOption = 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+
+const playbackSpeedOptions: PlaybackSpeedOption[] = [0.5, 0.75, 1, 1.25, 1.5];
+const repetitionOptions = [1, 2, 3, 4, 6, 8];
+const loopDelayOptions = [0, 0.5, 1, 2];
+
 function PracticePlaybackPanel({
   exercises,
   emptyStateLabel,
@@ -26,6 +32,10 @@ function PracticePlaybackPanel({
   const [selectedExerciseId, setSelectedExerciseId] = useState(
     exercises[0]?.id ?? "",
   );
+  const [selectedRepetitions, setSelectedRepetitions] = useState(2);
+  const [selectedPlaybackSpeed, setSelectedPlaybackSpeed] =
+    useState<PlaybackSpeedOption>(1);
+  const [selectedLoopDelay, setSelectedLoopDelay] = useState(0);
 
   const {
     showPlaybackModal,
@@ -42,6 +52,8 @@ function PracticePlaybackPanel({
     setTabData,
     setCurrentChordIndex,
     setAudioMetadata,
+    setPlaybackSpeed,
+    setLoopDelay,
     audioMetadata,
   } = useTabStore((state) => ({
     showPlaybackModal: state.showPlaybackModal,
@@ -58,6 +70,8 @@ function PracticePlaybackPanel({
     setTabData: state.setTabData,
     setCurrentChordIndex: state.setCurrentChordIndex,
     setAudioMetadata: state.setAudioMetadata,
+    setPlaybackSpeed: state.setPlaybackSpeed,
+    setLoopDelay: state.setLoopDelay,
     audioMetadata: state.audioMetadata,
   }));
 
@@ -98,11 +112,14 @@ function PracticePlaybackPanel({
       draft.splice(
         0,
         draft.length,
-        ...buildPracticeExerciseTabData(selectedExercise),
+        ...buildPracticeExerciseTabData(selectedExercise, {
+          repetitions: selectedRepetitions,
+        }),
       );
     });
   }, [
     selectedExercise,
+    selectedRepetitions,
     pauseAudio,
     setShowPlaybackModal,
     setEditing,
@@ -117,6 +134,14 @@ function PracticePlaybackPanel({
     setAudioMetadata,
     setTabData,
   ]);
+
+  useEffect(() => {
+    setPlaybackSpeed(selectedPlaybackSpeed);
+  }, [selectedPlaybackSpeed, setPlaybackSpeed]);
+
+  useEffect(() => {
+    setLoopDelay(selectedLoopDelay);
+  }, [selectedLoopDelay, setLoopDelay]);
 
   if (!selectedExercise) {
     return (
@@ -157,8 +182,64 @@ function PracticePlaybackPanel({
           <p className="text-sm font-medium">Selected</p>
           <p className="text-sm">{selectedExercise.title}</p>
           <p className="text-xs text-foreground/80">
-            BPM {selectedExercise.bpm} • {selectedExercise.steps.length} notes
+            BPM {selectedExercise.bpm} • {selectedExercise.steps.length} notes •{" "}
+            {selectedRepetitions}x reps
           </p>
+        </div>
+
+        <div className="baseVertFlex w-full items-start gap-2 rounded-md border bg-background p-3">
+          <p className="text-sm font-medium">Tempo multiplier</p>
+
+          <div className="baseFlex w-full flex-wrap !justify-start gap-2">
+            {playbackSpeedOptions.map((option) => (
+              <Button
+                key={option}
+                variant={
+                  option === selectedPlaybackSpeed ? "secondary" : "outline"
+                }
+                className="!h-8 px-3"
+                onClick={() => setSelectedPlaybackSpeed(option)}
+              >
+                {option}x
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <div className="baseVertFlex w-full items-start gap-2 rounded-md border bg-background p-3">
+          <p className="text-sm font-medium">Repetitions</p>
+
+          <div className="baseFlex w-full flex-wrap !justify-start gap-2">
+            {repetitionOptions.map((option) => (
+              <Button
+                key={option}
+                variant={
+                  option === selectedRepetitions ? "secondary" : "outline"
+                }
+                className="!h-8 px-3"
+                onClick={() => setSelectedRepetitions(option)}
+              >
+                {option}x
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <div className="baseVertFlex w-full items-start gap-2 rounded-md border bg-background p-3">
+          <p className="text-sm font-medium">Loop delay</p>
+
+          <div className="baseFlex w-full flex-wrap !justify-start gap-2">
+            {loopDelayOptions.map((option) => (
+              <Button
+                key={option}
+                variant={option === selectedLoopDelay ? "secondary" : "outline"}
+                className="!h-8 px-3"
+                onClick={() => setSelectedLoopDelay(option)}
+              >
+                {option === 0 ? "Off" : `${option}s`}
+              </Button>
+            ))}
+          </div>
         </div>
 
         <Button

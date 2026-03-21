@@ -34,7 +34,13 @@ function createSingleStringTabNote({
   });
 }
 
-function createTabDataForExercise(exercise: PracticeExercise): Section[] {
+function createTabDataForExercise({
+  exercise,
+  repetitions,
+}: {
+  exercise: PracticeExercise;
+  repetitions: number;
+}): Section[] {
   const sectionData = exercise.steps.flatMap((step, index) => {
     const isEndOfMeasure =
       (index + 1) % 4 === 0 && index < exercise.steps.length - 1;
@@ -55,7 +61,7 @@ function createTabDataForExercise(exercise: PracticeExercise): Section[] {
           type: "tab",
           bpm: exercise.bpm,
           baseNoteLength: "quarter",
-          repetitions: 1,
+          repetitions: Math.max(1, repetitions),
           data: sectionData,
         },
       ],
@@ -63,8 +69,16 @@ function createTabDataForExercise(exercise: PracticeExercise): Section[] {
   ];
 }
 
-export function buildPracticeExerciseTabData(exercise: PracticeExercise) {
-  return createTabDataForExercise(exercise);
+export function buildPracticeExerciseTabData(
+  exercise: PracticeExercise,
+  options?: {
+    repetitions?: number;
+  },
+) {
+  return createTabDataForExercise({
+    exercise,
+    repetitions: options?.repetitions ?? 1,
+  });
 }
 
 export const warmupExercises: PracticeExercise[] = [
