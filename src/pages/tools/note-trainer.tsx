@@ -62,6 +62,8 @@ function NoteTrainerPage() {
   const [selectedGuess, setSelectedGuess] = useState<string | null>(null);
   const [roundsPlayed, setRoundsPlayed] = useState(0);
   const [correctGuesses, setCorrectGuesses] = useState(0);
+  const audioSourceRef = useRef<AudioSource>(audioSource);
+  audioSourceRef.current = audioSource;
 
   const isCorrect = useMemo(() => {
     if (!selectedGuess) return null;
@@ -125,39 +127,51 @@ function NoteTrainerPage() {
     };
   }, [audioSource, getAudioContext]);
 
+  const playNote = useCallback(
+    async (note: string) => {
+      const source = audioSourceRef.current;
+
+      if (source === "generated") {
+        const frequency = get(note).freq;
+        if (!frequency) return;
+
+        const audioContext = await getAudioContext();
+
+        const oscillator = audioContext.createOscillator();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(
+          frequency,
+          audioContext.currentTime,
+        );
+
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(
+          0.18,
+          audioContext.currentTime + 0.02,
+        );
+        gainNode.gain.exponentialRampToValueAtTime(
+          0.0001,
+          audioContext.currentTime + 0.8,
+        );
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.82);
+      } else {
+        const player = soundfontCacheRef.current[source];
+        if (!player) return;
+
+        player.play(note, 0, { duration: 1.5, gain: 3 });
+      }
+    },
+    [getAudioContext],
+  );
+
   async function playTargetNote() {
-    if (audioSource === "generated") {
-      const frequency = get(targetNote).freq;
-      if (!frequency) return;
-
-      const audioContext = await getAudioContext();
-
-      const oscillator = audioContext.createOscillator();
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-
-      const gainNode = audioContext.createGain();
-      gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.18,
-        audioContext.currentTime + 0.02,
-      );
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.0001,
-        audioContext.currentTime + 0.8,
-      );
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 0.82);
-    } else {
-      const player = soundfontCacheRef.current[audioSource];
-      if (!player) return;
-
-      player.play(targetNote, 0, { duration: 1.5, gain: 3 });
-    }
+    await playNote(targetNote);
   }
 
   function handleGuess(note: string) {
@@ -173,7 +187,9 @@ function NoteTrainerPage() {
 
   function nextRound() {
     setSelectedGuess(null);
-    setTargetNote(getRandomNote());
+    const newNote = getRandomNote();
+    setTargetNote(newNote);
+    void playNote(newNote);
   }
 
   function getGuessButtonVariant(note: string) {
@@ -251,13 +267,13 @@ function NoteTrainerPage() {
 
         {/* Center: note guess buttons */}
         <div className="baseVertFlex w-full gap-2">
-          {selectedGuess && (
-            <p className="text-sm font-medium">
-              {isCorrect
-                ? "Correct!"
-                : `Not quite, the answer was ${targetNote}.`}
-            </p>
-          )}
+          <p
+            className={`text-sm font-medium transition-opacity ${selectedGuess ? "opacity-100" : "opacity-0"}`}
+          >
+            {isCorrect
+              ? "Correct!"
+              : `Not quite, the answer was ${targetNote}.`}
+          </p>
 
           <div className="mx-auto grid w-full max-w-lg grid-cols-4 gap-2 xs:grid-cols-6 sm:grid-cols-6">
             {NOTE_POOL.map((note) => (
@@ -275,7 +291,7 @@ function NoteTrainerPage() {
         </div>
 
         {/* Bottom: play + skip/next */}
-        <div className="baseFlex gap-3">
+        <div className="baseFlex mt-8 gap-3">
           <Button
             variant="audio"
             className="h-11 px-6"
