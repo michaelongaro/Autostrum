@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import { PiMetronome } from "react-icons/pi";
@@ -21,6 +21,23 @@ const timeSignatures: TimeSignature[] = [
 
 const subdivisions: Subdivision[] = [1, 2, 4];
 
+function getTempoName(bpm: number): string {
+  if (bpm <= 24) return "Larghissimo";
+  if (bpm <= 45) return "Grave";
+  if (bpm <= 59) return "Largo";
+  if (bpm <= 65) return "Larghetto";
+  if (bpm <= 75) return "Adagio";
+  if (bpm <= 107) return "Andante";
+  if (bpm <= 119) return "Moderato";
+  if (bpm <= 155) return "Allegro";
+  if (bpm <= 175) return "Vivace";
+  if (bpm <= 199) return "Presto";
+  return "Prestissimo";
+}
+
+const TAP_RESET_MS = 2000;
+const MAX_TAP_INTERVALS = 8;
+
 function MetronomeToolPage() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -35,6 +52,42 @@ function MetronomeToolPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(1);
 
+  // Tap BPM state
+  const tapTimesRef = useRef<number[]>([]);
+  const tapResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [tapBpm, setTapBpm] = useState<number | null>(null);
+
+  const handleTap = useCallback(() => {
+    const now = performance.now();
+
+    if (tapResetTimerRef.current) {
+      clearTimeout(tapResetTimerRef.current);
+    }
+
+    tapResetTimerRef.current = setTimeout(() => {
+      tapTimesRef.current = [];
+      setTapBpm(null);
+    }, TAP_RESET_MS);
+
+    tapTimesRef.current.push(now);
+
+    // Keep only enough timestamps to compute MAX_TAP_INTERVALS intervals
+    if (tapTimesRef.current.length > MAX_TAP_INTERVALS + 1) {
+      tapTimesRef.current = tapTimesRef.current.slice(-(MAX_TAP_INTERVALS + 1));
+    }
+
+    const times = tapTimesRef.current;
+    if (times.length >= 2) {
+      const totalMs = times[times.length - 1]! - times[0]!;
+      const intervals = times.length - 1;
+      const avgMs = totalMs / intervals;
+      const detected = Math.round(60_000 / avgMs);
+      const clamped = Math.max(40, Math.min(240, detected));
+      setTapBpm(clamped);
+      setBpm(clamped);
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -44,6 +97,10 @@ function MetronomeToolPage() {
       if (audioContextRef.current) {
         void audioContextRef.current.close();
         audioContextRef.current = null;
+      }
+
+      if (tapResetTimerRef.current) {
+        clearTimeout(tapResetTimerRef.current);
       }
     };
   }, []);
@@ -186,11 +243,46 @@ function MetronomeToolPage() {
         description="Practice with adjustable tempo, subdivisions, and accented downbeats."
       />
 
-      <div className="baseVertFlex w-full items-start gap-4 rounded-lg border bg-secondary p-4 shadow-md">
-        <div className="baseVertFlex w-full items-start gap-2">
-          <label htmlFor="bpm" className="text-sm font-medium">
-            BPM: {bpm}
-          </label>
+      <div className="baseVertFlex w-full gap-6 rounded-lg border bg-secondary p-4 shadow-md sm:p-6">
+        {/* Beat visualization circles */}
+        <div className="baseFlex flex-wrap gap-3">
+          {Array.from({ length: timeSignature.beatsPerMeasure }, (_, i) => {
+            const beatNumber = i + 1;
+            const isActive = isRunning && currentBeat === beatNumber;
+            const isDownbeat = beatNumber === 1;
+
+            return (
+              <div
+                key={i}
+                className={`size-10 rounded-full border-2 transition-all duration-75 sm:size-12 ${
+                  isActive
+                    ? isDownbeat && accentDownbeat
+                      ? "scale-110 border-orange-400 bg-orange-400 shadow-[0_0_12px_rgba(251,146,60,0.5)]"
+                      : "scale-110 border-primary bg-primary shadow-[0_0_12px_rgba(var(--primary-rgb),0.4)]"
+                    : isDownbeat && accentDownbeat
+                      ? "border-orange-400/40 bg-orange-400/10"
+                      : "border-foreground/20 bg-foreground/5"
+                }`}
+              />
+            );
+          })}
+        </div>
+
+        {/* BPM display + tempo name */}
+        <div className="baseVertFlex gap-1">
+          <p className="text-3xl font-bold tabular-nums tracking-tight">
+            {bpm}{" "}
+            <span className="text-base font-normal text-foreground/60">
+              BPM
+            </span>
+          </p>
+          <p className="text-sm italic text-foreground/50">
+            {getTempoName(bpm)}
+          </p>
+        </div>
+
+        {/* BPM slider + Tap button */}
+        <div className="baseFlex w-full gap-3">
           <input
             id="bpm"
             type="range"
@@ -201,8 +293,16 @@ function MetronomeToolPage() {
             onChange={(event) => setBpm(Number(event.target.value))}
             className="w-full"
           />
+          <Button
+            variant="outline"
+            className="!h-9 shrink-0 px-4 font-semibold"
+            onClick={handleTap}
+          >
+            Tap
+          </Button>
         </div>
 
+        {/* Controls: time signature, subdivision, accent */}
         <div className="grid w-full gap-3 sm:grid-cols-3">
           <div className="baseVertFlex items-start gap-2">
             <p className="text-sm font-medium">Time Signature</p>
@@ -256,19 +356,14 @@ function MetronomeToolPage() {
           </div>
         </div>
 
-        <div className="baseFlex w-full !justify-start gap-2">
-          <Button
-            variant={isRunning ? "destructive" : "secondary"}
-            className="!h-9 px-4"
-            onClick={toggleRunning}
-          >
-            {isRunning ? "Stop" : "Start"}
-          </Button>
-
-          <p className="text-sm text-foreground/85">
-            Current beat: {currentBeat}/{timeSignature.beatsPerMeasure}
-          </p>
-        </div>
+        {/* Start/Stop */}
+        <Button
+          variant={isRunning ? "destructive" : "secondary"}
+          className="!h-10 w-full max-w-48 px-6"
+          onClick={toggleRunning}
+        >
+          {isRunning ? "Stop" : "Start"}
+        </Button>
       </div>
     </motion.div>
   );
