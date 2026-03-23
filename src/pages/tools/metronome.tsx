@@ -2,8 +2,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import { PiMetronome } from "react-icons/pi";
+import { getTrackBackground, Range } from "react-range";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
+import { BsFillVolumeUpFill } from "react-icons/bs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 type Subdivision = 1 | 2 | 4;
 
@@ -11,6 +20,84 @@ type TimeSignature = {
   label: string;
   beatsPerMeasure: number;
 };
+
+type MetronomeMode = "regular" | "speed-trainer";
+
+type ClickSound = {
+  label: string;
+  value: string;
+  waveform: OscillatorType;
+  highFreq: number;
+  lowFreq: number;
+  subFreq: number;
+  highGain: number;
+  lowGain: number;
+  subGain: number;
+  decay: number;
+};
+
+const clickSounds: ClickSound[] = [
+  {
+    label: "Classic",
+    value: "classic",
+    waveform: "square",
+    highFreq: 1500,
+    lowFreq: 1000,
+    subFreq: 720,
+    highGain: 0.24,
+    lowGain: 0.16,
+    subGain: 0.11,
+    decay: 0.06,
+  },
+  {
+    label: "Wooden",
+    value: "wooden",
+    waveform: "triangle",
+    highFreq: 3500,
+    lowFreq: 2800,
+    subFreq: 2200,
+    highGain: 0.3,
+    lowGain: 0.22,
+    subGain: 0.14,
+    decay: 0.035,
+  },
+  {
+    label: "Digital",
+    value: "digital",
+    waveform: "sine",
+    highFreq: 1200,
+    lowFreq: 880,
+    subFreq: 660,
+    highGain: 0.28,
+    lowGain: 0.2,
+    subGain: 0.13,
+    decay: 0.05,
+  },
+  {
+    label: "Hi-Hat",
+    value: "hihat",
+    waveform: "sawtooth",
+    highFreq: 6000,
+    lowFreq: 4500,
+    subFreq: 3500,
+    highGain: 0.12,
+    lowGain: 0.09,
+    subGain: 0.06,
+    decay: 0.03,
+  },
+  {
+    label: "Soft",
+    value: "soft",
+    waveform: "sine",
+    highFreq: 900,
+    lowFreq: 700,
+    subFreq: 520,
+    highGain: 0.18,
+    lowGain: 0.13,
+    subGain: 0.08,
+    decay: 0.08,
+  },
+];
 
 const timeSignatures: TimeSignature[] = [
   { label: "2/4", beatsPerMeasure: 2 },
@@ -51,6 +138,23 @@ function MetronomeToolPage() {
   const [accentDownbeat, setAccentDownbeat] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(1);
+  const [clickSound, setClickSound] = useState<ClickSound>(clickSounds[0]!);
+
+  // Mode state
+  const [mode, setMode] = useState<MetronomeMode>("regular");
+
+  // Speed trainer state
+  const [startBpm, setStartBpm] = useState(60);
+  const [finalBpm, setFinalBpm] = useState(120);
+  const [bpmIncrement, setBpmIncrement] = useState(5);
+  const [barsPerIncrease, setBarsPerIncrease] = useState(4);
+  const liveBpmRef = useRef(bpm);
+  const barCountRef = useRef(0);
+
+  // Keep liveBpmRef in sync with bpm state
+  useEffect(() => {
+    liveBpmRef.current = bpm;
+  }, [bpm]);
 
   // Tap BPM state
   const tapTimesRef = useRef<number[]>([]);
@@ -71,7 +175,6 @@ function MetronomeToolPage() {
 
     tapTimesRef.current.push(now);
 
-    // Keep only enough timestamps to compute MAX_TAP_INTERVALS intervals
     if (tapTimesRef.current.length > MAX_TAP_INTERVALS + 1) {
       tapTimesRef.current = tapTimesRef.current.slice(-(MAX_TAP_INTERVALS + 1));
     }
@@ -120,10 +223,12 @@ function MetronomeToolPage() {
     async function runMetronomeLoop() {
       const audioContext = await getAudioContext();
 
-      const millisecondsPerSubdivision = 60_000 / bpm / Number(subdivision);
-
       const executeTick = () => {
         if (isCancelled) return;
+
+        const currentBpm = liveBpmRef.current;
+        const millisecondsPerSubdivision =
+          60_000 / currentBpm / Number(subdivision);
 
         currentStepRef.current += 1;
 
@@ -136,17 +241,45 @@ function MetronomeToolPage() {
 
         setCurrentBeat(beatInMeasure + 1);
 
+        // Speed trainer: track bars and increase BPM
+        if (
+          mode === "speed-trainer" &&
+          isPrimaryPulse &&
+          isDownbeat &&
+          currentStepRef.current > 1
+        ) {
+          barCountRef.current += 1;
+
+          if (barCountRef.current >= barsPerIncrease) {
+            barCountRef.current = 0;
+            const nextBpm = Math.min(currentBpm + bpmIncrement, finalBpm);
+            liveBpmRef.current = nextBpm;
+            setBpm(nextBpm);
+          }
+        }
+
         if (isPrimaryPulse) {
           playClick({
             audioContext,
             frequency:
               accentDownbeat && isDownbeat
-                ? 1500
-                : 1000 - (Number(subdivision) - 1) * 50,
-            gain: accentDownbeat && isDownbeat ? 0.24 : 0.16,
+                ? clickSound.highFreq
+                : clickSound.lowFreq,
+            gain:
+              accentDownbeat && isDownbeat
+                ? clickSound.highGain
+                : clickSound.lowGain,
+            waveform: clickSound.waveform,
+            decay: clickSound.decay,
           });
         } else {
-          playClick({ audioContext, frequency: 720, gain: 0.11 });
+          playClick({
+            audioContext,
+            frequency: clickSound.subFreq,
+            gain: clickSound.subGain,
+            waveform: clickSound.waveform,
+            decay: clickSound.decay,
+          });
         }
 
         timerRef.current = setTimeout(executeTick, millisecondsPerSubdivision);
@@ -170,6 +303,11 @@ function MetronomeToolPage() {
     isRunning,
     subdivision,
     timeSignature.beatsPerMeasure,
+    clickSound,
+    mode,
+    bpmIncrement,
+    barsPerIncrease,
+    finalBpm,
   ]);
 
   async function getAudioContext() {
@@ -188,41 +326,54 @@ function MetronomeToolPage() {
     audioContext,
     frequency,
     gain,
+    waveform,
+    decay,
   }: {
     audioContext: AudioContext;
     frequency: number;
     gain: number;
+    waveform: OscillatorType;
+    decay: number;
   }) {
     const now = audioContext.currentTime;
 
     const oscillator = audioContext.createOscillator();
-    oscillator.type = "square";
+    oscillator.type = waveform;
     oscillator.frequency.setValueAtTime(frequency, now);
 
     const gainNode = audioContext.createGain();
     gainNode.gain.setValueAtTime(0.0001, now);
     gainNode.gain.exponentialRampToValueAtTime(gain, now + 0.006);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + decay);
 
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
     oscillator.start(now);
-    oscillator.stop(now + 0.07);
+    oscillator.stop(now + decay + 0.01);
   }
 
   function toggleRunning() {
     setIsRunning((currentlyRunning) => {
       const nextRunningState = !currentlyRunning;
 
+      if (nextRunningState && mode === "speed-trainer") {
+        setBpm(startBpm);
+        liveBpmRef.current = startBpm;
+        barCountRef.current = 0;
+      }
+
       if (!nextRunningState) {
         setCurrentBeat(1);
         currentStepRef.current = 0;
+        barCountRef.current = 0;
       }
 
       return nextRunningState;
     });
   }
+
+  const activeBpm = bpm;
 
   return (
     <motion.div
@@ -244,6 +395,30 @@ function MetronomeToolPage() {
       />
 
       <div className="baseVertFlex w-full gap-6 rounded-lg border bg-secondary p-4 shadow-md sm:p-6">
+        {/* Mode toggle */}
+        <div className="baseFlex gap-1 rounded-md border p-1">
+          <Button
+            variant={mode === "regular" ? "default" : "ghost"}
+            className="!h-8 px-4"
+            onClick={() => {
+              setMode("regular");
+              if (isRunning) toggleRunning();
+            }}
+          >
+            Regular
+          </Button>
+          <Button
+            variant={mode === "speed-trainer" ? "default" : "ghost"}
+            className="!h-8 px-4"
+            onClick={() => {
+              setMode("speed-trainer");
+              if (isRunning) toggleRunning();
+            }}
+          >
+            Speed Trainer
+          </Button>
+        </div>
+
         {/* Beat visualization circles */}
         <div className="baseFlex flex-wrap gap-3">
           {Array.from({ length: timeSignature.beatsPerMeasure }, (_, i) => {
@@ -271,40 +446,315 @@ function MetronomeToolPage() {
         {/* BPM display + tempo name */}
         <div className="baseVertFlex gap-1">
           <p className="text-3xl font-bold tabular-nums tracking-tight">
-            {bpm}{" "}
+            {activeBpm}{" "}
             <span className="text-base font-normal text-foreground/60">
               BPM
             </span>
           </p>
           <p className="text-sm italic text-foreground/50">
-            {getTempoName(bpm)}
+            {getTempoName(activeBpm)}
           </p>
         </div>
 
-        {/* BPM slider + Tap button */}
-        <div className="baseFlex w-full gap-3">
-          <input
-            id="bpm"
-            type="range"
-            min={40}
-            max={240}
-            step={1}
-            value={bpm}
-            onChange={(event) => setBpm(Number(event.target.value))}
-            className="w-full"
-          />
-          <Button
-            variant="outline"
-            className="!h-9 shrink-0 px-4 font-semibold"
-            onClick={handleTap}
-          >
-            Tap
-          </Button>
-        </div>
+        {mode === "regular" ? (
+          <>
+            {/* BPM slider + Tap button */}
+            <div className="baseFlex w-full gap-3 sm:max-w-lg">
+              <div className="flex w-full items-center px-1">
+                <Range
+                  label="BPM"
+                  step={1}
+                  min={40}
+                  max={240}
+                  values={[bpm]}
+                  onChange={(values) => {
+                    if (values[0] !== undefined) setBpm(values[0]);
+                  }}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      onMouseDown={props.onMouseDown}
+                      onTouchStart={props.onTouchStart}
+                      style={{
+                        ...props.style,
+                        display: "flex",
+                        width: "100%",
+                      }}
+                    >
+                      <div
+                        ref={props.ref}
+                        style={{
+                          height: "8px",
+                          width: "100%",
+                          borderRadius: "4px",
+                          background: getTrackBackground({
+                            values: [bpm],
+                            colors: [
+                              "hsl(var(--primary))",
+                              "hsl(var(--gray) / 0.5)",
+                            ],
+                            min: 40,
+                            max: 240,
+                          }),
+                          alignSelf: "center",
+                        }}
+                      >
+                        {children}
+                      </div>
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                    />
+                  )}
+                />
+              </div>
+              <Button
+                variant="outline"
+                className="!h-9 shrink-0 px-4 font-semibold"
+                onClick={handleTap}
+              >
+                Tap
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Speed trainer controls */}
+            <div className="grid w-full gap-4 sm:grid-cols-2">
+              <div className="baseVertFlex items-start gap-2">
+                <label className="text-sm font-medium">
+                  Start BPM: {startBpm}
+                </label>
+                <div className="flex w-full items-center">
+                  <Range
+                    label="Start BPM"
+                    step={1}
+                    min={40}
+                    max={240}
+                    values={[startBpm]}
+                    onChange={(values) => {
+                      if (values[0] !== undefined) setStartBpm(values[0]);
+                    }}
+                    renderTrack={({ props, children }) => (
+                      <div
+                        onMouseDown={props.onMouseDown}
+                        onTouchStart={props.onTouchStart}
+                        style={{
+                          ...props.style,
+                          display: "flex",
+                          width: "100%",
+                        }}
+                      >
+                        <div
+                          ref={props.ref}
+                          style={{
+                            height: "8px",
+                            width: "100%",
+                            borderRadius: "4px",
+                            background: getTrackBackground({
+                              values: [startBpm],
+                              colors: [
+                                "hsl(var(--primary))",
+                                "hsl(var(--gray) / 0.5)",
+                              ],
+                              min: 40,
+                              max: 240,
+                            }),
+                            alignSelf: "center",
+                          }}
+                        >
+                          {children}
+                        </div>
+                      </div>
+                    )}
+                    renderThumb={({ props }) => (
+                      <div
+                        {...props}
+                        className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="baseVertFlex items-start gap-2">
+                <label className="text-sm font-medium">
+                  Final BPM: {finalBpm}
+                </label>
+                <div className="flex w-full items-center">
+                  <Range
+                    label="Final BPM"
+                    step={1}
+                    min={40}
+                    max={240}
+                    values={[finalBpm]}
+                    onChange={(values) => {
+                      if (values[0] !== undefined) setFinalBpm(values[0]);
+                    }}
+                    renderTrack={({ props, children }) => (
+                      <div
+                        onMouseDown={props.onMouseDown}
+                        onTouchStart={props.onTouchStart}
+                        style={{
+                          ...props.style,
+                          display: "flex",
+                          width: "100%",
+                        }}
+                      >
+                        <div
+                          ref={props.ref}
+                          style={{
+                            height: "8px",
+                            width: "100%",
+                            borderRadius: "4px",
+                            background: getTrackBackground({
+                              values: [finalBpm],
+                              colors: [
+                                "hsl(var(--primary))",
+                                "hsl(var(--gray) / 0.5)",
+                              ],
+                              min: 40,
+                              max: 240,
+                            }),
+                            alignSelf: "center",
+                          }}
+                        >
+                          {children}
+                        </div>
+                      </div>
+                    )}
+                    renderThumb={({ props }) => (
+                      <div
+                        {...props}
+                        className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="baseVertFlex items-start gap-2">
+                <label className="text-sm font-medium">
+                  Increase by: {bpmIncrement} BPM
+                </label>
+                <div className="flex w-full items-center">
+                  <Range
+                    label="BPM increment"
+                    step={1}
+                    min={1}
+                    max={20}
+                    values={[bpmIncrement]}
+                    onChange={(values) => {
+                      if (values[0] !== undefined) setBpmIncrement(values[0]);
+                    }}
+                    renderTrack={({ props, children }) => (
+                      <div
+                        onMouseDown={props.onMouseDown}
+                        onTouchStart={props.onTouchStart}
+                        style={{
+                          ...props.style,
+                          display: "flex",
+                          width: "100%",
+                        }}
+                      >
+                        <div
+                          ref={props.ref}
+                          style={{
+                            height: "8px",
+                            width: "100%",
+                            borderRadius: "4px",
+                            background: getTrackBackground({
+                              values: [bpmIncrement],
+                              colors: [
+                                "hsl(var(--primary))",
+                                "hsl(var(--gray) / 0.5)",
+                              ],
+                              min: 1,
+                              max: 20,
+                            }),
+                            alignSelf: "center",
+                          }}
+                        >
+                          {children}
+                        </div>
+                      </div>
+                    )}
+                    renderThumb={({ props }) => (
+                      <div
+                        {...props}
+                        className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="baseVertFlex items-start gap-2">
+                <label className="text-sm font-medium">
+                  Every: {barsPerIncrease}{" "}
+                  {barsPerIncrease === 1 ? "bar" : "bars"}
+                </label>
+                <div className="flex w-full items-center">
+                  <Range
+                    label="Bars per increase"
+                    step={1}
+                    min={1}
+                    max={16}
+                    values={[barsPerIncrease]}
+                    onChange={(values) => {
+                      if (values[0] !== undefined)
+                        setBarsPerIncrease(values[0]);
+                    }}
+                    renderTrack={({ props, children }) => (
+                      <div
+                        onMouseDown={props.onMouseDown}
+                        onTouchStart={props.onTouchStart}
+                        style={{
+                          ...props.style,
+                          display: "flex",
+                          width: "100%",
+                        }}
+                      >
+                        <div
+                          ref={props.ref}
+                          style={{
+                            height: "8px",
+                            width: "100%",
+                            borderRadius: "4px",
+                            background: getTrackBackground({
+                              values: [barsPerIncrease],
+                              colors: [
+                                "hsl(var(--primary))",
+                                "hsl(var(--gray) / 0.5)",
+                              ],
+                              min: 1,
+                              max: 16,
+                            }),
+                            alignSelf: "center",
+                          }}
+                        >
+                          {children}
+                        </div>
+                      </div>
+                    )}
+                    renderThumb={({ props }) => (
+                      <div
+                        {...props}
+                        className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Controls: time signature, subdivision, accent */}
-        <div className="grid w-full gap-3 sm:grid-cols-3">
-          <div className="baseVertFlex items-start gap-2">
+        <div className="grid gap-3 sm:w-full sm:grid-cols-3 sm:place-items-center">
+          <div className="baseVertFlex !items-start gap-2">
             <p className="text-sm font-medium">Time Signature</p>
             <div className="baseFlex flex-wrap !justify-start gap-2">
               {timeSignatures.map((signature) => (
@@ -312,7 +762,7 @@ function MetronomeToolPage() {
                   key={signature.label}
                   variant={
                     signature.label === timeSignature.label
-                      ? "secondary"
+                      ? "default"
                       : "outline"
                   }
                   className="!h-8 px-3"
@@ -324,14 +774,14 @@ function MetronomeToolPage() {
             </div>
           </div>
 
-          <div className="baseVertFlex items-start gap-2">
+          <div className="baseVertFlex !items-start gap-2">
             <p className="text-sm font-medium">Subdivision</p>
             <div className="baseFlex flex-wrap !justify-start gap-2">
               {subdivisions.map((subdivisionOption) => (
                 <Button
                   key={subdivisionOption}
                   variant={
-                    subdivisionOption === subdivision ? "secondary" : "outline"
+                    subdivisionOption === subdivision ? "default" : "outline"
                   }
                   className="!h-8 px-3"
                   onClick={() => setSubdivision(subdivisionOption)}
@@ -342,10 +792,10 @@ function MetronomeToolPage() {
             </div>
           </div>
 
-          <div className="baseVertFlex items-start gap-2">
+          <div className="baseVertFlex !items-start gap-2">
             <p className="text-sm font-medium">Accent</p>
             <Button
-              variant={accentDownbeat ? "secondary" : "outline"}
+              variant={accentDownbeat ? "default" : "outline"}
               className="!h-8 px-3"
               onClick={() =>
                 setAccentDownbeat((currentlyAccented) => !currentlyAccented)
@@ -356,14 +806,40 @@ function MetronomeToolPage() {
           </div>
         </div>
 
-        {/* Start/Stop */}
-        <Button
-          variant={isRunning ? "destructive" : "secondary"}
-          className="!h-10 w-full max-w-48 px-6"
-          onClick={toggleRunning}
-        >
-          {isRunning ? "Stop" : "Start"}
-        </Button>
+        {/* Start/Stop + Sound selector */}
+        <div className="baseFlex mt-8 w-full flex-wrap gap-3">
+          <Button
+            variant={isRunning ? "destructive" : "audio"}
+            className="!h-10 min-w-32 px-6"
+            onClick={toggleRunning}
+          >
+            {isRunning ? "Stop" : "Start"}
+          </Button>
+
+          <Select
+            value={clickSound.value}
+            onValueChange={(value) => {
+              const sound = clickSounds.find((s) => s.value === value);
+              if (sound) setClickSound(sound);
+            }}
+          >
+            <SelectTrigger className="!h-10 w-36 bg-background">
+              <SelectValue placeholder="Click sound">
+                <div className="baseFlex gap-2">
+                  <BsFillVolumeUpFill className="size-5" />
+                  {clickSound.label}
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {clickSounds.map((sound) => (
+                <SelectItem key={sound.value} value={sound.value}>
+                  {sound.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </motion.div>
   );
