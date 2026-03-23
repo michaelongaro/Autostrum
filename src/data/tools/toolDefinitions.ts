@@ -39,7 +39,7 @@ export const toolDefinitions: ToolDefinition[] = [
   },
   {
     id: "note-trainer",
-    title: "Audible Note Trainer",
+    title: "Note Trainer",
     description:
       "Hear a target note, guess it, and get instant feedback with round-by-round scoring.",
     category: "Ear Training",

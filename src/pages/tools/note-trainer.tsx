@@ -201,12 +201,12 @@ function NoteTrainerPage() {
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] !justify-start gap-6 px-3 pb-8 xs:px-4 sm:px-6 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)] md:px-8"
     >
       <Head>
-        <title>Audible Note Trainer | Autostrum Tools</title>
+        <title>Note Trainer | Autostrum</title>
       </Head>
 
       <ToolRouteHeader
         icon={<IoEar className="size-5" />}
-        title="Audible Note Trainer"
+        title="Note Trainer"
         description="Hear a target note, guess from the choices below, and track your score for this session."
       />
 

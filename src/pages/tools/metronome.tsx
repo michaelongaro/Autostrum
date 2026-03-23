@@ -385,7 +385,7 @@ function MetronomeToolPage() {
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] !justify-start gap-6 px-3 pb-8 xs:px-4 sm:px-6 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)] md:px-8"
     >
       <Head>
-        <title>Metronome | Autostrum Tools</title>
+        <title>Metronome | Autostrum</title>
       </Head>
 
       <ToolRouteHeader
