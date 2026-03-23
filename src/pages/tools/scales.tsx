@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
-import { IoGitNetwork } from "react-icons/io5";
 import PracticePlaybackPanel from "~/components/tools/PracticePlaybackPanel";
+import { GiMusicalScore } from "react-icons/gi";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { scaleExercises } from "~/data/tools/practiceExercises";
 
@@ -20,7 +20,7 @@ function ScalesPage() {
       </Head>
 
       <ToolRouteHeader
-        icon={<IoGitNetwork className="size-5" />}
+        icon={<GiMusicalScore className="size-8" />}
         title="Scales Practice"
         description="Run scale patterns through the same compile + playback modal engine used for tab practice."
       />

@@ -1,17 +1,7 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import ToolCardGrid from "~/components/tools/ToolCardGrid";
-import {
-  toolDefinitions,
-  type ToolCategory,
-} from "~/data/tools/toolDefinitions";
-
-const toolCategoryOrder: ToolCategory[] = [
-  "Practice",
-  "Rhythm",
-  "Ear Training",
-  "Tuning",
-];
+import { toolDefinitions } from "~/data/tools/toolDefinitions";
 
 function ToolsHub() {
   return (
@@ -31,7 +21,7 @@ function ToolsHub() {
         />
       </Head>
 
-      <div className="baseVertFlex w-full items-start gap-2">
+      <div className="baseVertFlex w-full !items-start gap-2">
         <h1 className="text-2xl font-semibold md:text-3xl">Guitar Tools</h1>
         <p className="max-w-3xl text-sm text-foreground/85 md:text-base">
           Practice timing, build fretboard fluency, and keep your instrument in
@@ -39,13 +29,7 @@ function ToolsHub() {
         </p>
       </div>
 
-      {toolCategoryOrder.map((category) => (
-        <ToolCardGrid
-          key={category}
-          category={category}
-          tools={toolDefinitions.filter((tool) => tool.category === category)}
-        />
-      ))}
+      <ToolCardGrid tools={toolDefinitions} />
     </motion.div>
   );
 }

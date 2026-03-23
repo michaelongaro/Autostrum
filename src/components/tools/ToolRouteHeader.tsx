@@ -10,7 +10,7 @@ type ToolRouteHeaderProps = {
 
 function ToolRouteHeader({ title, description, icon }: ToolRouteHeaderProps) {
   return (
-    <div className="baseVertFlex w-full items-start gap-3">
+    <div className="baseVertFlex w-full !items-start gap-3">
       <Button variant="outline" asChild className="!h-8 px-3">
         <Link prefetch={false} href="/tools">
           Back to Tools

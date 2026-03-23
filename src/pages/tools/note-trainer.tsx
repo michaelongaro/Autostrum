@@ -106,7 +106,7 @@ function NoteTrainerPage() {
       <div className="baseVertFlex w-full items-start gap-4 rounded-lg border bg-secondary p-4 shadow-md">
         <div className="baseFlex w-full flex-wrap !justify-start gap-2">
           <Button
-            variant="secondary"
+            variant="audio"
             className="!h-9 px-4"
             onClick={playTargetNote}
           >

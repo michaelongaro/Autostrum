@@ -8,6 +8,7 @@ import {
   type PracticeExercise,
 } from "~/data/tools/practiceExercises";
 import { useTabStore } from "~/stores/TabStore";
+import Logo from "~/components/ui/icons/Logo";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -22,7 +23,6 @@ type PracticePlaybackPanelProps = {
 type PlaybackSpeedOption = 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
 const playbackSpeedOptions: PlaybackSpeedOption[] = [0.5, 0.75, 1, 1.25, 1.5];
-const repetitionOptions = [1, 2, 3, 4, 6, 8];
 const loopDelayOptions = [0, 0.5, 1, 2];
 
 function PracticePlaybackPanel({
@@ -153,8 +153,8 @@ function PracticePlaybackPanel({
 
   return (
     <>
-      <div className="baseVertFlex w-full items-start gap-4 rounded-lg border bg-secondary p-4 shadow-md">
-        <div className="baseVertFlex w-full items-start gap-2">
+      <div className="baseVertFlex w-full items-start gap-4 rounded-lg border bg-secondary p-4 shadow-md sm:gap-8">
+        <div className="baseVertFlex w-full !items-start gap-2">
           <p className="text-sm font-medium">Choose an exercise</p>
 
           <div className="grid w-full gap-2 sm:grid-cols-2">
@@ -162,12 +162,12 @@ function PracticePlaybackPanel({
               <Button
                 key={exercise.id}
                 variant={
-                  exercise.id === selectedExerciseId ? "secondary" : "outline"
+                  exercise.id === selectedExerciseId ? "default" : "outline"
                 }
                 className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
                 onClick={() => setSelectedExerciseId(exercise.id)}
               >
-                <span className="baseVertFlex items-start gap-0.5">
+                <span className="baseVertFlex !items-start gap-0.5">
                   <span className="text-sm font-medium">{exercise.title}</span>
                   <span className="text-xs text-foreground/80">
                     {exercise.description}
@@ -178,80 +178,60 @@ function PracticePlaybackPanel({
           </div>
         </div>
 
-        <div className="baseVertFlex w-full items-start gap-2 rounded-md border bg-background p-3">
-          <p className="text-sm font-medium">Selected</p>
-          <p className="text-sm">{selectedExercise.title}</p>
-          <p className="text-xs text-foreground/80">
-            BPM {selectedExercise.bpm} • {selectedExercise.steps.length} notes •{" "}
-            {selectedRepetitions}x reps
-          </p>
-        </div>
+        <div className="baseVertFlex w-full !items-start gap-2">
+          <p className="text-sm font-medium">Configuration</p>
+          <div className="baseFlex w-full flex-col items-stretch gap-3 sm:flex-row">
+            <div className="baseVertFlex flex-1 !items-start gap-2 rounded-md border bg-background p-3">
+              <p className="text-sm font-medium">Tempo multiplier</p>
 
-        <div className="baseVertFlex w-full items-start gap-2 rounded-md border bg-background p-3">
-          <p className="text-sm font-medium">Tempo multiplier</p>
+              <div className="baseFlex w-full flex-wrap !justify-start gap-2">
+                {playbackSpeedOptions.map((option) => (
+                  <Button
+                    key={option}
+                    variant={
+                      option === selectedPlaybackSpeed ? "default" : "outline"
+                    }
+                    className="!h-8 px-3"
+                    onClick={() => setSelectedPlaybackSpeed(option)}
+                  >
+                    {option}x
+                  </Button>
+                ))}
+              </div>
+            </div>
 
-          <div className="baseFlex w-full flex-wrap !justify-start gap-2">
-            {playbackSpeedOptions.map((option) => (
-              <Button
-                key={option}
-                variant={
-                  option === selectedPlaybackSpeed ? "secondary" : "outline"
-                }
-                className="!h-8 px-3"
-                onClick={() => setSelectedPlaybackSpeed(option)}
-              >
-                {option}x
-              </Button>
-            ))}
-          </div>
-        </div>
+            <div className="baseVertFlex flex-1 !items-start gap-2 rounded-md border bg-background p-3">
+              <p className="text-sm font-medium">Loop delay</p>
 
-        <div className="baseVertFlex w-full items-start gap-2 rounded-md border bg-background p-3">
-          <p className="text-sm font-medium">Repetitions</p>
-
-          <div className="baseFlex w-full flex-wrap !justify-start gap-2">
-            {repetitionOptions.map((option) => (
-              <Button
-                key={option}
-                variant={
-                  option === selectedRepetitions ? "secondary" : "outline"
-                }
-                className="!h-8 px-3"
-                onClick={() => setSelectedRepetitions(option)}
-              >
-                {option}x
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div className="baseVertFlex w-full items-start gap-2 rounded-md border bg-background p-3">
-          <p className="text-sm font-medium">Loop delay</p>
-
-          <div className="baseFlex w-full flex-wrap !justify-start gap-2">
-            {loopDelayOptions.map((option) => (
-              <Button
-                key={option}
-                variant={option === selectedLoopDelay ? "secondary" : "outline"}
-                className="!h-8 px-3"
-                onClick={() => setSelectedLoopDelay(option)}
-              >
-                {option === 0 ? "Off" : `${option}s`}
-              </Button>
-            ))}
+              <div className="baseFlex w-full flex-wrap !justify-start gap-2">
+                {loopDelayOptions.map((option) => (
+                  <Button
+                    key={option}
+                    variant={
+                      option === selectedLoopDelay ? "default" : "outline"
+                    }
+                    className="!h-8 px-3"
+                    onClick={() => setSelectedLoopDelay(option)}
+                  >
+                    {option === 0 ? "Off" : `${option}s`}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
         <Button
           variant="audio"
-          className="!h-10 px-6"
+          className="baseFlex gap-2 px-6 *:!h-10 sm:px-8 sm:text-base"
           disabled={audioMetadata.fullCurrentlyPlayingMetadataLength <= 0}
           onClick={() => {
             setCurrentChordIndex(0);
             setShowPlaybackModal(true);
           }}
         >
-          Practice in Playback Modal
+          <Logo className="size-3 sm:size-4" />
+          Begin
         </Button>
       </div>
 
