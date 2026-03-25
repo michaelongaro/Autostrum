@@ -8,6 +8,11 @@ import { isIOS, isSafari } from "react-device-detect";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -15,6 +20,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { BsFillVolumeUpFill } from "react-icons/bs";
+import { Check } from "lucide-react";
 
 const NOTE_POOL = [
   "C4",
@@ -230,16 +236,28 @@ function NoteTrainerPage() {
 
       <div className="baseVertFlex relative w-full gap-6 rounded-lg border bg-secondary p-4 shadow-md sm:p-6">
         {/* Top row: round / source select / stats */}
-        <div className="baseFlex w-full flex-wrap gap-4">
-          <p className="mr-auto whitespace-nowrap text-sm font-medium">
-            Round {roundsPlayed + (selectedGuess ? 0 : 1)}
-          </p>
+        <div className="relative flex w-full flex-col items-center md:gap-0">
+          {/* Round + stats row (mobile: top row, desktop: absolutely positioned) */}
+          <div className="flex w-full items-center justify-between md:pointer-events-none md:absolute md:inset-x-0 md:top-0">
+            <p className="whitespace-nowrap text-sm font-medium">
+              Round {roundsPlayed + (selectedGuess ? 0 : 1)}
+            </p>
 
+            <div className="baseFlex gap-3 whitespace-nowrap text-sm">
+              <p className="font-medium">
+                {correctGuesses}/{roundsPlayed} correct
+              </p>
+              <span className="text-foreground/50">•</span>
+              <p className="tabular-nums">{scorePercentage}%</p>
+            </div>
+          </div>
+
+          {/* Source select (desktop only) */}
           <Select
             value={audioSource}
             onValueChange={(v) => setAudioSource(v as AudioSource)}
           >
-            <SelectTrigger className="w-48 sm:w-56">
+            <SelectTrigger className="hidden w-56 md:flex">
               <SelectValue>
                 <div className="baseFlex gap-2">
                   <BsFillVolumeUpFill className="size-5" />
@@ -257,14 +275,6 @@ function NoteTrainerPage() {
               )}
             </SelectContent>
           </Select>
-
-          <div className="baseFlex ml-auto gap-3 whitespace-nowrap text-sm">
-            <p className="font-medium">
-              {correctGuesses}/{roundsPlayed} correct
-            </p>
-            <span className="text-foreground/50">•</span>
-            <p className="tabular-nums">{scorePercentage}%</p>
-          </div>
         </div>
 
         {/* Center: note guess buttons */}
@@ -293,10 +303,40 @@ function NoteTrainerPage() {
         </div>
 
         {/* Bottom: play + skip/next */}
-        <div className="baseFlex mt-8 gap-3">
+        <div className="baseFlex mt-8 w-full gap-3 sm:w-auto">
+          {/* Mobile audio source popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 shrink-0 md:hidden"
+              >
+                <BsFillVolumeUpFill className="size-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-1">
+              <div className="flex flex-col !items-start gap-1">
+                {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
+                  (key) => (
+                    <Button
+                      key={key}
+                      variant={audioSource === key ? "default" : "ghost"}
+                      className="baseFlex w-full !justify-between gap-2 rounded-sm font-normal"
+                      onClick={() => setAudioSource(key)}
+                    >
+                      {AUDIO_SOURCE_LABELS[key]}
+                      {audioSource === key && <Check className="size-4" />}
+                    </Button>
+                  ),
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <Button
             variant="audio"
-            className="h-11 px-6"
+            className="h-11 shrink-0 px-6"
             onClick={playTargetNote}
             disabled={isSoundfontLoading}
           >
@@ -304,11 +344,19 @@ function NoteTrainerPage() {
           </Button>
 
           {selectedGuess ? (
-            <Button variant="default" className="h-11 px-6" onClick={nextRound}>
+            <Button
+              variant="default"
+              className="h-11 w-full px-6 sm:w-32"
+              onClick={nextRound}
+            >
               Next Round
             </Button>
           ) : (
-            <Button variant="outline" className="h-11 px-6" onClick={nextRound}>
+            <Button
+              variant="outline"
+              className="h-11 w-full px-6 sm:w-32"
+              onClick={nextRound}
+            >
               Skip
             </Button>
           )}
