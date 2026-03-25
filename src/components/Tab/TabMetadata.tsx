@@ -676,7 +676,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 placeholder="My new tab"
                 value={title}
                 showingErrorShakeAnimation={showPulsingError && !title}
-                className={`w-full max-w-72 ${isMobile ? "text-base" : "text-sm"}`}
+                className={`w-full tablet:max-w-72 ${isMobile ? "text-base" : "text-sm"}`}
                 onChange={(e) => {
                   if (e.target.value.length > 50) return;
                   setTitle(e.target.value);

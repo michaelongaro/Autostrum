@@ -88,7 +88,7 @@ function ArtistCombobox() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="h-10 w-full max-w-72 justify-between font-normal text-foreground"
+          className="h-10 w-full justify-between font-normal text-foreground tablet:max-w-72"
         >
           {artistName ? (
             <span className="baseFlex max-w-full !justify-start gap-1.5">
