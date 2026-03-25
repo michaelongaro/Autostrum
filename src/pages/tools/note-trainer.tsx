@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Soundfont from "soundfont-player";
@@ -60,15 +60,14 @@ function NoteTrainerPage() {
   const [loadingSoundfont, setLoadingSoundfont] = useState(false);
   const [targetNote, setTargetNote] = useState<string>(() => getRandomNote());
   const [selectedGuess, setSelectedGuess] = useState<string | null>(null);
+  const [revealedNote, setRevealedNote] = useState<string | null>(null);
+  const [lastGuessCorrect, setLastGuessCorrect] = useState<boolean | null>(
+    null,
+  );
   const [roundsPlayed, setRoundsPlayed] = useState(0);
   const [correctGuesses, setCorrectGuesses] = useState(0);
   const audioSourceRef = useRef<AudioSource>(audioSource);
   audioSourceRef.current = audioSource;
-
-  const isCorrect = useMemo(() => {
-    if (!selectedGuess) return null;
-    return selectedGuess === targetNote;
-  }, [selectedGuess, targetNote]);
 
   const getAudioContext = useCallback(async () => {
     if (!audioContextRef.current) {
@@ -177,10 +176,13 @@ function NoteTrainerPage() {
   function handleGuess(note: string) {
     if (selectedGuess) return;
 
+    const correct = note === targetNote;
     setSelectedGuess(note);
+    setRevealedNote(targetNote);
+    setLastGuessCorrect(correct);
     setRoundsPlayed((prev) => prev + 1);
 
-    if (note === targetNote) {
+    if (correct) {
       setCorrectGuesses((prev) => prev + 1);
     }
   }
@@ -270,9 +272,9 @@ function NoteTrainerPage() {
           <p
             className={`text-sm font-medium transition-opacity ${selectedGuess ? "opacity-100" : "opacity-0"}`}
           >
-            {isCorrect
+            {lastGuessCorrect
               ? "Correct!"
-              : `Not quite, the answer was ${targetNote}.`}
+              : `Not quite, the answer was ${revealedNote}.`}
           </p>
 
           <div className="mx-auto grid w-full max-w-lg grid-cols-4 gap-2 xs:grid-cols-6 sm:grid-cols-6">
