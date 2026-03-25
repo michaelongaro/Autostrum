@@ -73,22 +73,15 @@ function PlaybackTunerDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="baseVertFlex h-[calc(100dvh-2rem)] w-[calc(100vw-1rem)] max-w-[1000px] !justify-start gap-4 overflow-y-auto p-0 pb-4 sm:w-[calc(100vw-2rem)]">
+      <DialogContent className="baseVertFlex h-dvh w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-0 p-0 sm:h-auto sm:w-[calc(100vw-4rem)]">
         <DialogHeader className="sr-only">
           <DialogTitle>Guitar Tuner</DialogTitle>
           <DialogDescription>
-            Tune your guitar while staying in the playback modal.
+            Tune your guitar to this tab's required tuning.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="baseFlex w-full !justify-start px-4 pt-6">
-          <div className="baseFlex gap-2">
-            <TuningFork className="size-5" />
-            <p className="text-lg font-semibold">Guitar Tuner</p>
-          </div>
-        </div>
-
-        <div className="baseVertFlex w-full px-2 sm:px-4">
+        <div className="baseVertFlex size-full">
           <TunerPanel
             targetNotes={targetNotes}
             currentTargetIndex={currentTargetIndex}
@@ -107,6 +100,7 @@ function PlaybackTunerDialog() {
             onStopListening={stopListening}
             onResetProgress={resetProgress}
             onSetCurrentTargetIndex={setCurrentTargetIndex}
+            forPlaybackModal={true}
           />
         </div>
       </DialogContent>

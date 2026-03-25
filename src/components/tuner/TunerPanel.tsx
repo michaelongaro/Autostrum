@@ -49,6 +49,7 @@ type TunerPanelProps = {
   onStopListening: () => void;
   onResetProgress: () => void;
   onSetCurrentTargetIndex: (index: number) => void;
+  forPlaybackModal?: boolean;
 };
 
 function TunerPanel({
@@ -69,6 +70,7 @@ function TunerPanel({
   onStopListening,
   onResetProgress,
   onSetCurrentTargetIndex,
+  forPlaybackModal,
 }: TunerPanelProps) {
   const [mode, setMode] = useState<"regular" | "chromatic">("regular");
   const currentTarget = targetNotes[currentTargetIndex] ?? "e2";
@@ -132,7 +134,9 @@ function TunerPanel({
             };
 
   return (
-    <div className="baseVertFlex w-full gap-4 border-y bg-secondary py-3 shadow-sm xs:rounded-lg xs:border sm:py-5 md:py-6">
+    <div
+      className={`baseVertFlex h-full w-full gap-4 border-y bg-secondary py-3 shadow-sm xs:rounded-lg xs:border sm:py-5 ${forPlaybackModal ? "md:py-12" : "md:py-6"}`}
+    >
       <div className="baseVertFlex w-full gap-3 px-3 sm:flex-row sm:!items-center sm:!justify-between sm:px-5 md:px-6">
         <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[190px]">
           <button
@@ -535,7 +539,7 @@ function TunerPanel({
       )}
 
       {(error || permissionDenied) && (
-        <p className="w-full rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+        <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           {error ?? "Microphone access failed."}
         </p>
       )}
