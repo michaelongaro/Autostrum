@@ -275,8 +275,8 @@ function TunerPanel({
                   {regularArcMarkerRatios.map((markerRatio) => {
                     const angleRadians = markerRatio * (Math.PI / 2);
                     const angleDegrees = markerRatio * 90;
-                    const xOffset = Math.sin(angleRadians) * 116;
-                    const yOffset = Math.cos(angleRadians) * 126;
+                    const xOffset = Math.sin(angleRadians) * 118;
+                    const yOffset = Math.cos(angleRadians) * 120;
                     const tickHalfHeight = 4;
 
                     return (
@@ -295,8 +295,8 @@ function TunerPanel({
                   {regularArcMarkerRatios.map((markerRatio) => {
                     const angleRadians = markerRatio * (Math.PI / 2);
                     const angleDegrees = markerRatio * 90;
-                    const xOffset = Math.sin(angleRadians) * 141;
-                    const yOffset = Math.cos(angleRadians) * 151;
+                    const xOffset = Math.sin(angleRadians) * 140;
+                    const yOffset = Math.cos(angleRadians) * 144;
                     const tickHalfHeight = 5;
 
                     return (
@@ -314,8 +314,8 @@ function TunerPanel({
 
                   {regularArcMarkerRatios.map((markerRatio) => {
                     const angleRadians = markerRatio * (Math.PI / 2);
-                    const xOffset = Math.sin(angleRadians) * 124;
-                    const yOffset = Math.cos(angleRadians) * 136;
+                    const xOffset = Math.sin(angleRadians) * 130;
+                    const yOffset = Math.cos(angleRadians) * 132;
                     const markerValue = markerRatio * regularRangeCents;
                     const markerLabel =
                       Math.abs(markerValue) < 0.5
@@ -339,8 +339,8 @@ function TunerPanel({
 
                   {regularArcMarkerRatios.map((markerRatio) => {
                     const angleRadians = markerRatio * (Math.PI / 2);
-                    const xOffset = Math.sin(angleRadians) * 152;
-                    const yOffset = Math.cos(angleRadians) * 164;
+                    const xOffset = Math.sin(angleRadians) * 160;
+                    const yOffset = Math.cos(angleRadians) * 157;
                     const markerValue = markerRatio * regularRangeCents;
                     const markerLabel =
                       Math.abs(markerValue) < 0.5
