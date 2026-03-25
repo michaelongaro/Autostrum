@@ -1,6 +1,18 @@
 import Link from "next/link";
-import { IoChevronForward } from "react-icons/io5";
+import type { ReactNode } from "react";
+import { GiMusicalScore } from "react-icons/gi";
+import { IoChevronForward, IoEar, IoMusicalNotes } from "react-icons/io5";
+import { PiMetronome } from "react-icons/pi";
+import TuningFork from "~/components/ui/icons/TuningFork";
 import type { ToolDefinition } from "~/data/tools/toolDefinitions";
+
+const toolIcons: Record<string, ReactNode> = {
+  warmups: <IoMusicalNotes className="size-5" />,
+  scales: <GiMusicalScore className="size-6" />,
+  metronome: <PiMetronome className="size-6" />,
+  "note-trainer": <IoEar className="size-5" />,
+  tuner: <TuningFork className="size-5" />,
+};
 
 type ToolCardGridProps = {
   tools: ToolDefinition[];
@@ -18,6 +30,9 @@ function ToolCardGrid({ tools }: ToolCardGridProps) {
         >
           <div className="baseVertFlex !items-start gap-2">
             <div className="baseFlex gap-2">
+              {toolIcons[tool.id] && (
+                <span className="text-foreground">{toolIcons[tool.id]}</span>
+              )}
               <p className="text-base font-semibold">{tool.title}</p>
 
               {tool.status === "in-progress" && (
