@@ -395,13 +395,13 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   <div className="baseFlex mt-[10px] gap-2">
                     <Button asChild>
                       <div
-                        className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 0 ? "!bg-accent" : "!bg-foreground"}`}
+                        className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 0 ? "!bg-primary" : "!bg-primary/50"}`}
                         onClick={() => mobileHeaderCarouselApi?.scrollTo(0)}
                       ></div>
                     </Button>
                     <Button asChild>
                       <div
-                        className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 1 ? "!bg-accent" : "!bg-foreground"}`}
+                        className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 1 ? "!bg-primary" : "!bg-primary/50"}`}
                         onClick={() => mobileHeaderCarouselApi?.scrollTo(1)}
                       ></div>
                     </Button>
