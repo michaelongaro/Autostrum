@@ -8,7 +8,7 @@ type ToolCardGridProps = {
 
 function ToolCardGrid({ tools }: ToolCardGridProps) {
   return (
-    <div className="grid w-full gap-3 sm:grid-cols-2">
+    <div className="grid w-full gap-4 sm:grid-cols-2">
       {tools.map((tool) => (
         <Link
           key={tool.id}
