@@ -169,7 +169,9 @@ function PracticePlaybackPanel({
               >
                 <span className="baseVertFlex !items-start gap-0.5">
                   <span className="text-sm font-medium">{exercise.title}</span>
-                  <span className="text-xs text-foreground/80">
+                  <span
+                    className={`text-xs ${exercise.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
+                  >
                     {exercise.description}
                   </span>
                 </span>
