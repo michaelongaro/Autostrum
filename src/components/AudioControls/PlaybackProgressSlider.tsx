@@ -139,6 +139,10 @@ function PlaybackProgressSlider({
     ? currentlyPlayingMetadata.length - 1
     : 0;
 
+  if (audioMetadata.fullCurrentlyPlayingMetadataLength <= 1 && maxIndex <= 0) {
+    return null;
+  }
+
   return (
     <>
       {audioMetadata.editingLoopRange ? (

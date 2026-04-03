@@ -354,6 +354,7 @@ const initialStoreState = {
   showMobileHeaderModal: false,
 
   // playback
+  showPlaybackModal: false,
   playbackModalViewingState: "Practice" as const,
 
   // related to sound generation/playing
