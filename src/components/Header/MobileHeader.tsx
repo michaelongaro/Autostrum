@@ -74,7 +74,7 @@ function MobileHeader() {
 
   return (
     <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
-      <div className="absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip bg-header p-2 shadow-md shadow-primary/10 lg:hidden">
+      <div className="absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip border-b border-b-primary/50 bg-header p-2 shadow-md shadow-primary/10 lg:hidden">
         <Link
           prefetch={false}
           href={"/"}
@@ -159,7 +159,7 @@ function MobileHeader() {
                 opacity: { duration: 0.2, ease: "easeInOut" },
               },
             }}
-            className={`baseVertFlex fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-2xl border-t border-foreground shadow-lg ${theme === "light" ? "bg-secondary-hover" : "mobileHeaderGradient"}`}
+            className={`baseVertFlex fixed top-16 z-[-1] max-h-[80dvh] w-full max-w-lg !justify-start overflow-y-auto rounded-b-2xl shadow-lg ${theme === "light" ? "bg-secondary-hover" : "mobileHeaderGradient"}`}
           >
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
@@ -279,7 +279,7 @@ function MobileHeader() {
 
                     <Separator
                       orientation="vertical"
-                      className="h-[100%] w-[1px] bg-foreground/50"
+                      className="h-4 w-[1px] bg-foreground/50"
                     />
 
                     <span>
