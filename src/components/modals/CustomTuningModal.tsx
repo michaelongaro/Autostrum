@@ -16,6 +16,7 @@ import { IoSettingsSharp } from "react-icons/io5";
 import { BsFillPlayFill } from "react-icons/bs";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { X } from "lucide-react";
+import { HiOutlineSparkles } from "react-icons/hi2";
 import { normalizeCustomTuningInput, tuningNotes } from "~/utils/tunings";
 
 const backdropVariants = {
@@ -195,16 +196,15 @@ function CustomTuningModal() {
                 <div className="baseFlex gap-4 px-4 sm:gap-2">
                   <HiOutlineInformationCircle className="size-5" />
                   <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
-                    Enter six notes and we will choose valid octaves for guitar
-                    string ranges.
+                    Enter six notes and we will choose valid octaves.
                   </p>
                 </div>
-                <div className="baseFlex px-4 text-xs sm:justify-center">
-                  <p>Use spaces between notes.</p>
+                <div className="baseFlex ml-1.5 px-4 text-xs sm:ml-0 sm:justify-center">
+                  <p>Leave a space between each note.</p>
                 </div>
               </div>
 
-              <div className="baseFlex w-64 gap-2">
+              <div className="baseFlex w-72 gap-4">
                 <Input
                   placeholder="C# B E F# A# E"
                   value={quickTuningInput.toUpperCase()}
@@ -225,8 +225,10 @@ function CustomTuningModal() {
                   type="button"
                   disabled={quickTuningInput.length < 6}
                   variant="secondary"
+                  className="baseFlex h-10 gap-2"
                   onClick={handleConvertQuickTuningInput}
                 >
+                  <HiOutlineSparkles />
                   Convert
                 </Button>
               </div>
