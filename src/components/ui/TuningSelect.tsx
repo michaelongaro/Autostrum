@@ -45,16 +45,14 @@ function TuningSelect({
     >
       <SelectTrigger
         id="tuning"
-        className={`h-10 ${showScientificPitchNotationInTrigger ? "w-[210px]" : "w-[175px]"}`}
+        className={`h-10 ${showScientificPitchNotationInTrigger ? "w-auto" : "w-[175px]"}`}
       >
         <SelectValue placeholder="Select tuning...">
           {tuning ? (
             <PrettyTuning
               tuning={tuning}
               displayWithFlex={true}
-              showScientificPitchNotation={
-                showScientificPitchNotationInTrigger
-              }
+              showScientificPitchNotation={showScientificPitchNotationInTrigger}
             />
           ) : (
             "Select tuning..."

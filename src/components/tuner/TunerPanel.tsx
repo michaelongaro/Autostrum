@@ -159,31 +159,11 @@ function TunerPanel({
           </button>
         </div>
 
-        <div className="baseFlex w-full !justify-between gap-4 sm:w-auto">
+        <div className="baseFlex w-full gap-4 sm:w-auto">
           <div className="baseFlex gap-2 sm:gap-3">
             <p className="text-sm font-semibold text-foreground/80">Tuning</p>
             <TuningSelect showScientificPitchNotationInTrigger={true} />
           </div>
-
-          {isListening ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full sm:hidden sm:w-auto"
-              onClick={onStopListening}
-            >
-              Stop
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="baseFlex w-full gap-2 sm:hidden sm:w-auto"
-              onClick={() => void onStartListening()}
-            >
-              <FaMicrophone />
-              Start
-            </Button>
-          )}
         </div>
 
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-4">
@@ -418,12 +398,32 @@ function TunerPanel({
             </div>
           </div>
 
-          <div className="baseFlex w-full px-3 sm:px-5 md:px-6">
+          <div className="grid w-full grid-cols-2 gap-2 px-4 sm:flex sm:w-auto sm:gap-4">
+            {isListening ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full sm:hidden"
+                onClick={onStopListening}
+              >
+                Stop
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="w-full gap-2 px-8 sm:hidden"
+                onClick={() => void onStartListening()}
+              >
+                <FaMicrophone />
+                Start
+              </Button>
+            )}
+
             <Button
               size="sm"
               disabled={currentTargetIndex === 0}
               variant="outline"
-              className="w-full sm:hidden sm:w-auto"
+              className="w-full sm:hidden"
               onClick={onResetProgress}
             >
               Reset
@@ -431,7 +431,7 @@ function TunerPanel({
           </div>
         </>
       ) : (
-        <div className="baseFlex w-full px-3 sm:px-5 md:px-6">
+        <div className="baseVertFlex w-full gap-4 px-3 sm:px-5 md:px-6">
           <div className="baseVertFlex w-full rounded-md border bg-background p-4 md:px-6 md:py-8">
             <div className="w-full text-center text-lg font-semibold text-foreground">
               {detectedNote ? formatNoteLabel(detectedNote) : "--"}
@@ -535,6 +535,26 @@ function TunerPanel({
               </div>
             </div>
           </div>
+
+          {isListening ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-36 sm:hidden"
+              onClick={onStopListening}
+            >
+              Stop
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              className="w-36 gap-2 px-8 sm:hidden"
+              onClick={() => void onStartListening()}
+            >
+              <FaMicrophone />
+              Start
+            </Button>
+          )}
         </div>
       )}
 
