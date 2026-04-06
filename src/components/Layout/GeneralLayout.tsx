@@ -19,7 +19,7 @@ interface GeneralLayout {
 function GeneralLayout({ children }: GeneralLayout) {
   return (
     <main
-      className={`${notoSans.className} baseVertFlex relative min-h-[100dvh] !justify-between`}
+      className={`${notoSans.className} pageBackgroundGradient baseVertFlex relative isolate min-h-[100dvh] !justify-between`}
     >
       <GeneralLayoutStatefulShell />
 

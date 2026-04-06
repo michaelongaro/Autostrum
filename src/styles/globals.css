@@ -14,8 +14,12 @@
     @apply border-border;
   }
 
+  html {
+    @apply bg-header;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-header text-foreground;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
@@ -26,35 +30,29 @@ html.disablePullToRefresh {
   overscroll-behavior: none;
 }
 
-/* necessary(?) to prevent background gradient disappearing when .noScroll is applied
-   Scrolling seems to be a bit janky on iOS though when gradient is on pseudo ::before rather than
-   actual body */
-body::before {
+/* Keep the root background solid so Safari overscroll doesn't reveal the page gradient.
+   The gradient itself is scoped to the layout container for each rendered page. */
+.pageBackgroundGradient::before,
+.pageBackgroundGradient::after {
   content: "";
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: -1;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pageBackgroundGradient::before {
+  z-index: -2;
   background: linear-gradient(145deg,
       hsl(var(--gradient-primary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-primary))) center / cover;
-  height: 100dvh;
-
 }
 
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+.pageBackgroundGradient::after {
   z-index: -1;
   background-image: url('/ui/noise.svg');
+  background-repeat: repeat;
   /* courtesy of https://www.fffuel.co/nnnoise/ */
 }
 
