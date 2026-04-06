@@ -162,7 +162,7 @@ function TunerPanel({
         <div className="baseFlex w-full !justify-between gap-4 sm:w-auto">
           <div className="baseFlex gap-2 sm:gap-3">
             <p className="text-sm font-semibold text-foreground/80">Tuning</p>
-            <TuningSelect />
+            <TuningSelect showScientificPitchNotationInTrigger={true} />
           </div>
 
           {isListening ? (

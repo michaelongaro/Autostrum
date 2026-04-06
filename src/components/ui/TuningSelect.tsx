@@ -13,7 +13,13 @@ import { tuningNotes, tunings } from "~/utils/tunings";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import { useState } from "react";
 
-function TuningSelect() {
+type TuningSelectProps = {
+  showScientificPitchNotationInTrigger?: boolean;
+};
+
+function TuningSelect({
+  showScientificPitchNotationInTrigger = false,
+}: TuningSelectProps) {
   const { tuning, setTuning, setShowCustomTuningModal } = useTabStore(
     (state) => ({
       tuning: state.tuning,
@@ -37,10 +43,19 @@ function TuningSelect() {
         }
       }}
     >
-      <SelectTrigger id="tuning" className="h-10 w-[175px]">
+      <SelectTrigger
+        id="tuning"
+        className={`h-10 ${showScientificPitchNotationInTrigger ? "w-[210px]" : "w-[175px]"}`}
+      >
         <SelectValue placeholder="Select tuning...">
           {tuning ? (
-            <PrettyTuning tuning={tuning} displayWithFlex={true} />
+            <PrettyTuning
+              tuning={tuning}
+              displayWithFlex={true}
+              showScientificPitchNotation={
+                showScientificPitchNotationInTrigger
+              }
+            />
           ) : (
             "Select tuning..."
           )}
