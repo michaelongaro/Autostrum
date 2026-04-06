@@ -91,7 +91,7 @@ function TuningSelect() {
           >
             <>
               {tuningNotes.includes(tuning) ? (
-                "Create custom tuning"
+                "Add a custom tuning"
               ) : (
                 <>
                   Edit custom tuning
