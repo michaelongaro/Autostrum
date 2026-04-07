@@ -2,7 +2,7 @@ import { PitchDetector } from "pitchy";
 import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { normalizeCustomTuningInput } from "~/utils/tunings";
+import { DEFAULT_TUNING, normalizeTuningValue } from "~/utils/tunings";
 
 type UseTunerParams = {
   targetTuning: string;
@@ -32,11 +32,49 @@ type UseTunerResult = {
   resetProgress: () => void;
 };
 
-const DEFAULT_TUNING = ["e2", "a2", "d3", "g3", "b3", "e4"];
+type UiSnapshot = {
+  signalDetected: boolean;
+  detectedNote: string | null;
+  detectedFrequency: number | null;
+  detectedCents: number | null;
+  targetCentsOffset: number | null;
+  clarity: number;
+};
+
+const DEFAULT_TUNING_NOTES = DEFAULT_TUNING.split(" ");
 const ANALYSIS_GAIN = 3.2;
 const MIN_CLARITY_FLOOR = 0.66;
 const MIN_INPUT_GATE_RMS = 0.001;
 const UI_UPDATE_INTERVAL_MS = 500;
+
+function createUiSnapshot({
+  signalDetected,
+  detectedNote,
+  detectedFrequency,
+  detectedCents,
+  targetCentsOffset,
+  clarity,
+}: UiSnapshot): UiSnapshot {
+  return {
+    signalDetected,
+    detectedNote,
+    detectedFrequency,
+    detectedCents,
+    targetCentsOffset,
+    clarity,
+  };
+}
+
+function createEmptyUiSnapshot(clarity = 0): UiSnapshot {
+  return createUiSnapshot({
+    signalDetected: false,
+    detectedNote: null,
+    detectedFrequency: null,
+    detectedCents: null,
+    targetCentsOffset: null,
+    clarity,
+  });
+}
 
 function midiFromFrequency(frequency: number) {
   return Math.round(69 + 12 * Math.log2(frequency / 440));
@@ -51,7 +89,7 @@ function centsBetweenFrequencies(a: number, b: number) {
 }
 
 function resolveTargetNotes(targetTuning: string) {
-  return normalizeCustomTuningInput(targetTuning) ?? DEFAULT_TUNING;
+  return normalizeTuningValue(targetTuning).split(" ");
 }
 
 export function useTuner({
@@ -108,21 +146,71 @@ export function useTuner({
       return resolved;
     }
 
-    return DEFAULT_TUNING.map((note) => get(note).midi ?? 40);
+    return DEFAULT_TUNING_NOTES.map((note) => get(note).midi ?? 40);
   }, [targetNotes]);
 
-  const setCurrentTargetIndex = useCallback((index: number) => {
-    const clamped = Math.max(0, Math.min(index, 5));
-    setCurrentTargetIndexState(clamped);
-    currentTargetIndexRef.current = clamped;
-  }, []);
+  const applyUiSnapshot = useCallback(
+    (
+      snapshot: UiSnapshot,
+      options?: {
+        force?: boolean;
+        resetThrottle?: boolean;
+        timestamp?: number;
+      },
+    ) => {
+      const timestamp = options?.timestamp ?? performance.now();
+
+      if (
+        !options?.force &&
+        lastUiUpdateTimeRef.current !== 0 &&
+        timestamp - lastUiUpdateTimeRef.current < UI_UPDATE_INTERVAL_MS
+      ) {
+        return false;
+      }
+
+      setSignalDetected(snapshot.signalDetected);
+      setDetectedFrequency(snapshot.detectedFrequency);
+      setDetectedNote(snapshot.detectedNote);
+      setDetectedCents(snapshot.detectedCents);
+      setTargetCentsOffset(snapshot.targetCentsOffset);
+      setClarity(snapshot.clarity);
+      lastUiUpdateTimeRef.current = options?.resetThrottle ? 0 : timestamp;
+
+      return true;
+    },
+    [],
+  );
+
+  const setCurrentTargetIndex = useCallback(
+    (index: number) => {
+      const clamped = Math.max(0, Math.min(index, 5));
+
+      if (clamped !== currentTargetIndexRef.current) {
+        stableMatchStartTimeRef.current = null;
+        centsHistoryRef.current = [];
+        applyUiSnapshot(createEmptyUiSnapshot(), {
+          force: true,
+          resetThrottle: true,
+        });
+      }
+
+      setCurrentTargetIndexState(clamped);
+      currentTargetIndexRef.current = clamped;
+    },
+    [applyUiSnapshot],
+  );
 
   const resetProgress = useCallback(() => {
     stableMatchStartTimeRef.current = null;
     centsHistoryRef.current = [];
-    setCurrentTargetIndex(0);
+    applyUiSnapshot(createEmptyUiSnapshot(), {
+      force: true,
+      resetThrottle: true,
+    });
+    setCurrentTargetIndexState(0);
+    currentTargetIndexRef.current = 0;
     setCompleted(false);
-  }, [setCurrentTargetIndex]);
+  }, [applyUiSnapshot]);
 
   const stopListening = useCallback(() => {
     if (rafRef.current !== null) {
@@ -149,17 +237,14 @@ export function useTuner({
     detectorRef.current = null;
     bufferRef.current = null;
     stableMatchStartTimeRef.current = null;
-    lastUiUpdateTimeRef.current = 0;
     centsHistoryRef.current = [];
 
     setIsListening(false);
-    setSignalDetected(false);
-    setDetectedFrequency(null);
-    setDetectedNote(null);
-    setDetectedCents(null);
-    setTargetCentsOffset(null);
-    setClarity(0);
-  }, []);
+    applyUiSnapshot(createEmptyUiSnapshot(), {
+      force: true,
+      resetThrottle: true,
+    });
+  }, [applyUiSnapshot]);
 
   const startListening = useCallback(async () => {
     if (isListening) return;
@@ -245,13 +330,7 @@ export function useTuner({
 
         if (rms < MIN_INPUT_GATE_RMS) {
           stableMatchStartTimeRef.current = null;
-          lastUiUpdateTimeRef.current = 0;
-          setSignalDetected(false);
-          setDetectedFrequency(null);
-          setDetectedNote(null);
-          setDetectedCents(null);
-          setTargetCentsOffset(null);
-          setClarity(0);
+          applyUiSnapshot(createEmptyUiSnapshot());
           rafRef.current = window.requestAnimationFrame(runDetectionLoop);
           return;
         }
@@ -273,13 +352,7 @@ export function useTuner({
           foundClarity < effectiveMinimumClarity
         ) {
           stableMatchStartTimeRef.current = null;
-          lastUiUpdateTimeRef.current = 0;
-          setSignalDetected(false);
-          setDetectedFrequency(null);
-          setDetectedNote(null);
-          setDetectedCents(null);
-          setTargetCentsOffset(null);
-          setClarity(foundClarity);
+          applyUiSnapshot(createEmptyUiSnapshot(foundClarity));
           rafRef.current = window.requestAnimationFrame(runDetectionLoop);
           return;
         }
@@ -310,19 +383,17 @@ export function useTuner({
         const centsFromTarget = centsBetweenFrequencies(pitch, targetFrequency);
 
         const now = performance.now();
-        const shouldUpdateUi =
-          lastUiUpdateTimeRef.current === 0 ||
-          now - lastUiUpdateTimeRef.current >= UI_UPDATE_INTERVAL_MS;
-
-        setSignalDetected(true);
-        if (shouldUpdateUi) {
-          setDetectedFrequency(pitch);
-          setDetectedNote(resolvedDetectedNote);
-          setDetectedCents(smoothedDetectedCents);
-          setTargetCentsOffset(centsFromTarget);
-          setClarity(foundClarity);
-          lastUiUpdateTimeRef.current = now;
-        }
+        applyUiSnapshot(
+          createUiSnapshot({
+            signalDetected: true,
+            detectedFrequency: pitch,
+            detectedNote: resolvedDetectedNote,
+            detectedCents: smoothedDetectedCents,
+            targetCentsOffset: centsFromTarget,
+            clarity: foundClarity,
+          }),
+          { timestamp: now },
+        );
 
         const isMatchingTargetNote = nearestMidi === targetMidi;
         const isWithinTolerance = Math.abs(centsFromTarget) <= toleranceCents;

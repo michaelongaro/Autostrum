@@ -14,7 +14,7 @@ import {
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
 import { resetProgressTabSliderPosition } from "~/utils/tabSliderHelpers";
-import { parse } from "~/utils/tunings";
+import { DEFAULT_TUNING, normalizeTuningValue, parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import { useShallow } from "zustand/shallow";
 
@@ -322,7 +322,7 @@ const initialStoreState = {
   artistIsVerified: false,
   description: null,
   genre: "",
-  tuning: "e2 a2 d3 g3 b3 e4",
+  tuning: DEFAULT_TUNING,
   bpm: 75,
   capo: 0,
   key: null,
@@ -688,8 +688,8 @@ const useTabStoreBase = create<TabState>()(
       setDescription: (description) => set({ description }),
       genre: "",
       setGenre: (genre) => set({ genre }),
-      tuning: "e2 a2 d3 g3 b3 e4",
-      setTuning: (tuning) => set({ tuning }),
+      tuning: DEFAULT_TUNING,
+      setTuning: (tuning) => set({ tuning: normalizeTuningValue(tuning) }),
       bpm: 75,
       setBpm: (bpm) => set({ bpm }),
       capo: 0,

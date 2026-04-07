@@ -1,3 +1,5 @@
+import { getDisplayTuningNotes } from "~/utils/tunings";
+
 function PrettyNote({
   note,
   displayWithFlex,
@@ -37,12 +39,12 @@ function PrettyTuning({
   displayWithFlex,
   showScientificPitchNotation,
 }: {
-  tuning: string;
+  tuning?: string | null;
   width?: string;
   displayWithFlex?: boolean;
   showScientificPitchNotation?: boolean;
 }) {
-  const notes = tuning.trim().split(/\s+/); // trim might not be necessary depending on how you tweak toString()
+  const notes = getDisplayTuningNotes(tuning);
 
   return (
     <div
@@ -65,10 +67,10 @@ function PrettyVerticalTuning({
   tuning,
   height,
 }: {
-  tuning: string;
+  tuning?: string | null;
   height: string;
 }) {
-  const notes = tuning.trim().split(/\s+/);
+  const notes = getDisplayTuningNotes(tuning);
 
   return (
     <div

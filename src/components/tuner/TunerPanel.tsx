@@ -78,7 +78,8 @@ function TunerPanel({
     () => frequencyFromNote(currentTarget),
     [currentTarget],
   );
-  const currentMicFrequency = detectedFrequency ?? 0;
+  const hasDetectedFrequency = signalDetected && detectedFrequency !== null;
+  const hasChromaticCents = signalDetected && detectedCents !== null;
   const hasRegularCents = signalDetected && targetCentsOffset !== null;
   const regularRawCentsOffset = hasRegularCents ? targetCentsOffset : 0;
   const clampedRegularCentsOffset = Math.max(
@@ -89,7 +90,15 @@ function TunerPanel({
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
   const regularNeedleDegrees =
     (clampedRegularCentsOffset / regularRangeCents) * 90;
-  const chromaticMarkerLeftPercent = ((clampedDetectedCents + 50) / 100) * 100;
+  const chromaticMarkerLeftPercent = hasChromaticCents
+    ? ((clampedDetectedCents + 50) / 100) * 100
+    : 50;
+  const currentMicFrequencyLabel = hasDetectedFrequency
+    ? `${detectedFrequency.toFixed(1)} Hz`
+    : "--";
+  const chromaticCentsLabel = hasChromaticCents
+    ? `${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`
+    : "--";
   const regularSemicircleGradient = useMemo(() => {
     const toAngle = (centsOffset: number) =>
       Math.max(
@@ -210,7 +219,7 @@ function TunerPanel({
                   </p>
                   <div className="baseFlex gap-2">
                     <div className="baseFlex w-20">
-                      {`${currentMicFrequency.toFixed(1)} Hz`}
+                      {currentMicFrequencyLabel}
                     </div>
                     /
                     <div className="baseFlex w-20">
@@ -439,7 +448,7 @@ function TunerPanel({
 
             <div className="relative mt-4 w-full">
               <div className="absolute left-1/2 top-0 z-10 w-[104px] -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-center text-sm font-semibold tabular-nums text-foreground sm:w-[118px] sm:text-base">
-                {`${currentMicFrequency.toFixed(1)} Hz`}
+                {currentMicFrequencyLabel}
               </div>
 
               <div className="baseFlex mt-12 w-full !justify-between px-[1px] text-xs text-foreground/70 sm:hidden">
@@ -455,25 +464,6 @@ function TunerPanel({
               </div>
 
               <div className="relative mt-0 h-[180px] w-full rounded-md border bg-secondary px-4 py-6">
-                <motion.div
-                  className="absolute inset-0 rounded-md"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(90deg, transparent 0px, transparent 18px, hsl(var(--foreground) / 0.05) 19px, transparent 20px)",
-                  }}
-                  animate={{
-                    backgroundPositionX: signalDetected
-                      ? ["0px", "24px"]
-                      : "0px",
-                    opacity: signalDetected ? 1 : 0.35,
-                  }}
-                  transition={{
-                    duration: 0.35,
-                    ease: "linear",
-                    repeat: signalDetected ? Infinity : 0,
-                  }}
-                />
-
                 <motion.div
                   className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
                   animate={{
@@ -500,7 +490,10 @@ function TunerPanel({
 
                 <motion.div
                   className="absolute inset-y-0"
-                  animate={{ left: `${chromaticMarkerLeftPercent}%` }}
+                  animate={{
+                    left: `${chromaticMarkerLeftPercent}%`,
+                    opacity: hasChromaticCents ? 1 : 0.3,
+                  }}
                   transition={{
                     type: "spring",
                     stiffness: 320,
@@ -528,7 +521,7 @@ function TunerPanel({
                     />
 
                     <div className="absolute bottom-3 left-1/2 w-[88px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-sm font-semibold tabular-nums text-primary">
-                      {`${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`}
+                      {chromaticCentsLabel}
                     </div>
                   </div>
                 </motion.div>

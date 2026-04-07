@@ -44,7 +44,9 @@ function CustomTuningModal() {
   }));
 
   const [newTuning, setNewTuning] = useState<string[]>(
-    tuningNotes.includes(tuning) ? ["", "", "", "", "", ""] : tuning.split(" "),
+    tuningNotes.includes(tuning)
+      ? ["", "", "", "", "", ""]
+      : tuning.split(/\s+/).filter(Boolean),
   );
 
   const [quickTuningInput, setQuickTuningInput] = useState(
@@ -100,7 +102,19 @@ function CustomTuningModal() {
       return;
     }
 
-    const sanitizedTuning = newTuning.join(" ");
+    const normalizedTuning = normalizeCustomTuningInput(newTuning.join(" "));
+
+    if (!normalizedTuning) {
+      setShowInvalidInputPerIndex([true, true, true, true, true, true]);
+
+      setTimeout(() => {
+        setShowInvalidInputPerIndex([false, false, false, false, false, false]);
+      }, 500);
+
+      return;
+    }
+
+    const sanitizedTuning = normalizedTuning.join(" ");
     setTuning(sanitizedTuning);
     setShowCustomTuningModal(false);
   }

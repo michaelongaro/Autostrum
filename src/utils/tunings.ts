@@ -7,6 +7,12 @@ export type Tuning = {
   simpleNotes: string;
 };
 
+export const DEFAULT_TUNING = "e2 a2 d3 g3 b3 e4";
+const DEFAULT_TUNING_NOTES = DEFAULT_TUNING.split(" ");
+const DEFAULT_TUNING_MIDI = DEFAULT_TUNING_NOTES.map(
+  (note) => get(note).midi ?? 40,
+);
+
 function toString(
   tuning: number[],
   options?: {
@@ -36,14 +42,14 @@ function toString(
 }
 
 function parse(notes: string) {
-  return notes
+  return normalizeTuningValue(notes)
     .split(" ")
-    .map((name) => get(name).midi ?? (get(name).chroma ?? 0) + 12 * 3)
+    .map((name, index) => get(name).midi ?? DEFAULT_TUNING_MIDI[index] ?? 40)
     .reverse();
 }
 
 const NOTE_ONLY_TOKEN_REGEX = /^(?<note>[A-G](?:#)?)(?<octave>[0-8])?$/i;
-const STANDARD_TUNING_MIDI = [40, 45, 50, 55, 59, 64];
+const STANDARD_TUNING_MIDI = DEFAULT_TUNING_MIDI;
 const STRING_MIDI_RANGES: [number, number][] = [
   [28, 52],
   [33, 57],
@@ -151,6 +157,16 @@ function normalizeCustomTuningInput(input: string) {
   }
 
   return normalized;
+}
+
+function normalizeTuningValue(input: string | null | undefined) {
+  const normalized = normalizeCustomTuningInput(input ?? "");
+
+  return (normalized ?? DEFAULT_TUNING_NOTES).join(" ");
+}
+
+function getDisplayTuningNotes(input: string | null | undefined) {
+  return normalizeTuningValue(input).split(" ");
 }
 
 const tunings: Tuning[] = [
@@ -309,5 +325,7 @@ export {
   tunings,
   tuningNotes,
   tuningNotesToName,
+  getDisplayTuningNotes,
   normalizeCustomTuningInput,
+  normalizeTuningValue,
 };
