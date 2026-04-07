@@ -8,13 +8,13 @@ import { useTuner } from "~/hooks/useTuner";
 import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 
 function Tuner() {
-  const { tuning, showCustomTuningModal, audioContext } = useTabStore(
-    (state) => ({
+  const { tuning, showCustomTuningModal, audioContext, masterVolumeGainNode } =
+    useTabStore((state) => ({
       tuning: state.tuning,
       showCustomTuningModal: state.showCustomTuningModal,
       audioContext: state.audioContext,
-    }),
-  );
+      masterVolumeGainNode: state.masterVolumeGainNode,
+    }));
 
   const {
     isListening,
@@ -39,6 +39,7 @@ function Tuner() {
     stableHoldDurationMs: 1500,
     minimumClarity: 0.84,
     audioContext,
+    playbackDestination: masterVolumeGainNode,
   });
 
   useScreenWakeLock(isListening);
