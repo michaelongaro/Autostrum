@@ -98,13 +98,10 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { pauseAudio, currentChordIndex, setTabData } = useTabStore(
-    (state) => ({
-      pauseAudio: state.pauseAudio,
-      currentChordIndex: state.currentChordIndex,
-      setTabData: state.setTabData,
-    }),
-  );
+  const { pauseAudio, setTabData } = useTabStore((state) => ({
+    pauseAudio: state.pauseAudio,
+    setTabData: state.setTabData,
+  }));
 
   const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
 
@@ -200,9 +197,7 @@ function TabNotesColumn({
   }
 
   function handleDeleteChord() {
-    if (currentChordIndex !== 0) {
-      pauseAudio(true);
-    }
+    pauseAudio(true);
 
     setTabData((draft) => {
       const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];

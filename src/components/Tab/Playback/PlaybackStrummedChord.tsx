@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
@@ -233,4 +234,4 @@ function PlaybackStrummedChord({
   );
 }
 
-export default PlaybackStrummedChord;
+export default memo(PlaybackStrummedChord);
