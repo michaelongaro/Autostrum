@@ -14,7 +14,7 @@ import {
 } from "~/components/ui/select";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { Separator } from "~/components/ui/separator";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type PlaybackMetadata } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
@@ -35,7 +35,6 @@ function PlaybackTopMetadata({
     sectionProgression,
     audioMetadata,
     playbackMetadata,
-    currentChordIndex,
     viewportLabel,
     countInTimer,
     playbackSpeed,
@@ -51,7 +50,6 @@ function PlaybackTopMetadata({
     sectionProgression: state.sectionProgression,
     audioMetadata: state.audioMetadata,
     playbackMetadata: state.playbackMetadata,
-    currentChordIndex: state.currentChordIndex,
     viewportLabel: state.viewportLabel,
     countInTimer: state.countInTimer,
     playbackSpeed: state.playbackSpeed,
@@ -107,11 +105,7 @@ function PlaybackTopMetadata({
             <Separator className="h-4 w-[1px] bg-foreground/50" />
 
             <div className="baseFlex w-[79px] flex-nowrap !justify-start gap-1 text-nowrap">
-              {getDynamicNoteLengthIcon({
-                noteLength:
-                  playbackMetadata[currentChordIndex]?.noteLength ?? "quarter",
-              })}
-              {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
+              <CurrentTempoDisplay playbackMetadata={playbackMetadata} />
             </div>
           </div>
         </div>
@@ -229,12 +223,9 @@ function PlaybackTopMetadata({
                     <div className="baseVertFlex !items-start text-nowrap">
                       <span className="text-sm font-medium">Tempo</span>
                       <div className="baseFlex w-[79px] !justify-start gap-1">
-                        {getDynamicNoteLengthIcon({
-                          noteLength:
-                            playbackMetadata[currentChordIndex]?.noteLength ??
-                            "quarter",
-                        })}
-                        {playbackMetadata[currentChordIndex]?.bpm ?? "120"} BPM
+                        <CurrentTempoDisplay
+                          playbackMetadata={playbackMetadata}
+                        />
                       </div>
                     </div>
                     <div className="baseVertFlex !items-start">
@@ -430,5 +421,23 @@ function Menu() {
         ]}
       />
     </div>
+  );
+}
+
+function CurrentTempoDisplay({
+  playbackMetadata,
+}: {
+  playbackMetadata: PlaybackMetadata[] | null;
+}) {
+  const currentChordIndex = useTabStore((state) => state.currentChordIndex);
+
+  return (
+    <>
+      {getDynamicNoteLengthIcon({
+        noteLength:
+          playbackMetadata?.[currentChordIndex]?.noteLength ?? "quarter",
+      })}
+      {playbackMetadata?.[currentChordIndex]?.bpm ?? "120"} BPM
+    </>
   );
 }

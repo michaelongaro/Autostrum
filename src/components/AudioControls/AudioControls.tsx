@@ -455,86 +455,7 @@ function AudioControls() {
         {aboveLargeViewportWidth && (
           <div className="baseFlex w-full !justify-between">
             {/* instrument, speed selects*/}
-            <div className="baseFlex gap-2">
-              <div className="baseFlex gap-2">
-                <Label htmlFor="instrument" className="shrink-0">
-                  Instrument
-                </Label>
-                <Select
-                  disabled={audioMetadata.editingLoopRange}
-                  value={currentInstrumentName}
-                  onValueChange={(value) => {
-                    pauseAudio();
-
-                    setCurrentInstrumentName(
-                      value as
-                        | "acoustic_guitar_nylon"
-                        | "acoustic_guitar_steel"
-                        | "electric_guitar_clean"
-                        | "electric_guitar_jazz",
-                    );
-                  }}
-                >
-                  <SelectTrigger
-                    id="instrument"
-                    className="focus:ring-2 focus:ring-primary-foreground/75"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"acoustic_guitar_nylon"}>
-                      Acoustic guitar - Nylon
-                    </SelectItem>
-
-                    <SelectItem value={"acoustic_guitar_steel"}>
-                      Acoustic guitar - Steel
-                    </SelectItem>
-
-                    <SelectItem value={"electric_guitar_clean"}>
-                      Electric guitar - Clean
-                    </SelectItem>
-
-                    <SelectItem value={"electric_guitar_jazz"}>
-                      Electric guitar - Jazz
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="baseFlex gap-2">
-                <Label htmlFor="speed" className="shrink-0">
-                  Speed
-                </Label>
-                <Select
-                  disabled={audioMetadata.editingLoopRange}
-                  value={`${playbackSpeed}x`}
-                  onValueChange={(value) => {
-                    pauseAudio();
-
-                    const newPlaybackSpeed = Number(
-                      value.slice(0, value.length - 1),
-                    ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
-
-                    setPlaybackSpeed(newPlaybackSpeed);
-                  }}
-                >
-                  <SelectTrigger
-                    id="speed"
-                    className="focus:ring-2 focus:ring-primary-foreground/75"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"0.25x"}>0.25x</SelectItem>
-                    <SelectItem value={"0.5x"}>0.5x</SelectItem>
-                    <SelectItem value={"0.75x"}>0.75x</SelectItem>
-                    <SelectItem value={"1x"}>1x</SelectItem>
-                    <SelectItem value={"1.25x"}>1.25x</SelectItem>
-                    <SelectItem value={"1.5x"}>1.5x</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <DesktopInstrumentAndSpeedSelects />
 
             {/* conditional "move selected section back to entire tab" */}
             <AnimatePresence mode="wait">
@@ -1174,3 +1095,104 @@ function AudioControls() {
 }
 
 export default AudioControls;
+
+function DesktopInstrumentAndSpeedSelects() {
+  const {
+    currentInstrumentName,
+    setCurrentInstrumentName,
+    playbackSpeed,
+    setPlaybackSpeed,
+    editingLoopRange,
+    pauseAudio,
+  } = useTabStore((state) => ({
+    currentInstrumentName: state.currentInstrumentName,
+    setCurrentInstrumentName: state.setCurrentInstrumentName,
+    playbackSpeed: state.playbackSpeed,
+    setPlaybackSpeed: state.setPlaybackSpeed,
+    editingLoopRange: state.audioMetadata.editingLoopRange,
+    pauseAudio: state.pauseAudio,
+  }));
+
+  return (
+    <div className="baseFlex gap-2">
+      <div className="baseFlex gap-2">
+        <Label htmlFor="instrument" className="shrink-0">
+          Instrument
+        </Label>
+        <Select
+          disabled={editingLoopRange}
+          value={currentInstrumentName}
+          onValueChange={(value) => {
+            pauseAudio();
+
+            setCurrentInstrumentName(
+              value as
+                | "acoustic_guitar_nylon"
+                | "acoustic_guitar_steel"
+                | "electric_guitar_clean"
+                | "electric_guitar_jazz",
+            );
+          }}
+        >
+          <SelectTrigger
+            id="instrument"
+            className="focus:ring-2 focus:ring-primary-foreground/75"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={"acoustic_guitar_nylon"}>
+              Acoustic guitar - Nylon
+            </SelectItem>
+
+            <SelectItem value={"acoustic_guitar_steel"}>
+              Acoustic guitar - Steel
+            </SelectItem>
+
+            <SelectItem value={"electric_guitar_clean"}>
+              Electric guitar - Clean
+            </SelectItem>
+
+            <SelectItem value={"electric_guitar_jazz"}>
+              Electric guitar - Jazz
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="baseFlex gap-2">
+        <Label htmlFor="speed" className="shrink-0">
+          Speed
+        </Label>
+        <Select
+          disabled={editingLoopRange}
+          value={`${playbackSpeed}x`}
+          onValueChange={(value) => {
+            pauseAudio();
+
+            const newPlaybackSpeed = Number(
+              value.slice(0, value.length - 1),
+            ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+
+            setPlaybackSpeed(newPlaybackSpeed);
+          }}
+        >
+          <SelectTrigger
+            id="speed"
+            className="focus:ring-2 focus:ring-primary-foreground/75"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={"0.25x"}>0.25x</SelectItem>
+            <SelectItem value={"0.5x"}>0.5x</SelectItem>
+            <SelectItem value={"0.75x"}>0.75x</SelectItem>
+            <SelectItem value={"1x"}>1x</SelectItem>
+            <SelectItem value={"1.25x"}>1.25x</SelectItem>
+            <SelectItem value={"1.5x"}>1.5x</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
