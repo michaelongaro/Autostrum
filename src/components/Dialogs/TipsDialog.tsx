@@ -35,8 +35,8 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
           Tips
         </div>
 
-        <div className="baseVertFlex w-full !items-start gap-2 xl:!flex-row xl:gap-8">
-          <div className="baseVertFlex w-full !items-start gap-4">
+        <div className="baseVertFlex w-full !items-start gap-8 xl:!flex-row">
+          <div className="baseVertFlex w-full !items-start gap-8">
             {/* Tab */}
             <div className="baseVertFlex !items-start">
               <div className="font-medium">Tab</div>
@@ -62,7 +62,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
 
             {/* Strumming */}
             <div className="baseVertFlex !items-start">
-              <div className="mt-2 font-medium">Strumming</div>
+              <div className="font-medium">Strumming</div>
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <div className="baseVertFlex w-full !items-start gap-2">
@@ -78,10 +78,10 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
             </div>
           </div>
 
+          {/* Hotkeys */}
           <div className="baseVertFlex w-full !items-start">
-            {/* Hotkeys */}
+            <div className="font-medium">Hotkeys</div>
             <div className="baseVertFlex !items-start gap-2">
-              <div className="mt-2 font-medium">Hotkeys</div>
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 You can navigate through inputs with your arrow keys.
