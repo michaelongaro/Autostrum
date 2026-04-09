@@ -463,7 +463,6 @@ function PlaybackModal() {
     chordRepetitions,
   ]);
 
-  // Determine if a chord should be highlighted based on its position and the current chord
   const isChordHighlighted = useCallback(
     (chordIndex: number): boolean => {
       if (
@@ -473,12 +472,13 @@ function PlaybackModal() {
       )
         return false;
 
-      // Currently playing chord
-      if (currentChordIndex === chordIndex) return true;
+      if (currentChordIndex === chordIndex && audioMetadata.playing) {
+        return true;
+      }
 
       // A chord is highlighted if:
       // 1. It has the same repetition count as the current chord AND comes before it
-      // 2. OR it has a lower repetition count (it's from the "past" but still visible)
+      // 2. OR it has a lower repetition count (from the previous loop but still visible)
       const chordRep = chordRepetitions[chordIndex] ?? 0;
       const currentRep = chordRepetitions[currentChordIndex] ?? 0;
 
@@ -497,6 +497,7 @@ function PlaybackModal() {
       currentlyPlayingMetadata,
       currentChordIndex,
       chordRepetitions,
+      audioMetadata.playing,
     ],
   );
 
