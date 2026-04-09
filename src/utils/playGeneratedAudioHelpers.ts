@@ -248,18 +248,14 @@ function cleanupAudioSource(
     }
   }
 
-  // Stop the source if it's playing
+  // Fallback: no soft-stop gain registered, stop immediately
   safeStopScheduledSource(source as AudioScheduledSourceNode);
-
-  // Disconnect all nodes
   safeDisconnectNode(source as AudioNode);
 
-  // For AudioBufferSourceNode, explicitly clear buffer reference
   if ("buffer" in source && source.buffer) {
     source.buffer = null;
   }
 
-  // For Soundfont.Player, cleanup internal source
   const internalSource = (source as { source?: AudioBufferSourceNode }).source;
   if (internalSource) {
     safeStopScheduledSource(internalSource);
@@ -534,18 +530,53 @@ function stopAllScheduledAudioCallbacks() {
 function stopAllActivePlaybackSources() {
   stopAllScheduledAudioCallbacks();
 
+  // Find the latest AudioContext currentTime among all sources for the anti-pop ramp
+  let now = 0;
   for (const source of activePlaybackSources) {
-    safeStopScheduledSource(source);
-    safeDisconnectNode(source);
+    if (source.context && source.context.currentTime > now) {
+      now = source.context.currentTime;
+    }
+  }
 
-    if ("buffer" in source && source.buffer) {
-      source.buffer = null;
+  for (const source of activePlaybackSources) {
+    const softStopGain = sourceSoftStopGainMap.get(source);
+    if (softStopGain) {
+      const currentGain = Math.max(softStopGain.gain.value, 0.0001);
+      softStopGain.gain.cancelScheduledValues(now);
+      softStopGain.gain.setValueAtTime(currentGain, now);
+      softStopGain.gain.linearRampToValueAtTime(
+        0.0001,
+        now + ANTI_POP_FADE_SECONDS,
+      );
+      safeStopScheduledSource(source, now + ANTI_POP_FADE_SECONDS);
+    } else {
+      safeStopScheduledSource(source);
     }
 
     source.onended = null;
   }
 
-  activePlaybackSources.clear();
+  // Snapshot the sources that need deferred cleanup so newly-added sources
+  // (e.g. from the first chord of a new playback) are not accidentally nuked.
+  const sourcesToCleanup = Array.from(activePlaybackSources);
+  for (const source of sourcesToCleanup) {
+    activePlaybackSources.delete(source);
+  }
+
+  // Schedule full cleanup after the fade completes
+  setTimeout(
+    () => {
+      for (const source of sourcesToCleanup) {
+        safeDisconnectNode(source);
+        sourceSoftStopGainMap.delete(source);
+
+        if ("buffer" in source && source.buffer) {
+          source.buffer = null;
+        }
+      }
+    },
+    ANTI_POP_FADE_SECONDS * 1000 + 5,
+  );
 }
 
 interface ApplyBendEffect {
@@ -1316,9 +1347,21 @@ function playNote({
   );
 
   if (note) {
+    // Insert a per-note soft-stop GainNode between the Soundfont output and
+    // masterVolumeGainNode so cleanupAudioSource can ramp gain to 0 (anti-pop)
+    // instead of abruptly stopping the source.
+    const softStopGain = audioContext.createGain();
+    softStopGain.gain.value = 1;
+    (note as unknown as AudioNode).disconnect();
+    note.connect(softStopGain);
+    softStopGain.connect(masterVolumeGainNode);
+    ensureMasterConnected({ audioContext, masterVolumeGainNode });
+
     const sourceNode = resolveSourceNodeFromHandle(note as unknown as GainNode);
     attachSourceOnEndedCleanup({
       sourceNode,
+      nodesToDisconnect: [softStopGain],
+      softStopGainNode: softStopGain,
       currentlyPlayingStrings,
       stringIdx,
       expectedHandle: note,
