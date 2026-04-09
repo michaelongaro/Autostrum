@@ -50,7 +50,24 @@ const noteLengthCycle = [
   "sixteenth double-dotted",
 ] as const;
 
+const baseNoteLengthCycle = [
+  "whole",
+  "half",
+  "quarter",
+  "eighth",
+  "sixteenth",
+] as const;
+
 type NoteLength = (typeof noteLengthCycle)[number];
+type BaseNoteLength = (typeof baseNoteLengthCycle)[number];
+
+function getBaseNoteLength(noteLength: FullNoteLengths): BaseNoteLength {
+  if (noteLength.startsWith("whole")) return "whole";
+  if (noteLength.startsWith("half")) return "half";
+  if (noteLength.startsWith("quarter")) return "quarter";
+  if (noteLength.startsWith("eighth")) return "eighth";
+  return "sixteenth";
+}
 
 function validNoteInput(input: string) {
   // standalone effects
@@ -210,7 +227,7 @@ export function handleTabNoteKeyDown(
     return;
   }
 
-  // Change note length with Shift + ArrowUp/ArrowDown
+  // Change note length with Shift + ArrowUp/ArrowDown or Ctrl + Shift + ArrowUp/ArrowDown
   if (e.shiftKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
     e.preventDefault();
 
@@ -219,15 +236,30 @@ export function handleTabNoteKeyDown(
       if (subSection?.type === "tab") {
         const columnData = subSection.data[columnIndex];
         if (columnData && isTabNote(columnData)) {
-          const order = noteLengthCycle;
           const current = columnData.noteLength ?? "quarter";
-          let idx = order.indexOf(current as NoteLength);
+
+          if (e.ctrlKey) {
+            const order = noteLengthCycle;
+            let idx = order.indexOf(current as NoteLength);
+            if (idx === -1) idx = order.indexOf("quarter");
+
+            if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
+            if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+
+            const newLength: NoteLength = order[idx] ?? "quarter";
+            columnData.noteLength = newLength;
+            return;
+          }
+
+          const order = baseNoteLengthCycle;
+          const currentBase = getBaseNoteLength(current);
+          let idx = order.indexOf(currentBase);
           if (idx === -1) idx = order.indexOf("quarter");
 
           if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
           if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
 
-          const newLength: NoteLength = order[idx] ?? "quarter";
+          const newLength: BaseNoteLength = order[idx] ?? "quarter";
           columnData.noteLength = newLength;
         }
       }
