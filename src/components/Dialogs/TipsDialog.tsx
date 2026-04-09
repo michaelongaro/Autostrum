@@ -81,7 +81,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
           {/* Hotkeys */}
           <div className="baseVertFlex w-full !items-start">
             <div className="font-medium">Hotkeys</div>
-            <div className="baseVertFlex !items-start gap-2">
+            <div className="baseVertFlex !items-start gap-4">
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 You can navigate through inputs with your arrow keys.
