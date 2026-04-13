@@ -395,32 +395,69 @@ function MetronomeToolPage() {
       />
 
       <div className="baseVertFlex w-full gap-6 rounded-lg border bg-secondary p-4 shadow-md sm:p-6">
-        {/* Mode toggle */}
-        <div className="baseFlex gap-1 rounded-md border p-1">
-          <Button
-            variant={mode === "regular" ? "default" : "ghost"}
-            className="!h-8 px-4"
-            onClick={() => {
-              setMode("regular");
-              if (isRunning) toggleRunning();
-            }}
-          >
-            Regular
-          </Button>
-          <Button
-            variant={mode === "speed-trainer" ? "default" : "ghost"}
-            className="!h-8 px-4"
-            onClick={() => {
-              setMode("speed-trainer");
-              if (isRunning) toggleRunning();
-            }}
-          >
-            Speed Trainer
-          </Button>
+        <div className="baseFlex w-full gap-4 sm:!justify-between">
+          {/* Mode toggle */}
+          <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[300px]">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("regular");
+                if (isRunning) toggleRunning();
+              }}
+              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+            >
+              Regular
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("speed-trainer");
+                if (isRunning) toggleRunning();
+              }}
+              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "speed-trainer" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+            >
+              Speed Trainer
+            </button>
+          </div>
+
+          {/* Desktop Start/Stop + Sound selector */}
+          <div className="hidden gap-3 sm:flex sm:items-center sm:justify-center">
+            <Select
+              value={clickSound.value}
+              onValueChange={(value) => {
+                const sound = clickSounds.find((s) => s.value === value);
+                if (sound) setClickSound(sound);
+              }}
+            >
+              <SelectTrigger className="!h-10 w-36 bg-background">
+                <SelectValue placeholder="Click sound">
+                  <div className="baseFlex gap-2">
+                    <BsFillVolumeUpFill className="size-5" />
+                    {clickSound.label}
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {clickSounds.map((sound) => (
+                  <SelectItem key={sound.value} value={sound.value}>
+                    {sound.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant={isRunning ? "destructive" : "audio"}
+              className="!h-10 min-w-32 px-6"
+              onClick={toggleRunning}
+            >
+              {isRunning ? "Stop" : "Start"}
+            </Button>
+          </div>
         </div>
 
         {/* Beat visualization circles */}
-        <div className="baseFlex flex-wrap gap-3">
+        <div className="baseFlex mt-4 flex-wrap gap-3">
           {Array.from({ length: timeSignature.beatsPerMeasure }, (_, i) => {
             const beatNumber = i + 1;
             const isActive = isRunning && currentBeat === beatNumber;
@@ -522,7 +559,7 @@ function MetronomeToolPage() {
         ) : (
           <>
             {/* Speed trainer controls */}
-            <div className="grid w-full gap-4 sm:grid-cols-2">
+            <div className="grid w-full grid-cols-2 gap-x-8 gap-y-4 sm:px-16">
               <div className="baseVertFlex items-start gap-2">
                 <label className="text-sm font-medium">
                   Start BPM: {startBpm}
@@ -793,29 +830,32 @@ function MetronomeToolPage() {
           </div>
 
           <div className="baseVertFlex !items-start gap-2">
-            <p className="text-sm font-medium">Accent</p>
-            <Button
-              variant={accentDownbeat ? "default" : "outline"}
-              className="!h-8 px-3"
-              onClick={() =>
-                setAccentDownbeat((currentlyAccented) => !currentlyAccented)
-              }
-            >
-              {accentDownbeat ? "Downbeat On" : "Downbeat Off"}
-            </Button>
+            <p className="text-sm font-medium">Downbeat Accent</p>
+            <div className="baseFlex flex-wrap !justify-start gap-2">
+              <Button
+                variant={accentDownbeat ? "default" : "outline"}
+                className="!h-8 px-3"
+                onClick={() =>
+                  setAccentDownbeat((currentlyAccented) => !currentlyAccented)
+                }
+              >
+                On
+              </Button>
+              <Button
+                variant={accentDownbeat ? "outline" : "default"}
+                className="!h-8 px-3"
+                onClick={() =>
+                  setAccentDownbeat((currentlyAccented) => !currentlyAccented)
+                }
+              >
+                Off
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Start/Stop + Sound selector */}
-        <div className="baseFlex mt-8 w-full flex-wrap gap-3">
-          <Button
-            variant={isRunning ? "destructive" : "audio"}
-            className="!h-10 min-w-32 px-6"
-            onClick={toggleRunning}
-          >
-            {isRunning ? "Stop" : "Start"}
-          </Button>
-
+        {/* Mobile Start/Stop + Sound selector */}
+        <div className="baseFlex mt-8 w-full flex-wrap gap-3 sm:!hidden">
           <Select
             value={clickSound.value}
             onValueChange={(value) => {
@@ -839,6 +879,14 @@ function MetronomeToolPage() {
               ))}
             </SelectContent>
           </Select>
+
+          <Button
+            variant={isRunning ? "destructive" : "audio"}
+            className="!h-10 min-w-32 px-6"
+            onClick={toggleRunning}
+          >
+            {isRunning ? "Stop" : "Start"}
+          </Button>
         </div>
       </div>
     </motion.div>
