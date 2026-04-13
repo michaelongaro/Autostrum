@@ -32,7 +32,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "metronome",
     title: "Metronome",
     description:
-      "A simple, customizable click to help you lock in your timing and play tightly.",
+      "A simple, customizable click to help you lock in your timing and play on beat.",
     category: "Rhythm",
     href: "/tools/metronome",
     status: "available",

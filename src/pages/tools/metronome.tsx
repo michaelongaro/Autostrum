@@ -21,8 +21,6 @@ type TimeSignature = {
   beatsPerMeasure: number;
 };
 
-type MetronomeMode = "regular" | "speed-trainer";
-
 type ClickSound = {
   label: string;
   value: string;
@@ -141,7 +139,7 @@ function MetronomeToolPage() {
   const [clickSound, setClickSound] = useState<ClickSound>(clickSounds[0]!);
 
   // Mode state
-  const [mode, setMode] = useState<MetronomeMode>("regular");
+  const [mode, setMode] = useState<"regular" | "speed-trainer">("regular");
 
   // Speed trainer state
   const [startBpm, setStartBpm] = useState(60);
@@ -190,6 +188,69 @@ function MetronomeToolPage() {
       setBpm(clamped);
     }
   }, []);
+
+  function playClick({
+    audioContext,
+    frequency,
+    gain,
+    waveform,
+    decay,
+  }: {
+    audioContext: AudioContext;
+    frequency: number;
+    gain: number;
+    waveform: OscillatorType;
+    decay: number;
+  }) {
+    const now = audioContext.currentTime;
+
+    const oscillator = audioContext.createOscillator();
+    oscillator.type = waveform;
+    oscillator.frequency.setValueAtTime(frequency, now);
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.setValueAtTime(0.0001, now);
+    gainNode.gain.exponentialRampToValueAtTime(gain, now + 0.006);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start(now);
+    oscillator.stop(now + decay + 0.01);
+  }
+
+  async function getAudioContext() {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new window.AudioContext();
+    }
+
+    if (audioContextRef.current.state === "suspended") {
+      await audioContextRef.current.resume();
+    }
+
+    return audioContextRef.current;
+  }
+
+  function toggleRunning() {
+    setIsRunning((currentlyRunning) => {
+      const nextRunningState = !currentlyRunning;
+
+      if (nextRunningState && mode === "speed-trainer") {
+        setBpm(startBpm);
+        liveBpmRef.current = startBpm;
+        barCountRef.current = 0;
+      }
+
+      if (!nextRunningState) {
+        setCurrentBeat(1);
+        currentStepRef.current = 0;
+        barCountRef.current = 0;
+      }
+
+      return nextRunningState;
+    });
+  }
 
   useEffect(() => {
     return () => {
@@ -310,71 +371,6 @@ function MetronomeToolPage() {
     finalBpm,
   ]);
 
-  async function getAudioContext() {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new window.AudioContext();
-    }
-
-    if (audioContextRef.current.state === "suspended") {
-      await audioContextRef.current.resume();
-    }
-
-    return audioContextRef.current;
-  }
-
-  function playClick({
-    audioContext,
-    frequency,
-    gain,
-    waveform,
-    decay,
-  }: {
-    audioContext: AudioContext;
-    frequency: number;
-    gain: number;
-    waveform: OscillatorType;
-    decay: number;
-  }) {
-    const now = audioContext.currentTime;
-
-    const oscillator = audioContext.createOscillator();
-    oscillator.type = waveform;
-    oscillator.frequency.setValueAtTime(frequency, now);
-
-    const gainNode = audioContext.createGain();
-    gainNode.gain.setValueAtTime(0.0001, now);
-    gainNode.gain.exponentialRampToValueAtTime(gain, now + 0.006);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + decay);
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.start(now);
-    oscillator.stop(now + decay + 0.01);
-  }
-
-  function toggleRunning() {
-    setIsRunning((currentlyRunning) => {
-      const nextRunningState = !currentlyRunning;
-
-      if (nextRunningState && mode === "speed-trainer") {
-        setBpm(startBpm);
-        liveBpmRef.current = startBpm;
-        barCountRef.current = 0;
-      }
-
-      if (!nextRunningState) {
-        setCurrentBeat(1);
-        currentStepRef.current = 0;
-        barCountRef.current = 0;
-      }
-
-      return nextRunningState;
-    });
-  }
-
-  const activeBpm = bpm;
-
   return (
     <motion.div
       key={"tools-metronome"}
@@ -391,7 +387,7 @@ function MetronomeToolPage() {
       <ToolRouteHeader
         icon={<PiMetronome className="size-6" />}
         title="Metronome"
-        description="A simple, customizable click to help you lock in your timing and play tightly."
+        description="A simple, customizable click to help you lock in your timing and play on beat."
       />
 
       <div className="baseVertFlex w-full gap-6 rounded-lg border bg-secondary p-4 shadow-md sm:p-6">
@@ -483,13 +479,13 @@ function MetronomeToolPage() {
         {/* BPM display + tempo name */}
         <div className="baseVertFlex gap-1">
           <p className="text-3xl font-bold tabular-nums tracking-tight">
-            {activeBpm}{" "}
+            {bpm}{" "}
             <span className="text-base font-normal text-foreground/60">
               BPM
             </span>
           </p>
           <p className="text-sm italic text-foreground/50">
-            {getTempoName(activeBpm)}
+            {getTempoName(bpm)}
           </p>
         </div>
 
@@ -559,7 +555,7 @@ function MetronomeToolPage() {
         ) : (
           <>
             {/* Speed trainer controls */}
-            <div className="grid w-full grid-cols-2 gap-x-8 gap-y-4 sm:px-16">
+            <div className="mb-4 grid w-full grid-cols-2 gap-x-8 gap-y-4 sm:px-32">
               <div className="baseVertFlex items-start gap-2">
                 <label className="text-sm font-medium">
                   Start BPM: {startBpm}
