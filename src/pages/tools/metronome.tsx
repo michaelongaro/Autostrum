@@ -360,7 +360,6 @@ function MetronomeToolPage() {
     };
   }, [
     accentDownbeat,
-    bpm,
     isRunning,
     subdivision,
     timeSignature.beatsPerMeasure,
