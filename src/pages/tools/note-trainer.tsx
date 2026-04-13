@@ -292,7 +292,7 @@ function NoteTrainerPage() {
               <Button
                 key={note}
                 variant={getGuessButtonVariant(note)}
-                className="h-12 px-0 text-base sm:h-14 sm:text-lg"
+                className={`h-12 px-0 text-base sm:h-14 sm:text-lg ${getGuessButtonVariant(note) === "outline" ? "hover:bg-primary hover:!text-primary-foreground active:bg-primary active:!text-primary-foreground active:brightness-90" : ""}`}
                 onClick={() => handleGuess(note)}
                 disabled={!!selectedGuess}
               >
