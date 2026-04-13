@@ -183,7 +183,7 @@ function PracticePlaybackPanel({
         <div className="baseVertFlex w-full !items-start gap-2">
           <p className="text-sm font-medium">Configuration</p>
           <div className="baseFlex w-full flex-col items-stretch gap-3 sm:flex-row">
-            <div className="baseVertFlex flex-1 !items-start gap-2 rounded-md border bg-background p-3">
+            <div className="baseVertFlex w-full flex-1 !items-start gap-2 rounded-md border bg-background p-3">
               <p className="text-sm font-medium">Tempo multiplier</p>
 
               <div className="baseFlex w-full flex-wrap !justify-start gap-2">
@@ -202,7 +202,7 @@ function PracticePlaybackPanel({
               </div>
             </div>
 
-            <div className="baseVertFlex flex-1 !items-start gap-2 rounded-md border bg-background p-3">
+            <div className="baseVertFlex w-full flex-1 !items-start gap-2 rounded-md border bg-background p-3">
               <p className="text-sm font-medium">Loop delay</p>
 
               <div className="baseFlex w-full flex-wrap !justify-start gap-2">
@@ -225,7 +225,7 @@ function PracticePlaybackPanel({
 
         <Button
           variant="audio"
-          className="baseFlex gap-2 px-6 *:!h-10 sm:px-8 sm:text-base"
+          className="baseFlex my-2 gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
           disabled={audioMetadata.fullCurrentlyPlayingMetadataLength <= 0}
           onClick={() => {
             setCurrentChordIndex(0);

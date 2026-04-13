@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "~/components/ui/button";
+import { IoIosArrowBack } from "react-icons/io";
 
 type ToolRouteHeaderProps = {
   title: string;
@@ -11,9 +12,10 @@ type ToolRouteHeaderProps = {
 function ToolRouteHeader({ title, description, icon }: ToolRouteHeaderProps) {
   return (
     <div className="baseVertFlex w-full !items-start gap-3">
-      <Button variant="outline" asChild className="!h-8 px-3">
-        <Link prefetch={false} href="/tools">
-          Back to Tools
+      <Button variant="outline" asChild className="!h-8 pl-3 pr-4">
+        <Link prefetch={false} href="/tools" className="baseFlex gap-2">
+          <IoIosArrowBack className="mt-[1px]" />
+          Tools
         </Link>
       </Button>
 
