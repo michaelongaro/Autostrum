@@ -26,7 +26,7 @@ function ToolCardGrid({ tools }: ToolCardGridProps) {
           key={tool.id}
           prefetch={false}
           href={tool.href}
-          className="baseFlex h-full justify-between gap-3 rounded-lg border bg-secondary p-4 shadow-md transition-colors hover:bg-secondary/80"
+          className="baseFlex h-full !justify-between gap-3 rounded-lg border bg-secondary p-4 shadow-md transition-colors hover:bg-background/80 dark:hover:bg-secondary/80"
         >
           <div className="baseVertFlex !items-start gap-2">
             <div className="baseFlex gap-2">
