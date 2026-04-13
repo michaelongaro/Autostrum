@@ -24,8 +24,8 @@ function ToolsHub() {
       <div className="baseVertFlex w-full !items-start gap-2">
         <h1 className="text-2xl font-semibold md:text-3xl">Guitar Tools</h1>
         <p className="max-w-3xl text-sm text-foreground/85 md:text-base">
-          Practice timing, build fretboard fluency, and keep your instrument in
-          tune with focused tools built for daily guitar sessions.
+          Everything you need to improve your timing, build fretboard fluency,
+          and keep your instrument in tune.
         </p>
       </div>
 

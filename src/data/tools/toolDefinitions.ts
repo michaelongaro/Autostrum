@@ -14,7 +14,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "warmups",
     title: "Warm-up Exercises",
     description:
-      "Structured finger-independence and dexterity drills with guided tempo progression.",
+      "Build finger strength and dexterity before jumping into your next practice session.",
     category: "Practice",
     href: "/tools/warmups",
     status: "available",
@@ -23,7 +23,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "scales",
     title: "Scales Practice",
     description:
-      "Practice common guitar scale patterns across positions with repeat-focused sessions.",
+      "Learn the fretboard and build muscle memory by playing through essential scale shapes.",
     category: "Practice",
     href: "/tools/scales",
     status: "available",
@@ -32,7 +32,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "metronome",
     title: "Metronome",
     description:
-      "Train timing with adjustable BPM, time signature, subdivisions, and accented downbeats.",
+      "A simple, customizable click to help you lock in your timing and play tightly.",
     category: "Rhythm",
     href: "/tools/metronome",
     status: "available",
@@ -41,7 +41,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "note-trainer",
     title: "Note Trainer",
     description:
-      "Hear a target note, guess it, and get instant feedback with round-by-round scoring.",
+      "Train your ear to recognize different notes across the fretboard.",
     category: "Ear Training",
     href: "/tools/note-trainer",
     status: "available",
@@ -50,7 +50,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "tuner",
     title: "Guitar Tuner",
     description:
-      "Tune each string with real-time pitch and cents feedback powered by your microphone.",
+      "A quick and accurate microphone tuner to get your guitar sounding right.",
     category: "Tuning",
     href: "/tuner",
     status: "available",

@@ -231,7 +231,7 @@ function NoteTrainerPage() {
       <ToolRouteHeader
         icon={<IoEar className="size-5" />}
         title="Note Trainer"
-        description="Hear a target note, guess from the choices below, and track your score for this session."
+        description="Train your ear to recognize different notes across the fretboard."
       />
 
       <div className="baseVertFlex relative w-full gap-6 rounded-lg border bg-secondary p-4 shadow-md sm:p-6">

@@ -22,7 +22,7 @@ function WarmupsPage() {
       <ToolRouteHeader
         icon={<IoMusicalNotes className="size-5" />}
         title="Warm-up Exercises"
-        description="Practice warm-up drills using the same playback engine and modal flow as tab practice."
+        description="Build finger strength and dexterity before jumping into your next practice session."
       />
 
       <PracticePlaybackPanel

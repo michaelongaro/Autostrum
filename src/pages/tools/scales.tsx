@@ -22,7 +22,7 @@ function ScalesPage() {
       <ToolRouteHeader
         icon={<GiMusicalScore className="size-8" />}
         title="Scales Practice"
-        description="Run scale patterns through the same compile + playback modal engine used for tab practice."
+        description="Learn the fretboard and build muscle memory by playing through essential scale shapes."
       />
 
       <PracticePlaybackPanel

@@ -391,7 +391,7 @@ function MetronomeToolPage() {
       <ToolRouteHeader
         icon={<PiMetronome className="size-6" />}
         title="Metronome"
-        description="Practice with adjustable tempo, subdivisions, and accented downbeats."
+        description="A simple, customizable click to help you lock in your timing and play tightly."
       />
 
       <div className="baseVertFlex w-full gap-6 rounded-lg border bg-secondary p-4 shadow-md sm:p-6">
