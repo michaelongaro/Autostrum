@@ -26,7 +26,7 @@ function ToolCardGrid({ tools }: ToolCardGridProps) {
           key={tool.id}
           prefetch={false}
           href={tool.href}
-          className="baseFlex h-full !justify-between gap-6 rounded-lg border bg-secondary p-4 shadow-md transition-colors hover:!bg-background/80 dark:hover:bg-secondary/80"
+          className="baseFlex h-full !items-start !justify-between gap-6 rounded-lg border bg-secondary p-4 shadow-md transition-colors hover:!bg-background/80 dark:hover:bg-secondary/80"
         >
           <div className="baseVertFlex !items-start gap-2">
             <div className="baseFlex gap-2">
@@ -45,7 +45,7 @@ function ToolCardGrid({ tools }: ToolCardGridProps) {
             <p className="text-sm text-foreground/80">{tool.description}</p>
           </div>
 
-          <IoChevronForward className="size-5 shrink-0 text-foreground/60" />
+          <IoChevronForward className="size-5 shrink-0 self-center text-foreground/60" />
         </Link>
       ))}
     </div>
