@@ -21,12 +21,15 @@ function StaticTabNote({
 }: StaticTabNote) {
   return (
     <div className="baseFlex w-full">
+      {/* pre-note string visual */}
       <div
         style={{
           backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
         }}
         className="my-3 h-[1px] flex-[1]"
       ></div>
+
+      {/* note */}
       <div
         // "x" wasn't as centered as regular numbers were, manual adjustment below
         style={{
@@ -39,11 +42,13 @@ function StaticTabNote({
         {isRest ? (
           <PauseIcon className="absolute bottom-1.5 size-3" />
         ) : (
-          <div>{note}</div>
+          <>{note}</>
         )}
 
         {isStaccato && <div className="relative -top-2">.</div>}
       </div>
+
+      {/* post-note string visual */}
       <div
         style={{
           backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
