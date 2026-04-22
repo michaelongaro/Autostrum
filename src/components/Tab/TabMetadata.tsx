@@ -511,7 +511,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       <div className="baseVertFlex w-full max-w-[350px] p-2 pt-1 text-sm md:max-w-[400px] md:text-base">
         <div className="baseFlex">
           <BsPlus className="h-8 w-8 rotate-45 text-destructive" />
-          <p className="mb-[1px]">Only registered users can publish a tab.</p>
+          <p className="mb-[1px]">You must be logged in to publish a tab.</p>
         </div>
         <p className="text-xs text-gray md:text-sm">
           This tab will be saved for you upon signing in.

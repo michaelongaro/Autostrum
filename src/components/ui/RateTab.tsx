@@ -368,7 +368,7 @@ function RateTabPopover({
       </PopoverTrigger>
       <PopoverContent className="baseFlex w-[350px] py-2 text-sm md:text-base">
         {showUnregisteredPopover ? (
-          "Only registered users can rate tabs."
+          "You must be logged in to rate a tab."
         ) : (
           <RateTabInternals
             hoveredRating={hoveredRating}
@@ -471,7 +471,7 @@ function RateTabDrawer({
           ) : (
             <div className="baseVertFlex my-8 w-full gap-8">
               <span className="font-medium">
-                Only registered users can rate tabs.
+                You must be logged in to rate a tab.
               </span>
 
               <div className="baseFlex">

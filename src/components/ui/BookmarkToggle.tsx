@@ -241,7 +241,7 @@ function BookmarkToggle({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="baseFlex w-full py-2 text-sm md:text-base">
-        Only registered users can bookmark tabs.
+        You must be logged in to bookmark a tab.
       </PopoverContent>
     </Popover>
   );
