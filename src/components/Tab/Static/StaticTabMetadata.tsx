@@ -425,7 +425,7 @@ function StaticTabMetadata() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
+                  transition={{ duration: 0.35 }}
                   className="h-6"
                 >
                   <div className="pulseAnimation h-6 w-48 rounded-md bg-foreground/45" />
@@ -436,7 +436,7 @@ function StaticTabMetadata() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
+                  transition={{ duration: 0.35 }}
                   className="baseFlex h-6 gap-2"
                 >
                   <Button
