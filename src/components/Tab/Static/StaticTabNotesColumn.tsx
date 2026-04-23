@@ -70,7 +70,7 @@ function StaticTabNotesColumn({
     ? nextColumn.chordEffects === "r"
     : undefined;
 
-  // Determine group boundaries for strumming guide beam rendering
+  // Determine group boundaries for note length guide beam rendering
   const isFirstInGroup =
     columnIndex === 0 ||
     (previousColumn !== undefined && isTabMeasureLine(previousColumn));
@@ -143,7 +143,7 @@ function StaticTabNotesColumn({
           );
         })}
 
-        {/* Strumming Guide */}
+        {/* Note Length Guide */}
         <div className="relative h-0 w-full">
           <div className="baseVertFlex mt-1 h-4 w-full">
             {renderNoteLengthGuide({

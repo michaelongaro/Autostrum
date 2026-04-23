@@ -796,7 +796,7 @@ const RenderChordByType = memo(function RenderChordByType({
   isHighlighted,
 }: RenderChordByTypeProps) {
   const prevChordNoteLength = prevChord
-    ? prevChord.type === "strum" && !prevChord.isLastChord // don't want to have separate strumming patterns' strumming guides be connected
+    ? prevChord.type === "strum" && !prevChord.isLastChord // don't want to have separate strumming patterns' note length guides be connected
       ? prevChord.data.noteLength
       : prevChord.type === "tab"
         ? (prevChord.data.chordData[8] as FullNoteLengths)
@@ -813,7 +813,7 @@ const RenderChordByType = memo(function RenderChordByType({
 
   const nextChordNoteLength = nextChord
     ? nextChord.type === "strum" &&
-      (chord.type !== "strum" || !chord.isLastChord) // don't want to have separate strumming patterns' strumming guides be connected
+      (chord.type !== "strum" || !chord.isLastChord) // don't want to have separate strumming patterns' note length guides be connected
       ? nextChord.data.noteLength
       : nextChord.type === "tab"
         ? (nextChord.data.chordData[8] as FullNoteLengths)

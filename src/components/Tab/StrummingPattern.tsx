@@ -917,7 +917,7 @@ function StrummingPattern({
                 {beatLabels[strumIndex]}
               </p>
 
-              {/* strumming guide */}
+              {/* Note Length Guide */}
               <div className="h-4 w-full">
                 {renderNoteLengthGuide({
                   previousNoteLength: data.strums[strumIndex - 1]?.noteLength,
