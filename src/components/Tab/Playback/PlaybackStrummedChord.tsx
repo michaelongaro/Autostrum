@@ -2,7 +2,7 @@ import { memo } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
-import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import type { BaseNoteLengths, FullNoteLengths } from "~/stores/TabStore";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useTabStore } from "~/stores/TabStore";
@@ -217,7 +217,7 @@ function PlaybackStrummedChord({
           <span className="text-sm">{beatIndicator}</span>
 
           <div className="h-4 w-full">
-            {renderStrummingGuide({
+            {renderNoteLengthGuide({
               previousNoteLength: prevChordNoteLength,
               currentNoteLength: currentChordNoteLength,
               nextNoteLength: nextChordNoteLength,

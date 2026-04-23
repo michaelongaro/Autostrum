@@ -81,7 +81,7 @@ function renderDots(
   );
 }
 
-interface RenderStrummingGuide {
+interface renderNoteLengthGuide {
   previousNoteLength?: FullNoteLengths;
   currentNoteLength?: FullNoteLengths;
   nextNoteLength?: FullNoteLengths;
@@ -90,13 +90,13 @@ interface RenderStrummingGuide {
   nextIsRestStrum?: boolean;
   color?: COLORS;
   theme?: "light" | "dark";
-  /** True if this is the first strum in a chord sequence or after a measure line */
+  /** True if this is the first strum in a chord sequence OR after a measure line */
   isFirstInGroup?: boolean;
-  /** True if this is the last strum in a chord sequence or before a measure line */
+  /** True if this is the last strum in a chord sequence OR before a measure line */
   isLastInGroup?: boolean;
 }
 
-function renderStrummingGuide({
+function renderNoteLengthGuide({
   previousNoteLength,
   currentNoteLength,
   nextNoteLength,
@@ -107,7 +107,7 @@ function renderStrummingGuide({
   theme,
   isFirstInGroup = false,
   isLastInGroup = false,
-}: RenderStrummingGuide) {
+}: renderNoteLengthGuide) {
   if (!currentNoteLength) {
     return null;
   }
@@ -282,4 +282,4 @@ function renderStrummingGuide({
   );
 }
 
-export default renderStrummingGuide;
+export default renderNoteLengthGuide;

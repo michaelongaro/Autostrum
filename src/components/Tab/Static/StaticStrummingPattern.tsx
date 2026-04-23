@@ -14,7 +14,7 @@ import { Button } from "~/components/ui/button";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
-import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
 import ChordName from "~/components/ui/ChordName";
@@ -258,7 +258,7 @@ function StaticStrummingPattern({
 
             {/* strumming guide */}
             <div className="h-4 w-full">
-              {renderStrummingGuide({
+              {renderNoteLengthGuide({
                 previousNoteLength: data.strums[strumIndex - 1]?.noteLength,
                 currentNoteLength: strum.noteLength,
                 nextNoteLength: data.strums[strumIndex + 1]?.noteLength,

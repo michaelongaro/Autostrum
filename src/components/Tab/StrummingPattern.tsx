@@ -30,7 +30,7 @@ import {
   type FullNoteLengths,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
-import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import StrummingPatternPalmMuteNode from "../Tab/StrummingPatternPalmMuteNode";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import { Button } from "~/components/ui/button";
@@ -919,7 +919,7 @@ function StrummingPattern({
 
               {/* strumming guide */}
               <div className="h-4 w-full">
-                {renderStrummingGuide({
+                {renderNoteLengthGuide({
                   previousNoteLength: data.strums[strumIndex - 1]?.noteLength,
                   currentNoteLength: strum.noteLength,
                   nextNoteLength: data.strums[strumIndex + 1]?.noteLength,

@@ -3,7 +3,7 @@ import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME, TabNote as TabNoteType } from "~/stores/TabStore";
-import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 import {
   getStringValue,
@@ -148,7 +148,7 @@ function StaticTabNotesColumn({
           <div
             className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 top-1 h-4 w-full -translate-x-1/2`}
           >
-            {renderStrummingGuide({
+            {renderNoteLengthGuide({
               previousNoteLength,
               currentNoteLength: columnData.noteLength,
               nextNoteLength,

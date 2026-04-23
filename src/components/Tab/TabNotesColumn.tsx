@@ -25,7 +25,7 @@ import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 import { NoteLengthDropdown } from "./NoteLengthDropdown";
-import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
   createTabNote,
   getStringValue,
@@ -476,7 +476,7 @@ function TabNotesColumn({
 
           {/* Strumming Guide */}
           <div className="baseVertFlex mt-2 h-4 w-full">
-            {renderStrummingGuide({
+            {renderNoteLengthGuide({
               previousNoteLength,
               currentNoteLength: columnData.noteLength,
               nextNoteLength,

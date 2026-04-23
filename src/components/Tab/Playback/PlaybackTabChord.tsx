@@ -4,7 +4,7 @@ import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import type { FullNoteLengths } from "~/stores/TabStore";
 import { QuarterNote } from "~/utils/noteLengthIcons";
-import renderStrummingGuide from "~/utils/renderStrummingGuide";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 
 interface PlaybackTabChord {
   columnData: string[];
@@ -132,7 +132,7 @@ function PlaybackTabChord({
 
                 {index === 7 && (
                   <div className="baseFlex mt-1 h-4 w-full">
-                    {renderStrummingGuide({
+                    {renderNoteLengthGuide({
                       previousNoteLength: prevChordNoteLength,
                       currentNoteLength: currentChordNoteLength,
                       nextNoteLength: nextChordNoteLength,
