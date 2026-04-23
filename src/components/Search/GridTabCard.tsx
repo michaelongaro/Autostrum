@@ -210,9 +210,6 @@ function GridTabCard({
                     style={{
                       opacity: tabScreenshotLoaded ? 1 : 0,
                       transition: "opacity 0.3s ease-in-out",
-                      filter: isPressingOnScreenshot
-                        ? "brightness(0.8)"
-                        : "none",
                     }}
                     className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
                   />
