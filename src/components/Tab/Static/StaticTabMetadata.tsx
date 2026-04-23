@@ -395,7 +395,7 @@ function StaticTabMetadata() {
       <div className={`${classes.viewingMetadataContainer}`}>
         <div className={`${classes.descriptionGrid}`}>
           <div
-            className={`${classes.description} baseVertFlex !items-start gap-2`}
+            className={`${classes.description} baseVertFlex !items-start gap-1`}
           >
             <div className="font-semibold">Description</div>
 
@@ -415,7 +415,7 @@ function StaticTabMetadata() {
           </div>
 
           <div
-            className={`${classes.createdBy} baseVertFlex mt-[2px] w-full !items-start gap-1`}
+            className={`${classes.createdBy} baseVertFlex mt-[2px] w-full !items-start gap-0.5`}
           >
             <div className="font-semibold">Created by</div>
             <AnimatePresence mode="wait" initial={false}>
@@ -437,7 +437,7 @@ function StaticTabMetadata() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.35 }}
-                  className="baseFlex h-6 gap-2"
+                  className="baseFlex h-6 gap-1.5"
                 >
                   <Button
                     disabled={!tabCreator}
@@ -503,11 +503,11 @@ function StaticTabMetadata() {
           orientation={
             viewportLabel.includes("mobile") ? "horizontal" : "vertical"
           }
-          className={`${classes.separator} my-4 h-[2px] w-full bg-gray/50 lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
+          className={`${classes.separator} my-4 h-[1px] w-full bg-foreground/70 lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
         />
 
         <div className={`${classes.metadataGrid}`}>
-          <div className={`${classes.genre} baseVertFlex !items-start gap-2`}>
+          <div className={`${classes.genre} baseVertFlex !items-start gap-1`}>
             <div className="font-semibold">Genre</div>
             <Badge
               style={{
@@ -523,31 +523,31 @@ function StaticTabMetadata() {
             </Badge>
           </div>
 
-          <div className={`${classes.tuning} baseVertFlex !items-start gap-2`}>
+          <div className={`${classes.tuning} baseVertFlex !items-start gap-1`}>
             <div className="font-semibold">Tuning</div>
             {tuningNotesToName[
               tuning.toLowerCase() as keyof typeof tuningNotesToName
             ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
           </div>
 
-          <div className={`${classes.capo} baseVertFlex !items-start gap-2`}>
+          <div className={`${classes.capo} baseVertFlex !items-start gap-1`}>
             <p className="font-semibold">Capo</p>
             <p className="whitespace-nowrap text-nowrap">
               {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
             </p>
           </div>
 
-          <div className={`${classes.tempo} baseVertFlex !items-start gap-2`}>
+          <div className={`${classes.tempo} baseVertFlex !items-start gap-1`}>
             <div className="font-semibold">Tempo</div>
             <div className="baseFlex">
-              <QuarterNote className="-ml-1 size-5" />
+              <QuarterNote className="-ml-1 size-4" />
               <span>{bpm === -1 ? "" : bpm}</span>
               <span className="ml-1">BPM</span>
             </div>
           </div>
 
           <div
-            className={`${classes.difficulty} baseVertFlex !items-start gap-2`}
+            className={`${classes.difficulty} baseVertFlex !items-start gap-1`}
           >
             <div className="font-semibold">Difficulty</div>
             <div className="baseFlex gap-2">
@@ -556,7 +556,7 @@ function StaticTabMetadata() {
             </div>
           </div>
 
-          <div className={`${classes.key} baseVertFlex !items-start gap-2`}>
+          <div className={`${classes.key} baseVertFlex !items-start gap-1`}>
             <div className="font-semibold">Key</div>
             <p>{key ?? "Not specified"}</p>
           </div>
