@@ -1,4 +1,5 @@
 import { useLocalStorageValue } from "@react-hookz/web";
+import type { Dispatch, SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
@@ -8,11 +9,13 @@ import { useTabStore } from "~/stores/TabStore";
 interface TabSettingsProps {
   showPinnedChords: boolean;
   setShowPinnedChords: (show: boolean) => void;
+  setPressingOnZoomSlider: Dispatch<SetStateAction<boolean>>;
 }
 
 function TabSettings({
   showPinnedChords,
   setShowPinnedChords,
+  setPressingOnZoomSlider,
 }: TabSettingsProps) {
   const localStorageZoom = useLocalStorageValue("autostrum-zoom");
   const localStorageLeftHandChordDiagrams = useLocalStorageValue(
@@ -38,7 +41,18 @@ function TabSettings({
         <span>{zoom}x</span>
       </div>
 
-      <div className="baseFlex w-full">
+      <div
+        onTouchStart={() => {
+          setPressingOnZoomSlider(true);
+        }}
+        onTouchCancel={() => {
+          setPressingOnZoomSlider(false);
+        }}
+        onTouchEnd={() => {
+          setPressingOnZoomSlider(false);
+        }}
+        className="baseFlex w-full"
+      >
         <Range
           labelledBy="tabZoomSlider"
           step={0.1}

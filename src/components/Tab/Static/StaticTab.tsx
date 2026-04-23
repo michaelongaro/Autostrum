@@ -53,6 +53,7 @@ const PlaybackModal = dynamic(
 function StaticTab() {
   const { asPath } = useRouter();
 
+  const [pressingOnZoomSlider, setPressingOnZoomSlider] = useState(false);
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
   const [showPinnedChords, setShowPinnedChords] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -61,6 +62,7 @@ function StaticTab() {
   const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
     {},
   );
+
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const measureSectionHeight = useCallback(
@@ -256,6 +258,7 @@ function StaticTab() {
                 onOpenChange={(open) => {
                   setDrawerOpen(open);
                 }}
+                dismissible={!pressingOnZoomSlider}
               >
                 <DrawerTrigger asChild>
                   <Button
@@ -284,6 +287,7 @@ function StaticTab() {
                     <TabSettings
                       showPinnedChords={showPinnedChords}
                       setShowPinnedChords={setShowPinnedChords}
+                      setPressingOnZoomSlider={setPressingOnZoomSlider}
                     />
                   </DrawerContent>
                 </DrawerPortal>
