@@ -145,9 +145,7 @@ function StaticTabNotesColumn({
 
         {/* Strumming Guide */}
         <div className="relative h-0 w-full">
-          <div
-            className={`baseVertFlex absolute ${isLastColumn ? "left-[42%]" : "left-[53%]"} right-1/2 top-1 h-4 w-full -translate-x-1/2`}
-          >
+          <div className="baseVertFlex mt-1 h-4 w-full">
             {renderNoteLengthGuide({
               previousNoteLength,
               currentNoteLength: columnData.noteLength,
