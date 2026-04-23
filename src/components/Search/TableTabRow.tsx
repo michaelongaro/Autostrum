@@ -12,7 +12,7 @@ import type {
 } from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
 import formatDate from "~/utils/formatDate";
-import { genreColors, genreDarkColors } from "~/utils/genreColors";
+import { genreColors } from "~/utils/genreColors";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { MdModeEditOutline } from "react-icons/md";
 import Verified from "~/components/ui/icons/Verified";
