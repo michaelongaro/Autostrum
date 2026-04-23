@@ -388,7 +388,7 @@ function DesktopExtraTabMetadata() {
                   }`}
                 />
                 <span className="font-medium">
-                  see {tabContentExpanded ? "less" : "more"}
+                  See {tabContentExpanded ? "less" : "more"}
                 </span>
               </Button>
             </motion.div>
