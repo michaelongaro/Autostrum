@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
@@ -11,6 +10,17 @@ import {
   isTabMeasureLine,
   isTabNote,
 } from "~/utils/tabNoteHelpers";
+
+function chordHasAtLeastOneNote(chordData: TabNoteType): boolean {
+  return [
+    chordData.firstString,
+    chordData.secondString,
+    chordData.thirdString,
+    chordData.fourthString,
+    chordData.fifthString,
+    chordData.sixthString,
+  ].some((note) => note !== "");
+}
 
 interface StaticTabNotesColumnProps {
   columnData: TabNoteType;
@@ -70,10 +80,7 @@ function StaticTabNotesColumn({
     (nextColumn !== undefined && isTabMeasureLine(nextColumn));
 
   return (
-    <motion.div
-      key={columnData.id}
-      className="baseFlex h-[290px] w-[34px] cursor-default"
-    >
+    <div className="baseFlex h-[290px] w-[34px] cursor-default">
       <div className="baseVertFlex mb-[51px] mt-4">
         {/* Palm Mute Node */}
         <div className="baseFlex h-9 w-full">
@@ -179,6 +186,7 @@ function StaticTabNotesColumn({
                     }
                   />
                 )}
+
               {chordHasAtLeastOneNote(columnData) &&
                 columnData.chordEffects?.includes("^") && (
                   <BsArrowUp
@@ -232,19 +240,8 @@ function StaticTabNotesColumn({
           className="h-[168px] rounded-r-2xl border-2 p-1"
         ></div>
       )}
-    </motion.div>
+    </div>
   );
-}
-
-function chordHasAtLeastOneNote(chordData: TabNoteType): boolean {
-  return [
-    chordData.firstString,
-    chordData.secondString,
-    chordData.thirdString,
-    chordData.fourthString,
-    chordData.fifthString,
-    chordData.sixthString,
-  ].some((note) => note !== "");
 }
 
 export default StaticTabNotesColumn;

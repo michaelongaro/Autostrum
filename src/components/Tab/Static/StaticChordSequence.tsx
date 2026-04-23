@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import StaticStrummingPattern from "~/components/Tab/Static/StaticStrummingPattern";
 import { type ChordSequence } from "~/stores/TabStore";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
@@ -16,7 +15,7 @@ function StaticChordSequence({
   theme,
 }: StaticChordSequence) {
   return (
-    <motion.div key={chordSequenceData.id} className="baseFlex">
+    <div className="baseFlex">
       <div
         style={{
           borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
@@ -31,7 +30,7 @@ function StaticChordSequence({
           theme={theme}
         />
       </div>
-    </motion.div>
+    </div>
   );
 }
 

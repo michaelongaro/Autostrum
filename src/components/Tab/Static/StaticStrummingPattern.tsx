@@ -78,7 +78,7 @@ function StaticStrummingPattern({
     }
 
     return [strumChords, colors];
-  }, [data.strums.length, chordSequenceData, chords, chordDisplayMode]);
+  }, [data.strums.length, chordSequenceData, chords]);
 
   return (
     <div className="baseFlex w-full flex-wrap !justify-start gap-1">

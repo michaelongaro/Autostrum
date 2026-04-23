@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type {
@@ -19,10 +18,7 @@ function StaticTabMeasureLine({
   theme,
 }: StaticTabMeasureLineProps) {
   return (
-    <motion.div
-      key={columnData.id}
-      className="baseVertFlex relative h-[290px] w-[2px]"
-    >
+    <div className="baseVertFlex relative h-[290px] w-[2px]">
       {/* BPM indicator */}
       {columnData.bpmAfterLine !== null && (
         <div
@@ -69,7 +65,7 @@ function StaticTabMeasureLine({
           ></div>
         </div>
       ))}
-    </motion.div>
+    </div>
   );
 }
 

@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { Fragment } from "react";
 import { Separator } from "~/components/ui/separator";
 import {
@@ -36,81 +35,70 @@ function StaticChordSection({
   }
 
   return (
-    <motion.div
-      key={subSectionData.id}
+    <div
       style={{
         borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
         backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
       }}
       className="baseVertFlex relative h-full !justify-start rounded-md border p-4 shadow-md md:p-8"
     >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`${subSectionData.id}ChordSectionWrapper`}
-          className="baseFlex flex-wrap !items-end !justify-start gap-8"
-        >
-          {subSectionData.data.map((chordSequence) => (
-            <Fragment key={`${chordSequence.id}wrapper`}>
-              {chordSequence.data.length > 0 ? (
-                <div className="baseVertFlex !items-start">
-                  {(showBpm(chordSequence) ||
-                    chordSequence.repetitions > 1) && (
-                    <div
-                      style={{
-                        borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-                        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.15)`,
-                        color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-                      }}
-                      className="baseFlex ml-4 gap-3 rounded-t-md border px-2 py-1 text-sm !shadow-sm"
-                    >
-                      {showBpm(chordSequence) && (
-                        <div className="baseFlex gap-1">
-                          {getDynamicNoteLengthIcon({
-                            noteLength:
-                              chordSequence.strummingPattern.baseNoteLength,
-                          })}
-                          {chordSequence.bpm === -1
-                            ? subSectionData.bpm === -1
-                              ? bpm
-                              : subSectionData.bpm
-                            : chordSequence.bpm}{" "}
-                          BPM
-                        </div>
-                      )}
+      <div className="baseFlex flex-wrap !items-end !justify-start gap-8">
+        {subSectionData.data.map((chordSequence) => (
+          <Fragment key={`${chordSequence.id}wrapper`}>
+            {chordSequence.data.length > 0 ? (
+              <div className="baseVertFlex !items-start">
+                {(showBpm(chordSequence) || chordSequence.repetitions > 1) && (
+                  <div
+                    style={{
+                      borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
+                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.15)`,
+                      color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                    }}
+                    className="baseFlex ml-4 gap-3 rounded-t-md border px-2 py-1 text-sm !shadow-sm"
+                  >
+                    {showBpm(chordSequence) && (
+                      <div className="baseFlex gap-1">
+                        {getDynamicNoteLengthIcon({
+                          noteLength:
+                            chordSequence.strummingPattern.baseNoteLength,
+                        })}
+                        {chordSequence.bpm === -1
+                          ? subSectionData.bpm === -1
+                            ? bpm
+                            : subSectionData.bpm
+                          : chordSequence.bpm}{" "}
+                        BPM
+                      </div>
+                    )}
 
-                      {chordSequence.repetitions > 1 && (
-                        <div className="baseFlex gap-3">
-                          {showBpm(chordSequence) && (
-                            <Separator
-                              className="h-4 w-[1px]"
-                              orientation="vertical"
-                            />
-                          )}
+                    {chordSequence.repetitions > 1 && (
+                      <div className="baseFlex gap-3">
+                        {showBpm(chordSequence) && (
+                          <Separator
+                            className="h-4 w-[1px]"
+                            orientation="vertical"
+                          />
+                        )}
 
-                          <span>Repeat {chordSequence.repetitions}x</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        <span>Repeat {chordSequence.repetitions}x</span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                  <AnimatePresence mode="wait">
-                    <StaticChordSequence
-                      chordSequenceData={chordSequence}
-                      color={color}
-                      theme={theme}
-                    />
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <span className="italic text-gray">
-                  Empty strumming pattern
-                </span>
-              )}
-            </Fragment>
-          ))}
-        </motion.div>
-      </AnimatePresence>
-    </motion.div>
+                <StaticChordSequence
+                  chordSequenceData={chordSequence}
+                  color={color}
+                  theme={theme}
+                />
+              </div>
+            ) : (
+              <span className="italic text-gray">Empty strumming pattern</span>
+            )}
+          </Fragment>
+        ))}
+      </div>
+    </div>
   );
 }
 

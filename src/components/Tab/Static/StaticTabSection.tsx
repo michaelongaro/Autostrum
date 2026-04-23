@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Fragment } from "react";
 import StaticTabMeasureLine from "~/components/Tab/Static/StaticTabMeasureLine";
 import StaticTabNotesColumn from "~/components/Tab/Static/StaticTabNotesColumn";
@@ -34,15 +33,7 @@ function StaticTabSection({
   }));
 
   return (
-    <motion.div
-      key={subSectionData.id}
-      transition={{
-        layout: {
-          type: "spring",
-          bounce: 0.15,
-          duration: 1,
-        },
-      }}
+    <div
       style={{
         borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
         backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
@@ -84,7 +75,7 @@ function StaticTabSection({
           </Fragment>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

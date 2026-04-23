@@ -189,16 +189,9 @@ function StaticTab() {
                 className="w-full"
               />
             ) : (
-              <motion.div
+              <div
                 key={section.id}
                 ref={(el) => measureSectionHeight(section.id, el)}
-                transition={{
-                  layout: {
-                    type: "spring",
-                    bounce: 0.15,
-                    duration: 1,
-                  },
-                }}
                 className="baseFlex w-full"
               >
                 <StaticSectionContainer
@@ -208,7 +201,7 @@ function StaticTab() {
                   theme={theme}
                   tabDataLength={tabData.length}
                 />
-              </motion.div>
+              </div>
             ),
           )}
 
