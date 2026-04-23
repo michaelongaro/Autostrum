@@ -38,7 +38,7 @@ function PinnedChordsCarousel({
             paddingBottom: 0,
           }}
           transition={{ duration: 0.25 }}
-          className="baseFlex sticky left-0 top-20 z-10 max-w-[calc(100%-1.75rem)] rounded-xl border bg-background shadow-xl"
+          className="baseFlex sticky left-0 top-20 z-10 max-w-[calc(100%-1.75rem)] rounded-xl border bg-background px-2 shadow-xl sm:px-8"
         >
           <Carousel
             opts={{
