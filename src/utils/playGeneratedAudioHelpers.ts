@@ -1,22 +1,6 @@
 import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
 
-/**
- * Runtime + memory strategy for generated audio playback
- *
- * This file handles audio playback using the Web Audio API and Soundfont.js.
- * Current approach focuses on leak prevention and allocation/callback churn reduction:
- *
- * 1. Active playback sources are centrally tracked in `activePlaybackSources`
- * 2. String ownership is tracked via `currentlyPlayingStrings` to avoid overlap/leaks per string
- * 3. Source/node teardown is consolidated in `attachSourceOnEndedCleanup()` + `cleanupAudioSource()`
- * 4. Soft-stop gain ramps (anti-pop) are tracked via `sourceSoftStopGainMap`
- * 5. Scheduled ownership/callback work uses one shared timer-driven scheduler (not per-callback RAF loops)
- * 6. Frequently used effect chains (palm mute/dead note/slap) reuse pooled nodes per AudioContext
- * 7. Slap noise uses a cached AudioBuffer per AudioContext instead of regenerating random noise per hit
- * 8. Buffer references are nulled when possible to improve GC behavior
- */
-
 interface PlayNoteWithEffects {
   note: GainNode;
   stringIdx: number;
@@ -26,7 +10,6 @@ interface PlayNoteWithEffects {
   effects?: string[];
   tetheredMetadata?: TetheredMetadata;
   pluckBaseNote: boolean;
-  noteDurationSeconds: number;
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
@@ -34,391 +17,6 @@ interface PlayNoteWithEffects {
     | AudioBufferSourceNode
     | undefined
   )[];
-}
-
-const DEFAULT_NOTE_DURATION_SECONDS = 3;
-const ANTI_POP_FADE_SECONDS = 0.008;
-
-type CurrentlyPlayingString =
-  | Soundfont.Player
-  | AudioBufferSourceNode
-  | undefined;
-
-const activePlaybackSources = new Set<AudioScheduledSourceNode>();
-const sourceSoftStopGainMap = new WeakMap<AudioScheduledSourceNode, GainNode>();
-const slapNoiseBufferCache = new WeakMap<AudioContext, AudioBuffer>();
-type PalmMuteNodeChain = {
-  lowPassFilter: BiquadFilterNode;
-  bassBoost: BiquadFilterNode;
-  gainNode: GainNode;
-};
-type DeadNoteNodeChain = {
-  highpassFilter: BiquadFilterNode;
-  midBoost: BiquadFilterNode;
-  gainNode: GainNode;
-};
-type SlapNodeChain = {
-  lowPassFilter: BiquadFilterNode;
-  midBoost: BiquadFilterNode;
-  gainNode: GainNode;
-  noiseGain: GainNode;
-};
-const palmMuteNodePool = new WeakMap<AudioContext, PalmMuteNodeChain[]>();
-const deadNoteNodePool = new WeakMap<AudioContext, DeadNoteNodeChain[]>();
-const slapNodePool = new WeakMap<AudioContext, SlapNodeChain[]>();
-
-interface ScheduledAudioCallback {
-  cancelled: boolean;
-  targetTime: number;
-  callback: () => void;
-  audioContext: AudioContext;
-}
-
-const scheduledAudioCallbacks = new Set<ScheduledAudioCallback>();
-let scheduledAudioCallbacksTimeout: ReturnType<typeof setTimeout> | undefined;
-
-function getNextScheduledCallbackDelayMs() {
-  let nextDelayMs: number | null = null;
-
-  for (const task of scheduledAudioCallbacks) {
-    if (task.cancelled) continue;
-
-    const delayMs = Math.max(
-      0,
-      (task.targetTime - task.audioContext.currentTime) * 1000,
-    );
-
-    if (nextDelayMs === null || delayMs < nextDelayMs) {
-      nextDelayMs = delayMs;
-    }
-  }
-
-  return nextDelayMs;
-}
-
-function queueScheduledAudioCallbacksTick() {
-  if (scheduledAudioCallbacksTimeout) {
-    clearTimeout(scheduledAudioCallbacksTimeout);
-    scheduledAudioCallbacksTimeout = undefined;
-  }
-
-  const nextDelayMs = getNextScheduledCallbackDelayMs();
-
-  if (nextDelayMs === null) return;
-
-  const clampedDelayMs = Math.min(25, Math.max(0, Math.floor(nextDelayMs)));
-
-  scheduledAudioCallbacksTimeout = setTimeout(() => {
-    scheduledAudioCallbacksTimeout = undefined;
-
-    const tasksSnapshot = Array.from(scheduledAudioCallbacks);
-
-    for (const task of tasksSnapshot) {
-      if (task.cancelled) {
-        scheduledAudioCallbacks.delete(task);
-        continue;
-      }
-
-      if (task.audioContext.currentTime >= task.targetTime) {
-        scheduledAudioCallbacks.delete(task);
-        task.callback();
-      }
-    }
-
-    queueScheduledAudioCallbacksTick();
-  }, clampedDelayMs);
-}
-
-function scheduleAtAudioTime({
-  audioContext,
-  when,
-  callback,
-}: {
-  audioContext: AudioContext;
-  when: number;
-  callback: () => void;
-}) {
-  if (when <= 0) {
-    callback();
-    return;
-  }
-
-  const task: ScheduledAudioCallback = {
-    cancelled: false,
-    targetTime: audioContext.currentTime + when,
-    callback,
-    audioContext,
-  };
-
-  scheduledAudioCallbacks.add(task);
-  queueScheduledAudioCallbacksTick();
-}
-
-function scheduleStringOwnershipUpdate({
-  audioContext,
-  when,
-  currentlyPlayingStrings,
-  stringIdx,
-  nextHandle,
-}: {
-  audioContext: AudioContext;
-  when: number;
-  currentlyPlayingStrings: CurrentlyPlayingString[];
-  stringIdx: number;
-  nextHandle: CurrentlyPlayingString;
-}) {
-  scheduleAtAudioTime({
-    audioContext,
-    when,
-    callback: () => {
-      const existingNote = currentlyPlayingStrings[stringIdx];
-      if (existingNote && existingNote !== nextHandle) {
-        cleanupAudioSource(existingNote);
-      }
-
-      currentlyPlayingStrings[stringIdx] = nextHandle;
-    },
-  });
-}
-
-function safeDisconnectNode(node?: AudioNode | null) {
-  if (!node) return;
-  try {
-    node.disconnect();
-  } catch (error) {
-    // node might already be disconnected; ignore
-  }
-}
-
-function ensureMasterConnected({
-  audioContext,
-  masterVolumeGainNode,
-}: {
-  audioContext: AudioContext;
-  masterVolumeGainNode: GainNode;
-}) {
-  const nodeWithFlag = masterVolumeGainNode as GainNode & {
-    __autostrumConnectedToDestination?: boolean;
-  };
-
-  if (nodeWithFlag.__autostrumConnectedToDestination) return;
-
-  masterVolumeGainNode.connect(audioContext.destination);
-  nodeWithFlag.__autostrumConnectedToDestination = true;
-}
-
-function safeStopScheduledSource(
-  source?: AudioScheduledSourceNode | null,
-  stopTime?: number,
-) {
-  if (!source) return;
-  try {
-    if (typeof stopTime === "number") {
-      source.stop(stopTime);
-    } else {
-      source.stop();
-    }
-  } catch (error) {
-    // source already stopped
-  }
-}
-
-function cleanupAudioSource(
-  source?: Soundfont.Player | AudioBufferSourceNode | null,
-) {
-  if (!source) return;
-
-  const resolvedSource = resolveSourceNodeFromHandle(source);
-
-  if (resolvedSource) {
-    const softStopGain = sourceSoftStopGainMap.get(resolvedSource);
-    if (softStopGain) {
-      const now = softStopGain.context.currentTime;
-      const currentGain = Math.max(softStopGain.gain.value, 0.0001);
-
-      softStopGain.gain.cancelScheduledValues(now);
-      softStopGain.gain.setValueAtTime(currentGain, now);
-      softStopGain.gain.linearRampToValueAtTime(
-        0.0001,
-        now + ANTI_POP_FADE_SECONDS,
-      );
-
-      safeStopScheduledSource(resolvedSource, now + ANTI_POP_FADE_SECONDS);
-      return;
-    }
-  }
-
-  // Fallback: no soft-stop gain registered, stop immediately
-  safeStopScheduledSource(source as AudioScheduledSourceNode);
-  safeDisconnectNode(source as AudioNode);
-
-  if ("buffer" in source && source.buffer) {
-    source.buffer = null;
-  }
-
-  const internalSource = (source as { source?: AudioBufferSourceNode }).source;
-  if (internalSource) {
-    safeStopScheduledSource(internalSource);
-    safeDisconnectNode(internalSource);
-    if (internalSource.buffer) {
-      internalSource.buffer = null;
-    }
-  }
-}
-
-function resolveSourceNodeFromHandle(
-  handle?: Soundfont.Player | AudioBufferSourceNode | GainNode,
-) {
-  if (!handle) return undefined;
-
-  if ("start" in handle && "stop" in handle && "buffer" in handle) {
-    return handle as AudioBufferSourceNode;
-  }
-
-  return (handle as { source?: AudioBufferSourceNode }).source;
-}
-
-function getOrCreateSlapNoiseBuffer(audioContext: AudioContext) {
-  const cachedBuffer = slapNoiseBufferCache.get(audioContext);
-  if (cachedBuffer) return cachedBuffer;
-
-  const noiseBuffer = audioContext.createBuffer(
-    1,
-    audioContext.sampleRate * 0.2,
-    audioContext.sampleRate,
-  );
-
-  const output = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < output.length; i++) {
-    output[i] = Math.random() * 2 - 1;
-  }
-
-  slapNoiseBufferCache.set(audioContext, noiseBuffer);
-
-  return noiseBuffer;
-}
-
-function acquirePalmMuteNodeChain(audioContext: AudioContext) {
-  const pool = palmMuteNodePool.get(audioContext);
-  if (pool && pool.length > 0) {
-    return pool.pop()!;
-  }
-
-  return {
-    lowPassFilter: audioContext.createBiquadFilter(),
-    bassBoost: audioContext.createBiquadFilter(),
-    gainNode: audioContext.createGain(),
-  };
-}
-
-function releasePalmMuteNodeChain(
-  audioContext: AudioContext,
-  chain: PalmMuteNodeChain,
-) {
-  const pool = palmMuteNodePool.get(audioContext) ?? [];
-  pool.push(chain);
-  palmMuteNodePool.set(audioContext, pool);
-}
-
-function acquireDeadNoteNodeChain(audioContext: AudioContext) {
-  const pool = deadNoteNodePool.get(audioContext);
-  if (pool && pool.length > 0) {
-    return pool.pop()!;
-  }
-
-  return {
-    highpassFilter: audioContext.createBiquadFilter(),
-    midBoost: audioContext.createBiquadFilter(),
-    gainNode: audioContext.createGain(),
-  };
-}
-
-function releaseDeadNoteNodeChain(
-  audioContext: AudioContext,
-  chain: DeadNoteNodeChain,
-) {
-  const pool = deadNoteNodePool.get(audioContext) ?? [];
-  pool.push(chain);
-  deadNoteNodePool.set(audioContext, pool);
-}
-
-function acquireSlapNodeChain(audioContext: AudioContext) {
-  const pool = slapNodePool.get(audioContext);
-  if (pool && pool.length > 0) {
-    return pool.pop()!;
-  }
-
-  return {
-    lowPassFilter: audioContext.createBiquadFilter(),
-    midBoost: audioContext.createBiquadFilter(),
-    gainNode: audioContext.createGain(),
-    noiseGain: audioContext.createGain(),
-  };
-}
-
-function releaseSlapNodeChain(
-  audioContext: AudioContext,
-  chain: SlapNodeChain,
-) {
-  const pool = slapNodePool.get(audioContext) ?? [];
-  pool.push(chain);
-  slapNodePool.set(audioContext, pool);
-}
-
-function attachSourceOnEndedCleanup({
-  sourceNode,
-  nodesToDisconnect = [],
-  softStopGainNode,
-  currentlyPlayingStrings,
-  stringIdx,
-  expectedHandle,
-  onEnded,
-}: {
-  sourceNode?: AudioScheduledSourceNode | null;
-  nodesToDisconnect?: AudioNode[];
-  softStopGainNode?: GainNode;
-  currentlyPlayingStrings?: CurrentlyPlayingString[];
-  stringIdx?: number;
-  expectedHandle?: Soundfont.Player | AudioBufferSourceNode;
-  onEnded?: () => void;
-}) {
-  if (!sourceNode) return;
-
-  activePlaybackSources.add(sourceNode);
-  if (softStopGainNode) {
-    sourceSoftStopGainMap.set(sourceNode, softStopGainNode);
-  }
-
-  const cleanup = () => {
-    activePlaybackSources.delete(sourceNode);
-    sourceSoftStopGainMap.delete(sourceNode);
-    nodesToDisconnect.forEach((node) => safeDisconnectNode(node));
-    onEnded?.();
-
-    if (
-      typeof stringIdx === "number" &&
-      currentlyPlayingStrings &&
-      expectedHandle &&
-      currentlyPlayingStrings[stringIdx] === expectedHandle
-    ) {
-      currentlyPlayingStrings[stringIdx] = undefined;
-    }
-
-    safeDisconnectNode(sourceNode);
-
-    // Explicitly null buffer reference to help GC
-    if ("buffer" in sourceNode) {
-      sourceNode.buffer = null;
-    }
-
-    sourceNode.onended = null;
-  };
-
-  const previousOnEnded = sourceNode.onended;
-  sourceNode.onended = (event) => {
-    previousOnEnded?.call(sourceNode, event);
-    cleanup();
-  };
 }
 
 function playNoteWithEffects({
@@ -430,7 +28,6 @@ function playNoteWithEffects({
   effects,
   tetheredMetadata,
   pluckBaseNote,
-  noteDurationSeconds,
   audioContext,
   masterVolumeGainNode,
   currentlyPlayingStrings,
@@ -479,14 +76,13 @@ function playNoteWithEffects({
     // it gets handled from applyTetheredEffect() above
     if (effects?.includes("~")) {
       noteWithEffectApplied = applyVibratoEffect({
-        when,
+        when: 0,
         note,
         bpm,
         stringIdx,
         pluckBaseNote,
         audioContext,
         currentlyPlayingStrings,
-        noteDurationSeconds,
       });
     }
   }
@@ -510,73 +106,8 @@ function playNoteWithEffects({
       effects?.includes("PM"))
   ) {
     noteWithEffectApplied.connect(masterVolumeGainNode);
-    ensureMasterConnected({ audioContext, masterVolumeGainNode });
+    masterVolumeGainNode.connect(audioContext.destination);
   }
-}
-
-function stopAllScheduledAudioCallbacks() {
-  for (const task of scheduledAudioCallbacks) {
-    task.cancelled = true;
-  }
-
-  scheduledAudioCallbacks.clear();
-
-  if (scheduledAudioCallbacksTimeout) {
-    clearTimeout(scheduledAudioCallbacksTimeout);
-    scheduledAudioCallbacksTimeout = undefined;
-  }
-}
-
-function stopAllActivePlaybackSources() {
-  stopAllScheduledAudioCallbacks();
-
-  // Find the latest AudioContext currentTime among all sources for the anti-pop ramp
-  let now = 0;
-  for (const source of activePlaybackSources) {
-    if (source.context && source.context.currentTime > now) {
-      now = source.context.currentTime;
-    }
-  }
-
-  for (const source of activePlaybackSources) {
-    const softStopGain = sourceSoftStopGainMap.get(source);
-    if (softStopGain) {
-      const currentGain = Math.max(softStopGain.gain.value, 0.0001);
-      softStopGain.gain.cancelScheduledValues(now);
-      softStopGain.gain.setValueAtTime(currentGain, now);
-      softStopGain.gain.linearRampToValueAtTime(
-        0.0001,
-        now + ANTI_POP_FADE_SECONDS,
-      );
-      safeStopScheduledSource(source, now + ANTI_POP_FADE_SECONDS);
-    } else {
-      safeStopScheduledSource(source);
-    }
-
-    source.onended = null;
-  }
-
-  // Snapshot the sources that need deferred cleanup so newly-added sources
-  // (e.g. from the first chord of a new playback) are not accidentally nuked.
-  const sourcesToCleanup = Array.from(activePlaybackSources);
-  for (const source of sourcesToCleanup) {
-    activePlaybackSources.delete(source);
-  }
-
-  // Schedule full cleanup after the fade completes
-  setTimeout(
-    () => {
-      for (const source of sourcesToCleanup) {
-        safeDisconnectNode(source);
-        sourceSoftStopGainMap.delete(source);
-
-        if ("buffer" in source && source.buffer) {
-          source.buffer = null;
-        }
-      }
-    },
-    ANTI_POP_FADE_SECONDS * 1000 + 5,
-  );
 }
 
 interface ApplyBendEffect {
@@ -617,40 +148,26 @@ function applyBendOrReleaseEffect({
 
   if (!pluckBaseNote && note) {
     // @ts-expect-error TODO: fix type
-    const noteSource = note.source as AudioBufferSourceNode;
-    safeStopScheduledSource(noteSource);
+    note.source.stop(0);
 
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
 
-    scheduleStringOwnershipUpdate({
-      audioContext,
-      when,
-      currentlyPlayingStrings,
-      stringIdx,
-      nextHandle: source,
-    });
+    setTimeout(() => {
+      currentlyPlayingStrings[stringIdx]?.stop();
+      currentlyPlayingStrings[stringIdx] = source;
+    }, when * 1000);
 
-    source.buffer = noteSource.buffer as AudioBuffer;
-    const sourceStartTime = audioContext.currentTime + when;
-    source.start(sourceStartTime, 0.5, isPalmMuted ? 0.45 : undefined);
+    // @ts-expect-error TODO: fix type
+    source.buffer = note.source.buffer as AudioBuffer;
+    source.start(0, 0.5, isPalmMuted ? 0.45 : undefined);
 
-    sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime);
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.linearRampToValueAtTime(
       1.1,
       audioContext.currentTime + when + 0.1, // maybe still need to do arbitrary stuff here?
     );
     source.connect(sourceGain);
-
-    attachSourceOnEndedCleanup({
-      sourceNode: source,
-      nodesToDisconnect: sourceGain ? [sourceGain] : [],
-      softStopGainNode: sourceGain,
-      currentlyPlayingStrings,
-      stringIdx,
-      expectedHandle: source,
-    });
   }
 
   const detuneValue = (fretToBendTo - baseFret) * 100;
@@ -681,15 +198,8 @@ function applyBendOrReleaseEffect({
     );
     // increasing gain to match level set in applyTetheredEffect()
     const copiedNoteGain = audioContext.createGain();
-    copiedNoteGain.gain.value = 1.15;
+    copiedNoteGain.gain.value = 1.35;
     copiedNote.connect(copiedNoteGain);
-
-    attachSourceOnEndedCleanup({
-      sourceNode: copiedNote,
-      nodesToDisconnect: [copiedNoteGain],
-      softStopGainNode: copiedNoteGain,
-    });
-
     return copiedNoteGain;
   }
 }
@@ -745,11 +255,7 @@ function playDeadNote({
   currentlyPlayingStrings,
 }: PlayDeadNote) {
   // stopping any note on string that is currently playing
-  const existingNote = currentlyPlayingStrings[stringIdx];
-  if (existingNote) {
-    cleanupAudioSource(existingNote);
-    currentlyPlayingStrings[stringIdx] = undefined;
-  }
+  currentlyPlayingStrings[stringIdx]?.stop();
 
   const frequency = mapStringAndFretToOscillatorFrequency(
     stringIdx,
@@ -761,8 +267,8 @@ function playDeadNote({
   oscillator.type = "sine";
   oscillator.frequency.value = frequency;
 
-  const { highpassFilter, midBoost, gainNode } =
-    acquireDeadNoteNodeChain(audioContext);
+  // Create a GainNode to control the volume
+  const gainNode = audioContext.createGain();
 
   // had to crank these values down by a ton since they were so prominent
   let gainTarget = 0.00875;
@@ -800,9 +306,13 @@ function playDeadNote({
     audioContext.currentTime + 0.1,
   );
 
+  // Create a BiquadFilterNode for a low-pass filter
+  const highpassFilter = audioContext.createBiquadFilter();
   highpassFilter.type = "highpass";
   highpassFilter.frequency.value = 100; // TODO: still have to play around with this value
 
+  // Create a BiquadFilterNode for boosting the mid frequencies
+  const midBoost = audioContext.createBiquadFilter();
   midBoost.type = "peaking";
   midBoost.frequency.value = 1200; // Frequency to boost
   midBoost.gain.value = 1; // Amount of boost in dB
@@ -813,20 +323,9 @@ function playDeadNote({
   highpassFilter.connect(midBoost);
   midBoost.connect(gainNode);
 
-  attachSourceOnEndedCleanup({
-    sourceNode: oscillator,
-    nodesToDisconnect: [highpassFilter, midBoost, gainNode],
-    onEnded: () =>
-      releaseDeadNoteNodeChain(audioContext, {
-        highpassFilter,
-        midBoost,
-        gainNode,
-      }),
-  });
-
   // // Connect the gainNode to the audioContext's destination
   gainNode.connect(masterVolumeGainNode);
-  ensureMasterConnected({ audioContext, masterVolumeGainNode });
+  masterVolumeGainNode.connect(audioContext.destination);
 
   // Start the oscillator and noise now
   oscillator.start(audioContext.currentTime);
@@ -857,12 +356,8 @@ function playSlapSound({
   currentlyPlayingStrings,
 }: PlaySlapSound) {
   // stopping all notes currently playing
-  for (let i = 0; i < currentlyPlayingStrings.length; i++) {
-    const currentlyPlayingString = currentlyPlayingStrings[i];
-    if (currentlyPlayingString) {
-      cleanupAudioSource(currentlyPlayingString);
-      currentlyPlayingStrings[i] = undefined;
-    }
+  for (const currentlyPlayingString of currentlyPlayingStrings) {
+    currentlyPlayingString?.stop();
   }
 
   // Create an OscillatorNode to simulate the slap sound
@@ -870,12 +365,23 @@ function playSlapSound({
   oscillator.type = "sine";
   oscillator.frequency.value = 100;
 
+  // Create a buffer for noise
+  const noiseBuffer = audioContext.createBuffer(
+    1,
+    audioContext.sampleRate * 0.2,
+    audioContext.sampleRate,
+  );
+  const output = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < output.length; i++) {
+    output[i] = Math.random() * 2 - 1;
+  }
+
   // Create buffer source for noise
   const noise = audioContext.createBufferSource();
-  noise.buffer = getOrCreateSlapNoiseBuffer(audioContext);
+  noise.buffer = noiseBuffer;
 
-  const { lowPassFilter, midBoost, gainNode, noiseGain } =
-    acquireSlapNodeChain(audioContext);
+  // Create a GainNode to control the volume
+  const gainNode = audioContext.createGain();
 
   let gainTarget = 0.25;
 
@@ -897,14 +403,20 @@ function playSlapSound({
     audioContext.currentTime + duration,
   );
 
+  // Create a BiquadFilterNode for a low-pass filter
+  const lowPassFilter = audioContext.createBiquadFilter();
   lowPassFilter.type = "lowpass";
   lowPassFilter.frequency.value = 2200; // TODO: still have to play around with this value
 
+  // Create a BiquadFilterNode for boosting the mid frequencies
+  const midBoost = audioContext.createBiquadFilter();
   midBoost.type = "peaking";
   midBoost.frequency.value = 800; // Frequency to boost
   midBoost.gain.value = 8; // Amount of boost in dB
   midBoost.Q.value = 1; // Quality factor
 
+  // Create a GainNode for the noise volume
+  const noiseGain = audioContext.createGain();
   noiseGain.gain.setValueAtTime(0.2, audioContext.currentTime);
   noiseGain.gain.exponentialRampToValueAtTime(
     0.01,
@@ -918,33 +430,9 @@ function playSlapSound({
   lowPassFilter.connect(midBoost);
   midBoost.connect(gainNode);
 
-  let releasedSlapNodeChain = false;
-  const releaseChainOnce = () => {
-    if (releasedSlapNodeChain) return;
-    releasedSlapNodeChain = true;
-    releaseSlapNodeChain(audioContext, {
-      lowPassFilter,
-      midBoost,
-      gainNode,
-      noiseGain,
-    });
-  };
-
-  attachSourceOnEndedCleanup({
-    sourceNode: oscillator,
-    nodesToDisconnect: [lowPassFilter, midBoost, gainNode],
-    onEnded: releaseChainOnce,
-  });
-
-  attachSourceOnEndedCleanup({
-    sourceNode: noise,
-    nodesToDisconnect: [noiseGain],
-    onEnded: releaseChainOnce,
-  });
-
   // // Connect the gainNode to the audioContext's destination
   gainNode.connect(masterVolumeGainNode);
-  ensureMasterConnected({ audioContext, masterVolumeGainNode });
+  masterVolumeGainNode.connect(audioContext.destination);
 
   // Start the oscillator and noise now
   oscillator.start(audioContext.currentTime);
@@ -970,8 +458,9 @@ function applyPalmMute({
   isHighString,
   isATetheredEffect,
 }: ApplyPalmMute) {
-  const { lowPassFilter, bassBoost, gainNode } =
-    acquirePalmMuteNodeChain(audioContext);
+  const lowPassFilter = audioContext.createBiquadFilter();
+  const bassBoost = audioContext.createBiquadFilter();
+  const gainNode = audioContext.createGain();
 
   // Adjust lowPassFilter based on whether it's a high or low string
   if (isHighString) {
@@ -980,22 +469,22 @@ function applyPalmMute({
     lowPassFilter.frequency.value = 1000;
   }
   lowPassFilter.type = "lowpass";
-  lowPassFilter.Q.value = 1.5;
+  lowPassFilter.Q.value = 5;
 
   // Adjust bassBoost based on whether it's a high or low string
   if (isHighString) {
-    bassBoost.gain.value = 4;
+    bassBoost.gain.value = 10;
   } else {
-    bassBoost.gain.value = 6;
+    bassBoost.gain.value = 20;
   }
   bassBoost.type = "peaking";
   bassBoost.frequency.value = 120;
-  bassBoost.Q.value = 1.2;
+  bassBoost.Q.value = 10;
 
-  let gainValue = inlineEffects?.includes(">") ? 48 : 34;
+  let gainValue = inlineEffects?.includes(">") ? 100 : 70;
 
   if (isATetheredEffect) {
-    gainValue = inlineEffects?.includes(">") ? 0.95 : 0.7;
+    gainValue = inlineEffects?.includes(">") ? 1 : 0.7;
   }
 
   gainNode.gain.value = gainValue;
@@ -1003,18 +492,6 @@ function applyPalmMute({
   note.connect(lowPassFilter);
   lowPassFilter.connect(bassBoost);
   bassBoost.connect(gainNode);
-
-  const sourceNode = resolveSourceNodeFromHandle(note);
-  attachSourceOnEndedCleanup({
-    sourceNode,
-    nodesToDisconnect: [lowPassFilter, bassBoost, gainNode],
-    onEnded: () =>
-      releasePalmMuteNodeChain(audioContext, {
-        lowPassFilter,
-        bassBoost,
-        gainNode,
-      }),
-  });
 
   return gainNode;
 }
@@ -1054,22 +531,19 @@ function applyTetheredEffect({
 }: ApplyTetheredEffect) {
   // immediately stop current note because we don't ever want to hear the pluck on
   // a tethered note
-  // @ts-expect-error note has a source property from Soundfont.Player
-  const noteSource = note.source as AudioBufferSourceNode;
-  safeStopScheduledSource(noteSource);
+  // @ts-expect-error TODO: fix type
+  note.source.stop(0);
 
   const source = audioContext.createBufferSource();
   const sourceGain = audioContext.createGain();
 
-  scheduleStringOwnershipUpdate({
-    audioContext,
-    when,
-    currentlyPlayingStrings,
-    stringIdx,
-    nextHandle: source,
-  });
+  setTimeout(() => {
+    currentlyPlayingStrings[stringIdx]?.stop();
+    currentlyPlayingStrings[stringIdx] = source;
+  }, when * 1000);
 
-  source.buffer = noteSource.buffer as AudioBuffer;
+  // @ts-expect-error TODO: fix type
+  source.buffer = note.source.buffer as AudioBuffer;
   // immediately start detune at the value of the tetheredFret
   source.detune.setValueAtTime(
     (tetheredFret - currentFret) * 100,
@@ -1083,19 +557,10 @@ function applyTetheredEffect({
 
   sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
   sourceGain.gain.linearRampToValueAtTime(
-    tetheredEffect === "p" ? 0.95 : tetheredEffect === "h" ? 1.05 : 1.15,
+    tetheredEffect === "p" ? 1 : tetheredEffect === "h" ? 1.1 : 1.3,
     audioContext.currentTime + when + 0.05,
   );
   source.connect(sourceGain);
-
-  attachSourceOnEndedCleanup({
-    sourceNode: source,
-    nodesToDisconnect: [sourceGain],
-    softStopGainNode: sourceGain,
-    currentlyPlayingStrings,
-    stringIdx,
-    expectedHandle: source,
-  });
 
   let durationOfTransition = (60 / bpm) * 0.25;
   if (tetheredEffect === "h" || tetheredEffect === "p") {
@@ -1118,7 +583,6 @@ function applyTetheredEffect({
         bpm,
         audioContext,
         currentlyPlayingStrings,
-        noteDurationSeconds: isPalmMuted ? 0.45 : undefined,
       });
     } else if (
       currentEffects.includes("b") &&
@@ -1153,7 +617,6 @@ interface ApplyVibratoEffect {
     | AudioBufferSourceNode
     | undefined
   )[];
-  noteDurationSeconds?: number;
 }
 
 function applyVibratoEffect({
@@ -1165,43 +628,28 @@ function applyVibratoEffect({
   pluckBaseNote = true,
   audioContext,
   currentlyPlayingStrings,
-  noteDurationSeconds,
 }: ApplyVibratoEffect) {
   let source: AudioBufferSourceNode | undefined = undefined;
   let sourceGain: GainNode | undefined = undefined;
 
   if (!pluckBaseNote && note) {
     // @ts-expect-error TODO: fix type
-    const noteSource = note.source as AudioBufferSourceNode;
-    safeStopScheduledSource(noteSource);
-
+    note.source.stop(0);
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
 
-    scheduleStringOwnershipUpdate({
-      audioContext,
-      when,
-      currentlyPlayingStrings,
-      stringIdx,
-      nextHandle: source,
-    });
+    setTimeout(() => {
+      currentlyPlayingStrings[stringIdx]?.stop();
+      currentlyPlayingStrings[stringIdx] = source;
+    }, when * 1000);
 
-    source.buffer = noteSource.buffer as AudioBuffer;
-    const sourceStartTime = audioContext.currentTime + when;
-    source.start(sourceStartTime, 0.5);
-    attachSourceOnEndedCleanup({
-      sourceNode: source,
-      nodesToDisconnect: sourceGain ? [sourceGain] : [],
-      softStopGainNode: sourceGain,
-      currentlyPlayingStrings,
-      stringIdx,
-      expectedHandle: source,
-    });
+    // @ts-expect-error TODO: fix type
+    source.buffer = note.source.buffer as AudioBuffer;
+    source.start(0, 0.5);
 
-    sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime);
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.exponentialRampToValueAtTime(
-      1.15,
+      1.3,
       audioContext.currentTime + when + 0.1,
     );
     source.connect(sourceGain);
@@ -1220,24 +668,7 @@ function applyVibratoEffect({
   vibratoOscillator.connect(vibratoDepth);
 
   const oscillatorDelay = (60 / bpm) * 0.15;
-  const vibratoStartTime = audioContext.currentTime + when + oscillatorDelay;
-  vibratoOscillator.start(vibratoStartTime);
-  const vibratoStopTime =
-    vibratoStartTime + (noteDurationSeconds ?? DEFAULT_NOTE_DURATION_SECONDS);
-  safeStopScheduledSource(vibratoOscillator, vibratoStopTime);
-
-  attachSourceOnEndedCleanup({
-    sourceNode: vibratoOscillator,
-    nodesToDisconnect: [vibratoDepth],
-  });
-
-  const targetSourceNode =
-    source ?? copiedNote ?? resolveSourceNodeFromHandle(note);
-
-  attachSourceOnEndedCleanup({
-    sourceNode: targetSourceNode,
-    onEnded: () => safeStopScheduledSource(vibratoOscillator),
-  });
+  vibratoOscillator.start(audioContext.currentTime + when + oscillatorDelay);
 
   if (source && sourceGain) {
     vibratoDepth.connect(source.detune);
@@ -1250,15 +681,8 @@ function applyVibratoEffect({
     vibratoDepth.connect(copiedNote.detune);
     // increasing gain to match level set in applyTetheredEffect
     const copiedNoteGain = audioContext.createGain();
-    copiedNoteGain.gain.value = 1.15;
+    copiedNoteGain.gain.value = 1.35;
     copiedNote.connect(copiedNoteGain);
-
-    attachSourceOnEndedCleanup({
-      sourceNode: copiedNote,
-      nodesToDisconnect: [copiedNoteGain],
-      softStopGainNode: copiedNoteGain,
-    });
-
     return copiedNoteGain;
   }
 }
@@ -1346,28 +770,6 @@ function playNote({
     },
   );
 
-  if (note) {
-    // Insert a per-note soft-stop GainNode between the Soundfont output and
-    // masterVolumeGainNode so cleanupAudioSource can ramp gain to 0 (anti-pop)
-    // instead of abruptly stopping the source.
-    const softStopGain = audioContext.createGain();
-    softStopGain.gain.value = 1;
-    (note as unknown as AudioNode).disconnect();
-    note.connect(softStopGain);
-    softStopGain.connect(masterVolumeGainNode);
-    ensureMasterConnected({ audioContext, masterVolumeGainNode });
-
-    const sourceNode = resolveSourceNodeFromHandle(note as unknown as GainNode);
-    attachSourceOnEndedCleanup({
-      sourceNode,
-      nodesToDisconnect: [softStopGain],
-      softStopGainNode: softStopGain,
-      currentlyPlayingStrings,
-      stringIdx,
-      expectedHandle: note,
-    });
-  }
-
   if (note && (tetheredMetadata || effects.length > 0)) {
     playNoteWithEffects({
       note: note as unknown as GainNode,
@@ -1378,7 +780,6 @@ function playNote({
       effects,
       tetheredMetadata,
       pluckBaseNote,
-      noteDurationSeconds: duration,
       audioContext,
       masterVolumeGainNode,
       currentlyPlayingStrings,
@@ -1393,13 +794,10 @@ function playNote({
       tetheredMetadata.effect === "b" ||
       tetheredMetadata.effect === "r")
   ) {
-    scheduleStringOwnershipUpdate({
-      audioContext,
-      when,
-      currentlyPlayingStrings,
-      stringIdx,
-      nextHandle: note,
-    });
+    setTimeout(() => {
+      currentlyPlayingStrings[stringIdx]?.stop();
+      currentlyPlayingStrings[stringIdx] = note;
+    }, when * 1000);
   }
 }
 
@@ -1504,12 +902,8 @@ function playNoteColumn({
         });
       } else if (currColumn[7] === "r") {
         // stopping all notes currently playing
-        for (let i = 0; i < currentlyPlayingStrings.length; i++) {
-          const currentlyPlayingString = currentlyPlayingStrings[i];
-          if (currentlyPlayingString) {
-            cleanupAudioSource(currentlyPlayingString);
-            currentlyPlayingStrings[i] = undefined;
-          }
+        for (const currentlyPlayingString of currentlyPlayingStrings) {
+          currentlyPlayingString?.stop();
         }
       }
       return;
@@ -1831,4 +1225,4 @@ function playNoteColumn({
   });
 }
 
-export { playNoteColumn, stopAllActivePlaybackSources };
+export { playNoteColumn };
