@@ -208,12 +208,12 @@ function CustomTuningModal() {
             <>
               <div className="baseVertFlex max-w-[23rem] gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
                 <div className="baseFlex gap-4 px-4 sm:gap-2">
-                  <HiOutlineInformationCircle className="size-5" />
+                  <HiOutlineInformationCircle className="size-4" />
                   <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
                     Enter six notes and we will choose valid octaves.
                   </p>
                 </div>
-                <div className="baseFlex ml-1.5 px-4 text-xs sm:ml-0 sm:justify-center">
+                <div className="baseFlex ml-1.5 px-4 text-xs text-foreground/70 sm:ml-0 sm:justify-center">
                   <p>Leave a space between each note.</p>
                 </div>
               </div>

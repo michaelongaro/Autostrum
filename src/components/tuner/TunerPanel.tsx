@@ -5,6 +5,7 @@ import { get } from "@tonaljs/note";
 import { Button } from "~/components/ui/button";
 import { FaMicrophone } from "react-icons/fa";
 import TuningSelect from "~/components/ui/TuningSelect";
+import TuningFork from "~/components/ui/icons/TuningFork";
 
 const stringLabels = ["6", "5", "4", "3", "2", "1"];
 const centsTicks = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
@@ -144,8 +145,17 @@ function TunerPanel({
 
   return (
     <div
-      className={`baseVertFlex h-full w-full gap-4 border-y bg-secondary py-3 shadow-sm xs:rounded-lg xs:border sm:py-5 ${forPlaybackModal ? "md:py-12" : "md:py-6"}`}
+      className={`baseVertFlex h-full w-full gap-4 bg-secondary py-3 shadow-sm xs:rounded-lg xs:border sm:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
     >
+      {forPlaybackModal && (
+        <div className="baseFlex w-full !justify-start px-3 xs:px-5">
+          <div className="baseFlex gap-2">
+            <TuningFork className="size-5" />
+            <p className="text-lg font-semibold">Guitar Tuner</p>
+          </div>
+        </div>
+      )}
+
       <div className="baseVertFlex w-full gap-3 px-3 sm:flex-row sm:!items-center sm:!justify-between sm:px-5 md:px-6">
         <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[190px]">
           <button
@@ -257,7 +267,7 @@ function TunerPanel({
                     }}
                   />
 
-                  <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-[12px] font-semibold text-foreground/70 sm:size-9 sm:text-base">
+                  <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-base font-semibold text-foreground/70 sm:size-9 sm:text-lg">
                     ¢
                   </div>
 

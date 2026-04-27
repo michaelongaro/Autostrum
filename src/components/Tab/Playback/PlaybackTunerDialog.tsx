@@ -80,7 +80,7 @@ function PlaybackTunerDialog() {
         <DialogHeader className="sr-only">
           <DialogTitle>Guitar Tuner</DialogTitle>
           <DialogDescription>
-            Tune your guitar to this tab's required tuning.
+            Tune your guitar to this tab&apos;s required tuning.
           </DialogDescription>
         </DialogHeader>
 
