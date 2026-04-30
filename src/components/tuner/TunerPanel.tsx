@@ -1,13 +1,16 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import { useMemo, useState } from "react";
 import { get } from "@tonaljs/note";
 import { Button } from "~/components/ui/button";
 import { FaMicrophone } from "react-icons/fa";
+import CapoSelect from "~/components/ui/CapoSelect";
 import TuningSelect from "~/components/ui/TuningSelect";
 import TuningFork from "~/components/ui/icons/TuningFork";
+import { useTabStore } from "~/stores/TabStore";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 
-const stringLabels = ["6", "5", "4", "3", "2", "1"];
 const centsTicks = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
 const mobileLabelTicks = [-50, -25, 0, 25, 50];
 const regularRangeCents = 25;
@@ -66,13 +69,18 @@ function TunerPanel({
   completed,
   error,
   permissionDenied,
-  clarity,
+  clarity: _clarity,
   onStartListening,
   onStopListening,
   onResetProgress,
   onSetCurrentTargetIndex,
   forPlaybackModal,
 }: TunerPanelProps) {
+  const { tuning, capo } = useTabStore((state) => ({
+    tuning: state.tuning,
+    capo: state.capo,
+  }));
+
   const [mode, setMode] = useState<"regular" | "chromatic">("regular");
   const currentTarget = targetNotes[currentTargetIndex] ?? "e2";
   const currentTargetFrequency = useMemo(
@@ -145,52 +153,73 @@ function TunerPanel({
 
   return (
     <div
-      className={`baseVertFlex h-full w-full gap-4 bg-secondary py-3 shadow-sm xs:rounded-lg xs:border sm:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
+      className={`baseVertFlex h-full w-full gap-4 bg-secondary py-3 shadow-sm xs:rounded-lg xs:border lg:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
     >
-      {forPlaybackModal && (
-        <div className="baseFlex w-full !justify-start px-3 xs:px-5">
-          <div className="baseFlex gap-2">
+      <div
+        className={`baseVertFlex w-full gap-3 px-3 md:px-6 lg:flex-row lg:!items-center lg:!justify-between lg:px-5 ${forPlaybackModal ? "lg:mt-8" : ""}`}
+      >
+        {!forPlaybackModal && (
+          <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 lg:col-span-1 lg:w-[190px]">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("regular");
+              }}
+              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+            >
+              Regular
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("chromatic");
+              }}
+              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "chromatic" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+            >
+              Chromatic
+            </button>
+          </div>
+        )}
+
+        {forPlaybackModal && (
+          <div className="baseFlex w-full !justify-start gap-2 xs:w-auto">
             <TuningFork className="size-5" />
             <p className="text-lg font-semibold">Guitar Tuner</p>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="baseVertFlex w-full gap-3 px-3 sm:flex-row sm:!items-center sm:!justify-between sm:px-5 md:px-6">
-        <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 sm:col-span-1 sm:w-[190px]">
-          <button
-            type="button"
-            onClick={() => {
-              setMode("regular");
-            }}
-            className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
-          >
-            Regular
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("chromatic");
-            }}
-            className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "chromatic" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
-          >
-            Chromatic
-          </button>
-        </div>
-
-        <div className="baseFlex w-full gap-4 sm:w-auto">
-          <div className="baseFlex gap-2 sm:gap-3">
+        <div
+          className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "" : "flex-col gap-3 xs:flex-row"}`}
+        >
+          <div className="baseFlex gap-2 lg:gap-3">
             <p className="text-sm font-semibold text-foreground/80">Tuning</p>
-            <TuningSelect showScientificPitchNotationInTrigger={true} />
+            {forPlaybackModal ? (
+              <PrettyTuning
+                tuning={tuning}
+                displayWithFlex={true}
+                showScientificPitchNotation={true}
+              />
+            ) : (
+              <TuningSelect showScientificPitchNotationInTrigger={true} />
+            )}
+          </div>
+
+          <div className="baseFlex gap-2 lg:gap-3">
+            <p className="text-sm font-semibold text-foreground/80">Capo</p>
+            {forPlaybackModal ? (
+              <p>{capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}</p>
+            ) : (
+              <CapoSelect />
+            )}
           </div>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:gap-4">
+        <div className="grid w-full grid-cols-2 gap-2 lg:flex lg:w-auto lg:gap-4">
           {isListening ? (
             <Button
               size="sm"
               variant="outline"
-              className="hidden w-full sm:block sm:w-auto"
+              className="hidden w-full lg:block lg:w-auto"
               onClick={onStopListening}
             >
               Stop
@@ -198,7 +227,7 @@ function TunerPanel({
           ) : (
             <Button
               size="sm"
-              className="hidden w-full gap-2 px-8 sm:flex sm:w-auto"
+              className="hidden w-full gap-2 px-8 lg:flex lg:w-auto"
               onClick={() => void onStartListening()}
             >
               <FaMicrophone />
@@ -210,7 +239,7 @@ function TunerPanel({
             size="sm"
             disabled={mode === "chromatic" || currentTargetIndex === 0}
             variant="outline"
-            className="hidden w-full sm:block sm:w-auto"
+            className="hidden w-full lg:block lg:w-auto"
             onClick={onResetProgress}
           >
             Reset
@@ -220,9 +249,9 @@ function TunerPanel({
 
       {mode === "regular" ? (
         <>
-          <div className="baseVertFlex w-full px-3 sm:px-5 md:px-6">
-            <div className="baseVertFlex w-full rounded-md border bg-background p-3 sm:p-5">
-              <div className="relative h-[230px] w-full sm:h-[280px]">
+          <div className="baseVertFlex w-full px-3 md:px-6 lg:px-5">
+            <div className="baseVertFlex w-full rounded-md border bg-background p-3 lg:p-5">
+              <div className="relative h-[230px] w-full lg:h-[280px]">
                 <div className="baseVertFlex w-full gap-4">
                   <p className="font-semibold text-foreground">
                     {formatNoteLabel(currentTarget)}
@@ -238,18 +267,18 @@ function TunerPanel({
                   </div>
                 </div>
 
-                <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 sm:h-[180px] sm:w-[280px]">
+                <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 lg:h-[180px] lg:w-[280px]">
                   <div
-                    className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full sm:h-[144px]"
+                    className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full lg:h-[144px]"
                     style={{ backgroundImage: regularSemicircleGradient }}
                   />
 
-                  <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 sm:h-[144px]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 lg:h-[144px]" />
 
-                  <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 sm:h-[146px]" />
+                  <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 lg:h-[146px]" />
 
                   <motion.div
-                    className="absolute bottom-0 h-[108px] w-[3px] rounded-full sm:h-[130px]"
+                    className="absolute bottom-0 h-[108px] w-[3px] rounded-full lg:h-[130px]"
                     initial={false}
                     style={{
                       left: "calc(50% - 1.5px)",
@@ -267,7 +296,7 @@ function TunerPanel({
                     }}
                   />
 
-                  <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-base font-semibold text-foreground/70 sm:size-9 sm:text-lg">
+                  <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-base font-semibold text-foreground/70 lg:size-9 lg:text-lg">
                     ¢
                   </div>
 
@@ -281,7 +310,7 @@ function TunerPanel({
                     return (
                       <div
                         key={`regular-tick-mobile-${markerRatio}`}
-                        className="absolute h-2 w-px bg-foreground/45 sm:hidden"
+                        className="absolute h-2 w-px bg-foreground/45 lg:hidden"
                         style={{
                           left: `calc(50% + ${xOffset}px)`,
                           bottom: `${yOffset - tickHalfHeight}px`,
@@ -301,7 +330,7 @@ function TunerPanel({
                     return (
                       <div
                         key={`regular-tick-desktop-${markerRatio}`}
-                        className="absolute hidden h-2.5 w-px bg-foreground/45 sm:block"
+                        className="absolute hidden h-2.5 w-px bg-foreground/45 lg:block"
                         style={{
                           left: `calc(50% + ${xOffset}px)`,
                           bottom: `${yOffset - tickHalfHeight}px`,
@@ -324,7 +353,7 @@ function TunerPanel({
                     return (
                       <div
                         key={`regular-marker-mobile-${markerRatio}`}
-                        className={`absolute text-[10px] font-medium tabular-nums sm:hidden ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+                        className={`absolute text-[10px] font-medium tabular-nums lg:hidden ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
                         style={{
                           left: `calc(50% + ${xOffset}px)`,
                           bottom: `${yOffset}px`,
@@ -349,7 +378,7 @@ function TunerPanel({
                     return (
                       <div
                         key={`regular-marker-desktop-${markerRatio}`}
-                        className={`absolute hidden text-xs font-medium tabular-nums sm:block ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+                        className={`absolute hidden text-xs font-medium tabular-nums lg:block ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
                         style={{
                           left: `calc(50% + ${xOffset}px)`,
                           bottom: `${yOffset}px`,
@@ -366,7 +395,7 @@ function TunerPanel({
           </div>
 
           <div className="baseVertFlex w-full md:px-6">
-            <div className="grid w-full grid-cols-6 gap-1 bg-background px-3 py-2 shadow-inner sm:gap-2 sm:px-2 md:rounded-md">
+            <div className="grid w-full grid-cols-6 gap-1 bg-background px-3 py-2 shadow-inner md:rounded-md lg:gap-2 lg:px-2">
               {targetNotes.map((note, index) => {
                 const selected = index === currentTargetIndex;
                 const tuned = completed || index < currentTargetIndex;
@@ -381,11 +410,20 @@ function TunerPanel({
                     }}
                     aria-current={selected ? "true" : "false"}
                   >
-                    {tuned && (
-                      <span className="baseFlex absolute right-1 top-1 rounded-full bg-primary p-0.5 text-primary-foreground">
-                        <Check className="size-2.5" />
-                      </span>
-                    )}
+                    <AnimatePresence mode="popLayout">
+                      {tuned && (
+                        <motion.span
+                          key={`motion-${note}-${index}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                          className="baseFlex absolute right-1 top-1 rounded-full bg-primary p-[0.1rem] text-primary-foreground sm:p-0.5"
+                        >
+                          <Check className="size-2 sm:size-2.5" />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
 
                     <div className="baseFlex h-7 w-full">
                       <motion.div
@@ -405,8 +443,8 @@ function TunerPanel({
                     <span
                       className={
                         tuned
-                          ? "text-xs font-semibold text-primary sm:text-sm"
-                          : "text-xs text-foreground sm:text-sm"
+                          ? "mt-1 text-xs font-semibold text-primary lg:text-sm"
+                          : "mt-1 text-xs text-foreground lg:text-sm"
                       }
                     >
                       {formatNoteLabel(note)}
@@ -417,12 +455,12 @@ function TunerPanel({
             </div>
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-2 px-4 sm:flex sm:w-auto sm:gap-4">
+          <div className="grid w-full grid-cols-2 gap-2 px-4 lg:flex lg:w-auto lg:gap-4">
             {isListening ? (
               <Button
                 size="sm"
                 variant="outline"
-                className="w-full sm:hidden"
+                className="w-full lg:hidden"
                 onClick={onStopListening}
               >
                 Stop
@@ -430,7 +468,7 @@ function TunerPanel({
             ) : (
               <Button
                 size="sm"
-                className="w-full gap-2 px-8 sm:hidden"
+                className="w-full gap-2 px-8 lg:hidden"
                 onClick={() => void onStartListening()}
               >
                 <FaMicrophone />
@@ -442,7 +480,7 @@ function TunerPanel({
               size="sm"
               disabled={currentTargetIndex === 0}
               variant="outline"
-              className="w-full sm:hidden"
+              className="w-full lg:hidden"
               onClick={onResetProgress}
             >
               Reset
@@ -450,24 +488,24 @@ function TunerPanel({
           </div>
         </>
       ) : (
-        <div className="baseVertFlex w-full gap-4 px-3 sm:px-5 md:px-6">
+        <div className="baseVertFlex w-full gap-4 px-3 md:px-6 lg:px-5">
           <div className="baseVertFlex w-full rounded-md border bg-background p-4 md:px-6 md:py-8">
             <div className="w-full text-center text-lg font-semibold text-foreground">
               {detectedNote ? formatNoteLabel(detectedNote) : "--"}
             </div>
 
             <div className="relative mt-4 w-full">
-              <div className="absolute left-1/2 top-0 z-10 w-[104px] -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-center text-sm font-semibold tabular-nums text-foreground sm:w-[118px] sm:text-base">
+              <div className="absolute left-1/2 top-0 z-10 w-[104px] -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-center text-sm font-semibold tabular-nums text-foreground lg:w-[118px] lg:text-base">
                 {currentMicFrequencyLabel}
               </div>
 
-              <div className="baseFlex mt-12 w-full !justify-between px-[1px] text-xs text-foreground/70 sm:hidden">
+              <div className="baseFlex mt-12 w-full !justify-between px-[1px] text-xs text-foreground/70 lg:hidden">
                 {mobileLabelTicks.map((tick) => (
                   <span key={`mobile-label-${tick}`}>{tick}</span>
                 ))}
               </div>
 
-              <div className="baseFlex mt-14 !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 sm:!flex">
+              <div className="baseFlex mt-14 !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 lg:!flex">
                 {centsTicks.map((tick) => (
                   <span key={tick}>{tick}</span>
                 ))}
@@ -543,7 +581,7 @@ function TunerPanel({
             <Button
               size="sm"
               variant="outline"
-              className="w-36 sm:hidden"
+              className="w-36 lg:hidden"
               onClick={onStopListening}
             >
               Stop
@@ -551,7 +589,7 @@ function TunerPanel({
           ) : (
             <Button
               size="sm"
-              className="w-36 gap-2 px-8 sm:hidden"
+              className="w-36 gap-2 px-8 lg:hidden"
               onClick={() => void onStartListening()}
             >
               <FaMicrophone />

@@ -4,10 +4,15 @@ import { get } from "@tonaljs/note";
 import Soundfont, { type InstrumentName } from "soundfont-player";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isIOS, isSafari } from "react-device-detect";
-import { DEFAULT_TUNING, normalizeTuningValue } from "~/utils/tunings";
+import {
+  DEFAULT_TUNING,
+  normalizeTuningValue,
+  transposeTuningValue,
+} from "~/utils/tunings";
 
 type UseTunerParams = {
   targetTuning: string;
+  capo?: number;
   toleranceCents?: number;
   stableFrameCount?: number;
   stableHoldDurationMs?: number;
@@ -195,6 +200,7 @@ async function loadGuideInstrument(
 
 export function useTuner({
   targetTuning,
+  capo = 0,
   toleranceCents = 8,
   stableFrameCount = 16,
   stableHoldDurationMs,
@@ -241,9 +247,17 @@ export function useTuner({
     () => resolveTargetNotes(targetTuning),
     [targetTuning],
   );
+  const comparisonTargetTuning = useMemo(
+    () => transposeTuningValue(targetTuning, capo),
+    [capo, targetTuning],
+  );
+  const comparisonTargetNotes = useMemo(
+    () => resolveTargetNotes(comparisonTargetTuning),
+    [comparisonTargetTuning],
+  );
 
   const targetMidis = useMemo(() => {
-    const resolved = targetNotes
+    const resolved = comparisonTargetNotes
       .map((note) => get(note).midi)
       .filter((midi): midi is number => midi !== null);
 
@@ -252,7 +266,7 @@ export function useTuner({
     }
 
     return DEFAULT_TUNING_NOTES.map((note) => get(note).midi ?? 40);
-  }, [targetNotes]);
+  }, [comparisonTargetNotes]);
 
   const applyUiSnapshot = useCallback(
     (
@@ -639,7 +653,7 @@ export function useTuner({
       stopListening();
     }
   }, [
-    audioContext,
+    applyUiSnapshot,
     getActiveAudioContext,
     isListening,
     minimumClarity,
@@ -655,8 +669,14 @@ export function useTuner({
   }, [currentTargetIndex]);
 
   useEffect(() => {
-    resetProgress();
-  }, [targetTuning, resetProgress]);
+    const frameId = window.requestAnimationFrame(() => {
+      resetProgress();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [capo, resetProgress, targetTuning]);
 
   useEffect(() => {
     return () => {

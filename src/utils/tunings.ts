@@ -88,7 +88,7 @@ function normalizeCustomTuningInput(input: string) {
 
   const parsed: { note: string; octave: number | undefined }[] = [];
   for (const token of tokens) {
-    const match = token.match(NOTE_ONLY_TOKEN_REGEX);
+    const match = NOTE_ONLY_TOKEN_REGEX.exec(token);
     if (!match?.groups?.note) return null;
     parsed.push({
       note: match.groups.note.toUpperCase(),
@@ -196,7 +196,7 @@ function normalizeCustomTuningInput(input: string) {
   if (bestIdx === -1 || bestCost === Infinity) return null;
 
   // Backtrack to recover chosen candidate indices
-  const chosen: number[] = new Array(6);
+  const chosen = Array.from({ length: 6 }, () => -1);
   chosen[5] = bestIdx;
   for (let s = 5; s > 0; s--) {
     chosen[s - 1] = dp[s]![chosen[s]!]!.prevIdx;
@@ -219,6 +219,24 @@ function normalizeTuningValue(input: string | null | undefined) {
 
 function getDisplayTuningNotes(input: string | null | undefined) {
   return normalizeTuningValue(input).split(" ");
+}
+
+function transposeTuningValue(input: string | null | undefined, semitones = 0) {
+  const tuningNotes = getDisplayTuningNotes(input);
+
+  if (semitones === 0) {
+    return tuningNotes.join(" ");
+  }
+
+  return tuningNotes
+    .map((note, index) => {
+      const midi = get(note).midi ?? DEFAULT_TUNING_MIDI[index] ?? 40;
+
+      return midiToNoteName(midi + semitones, {
+        sharps: true,
+      }).toLowerCase();
+    })
+    .join(" ");
 }
 
 const tunings: Tuning[] = [
@@ -378,6 +396,7 @@ export {
   tuningNotes,
   tuningNotesToName,
   getDisplayTuningNotes,
+  transposeTuningValue,
   normalizeCustomTuningInput,
   normalizeTuningValue,
 };

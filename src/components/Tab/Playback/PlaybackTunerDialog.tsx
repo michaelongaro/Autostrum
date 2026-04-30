@@ -15,9 +15,10 @@ import { useTuner } from "~/hooks/useTuner";
 import { useTabStore } from "~/stores/TabStore";
 
 function PlaybackTunerDialog() {
-  const { tuning, audioContext, masterVolumeGainNode, pauseAudio } =
+  const { tuning, capo, audioContext, masterVolumeGainNode, pauseAudio } =
     useTabStore((state) => ({
       tuning: state.tuning,
+      capo: state.capo,
       audioContext: state.audioContext,
       masterVolumeGainNode: state.masterVolumeGainNode,
       pauseAudio: state.pauseAudio,
@@ -44,6 +45,7 @@ function PlaybackTunerDialog() {
     resetProgress,
   } = useTuner({
     targetTuning: tuning,
+    capo,
     toleranceCents: 5,
     stableHoldDurationMs: 1500,
     minimumClarity: 0.84,
