@@ -131,7 +131,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
                   Enter
                   <kbd className="ml-1.5">Ctrl</kbd> <kbd>Backspace</kbd> or
                   <kbd className="ml-1.5">Ctrl</kbd> <kbd>Shift</kbd>{" "}
-                  <kbd>Backspace</kbd> to clear / delete current chord.
+                  <kbd>Backspace</kbd> to clear / delete the current chord.
                 </span>
               </div>
             </div>
