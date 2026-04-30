@@ -153,7 +153,7 @@ function TunerPanel({
 
   return (
     <div
-      className={`baseVertFlex h-full w-full gap-4 bg-secondary py-3 shadow-sm xs:rounded-lg xs:border lg:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
+      className={`baseVertFlex h-full w-full gap-4 bg-secondary py-3 shadow-sm sm:rounded-lg sm:border lg:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
     >
       <div
         className={`baseVertFlex w-full gap-3 px-3 md:px-6 lg:flex-row lg:!items-center lg:!justify-between lg:px-5 ${forPlaybackModal ? "lg:mt-8" : ""}`}
