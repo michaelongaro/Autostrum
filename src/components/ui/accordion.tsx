@@ -60,7 +60,7 @@ const AccordionTrigger = React.forwardRef<
             extraPadding ? "py-2" : "py-0"
           } ${
             showUnderline ? "hover:underline" : ""
-          } rounded-lg font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/70 [&[data-state=open]>svg]:rotate-180`,
+          } group rounded-lg font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/70`,
           className,
         )}
         {...props}
@@ -73,7 +73,7 @@ const AccordionTrigger = React.forwardRef<
               : editingSectionContainer
                 ? "bottom-3 right-1"
                 : "right-4"
-          } h-4 w-4 shrink-0 rounded-md transition-all duration-200 hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10`}
+          } size-4 shrink-0 rounded-md transition-all duration-200 group-data-[state=open]:rotate-180 md:size-5`}
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
