@@ -39,7 +39,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
           <div className="baseVertFlex w-full !items-start gap-8">
             {/* Tab */}
             <div className="baseVertFlex !items-start">
-              <div className="font-medium">Tab</div>
+              <div className="mb-1 font-medium">Tab</div>
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 Use a BPM marker when an entire section of the song needs a new,
@@ -51,7 +51,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
 
             {/* Chords */}
             <div className="baseVertFlex !items-start">
-              <div className="font-medium">Chords</div>
+              <div className="mb-1 font-medium">Chords</div>
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 Major and minor chords are automatically assigned specific
@@ -62,7 +62,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
 
             {/* Strumming */}
             <div className="baseVertFlex !items-start">
-              <div className="font-medium">Strumming</div>
+              <div className="mb-1 font-medium">Strumming</div>
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <div className="baseVertFlex w-full !items-start gap-2">
@@ -80,7 +80,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
 
           {/* Hotkeys */}
           <div className="baseVertFlex w-full !items-start">
-            <div className="font-medium">Hotkeys</div>
+            <div className="mb-1 font-medium">Hotkeys</div>
             <div className="baseVertFlex !items-start gap-4">
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
