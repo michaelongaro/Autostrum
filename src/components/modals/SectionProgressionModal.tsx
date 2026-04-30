@@ -9,6 +9,7 @@ import { useTabStore, type SectionProgression } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
+import { BsMusicNoteList } from "react-icons/bs";
 import {
   Select,
   SelectContent,
@@ -162,7 +163,8 @@ function SectionProgressionModal() {
             transition={{ layout: { duration: 0.25 } }}
           >
             <div className="baseFlex w-full !justify-between">
-              <span className="self-start text-lg font-semibold text-foreground">
+              <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
+                <BsMusicNoteList />
                 Section progression
               </span>
 
@@ -180,7 +182,10 @@ function SectionProgressionModal() {
             >
               <OverlayScrollbarsComponent
                 options={{
-                  scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                  scrollbars: {
+                    autoHide: "leave",
+                    autoHideDelay: 150,
+                  },
                 }}
                 defer
                 className="w-full"
@@ -324,8 +329,8 @@ function Section({
   return (
     <motion.div
       key={`sectionProgression${id}`}
-      layout
-      initial={{ opacity: 0, height: 0 }}
+      layout="position"
+      initial={{ opacity: 0, height: "auto" }}
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
       transition={{
@@ -338,7 +343,7 @@ function Section({
       }}
       style={{ overflow: "hidden" }}
     >
-      <div className="baseVertFlex relative my-2 w-full gap-2 rounded-lg border bg-secondary p-4 shadow-sm">
+      <div className="baseVertFlex relative my-2 w-full !items-start gap-2 rounded-lg border bg-secondary p-4 shadow-sm">
         <div className="baseFlex w-full !justify-start gap-2">
           <Label htmlFor={`sectionIndex${index}`}>
             {getOrdinalSuffix(index + 1)} section
@@ -358,12 +363,12 @@ function Section({
           </div> */}
         </div>
 
-        <div className="baseVertFlex gap-6 rounded-md py-1 text-foreground xs:!flex-row xs:!justify-between xs:gap-4">
-          <div className="baseVertFlex !items-start gap-4 xs:!flex-row">
+        <div className="baseVertFlex gap-6 rounded-md py-1 text-foreground sm:!flex-row sm:!justify-between sm:gap-4">
+          <div className="baseVertFlex !items-start gap-4 sm:!flex-row">
             <Select value={sectionId} onValueChange={handleSectionChange}>
               <SelectTrigger
                 id={`sectionIndex${index}`}
-                className="w-[218px] bg-background/50 xs:w-[218px]"
+                className="w-[218px] bg-background/50 sm:w-[218px]"
               >
                 <SelectValue
                   placeholder="Select a section"
@@ -401,7 +406,7 @@ function Section({
                 />
               </div>
 
-              <div className="baseFlex gap-2 xs:!hidden">
+              <div className="baseFlex ml-2 gap-2 sm:!hidden">
                 <Button
                   disabled={index === 0}
                   variant="outline"
@@ -432,7 +437,7 @@ function Section({
             </div>
           </div>
 
-          <div className="baseFlex !hidden w-full !justify-evenly gap-4 xs:!flex xs:w-auto xs:!flex-row xs:!justify-center">
+          <div className="baseFlex ml-2 !hidden w-full !justify-evenly gap-4 sm:!flex sm:w-auto sm:!flex-row sm:!justify-center">
             <Button
               disabled={index === 0}
               variant="outline"
