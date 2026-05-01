@@ -29,6 +29,15 @@ export const toolDefinitions: ToolDefinition[] = [
     status: "available",
   },
   {
+    id: "chord-trainer",
+    title: "Chord Trainer",
+    description:
+      "Run an endless randomized stream of chord changes with a centered spotlight and optional auto-play.",
+    category: "Practice",
+    href: "/tools/chord-trainer",
+    status: "available",
+  },
+  {
     id: "metronome",
     title: "Metronome",
     description:
