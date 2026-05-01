@@ -20,6 +20,7 @@ import {
   chordTrainerPresets,
   type ChordTrainerPreset,
 } from "~/data/tools/chordTrainerPresets";
+import { cn } from "~/utils/cn";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import { DEFAULT_TUNING, parse } from "~/utils/tunings";
 import Logo from "~/components/ui/icons/Logo";
@@ -38,6 +39,13 @@ type QueueItem = {
   chord: ChordTrainerPreset;
 };
 
+type ChordTrainerSelectionPreset = {
+  id: string;
+  label: string;
+  description: string;
+  chordIds: string[];
+};
+
 const AUDIO_SOURCE_LABELS: Record<AudioSource, string> = {
   none: "None",
   acoustic_guitar_nylon: "Acoustic - Nylon",
@@ -54,7 +62,90 @@ const DIFFICULTY_PRESETS = [
   { id: "expert", label: "Expert", tempo: 128 },
 ] as const;
 
-const DEFAULT_SELECTED_CHORD_IDS = ["c", "g", "am", "f", "em", "d"];
+const DEFAULT_CHORD_PRESET_ID = "common-open";
+const CUSTOM_CHORD_PRESET_ID = "custom";
+const CHORD_SELECTION_PRESETS: ChordTrainerSelectionPreset[] = [
+  {
+    id: DEFAULT_CHORD_PRESET_ID,
+    label: "Common open chords",
+    description: "A practical core set for everyday rhythm practice.",
+    chordIds: ["c", "g", "am", "f", "em", "d", "a", "e"],
+  },
+  {
+    id: "pop-acoustic",
+    label: "Pop / acoustic",
+    description: "Shared shapes that show up together in strummed songs.",
+    chordIds: ["g", "d", "em", "c", "cadd9", "asus2", "dsus4", "am"],
+  },
+  {
+    id: "key-of-c",
+    label: "Key of C",
+    description: "Diatonic open-chord palette centered on C major.",
+    chordIds: ["c", "f", "g", "am", "dm", "em", "cmaj7", "g7"],
+  },
+  {
+    id: "key-of-g",
+    label: "Key of G",
+    description: "Common open voicings around G major and its relatives.",
+    chordIds: ["g", "c", "d", "em", "am", "cadd9", "g7", "d7"],
+  },
+  {
+    id: "key-of-d",
+    label: "Key of D",
+    description: "Useful for bright open progressions with suspended color.",
+    chordIds: ["d", "g", "a", "bm", "em", "dsus2", "dsus4", "a7"],
+  },
+  {
+    id: "major-chords",
+    label: "Major chords",
+    description: "Core major-shape library for clean transitions and drills.",
+    chordIds: ["c", "g", "d", "a", "e", "f", "bb"],
+  },
+  {
+    id: "minor-chords",
+    label: "Minor chords",
+    description:
+      "Frequently used minor voicings, from open to common barre shapes.",
+    chordIds: ["am", "em", "dm", "bm", "fsharpm"],
+  },
+  {
+    id: "seventh-chords",
+    label: "Seventh chords",
+    description:
+      "Dominant, major, and minor sevenths for color and blues movement.",
+    chordIds: [
+      "c7",
+      "g7",
+      "d7",
+      "a7",
+      "e7",
+      "b7",
+      "cmaj7",
+      "fmaj7",
+      "am7",
+      "dm7",
+      "em7",
+    ],
+  },
+  {
+    id: "suspended-and-add",
+    label: "Suspended / add",
+    description:
+      "Tension-and-release voicings that often pair with open majors.",
+    chordIds: ["asus2", "asus4", "dsus2", "dsus4", "gsus4", "cadd9"],
+  },
+  {
+    id: "all",
+    label: "All chords",
+    description: "Use the full trainer library at once.",
+    chordIds: chordTrainerPresets.map((preset) => preset.id),
+  },
+];
+
+const DEFAULT_SELECTED_CHORD_IDS =
+  CHORD_SELECTION_PRESETS.find(
+    (preset) => preset.id === DEFAULT_CHORD_PRESET_ID,
+  )?.chordIds ?? [];
 const DEFAULT_TEMPO = 72;
 const MIN_TEMPO = 40;
 const MAX_TEMPO = 180;
@@ -66,6 +157,16 @@ const CHORD_ITEM_WIDTH = 136;
 const CHORD_ITEM_GAP = 40;
 const TOTAL_CHORD_WIDTH = CHORD_ITEM_WIDTH + CHORD_ITEM_GAP;
 const MIN_EDGE_OPACITY = 0.18;
+const CUSTOM_CHORD_PRESET_OPTION: ChordTrainerSelectionPreset = {
+  id: CUSTOM_CHORD_PRESET_ID,
+  label: "Custom",
+  description: "Choose exactly the chords you want by toggling the grid.",
+  chordIds: [],
+};
+const CHORD_PRESET_OPTIONS = [
+  ...CHORD_SELECTION_PRESETS,
+  CUSTOM_CHORD_PRESET_OPTION,
+];
 
 function clampTempo(value: number) {
   return Math.min(MAX_TEMPO, Math.max(MIN_TEMPO, value));
@@ -175,9 +276,12 @@ function ChordTrainerPage() {
   const lastTriggeredIndexRef = useRef(-1);
   const queueMutationPendingRef = useRef(false);
 
-  const [selectedChordIds, setSelectedChordIds] = useState<string[]>(
-    DEFAULT_SELECTED_CHORD_IDS,
+  const [activeChordPresetId, setActiveChordPresetId] = useState(
+    DEFAULT_CHORD_PRESET_ID,
   );
+  const [selectedChordIds, setSelectedChordIds] = useState<string[]>(() => [
+    ...DEFAULT_SELECTED_CHORD_IDS,
+  ]);
   const [tempo, setTempo] = useState(DEFAULT_TEMPO);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -188,11 +292,28 @@ function ChordTrainerPage() {
   const [loadingSoundfont, setLoadingSoundfont] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
 
+  const selectedChordIdSet = useMemo(
+    () => new Set(selectedChordIds),
+    [selectedChordIds],
+  );
+
   const selectedChords = useMemo(() => {
     return chordTrainerPresets.filter((chord) =>
-      selectedChordIds.includes(chord.id),
+      selectedChordIdSet.has(chord.id),
     );
-  }, [selectedChordIds]);
+  }, [selectedChordIdSet]);
+
+  const activeChordPreset = useMemo(() => {
+    return (
+      CHORD_SELECTION_PRESETS.find(
+        (preset) => preset.id === activeChordPresetId,
+      ) ?? null
+    );
+  }, [activeChordPresetId]);
+
+  const isCustomChordPreset = activeChordPresetId === CUSTOM_CHORD_PRESET_ID;
+  const activeChordPresetDescription =
+    activeChordPreset?.description ?? CUSTOM_CHORD_PRESET_OPTION.description;
 
   const selectedChordCount = selectedChords.length;
   const audioEnabled = audioOption !== "none";
@@ -555,15 +676,39 @@ function ChordTrainerPage() {
     setTempo(clampTempo(nextTempo));
   }, []);
 
-  const handleChordToggle = useCallback((chordId: string) => {
-    setSelectedChordIds((previous) => {
-      if (previous.includes(chordId)) {
-        return previous.filter((id) => id !== chordId);
-      }
+  const handleChordPresetSelect = useCallback((nextPresetId: string) => {
+    if (nextPresetId === CUSTOM_CHORD_PRESET_ID) {
+      setActiveChordPresetId(CUSTOM_CHORD_PRESET_ID);
+      return;
+    }
 
-      return [...previous, chordId];
-    });
+    const nextPreset = CHORD_SELECTION_PRESETS.find(
+      (preset) => preset.id === nextPresetId,
+    );
+
+    if (!nextPreset) return;
+
+    setActiveChordPresetId(nextPreset.id);
+    setSelectedChordIds([...nextPreset.chordIds]);
   }, []);
+
+  const handleChordToggle = useCallback(
+    (chordId: string) => {
+      setActiveChordPresetId(CUSTOM_CHORD_PRESET_ID);
+      setSelectedChordIds((previous) => {
+        const sourceIds = isCustomChordPreset
+          ? previous
+          : (activeChordPreset?.chordIds ?? previous);
+
+        if (sourceIds.includes(chordId)) {
+          return sourceIds.filter((id) => id !== chordId);
+        }
+
+        return [...sourceIds, chordId];
+      });
+    },
+    [activeChordPreset, isCustomChordPreset],
+  );
 
   const handleStartPause = useCallback(async () => {
     if (selectedChords.length === 0 || queue.length === 0) return;
@@ -753,59 +898,150 @@ function ChordTrainerPage() {
             {audioError}
           </div>
         )}
+
+        {loadingSoundfont && (
+          <p className="text-xs text-foreground/65">
+            Loading guitar samples...
+          </p>
+        )}
       </section>
 
       <section className="baseVertFlex w-full !items-start gap-4 rounded-md border bg-secondary/90 p-4 shadow-md sm:p-6">
-        <div className="baseFlex w-full !justify-between gap-3">
-          <p className="text-sm font-medium leading-none">Chords</p>
-          <span className="text-xs text-foreground/55">
-            {selectedChordCount} selected
-          </span>
-        </div>
+        <div className="baseVertFlex w-full !items-start gap-4 lg:flex-row lg:gap-6">
+          <aside className="hidden w-full max-w-[280px] flex-col gap-3 rounded-2xl border bg-background/70 p-4 lg:flex">
+            <div className="baseVertFlex !items-start gap-1">
+              <p className="pl-3 text-sm font-medium leading-none">
+                Chord presets
+              </p>
+            </div>
 
-        <div className="grid w-full grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {chordTrainerPresets.map((chord) => {
-            const selected = selectedChordIds.includes(chord.id);
+            <div className="flex flex-col gap-2">
+              {CHORD_PRESET_OPTIONS.map((preset) => {
+                const isActive = activeChordPresetId === preset.id;
+                const presetCount =
+                  preset.id === CUSTOM_CHORD_PRESET_ID
+                    ? selectedChordCount
+                    : preset.chordIds.length;
 
-            return (
-              <div key={chord.id} className="baseVertFlex gap-2">
-                <Button
-                  variant={"outline"}
-                  style={
-                    selected
-                      ? showColorCoding
-                        ? {
-                            borderColor: `${chord.color}66`,
-                            background: `linear-gradient(180deg, ${chord.color}14 0%, hsl(var(--background)) 100%)`,
-                            boxShadow: `0 0 0 1px ${chord.color}18 inset`,
-                          }
-                        : {
-                            borderColor: "hsl(var(--primary) / 0.42)",
-                            background: "hsl(var(--primary) / 0.06)",
-                            boxShadow:
-                              "0 0 0 1px hsl(var(--primary) / 0.14) inset",
-                          }
-                      : undefined
-                  }
-                  className="h-[112px] w-[88px] rounded-xl border bg-background/80 p-1.5 text-foreground"
-                  onClick={() => handleChordToggle(chord.id)}
-                >
-                  <ChordDiagram originalFrets={chord.frets} />
-                </Button>
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handleChordPresetSelect(preset.id)}
+                    className={cn(
+                      "baseVertFlex w-full !items-start gap-2 rounded-2xl border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      isActive
+                        ? "border-primary/35 bg-background text-foreground shadow-sm"
+                        : "border-transparent bg-background/55 text-foreground/80 hover:border-border hover:bg-background",
+                    )}
+                  >
+                    <div className="flex w-full items-center justify-between gap-3">
+                      <span className="text-sm font-semibold">
+                        {preset.label}
+                      </span>
+                      <span className="text-xs text-foreground/55">
+                        {presetCount}
+                      </span>
+                    </div>
 
-                <span
-                  className="text-sm font-semibold"
-                  style={
-                    selected && showColorCoding
-                      ? { color: chord.color }
-                      : undefined
-                  }
-                >
-                  {chord.name}
+                    <span className="text-xs leading-5 text-foreground/65">
+                      {preset.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          <div className="baseVertFlex w-full !items-start gap-4">
+            <div className="baseVertFlex w-full !items-start gap-2 lg:hidden">
+              <p className="text-sm font-medium leading-none">Chord presets</p>
+
+              <Select
+                value={activeChordPresetId}
+                onValueChange={handleChordPresetSelect}
+              >
+                <SelectTrigger className="w-full sm:max-w-[320px]">
+                  <SelectValue placeholder="Choose a chord preset" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {CHORD_PRESET_OPTIONS.map((preset) => (
+                    <SelectItem key={preset.id} value={preset.id}>
+                      {preset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <p className="text-xs leading-5 text-foreground/65">
+                {activeChordPresetDescription}
+              </p>
+            </div>
+
+            <div className="baseVertFlex w-full !items-start gap-1.5">
+              <div className="baseFlex w-full !justify-between gap-3 px-4">
+                <div className="baseVertFlex !items-start gap-1">
+                  <p className="text-sm font-medium leading-none">Chords</p>
+                </div>
+
+                <span className="text-xs text-foreground/55">
+                  {selectedChordCount} selected
                 </span>
               </div>
-            );
-          })}
+            </div>
+
+            <div className="grid w-full grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+              {chordTrainerPresets.map((chord) => {
+                const selected = selectedChordIdSet.has(chord.id);
+
+                return (
+                  <div
+                    key={chord.id}
+                    className={cn(
+                      "baseVertFlex gap-2 transition-opacity duration-150",
+                      selected ? "opacity-100" : "opacity-35 hover:opacity-80",
+                    )}
+                  >
+                    <Button
+                      variant={"outline"}
+                      style={
+                        selected
+                          ? showColorCoding
+                            ? {
+                                borderColor: `${chord.color}66`,
+                                background: `linear-gradient(180deg, ${chord.color}14 0%, hsl(var(--background)) 100%)`,
+                                boxShadow: `0 0 0 1px ${chord.color}18 inset`,
+                              }
+                            : {
+                                borderColor: "hsl(var(--primary) / 0.42)",
+                                background: "hsl(var(--primary) / 0.06)",
+                                boxShadow:
+                                  "0 0 0 1px hsl(var(--primary) / 0.14) inset",
+                              }
+                          : undefined
+                      }
+                      className="h-[112px] w-[88px] rounded-xl border bg-background/80 p-1.5 text-foreground"
+                      onClick={() => handleChordToggle(chord.id)}
+                    >
+                      <ChordDiagram originalFrets={chord.frets} />
+                    </Button>
+
+                    <span
+                      className="text-sm font-semibold"
+                      style={
+                        selected && showColorCoding
+                          ? { color: chord.color }
+                          : undefined
+                      }
+                    >
+                      {chord.name}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </section>
     </motion.div>
