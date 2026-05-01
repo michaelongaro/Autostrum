@@ -480,7 +480,7 @@ function StaticTabMetadata() {
                   transition={{
                     duration: 0.25,
                   }}
-                  className="baseFlex min-w-[78px] justify-end gap-1"
+                  className="baseFlex min-w-[78px] !justify-end gap-1"
                 >
                   {formatNumber(dynamicMetadata.pageViews)}
                   <span>view{dynamicMetadata.pageViews === 1 ? "" : "s"}</span>
