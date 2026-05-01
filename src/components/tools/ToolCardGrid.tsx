@@ -1,16 +1,16 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BsMusicNoteBeamed } from "react-icons/bs";
 import { GiMusicalScore } from "react-icons/gi";
 import { IoChevronForward, IoEar, IoMusicalNotes } from "react-icons/io5";
 import { PiMetronome } from "react-icons/pi";
+import Logo from "~/components/ui/icons/Logo";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import type { ToolDefinition } from "~/data/tools/toolDefinitions";
 
 const toolIcons: Record<string, ReactNode> = {
   warmups: <IoMusicalNotes className="size-5" />,
   scales: <GiMusicalScore className="size-6" />,
-  "chord-trainer": <BsMusicNoteBeamed className="size-5" />,
+  "chord-trainer": <Logo className="size-5" />,
   metronome: <PiMetronome className="size-6" />,
   "note-trainer": <IoEar className="size-5" />,
   tuner: <TuningFork className="size-5" />,

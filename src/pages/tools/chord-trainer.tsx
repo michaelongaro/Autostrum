@@ -3,13 +3,12 @@ import { motion } from "framer-motion";
 import Head from "next/head";
 import Soundfont from "soundfont-player";
 import { isIOS, isSafari } from "react-device-detect";
-import { BsMusicNoteBeamed } from "react-icons/bs";
-import { Pause } from "lucide-react";
+import { BsFillVolumeUpFill } from "react-icons/bs";
+import { Paintbrush } from "lucide-react";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
 import {
   Select,
   SelectContent,
@@ -17,19 +16,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Switch } from "~/components/ui/switch";
 import {
   chordTrainerPresets,
   type ChordTrainerPreset,
 } from "~/data/tools/chordTrainerPresets";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import { DEFAULT_TUNING, parse } from "~/utils/tunings";
+import Logo from "~/components/ui/icons/Logo";
 
 type AudioSource =
+  | "none"
   | "acoustic_guitar_nylon"
   | "acoustic_guitar_steel"
   | "electric_guitar_clean"
   | "electric_guitar_jazz";
+
+type AudioOption = AudioSource | "none";
 
 type QueueItem = {
   instanceId: string;
@@ -37,11 +39,20 @@ type QueueItem = {
 };
 
 const AUDIO_SOURCE_LABELS: Record<AudioSource, string> = {
+  none: "None",
   acoustic_guitar_nylon: "Acoustic - Nylon",
   acoustic_guitar_steel: "Acoustic - Steel",
   electric_guitar_clean: "Electric - Clean",
   electric_guitar_jazz: "Electric - Jazz",
 };
+
+const DIFFICULTY_PRESETS = [
+  { id: "beginner", label: "Beginner", tempo: 48 },
+  { id: "easy", label: "Easy", tempo: 60 },
+  { id: "intermediate", label: "Intermediate", tempo: 72 },
+  { id: "advanced", label: "Advanced", tempo: 108 },
+  { id: "expert", label: "Expert", tempo: 128 },
+] as const;
 
 const DEFAULT_SELECTED_CHORD_IDS = ["c", "g", "am", "f", "em", "d"];
 const DEFAULT_TEMPO = 72;
@@ -170,10 +181,10 @@ function ChordTrainerPage() {
   const [tempo, setTempo] = useState(DEFAULT_TEMPO);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(true);
-  const [audioSource, setAudioSource] = useState<AudioSource>(
+  const [audioOption, setAudioOption] = useState<AudioOption>(
     "acoustic_guitar_steel",
   );
+  const [showColorCoding, setShowColorCoding] = useState(true);
   const [loadingSoundfont, setLoadingSoundfont] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
 
@@ -184,6 +195,10 @@ function ChordTrainerPage() {
   }, [selectedChordIds]);
 
   const selectedChordCount = selectedChords.length;
+  const audioEnabled = audioOption !== "none";
+  const audioSource = audioOption === "none" ? null : audioOption;
+  const selectedDifficultyId =
+    DIFFICULTY_PRESETS.find((preset) => preset.tempo === tempo)?.id ?? null;
 
   useEffect(() => {
     queueRef.current = queue;
@@ -202,8 +217,24 @@ function ChordTrainerPage() {
     audioEnabledRef.current = audioEnabled;
   }, [audioEnabled]);
 
+  useEffect(() => {
+    if (audioEnabled) return;
+
+    for (const playingString of currentlyPlayingStringsRef.current) {
+      try {
+        playingString?.stop?.();
+      } catch {
+        // best-effort cleanup only
+      }
+    }
+  }, [audioEnabled]);
+
   const ensureAudioRuntime = useCallback(
-    async (source: AudioSource = audioSource) => {
+    async (source: AudioSource | null = audioSource) => {
+      if (!source || source === "none") {
+        throw new Error("No audio source selected.");
+      }
+
       let audioContext = audioContextRef.current;
       if (!audioContext) {
         audioContext = new window.AudioContext();
@@ -520,14 +551,8 @@ function ChordTrainerPage() {
     };
   }, []);
 
-  const handleTempoInput = useCallback((value: string) => {
-    const parsedValue = Number(value);
-    if (Number.isNaN(parsedValue)) {
-      setTempo(DEFAULT_TEMPO);
-      return;
-    }
-
-    setTempo(clampTempo(parsedValue));
+  const handleDifficultySelect = useCallback((nextTempo: number) => {
+    setTempo(clampTempo(nextTempo));
   }, []);
 
   const handleChordToggle = useCallback((chordId: string) => {
@@ -544,9 +569,9 @@ function ChordTrainerPage() {
     if (selectedChords.length === 0 || queue.length === 0) return;
 
     if (!isPlaying) {
-      if (audioEnabled) {
+      if (audioEnabled && audioSource) {
         try {
-          await ensureAudioRuntime();
+          await ensureAudioRuntime(audioSource);
         } catch (error) {
           console.error("Unable to initialize chord trainer audio:", error);
         }
@@ -559,6 +584,7 @@ function ChordTrainerPage() {
     setIsPlaying(false);
   }, [
     audioEnabled,
+    audioSource,
     ensureAudioRuntime,
     isPlaying,
     queue.length,
@@ -583,15 +609,15 @@ function ChordTrainerPage() {
       </Head>
 
       <ToolRouteHeader
-        icon={<BsMusicNoteBeamed className="size-5" />}
+        icon={<Logo className="size-5" />}
         title="Chord Trainer"
         description="Keep a stream of chord shapes moving through center and hear each voicing as it lands."
       />
 
-      <section className="baseVertFlex w-full gap-4 rounded-2xl border bg-secondary/90 p-4 shadow-md sm:p-6">
-        <div className="relative w-full overflow-hidden rounded-[28px] border bg-[radial-gradient(circle_at_center,_hsl(var(--background))_0%,_hsl(var(--background))_52%,_hsl(var(--secondary))_100%)]">
+      <section className="baseVertFlex w-full gap-4">
+        <div className="relative w-full overflow-hidden rounded-md border bg-[radial-gradient(circle_at_center,_hsl(var(--background))_0%,_hsl(var(--background))_52%,_hsl(var(--secondary))_100%)]">
           <div
-            className="relative h-full w-full overflow-hidden rounded-[22px] bg-background/70 shadow-inner sm:h-[260px]"
+            className="relative h-[260px] w-full overflow-hidden rounded-[22px] bg-background/70 shadow-inner sm:h-[260px]"
             ref={stageRef}
           >
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-background via-background/90 to-transparent sm:w-24" />
@@ -616,9 +642,11 @@ function ChordTrainerPage() {
                   }}
                 >
                   <div
-                    className="pointer-events-none flex h-[152px] w-[108px] items-center justify-center rounded-2xl border bg-background/85 p-2 shadow-[0_18px_50px_rgba(15,23,42,0.08)]"
+                    className="pointer-events-none flex items-center justify-center p-2"
                     style={{
-                      borderColor: `${item.chord.color}40`,
+                      borderColor: showColorCoding
+                        ? `${item.chord.color}40`
+                        : undefined,
                     }}
                   >
                     <div className="h-full w-full text-foreground">
@@ -627,8 +655,10 @@ function ChordTrainerPage() {
                   </div>
 
                   <span
-                    className="text-xs font-semibold tracking-[0.14em]"
-                    style={{ color: item.chord.color }}
+                    className="text-lg font-semibold"
+                    style={
+                      showColorCoding ? { color: item.chord.color } : undefined
+                    }
                   >
                     {item.chord.name}
                   </span>
@@ -638,86 +668,84 @@ function ChordTrainerPage() {
 
             {queue.length === 0 && (
               <div className="baseFlex absolute inset-0 h-full w-full text-sm text-foreground/70">
-                Choose at least one chord to start the stream.
+                Choose at least one chord to start.
               </div>
             )}
           </div>
         </div>
 
-        <div className="grid w-full gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)_220px]">
-          <div className="baseVertFlex w-full !items-start gap-2 rounded-2xl border bg-background/75 p-3 sm:p-4">
+        <div className="baseVertFlex w-full gap-3 px-8 md:px-0">
+          <div className="baseVertFlex !items-start gap-2">
             <div className="baseFlex w-full !justify-between gap-3">
-              <Label htmlFor="chord-trainer-tempo">Pace</Label>
-              <span className="text-xs text-foreground/55">{tempo} CPM</span>
+              <span className="text-sm font-medium leading-none">
+                Difficulty
+              </span>
             </div>
 
-            <div className="baseFlex w-full !justify-start gap-3">
-              <Input
-                id="chord-trainer-tempo"
-                type="number"
-                min={MIN_TEMPO}
-                max={MAX_TEMPO}
-                value={tempo}
-                onChange={(event) => handleTempoInput(event.target.value)}
-                className="w-24"
-              />
-
-              <input
-                type="range"
-                min={MIN_TEMPO}
-                max={MAX_TEMPO}
-                step={1}
-                value={tempo}
-                onChange={(event) => handleTempoInput(event.target.value)}
-                className="w-full accent-primary"
-                aria-label="Chord trainer tempo"
-              />
+            <div className="flex w-full flex-wrap gap-2">
+              {DIFFICULTY_PRESETS.map((preset) => (
+                <Button
+                  key={preset.id}
+                  type="button"
+                  variant={
+                    selectedDifficultyId === preset.id ? "default" : "outline"
+                  }
+                  onClick={() => handleDifficultySelect(preset.tempo)}
+                >
+                  {preset.label}
+                </Button>
+              ))}
             </div>
           </div>
 
-          <div className="baseVertFlex w-full !items-start gap-2 rounded-2xl border bg-background/75 p-3 sm:p-4">
-            <div className="baseFlex w-full !justify-between gap-3">
-              <Label htmlFor="chord-trainer-tone">Guitar Sound</Label>
-              <div className="baseFlex !justify-end gap-2 text-xs text-foreground/55">
-                <span>Auto-play</span>
-                <Switch
-                  id="chord-trainer-audio"
-                  checked={audioEnabled}
-                  onCheckedChange={setAudioEnabled}
-                />
-              </div>
-            </div>
-
+          <div className="baseFlex flex-wrap !justify-start gap-3">
             <Select
-              value={audioSource}
-              onValueChange={(value) => setAudioSource(value as AudioSource)}
-              disabled={!audioEnabled}
+              value={audioOption}
+              onValueChange={(v) => setAudioOption(v as AudioOption)}
             >
-              <SelectTrigger id="chord-trainer-tone" className="w-full">
-                <SelectValue />
+              <SelectTrigger className="hidden w-48 md:flex">
+                <SelectValue>
+                  <div className="baseFlex gap-2">
+                    <BsFillVolumeUpFill className="size-5" />
+                    {AUDIO_SOURCE_LABELS[audioOption]}
+                  </div>
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(AUDIO_SOURCE_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
+                {(Object.keys(AUDIO_SOURCE_LABELS) as AudioOption[]).map(
+                  (key) => (
+                    <SelectItem key={key} value={key}>
+                      {AUDIO_SOURCE_LABELS[key]}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
-          </div>
 
-          <Button
-            onClick={() => void handleStartPause()}
-            disabled={selectedChordCount === 0}
-            className="h-full min-h-[92px] gap-2 rounded-2xl text-base"
-          >
-            {isPlaying ? (
-              <Pause className="size-4" />
-            ) : (
-              <BsMusicNoteBeamed className="size-4" />
-            )}
-            {isPlaying ? "Pause" : "Start"}
-          </Button>
+            <Button
+              type="button"
+              variant={showColorCoding ? "default" : "outline"}
+              onClick={() => setShowColorCoding((previous) => !previous)}
+              className="gap-2"
+            >
+              <Paintbrush className="size-4" />
+              Color-coded
+            </Button>
+
+            <Button
+              variant="audio"
+              onClick={() => void handleStartPause()}
+              disabled={selectedChordCount === 0}
+              className="w-[134px] gap-2 px-8 text-base"
+            >
+              {isPlaying ? (
+                <PauseIcon className="size-4" />
+              ) : (
+                <Logo className="size-4" />
+              )}
+              {isPlaying ? "Pause" : "Start"}
+            </Button>
+          </div>
         </div>
 
         {audioError && (
@@ -727,11 +755,9 @@ function ChordTrainerPage() {
         )}
       </section>
 
-      <section className="baseVertFlex w-full !items-start gap-4 rounded-2xl border bg-secondary/90 p-4 shadow-md sm:p-6">
+      <section className="baseVertFlex w-full !items-start gap-4 rounded-md border bg-secondary/90 p-4 shadow-md sm:p-6">
         <div className="baseFlex w-full !justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-foreground/45">
-            Chords
-          </p>
+          <p className="text-sm font-medium leading-none">Chords</p>
           <span className="text-xs text-foreground/55">
             {selectedChordCount} selected
           </span>
@@ -747,11 +773,18 @@ function ChordTrainerPage() {
                   variant={"outline"}
                   style={
                     selected
-                      ? {
-                          borderColor: `${chord.color}66`,
-                          background: `linear-gradient(180deg, ${chord.color}14 0%, hsl(var(--background)) 100%)`,
-                          boxShadow: `0 0 0 1px ${chord.color}18 inset`,
-                        }
+                      ? showColorCoding
+                        ? {
+                            borderColor: `${chord.color}66`,
+                            background: `linear-gradient(180deg, ${chord.color}14 0%, hsl(var(--background)) 100%)`,
+                            boxShadow: `0 0 0 1px ${chord.color}18 inset`,
+                          }
+                        : {
+                            borderColor: "hsl(var(--primary) / 0.42)",
+                            background: "hsl(var(--primary) / 0.06)",
+                            boxShadow:
+                              "0 0 0 1px hsl(var(--primary) / 0.14) inset",
+                          }
                       : undefined
                   }
                   className="h-[112px] w-[88px] rounded-xl border bg-background/80 p-1.5 text-foreground"
@@ -762,7 +795,11 @@ function ChordTrainerPage() {
 
                 <span
                   className="text-sm font-semibold"
-                  style={selected ? { color: chord.color } : undefined}
+                  style={
+                    selected && showColorCoding
+                      ? { color: chord.color }
+                      : undefined
+                  }
                 >
                   {chord.name}
                 </span>
