@@ -119,7 +119,7 @@ function PinnedTabSelector({
                     </DrawerDescription>
                   </VisuallyHidden>
 
-                  <Separator className="mt-2 w-full bg-gray" />
+                  <div className="my-1.5"></div>
 
                   <PinnedTabList
                     localPinnedTabId={localPinnedTabId}
