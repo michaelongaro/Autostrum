@@ -854,6 +854,7 @@ interface PlayNoteColumn {
     | AudioBufferSourceNode
     | undefined
   )[];
+  strumDelayMultiplierScale?: number;
   acousticSteelOverrideForPreview?: Soundfont.Player;
   forTuningPreview?: boolean;
 }
@@ -871,6 +872,7 @@ function playNoteColumn({
   masterVolumeGainNode,
   currentInstrument,
   currentlyPlayingStrings,
+  strumDelayMultiplierScale,
   acousticSteelOverrideForPreview,
   forTuningPreview,
 }: PlayNoteColumn) {
@@ -911,15 +913,20 @@ function playNoteColumn({
 
     let notesPlayedSoFar = 0;
     let chordDelayMultiplier = 0;
+    const resolvedStrumDelayMultiplierScale =
+      strumDelayMultiplierScale && strumDelayMultiplierScale > 0
+        ? strumDelayMultiplierScale
+        : 1;
 
     // TODO: allow just > and or . to be present + provide handling for these cases
     if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
-      chordDelayMultiplier = forTuningPreview
-        ? 0.35
-        : calculateRelativeChordDelayMultiplier(
-            bpm,
-            currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
-          );
+      chordDelayMultiplier =
+        (forTuningPreview
+          ? 0.35
+          : calculateRelativeChordDelayMultiplier(
+              bpm,
+              currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
+            )) * resolvedStrumDelayMultiplierScale;
     }
 
     const allInlineEffects = /[hp\/\\\\br~>.x]/g;

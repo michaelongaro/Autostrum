@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { motion } from "framer-motion";
+import { IoIosArrowUp } from "react-icons/io";
 import Head from "next/head";
 import Soundfont from "soundfont-player";
 import { isIOS, isSafari } from "react-device-detect";
@@ -99,7 +107,7 @@ const CHORD_SELECTION_PRESETS: ChordTrainerSelectionPreset[] = [
     id: "major-chords",
     label: "Major chords",
     description: "Core major-shape library for clean transitions and drills.",
-    chordIds: ["c", "g", "d", "a", "e", "f", "bb"],
+    chordIds: ["c", "g", "d", "a", "e", "f", "b"],
   },
   {
     id: "minor-chords",
@@ -156,7 +164,9 @@ const APPEND_CHUNK_SIZE = 12;
 const CHORD_ITEM_WIDTH = 136;
 const CHORD_ITEM_GAP = 40;
 const TOTAL_CHORD_WIDTH = CHORD_ITEM_WIDTH + CHORD_ITEM_GAP;
+const CENTER_TRIGGER_EPSILON = 0.001;
 const MIN_EDGE_OPACITY = 0.18;
+const CHORD_TRAINER_STRUM_DELAY_SCALE = 0.55;
 const CUSTOM_CHORD_PRESET_OPTION: ChordTrainerSelectionPreset = {
   id: CUSTOM_CHORD_PRESET_ID,
   label: "Custom",
@@ -167,6 +177,9 @@ const CHORD_PRESET_OPTIONS = [
   ...CHORD_SELECTION_PRESETS,
   CUSTOM_CHORD_PRESET_OPTION,
 ];
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 function clampTempo(value: number) {
   return Math.min(MAX_TEMPO, Math.max(MIN_TEMPO, value));
@@ -322,11 +335,6 @@ function ChordTrainerPage() {
     DIFFICULTY_PRESETS.find((preset) => preset.tempo === tempo)?.id ?? null;
 
   useEffect(() => {
-    queueRef.current = queue;
-    queueMutationPendingRef.current = false;
-  }, [queue]);
-
-  useEffect(() => {
     selectedChordsRef.current = selectedChords;
   }, [selectedChords]);
 
@@ -425,6 +433,7 @@ function ChordTrainerPage() {
           capo: 0,
           bpm,
           currColumn: ["", ...chord.frets, "v", "quarter", `${bpm}`],
+          strumDelayMultiplierScale: CHORD_TRAINER_STRUM_DELAY_SCALE,
           audioContext,
           masterVolumeGainNode,
           currentInstrument,
@@ -477,21 +486,22 @@ function ChordTrainerPage() {
     });
   }, []);
 
-  const rebuildQueue = useCallback(
-    (chords: ChordTrainerPreset[]) => {
-      scrollXRef.current = 0;
-      lastFrameTimeRef.current = null;
-      lastTriggeredIndexRef.current = -1;
-      queueMutationPendingRef.current = false;
+  useIsomorphicLayoutEffect(() => {
+    queueRef.current = queue;
+    queueMutationPendingRef.current = false;
+    updateStreamStyles(scrollXRef.current);
+  }, [queue, updateStreamStyles]);
 
-      const nextQueue = buildInitialQueue(chords);
-      queueRef.current = nextQueue;
-      setQueue(nextQueue);
+  const rebuildQueue = useCallback((chords: ChordTrainerPreset[]) => {
+    scrollXRef.current = 0;
+    lastFrameTimeRef.current = null;
+    lastTriggeredIndexRef.current = -1;
+    queueMutationPendingRef.current = false;
 
-      window.requestAnimationFrame(() => updateStreamStyles(0));
-    },
-    [updateStreamStyles],
-  );
+    const nextQueue = buildInitialQueue(chords);
+    queueRef.current = nextQueue;
+    setQueue(nextQueue);
+  }, []);
 
   const extendQueue = useCallback(() => {
     if (
@@ -514,39 +524,34 @@ function ChordTrainerPage() {
     });
   }, []);
 
-  const trimQueue = useCallback(
-    (currentCenterIndex: number) => {
-      if (
-        queueMutationPendingRef.current ||
-        currentCenterIndex <= 14 ||
-        queueRef.current.length <= INITIAL_QUEUE_LENGTH + APPEND_CHUNK_SIZE
-      ) {
-        return;
-      }
+  const trimQueue = useCallback((currentCenterIndex: number) => {
+    if (
+      queueMutationPendingRef.current ||
+      currentCenterIndex <= 14 ||
+      queueRef.current.length <= INITIAL_QUEUE_LENGTH + APPEND_CHUNK_SIZE
+    ) {
+      return;
+    }
 
-      const trimCount = currentCenterIndex - 8;
-      if (trimCount <= 0) return;
+    const trimCount = currentCenterIndex - 8;
+    if (trimCount <= 0) return;
 
-      queueMutationPendingRef.current = true;
-      scrollXRef.current -= trimCount * TOTAL_CHORD_WIDTH;
-      lastTriggeredIndexRef.current -= trimCount;
+    queueMutationPendingRef.current = true;
+    scrollXRef.current -= trimCount * TOTAL_CHORD_WIDTH;
+    lastTriggeredIndexRef.current -= trimCount;
 
-      setQueue((currentQueue) => {
-        const trimmedQueue = currentQueue.slice(trimCount);
-        const nextQueue = appendQueue(
-          trimmedQueue,
-          selectedChordsRef.current,
-          trimCount,
-        );
+    setQueue((currentQueue) => {
+      const trimmedQueue = currentQueue.slice(trimCount);
+      const nextQueue = appendQueue(
+        trimmedQueue,
+        selectedChordsRef.current,
+        trimCount,
+      );
 
-        queueRef.current = nextQueue;
-        return nextQueue;
-      });
-
-      updateStreamStyles(scrollXRef.current);
-    },
-    [updateStreamStyles],
-  );
+      queueRef.current = nextQueue;
+      return nextQueue;
+    });
+  }, []);
 
   useEffect(() => {
     const stageElement = stageRef.current;
@@ -605,7 +610,9 @@ function ChordTrainerPage() {
 
       const currentCenterIndex = Math.max(
         0,
-        Math.round(scrollXRef.current / TOTAL_CHORD_WIDTH),
+        Math.floor(
+          scrollXRef.current / TOTAL_CHORD_WIDTH + CENTER_TRIGGER_EPSILON,
+        ),
       );
 
       if (currentCenterIndex > lastTriggeredIndexRef.current) {
@@ -768,7 +775,12 @@ function ChordTrainerPage() {
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-background via-background/90 to-transparent sm:w-24" />
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-background via-background/90 to-transparent sm:w-24" />
             <div className="bg-primary/12 pointer-events-none absolute left-1/2 top-1/2 z-10 h-[180px] w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl sm:h-[220px] sm:w-[240px]" />
-            <div className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-primary/60 to-transparent" />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 text-lg font-semibold leading-none text-primary/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.28)]"
+            >
+              <IoIosArrowUp />
+            </span>
 
             <div
               ref={sliderContainerRef}
@@ -848,7 +860,7 @@ function ChordTrainerPage() {
               value={audioOption}
               onValueChange={(v) => setAudioOption(v as AudioOption)}
             >
-              <SelectTrigger className="hidden w-48 md:flex">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue>
                   <div className="baseFlex gap-2">
                     <BsFillVolumeUpFill className="size-5" />

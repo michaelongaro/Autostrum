@@ -46,9 +46,9 @@ const rawChordTrainerPresets: RawChordTrainerPreset[] = [
     voicing: ["1", "3", "3", "2", "1", "1"],
   },
   {
-    id: "bb",
-    name: "Bb",
-    voicing: ["x", "1", "3", "3", "3", "1"],
+    id: "b",
+    name: "B",
+    voicing: ["x", "2", "4", "4", "4", "2"],
   },
   {
     id: "am",
