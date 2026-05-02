@@ -655,9 +655,9 @@ function GlossaryDialog() {
 
                   <div>
                     <p className="mb-2 text-sm">
-                      A dotted note increases the length of the original note by
+                      A dotted note increases the length of the base note by
                       half, while a double-dotted note increases the length of
-                      the original note by three quarters.
+                      the base note by three quarters.
                     </p>
                   </div>
                 </div>
