@@ -117,15 +117,20 @@ function useColorAndThemeController() {
   useEffect(() => {
     if (!currentUser || initializedUserDBColor) return;
 
-    const currentTheme = theme;
     const userColor = currentUser.color as COLORS;
+    const storedColor = getStorageValue(STORAGE_KEYS.COLOR) as COLORS | null;
 
-    updateCSSThemeVars(userColor, currentTheme);
+    if (storedColor === userColor) {
+      setInitializedUserDBColor(true);
+      return;
+    }
+
+    setStorageValue(STORAGE_KEYS.COLOR, userColor);
+    updateCSSThemeVars(userColor, theme);
 
     setColor(userColor);
-    setStorageValue(STORAGE_KEYS.COLOR, userColor);
     setInitializedUserDBColor(true);
-  }, [currentUser, initializedUserDBColor]);
+  }, [currentUser, initializedUserDBColor, setColor, theme]);
 
   // Listen for system theme changes when following device theme
   useEffect(() => {
