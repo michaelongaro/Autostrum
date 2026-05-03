@@ -16,7 +16,10 @@ const STORAGE_KEYS = {
 } as const;
 
 const serializeForInlineScript = (value: unknown) =>
-  JSON.stringify(value).replace(/</g, "\\u003c");
+  JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
 
 const themeInitializerScript = `
 (() => {
@@ -32,8 +35,8 @@ const themeInitializerScript = `
       storageKeys.FOLLOWS_DEVICE_THEME,
     );
 
-    const resolvedColor =
-      storedColor && colorValues[storedColor] ? storedColor : defaultColor;
+    const isValidColor = (color) => Boolean(color && colorValues[color]);
+    const resolvedColor = isValidColor(storedColor) ? storedColor : defaultColor;
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
       : "light";
