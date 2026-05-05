@@ -50,7 +50,6 @@ type QueueItem = {
 type ChordTrainerSelectionPreset = {
   id: string;
   label: string;
-  description: string;
   chordIds: string[];
 };
 
@@ -76,51 +75,41 @@ const CHORD_SELECTION_PRESETS: ChordTrainerSelectionPreset[] = [
   {
     id: DEFAULT_CHORD_PRESET_ID,
     label: "Common open chords",
-    description: "A practical core set for everyday rhythm practice.",
     chordIds: ["c", "g", "am", "f", "em", "d", "a", "e"],
   },
   {
     id: "pop-acoustic",
     label: "Pop / acoustic",
-    description: "Shared shapes that show up together in strummed songs.",
     chordIds: ["g", "d", "em", "c", "cadd9", "asus2", "dsus4", "am"],
   },
   {
     id: "key-of-c",
     label: "Key of C",
-    description: "Diatonic open-chord palette centered on C major.",
     chordIds: ["c", "f", "g", "am", "dm", "em", "cmaj7", "g7"],
   },
   {
     id: "key-of-g",
     label: "Key of G",
-    description: "Common open voicings around G major and its relatives.",
     chordIds: ["g", "c", "d", "em", "am", "cadd9", "g7", "d7"],
   },
   {
     id: "key-of-d",
     label: "Key of D",
-    description: "Useful for bright open progressions with suspended color.",
     chordIds: ["d", "g", "a", "bm", "em", "dsus2", "dsus4", "a7"],
   },
   {
     id: "major-chords",
     label: "Major chords",
-    description: "Core major-shape library for clean transitions and drills.",
     chordIds: ["c", "g", "d", "a", "e", "f", "b"],
   },
   {
     id: "minor-chords",
     label: "Minor chords",
-    description:
-      "Frequently used minor voicings, from open to common barre shapes.",
     chordIds: ["am", "em", "dm", "bm", "fsharpm"],
   },
   {
     id: "seventh-chords",
     label: "Seventh chords",
-    description:
-      "Dominant, major, and minor sevenths for color and blues movement.",
     chordIds: [
       "c7",
       "g7",
@@ -138,14 +127,11 @@ const CHORD_SELECTION_PRESETS: ChordTrainerSelectionPreset[] = [
   {
     id: "suspended-and-add",
     label: "Suspended / add",
-    description:
-      "Tension-and-release voicings that often pair with open majors.",
     chordIds: ["asus2", "asus4", "dsus2", "dsus4", "gsus4", "cadd9"],
   },
   {
     id: "all",
     label: "All chords",
-    description: "Use the full trainer library at once.",
     chordIds: chordTrainerPresets.map((preset) => preset.id),
   },
 ];
@@ -170,7 +156,6 @@ const CHORD_TRAINER_STRUM_DELAY_SCALE = 0.55;
 const CUSTOM_CHORD_PRESET_OPTION: ChordTrainerSelectionPreset = {
   id: CUSTOM_CHORD_PRESET_ID,
   label: "Custom",
-  description: "Choose exactly the chords you want by toggling the grid.",
   chordIds: [],
 };
 const CHORD_PRESET_OPTIONS = [
@@ -325,8 +310,6 @@ function ChordTrainerPage() {
   }, [activeChordPresetId]);
 
   const isCustomChordPreset = activeChordPresetId === CUSTOM_CHORD_PRESET_ID;
-  const activeChordPresetDescription =
-    activeChordPreset?.description ?? CUSTOM_CHORD_PRESET_OPTION.description;
 
   const selectedChordCount = selectedChords.length;
   const audioEnabled = audioOption !== "none";
@@ -769,7 +752,7 @@ function ChordTrainerPage() {
       <section className="baseVertFlex w-full gap-4">
         <div className="relative w-full overflow-hidden rounded-md border bg-[radial-gradient(circle_at_center,_hsl(var(--background))_0%,_hsl(var(--background))_52%,_hsl(var(--secondary))_100%)]">
           <div
-            className="relative h-[260px] w-full overflow-hidden rounded-[22px] bg-background/70 shadow-inner sm:h-[260px]"
+            className="relative h-[260px] w-full overflow-hidden bg-background/70 shadow-inner sm:h-[260px]"
             ref={stageRef}
           >
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-background via-background/90 to-transparent sm:w-24" />
@@ -920,11 +903,9 @@ function ChordTrainerPage() {
 
       <section className="baseVertFlex w-full !items-start gap-4 rounded-md border bg-secondary/90 p-4 shadow-md sm:p-6">
         <div className="baseVertFlex w-full !items-start gap-4 lg:flex-row lg:gap-6">
-          <aside className="hidden w-full max-w-[280px] flex-col gap-3 rounded-2xl border bg-background/70 p-4 lg:flex">
+          <aside className="hidden w-full max-w-[280px] flex-col gap-3 rounded-md lg:flex">
             <div className="baseVertFlex !items-start gap-1">
-              <p className="pl-3 text-sm font-medium leading-none">
-                Chord presets
-              </p>
+              <p className="text-sm font-medium leading-none">Chord presets</p>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -941,7 +922,7 @@ function ChordTrainerPage() {
                     type="button"
                     onClick={() => handleChordPresetSelect(preset.id)}
                     className={cn(
-                      "baseVertFlex w-full !items-start gap-2 rounded-2xl border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "baseVertFlex w-full !items-start gap-2 rounded-md border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       isActive
                         ? "border-primary/35 bg-background text-foreground shadow-sm"
                         : "border-transparent bg-background/55 text-foreground/80 hover:border-border hover:bg-background",
@@ -955,10 +936,6 @@ function ChordTrainerPage() {
                         {presetCount}
                       </span>
                     </div>
-
-                    <span className="text-xs leading-5 text-foreground/65">
-                      {preset.description}
-                    </span>
                   </button>
                 );
               })}
@@ -985,14 +962,10 @@ function ChordTrainerPage() {
                   ))}
                 </SelectContent>
               </Select>
-
-              <p className="text-xs leading-5 text-foreground/65">
-                {activeChordPresetDescription}
-              </p>
             </div>
 
-            <div className="baseVertFlex w-full !items-start gap-1.5">
-              <div className="baseFlex w-full !justify-between gap-3 px-4">
+            <div className="baseVertFlex mt-2 w-full !items-start gap-1.5 lg:mt-0">
+              <div className="baseFlex w-full !justify-between gap-3 lg:px-4">
                 <div className="baseVertFlex !items-start gap-1">
                   <p className="text-sm font-medium leading-none">Chords</p>
                 </div>
@@ -1033,7 +1006,7 @@ function ChordTrainerPage() {
                               }
                           : undefined
                       }
-                      className="h-[112px] w-[88px] rounded-xl border bg-background/80 p-1.5 text-foreground"
+                      className="h-[112px] w-[88px] rounded-md border bg-background/80 p-1.5 text-foreground"
                       onClick={() => handleChordToggle(chord.id)}
                     >
                       <ChordDiagram originalFrets={chord.frets} />
