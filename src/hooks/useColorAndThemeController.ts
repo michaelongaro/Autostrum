@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/nextjs";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
@@ -48,23 +48,9 @@ function useColorAndThemeController() {
     enabled: !!userId,
   });
 
-  const [initializedUserDBColor, setInitializedUserDBColor] = useState(false);
+  const initializedUserDBColorRef = useRef(false);
 
-  function initializeFromStorage() {
-    const storedColor = getStorageValue(STORAGE_KEYS.COLOR);
-    const storedTheme = getStorageValue(STORAGE_KEYS.THEME);
-    const storedFollowsDevice = getStorageValue(
-      STORAGE_KEYS.FOLLOWS_DEVICE_THEME,
-    );
-
-    return {
-      color: storedColor,
-      theme: storedTheme,
-      followsDeviceTheme: storedFollowsDevice,
-    };
-  }
-
-  function setDefaultPreferences() {
+  const setDefaultPreferences = useCallback(() => {
     const systemTheme = getSystemTheme();
     const defaultColor = "maple";
 
@@ -78,54 +64,69 @@ function useColorAndThemeController() {
     setStorageValue(STORAGE_KEYS.COLOR, defaultColor);
     setStorageValue(STORAGE_KEYS.THEME, systemTheme);
     setStorageValue(STORAGE_KEYS.FOLLOWS_DEVICE_THEME, "true");
-  }
+  }, [setColor, setFollowsDeviceTheme, setTheme]);
 
-  function applyStoredPreferences(
+  const applyStoredPreferences = useCallback(
+    (
     storedColor: string,
     storedTheme: string,
     followsDevice: boolean,
-  ) {
-    const systemTheme = getSystemTheme();
-    const effectiveTheme = followsDevice ? systemTheme : (storedTheme as THEME);
+    ) => {
+      const systemTheme = getSystemTheme();
+      const effectiveTheme = followsDevice
+        ? systemTheme
+        : (storedTheme as THEME);
 
-    // Update CSS and store state
-    updateCSSThemeVars(storedColor as COLORS, effectiveTheme);
-    setColor(storedColor as COLORS);
-    setTheme(effectiveTheme);
-    setFollowsDeviceTheme(followsDevice);
-  }
+      // Update CSS and store state
+      updateCSSThemeVars(storedColor as COLORS, effectiveTheme);
+      setColor(storedColor as COLORS);
+      setTheme(effectiveTheme);
+      setFollowsDeviceTheme(followsDevice);
+    },
+    [setColor, setFollowsDeviceTheme, setTheme],
+  );
 
   // Initialize color and theme from localStorage or set defaults
   useLayoutEffect(() => {
-    const stored = initializeFromStorage();
+    const storedColor = getStorageValue(STORAGE_KEYS.COLOR);
+    const storedTheme = getStorageValue(STORAGE_KEYS.THEME);
+    const storedFollowsDeviceTheme = getStorageValue(
+      STORAGE_KEYS.FOLLOWS_DEVICE_THEME,
+    );
 
     const hasAllStoredValues =
-      stored.color && stored.theme && stored.followsDeviceTheme !== null;
+      storedColor && storedTheme && storedFollowsDeviceTheme !== null;
 
     if (hasAllStoredValues) {
       applyStoredPreferences(
-        stored.color!,
-        stored.theme!,
-        stored.followsDeviceTheme === "true",
+        storedColor,
+        storedTheme,
+        storedFollowsDeviceTheme === "true",
       );
-    } else {
-      setDefaultPreferences();
+      return;
     }
-  }, []);
+
+    setDefaultPreferences();
+  }, [applyStoredPreferences, setDefaultPreferences]);
 
   // Sync color with database user preferences
   useEffect(() => {
-    if (!currentUser || initializedUserDBColor) return;
+    if (!currentUser || initializedUserDBColorRef.current) return;
 
-    const currentTheme = theme;
     const userColor = currentUser.color as COLORS;
+    const storedColor = getStorageValue(STORAGE_KEYS.COLOR) as COLORS | null;
 
-    updateCSSThemeVars(userColor, currentTheme);
+    if (storedColor === userColor) {
+      initializedUserDBColorRef.current = true;
+      return;
+    }
+
+    setStorageValue(STORAGE_KEYS.COLOR, userColor);
+    updateCSSThemeVars(userColor, theme);
 
     setColor(userColor);
-    setStorageValue(STORAGE_KEYS.COLOR, userColor);
-    setInitializedUserDBColor(true);
-  }, [currentUser, initializedUserDBColor]);
+    initializedUserDBColorRef.current = true;
+  }, [currentUser, setColor, theme]);
 
   // Listen for system theme changes when following device theme
   useEffect(() => {
@@ -144,7 +145,7 @@ function useColorAndThemeController() {
     return () => {
       mediaQuery.removeEventListener("change", handleThemeChange);
     };
-  }, [followsDeviceTheme, color]);
+  }, [followsDeviceTheme, color, setTheme]);
 }
 
 export default useColorAndThemeController;

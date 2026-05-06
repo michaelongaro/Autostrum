@@ -323,7 +323,7 @@ export const SCREENSHOT_COLORS = {
   },
 } as const satisfies ScreenshotColorValues;
 
-const COLOR_VALUES = {
+export const COLOR_VALUES = {
   peony: {
     light: {
       background: "342.86 77.78% 98.24%",
