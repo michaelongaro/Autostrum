@@ -848,13 +848,13 @@ function SearchResults({
                                 animate="expanded"
                                 exit="closed"
                                 transition={{ duration: 0.25 }}
-                                className="w-[56.5px]"
+                                className="w-[56px]"
                               >
                                 <Button
                                   variant="drawerNavigation"
                                   disabled={disableResetFiltersButton()}
                                   onClick={() => resetSearchFilters()}
-                                  className="h-5 !p-0 font-normal"
+                                  className="h-9 !p-0 font-normal"
                                 >
                                   Reset
                                 </Button>
@@ -911,11 +911,12 @@ function SearchResults({
                             )}
                           </AnimatePresence>
 
-                          <div className="baseFlex w-[56.5px] !justify-end">
+                          <div className="baseFlex w-[56px] !justify-end">
                             <Button
                               variant="drawerNavigation"
                               disabled={disableApplyFiltersButton()}
                               onClick={() => applyFilters()}
+                              className="h-9 !p-0"
                             >
                               Apply
                             </Button>
