@@ -618,7 +618,7 @@ function MobileMenuDialog() {
             if (audioMetadata.playing) pauseAudio();
           }}
         >
-          <FaListUl className="h-5 w-5" />
+          <FaListUl className="size-[18px]" />
           <span className="ml-0 hidden mobilePortrait:ml-3 mobilePortrait:block">
             Menu
           </span>
