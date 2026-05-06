@@ -9,9 +9,8 @@ function PrettyNote({
   displayWithFlex?: boolean;
   showScientificPitchNotation?: boolean;
 }) {
-  const noteMatch = note.match(
-    /^(?<letter>[A-G])(?<accidental>#?)(?<octave>\d+)?$/i,
-  );
+  const regex = /^(?<letter>[A-G])(?<accidental>#?)(?<octave>\d+)?$/i;
+  const noteMatch = regex.exec(note);
   const letter = noteMatch?.groups?.letter ?? note[0] ?? "";
   const accidental = noteMatch?.groups?.accidental ?? "";
   const octave = showScientificPitchNotation
@@ -23,7 +22,7 @@ function PrettyNote({
       <p>{letter}</p>
       {accidental === "#" && (
         <div
-          className={`relative -top-1 right-[-1px] text-xs ${displayWithFlex ? "w-[8px]" : "w-[10px]"} text-center`}
+          className={`relative top-[-3px] text-xs italic ${displayWithFlex ? "w-[8px]" : "w-[10px]"} text-center`}
         >
           <p>#</p>
         </div>
