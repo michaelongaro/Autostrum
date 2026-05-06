@@ -8,7 +8,7 @@ import CapoSelect from "~/components/ui/CapoSelect";
 import TuningSelect from "~/components/ui/TuningSelect";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import { useTabStore } from "~/stores/TabStore";
-import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import { PrettyNote, PrettyTuning } from "~/components/ui/PrettyTuning";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 
 const centsTicks = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
@@ -250,7 +250,7 @@ function TunerPanel({
       {mode === "regular" ? (
         <>
           <div className="baseVertFlex w-full px-3 md:px-6 lg:px-5">
-            <div className="baseVertFlex w-full rounded-md border bg-background p-3 lg:p-5">
+            <div className="baseVertFlex w-full rounded-md bg-background p-3 lg:p-5">
               <div className="relative h-[230px] w-full lg:h-[280px]">
                 <div className="baseVertFlex w-full gap-4">
                   <p className="font-semibold text-foreground">
@@ -447,7 +447,11 @@ function TunerPanel({
                           : "mt-1 text-xs text-foreground lg:text-sm"
                       }
                     >
-                      {formatNoteLabel(note)}
+                      <PrettyNote
+                        note={formatNoteLabel(note)}
+                        displayWithFlex={true}
+                        showScientificPitchNotation={true}
+                      />
                     </span>
                   </button>
                 );
