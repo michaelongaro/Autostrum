@@ -91,7 +91,7 @@ function StaticTabNotesColumn({
           />
         </div>
 
-        {/* String Notes (1-6) */}
+        {/* String Notes (1-6) w/ top and bottom borders */}
         {([0, 1, 2, 3, 4, 5, 6, 7] as const).map((stringIndex) => {
           const note =
             stringIndex !== 0 && stringIndex !== 7
@@ -106,13 +106,14 @@ function StaticTabNotesColumn({
               }}
               className="baseFlex relative w-[34px] shrink-0"
             >
+              {/* top border */}
               {stringIndex === 0 && (
                 <div className="baseVertFlex h-[8px] w-full !justify-start">
                   <div
                     style={{
                       backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                     }}
-                    className="h-[1px] w-full"
+                    className="h-[2px] w-full"
                   ></div>
                 </div>
               )}
@@ -158,13 +159,14 @@ function StaticTabNotesColumn({
                 </>
               )}
 
+              {/* bottom border */}
               {stringIndex === 7 && (
                 <div className="baseVertFlex h-[8px] w-full !justify-end">
                   <div
                     style={{
                       backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                     }}
-                    className="h-[1px] w-full"
+                    className="h-[2px] w-full"
                   ></div>
                 </div>
               )}

@@ -63,7 +63,7 @@ function StaticTabMeasureLine({
                 style={{
                   backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                 }}
-                className="h-[1px] w-full"
+                className="h-[2px] w-full"
               ></div>
             </div>
           )}
@@ -78,7 +78,7 @@ function StaticTabMeasureLine({
                 style={{
                   backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                 }}
-                className="h-[1px] w-full"
+                className="h-[2px] w-full"
               ></div>
             </div>
           )}
