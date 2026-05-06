@@ -333,14 +333,14 @@ function StaticTab() {
             <div
               id="tabPreviewScreenshotLight"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["maple" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
               <TabScreenshotPreview
                 tabData={minifiedTabData}
                 bpm={bpm}
-                color={"peony"}
+                color={"maple"}
                 theme={"light"}
               />
             </div>
@@ -348,14 +348,14 @@ function StaticTab() {
             <div
               id="tabPreviewScreenshotDark"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["maple" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
               <TabScreenshotPreview
                 tabData={minifiedTabData}
                 bpm={bpm}
-                color={"peony"}
+                color={"maple"}
                 theme={"dark"}
               />
             </div>

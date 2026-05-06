@@ -66,7 +66,7 @@ function useColorAndThemeController() {
 
   function setDefaultPreferences() {
     const systemTheme = getSystemTheme();
-    const defaultColor = "peony";
+    const defaultColor = "maple";
 
     // Update CSS vars and store state
     updateCSSThemeVars(defaultColor, systemTheme);

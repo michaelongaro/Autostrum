@@ -1232,7 +1232,7 @@ const useTabStoreBase = create<TabState>()(
       setViewportLabel: (viewportLabel) => set({ viewportLabel }),
 
       // theme
-      color: "peony",
+      color: "maple",
       setColor: (color) => set({ color }),
       theme: "light",
       setTheme: (theme) => set({ theme }),
