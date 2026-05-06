@@ -189,7 +189,7 @@ function TunerPanel({
         )}
 
         <div
-          className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "" : "flex-col gap-3 xs:flex-row"}`}
+          className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "gap-8" : "flex-col gap-3 xs:flex-row"}`}
         >
           <div className="baseFlex gap-2 lg:gap-3">
             <p className="text-sm font-semibold text-foreground/80">Tuning</p>
