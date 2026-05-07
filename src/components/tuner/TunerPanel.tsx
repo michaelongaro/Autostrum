@@ -254,7 +254,11 @@ function TunerPanel({
               <div className="relative h-[230px] w-full lg:h-[280px]">
                 <div className="baseVertFlex w-full gap-4">
                   <p className="font-semibold text-foreground">
-                    {formatNoteLabel(currentTarget)}
+                    <PrettyNote
+                      note={formatNoteLabel(currentTarget)}
+                      displayWithFlex={true}
+                      showScientificPitchNotation={true}
+                    />
                   </p>
                   <div className="baseFlex gap-2">
                     <div className="baseFlex w-20">
