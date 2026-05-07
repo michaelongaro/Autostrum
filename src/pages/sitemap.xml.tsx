@@ -1,7 +1,4 @@
 import type { GetServerSideProps } from "next";
-import { PrismaClient } from "~/generated/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { env } from "~/env";
 
 const SITE_URL = "https://www.autostrum.com";
 const MAX_URLS_PER_SITEMAP = 50000;
@@ -61,8 +58,7 @@ function buildUrlEntry(
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
-  const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
-  const prisma = new PrismaClient({ adapter });
+  const { prisma } = await import("~/server/db");
 
   try {
     const [tabs, artists] = await Promise.all([

@@ -1,11 +1,6 @@
-import { PrismaClient } from "../../../generated/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { env } from "~/env";
-import { PrismaPg } from "@prisma/adapter-pg";
-
-const adapter = new PrismaPg({
-  connectionString: env.DATABASE_URL,
-});
+import { prisma } from "~/server/db";
 
 export default async function handler(
   req: NextApiRequest,
@@ -24,8 +19,6 @@ export default async function handler(
     res.setHeader("Allow", ["GET"]);
     return res.status(405).json({ message: "Method Not Allowed" });
   }
-
-  const prisma = new PrismaClient({ adapter });
 
   try {
     // clear the daily tab view model
@@ -70,7 +63,5 @@ export default async function handler(
   } catch (error) {
     console.error("Cron job failed:", error);
     return res.status(500).json({ message: "Internal Server Error" });
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -1,4 +1,3 @@
-import { PrismaClient } from "../../../generated/client";
 import { motion } from "framer-motion";
 import type { GetStaticProps } from "next";
 import Head from "next/head";
@@ -7,13 +6,7 @@ import StaticTab from "~/components/Tab/Static/StaticTab";
 import superjson from "superjson";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import Binoculars from "~/components/ui/icons/Binoculars";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { env } from "~/env";
 import { useHydrateTabStore } from "~/hooks/useHydrateTabStore";
-
-const adapter = new PrismaPg({
-  connectionString: env.DATABASE_URL,
-});
 
 interface OpenGraphData {
   title: string;
@@ -67,7 +60,7 @@ function ViewIndividualTab({ json }: { json: string }) {
 export default ViewIndividualTab;
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
-  const prisma = new PrismaClient({ adapter });
+  const { prisma } = await import("~/server/db");
 
   const id = ctx.params?.id ? parseInt(ctx.params.id as string) : -1;
 

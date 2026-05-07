@@ -4,6 +4,7 @@ import { env } from "~/env.js";
 
 const adapter = new PrismaPg({
   connectionString: env.DATABASE_URL,
+  max: env.NODE_ENV === "production" ? 1 : 10,
 });
 
 const globalForPrisma = globalThis as unknown as {
