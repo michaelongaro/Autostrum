@@ -785,10 +785,10 @@ function MetronomeToolPage() {
         )}
 
         {/* Controls: time signature, subdivision, accent */}
-        <div className="grid gap-3 sm:w-full sm:grid-cols-3 sm:place-items-center">
-          <div className="baseVertFlex !items-start gap-2">
+        <div className="grid w-full gap-3 sm:grid-cols-3 sm:place-items-center">
+          <div className="baseVertFlex w-full !items-start gap-2">
             <p className="text-sm font-medium">Time Signature</p>
-            <div className="baseFlex flex-wrap !justify-start gap-2">
+            <div className="baseFlex w-full !justify-start gap-2 sm:w-auto">
               {timeSignatures.map((signature) => (
                 <Button
                   key={signature.label}
@@ -797,7 +797,7 @@ function MetronomeToolPage() {
                       ? "default"
                       : "outline"
                   }
-                  className="!h-8 px-3"
+                  className="!h-8 w-full px-3 sm:w-auto"
                   onClick={() => setTimeSignature(signature)}
                 >
                   {signature.label}
@@ -808,14 +808,14 @@ function MetronomeToolPage() {
 
           <div className="baseVertFlex !items-start gap-2">
             <p className="text-sm font-medium">Subdivision</p>
-            <div className="baseFlex flex-wrap !justify-start gap-2">
+            <div className="baseFlex w-full !justify-start gap-2 sm:w-auto">
               {subdivisions.map((subdivisionOption) => (
                 <Button
                   key={subdivisionOption}
                   variant={
                     subdivisionOption === subdivision ? "default" : "outline"
                   }
-                  className="!h-8 px-3"
+                  className="!h-8 w-full px-3 sm:w-auto"
                   onClick={() => setSubdivision(subdivisionOption)}
                 >
                   {subdivisionOption}x
@@ -826,10 +826,10 @@ function MetronomeToolPage() {
 
           <div className="baseVertFlex !items-start gap-2">
             <p className="text-sm font-medium">Downbeat Accent</p>
-            <div className="baseFlex flex-wrap !justify-start gap-2">
+            <div className="baseFlex w-full !justify-start gap-2 sm:w-auto">
               <Button
                 variant={accentDownbeat ? "default" : "outline"}
-                className="!h-8 px-3"
+                className="!h-8 w-full px-3 sm:w-auto"
                 onClick={() =>
                   setAccentDownbeat((currentlyAccented) => !currentlyAccented)
                 }
@@ -838,7 +838,7 @@ function MetronomeToolPage() {
               </Button>
               <Button
                 variant={accentDownbeat ? "outline" : "default"}
-                className="!h-8 px-3"
+                className="!h-8 w-full px-3 sm:w-auto"
                 onClick={() =>
                   setAccentDownbeat((currentlyAccented) => !currentlyAccented)
                 }
