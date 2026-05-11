@@ -117,9 +117,9 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               </div>
 
               <div className="baseFlex gap-4 font-medium sm:text-lg">
-                <div className="baseFlex gap-2">
+                <div className="baseFlex">
                   <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <div className="pulseAnimation h-5 w-8 rounded-md bg-foreground/50"></div>
+                  <div className="pulseAnimation ml-2 mr-1 h-5 w-8 rounded-md bg-foreground/50"></div>
                   <span>Songs</span>
                 </div>
 
@@ -128,9 +128,9 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
                   className="h-6 w-[1px] opacity-50"
                 />
 
-                <div className="baseFlex gap-2">
+                <div className="baseFlex">
                   <FaEye className="size-4 sm:size-5" />
-                  <div className="pulseAnimation h-5 w-10 rounded-md bg-foreground/50"></div>
+                  <div className="pulseAnimation ml-2 mr-1 h-5 w-10 rounded-md bg-foreground/50"></div>
                   <span>Views</span>
                 </div>
               </div>
@@ -145,9 +145,9 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               className="baseVertFlex w-full !items-start gap-2 px-4 md:!flex-row md:!items-end md:!justify-between md:px-0"
             >
               <div className="baseVertFlex !items-start gap-1 text-foreground sm:gap-0">
-                <div className="baseFlex h-6 gap-1">
+                <div className="baseFlex h-6 gap-2">
                   {artist && artist.isVerified && (
-                    <Verified className="size-5" />
+                    <Verified className="mb-[1px] size-5" />
                   )}
                   Artist
                 </div>
@@ -168,9 +168,11 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               </div>
 
               <div className="baseFlex gap-4 font-medium sm:text-lg">
-                <div className="baseFlex gap-2">
+                <div className="baseFlex">
                   <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <span>{artist ? artist.totalTabs : 0}</span>
+                  <span className="ml-2 mr-1">
+                    {artist ? artist.totalTabs : 0}
+                  </span>
                   <span>
                     {artist
                       ? artist.totalTabs === 1
@@ -185,9 +187,11 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
                   className="h-6 w-[1px] opacity-50"
                 />
 
-                <div className="baseFlex gap-2">
+                <div className="baseFlex">
                   <FaEye className="size-4 sm:size-5" />
-                  <span>{artist ? artist.totalViews : 0}</span>
+                  <span className="ml-2 mr-1">
+                    {artist ? artist.totalViews : 0}
+                  </span>
                   <span>
                     {artist
                       ? artist.totalViews === 1
