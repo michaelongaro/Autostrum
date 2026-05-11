@@ -80,7 +80,7 @@ function StaticTabNotesColumn({
     (nextColumn !== undefined && isTabMeasureLine(nextColumn));
 
   return (
-    <div className="baseFlex h-[248px] w-[34px] cursor-default">
+    <div className="baseFlex h-[248px] w-[34px]">
       <div className="baseVertFlex">
         {/* Palm Mute Node */}
         <div className="baseVertFlex h-[32px] w-full">
