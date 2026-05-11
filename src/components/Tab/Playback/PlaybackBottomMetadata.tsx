@@ -299,6 +299,8 @@ function MobileSettingsPopover({
     setLoopDelay,
     chordDisplayMode,
     setChordDisplayMode,
+    countInTimerEnabled,
+    setCountInTimerEnabled,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -309,6 +311,8 @@ function MobileSettingsPopover({
     setLoopDelay: state.setLoopDelay,
     chordDisplayMode: state.chordDisplayMode,
     setChordDisplayMode: state.setChordDisplayMode,
+    countInTimerEnabled: state.countInTimerEnabled,
+    setCountInTimerEnabled: state.setCountInTimerEnabled,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -455,16 +459,46 @@ function MobileSettingsPopover({
           </div>
         </div>
 
-        <div className="baseFlex w-full !justify-between gap-2">
-          <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
+        <div className="baseVertFlex w-full !items-start gap-2">
+          <span className="font-medium">Color-coded chords</span>
 
-          <Switch
-            id="chordDisplayMode"
-            checked={chordDisplayMode === "color"}
-            onCheckedChange={(checked) =>
-              setChordDisplayMode(checked ? "color" : "text")
-            }
-          />
+          <div className="baseFlex w-full gap-2">
+            <Button
+              variant={chordDisplayMode === "color" ? "default" : "outline"}
+              onClick={() => setChordDisplayMode("color")}
+              className="h-8 w-full"
+            >
+              On
+            </Button>
+            <Button
+              variant={chordDisplayMode === "text" ? "default" : "outline"}
+              onClick={() => setChordDisplayMode("text")}
+              className="h-8 w-full"
+            >
+              Off
+            </Button>
+          </div>
+        </div>
+
+        <div className="baseVertFlex w-full !items-start gap-2">
+          <span className="font-medium">Count in</span>
+
+          <div className="baseFlex w-full gap-2">
+            <Button
+              variant={countInTimerEnabled ? "default" : "outline"}
+              onClick={() => setCountInTimerEnabled(true)}
+              className="h-8 w-full"
+            >
+              On
+            </Button>
+            <Button
+              variant={!countInTimerEnabled ? "default" : "outline"}
+              onClick={() => setCountInTimerEnabled(false)}
+              className="h-8 w-full"
+            >
+              Off
+            </Button>
+          </div>
         </div>
 
         {/* gives tablet users ability to still control volume */}
@@ -911,6 +945,8 @@ function DesktopSettings({
     setLoopDelay,
     chordDisplayMode,
     setChordDisplayMode,
+    countInTimerEnabled,
+    setCountInTimerEnabled,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -926,6 +962,8 @@ function DesktopSettings({
     setLoopDelay: state.setLoopDelay,
     chordDisplayMode: state.chordDisplayMode,
     setChordDisplayMode: state.setChordDisplayMode,
+    countInTimerEnabled: state.countInTimerEnabled,
+    setCountInTimerEnabled: state.setCountInTimerEnabled,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -1021,7 +1059,7 @@ function DesktopSettings({
             setLoopDelay(Number(value[0]));
           }}
         >
-          <SelectTrigger id="loopDelay" className="w-16">
+          <SelectTrigger id="loopDelay" className="w-20">
             <SelectValue>{`${loopDelay}s`}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -1158,16 +1196,49 @@ function DesktopSettings({
             <IoMdSettings className="size-5" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="baseVertFlex size-full gap-4">
-          <div className="baseFlex w-full !justify-between gap-2">
-            <Label htmlFor="chordDisplayMode">Color-coded chords</Label>
-            <Switch
-              id="chordDisplayMode"
-              checked={chordDisplayMode === "color"}
-              onCheckedChange={(checked) =>
-                setChordDisplayMode(checked ? "color" : "text")
-              }
-            />
+        <PopoverContent className="baseVertFlex w-64 gap-4">
+          <div className="baseVertFlex w-full gap-4">
+            <div className="baseVertFlex w-full !items-start gap-2">
+              <span className="font-medium">Color-coded chords</span>
+
+              <div className="baseFlex w-full gap-2">
+                <Button
+                  variant={chordDisplayMode === "color" ? "default" : "outline"}
+                  onClick={() => setChordDisplayMode("color")}
+                  className="h-8 w-full"
+                >
+                  On
+                </Button>
+                <Button
+                  variant={chordDisplayMode === "text" ? "default" : "outline"}
+                  onClick={() => setChordDisplayMode("text")}
+                  className="h-8 w-full"
+                >
+                  Off
+                </Button>
+              </div>
+            </div>
+
+            <div className="baseVertFlex w-full !items-start gap-2">
+              <span className="font-medium">Count in</span>
+
+              <div className="baseFlex w-full gap-2">
+                <Button
+                  variant={countInTimerEnabled ? "default" : "outline"}
+                  onClick={() => setCountInTimerEnabled(true)}
+                  className="h-8 w-full"
+                >
+                  On
+                </Button>
+                <Button
+                  variant={!countInTimerEnabled ? "default" : "outline"}
+                  onClick={() => setCountInTimerEnabled(false)}
+                  className="h-8 w-full"
+                >
+                  Off
+                </Button>
+              </div>
+            </div>
           </div>
         </PopoverContent>
       </Popover>

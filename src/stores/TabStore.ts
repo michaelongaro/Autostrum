@@ -480,6 +480,8 @@ interface TabState {
   }) => void;
   countInBuffer: AudioBuffer | null;
   setCountInBuffer: (countInBuffer: AudioBuffer | null) => void;
+  countInTimerEnabled: boolean;
+  setCountInTimerEnabled: (countInTimerEnabled: boolean) => void;
 
   expandedTabData:
     | (
@@ -805,6 +807,9 @@ const useTabStoreBase = create<TabState>()(
       setInteractingWithAudioProgressSlider: (
         interactingWithAudioProgressSlider,
       ) => set({ interactingWithAudioProgressSlider }),
+      countInTimerEnabled: true,
+      setCountInTimerEnabled: (countInTimerEnabled) =>
+        set({ countInTimerEnabled }),
 
       // playing/pausing sound functions
       playTab: async ({ location }: PlayTab) => {
