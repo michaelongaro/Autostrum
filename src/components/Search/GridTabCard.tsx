@@ -275,14 +275,14 @@ function GridTabCard({
       {/* tab card body */}
       <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active/50 p-2.5">
         {/* title */}
-        <div className="baseVertFlex w-full !items-start">
+        <div className="baseVertFlex w-full min-w-0 !items-start">
           <Button variant={"link"} asChild>
             <Link
               prefetch={false}
               href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
-              className="baseFlex !h-5 w-full !justify-start !p-0 !font-semibold md:h-6 md:!text-lg"
+              className="baseFlex !h-5 min-w-0 max-w-full !justify-start !p-0 !font-semibold md:h-6 md:!text-lg"
             >
-              <span className="max-w-full truncate">{minimalTab.title}</span>
+              <span className="block truncate">{minimalTab.title}</span>
             </Link>
           </Button>
         </div>
