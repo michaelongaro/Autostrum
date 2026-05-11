@@ -136,7 +136,7 @@ function StaticTabMetadata() {
                     >
                       <div className="baseFlex gap-1 text-lg font-medium">
                         {artistIsVerified && (
-                          <Verified className="size-5 shrink-0" />
+                          <Verified className="mr-[2px] size-5 shrink-0" />
                         )}
                         <span className="max-w-[300px] truncate">
                           {artistName}
@@ -265,7 +265,7 @@ function StaticTabMetadata() {
                 </div>
 
                 {artistName && (
-                  <div className="baseFlex w-full max-w-[100%] !justify-start gap-1.5 text-lg">
+                  <div className="baseFlex w-full max-w-[100%] !justify-start gap-2 text-lg">
                     by
                     <Button variant={"link"} asChild>
                       <Link
@@ -275,7 +275,7 @@ function StaticTabMetadata() {
                       >
                         <div className="baseFlex w-full gap-1 text-lg font-medium">
                           {artistIsVerified && (
-                            <Verified className="size-5 shrink-0" />
+                            <Verified className="mr-[2px] size-5 shrink-0" />
                           )}
                           <span className="max-w-full truncate">
                             {artistName}

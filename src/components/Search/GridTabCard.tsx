@@ -309,9 +309,9 @@ function GridTabCard({
                     className="baseFlex !h-6 max-w-[60%] !justify-start !p-0 xs:max-w-[65%]"
                   >
                     {minimalTab.artist ? (
-                      <div className="baseFlex size-full !justify-start gap-1">
+                      <div className="baseFlex size-full !justify-start">
                         {minimalTab.artist.isVerified && (
-                          <Verified className="size-4 shrink-0" />
+                          <Verified className="mr-[5px] size-4 shrink-0" />
                         )}
                         <span className="max-w-[100%] truncate">
                           {minimalTab.artist.name}
