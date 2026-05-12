@@ -108,9 +108,9 @@ function TableTabRow({
                   className="baseFlex !h-6 max-w-[100%] !justify-start !p-0"
                 >
                   {minimalTab.artist ? (
-                    <div className="baseFlex size-full !justify-start gap-1">
+                    <div className="baseFlex size-full !justify-start">
                       {minimalTab.artist.isVerified && (
-                        <Verified className="size-4 shrink-0" />
+                        <Verified className="mr-[5px] size-4 shrink-0" />
                       )}
                       <span className="min-w-0 max-w-[165px] truncate">
                         {minimalTab.artist.name}

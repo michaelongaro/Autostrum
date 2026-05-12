@@ -62,6 +62,7 @@ function PlaybackAudioControls({
     looping,
     playbackMetadata,
     tabIsEffectivelyEmpty,
+    countInTimerEnabled,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
@@ -83,6 +84,7 @@ function PlaybackAudioControls({
     looping: state.looping,
     playbackMetadata: state.playbackMetadata,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
+    countInTimerEnabled: state.countInTimerEnabled,
   }));
 
   const [previousChordIndex, setPreviousChordIndex] = useState(0);
@@ -117,7 +119,7 @@ function PlaybackAudioControls({
   function handlePlayButtonClick() {
     const isViewingTabPath =
       asPath.includes("/tab") && !asPath.includes("edit");
-    const delayPlayStart = isViewingTabPath ? 3000 : 0;
+    const delayPlayStart = isViewingTabPath && countInTimerEnabled ? 3000 : 0;
     const delayForStoreStateToUpdate = previewMetadata.playing ? 50 : 0;
 
     if (audioMetadata.playing) {
@@ -125,7 +127,7 @@ function PlaybackAudioControls({
       setArtificalPlayButtonTimeout(true);
       setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
     } else {
-      if (isViewingTabPath) {
+      if (isViewingTabPath && countInTimerEnabled) {
         setCountInTimer({
           ...countInTimer,
           showing: true,
@@ -200,7 +202,7 @@ function PlaybackAudioControls({
               currentInstrument={currentInstrument}
               audioMetadata={audioMetadata}
               forceShowLoadingSpinner={fetchingFullTabData}
-              showCountInTimer={countInTimer.showing}
+              showCountInTimer={countInTimerEnabled && countInTimer.showing}
               size="0.75rem"
             />
           </Button>

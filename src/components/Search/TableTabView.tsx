@@ -120,12 +120,7 @@ function TableTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className={`baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)] ${
-        (isFetching && !isFetchingNextPage) ||
-        tabResults?.pages?.[0]?.data.tabs.length === 0
-          ? "" // loading spinner (when no results exist) and <NoResultsFound /> should be centered
-          : "!justify-start"
-      }`}
+      className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full !justify-start gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]"
     >
       {tabResults && tabResults.pages[0]?.count !== 0 && (
         <OverlayScrollbarsComponent
@@ -245,6 +240,7 @@ function TableTabView({
             // but omitting exit margin animations because it looks off to see the spinner
             // slide back up when it's really supposed to just fade out.
             transition={{ duration: 0.25 }}
+            className={`${isFetching && !isFetchingNextPage ? "baseFlex grow" : ""}`}
           >
             <Spinner className={tabResults ? "size-6" : "size-8"} />
           </motion.div>
@@ -252,10 +248,12 @@ function TableTabView({
 
         {/* no results */}
         {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
-          <NoResultsFound
-            customKey={"tableTabViewNoResults"}
-            searchQueryExists={Boolean(searchQuery)}
-          />
+          <div className="baseFlex grow">
+            <NoResultsFound
+              customKey={"tableTabViewNoResults"}
+              searchQueryExists={Boolean(searchQuery)}
+            />
+          </div>
         )}
       </AnimatePresence>
     </motion.div>

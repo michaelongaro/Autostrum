@@ -10,6 +10,16 @@ const config = {
   async redirects() {
     return [
       {
+        source: "/en",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/en/:path*",
+        destination: "/:path*",
+        permanent: true,
+      },
+      {
         source: "/metronome",
         destination: "/tools",
         permanent: true,
@@ -39,10 +49,6 @@ const config = {
   },
   typescript: {
     ignoreBuildErrors: true, // ideally don't want this, but our types are very transient right now
-  },
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
   },
   reactCompiler: true,
 };

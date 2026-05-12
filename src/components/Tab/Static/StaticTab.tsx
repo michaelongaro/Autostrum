@@ -34,7 +34,7 @@ import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContain
 import StaticTabMetadata from "~/components/Tab/Static/StaticTabMetadata";
 import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 import Logo from "~/components/ui/icons/Logo";
-import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
+import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
 import { useInView } from "react-intersection-observer";
 import { IoMdSettings } from "react-icons/io";
@@ -53,15 +53,17 @@ const PlaybackModal = dynamic(
 function StaticTab() {
   const { asPath } = useRouter();
 
-  const [pressingOnZoomSlider, setPressingOnZoomSlider] = useState(false);
-  const [tabContentIsInView, setTabContentIsInView] = useState(false);
-  const [showPinnedChords, setShowPinnedChords] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
   const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
     {},
   );
+
+  const [tabContentIsInView, setTabContentIsInView] = useState(false);
+  const [showPinnedChords, setShowPinnedChords] = useState(false);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pressingOnZoomSlider, setPressingOnZoomSlider] = useState(false);
+  const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -162,12 +164,12 @@ function StaticTab() {
             </div>
           )}
 
-        <Separator className="mt-2 w-full bg-border tablet:w-[96%]" />
+        <Separator className="mt-2 w-full bg-border tablet:mb-4 tablet:w-[96%]" />
 
         {viewportLabel.includes("mobile") ? (
           <MobileExtraTabMetadata />
         ) : (
-          <ExtraTabMetadata />
+          <DesktopExtraTabMetadata />
         )}
 
         <Separator className="my-2 w-full bg-border tablet:w-[96%]" />
@@ -306,6 +308,7 @@ function StaticTab() {
                           <TabSettings
                             showPinnedChords={showPinnedChords}
                             setShowPinnedChords={setShowPinnedChords}
+                            setPressingOnZoomSlider={setPressingOnZoomSlider}
                           />
                         </PopoverContent>
                       </Popover>
@@ -333,14 +336,14 @@ function StaticTab() {
             <div
               id="tabPreviewScreenshotLight"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["maple" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
               <TabScreenshotPreview
                 tabData={minifiedTabData}
                 bpm={bpm}
-                color={"peony"}
+                color={"maple"}
                 theme={"light"}
               />
             </div>
@@ -348,14 +351,14 @@ function StaticTab() {
             <div
               id="tabPreviewScreenshotDark"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["peony" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
+                backgroundColor: `hsl(${SCREENSHOT_COLORS["maple" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
               <TabScreenshotPreview
                 tabData={minifiedTabData}
                 bpm={bpm}
-                color={"peony"}
+                color={"maple"}
                 theme={"dark"}
               />
             </div>

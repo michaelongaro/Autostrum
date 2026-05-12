@@ -8,7 +8,7 @@ import CapoSelect from "~/components/ui/CapoSelect";
 import TuningSelect from "~/components/ui/TuningSelect";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import { useTabStore } from "~/stores/TabStore";
-import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import { PrettyNote, PrettyTuning } from "~/components/ui/PrettyTuning";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 
 const centsTicks = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
@@ -189,7 +189,7 @@ function TunerPanel({
         )}
 
         <div
-          className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "" : "flex-col gap-3 xs:flex-row"}`}
+          className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "gap-8" : "flex-col gap-3 xs:flex-row"}`}
         >
           <div className="baseFlex gap-2 lg:gap-3">
             <p className="text-sm font-semibold text-foreground/80">Tuning</p>
@@ -250,11 +250,15 @@ function TunerPanel({
       {mode === "regular" ? (
         <>
           <div className="baseVertFlex w-full px-3 md:px-6 lg:px-5">
-            <div className="baseVertFlex w-full rounded-md border bg-background p-3 lg:p-5">
+            <div className="baseVertFlex w-full rounded-md bg-background p-3 lg:p-5">
               <div className="relative h-[230px] w-full lg:h-[280px]">
                 <div className="baseVertFlex w-full gap-4">
                   <p className="font-semibold text-foreground">
-                    {formatNoteLabel(currentTarget)}
+                    <PrettyNote
+                      note={formatNoteLabel(currentTarget)}
+                      displayWithFlex={true}
+                      showScientificPitchNotation={true}
+                    />
                   </p>
                   <div className="baseFlex gap-2">
                     <div className="baseFlex w-20">
@@ -447,7 +451,11 @@ function TunerPanel({
                           : "mt-1 text-xs text-foreground lg:text-sm"
                       }
                     >
-                      {formatNoteLabel(note)}
+                      <PrettyNote
+                        note={formatNoteLabel(note)}
+                        displayWithFlex={true}
+                        showScientificPitchNotation={true}
+                      />
                     </span>
                   </button>
                 );

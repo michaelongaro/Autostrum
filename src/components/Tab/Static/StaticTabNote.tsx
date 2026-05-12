@@ -20,13 +20,13 @@ function StaticTabNote({
   theme,
 }: StaticTabNote) {
   return (
-    <div className="baseFlex w-full">
+    <div className="baseFlex h-[24px] w-full">
       {/* pre-note string visual */}
       <div
         style={{
           backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
         }}
-        className="my-3 h-[1px] flex-[1]"
+        className="h-[1px] w-full"
       ></div>
 
       {/* note */}
@@ -53,7 +53,7 @@ function StaticTabNote({
         style={{
           backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
         }}
-        className="my-3 h-[1px] flex-[1]"
+        className="h-[1px] w-full"
       ></div>
     </div>
   );

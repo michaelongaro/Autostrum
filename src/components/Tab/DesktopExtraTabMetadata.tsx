@@ -11,7 +11,6 @@ import StrummingPattern from "~/components/Tab/StrummingPattern";
 import { BsMusicNoteList } from "react-icons/bs";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import Logo from "~/components/ui/icons/Logo";
-import { getContrastTextColor } from "~/utils/chordColors";
 import ChordName from "~/components/ui/ChordName";
 
 function DesktopExtraTabMetadata() {
@@ -25,6 +24,7 @@ function DesktopExtraTabMetadata() {
     pauseAudio,
     playPreview,
     chordDisplayMode,
+    theme,
   } = useTabStore((state) => ({
     sectionProgression: state.sectionProgression,
     chords: state.chords,
@@ -35,6 +35,7 @@ function DesktopExtraTabMetadata() {
     pauseAudio: state.pauseAudio,
     playPreview: state.playPreview,
     chordDisplayMode: state.chordDisplayMode,
+    theme: state.theme,
   }));
 
   const [activeTabName, setActiveTabName] = useState("Section progression");
@@ -52,7 +53,7 @@ function DesktopExtraTabMetadata() {
   return (
     <div className="baseVertFlex w-3/4 gap-4">
       {/* tab selector */}
-      <div className="baseFlex !items-start gap-16 rounded-lg rounded-t-none bg-accent px-8 py-1">
+      <div className="baseFlex !items-start gap-16 rounded-lg bg-accent px-8 py-1">
         <Button
           variant={"text"}
           onClick={() => setActiveTabName("Section progression")}
@@ -64,7 +65,7 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="desktopActiveTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
+              className={`absolute left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground ${theme === "light" ? "bottom-0" : "bottom-[-4px]"}`}
             />
           )}
         </Button>
@@ -80,7 +81,7 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="desktopActiveTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
+              className={`absolute left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground ${theme === "light" ? "bottom-0" : "bottom-[-4px]"}`}
             />
           )}
         </Button>
@@ -96,7 +97,7 @@ function DesktopExtraTabMetadata() {
             <motion.span
               layoutId="desktopActiveTabUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground"
+              className={`absolute left-0 z-0 h-[2px] w-full rounded-full bg-primary-foreground ${theme === "light" ? "bottom-0" : "bottom-[-4px]"}`}
             />
           )}
         </Button>

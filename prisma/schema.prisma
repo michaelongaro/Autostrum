@@ -166,7 +166,7 @@ model User {
     username        String @unique
     profileImageUrl String
     pinnedTabId     Int?
-    color           String @default("peony")
+    color           String @default("maple")
 
     // user stats
     totalTabs              Int   @default(0)

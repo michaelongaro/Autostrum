@@ -38,19 +38,22 @@ function StaticTabSection({
         borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
         backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
       }}
-      className="baseVertFlex relative h-full !justify-start rounded-md border px-4 shadow-md md:px-8"
+      className="baseVertFlex relative h-full !justify-start rounded-md border px-4 py-4 shadow-md md:px-8"
     >
       <div className="baseFlex relative w-full flex-wrap !justify-start">
-        <div
-          style={{
-            marginBottom: "-1px",
-            borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-            color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-            backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
-          }}
-          className="baseVertFlex relative h-[168px] rounded-l-2xl border-2 p-2"
-        >
-          <PrettyVerticalTuning tuning={tuning} height={"150px"} />
+        <div className="baseVertFlex">
+          <div className="h-[32px] w-full"></div>
+          <div
+            style={{
+              borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
+            }}
+            className="baseVertFlex relative h-[160px] rounded-l-2xl border-2 p-2"
+          >
+            <PrettyVerticalTuning tuning={tuning} height={"150px"} />
+          </div>
+          <div className="h-[55px] w-full"></div>
         </div>
 
         {subSectionData.data.map((column, index) => (

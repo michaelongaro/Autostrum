@@ -199,8 +199,8 @@ function ChordSequence({
       className="baseFlex w-full"
     >
       {Object.keys(chordSequence.strummingPattern).length === 0 ? (
-        <div className="baseVertFlex relative h-full w-full gap-2 rounded-md border bg-background px-4 py-8 shadow-sm">
-          <p className="mt-8 text-lg font-semibold sm:mt-0">
+        <div className="baseVertFlex relative h-full w-full gap-4 rounded-md border bg-background px-4 py-8 shadow-sm">
+          <p className="mt-8 font-semibold sm:mt-0 sm:text-lg">
             No strumming patterns exist
           </p>
           <Button

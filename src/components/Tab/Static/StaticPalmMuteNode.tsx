@@ -10,6 +10,9 @@ interface StaticPalmMuteNode {
 function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
   return (
     <>
+      {/* filler for consistent height if measure line bpm is rendered */}
+      <div className="h-4 w-full"></div>
+
       {value === "start" && (
         <div className="baseFlex w-full">
           <div
@@ -42,7 +45,7 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
       )}
 
       {value === "end" && (
-        <div className="baseFlex w-full">
+        <div className="baseFlex mb-[5px] w-full">
           <div
             style={{
               backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
@@ -63,7 +66,7 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
           style={{
             backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
           }}
-          className="h-[1px] w-full"
+          className="mb-[8px] h-[1px] w-full"
         ></div>
       )}
     </>

@@ -66,19 +66,19 @@ function Create() {
             </div>
           ) : (
             <div className="baseFlex mr-1">
-              <div className="relative -right-6 top-0.5 z-30 -rotate-6 rounded-lg border bg-background p-2 shadow-sm">
+              <div className="relative right-[-18px] top-[3px] z-30 rotate-[-6deg] rounded-lg border bg-background p-2 shadow-sm">
                 <BsFillPlayFill className="size-6" />
               </div>
 
-              <div className="relative -right-4 z-20 -rotate-3 rounded-lg border bg-background p-2 shadow-sm">
+              <div className="relative right-[-12px] z-20 -rotate-3 rounded-lg border bg-background p-2 shadow-sm">
                 <QuarterNote className="size-6" />
               </div>
 
-              <div className="relative -right-2 z-10 rotate-3 rounded-lg border bg-background p-2 shadow-sm">
+              <div className="relative right-[-6px] z-10 rotate-3 rounded-lg border bg-background p-2 shadow-sm">
                 <GiMusicalScore className="size-6" />
               </div>
 
-              <div className="relative top-0.5 rotate-6 rounded-lg border bg-background p-2 shadow-sm">
+              <div className="relative top-[3px] rotate-[6deg] rounded-lg border bg-background p-2 shadow-sm">
                 <EighthNote className="size-6" viewBox="20 170 110 210" />
               </div>
             </div>

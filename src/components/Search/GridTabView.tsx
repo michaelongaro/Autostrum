@@ -102,12 +102,7 @@ function GridTabView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className={`baseVertFlex size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] @container md:min-h-[calc(100dvh-4rem-12rem-56px-60px)] ${
-        (isFetching && !isFetchingNextPage) ||
-        tabResults?.pages?.[0]?.data.tabs.length === 0
-          ? "" // loading spinner (when no results exist) and <NoResultsFound /> should be centered
-          : "!justify-start"
-      }`}
+      className="baseVertFlex size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] !justify-start @container md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
     >
       <AnimatePresence mode="popLayout">
         {tabResults && tabResults.pages[0]?.count !== 0 && (
@@ -151,6 +146,7 @@ function GridTabView({
             // but omitting exit margin animations because it looks off to see the spinner
             // slide back up when it's really supposed to just fade out.
             transition={{ duration: 0.25 }}
+            className={`${isFetching && !isFetchingNextPage ? "baseFlex grow" : ""}`}
           >
             <Spinner className={tabResults ? "size-6" : "size-8"} />
           </motion.div>
@@ -158,10 +154,12 @@ function GridTabView({
 
         {/* no results */}
         {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
-          <NoResultsFound
-            customKey={"gridTabViewNoResults"}
-            searchQueryExists={Boolean(searchQuery)}
-          />
+          <div className="baseFlex grow">
+            <NoResultsFound
+              customKey={"gridTabViewNoResults"}
+              searchQueryExists={Boolean(searchQuery)}
+            />
+          </div>
         )}
       </AnimatePresence>
     </motion.div>

@@ -1,5 +1,4 @@
 import { getAuth } from "@clerk/nextjs/server";
-import { PrismaClient } from "../../../generated/client";
 import { AnimatePresence, motion } from "framer-motion";
 import type { GetServerSideProps } from "next";
 import Head from "next/head";
@@ -12,13 +11,7 @@ import Tab from "~/components/Tab/Tab";
 import superjson from "superjson";
 import { Button } from "~/components/ui/button";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { env } from "~/env";
 import { useHydrateTabStore } from "~/hooks/useHydrateTabStore";
-
-const adapter = new PrismaPg({
-  connectionString: env.DATABASE_URL,
-});
 
 interface OpenGraphData {
   title: string;
@@ -91,11 +84,11 @@ function EditIndividualTab({ json }: { json: string }) {
 export default EditIndividualTab;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const { prisma } = await import("~/server/db");
   const { userId } = getAuth(ctx.req);
 
   const tabId = ctx.params?.id ? parseInt(ctx.params.id as string) : -1;
 
-  const prisma = new PrismaClient({ adapter });
   const tab = await prisma.tab.findUnique({
     where: {
       id: tabId,

@@ -273,8 +273,8 @@ function UserSettings() {
           </Popover>
         </div>
 
-        <div className="baseVertFlex w-full !items-start gap-4 border-y bg-background p-4 py-6 shadow-lg md:rounded-lg md:border md:p-8 lg:!flex-row lg:gap-12">
-          <div className="baseVertFlex w-full !items-start gap-4 lg:gap-12">
+        <div className="baseVertFlex w-full !items-start gap-12 border-y bg-background p-4 py-6 shadow-lg md:rounded-lg md:border md:p-8 lg:!flex-row lg:gap-12">
+          <div className="baseVertFlex w-full !items-start gap-12 lg:gap-12">
             {/* email */}
             <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!items-center lg:!justify-between">
               <span className="text-xl font-medium !text-foreground lg:text-2xl">
@@ -301,11 +301,11 @@ function UserSettings() {
 
             <Separator
               orientation="horizontal"
-              className="h-[1px] w-full bg-foreground/50"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
             />
 
             {/* username */}
-            <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
+            <div className="baseVertFlex w-full !items-start gap-4 lg:!flex-row lg:!justify-between">
               <Label
                 htmlFor="username"
                 className="text-xl font-medium !text-foreground lg:text-2xl"
@@ -405,11 +405,11 @@ function UserSettings() {
 
             <Separator
               orientation="horizontal"
-              className="h-[1px] w-full bg-foreground/50"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
             />
 
             {/* password */}
-            <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!items-start lg:!justify-between">
+            <div className="baseVertFlex relative w-full !items-start gap-4 lg:!flex-row lg:!items-start lg:!justify-between">
               <span className="text-xl font-medium !text-foreground lg:text-2xl">
                 Password
               </span>
@@ -641,7 +641,7 @@ function UserSettings() {
 
             <Separator
               orientation="horizontal"
-              className="h-[1px] w-full bg-foreground/50"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
             />
 
             {/* profile image */}
@@ -661,11 +661,6 @@ function UserSettings() {
               newProfileImage={newProfileImage}
               localSettings={localSettings}
             />
-
-            <Separator
-              orientation="horizontal"
-              className="h-[1px] w-full bg-foreground/50 lg:hidden"
-            />
           </div>
 
           <Separator
@@ -673,7 +668,7 @@ function UserSettings() {
             className="hidden h-[550px] w-[1px] bg-foreground/50 lg:block"
           />
 
-          <div className="baseVertFlex w-full !items-start gap-4 lg:gap-10">
+          <div className="baseVertFlex w-full !items-start gap-12 lg:gap-10">
             {/* pinned tab */}
             <PinnedTabSelector
               localPinnedTabId={localPinnedTabId}
@@ -684,7 +679,7 @@ function UserSettings() {
 
             <Separator
               orientation="horizontal"
-              className="h-[1px] w-full bg-foreground/50"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
             />
 
             {/* color selector */}
@@ -751,7 +746,7 @@ function UserSettings() {
 
             <Separator
               orientation="horizontal"
-              className="h-[1px] w-full bg-foreground/50"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
             />
 
             {/* theme selector */}

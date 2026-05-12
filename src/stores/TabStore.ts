@@ -1,4 +1,4 @@
-import type { Tab } from "~/generated/client";
+import type { Tab } from "~/generated/browser";
 import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
 import { create } from "zustand";
@@ -480,6 +480,8 @@ interface TabState {
   }) => void;
   countInBuffer: AudioBuffer | null;
   setCountInBuffer: (countInBuffer: AudioBuffer | null) => void;
+  countInTimerEnabled: boolean;
+  setCountInTimerEnabled: (countInTimerEnabled: boolean) => void;
 
   expandedTabData:
     | (
@@ -805,6 +807,9 @@ const useTabStoreBase = create<TabState>()(
       setInteractingWithAudioProgressSlider: (
         interactingWithAudioProgressSlider,
       ) => set({ interactingWithAudioProgressSlider }),
+      countInTimerEnabled: true,
+      setCountInTimerEnabled: (countInTimerEnabled) =>
+        set({ countInTimerEnabled }),
 
       // playing/pausing sound functions
       playTab: async ({ location }: PlayTab) => {
@@ -1232,7 +1237,7 @@ const useTabStoreBase = create<TabState>()(
       setViewportLabel: (viewportLabel) => set({ viewportLabel }),
 
       // theme
-      color: "peony",
+      color: "maple",
       setColor: (color) => set({ color }),
       theme: "light",
       setTheme: (theme) => set({ theme }),
