@@ -8,7 +8,7 @@ import {
 import { LOGO_PATHS_WITHOUT_TITLE } from "~/utils/logoPaths";
 import { COLOR_VALUES } from "~/utils/updateCSSThemeVars";
 
-const DEFAULT_COLOR = "peony";
+const DEFAULT_COLOR = "maple";
 const STORAGE_KEYS = {
   COLOR: "autostrum-color",
   THEME: "autostrum-theme",
