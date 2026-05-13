@@ -125,7 +125,10 @@ function PlaybackTopMetadata({
             <Separator className="h-4 w-[1px] bg-foreground/50" />
 
             <div className="baseFlex w-[79px] flex-nowrap !justify-start gap-1 text-nowrap">
-              <CurrentTempoDisplay playbackMetadata={playbackMetadata} />
+              <CurrentTempoDisplay
+                playbackMetadata={playbackMetadata}
+                playbackSpeed={playbackSpeed}
+              />
             </div>
           </div>
         </div>
@@ -245,6 +248,7 @@ function PlaybackTopMetadata({
                       <div className="baseFlex w-[79px] !justify-start gap-1">
                         <CurrentTempoDisplay
                           playbackMetadata={playbackMetadata}
+                          playbackSpeed={playbackSpeed}
                         />
                       </div>
                     </div>
@@ -458,10 +462,15 @@ function Menu() {
 
 function CurrentTempoDisplay({
   playbackMetadata,
+  playbackSpeed,
 }: {
   playbackMetadata: PlaybackMetadata[] | null;
+  playbackSpeed: 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 }) {
   const currentChordIndex = useTabStore((state) => state.currentChordIndex);
+  const scaledBPM = Math.round(
+    (playbackMetadata?.[currentChordIndex]?.bpm ?? 120) * playbackSpeed,
+  );
 
   return (
     <>
@@ -469,7 +478,7 @@ function CurrentTempoDisplay({
         noteLength:
           playbackMetadata?.[currentChordIndex]?.noteLength ?? "quarter",
       })}
-      {playbackMetadata?.[currentChordIndex]?.bpm ?? "120"} BPM
+      {scaledBPM} BPM
     </>
   );
 }
