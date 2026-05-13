@@ -11,7 +11,7 @@ type ToolRouteHeaderProps = {
 
 function ToolRouteHeader({ title, description, icon }: ToolRouteHeaderProps) {
   return (
-    <div className="baseVertFlex w-full !items-start gap-3">
+    <div className="baseVertFlex w-full !items-start">
       <Button variant="outline" asChild className="!h-8 pl-3 pr-4">
         <Link prefetch={false} href="/tools" className="baseFlex gap-2">
           <IoIosArrowBack className="mt-[1px]" />
@@ -19,7 +19,7 @@ function ToolRouteHeader({ title, description, icon }: ToolRouteHeaderProps) {
         </Link>
       </Button>
 
-      <div className="baseFlex w-full !justify-start gap-2">
+      <div className="baseFlex mb-1 mt-3 w-full !justify-start gap-2">
         {icon}
         <h1 className="text-2xl font-semibold">{title}</h1>
       </div>
