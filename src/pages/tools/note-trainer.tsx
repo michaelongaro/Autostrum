@@ -222,7 +222,7 @@ function NoteTrainerPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] !justify-start gap-6 px-3 pb-8 xs:px-4 sm:px-6 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)] md:px-8"
+      className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] !justify-start gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
       <Head>
         <title>Note Trainer | Autostrum</title>
@@ -234,132 +234,134 @@ function NoteTrainerPage() {
         description="Train your ear to recognize different notes across the fretboard."
       />
 
-      <div className="baseVertFlex relative w-full gap-6 rounded-lg border bg-secondary p-4 shadow-md sm:p-6">
-        {/* Top row: round / source select / stats */}
-        <div className="relative flex w-full flex-col items-center md:gap-0">
-          {/* Round + stats row (mobile: top row, desktop: absolutely positioned) */}
-          <div className="flex w-full items-center justify-between md:pointer-events-none md:absolute md:inset-x-0 md:top-0">
-            <p className="whitespace-nowrap text-sm font-medium">
-              Round {roundsPlayed + (selectedGuess ? 0 : 1)}
+      <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
+        <div className="baseVertFlex relative w-full gap-8 border-y bg-background p-4 shadow-md sm:rounded-lg sm:border-x sm:p-6">
+          {/* Top row: round / source select / stats */}
+          <div className="relative flex w-full flex-col items-center md:gap-0">
+            {/* Round + stats row (mobile: top row, desktop: absolutely positioned) */}
+            <div className="flex w-full items-center justify-between md:pointer-events-none md:absolute md:inset-x-0 md:top-0">
+              <p className="whitespace-nowrap text-sm font-medium">
+                Round {roundsPlayed + (selectedGuess ? 0 : 1)}
+              </p>
+
+              <div className="baseFlex gap-3 whitespace-nowrap text-sm">
+                <p className="font-medium">
+                  {correctGuesses}/{roundsPlayed} correct
+                </p>
+                <span className="text-foreground/50">•</span>
+                <p className="tabular-nums">{scorePercentage}%</p>
+              </div>
+            </div>
+
+            {/* Source select (desktop only) */}
+            <Select
+              value={audioSource}
+              onValueChange={(v) => setAudioSource(v as AudioSource)}
+            >
+              <SelectTrigger className="hidden w-52 md:flex">
+                <SelectValue>
+                  <div className="baseFlex gap-2">
+                    <BsFillVolumeUpFill className="size-5" />
+                    {AUDIO_SOURCE_LABELS[audioSource]}
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
+                  (key) => (
+                    <SelectItem key={key} value={key}>
+                      {AUDIO_SOURCE_LABELS[key]}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Center: note guess buttons */}
+          <div className="baseVertFlex w-full gap-2">
+            <p
+              className={`text-sm font-medium transition-opacity ${selectedGuess ? "opacity-100" : "opacity-0"}`}
+            >
+              {lastGuessCorrect
+                ? "Correct!"
+                : `Not quite, the answer was ${revealedNote}.`}
             </p>
 
-            <div className="baseFlex gap-3 whitespace-nowrap text-sm">
-              <p className="font-medium">
-                {correctGuesses}/{roundsPlayed} correct
-              </p>
-              <span className="text-foreground/50">•</span>
-              <p className="tabular-nums">{scorePercentage}%</p>
+            <div className="mx-auto grid w-full max-w-lg grid-cols-4 gap-2 xs:grid-cols-6 sm:grid-cols-6">
+              {NOTE_POOL.map((note) => (
+                <Button
+                  key={note}
+                  variant={getGuessButtonVariant(note)}
+                  className={`h-12 px-0 text-base sm:h-14 sm:text-lg ${getGuessButtonVariant(note) === "outline" ? "hover:bg-primary hover:!text-primary-foreground active:bg-primary active:!text-primary-foreground active:brightness-90" : ""}`}
+                  onClick={() => handleGuess(note)}
+                  disabled={!!selectedGuess}
+                >
+                  {note}
+                </Button>
+              ))}
             </div>
           </div>
 
-          {/* Source select (desktop only) */}
-          <Select
-            value={audioSource}
-            onValueChange={(v) => setAudioSource(v as AudioSource)}
-          >
-            <SelectTrigger className="hidden w-56 md:flex">
-              <SelectValue>
-                <div className="baseFlex gap-2">
+          {/* Bottom: play + skip/next */}
+          <div className="baseFlex mt-8 w-full gap-3 sm:w-auto">
+            {/* Mobile audio source popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-11 w-11 shrink-0 md:hidden"
+                >
                   <BsFillVolumeUpFill className="size-5" />
-                  {AUDIO_SOURCE_LABELS[audioSource]}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-1">
+                <div className="flex flex-col !items-start gap-1">
+                  {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
+                    (key) => (
+                      <Button
+                        key={key}
+                        variant={audioSource === key ? "default" : "ghost"}
+                        className="baseFlex w-full !justify-between gap-2 rounded-sm font-normal"
+                        onClick={() => setAudioSource(key)}
+                      >
+                        {AUDIO_SOURCE_LABELS[key]}
+                        {audioSource === key && <Check className="size-4" />}
+                      </Button>
+                    ),
+                  )}
                 </div>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
-                (key) => (
-                  <SelectItem key={key} value={key}>
-                    {AUDIO_SOURCE_LABELS[key]}
-                  </SelectItem>
-                ),
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+              </PopoverContent>
+            </Popover>
 
-        {/* Center: note guess buttons */}
-        <div className="baseVertFlex w-full gap-2">
-          <p
-            className={`text-sm font-medium transition-opacity ${selectedGuess ? "opacity-100" : "opacity-0"}`}
-          >
-            {lastGuessCorrect
-              ? "Correct!"
-              : `Not quite, the answer was ${revealedNote}.`}
-          </p>
+            <Button
+              variant="audio"
+              className="h-11 shrink-0 px-6"
+              onClick={playTargetNote}
+              disabled={isSoundfontLoading}
+            >
+              {isSoundfontLoading ? "Loading…" : "Play Note"}
+            </Button>
 
-          <div className="mx-auto grid w-full max-w-lg grid-cols-4 gap-2 xs:grid-cols-6 sm:grid-cols-6">
-            {NOTE_POOL.map((note) => (
+            {selectedGuess ? (
               <Button
-                key={note}
-                variant={getGuessButtonVariant(note)}
-                className={`h-12 px-0 text-base sm:h-14 sm:text-lg ${getGuessButtonVariant(note) === "outline" ? "hover:bg-primary hover:!text-primary-foreground active:bg-primary active:!text-primary-foreground active:brightness-90" : ""}`}
-                onClick={() => handleGuess(note)}
-                disabled={!!selectedGuess}
+                variant="default"
+                className="h-11 w-full px-6 sm:w-32"
+                onClick={nextRound}
               >
-                {note}
+                Next Round
               </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom: play + skip/next */}
-        <div className="baseFlex mt-8 w-full gap-3 sm:w-auto">
-          {/* Mobile audio source popover */}
-          <Popover>
-            <PopoverTrigger asChild>
+            ) : (
               <Button
                 variant="outline"
-                size="icon"
-                className="h-11 w-11 shrink-0 md:hidden"
+                className="h-11 w-full px-6 sm:w-32"
+                onClick={nextRound}
               >
-                <BsFillVolumeUpFill className="size-5" />
+                Skip
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-1">
-              <div className="flex flex-col !items-start gap-1">
-                {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
-                  (key) => (
-                    <Button
-                      key={key}
-                      variant={audioSource === key ? "default" : "ghost"}
-                      className="baseFlex w-full !justify-between gap-2 rounded-sm font-normal"
-                      onClick={() => setAudioSource(key)}
-                    >
-                      {AUDIO_SOURCE_LABELS[key]}
-                      {audioSource === key && <Check className="size-4" />}
-                    </Button>
-                  ),
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <Button
-            variant="audio"
-            className="h-11 shrink-0 px-6"
-            onClick={playTargetNote}
-            disabled={isSoundfontLoading}
-          >
-            {isSoundfontLoading ? "Loading…" : "Play Note"}
-          </Button>
-
-          {selectedGuess ? (
-            <Button
-              variant="default"
-              className="h-11 w-full px-6 sm:w-32"
-              onClick={nextRound}
-            >
-              Next Round
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="h-11 w-full px-6 sm:w-32"
-              onClick={nextRound}
-            >
-              Skip
-            </Button>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </motion.div>

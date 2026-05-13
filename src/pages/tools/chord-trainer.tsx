@@ -733,7 +733,7 @@ function ChordTrainerPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1240px] !justify-start gap-6 px-3 pb-8 xs:px-4 sm:px-6 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)] md:px-8"
+      className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1240px] !justify-start gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
       <Head>
         <title>Chord Trainer | Autostrum</title>
@@ -749,286 +749,296 @@ function ChordTrainerPage() {
         description="Keep a stream of chord shapes moving through center and hear each voicing as it lands."
       />
 
-      <section className="baseVertFlex w-full gap-4">
-        <div className="relative w-full overflow-hidden rounded-md border bg-[radial-gradient(circle_at_center,_hsl(var(--background))_0%,_hsl(var(--background))_52%,_hsl(var(--secondary))_100%)]">
-          <div
-            className="relative h-[260px] w-full overflow-hidden bg-background/70 shadow-inner sm:h-[260px]"
-            ref={stageRef}
-          >
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-background via-background/90 to-transparent sm:w-24" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-background via-background/90 to-transparent sm:w-24" />
-            <div className="bg-primary/12 pointer-events-none absolute left-1/2 top-1/2 z-10 h-[180px] w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl sm:h-[220px] sm:w-[240px]" />
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 text-lg font-semibold leading-none text-primary/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.28)]"
-            >
-              <IoIosArrowUp />
-            </span>
-
+      <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
+        <div className="baseVertFlex w-full">
+          <div className="relative w-full overflow-hidden border-y bg-[radial-gradient(circle_at_center,_hsl(var(--background))_0%,_hsl(var(--background))_52%,_hsl(var(--secondary))_100%)] sm:rounded-md sm:border-x">
             <div
-              ref={sliderContainerRef}
-              className="absolute inset-y-0 left-0 flex items-center will-change-transform"
-              style={{ transform: "translate3d(0px, 0, 0)" }}
+              className="relative h-[260px] w-full overflow-hidden bg-background/70 shadow-inner sm:h-[260px]"
+              ref={stageRef}
             >
-              {queue.map((item) => (
-                <div
-                  key={item.instanceId}
-                  className="baseVertFlex relative flex-shrink-0 flex-col items-center justify-center gap-2 will-change-transform [backface-visibility:hidden] [contain:layout_paint]"
-                  style={{
-                    width: CHORD_ITEM_WIDTH,
-                    marginRight: CHORD_ITEM_GAP,
-                    transform: "translateZ(0) scale(1)",
-                    opacity: 1,
-                  }}
-                >
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-background via-background/90 to-transparent sm:w-24" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-background via-background/90 to-transparent sm:w-24" />
+              <div className="bg-primary/12 pointer-events-none absolute left-1/2 top-1/2 z-10 h-[180px] w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl sm:h-[220px] sm:w-[240px]" />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 text-lg font-semibold leading-none text-foreground drop-shadow-[0_2px_8px_rgba(0,0,0,0.28)]"
+              >
+                <IoIosArrowUp />
+              </span>
+
+              <div
+                ref={sliderContainerRef}
+                className="absolute inset-y-0 left-0 flex items-center will-change-transform"
+                style={{ transform: "translate3d(0px, 0, 0)" }}
+              >
+                {queue.map((item) => (
                   <div
-                    className="pointer-events-none flex items-center justify-center p-2"
+                    key={item.instanceId}
+                    className="baseVertFlex relative flex-shrink-0 flex-col items-center justify-center gap-2 will-change-transform [backface-visibility:hidden] [contain:layout_paint]"
                     style={{
-                      borderColor: showColorCoding
-                        ? `${item.chord.color}40`
-                        : undefined,
+                      width: CHORD_ITEM_WIDTH,
+                      marginRight: CHORD_ITEM_GAP,
+                      transform: "translateZ(0) scale(1)",
+                      opacity: 1,
                     }}
                   >
-                    <div className="h-full w-full text-foreground">
-                      <ChordDiagram originalFrets={item.chord.frets} />
-                    </div>
-                  </div>
-
-                  <span
-                    className="text-lg font-semibold"
-                    style={
-                      showColorCoding ? { color: item.chord.color } : undefined
-                    }
-                  >
-                    {item.chord.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {queue.length === 0 && (
-              <div className="baseFlex absolute inset-0 h-full w-full text-sm text-foreground/70">
-                Choose at least one chord to start.
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="baseVertFlex w-full gap-3 px-8 md:px-0">
-          <div className="baseVertFlex !items-start gap-2">
-            <div className="baseFlex w-full !justify-between gap-3">
-              <span className="text-sm font-medium leading-none">
-                Difficulty
-              </span>
-            </div>
-
-            <div className="flex w-full flex-wrap gap-2">
-              {DIFFICULTY_PRESETS.map((preset) => (
-                <Button
-                  key={preset.id}
-                  type="button"
-                  variant={
-                    selectedDifficultyId === preset.id ? "default" : "outline"
-                  }
-                  onClick={() => handleDifficultySelect(preset.tempo)}
-                >
-                  {preset.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="baseFlex flex-wrap !justify-start gap-3">
-            <Select
-              value={audioOption}
-              onValueChange={(v) => setAudioOption(v as AudioOption)}
-            >
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue>
-                  <div className="baseFlex gap-2">
-                    <BsFillVolumeUpFill className="size-5" />
-                    {AUDIO_SOURCE_LABELS[audioOption]}
-                  </div>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(AUDIO_SOURCE_LABELS) as AudioOption[]).map(
-                  (key) => (
-                    <SelectItem key={key} value={key}>
-                      {AUDIO_SOURCE_LABELS[key]}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
-
-            <Button
-              type="button"
-              variant={showColorCoding ? "default" : "outline"}
-              onClick={() => setShowColorCoding((previous) => !previous)}
-              className="gap-2"
-            >
-              <Paintbrush className="size-4" />
-              Color-coded
-            </Button>
-
-            <Button
-              variant="audio"
-              onClick={() => void handleStartPause()}
-              disabled={selectedChordCount === 0}
-              className="w-[134px] gap-2 px-8 text-base"
-            >
-              {isPlaying ? (
-                <PauseIcon className="size-4" />
-              ) : (
-                <Logo className="size-4" />
-              )}
-              {isPlaying ? "Pause" : "Start"}
-            </Button>
-          </div>
-        </div>
-
-        {audioError && (
-          <div className="w-full rounded-2xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-foreground/80">
-            {audioError}
-          </div>
-        )}
-
-        {loadingSoundfont && (
-          <p className="text-xs text-foreground/65">
-            Loading guitar samples...
-          </p>
-        )}
-      </section>
-
-      <section className="baseVertFlex w-full !items-start gap-4 rounded-md border bg-secondary/90 p-4 shadow-md sm:p-6">
-        <div className="baseVertFlex w-full !items-start gap-4 lg:flex-row lg:gap-6">
-          <aside className="hidden w-full max-w-[280px] flex-col gap-3 rounded-md lg:flex">
-            <div className="baseVertFlex !items-start gap-1">
-              <p className="text-sm font-medium leading-none">Chord presets</p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {CHORD_PRESET_OPTIONS.map((preset) => {
-                const isActive = activeChordPresetId === preset.id;
-                const presetCount =
-                  preset.id === CUSTOM_CHORD_PRESET_ID
-                    ? selectedChordCount
-                    : preset.chordIds.length;
-
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => handleChordPresetSelect(preset.id)}
-                    className={cn(
-                      "baseVertFlex w-full !items-start gap-2 rounded-md border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      isActive
-                        ? "border-primary/35 bg-background text-foreground shadow-sm"
-                        : "border-transparent bg-background/55 text-foreground/80 hover:border-border hover:bg-background",
-                    )}
-                  >
-                    <div className="flex w-full items-center justify-between gap-3">
-                      <span className="text-sm font-semibold">
-                        {preset.label}
-                      </span>
-                      <span className="text-xs text-foreground/55">
-                        {presetCount}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-
-          <div className="baseVertFlex w-full !items-start gap-4">
-            <div className="baseVertFlex w-full !items-start gap-2 lg:hidden">
-              <p className="text-sm font-medium leading-none">Chord presets</p>
-
-              <Select
-                value={activeChordPresetId}
-                onValueChange={handleChordPresetSelect}
-              >
-                <SelectTrigger className="w-full sm:max-w-[320px]">
-                  <SelectValue placeholder="Choose a chord preset" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {CHORD_PRESET_OPTIONS.map((preset) => (
-                    <SelectItem key={preset.id} value={preset.id}>
-                      {preset.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="baseVertFlex mt-2 w-full !items-start gap-1.5 lg:mt-0">
-              <div className="baseFlex w-full !justify-between gap-3 lg:px-4">
-                <div className="baseVertFlex !items-start gap-1">
-                  <p className="text-sm font-medium leading-none">Chords</p>
-                </div>
-
-                <span className="text-xs text-foreground/55">
-                  {selectedChordCount} selected
-                </span>
-              </div>
-            </div>
-
-            <div className="grid w-full grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-              {chordTrainerPresets.map((chord) => {
-                const selected = selectedChordIdSet.has(chord.id);
-
-                return (
-                  <div
-                    key={chord.id}
-                    className={cn(
-                      "baseVertFlex gap-2 transition-opacity duration-150",
-                      selected ? "opacity-100" : "opacity-35 hover:opacity-80",
-                    )}
-                  >
-                    <Button
-                      variant={"outline"}
-                      style={
-                        selected
-                          ? showColorCoding
-                            ? {
-                                borderColor: `${chord.color}66`,
-                                background: `linear-gradient(180deg, ${chord.color}14 0%, hsl(var(--background)) 100%)`,
-                                boxShadow: `0 0 0 1px ${chord.color}18 inset`,
-                              }
-                            : {
-                                borderColor: "hsl(var(--primary) / 0.42)",
-                                background: "hsl(var(--primary) / 0.06)",
-                                boxShadow:
-                                  "0 0 0 1px hsl(var(--primary) / 0.14) inset",
-                              }
-                          : undefined
-                      }
-                      className="h-[112px] w-[88px] rounded-md border bg-background/80 p-1.5 text-foreground"
-                      onClick={() => handleChordToggle(chord.id)}
+                    <div
+                      className="pointer-events-none flex items-center justify-center p-2"
+                      style={{
+                        borderColor: showColorCoding
+                          ? `${item.chord.color}40`
+                          : undefined,
+                      }}
                     >
-                      <ChordDiagram originalFrets={chord.frets} />
-                    </Button>
+                      <div className="h-full w-full text-foreground">
+                        <ChordDiagram originalFrets={item.chord.frets} />
+                      </div>
+                    </div>
 
                     <span
-                      className="text-sm font-semibold"
+                      className="text-lg font-semibold"
                       style={
-                        selected && showColorCoding
-                          ? { color: chord.color }
+                        showColorCoding
+                          ? { color: item.chord.color }
                           : undefined
                       }
                     >
-                      {chord.name}
+                      {item.chord.name}
                     </span>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+
+              {queue.length === 0 && (
+                <div className="baseFlex absolute inset-0 h-full w-full text-sm text-foreground/70">
+                  Choose at least one chord to start.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="baseVertFlex my-8 w-full gap-6 px-8 md:px-0">
+            <div className="baseVertFlex !items-start gap-2">
+              <div className="baseFlex w-full !justify-between gap-3">
+                <span className="text-sm font-medium leading-none">
+                  Difficulty
+                </span>
+              </div>
+
+              <div className="flex w-full flex-wrap gap-2">
+                {DIFFICULTY_PRESETS.map((preset) => (
+                  <Button
+                    key={preset.id}
+                    type="button"
+                    variant={
+                      selectedDifficultyId === preset.id ? "default" : "outline"
+                    }
+                    onClick={() => handleDifficultySelect(preset.tempo)}
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="baseFlex flex-wrap !justify-start gap-3">
+              <Select
+                value={audioOption}
+                onValueChange={(v) => setAudioOption(v as AudioOption)}
+              >
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue>
+                    <div className="baseFlex gap-2">
+                      <BsFillVolumeUpFill className="size-5" />
+                      {AUDIO_SOURCE_LABELS[audioOption]}
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(AUDIO_SOURCE_LABELS) as AudioOption[]).map(
+                    (key) => (
+                      <SelectItem key={key} value={key}>
+                        {AUDIO_SOURCE_LABELS[key]}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+
+              <Button
+                type="button"
+                variant={showColorCoding ? "default" : "outline"}
+                onClick={() => setShowColorCoding((previous) => !previous)}
+                className="gap-2"
+              >
+                <Paintbrush className="size-4" />
+                Color-coded
+              </Button>
+
+              <Button
+                variant="audio"
+                onClick={() => void handleStartPause()}
+                disabled={selectedChordCount === 0}
+                className="w-[134px] gap-2 px-8 text-base"
+              >
+                {isPlaying ? (
+                  <PauseIcon className="size-4" />
+                ) : (
+                  <Logo className="size-4" />
+                )}
+                {isPlaying ? "Pause" : "Start"}
+              </Button>
+            </div>
+          </div>
+
+          {audioError && (
+            <div className="w-full rounded-2xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-foreground/80">
+              {audioError}
+            </div>
+          )}
+
+          {loadingSoundfont && (
+            <p className="text-xs text-foreground/65">
+              Loading guitar samples...
+            </p>
+          )}
+        </div>
+
+        <div className="baseVertFlex w-full !items-start gap-4 border-y bg-background p-4 shadow-md sm:rounded-md sm:border-x sm:p-6">
+          <div className="baseVertFlex w-full !items-start gap-4 lg:flex-row lg:gap-6">
+            <aside className="hidden w-full max-w-[280px] flex-col gap-3 rounded-md lg:flex">
+              <div className="baseVertFlex !items-start gap-1">
+                <p className="text-sm font-medium leading-none">
+                  Chord presets
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {CHORD_PRESET_OPTIONS.map((preset) => {
+                  const isActive = activeChordPresetId === preset.id;
+                  const presetCount =
+                    preset.id === CUSTOM_CHORD_PRESET_ID
+                      ? selectedChordCount
+                      : preset.chordIds.length;
+
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleChordPresetSelect(preset.id)}
+                      className={cn(
+                        "baseVertFlex w-full !items-start gap-2 rounded-md border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        isActive
+                          ? "border bg-background text-foreground shadow-sm"
+                          : "border-transparent bg-background/55 text-foreground/80 hover:border-border hover:bg-background",
+                      )}
+                    >
+                      <div className="flex w-full items-center justify-between gap-3">
+                        <span className="text-sm font-semibold">
+                          {preset.label}
+                        </span>
+                        <span className="text-xs text-foreground/55">
+                          {presetCount}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+
+            <div className="baseVertFlex w-full !items-start gap-4">
+              <div className="baseVertFlex w-full !items-start gap-2 lg:hidden">
+                <p className="text-sm font-medium leading-none">
+                  Chord presets
+                </p>
+
+                <Select
+                  value={activeChordPresetId}
+                  onValueChange={handleChordPresetSelect}
+                >
+                  <SelectTrigger className="w-full sm:max-w-[320px]">
+                    <SelectValue placeholder="Choose a chord preset" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {CHORD_PRESET_OPTIONS.map((preset) => (
+                      <SelectItem key={preset.id} value={preset.id}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="baseVertFlex mt-2 w-full !items-start gap-1.5 lg:mt-0">
+                <div className="baseFlex w-full !justify-between gap-3 lg:px-4">
+                  <div className="baseVertFlex !items-start gap-1">
+                    <p className="text-sm font-medium leading-none">Chords</p>
+                  </div>
+
+                  <span className="text-xs text-foreground/55">
+                    {selectedChordCount} selected
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid w-full grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                {chordTrainerPresets.map((chord) => {
+                  const selected = selectedChordIdSet.has(chord.id);
+
+                  return (
+                    <div
+                      key={chord.id}
+                      className={cn(
+                        "baseVertFlex gap-2 transition-opacity duration-150",
+                        selected
+                          ? "opacity-100"
+                          : "opacity-35 hover:opacity-80",
+                      )}
+                    >
+                      <Button
+                        variant={"outline"}
+                        style={
+                          selected
+                            ? showColorCoding
+                              ? {
+                                  borderColor: `${chord.color}66`,
+                                  background: `linear-gradient(180deg, ${chord.color}14 0%, hsl(var(--background)) 100%)`,
+                                  boxShadow: `0 0 0 1px ${chord.color}18 inset`,
+                                }
+                              : {
+                                  borderColor: "hsl(var(--primary) / 0.42)",
+                                  background: "hsl(var(--primary) / 0.06)",
+                                  boxShadow:
+                                    "0 0 0 1px hsl(var(--primary) / 0.14) inset",
+                                }
+                            : undefined
+                        }
+                        className="h-[112px] w-[88px] rounded-md border bg-background/80 p-1.5 text-foreground"
+                        onClick={() => handleChordToggle(chord.id)}
+                      >
+                        <ChordDiagram originalFrets={chord.frets} />
+                      </Button>
+
+                      <span
+                        className="text-sm font-semibold"
+                        style={
+                          selected && showColorCoding
+                            ? { color: chord.color }
+                            : undefined
+                        }
+                      >
+                        {chord.name}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </motion.div>
   );
 }

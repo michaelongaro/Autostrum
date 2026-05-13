@@ -108,6 +108,7 @@ function TunerPanel({
   const chromaticCentsLabel = hasChromaticCents
     ? `${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`
     : "--";
+
   const regularSemicircleGradient = useMemo(() => {
     const toAngle = (centsOffset: number) =>
       Math.max(
@@ -126,6 +127,7 @@ function TunerPanel({
 
     return `conic-gradient(from 270deg at 50% 100%, rgba(239, 68, 68, 0.2) 0deg ${leftOrange}deg, rgba(249, 115, 22, 0.2) ${leftOrange}deg ${leftYellow}deg, rgba(250, 204, 21, 0.2) ${leftYellow}deg ${leftGreen}deg, rgba(34, 197, 94, 0.18) ${leftGreen}deg ${rightGreen}deg, rgba(250, 204, 21, 0.2) ${rightGreen}deg ${rightYellow}deg, rgba(249, 115, 22, 0.2) ${rightYellow}deg ${rightOrange}deg, rgba(239, 68, 68, 0.2) ${rightOrange}deg 180deg, transparent 180deg 360deg)`;
   }, [toleranceCents]);
+
   const regularNeedleStyle = !hasRegularCents
     ? {
         backgroundColor: "hsl(var(--primary))",
@@ -153,13 +155,13 @@ function TunerPanel({
 
   return (
     <div
-      className={`baseVertFlex h-full w-full gap-4 bg-secondary py-3 shadow-sm sm:rounded-lg sm:border lg:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
+      className={`baseVertFlex h-full w-full gap-4 bg-background py-3 shadow-sm sm:rounded-lg sm:border lg:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
     >
       <div
-        className={`baseVertFlex w-full gap-3 px-3 md:px-6 lg:flex-row lg:!items-center lg:!justify-between lg:px-5 ${forPlaybackModal ? "lg:mt-8" : ""}`}
+        className={`baseVertFlex w-full gap-3 px-3 md:px-6 lg:flex-row lg:!items-center lg:!justify-between lg:px-6 ${forPlaybackModal ? "lg:mt-8" : ""}`}
       >
         {!forPlaybackModal && (
-          <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border bg-background p-1 lg:col-span-1 lg:w-[190px]">
+          <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border p-1 lg:col-span-1 lg:w-[190px]">
             <button
               type="button"
               onClick={() => {
@@ -249,8 +251,8 @@ function TunerPanel({
 
       {mode === "regular" ? (
         <>
-          <div className="baseVertFlex w-full px-3 md:px-6 lg:px-5">
-            <div className="baseVertFlex w-full rounded-md bg-background p-3 lg:p-5">
+          <div className="baseVertFlex w-full px-3 md:px-6">
+            <div className="baseVertFlex w-full rounded-md p-3 lg:p-5">
               <div className="relative h-[230px] w-full lg:h-[280px]">
                 <div className="baseVertFlex w-full gap-4">
                   <p className="font-semibold text-foreground">
@@ -399,7 +401,7 @@ function TunerPanel({
           </div>
 
           <div className="baseVertFlex w-full md:px-6">
-            <div className="grid w-full grid-cols-6 gap-1 bg-background px-3 py-2 shadow-inner md:rounded-md lg:gap-2 lg:px-2">
+            <div className="grid w-full grid-cols-6 gap-1 bg-secondary px-3 py-2 shadow-inner md:rounded-md lg:gap-2 lg:px-2">
               {targetNotes.map((note, index) => {
                 const selected = index === currentTargetIndex;
                 const tuned = completed || index < currentTargetIndex;
@@ -497,7 +499,7 @@ function TunerPanel({
         </>
       ) : (
         <div className="baseVertFlex w-full gap-4 px-3 md:px-6 lg:px-5">
-          <div className="baseVertFlex w-full rounded-md border bg-background p-4 md:px-6 md:py-8">
+          <div className="baseVertFlex w-full rounded-md bg-background p-4 md:px-6 md:py-8">
             <div className="w-full text-center text-lg font-semibold text-foreground">
               {detectedNote ? formatNoteLabel(detectedNote) : "--"}
             </div>
