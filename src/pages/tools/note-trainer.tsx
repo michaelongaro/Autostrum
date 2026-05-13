@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import Soundfont from "soundfont-player";
 import { IoEar } from "react-icons/io5";
@@ -8,11 +8,6 @@ import { isIOS, isSafari } from "react-device-detect";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -20,22 +15,52 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { BsFillVolumeUpFill } from "react-icons/bs";
-import { Check } from "lucide-react";
 
-const NOTE_POOL = [
-  "C4",
-  "C#4",
-  "D4",
-  "D#4",
-  "E4",
-  "F4",
-  "F#4",
-  "G4",
-  "G#4",
-  "A4",
-  "A#4",
-  "B4",
+const CHROMATIC_NOTE_NAMES = [
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B",
 ] as const;
+
+const WHOLE_NOTES_ONLY_POOL = ["C4", "D4", "E4", "F4", "G4", "A4", "B4"];
+
+function buildChromaticNotePool(startOctave: number, endOctave: number) {
+  const notes: string[] = [];
+
+  for (let octave = startOctave; octave <= endOctave; octave += 1) {
+    for (const noteName of CHROMATIC_NOTE_NAMES) {
+      notes.push(`${noteName}${octave}`);
+    }
+  }
+
+  return notes;
+}
+
+const STANDARD_NOTE_POOL = buildChromaticNotePool(4, 4);
+const ALL_NOTES_POOL = buildChromaticNotePool(3, 4);
+
+type NoteSet = "whole-notes-only" | "standard" | "all-notes";
+
+const NOTE_SET_LABELS: Record<NoteSet, string> = {
+  "whole-notes-only": "Whole notes only",
+  standard: "Standard",
+  "all-notes": "All notes",
+};
+
+const NOTE_SET_POOLS: Record<NoteSet, readonly string[]> = {
+  "whole-notes-only": WHOLE_NOTES_ONLY_POOL,
+  standard: STANDARD_NOTE_POOL,
+  "all-notes": ALL_NOTES_POOL,
+};
 
 type AudioSource =
   | "generated"
@@ -52,8 +77,8 @@ const AUDIO_SOURCE_LABELS: Record<AudioSource, string> = {
   electric_guitar_jazz: "Electric - Jazz",
 };
 
-function getRandomNote() {
-  return NOTE_POOL[Math.floor(Math.random() * NOTE_POOL.length)] ?? "C4";
+function getRandomNote(notePool: readonly string[]) {
+  return notePool[Math.floor(Math.random() * notePool.length)] ?? "C4";
 }
 
 function NoteTrainerPage() {
@@ -63,8 +88,11 @@ function NoteTrainerPage() {
   >({});
 
   const [audioSource, setAudioSource] = useState<AudioSource>("generated");
+  const [noteSet, setNoteSet] = useState<NoteSet>("standard");
   const [loadingSoundfont, setLoadingSoundfont] = useState(false);
-  const [targetNote, setTargetNote] = useState<string>(() => getRandomNote());
+  const [targetNote, setTargetNote] = useState<string>(() =>
+    getRandomNote(NOTE_SET_POOLS.standard),
+  );
   const [selectedGuess, setSelectedGuess] = useState<string | null>(null);
   const [revealedNote, setRevealedNote] = useState<string | null>(null);
   const [lastGuessCorrect, setLastGuessCorrect] = useState<boolean | null>(
@@ -72,8 +100,16 @@ function NoteTrainerPage() {
   );
   const [roundsPlayed, setRoundsPlayed] = useState(0);
   const [correctGuesses, setCorrectGuesses] = useState(0);
+  const activeNotePool = NOTE_SET_POOLS[noteSet];
   const audioSourceRef = useRef<AudioSource>(audioSource);
   audioSourceRef.current = audioSource;
+
+  useEffect(() => {
+    setSelectedGuess(null);
+    setRevealedNote(null);
+    setLastGuessCorrect(null);
+    setTargetNote(getRandomNote(activeNotePool));
+  }, [activeNotePool]);
 
   const getAudioContext = useCallback(async () => {
     if (!audioContextRef.current) {
@@ -195,7 +231,10 @@ function NoteTrainerPage() {
 
   function nextRound() {
     setSelectedGuess(null);
-    const newNote = getRandomNote();
+    setRevealedNote(null);
+    setLastGuessCorrect(null);
+
+    const newNote = getRandomNote(activeNotePool);
     setTargetNote(newNote);
     void playNote(newNote);
   }
@@ -214,6 +253,13 @@ function NoteTrainerPage() {
     audioSource !== "generated" &&
     !soundfontCacheRef.current[audioSource] &&
     loadingSoundfont;
+  const feedbackMessage = selectedGuess
+    ? lastGuessCorrect
+      ? "Correct!"
+      : revealedNote
+        ? `Not quite, the answer was ${revealedNote}.`
+        : null
+    : null;
 
   return (
     <motion.div
@@ -253,43 +299,67 @@ function NoteTrainerPage() {
               </div>
             </div>
 
-            {/* Source select (desktop only) */}
-            <Select
-              value={audioSource}
-              onValueChange={(v) => setAudioSource(v as AudioSource)}
-            >
-              <SelectTrigger className="hidden w-52 md:flex">
-                <SelectValue>
-                  <div className="baseFlex gap-2">
-                    <BsFillVolumeUpFill className="size-5" />
-                    {AUDIO_SOURCE_LABELS[audioSource]}
-                  </div>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
-                  (key) => (
+            <div className="mt-3 flex flex-col gap-2 md:mt-0 md:w-auto md:flex-row">
+              <Select
+                value={audioSource}
+                onValueChange={(v) => setAudioSource(v as AudioSource)}
+              >
+                <SelectTrigger className="w-52 md:w-52">
+                  <SelectValue>
+                    <div className="baseFlex gap-2">
+                      <BsFillVolumeUpFill className="size-5" />
+                      {AUDIO_SOURCE_LABELS[audioSource]}
+                    </div>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
+                    (key) => (
+                      <SelectItem key={key} value={key}>
+                        {AUDIO_SOURCE_LABELS[key]}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={noteSet}
+                onValueChange={(value) => setNoteSet(value as NoteSet)}
+              >
+                <SelectTrigger className="w-52 md:w-52">
+                  <SelectValue>{NOTE_SET_LABELS[noteSet]}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(NOTE_SET_LABELS) as NoteSet[]).map((key) => (
                     <SelectItem key={key} value={key}>
-                      {AUDIO_SOURCE_LABELS[key]}
+                      {NOTE_SET_LABELS[key]}
                     </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Center: note guess buttons */}
           <div className="baseVertFlex w-full gap-2">
-            <p
-              className={`text-sm font-medium transition-opacity ${selectedGuess ? "opacity-100" : "opacity-0"}`}
-            >
-              {lastGuessCorrect
-                ? "Correct!"
-                : `Not quite, the answer was ${revealedNote}.`}
-            </p>
+            <AnimatePresence mode="popLayout">
+              <motion.p
+                key={feedbackMessage}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className={`text-sm font-medium transition-opacity ${feedbackMessage ? "opacity-100" : "opacity-0"}`}
+              >
+                {feedbackMessage ?? "\u00a0"}
+              </motion.p>
+            </AnimatePresence>
 
-            <div className="mx-auto grid w-full max-w-lg grid-cols-4 gap-2 xs:grid-cols-6 sm:grid-cols-6">
-              {NOTE_POOL.map((note) => (
+            <div
+              className={`mx-auto grid w-full max-w-lg grid-cols-4 gap-2 xs:grid-cols-6 sm:grid-cols-6`}
+            >
+              {activeNotePool.map((note) => (
                 <Button
                   key={note}
                   variant={getGuessButtonVariant(note)}
@@ -305,36 +375,6 @@ function NoteTrainerPage() {
 
           {/* Bottom: play + skip/next */}
           <div className="baseFlex mt-8 w-full gap-3 sm:w-auto">
-            {/* Mobile audio source popover */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-11 w-11 shrink-0 md:hidden"
-                >
-                  <BsFillVolumeUpFill className="size-5" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-1">
-                <div className="flex flex-col !items-start gap-1">
-                  {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
-                    (key) => (
-                      <Button
-                        key={key}
-                        variant={audioSource === key ? "default" : "ghost"}
-                        className="baseFlex w-full !justify-between gap-2 rounded-sm font-normal"
-                        onClick={() => setAudioSource(key)}
-                      >
-                        {AUDIO_SOURCE_LABELS[key]}
-                        {audioSource === key && <Check className="size-4" />}
-                      </Button>
-                    ),
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-
             <Button
               variant="audio"
               className="h-11 shrink-0 px-6"
