@@ -3,6 +3,13 @@ import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
 import { Button } from "~/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import {
   buildPracticeExerciseTabData,
@@ -164,7 +171,30 @@ function PracticePlaybackPanel({
         <div className="baseVertFlex w-full !items-start gap-2">
           <p className="text-sm font-medium">Choose an exercise</p>
 
-          <div className="grid w-full gap-2 sm:grid-cols-2">
+          <Select
+            value={selectedExerciseId}
+            onValueChange={setSelectedExerciseId}
+          >
+            <SelectTrigger className="sm:hidden">
+              <SelectValue>{selectedExercise.title}</SelectValue>
+            </SelectTrigger>
+            <SelectContent className="sm:hidden">
+              {exercises.map((exercise) => (
+                <SelectItem key={exercise.id} value={exercise.id}>
+                  <span className="baseVertFlex w-72 flex-wrap !items-start gap-0.5 text-left">
+                    <span className="text-sm font-medium">
+                      {exercise.title}
+                    </span>
+                    <span className="text-xs text-foreground/80">
+                      {exercise.description}
+                    </span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="hidden w-full gap-2 sm:grid sm:grid-cols-2">
             {exercises.map((exercise) => (
               <Button
                 key={exercise.id}
