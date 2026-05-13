@@ -19,6 +19,7 @@ interface StaticTabSection {
   subSectionIndex: number;
   color: COLORS;
   theme: THEME;
+  overflowX?: boolean;
 }
 
 function StaticTabSection({
@@ -27,6 +28,7 @@ function StaticTabSection({
   subSectionIndex,
   color,
   theme,
+  overflowX,
 }: StaticTabSection) {
   const { tuning } = useTabStore((state) => ({
     tuning: state.tuning,
@@ -40,7 +42,9 @@ function StaticTabSection({
       }}
       className="baseVertFlex relative h-full !justify-start rounded-md border px-4 py-4 shadow-md md:px-8"
     >
-      <div className="baseFlex relative w-full flex-wrap !justify-start">
+      <div
+        className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto" : "flex-wrap"}`}
+      >
         <div className="baseVertFlex">
           <div className="h-[32px] w-full"></div>
           <div

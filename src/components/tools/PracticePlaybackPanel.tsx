@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
+import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
 import { Button } from "~/components/ui/button";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import {
@@ -9,6 +10,10 @@ import {
 } from "~/data/tools/practiceExercises";
 import { useTabStore } from "~/stores/TabStore";
 import Logo from "~/components/ui/icons/Logo";
+import {
+  getPlaybackControlValue,
+  playbackDifficultyOptions,
+} from "../../utils/playbackSpeedControls";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -20,11 +25,6 @@ type PracticePlaybackPanelProps = {
   emptyStateLabel: string;
 };
 
-type PlaybackSpeedOption = 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
-
-const playbackSpeedOptions: PlaybackSpeedOption[] = [0.5, 0.75, 1, 1.25, 1.5];
-const loopDelayOptions = [0, 0.5, 1, 2];
-
 function PracticePlaybackPanel({
   exercises,
   emptyStateLabel,
@@ -32,10 +32,6 @@ function PracticePlaybackPanel({
   const [selectedExerciseId, setSelectedExerciseId] = useState(
     exercises[0]?.id ?? "",
   );
-  const [selectedRepetitions, setSelectedRepetitions] = useState(2);
-  const [selectedPlaybackSpeed, setSelectedPlaybackSpeed] =
-    useState<PlaybackSpeedOption>(1);
-  const [selectedLoopDelay, setSelectedLoopDelay] = useState(0);
 
   const {
     showPlaybackModal,
@@ -52,9 +48,11 @@ function PracticePlaybackPanel({
     setTabData,
     setCurrentChordIndex,
     setAudioMetadata,
-    setPlaybackSpeed,
-    setLoopDelay,
     audioMetadata,
+    playbackSpeed,
+    setPlaybackSpeed,
+    color,
+    theme,
   } = useTabStore((state) => ({
     showPlaybackModal: state.showPlaybackModal,
     setShowPlaybackModal: state.setShowPlaybackModal,
@@ -70,9 +68,11 @@ function PracticePlaybackPanel({
     setTabData: state.setTabData,
     setCurrentChordIndex: state.setCurrentChordIndex,
     setAudioMetadata: state.setAudioMetadata,
-    setPlaybackSpeed: state.setPlaybackSpeed,
-    setLoopDelay: state.setLoopDelay,
     audioMetadata: state.audioMetadata,
+    playbackSpeed: state.playbackSpeed,
+    setPlaybackSpeed: state.setPlaybackSpeed,
+    color: state.color,
+    theme: state.theme,
   }));
 
   useAutoCompileChords();
@@ -82,6 +82,27 @@ function PracticePlaybackPanel({
       exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null,
     [exercises, selectedExerciseId],
   );
+
+  const selectedExerciseTabData = useMemo(
+    () =>
+      selectedExercise
+        ? buildPracticeExerciseTabData(selectedExercise, {
+            repetitions: 2,
+          })
+        : [],
+    [selectedExercise],
+  );
+
+  const selectedExerciseTabSection = useMemo(() => {
+    const subSection = selectedExerciseTabData[0]?.data[0];
+
+    return subSection?.type === "tab" ? subSection : null;
+  }, [selectedExerciseTabData]);
+
+  const selectedDifficultyValue = getPlaybackControlValue({
+    playbackSpeed,
+    useDifficultyLabels: true,
+  });
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -109,17 +130,11 @@ function PracticePlaybackPanel({
     });
 
     setTabData((draft) => {
-      draft.splice(
-        0,
-        draft.length,
-        ...buildPracticeExerciseTabData(selectedExercise, {
-          repetitions: selectedRepetitions,
-        }),
-      );
+      draft.splice(0, draft.length, ...selectedExerciseTabData);
     });
   }, [
     selectedExercise,
-    selectedRepetitions,
+    selectedExerciseTabData,
     pauseAudio,
     setShowPlaybackModal,
     setEditing,
@@ -135,14 +150,6 @@ function PracticePlaybackPanel({
     setTabData,
   ]);
 
-  useEffect(() => {
-    setPlaybackSpeed(selectedPlaybackSpeed);
-  }, [selectedPlaybackSpeed, setPlaybackSpeed]);
-
-  useEffect(() => {
-    setLoopDelay(selectedLoopDelay);
-  }, [selectedLoopDelay, setLoopDelay]);
-
   if (!selectedExercise) {
     return (
       <div className="baseVertFlex w-full items-start rounded-lg border bg-secondary p-4 shadow-md">
@@ -152,8 +159,8 @@ function PracticePlaybackPanel({
   }
 
   return (
-    <>
-      <div className="baseVertFlex w-full items-start gap-4 rounded-lg border bg-secondary p-4 shadow-md sm:gap-8">
+    <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
+      <div className="baseVertFlex w-full items-start gap-4 rounded-none border-y bg-background p-4 shadow-md sm:gap-8 sm:rounded-lg sm:border-x">
         <div className="baseVertFlex w-full !items-start gap-2">
           <p className="text-sm font-medium">Choose an exercise</p>
 
@@ -181,66 +188,62 @@ function PracticePlaybackPanel({
         </div>
 
         <div className="baseVertFlex w-full !items-start gap-2">
-          <p className="text-sm font-medium">Configuration</p>
-          <div className="baseFlex w-full flex-col items-stretch gap-3 sm:flex-row">
-            <div className="baseVertFlex w-full flex-1 !items-start gap-2 rounded-md border bg-background p-3">
-              <p className="text-sm font-medium">Tempo multiplier</p>
-
-              <div className="baseFlex w-full flex-wrap !justify-start gap-2">
-                {playbackSpeedOptions.map((option) => (
-                  <Button
-                    key={option}
-                    variant={
-                      option === selectedPlaybackSpeed ? "default" : "outline"
-                    }
-                    className="!h-8 px-3"
-                    onClick={() => setSelectedPlaybackSpeed(option)}
-                  >
-                    {option}x
-                  </Button>
-                ))}
-              </div>
+          <p className="text-sm font-medium">Preview</p>
+          {selectedExerciseTabSection && (
+            <div className="w-full">
+              <StaticTabSection
+                subSectionData={selectedExerciseTabSection}
+                sectionIndex={0}
+                subSectionIndex={0}
+                color={color}
+                theme={theme}
+                overflowX={true}
+              />
             </div>
-
-            <div className="baseVertFlex w-full flex-1 !items-start gap-2 rounded-md border bg-background p-3">
-              <p className="text-sm font-medium">Loop delay</p>
-
-              <div className="baseFlex w-full flex-wrap !justify-start gap-2">
-                {loopDelayOptions.map((option) => (
-                  <Button
-                    key={option}
-                    variant={
-                      option === selectedLoopDelay ? "default" : "outline"
-                    }
-                    className="!h-8 px-3"
-                    onClick={() => setSelectedLoopDelay(option)}
-                  >
-                    {option === 0 ? "Off" : `${option}s`}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        <Button
-          variant="audio"
-          className="baseFlex my-2 gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
-          disabled={audioMetadata.fullCurrentlyPlayingMetadataLength <= 0}
-          onClick={() => {
-            setCurrentChordIndex(0);
-            setShowPlaybackModal(true);
-          }}
-        >
-          <Logo className="size-3 sm:size-4" />
-          Begin
-        </Button>
+        <div className="baseFlex w-full flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="baseVertFlex w-full !items-start gap-2">
+            <p className="text-sm font-medium">Difficulty</p>
+
+            <div className="baseFlex w-full flex-wrap !justify-start gap-2">
+              {playbackDifficultyOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={
+                    option.value === selectedDifficultyValue
+                      ? "default"
+                      : "outline"
+                  }
+                  className="!h-8 px-3"
+                  onClick={() => setPlaybackSpeed(option.speed)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <Button
+            variant="audio"
+            className="baseFlex gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
+            disabled={audioMetadata.fullCurrentlyPlayingMetadataLength <= 0}
+            onClick={() => {
+              setCurrentChordIndex(0);
+              setShowPlaybackModal(true);
+            }}
+          >
+            <Logo className="size-3 sm:size-4" />
+            Begin
+          </Button>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
         {showPlaybackModal && <PlaybackModal />}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/router";
 import {
   type Dispatch,
   type SetStateAction,
@@ -44,6 +45,13 @@ import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import {
+  getPlaybackControlLabel,
+  getPlaybackControlValue,
+  getPlaybackSpeedFromControlValue,
+  playbackDifficultyOptions,
+  playbackSpeedOptions,
+} from "../../../utils/playbackSpeedControls";
 import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
 import { IoMdSettings } from "react-icons/io";
@@ -930,6 +938,8 @@ function DesktopSettings({
   tabProgressValue,
   setTabProgressValue,
 }: DesktopSettings) {
+  const { asPath } = useRouter();
+
   const {
     currentInstrumentName,
     setCurrentInstrumentName,
@@ -939,7 +949,6 @@ function DesktopSettings({
     audioMetadata,
     setAudioMetadata,
     pauseAudio,
-    looping,
     countInTimer,
     loopDelay,
     setLoopDelay,
@@ -956,7 +965,6 @@ function DesktopSettings({
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     pauseAudio: state.pauseAudio,
-    looping: state.looping,
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
@@ -968,6 +976,15 @@ function DesktopSettings({
 
   const volume = useGetLocalStorageValues().volume;
   const localStorageVolume = useLocalStorageValue("autostrum-volume");
+  const useDifficultyLabels = asPath.includes("/tools");
+  const playbackControlValue = getPlaybackControlValue({
+    playbackSpeed,
+    useDifficultyLabels,
+  });
+  const playbackControlLabel = getPlaybackControlLabel({
+    playbackSpeed,
+    useDifficultyLabels,
+  });
 
   return (
     <div className="baseFlex w-full !items-end gap-4">
@@ -1012,16 +1029,19 @@ function DesktopSettings({
       </div>
 
       <div className="baseVertFlex !items-start gap-2">
-        <Label htmlFor="speed">Speed</Label>
+        <Label htmlFor="speed">
+          {useDifficultyLabels ? "Difficulty" : "Speed"}
+        </Label>
         <Select
           disabled={countInTimer.showing || audioMetadata.editingLoopRange}
-          value={`${playbackSpeed}x`}
+          value={playbackControlValue}
           onValueChange={(value) => {
             pauseAudio();
 
-            const newPlaybackSpeed = Number(
-              value.slice(0, value.length - 1),
-            ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+            const newPlaybackSpeed = getPlaybackSpeedFromControlValue({
+              value,
+              useDifficultyLabels,
+            });
 
             // Normalize the progress value to 1x speed
             const normalizedProgress = tabProgressValue * playbackSpeed;
@@ -1034,16 +1054,21 @@ function DesktopSettings({
             setPlaybackSpeed(newPlaybackSpeed);
           }}
         >
-          <SelectTrigger id="speed" className="w-20">
-            <SelectValue />
+          <SelectTrigger
+            id="speed"
+            className={useDifficultyLabels ? "w-36" : "w-20"}
+          >
+            <SelectValue>{playbackControlLabel}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={"0.25x"}>0.25x</SelectItem>
-            <SelectItem value={"0.5x"}>0.5x</SelectItem>
-            <SelectItem value={"0.75x"}>0.75x</SelectItem>
-            <SelectItem value={"1x"}>1x</SelectItem>
-            <SelectItem value={"1.25x"}>1.25x</SelectItem>
-            <SelectItem value={"1.5x"}>1.5x</SelectItem>
+            {(useDifficultyLabels
+              ? playbackDifficultyOptions
+              : playbackSpeedOptions
+            ).map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
