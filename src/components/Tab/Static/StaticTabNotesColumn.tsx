@@ -43,6 +43,8 @@ function StaticTabNotesColumn({
 }: StaticTabNotesColumnProps) {
   const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
 
+  if (!subSection) return null;
+
   const previousColumn =
     columnIndex > 0 ? subSection.data[columnIndex - 1] : undefined;
   const nextColumn =
