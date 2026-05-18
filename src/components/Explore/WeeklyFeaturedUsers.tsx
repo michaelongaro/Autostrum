@@ -396,7 +396,7 @@ function WeeklyFeaturedUsers({
                 <div
                   className={`baseVertFlex min-w-0 gap-8 lg:!flex-row ${user.pinnedTab === null ? "lg:gap-12" : ""}`}
                 >
-                  <div className="baseVertFlex min-w-0 !items-start gap-2">
+                  <div className="baseVertFlex w-full min-w-0 !items-start gap-2">
                     <div className="baseFlex gap-1">User</div>
 
                     <Button variant={"link"} asChild>
@@ -447,7 +447,7 @@ function WeeklyFeaturedUsers({
                       </Link>
                     </Button>
 
-                    <div className="baseVertFlex mt-4 !items-start gap-2 self-center font-medium sm:text-lg">
+                    <div className="baseVertFlex mt-4 w-full !items-start gap-2 self-center font-medium sm:text-lg">
                       <div className="baseFlex w-full !justify-between gap-4">
                         <div className="baseFlex gap-2">
                           <BsMusicNoteBeamed className="size-4 sm:size-5" />
