@@ -79,6 +79,7 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+
   function handleMouseMove({
     currentTarget,
     clientX,
@@ -114,7 +115,7 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
       style={{
         backgroundColor: color,
       }}
-      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:p-6 ${
+      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:p-6 ${
         darkenCard ? "brightness-75" : "brightness-100"
       }`}
       onPointerLeave={() => {
@@ -132,7 +133,7 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
     >
       <motion.div
         key={`genreCardButton${name}Hover`}
-        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover:opacity-100"
+        className="pointer-events-none absolute -inset-px hidden rounded-lg opacity-0 transition duration-300 group-hover:opacity-100 lg:block"
         style={{
           background: useMotionTemplate`
             radial-gradient(
@@ -144,12 +145,12 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
         }}
       />
 
-      {/* bg-gradient-to-b from-transparent to-black/50 */}
       <div
         style={{
           backgroundColor: color,
+          transform: "translateZ(0)",
         }}
-        className="absolute inset-0 z-10 size-full opacity-50 blur-sm lg:hidden"
+        className="absolute inset-0 z-10 size-full overflow-hidden opacity-50 blur-sm lg:hidden"
       ></div>
 
       {/* z-index as fallback just in case for weird safari positioning */}
@@ -170,4 +171,3 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
     </motion.div>
   );
 }
-//[clip-path:polygon(0%_0%,50%_0%,50%_100%,0%_100%)]
