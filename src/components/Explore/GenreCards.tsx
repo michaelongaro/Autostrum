@@ -148,9 +148,8 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
       <div
         style={{
           backgroundColor: color,
-          transform: "translateZ(0)",
         }}
-        className="absolute inset-0 z-10 size-full overflow-hidden opacity-50 blur-sm lg:hidden"
+        className="absolute inset-0 z-10 size-full overflow-hidden opacity-40 lg:hidden"
       ></div>
 
       {/* z-index as fallback just in case for weird safari positioning */}
@@ -166,7 +165,8 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
       <Image
         src={image}
         alt={`${name} genre thumbnail`}
-        className="pointer-events-none absolute bottom-0 right-0 size-full select-none rounded-lg object-cover object-center opacity-75 grayscale lg:rounded-l-none lg:[clip-path:polygon(60%_0%,100%_0%,100%_100%,40%_100%)]"
+        // had to do some magic number positioning/width/clip-path to reduce visible 1px of bg color on right side of desktop card
+        className="pointer-events-none absolute bottom-0 right-[-1px] h-full w-[calc(100%+1px)] max-w-none select-none rounded-lg object-cover object-center opacity-75 grayscale lg:rounded-none lg:[clip-path:polygon(60%_0%,101%_0%,101%_100%,40%_100%)]"
       />
     </motion.div>
   );
