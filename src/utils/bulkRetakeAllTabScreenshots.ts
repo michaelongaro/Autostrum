@@ -6,6 +6,8 @@ import pLimit from "p-limit";
 import sharp from "sharp";
 import { PrismaPg } from "@prisma/adapter-pg";
 
+// FYI: command to run is: npx tsx src/utils/bulkRetakeAllTabScreenshots.ts
+
 const adapter = new PrismaPg({
   connectionString: env.DATABASE_URL,
 });
@@ -107,7 +109,7 @@ async function screenshotAndUpload(tab: { id: number; title: string }) {
     // Upload to S3
     const lightCommand = new PutObjectCommand({
       // FYI: always using npm start alongside this script, so manually toggle "-dev" when necessary
-      Bucket: `autostrum-screenshots-dev`,
+      Bucket: `autostrum-screenshots`,
       Key: `${tab.id}/light.jpeg`,
       Body: resizedLight,
       ContentType: "image/jpeg",
@@ -115,7 +117,7 @@ async function screenshotAndUpload(tab: { id: number; title: string }) {
 
     const darkCommand = new PutObjectCommand({
       // FYI: always using npm start alongside this script, so manually toggle "-dev" when necessary
-      Bucket: `autostrum-screenshots-dev`,
+      Bucket: `autostrum-screenshots`,
       Key: `${tab.id}/dark.jpeg`,
       Body: resizedDark,
       ContentType: "image/jpeg",
