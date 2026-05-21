@@ -29,15 +29,23 @@ html.disablePullToRefresh {
   overscroll-behavior: none;
 }
 
+.pageBackgroundGradient {
+  position: sticky;
+  top: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100dvh;
+  margin-bottom: -100dvh;
+  pointer-events: none;
+  align-self: stretch;
+}
+
 /* Keep the root background solid so Safari overscroll doesn't reveal the page gradient. */
 .pageBackgroundGradient::before,
 .pageBackgroundGradient::after {
   content: "";
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 100dvh;
+  position: absolute;
+  inset: 0;
   pointer-events: none;
 }
 

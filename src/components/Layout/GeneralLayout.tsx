@@ -19,9 +19,11 @@ interface GeneralLayout {
 function GeneralLayout({ children }: GeneralLayout) {
   return (
     <main
-      className={`${notoSans.className} pageBackgroundGradient baseVertFlex relative isolate min-h-[100dvh] !justify-between`}
+      className={`${notoSans.className} baseVertFlex relative isolate min-h-[100dvh] !justify-between`}
     >
       <GeneralLayoutStatefulShell />
+
+      <div aria-hidden="true" className="pageBackgroundGradient"></div>
 
       <AnimatePresence mode="wait">{children}</AnimatePresence>
 
