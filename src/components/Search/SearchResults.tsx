@@ -1601,7 +1601,7 @@ function SearchResults({
 
                         <div className="px-4">Difficulty</div>
 
-                        <div className="px-4">Genre</div>
+                        <div className="pl-8 pr-4">Genre</div>
 
                         <div className="px-4">Date</div>
 
@@ -1792,7 +1792,7 @@ function SearchResults({
 
                         <div className="px-4">Difficulty</div>
 
-                        <div className="px-4">Genre</div>
+                        <div className="pl-8 pr-4">Genre</div>
 
                         <div className="px-4"> Date</div>
 
