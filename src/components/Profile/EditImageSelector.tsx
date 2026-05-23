@@ -82,17 +82,27 @@ function EditImageSelector({
   async function onFileChange(
     e: React.ChangeEvent<HTMLInputElement>,
   ): Promise<void> {
-    if (e.target.files && e.target.files.length > 0 && e.target.files[0]) {
-      const file = e.target.files[0];
-      const imageDataUrl = await readFile(file);
+    const input = e.currentTarget;
+    const file = input.files?.[0];
 
-      if (isAboveLgViewport) {
-        setShowEditImageModal(true);
-      } else {
-        setDrawerIsOpen(!isAboveLgViewport);
-      }
-      setImageBeingEdited(imageDataUrl);
+    if (!file) {
+      return;
     }
+
+    // allows the same image to be re-uploaded if the editing modal/drawer
+    // is closed without saving, otherwise there is no "change" and this function
+    // is unable to be called again
+    input.value = "";
+
+    const imageDataUrl = await readFile(file);
+
+    if (isAboveLgViewport) {
+      setShowEditImageModal(true);
+    } else {
+      setDrawerIsOpen(true);
+    }
+
+    setImageBeingEdited(imageDataUrl);
   }
 
   function resetImageEditStates() {
