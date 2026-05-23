@@ -642,11 +642,7 @@ function RateTabInternals({
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.p
           key={`ratingDescription${hoveredRating ?? selectedRating ?? averageRating}`}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 20 }}
-          transition={{ duration: 0.15 }}
-          className="baseFlex gap-2 text-center opacity-80"
+          className="baseFlex gap-2 text-pretty text-center opacity-80"
         >
           {hoveredRating || selectedRating
             ? ratingDescriptions[
