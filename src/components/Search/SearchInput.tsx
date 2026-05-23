@@ -172,7 +172,8 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       >
         <Input
           ref={searchInputRef}
-          type="text"
+          type="search"
+          enterKeyHint="search"
           maxLength={50}
           placeholder={`Search for your favorite ${searchType === "songs" ? "songs" : "artists"}...`}
           showFocusState={false}
