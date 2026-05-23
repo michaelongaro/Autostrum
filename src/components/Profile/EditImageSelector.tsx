@@ -125,6 +125,7 @@ function EditImageSelector({
                 alt="User's profile image"
                 width={500}
                 height={500}
+                loading="eager"
                 onLoad={() => {
                   setTimeout(() => {
                     setProfileImageLoaded(true);
