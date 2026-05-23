@@ -1,4 +1,4 @@
-import React, {
+import {
   useState,
   useCallback,
   useEffect,
@@ -13,7 +13,6 @@ import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { X } from "lucide-react";
 
-// Helper to create an image element from a URL
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -29,7 +28,6 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
     image.src = url;
   });
 
-// Helper to convert degrees to radians
 function getRadianAngle(degreeValue: number): number {
   return (degreeValue * Math.PI) / 180;
 }
@@ -87,7 +85,7 @@ async function getCroppedImg(
 
   // 5. Extract the cropped image data from this canvas.
   //    `pixelCrop.x` and `pixelCrop.y` are coordinates relative to the top-left
-  //    of the rotated image view that `react-easy-crop` displays.
+  //    of the rotated image view that react-easy-crop displays.
   const data = ctx.getImageData(
     pixelCrop.x,
     pixelCrop.y,
