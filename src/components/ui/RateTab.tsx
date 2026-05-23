@@ -536,26 +536,17 @@ function RateTabInternals({
   return (
     <div className="baseVertFlex w-full gap-4 overflow-x-hidden">
       <div className="baseVertFlex w-full gap-2">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.div
-            key={`ratingTitle${hoveredRating ?? selectedRating ?? averageRating}`}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.15 }}
-            className="baseFlex gap-2 text-lg font-medium"
-          >
-            {hoveredRating || selectedRating
-              ? ratingTitles[
-                  hoveredRating
-                    ? hoveredRating - 1
-                    : selectedRating
-                      ? selectedRating - 1
-                      : averageRating - 1
-                ]
-              : "Rate this tab"}
-          </motion.div>
-        </AnimatePresence>
+        <div className="baseFlex gap-2 text-lg font-medium">
+          {hoveredRating || selectedRating
+            ? ratingTitles[
+                hoveredRating
+                  ? hoveredRating - 1
+                  : selectedRating
+                    ? selectedRating - 1
+                    : averageRating - 1
+              ]
+            : "Rate this tab"}
+        </div>
 
         <div className="baseFlex w-full">
           {[1, 2, 3, 4, 5].map((starValue) => {
@@ -580,58 +571,42 @@ function RateTabInternals({
                   setHoveredRating(null);
                   setSelectedRating(starValue);
                 }}
-                className="baseFlex !size-8 !shrink-0 cursor-pointer"
+                className="baseFlex !size-9 !shrink-0 cursor-pointer px-5"
               >
-                <AnimatePresence mode="popLayout" initial={false}>
-                  {!hoveredRating &&
-                  selectedRating &&
-                  selectedRating >= starValue ? (
-                    <motion.div
-                      key={`filled-star-${starValue}`}
-                      initial={{ scale: 0 }}
-                      animate={{
-                        scale: 1,
-                      }}
-                      exit={{ scale: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      onMouseEnter={() => {
-                        if (selectedRating && selectedRating >= starValue)
-                          return;
-                        setHoveredRating(starValue);
-                      }}
-                      onMouseLeave={() => {
-                        if (selectedRating && selectedRating >= starValue)
-                          return;
+                {!hoveredRating &&
+                selectedRating &&
+                selectedRating >= starValue ? (
+                  <div
+                    onMouseEnter={() => {
+                      if (selectedRating && selectedRating >= starValue) return;
+                      setHoveredRating(starValue);
+                    }}
+                    onMouseLeave={() => {
+                      if (selectedRating && selectedRating >= starValue) return;
 
-                        setHoveredRating(null);
-                      }}
-                      onClick={() => {
-                        setSelectedRating(starValue);
-                      }}
-                      className="baseFlex"
-                    >
-                      <FaStar className="!size-8 !shrink-0 text-yellow-500" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key={`outline-star-${starValue}`}
-                      initial={{ opacity: 0 }}
-                      animate={{
-                        opacity: 1,
-                        color: hoveredRating
-                          ? hoveredRating >= starValue
-                            ? "#eab308"
-                            : "#78716c"
-                          : "#78716c",
-                      }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="baseFlex"
-                    >
-                      <FaRegStar className="!size-8 !shrink-0" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      setHoveredRating(null);
+                    }}
+                    onClick={() => {
+                      setSelectedRating(starValue);
+                    }}
+                    className="baseFlex"
+                  >
+                    <FaStar className="!size-9 !shrink-0 text-yellow-500" />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      color: hoveredRating
+                        ? hoveredRating >= starValue
+                          ? "#eab308"
+                          : "#78716c"
+                        : "#78716c",
+                    }}
+                    className="baseFlex"
+                  >
+                    <FaRegStar className="!size-9 !shrink-0" />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -639,22 +614,17 @@ function RateTabInternals({
       </div>
 
       {/* description of hovered rating */}
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.p
-          key={`ratingDescription${hoveredRating ?? selectedRating ?? averageRating}`}
-          className="baseFlex gap-2 text-pretty text-center opacity-80"
-        >
-          {hoveredRating || selectedRating
-            ? ratingDescriptions[
-                hoveredRating
-                  ? hoveredRating - 1
-                  : selectedRating
-                    ? selectedRating - 1
-                    : averageRating - 1
-              ]
-            : "Let others know the quality of this tab. Your rating will be visible to all users."}
-        </motion.p>
-      </AnimatePresence>
+      <p className="baseFlex gap-2 text-pretty text-center opacity-80">
+        {hoveredRating || selectedRating
+          ? ratingDescriptions[
+              hoveredRating
+                ? hoveredRating - 1
+                : selectedRating
+                  ? selectedRating - 1
+                  : averageRating - 1
+            ]
+          : "Let others know the quality of this tab. Your rating will be visible to all users."}
+      </p>
 
       <AnimatePresence mode="wait" initial={false}>
         {showThankYouMessage ? (
