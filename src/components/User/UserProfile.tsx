@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
 import SearchResults from "~/components/Search/SearchResults";
@@ -52,7 +52,6 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
   const isAboveLargeViewport = useViewportWidthBreakpoint(1024);
-  const isAbove2XlViewport = useViewportWidthBreakpoint(1536);
 
   const [mobileHeaderCarouselApi, setMobileHeaderCarouselApi] =
     useState<CarouselApi>();
@@ -126,16 +125,15 @@ function UserProfile({ uniqueKey }: UserProfile) {
               transition={{ duration: 0.25 }}
               className="baseVertFlex w-full gap-4 px-2 lg:!flex-row lg:!items-end lg:!justify-between lg:px-0"
             >
-              <div className="baseVertFlex mt-[11px] !items-start gap-2 text-foreground">
+              <div className="baseVertFlex !items-start gap-2 text-foreground">
                 <p>User</p>
 
-                <div className="baseFlex mt-[3px] gap-2">
+                <div className="baseFlex h-[40px] gap-2">
                   <div className="pulseAnimation size-9 rounded-full bg-foreground/50 md:size-10"></div>
-
-                  <div className="pulseAnimation h-[38px] w-36 rounded-md bg-foreground/50"></div>
+                  <div className="pulseAnimation h-[34px] w-36 rounded-md bg-foreground/50"></div>
                 </div>
 
-                <div className="baseVertFlex mt-[20px] !items-start gap-2 font-medium sm:text-lg lg:pb-0 2xl:hidden">
+                <div className="baseVertFlex mt-4 !items-start gap-2 font-medium sm:text-lg lg:pb-0 2xl:hidden">
                   <div className="baseFlex w-full !justify-between gap-16">
                     <div className="baseFlex gap-2">
                       <BsMusicNoteBeamed className="size-4 sm:size-5" />
@@ -170,12 +168,12 @@ function UserProfile({ uniqueKey }: UserProfile) {
                 </div>
 
                 <div className="baseFlex !hidden flex-wrap !justify-start gap-4 font-medium sm:text-lg 2xl:!flex">
-                  <div className="baseFlex gap-2">
+                  <div className="baseFlex gap-8">
                     <div className="baseFlex gap-2">
                       <BsMusicNoteBeamed className="size-4 sm:size-5" />
                       <span>Total tabs</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-foreground/50"></div>
+                    <div className="pulseAnimation h-5 w-10 rounded-md bg-foreground/50"></div>
                   </div>
 
                   <Separator
@@ -183,12 +181,12 @@ function UserProfile({ uniqueKey }: UserProfile) {
                     className="h-8 w-[1px] bg-foreground/50"
                   />
 
-                  <div className="baseFlex gap-2">
+                  <div className="baseFlex gap-8">
                     <div className="baseFlex gap-2">
                       <FaEye className="size-4 sm:size-5" />
                       <span>Total views</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-foreground/50"></div>
+                    <div className="pulseAnimation h-5 w-10 rounded-md bg-foreground/50"></div>
                   </div>
 
                   <Separator
@@ -196,12 +194,12 @@ function UserProfile({ uniqueKey }: UserProfile) {
                     className="h-8 w-[1px] bg-foreground/50"
                   />
 
-                  <div className="baseFlex gap-2">
+                  <div className="baseFlex gap-8">
                     <div className="baseFlex gap-2">
                       <FaStar className="size-4 sm:size-5" />
                       <span>Average rating</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-foreground/50"></div>
+                    <div className="pulseAnimation h-5 w-10 rounded-md bg-foreground/50"></div>
                   </div>
 
                   <Separator
@@ -209,19 +207,19 @@ function UserProfile({ uniqueKey }: UserProfile) {
                     className="h-8 w-[1px] bg-foreground/50"
                   />
 
-                  <div className="baseFlex gap-2">
+                  <div className="baseFlex gap-8">
                     <div className="baseFlex gap-2">
                       <IoBookmark className="size-4 sm:size-5" />
                       <span>Bookmarks received</span>
                     </div>
-                    <div className="pulseAnimation h-5 w-12 rounded-md bg-foreground/50"></div>
+                    <div className="pulseAnimation h-5 w-10 rounded-md bg-foreground/50"></div>
                   </div>
                 </div>
               </div>
 
-              <div className="baseFlex mt-[20px] gap-2 lg:hidden">
-                <div className="h-2 w-8 rounded-full bg-accent" />
-                <div className="h-2 w-8 rounded-full bg-foreground" />
+              <div className="baseFlex mt-[10px] gap-2 lg:hidden">
+                <div className="h-2 w-8 rounded-full bg-primary" />
+                <div className="h-2 w-8 rounded-full bg-primary/50" />
               </div>
 
               <div className="pulseAnimation hidden h-[94px] w-[330px] rounded-md bg-foreground/50 lg:block"></div>
@@ -236,7 +234,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
               className="baseFlex w-full"
             >
               {/* mobile <Carousel> layout */}
-              {!isAboveLargeViewport && !isAbove2XlViewport && (
+              {!isAboveLargeViewport && (
                 <div className="baseVertFlex w-full gap-4 px-2">
                   <Carousel
                     setApi={setMobileHeaderCarouselApi}
@@ -299,7 +297,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                                   50,
                                 ),
                               }}
-                              className="baseFlex font-semibold tracking-tight md:left-8 md:top-14"
+                              className="baseFlex font-semibold leading-[40px] tracking-tight md:left-8 md:top-14"
                             >
                               {userMetadata
                                 ? userMetadata.user.username
@@ -371,10 +369,9 @@ function UserProfile({ uniqueKey }: UserProfile) {
 
                       <CarouselItem className="baseFlex">
                         {/* user's pinned tab / placeholder */}
-                        {(userMetadata === null ||
-                          userMetadata?.pinnedTab === null) && (
+                        {userMetadata?.pinnedTab === null && (
                           <div className="baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2 bg-secondary-active/50">
-                            <TbPinned className="size-5" />
+                            <TbPinned className="size-[22px]" />
                             No active pinned tab
                           </div>
                         )}
@@ -409,147 +406,8 @@ function UserProfile({ uniqueKey }: UserProfile) {
                 </div>
               )}
 
-              {/* > lg but < 2xl */}
-              {isAboveLargeViewport && !isAbove2XlViewport && (
-                <div className="baseFlex w-full !items-end !justify-between gap-4">
-                  <div className="baseVertFlex !items-start gap-2">
-                    <div className="baseFlex gap-1">User</div>
-
-                    <div className="baseFlex gap-2">
-                      <div className="grid shrink-0 grid-cols-1 grid-rows-1">
-                        {userMetadata ? (
-                          <Image
-                            src={userMetadata.user.profileImageUrl}
-                            alt={`${userMetadata.user.username}'s profile picture`}
-                            width={300} // TODO: tweak this
-                            height={300} // TODO: tweak this
-                            onLoad={() => {
-                              setTimeout(() => {
-                                setUserScreenshotLoaded(true);
-                              }, 100); // unsure if this is necessary, but it felt too flickery without it
-                            }}
-                            style={{
-                              opacity: userScreenshotLoaded ? 1 : 0,
-                              transition: "opacity 0.3s ease-in-out",
-                            }}
-                            className="col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full object-cover object-center"
-                          />
-                        ) : (
-                          <div className="baseFlex size-10">
-                            <FaUser className="size-6" />
-                          </div>
-                        )}
-
-                        <AnimatePresence>
-                          {!userScreenshotLoaded && userMetadata && (
-                            <motion.div
-                              key={"gridTabCardSkeletonImageLoader-lg"}
-                              initial={{ opacity: 1 }}
-                              animate={{ opacity: 0 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full bg-foreground/50"
-                            ></motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-
-                      <h1
-                        style={{
-                          fontSize: getDynamicFontSize(
-                            userMetadata
-                              ? userMetadata.user.username
-                              : (query.username as string),
-                            26,
-                            36,
-                            30,
-                          ),
-                        }}
-                        className="baseFlex left-8 top-14 font-semibold tracking-tight"
-                      >
-                        {userMetadata
-                          ? userMetadata.user.username
-                          : query.username}
-                      </h1>
-                    </div>
-
-                    <div className="baseVertFlex mt-4 !items-start gap-2 font-medium sm:text-lg 2xl:hidden">
-                      <div className="baseFlex w-full !justify-between gap-16">
-                        <div className="baseFlex gap-2">
-                          <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                          <span>Total tabs</span>
-                        </div>
-                        <span className="w-12 text-end">
-                          {formatNumber(
-                            userMetadata ? userMetadata.user.totalTabs : 0,
-                          )}
-                        </span>
-                      </div>
-
-                      <div className="baseFlex w-full !justify-between gap-16">
-                        <div className="baseFlex gap-2">
-                          <FaEye className="size-4 sm:size-5" />
-                          <span>Total views</span>
-                        </div>
-                        <span className="w-12 text-end">
-                          {formatNumber(
-                            userMetadata ? userMetadata.user.totalTabViews : 0,
-                          )}
-                        </span>
-                      </div>
-
-                      <div className="baseFlex w-full !justify-between gap-16">
-                        <div className="baseFlex gap-2">
-                          <FaStar className="size-4 sm:size-5" />
-                          <span>Average rating</span>
-                        </div>
-                        <span className="w-12 text-end">
-                          {userMetadata
-                            ? userMetadata.user.totalTabRatings > 0
-                              ? userMetadata.user.averageTabRating.toFixed(1)
-                              : "-"
-                            : "-"}
-                        </span>
-                      </div>
-
-                      <div className="baseFlex w-full !justify-between gap-16">
-                        <div className="baseFlex gap-2">
-                          <IoBookmark className="size-4 sm:size-5" />
-                          <span>Bookmarks received</span>
-                        </div>
-                        <span className="w-12 text-end">
-                          {formatNumber(
-                            userMetadata
-                              ? userMetadata.user.totalBookmarksReceived
-                              : 0,
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* user's pinned tab / placeholder */}
-                  {(userMetadata === null ||
-                    userMetadata?.pinnedTab === null) && (
-                    <div className="baseVertFlex h-[94px] w-[280px] gap-2 rounded-md border-2 bg-secondary-active/50">
-                      <TbPinned className="size-5" />
-                      No active pinned tab
-                    </div>
-                  )}
-                  {userMetadata?.pinnedTab && (
-                    <GridTabCard
-                      minimalTab={userMetadata.pinnedTab}
-                      currentUser={currentUser}
-                      pinnedTabType={"full"}
-                      color={color}
-                      theme={theme}
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* > 2xl */}
-              {isAbove2XlViewport && (
+              {/* >= lg */}
+              {isAboveLargeViewport && (
                 <div className="baseFlex w-full !items-end !justify-between gap-4">
                   <div className="baseVertFlex !items-start gap-2">
                     User
@@ -592,7 +450,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                         </AnimatePresence>
                       </div>
 
-                      <h1 className="baseFlex left-8 top-14 text-4xl font-semibold tracking-tight">
+                      <h1 className="baseFlex left-8 top-14 text-4xl font-semibold leading-[40px] tracking-tight">
                         {userMetadata
                           ? userMetadata.user.username
                           : query.username}
@@ -669,23 +527,24 @@ function UserProfile({ uniqueKey }: UserProfile) {
                   </div>
 
                   {/* user's pinned tab / placeholder */}
-                  {(userMetadata === null ||
-                    userMetadata?.pinnedTab === null) && (
-                    <div className="baseVertFlex h-[94px] w-[330px] gap-2 rounded-md border-2 bg-secondary-active/50">
-                      <TbPinned className="size-5" />
-                      No active pinned tab
-                    </div>
-                  )}
+                  <div className="w-[330px] min-w-[330px]">
+                    {userMetadata?.pinnedTab === null && (
+                      <div className="baseVertFlex h-[94px] w-[330px] gap-2 rounded-md border-2 bg-secondary-active/50">
+                        <TbPinned className="size-5" />
+                        No active pinned tab
+                      </div>
+                    )}
 
-                  {userMetadata?.pinnedTab && (
-                    <GridTabCard
-                      minimalTab={userMetadata.pinnedTab}
-                      currentUser={currentUser}
-                      pinnedTabType={"withoutScreenshot"}
-                      color={color}
-                      theme={theme}
-                    />
-                  )}
+                    {userMetadata?.pinnedTab && (
+                      <GridTabCard
+                        minimalTab={userMetadata.pinnedTab}
+                        currentUser={currentUser}
+                        pinnedTabType={"withoutScreenshot"}
+                        color={color}
+                        theme={theme}
+                      />
+                    )}
+                  </div>
                 </div>
               )}
             </motion.div>
