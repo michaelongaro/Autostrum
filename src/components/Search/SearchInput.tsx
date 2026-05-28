@@ -153,7 +153,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         ease: "easeOut",
         duration: 0.35,
       }}
-      className="baseFlex relative mt-0.5 max-w-lg rounded-md bg-background tablet:mt-0"
+      className="baseFlex relative z-50 max-w-lg bg-background py-0.5 tablet:mt-0"
     >
       {isAboveLgViewportWidth === false && (
         <Button
