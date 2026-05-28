@@ -1842,18 +1842,14 @@ function SearchResults({
                         transition={{ duration: 0.25 }}
                         className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
                       >
-                        <div className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 text-xl text-primary-foreground shadow-md">
-                          <div className="baseVertFlex gap-4">
-                            <Binoculars className="size-9" />
-                            No tabs found
+                        <div className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 shadow-md">
+                          <div className="baseVertFlex gap-2 sm:gap-3">
+                            <Binoculars className="size-7 sm:size-9" />
+                            <p className="text-lg sm:text-xl">No tabs found</p>
                           </div>
 
                           {relatedArtists.length === 0 ? (
-                            <Button
-                              variant={"outline"}
-                              asChild
-                              className="baseFlex"
-                            >
+                            <Button asChild className="baseFlex">
                               <Link
                                 prefetch={false}
                                 href={"/create"}
@@ -1863,8 +1859,8 @@ function SearchResults({
                                 }}
                                 className="baseFlex gap-2"
                               >
+                                <BsPlus className="size-5" />
                                 Create the first tab for this artist
-                                <BsPlus className="size-4" />
                               </Link>
                             </Button>
                           ) : (

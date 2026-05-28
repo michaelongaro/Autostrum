@@ -6,10 +6,10 @@ import Binoculars from "~/components/ui/icons/Binoculars";
 
 interface NoResultsFound {
   customKey: string;
-  searchQueryExists: boolean;
+  searchQuery?: string;
 }
 
-function NoResultsFound({ customKey, searchQueryExists }: NoResultsFound) {
+function NoResultsFound({ customKey, searchQuery }: NoResultsFound) {
   return (
     <motion.div
       key={customKey}
@@ -19,12 +19,19 @@ function NoResultsFound({ customKey, searchQueryExists }: NoResultsFound) {
       transition={{ duration: 0.25 }}
       className="baseVertFlex gap-4 rounded-md border bg-secondary-active/50 px-8 py-4 text-xl shadow-lg transition-all"
     >
-      <div className="baseVertFlex gap-2 sm:gap-3">
-        <Binoculars className="size-7 sm:size-9" />
-        <span className="text-lg sm:text-xl">No results found</span>
+      <div className="baseVertFlex">
+        <Binoculars className="mb-2 size-7 sm:mb-3 sm:size-9" />
+        <span className="text-lg sm:text-xl">
+          No results found {searchQuery ? "for" : ""}
+        </span>
+        {searchQuery && (
+          <span className="text-lg sm:text-xl">
+            &quot; {decodeURIComponent(searchQuery)} &quot;
+          </span>
+        )}
       </div>
 
-      {searchQueryExists && (
+      {searchQuery && (
         <Button asChild>
           <Link prefetch={false} href="/create" className="baseFlex gap-1.5">
             <BsPlus className="size-5" />

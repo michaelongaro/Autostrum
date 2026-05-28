@@ -157,7 +157,7 @@ function GridTabView({
           <div className="baseFlex grow">
             <NoResultsFound
               customKey={"gridTabViewNoResults"}
-              searchQueryExists={Boolean(searchQuery)}
+              searchQuery={searchQuery}
             />
           </div>
         )}

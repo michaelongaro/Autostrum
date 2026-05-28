@@ -251,7 +251,7 @@ function TableTabView({
           <div className="baseFlex grow">
             <NoResultsFound
               customKey={"tableTabViewNoResults"}
-              searchQueryExists={Boolean(searchQuery)}
+              searchQuery={searchQuery}
             />
           </div>
         )}
