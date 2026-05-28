@@ -119,18 +119,18 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               <div className="baseFlex gap-4 font-medium sm:text-lg">
                 <div className="baseFlex">
                   <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <div className="pulseAnimation ml-2 mr-1 h-5 w-8 rounded-md bg-foreground/50"></div>
+                  <div className="pulseAnimation ml-3 mr-2 h-5 w-8 rounded-md bg-foreground/50"></div>
                   <span>Songs</span>
                 </div>
 
                 <Separator
                   orientation="vertical"
-                  className="h-6 w-[1px] opacity-50"
+                  className="h-6 w-[1px] bg-foreground/50"
                 />
 
                 <div className="baseFlex">
                   <FaEye className="size-4 sm:size-5" />
-                  <div className="pulseAnimation ml-2 mr-1 h-5 w-10 rounded-md bg-foreground/50"></div>
+                  <div className="pulseAnimation ml-3 mr-2 h-5 w-10 rounded-md bg-foreground/50"></div>
                   <span>Views</span>
                 </div>
               </div>
@@ -170,7 +170,7 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               <div className="baseFlex gap-4 font-medium sm:text-lg">
                 <div className="baseFlex">
                   <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <span className="ml-2 mr-1">
+                  <span className="ml-3 mr-2">
                     {artist ? artist.totalTabs : 0}
                   </span>
                   <span>
@@ -184,12 +184,12 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
 
                 <Separator
                   orientation="vertical"
-                  className="h-6 w-[1px] opacity-50"
+                  className="h-6 w-[1px] bg-foreground/50"
                 />
 
                 <div className="baseFlex">
                   <FaEye className="size-4 sm:size-5" />
-                  <span className="ml-2 mr-1">
+                  <span className="ml-3 mr-2">
                     {artist ? artist.totalViews : 0}
                   </span>
                   <span>
