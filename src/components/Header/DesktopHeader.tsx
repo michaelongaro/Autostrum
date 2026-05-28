@@ -54,7 +54,10 @@ function DesktopHeader() {
       className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full bg-header shadow-md shadow-primary/20"
     >
       <div className={classes.desktopHeader}>
-        <Link href={"/"} className={`${classes.logo} shrink-0`}>
+        <Link
+          href={"/"}
+          className={`${classes.logo} shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/70`}
+        >
           <Image
             src={LOGO_PATHS_WITH_TITLE[color]}
             alt="Autostrum header logo"
@@ -62,7 +65,7 @@ function DesktopHeader() {
               filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
             }}
             width={175}
-            height={100}
+            height={28}
             priority
           />
         </Link>
