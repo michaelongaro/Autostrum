@@ -1808,8 +1808,8 @@ function SearchResults({
         )}
 
         {/* search results body */}
-        <div className="size-full !border-t-0 border-b bg-background shadow-lg md:rounded-b-lg md:border">
-          <AnimatePresence mode="popLayout">
+        <AnimatePresence mode="popLayout">
+          <div className="size-full !border-t-0 border-b bg-background shadow-lg md:rounded-b-lg md:border">
             {renderSearch404 ? (
               <Render404Page
                 layoutType={layoutType.value as "grid" | "table"}
@@ -1968,8 +1968,8 @@ function SearchResults({
                 )}
               </Fragment>
             )}
-          </AnimatePresence>
-        </div>
+          </div>
+        </AnimatePresence>
       </div>
     </div>
   );
