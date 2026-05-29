@@ -744,7 +744,7 @@ function SearchResults({
                       exit="closed"
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="pulseAnimation h-6 w-36 rounded-md"></div>
+                      <div className="pulseAnimation h-6 w-36 rounded-md !bg-primary-foreground/35"></div>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -1640,7 +1640,7 @@ function SearchResults({
                         duration: 0.3,
                       }}
                     >
-                      <div className="pulseAnimation h-6 w-48 rounded-md"></div>
+                      <div className="pulseAnimation h-6 w-48 rounded-md !bg-primary-foreground/35"></div>
                     </motion.div>
                   ) : (
                     <motion.div
