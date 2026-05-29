@@ -465,7 +465,7 @@ function TunerPanel({
             </div>
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-2 px-4 lg:flex lg:w-auto lg:gap-4">
+          <div className="grid w-full grid-cols-2 gap-2 px-4 lg:hidden">
             {isListening ? (
               <Button
                 size="sm"

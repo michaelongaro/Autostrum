@@ -78,7 +78,7 @@ function PlaybackTunerDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="baseVertFlex h-dvh w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-0 p-0 sm:h-auto sm:w-[calc(100vw-4rem)]">
+      <DialogContent className="baseVertFlex h-[85dvh] max-h-[85dvh] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-x-0 border-y p-0 xs:border-y-0 sm:h-auto sm:w-[calc(100vw-4rem)]">
         <DialogHeader className="sr-only">
           <DialogTitle>Guitar Tuner</DialogTitle>
           <DialogDescription>
