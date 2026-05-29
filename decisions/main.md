@@ -95,3 +95,6 @@ Previously I used an inefficient method of virtualizing the positions of the exp
 
 **Automatic insertion of measure lines**  
 It would be convenient to have measure lines inserted automatically rather than requiring the tab creator to add them manually. However, for the measure lines to be placed accurately, the total note lengths in each bar would need to precisely match the intended number of beats. I hesitate to enforce this restriction on the tab creator, as it would likely introduce more inconvenience than benefit.
+
+**Tab screenshot preview caching strategy**  
+Previously we were calling the `getTabScreenshot` API route on every mount of a new `<GridTabCard/>`, storing the base64 string in light and dark states. This meant that every swap between grid and table view caused another skeleton loading state while the image was refetched and converted into base64. The new approach uses proper browser level image caching and a Set for quick lookup of existing cache keys/values. Cache keys are a template string of `${tabId}:${theme}:${version}` with the version being the updatedAt field on the tab. A Cache-Control header is set on the screenshot API response to keep the image for the maximum `max-age` value.
