@@ -255,13 +255,13 @@ function TunerPanel({
             <div className="baseVertFlex w-full rounded-md p-3 lg:p-5">
               <div className="relative h-[230px] w-full lg:h-[280px]">
                 <div className="baseVertFlex w-full gap-4">
-                  <p className="font-semibold text-foreground">
+                  <div className="font-semibold text-foreground">
                     <PrettyNote
                       note={formatNoteLabel(currentTarget)}
                       displayWithFlex={true}
                       showScientificPitchNotation={true}
                     />
-                  </p>
+                  </div>
                   <div className="baseFlex gap-2">
                     <div className="baseFlex w-20">
                       {currentMicFrequencyLabel}
@@ -401,7 +401,7 @@ function TunerPanel({
           </div>
 
           <div className="baseVertFlex w-full md:px-6">
-            <div className="grid w-full grid-cols-6 gap-1 bg-secondary px-3 py-2 shadow-inner md:rounded-md lg:gap-2 lg:px-2">
+            <div className="grid w-full grid-cols-6 gap-1 px-3 py-2 md:rounded-md lg:gap-2 lg:px-2">
               {targetNotes.map((note, index) => {
                 const selected = index === currentTargetIndex;
                 const tuned = completed || index < currentTargetIndex;
@@ -521,7 +521,7 @@ function TunerPanel({
                 ))}
               </div>
 
-              <div className="relative mt-0 h-[180px] w-full rounded-md border bg-secondary px-4 py-6">
+              <div className="relative mt-0 h-[180px] w-full rounded-md bg-secondary px-4 py-6">
                 <motion.div
                   className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
                   animate={{
