@@ -24,10 +24,22 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   const { id, theme } = req.query;
+  const tabId = Array.isArray(id) ? id[0] : id;
+  const screenshotTheme = Array.isArray(theme) ? theme[0] : theme;
+
+  if (!tabId || !screenshotTheme) {
+    res.status(400).end();
+    return;
+  }
+
+  if (screenshotTheme !== "light" && screenshotTheme !== "dark") {
+    res.status(400).end();
+    return;
+  }
 
   const command = new GetObjectCommand({
     Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-    Key: `${id as string}/${theme as string}.jpeg`,
+    Key: `${tabId}/${screenshotTheme}.jpeg`,
   });
   const url = await getSignedUrl(s3, command, { expiresIn: 15 * 60 });
 
@@ -41,7 +53,9 @@ export default async function handler(
       res.status(response.status).end();
       return;
     }
+
     res.setHeader("Content-Type", "image/jpeg");
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
     (response.data as Readable).pipe(res);
   } catch (e) {
     console.error(e);

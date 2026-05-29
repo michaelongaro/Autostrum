@@ -18,6 +18,7 @@ interface RawFtsTabResult {
   title: string;
   genre: string;
   createdAt: Date;
+  updatedAt: Date;
   difficulty: number;
   averageRating: number;
   ratingsCount: number;
@@ -46,6 +47,7 @@ export interface MinimalTabRepresentation {
   title: string;
   genre: string;
   createdAt: Date;
+  updatedAt: Date;
   difficulty: number;
   averageRating: number;
   ratingsCount: number;
@@ -78,6 +80,7 @@ export const searchRouter = createTRPCRouter({
           title: true,
           genre: true,
           createdAt: true,
+          updatedAt: true,
           difficulty: true,
           averageRating: true,
           ratingsCount: true,
@@ -197,6 +200,7 @@ export const searchRouter = createTRPCRouter({
         title: true,
         genre: true,
         createdAt: true,
+        updatedAt: true,
         difficulty: true,
         averageRating: true,
         ratingsCount: true,
@@ -224,6 +228,7 @@ export const searchRouter = createTRPCRouter({
         title: true,
         genre: true,
         createdAt: true,
+        updatedAt: true,
         difficulty: true,
         averageRating: true,
         ratingsCount: true,
@@ -508,7 +513,7 @@ export const searchRouter = createTRPCRouter({
 
         const selectFields = Prisma.sql`
           "Tab"."id", "Tab"."title", "Tab"."genre",
-          "Tab"."createdAt", "Tab"."difficulty",
+          "Tab"."createdAt", "Tab"."updatedAt", "Tab"."difficulty",
           "Tab"."averageRating", "Tab"."ratingsCount",
           "Tab"."artistId",
           "Artist"."name" AS "artistName",
@@ -549,6 +554,7 @@ export const searchRouter = createTRPCRouter({
             title: row.title,
             genre: row.genre,
             createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
             difficulty: row.difficulty,
             averageRating: row.averageRating,
             ratingsCount: row.ratingsCount,
@@ -670,6 +676,7 @@ export const searchRouter = createTRPCRouter({
                 title: true,
                 genre: true,
                 createdAt: true,
+                updatedAt: true,
                 difficulty: true,
                 averageRating: true,
                 ratingsCount: true,
@@ -740,7 +747,9 @@ export const searchRouter = createTRPCRouter({
                 : aBookmark.getTime() - bBookmark.getTime(); // Sort in ascending order
             });
             // Remove the bookmarks field from the sanitized tabs since we don't need it anymore
-            sanitizedTabs = sanitizedTabs.map(({ bookmarks, ...rest }) => rest);
+            sanitizedTabs = sanitizedTabs.map(
+              ({ bookmarks: _bookmarks, ...rest }) => rest,
+            );
           }
 
           return {

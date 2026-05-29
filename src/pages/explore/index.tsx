@@ -287,6 +287,7 @@ export const getStaticProps: GetStaticProps = async () => {
       title: true,
       genre: true,
       createdAt: true,
+      updatedAt: true,
       difficulty: true,
       averageRating: true,
       ratingsCount: true,

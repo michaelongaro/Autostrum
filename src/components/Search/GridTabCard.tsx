@@ -23,6 +23,28 @@ import Verified from "~/components/ui/icons/Verified";
 import type { COLORS, THEME } from "~/stores/TabStore";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
+const loadedTabScreenshotKeys = new Set<string>();
+
+function getTabScreenshotVersion(updatedAt: unknown) {
+  if (updatedAt instanceof Date) {
+    return updatedAt.toISOString();
+  }
+
+  return new Date(String(updatedAt)).toISOString();
+}
+
+function getTabScreenshotCacheKey(
+  tabId: number,
+  theme: THEME,
+  version: string,
+) {
+  return `${tabId}:${theme}:${version}`;
+}
+
+function getTabScreenshotSrc(tabId: number, theme: THEME, version: string) {
+  return `/api/getTabScreenshot/${tabId}/${theme}?v=${encodeURIComponent(version)}`;
+}
+
 interface GridTabCard {
   minimalTab: MinimalTabRepresentation;
   currentUser: UserMetadata | null | undefined;
@@ -46,72 +68,25 @@ function GridTabCard({
 }: GridTabCard) {
   const { query, asPath } = useRouter();
 
-  const [tabScreenshotLight, setTabScreenshotLight] = useState<string>();
-  const [tabScreenshotDark, setTabScreenshotDark] = useState<string>();
-
-  // TODO: likley need light and dark versions of this
-  const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(false);
-  const [isPressingOnScreenshot, setIsPressingOnScreenshot] = useState(false);
-
   const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
+  const screenshotVersion = getTabScreenshotVersion(minimalTab.updatedAt);
+  const screenshotCacheKey = getTabScreenshotCacheKey(
+    minimalTab.id,
+    theme,
+    screenshotVersion,
+  );
+  const screenshotSrc = getTabScreenshotSrc(
+    minimalTab.id,
+    theme,
+    screenshotVersion,
+  );
+  const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(() =>
+    loadedTabScreenshotKeys.has(screenshotCacheKey),
+  );
 
   useEffect(() => {
-    if (tabScreenshotLight || theme === "dark") return;
-
-    setTabScreenshotLoaded(false);
-
-    const fetchImage = async () => {
-      try {
-        const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}/light`);
-        if (!res.ok) {
-          console.error("Failed to fetch image");
-          return;
-        }
-        const blob = await res.blob();
-
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = function () {
-          if (typeof reader?.result === "string") {
-            setTabScreenshotLight(reader.result);
-          }
-        };
-      } catch (error) {
-        console.error("Error fetching image:", error, minimalTab.id);
-      }
-    };
-
-    void fetchImage();
-  }, [tabScreenshotLight, minimalTab.id, theme]);
-
-  useEffect(() => {
-    if (tabScreenshotDark || theme === "light") return;
-
-    setTabScreenshotLoaded(false);
-
-    const fetchImage = async () => {
-      try {
-        const res = await fetch(`/api/getTabScreenshot/${minimalTab.id}/dark`);
-        if (!res.ok) {
-          console.error("Failed to fetch image");
-          return;
-        }
-        const blob = await res.blob();
-
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = function () {
-          if (typeof reader?.result === "string") {
-            setTabScreenshotDark(reader.result);
-          }
-        };
-      } catch (error) {
-        console.error("Error fetching image:", error, minimalTab.id);
-      }
-    };
-
-    void fetchImage();
-  }, [tabScreenshotDark, minimalTab.id, theme]);
+    setTabScreenshotLoaded(loadedTabScreenshotKeys.has(screenshotCacheKey));
+  }, [screenshotCacheKey]);
 
   function allowedToRenderArtistLink() {
     const isArtistPage = asPath.includes("/artist");
@@ -180,48 +155,37 @@ function GridTabCard({
           >
             {/* tab preview screenshot */}
             <div
-              onTouchStart={() => setIsPressingOnScreenshot(true)}
-              onTouchEnd={() => setIsPressingOnScreenshot(false)}
-              onTouchCancel={() => setIsPressingOnScreenshot(false)}
               style={{
                 width: getDynamicWidth(),
                 height: getDynamicHeight(),
               }}
               className="relative grid grid-cols-1 grid-rows-1 border-b"
             >
-              {((theme === "light" && tabScreenshotLight) ||
-                (theme === "dark" && tabScreenshotDark)) && (
-                <>
-                  <Image
-                    src={
-                      theme === "light"
-                        ? tabScreenshotLight!
-                        : tabScreenshotDark!
-                    }
-                    alt={`screenshot of ${minimalTab.title}`}
-                    fill
-                    sizes={`${getDynamicWidth()}px`} // harmless with data URLs; keeps types happy
-                    unoptimized={true}
-                    onLoad={() => {
-                      setTimeout(() => {
-                        setTabScreenshotLoaded(true);
-                      }, 100); // unsure if this is necessary, but it felt too flickery without it
-                    }}
-                    style={{
-                      opacity: tabScreenshotLoaded ? 1 : 0,
-                      transition: "opacity 0.3s ease-in-out",
-                    }}
-                    className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
-                  />
+              <>
+                <Image
+                  src={screenshotSrc}
+                  alt={`screenshot of ${minimalTab.title}`}
+                  fill
+                  sizes={`${getDynamicWidth()}px`}
+                  unoptimized={true}
+                  onLoad={() => {
+                    loadedTabScreenshotKeys.add(screenshotCacheKey);
+                    setTabScreenshotLoaded(true);
+                  }}
+                  style={{
+                    opacity: tabScreenshotLoaded ? 1 : 0,
+                    transition: "opacity 0.3s ease-in-out",
+                  }}
+                  className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
+                />
 
-                  <div
-                    style={{
-                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / ${theme === "light" ? 0.8 : 0.35})`,
-                    }}
-                    className="absolute inset-0 z-10 size-full mix-blend-color"
-                  ></div>
-                </>
-              )}
+                <div
+                  style={{
+                    backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / ${theme === "light" ? 0.8 : 0.35})`,
+                  }}
+                  className="absolute inset-0 z-10 size-full mix-blend-color"
+                ></div>
+              </>
 
               <AnimatePresence>
                 {!tabScreenshotLoaded && (
