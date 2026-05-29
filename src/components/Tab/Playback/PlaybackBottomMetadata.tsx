@@ -24,7 +24,6 @@ import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSecti
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
-import TuningFork from "~/components/ui/icons/TuningFork";
 import { Label } from "~/components/ui/label";
 import {
   Popover,
@@ -55,6 +54,7 @@ import {
 import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
 import { IoMdSettings } from "react-icons/io";
+import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
 
 interface PlaybackBottomMetadata {
   loopRange: [number, number];
@@ -140,9 +140,7 @@ function PlaybackBottomMetadata({
                   {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
                 </div>
 
-                <Button variant={"outline"} className="size-9 !p-0">
-                  <TuningFork className="size-4" />
-                </Button>
+                <PlaybackTunerDialog />
               </div>
 
               <div className="baseFlex gap-4">
