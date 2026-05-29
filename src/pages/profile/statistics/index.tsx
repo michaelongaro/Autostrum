@@ -221,7 +221,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -254,7 +254,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -289,7 +289,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -322,7 +322,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -355,7 +355,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md bg-foreground/50 lg:h-9"
+                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -392,7 +392,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-9 h-6 w-28 rounded-md bg-foreground/50 lg:h-7 lg:w-40"
+                      className="pulseAnimation ml-9 h-6 w-28 rounded-md lg:h-7 lg:w-40"
                     ></motion.div>
                   )}
                 </div>

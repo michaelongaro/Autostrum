@@ -33,30 +33,30 @@ function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
               ? 152
               : 129,
         }}
-        className="pulseAnimation rounded-t-sm border-b bg-foreground/50"
+        className="pulseAnimation rounded-t-sm border-b"
       ></div>
 
       <div
         className={`baseVertFlex h-[92px] w-full !items-start gap-1 rounded-b-md p-2.5`}
       >
         {/* title */}
-        <div className="pulseAnimation h-6 w-48 rounded-md bg-foreground/50"></div>
+        <div className="pulseAnimation h-6 w-48 rounded-md"></div>
 
         {/* artist + difficulty */}
         <div className="baseFlex w-full !justify-between">
-          <div className="pulseAnimation h-[18px] w-24 rounded-md bg-foreground/50"></div>
-          <div className="pulseAnimation h-5 w-24 rounded-md bg-foreground/50"></div>
+          <div className="pulseAnimation h-[18px] w-24 rounded-md"></div>
+          <div className="pulseAnimation h-5 w-24 rounded-md"></div>
         </div>
 
         {/* genre + rating/date */}
         <div className="baseFlex w-full !justify-between">
-          <div className="pulseAnimation h-5 w-16 rounded-full bg-foreground/50"></div>
+          <div className="pulseAnimation h-5 w-16 rounded-full"></div>
 
           <div className="baseFlex gap-2">
             <div className="baseFlex gap-1">
-              <div className="pulseAnimation h-4 w-8 rounded-md bg-foreground/50"></div>
+              <div className="pulseAnimation h-4 w-8 rounded-md"></div>
               <FaStar className="size-3" />
-              <div className="pulseAnimation h-4 w-8 rounded-md bg-foreground/50"></div>
+              <div className="pulseAnimation h-4 w-8 rounded-md"></div>
             </div>
 
             <Separator
@@ -64,7 +64,7 @@ function TabCardSkeleton({ uniqueKey, largeVariant }: TabCardSkeleton) {
               orientation="vertical"
             />
 
-            <div className="pulseAnimation h-5 w-20 rounded-md bg-foreground/50"></div>
+            <div className="pulseAnimation h-5 w-20 rounded-md"></div>
           </div>
         </div>
       </div>

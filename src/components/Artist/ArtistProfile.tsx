@@ -113,13 +113,13 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
               <div className="baseVertFlex !items-start gap-1 sm:gap-0">
                 <div className="baseFlex h-6 gap-1 text-primary">Artist</div>
 
-                <div className="pulseAnimation h-[45px] w-36 rounded-md bg-foreground/50 md:h-[54px]"></div>
+                <div className="pulseAnimation h-[45px] w-36 rounded-md md:h-[54px]"></div>
               </div>
 
               <div className="baseFlex gap-4 font-medium sm:text-lg">
                 <div className="baseFlex">
                   <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <div className="pulseAnimation ml-3 mr-2 h-5 w-8 rounded-md bg-foreground/50"></div>
+                  <div className="pulseAnimation ml-3 mr-2 h-5 w-8 rounded-md"></div>
                   <span>Songs</span>
                 </div>
 
@@ -130,7 +130,7 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
 
                 <div className="baseFlex">
                   <FaEye className="size-4 sm:size-5" />
-                  <div className="pulseAnimation ml-3 mr-2 h-5 w-10 rounded-md bg-foreground/50"></div>
+                  <div className="pulseAnimation ml-3 mr-2 h-5 w-10 rounded-md"></div>
                   <span>Views</span>
                 </div>
               </div>

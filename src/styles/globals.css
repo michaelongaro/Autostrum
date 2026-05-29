@@ -241,12 +241,21 @@ html body[data-scroll-locked] {
 /* slightly modified animate-pulse, that doesn't go all the way down to
    0% opacity */
 @keyframes pulseAnimation {
+  0% {
+    opacity: 1.0;
+  }
+
   50% {
-    opacity: 0.5;
+    opacity: 0.25;
+  }
+
+  100% {
+    opacity: 1.0;
   }
 }
 
 .pulseAnimation {
+  background-color: hsl(var(--foreground) / 0.35);
   animation: pulseAnimation 2s cubic-bezier(0.4, 0.2, 0.6, 1) infinite;
 }
 

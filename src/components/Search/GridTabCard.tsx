@@ -231,7 +231,7 @@ function GridTabCard({
                     animate={{ opacity: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="pulseAnimation absolute inset-0 z-10 rounded-t-none bg-foreground/50"
+                    className="pulseAnimation absolute inset-0 z-10 rounded-t-none"
                   />
                 )}
               </AnimatePresence>

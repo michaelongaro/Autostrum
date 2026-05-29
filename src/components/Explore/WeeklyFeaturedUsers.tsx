@@ -435,7 +435,7 @@ function WeeklyFeaturedUsers({
                                 animate={{ opacity: 0 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full bg-foreground/50 lg:size-10"
+                                className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-9 rounded-full lg:size-10"
                               ></motion.div>
                             )}
                           </AnimatePresence>

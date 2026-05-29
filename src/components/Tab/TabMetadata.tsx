@@ -1048,7 +1048,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-primary-foreground/50"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md"
                         ></motion.div>
                       )}
 
@@ -1081,7 +1081,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-primary-foreground/50"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md"
                         ></motion.div>
                       )}
 
@@ -1175,7 +1175,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-primary-foreground/50"
+                          className="baseFlex pulseAnimation h-10 w-28 rounded-md"
                         ></motion.div>
                       )}
 
@@ -1208,7 +1208,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-primary-foreground/50"
+                          className="baseFlex pulseAnimation h-10 w-36 rounded-md"
                         ></motion.div>
                       )}
 
@@ -1309,7 +1309,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           className="baseFlex"
                         >
                           {fetchingTabCreator ? (
-                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md bg-foreground/50"></div>
+                            <div className="pulseAnimation col-start-1 col-end-2 row-start-1 row-end-2 h-6 w-32 rounded-md"></div>
                           ) : (
                             <>
                               {tabCreator ? (

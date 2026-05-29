@@ -192,7 +192,7 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-primary-foreground/50"
+                      className="baseFlex pulseAnimation h-10 w-28 rounded-md"
                     ></motion.div>
                   )}
 
@@ -225,7 +225,7 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-primary-foreground/50"
+                      className="baseFlex pulseAnimation h-10 w-36 rounded-md"
                     ></motion.div>
                   )}
 
@@ -319,7 +319,7 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex pulseAnimation h-10 w-28 rounded-md bg-primary-foreground/50"
+                      className="baseFlex pulseAnimation h-10 w-28 rounded-md"
                     ></motion.div>
                   )}
 
@@ -352,7 +352,7 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex pulseAnimation h-10 w-36 rounded-md bg-primary-foreground/50"
+                      className="baseFlex pulseAnimation h-10 w-36 rounded-md"
                     ></motion.div>
                   )}
 
@@ -428,7 +428,7 @@ function StaticTabMetadata() {
                   transition={{ duration: 0.35 }}
                   className="h-6"
                 >
-                  <div className="pulseAnimation h-6 w-48 rounded-md bg-foreground/45" />
+                  <div className="pulseAnimation h-6 w-48 rounded-md" />
                 </motion.div>
               ) : (
                 <motion.div
@@ -492,7 +492,7 @@ function StaticTabMetadata() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
-                  className="pulseAnimation h-5 min-w-[78px] rounded-md bg-foreground/35"
+                  className="pulseAnimation h-5 min-w-[78px] rounded-md"
                 />
               )}
             </AnimatePresence>

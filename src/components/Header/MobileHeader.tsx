@@ -450,7 +450,7 @@ function MobileHeader() {
                                   animate={{ opacity: 0 }}
                                   exit={{ opacity: 0 }}
                                   transition={{ duration: 0.3 }}
-                                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full bg-foreground/50"
+                                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full"
                                 ></motion.div>
                               )}
                             </AnimatePresence>
