@@ -32,7 +32,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "chord-trainer",
     title: "Chord Trainer",
     description:
-      "Build your own chord set, or make your own, and practice smoother transitions between shapes.",
+      "Pick a chord set, or make your own, and practice smoother transitions between shapes.",
     category: "Practice",
     href: "/tools/chord-trainer",
     status: "available",
