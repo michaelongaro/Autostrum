@@ -65,6 +65,7 @@ function Tab() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
   const [showPinnedChords, setShowPinnedChords] = useState(false);
+  const [pressingOnZoomSlider, setPressingOnZoomSlider] = useState(false);
 
   // true when creating new section, results in way less cpu/ram usage for arguably worse ux
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
@@ -361,8 +362,11 @@ function Tab() {
               {viewportLabel.includes("mobile") ? (
                 <Drawer
                   open={drawerOpen}
+                  dismissible={!pressingOnZoomSlider}
                   onOpenChange={(open) => {
                     setDrawerOpen(open);
+
+                    if (!open) setPressingOnZoomSlider(false);
                   }}
                 >
                   <DrawerTrigger asChild>
@@ -392,6 +396,7 @@ function Tab() {
                       <TabSettings
                         showPinnedChords={showPinnedChords}
                         setShowPinnedChords={setShowPinnedChords}
+                        setPressingOnZoomSlider={setPressingOnZoomSlider}
                       />
                     </DrawerContent>
                   </DrawerPortal>

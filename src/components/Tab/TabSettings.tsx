@@ -9,7 +9,7 @@ import { useTabStore } from "~/stores/TabStore";
 interface TabSettingsProps {
   showPinnedChords: boolean;
   setShowPinnedChords: (show: boolean) => void;
-  setPressingOnZoomSlider: Dispatch<SetStateAction<boolean>>;
+  setPressingOnZoomSlider?: Dispatch<SetStateAction<boolean>>;
 }
 
 function TabSettings({
@@ -43,13 +43,13 @@ function TabSettings({
 
       <div
         onTouchStart={() => {
-          setPressingOnZoomSlider(true);
+          setPressingOnZoomSlider?.(true);
         }}
         onTouchCancel={() => {
-          setPressingOnZoomSlider(false);
+          setPressingOnZoomSlider?.(false);
         }}
         onTouchEnd={() => {
-          setPressingOnZoomSlider(false);
+          setPressingOnZoomSlider?.(false);
         }}
         className="baseFlex w-full"
       >
