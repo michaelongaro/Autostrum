@@ -7,6 +7,7 @@ import superjson from "superjson";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import { useHydrateTabStore } from "~/hooks/useHydrateTabStore";
+import { useRouter } from "next/router";
 
 interface OpenGraphData {
   title: string;
@@ -20,6 +21,8 @@ interface PageData {
 }
 
 function ViewIndividualTab({ json }: { json: string }) {
+  const { asPath } = useRouter();
+
   const { tab, openGraphData } = useMemo(
     () => superjson.parse<PageData>(json),
     [json],
@@ -35,7 +38,7 @@ function ViewIndividualTab({ json }: { json: string }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: asPath.includes("screenshot") ? 0 : 0.5 }}
       className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0 2xl:w-[70%]"
     >
       <Head>
