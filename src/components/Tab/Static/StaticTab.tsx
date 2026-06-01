@@ -1,12 +1,7 @@
 import { AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { FaBook } from "react-icons/fa";
-import {
-  getTabData,
-  useTabStore,
-  type COLORS,
-  type Section,
-} from "~/stores/TabStore";
+import { useTabStore, type COLORS, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import {
   Tooltip,
@@ -42,7 +37,6 @@ import TabSettings from "~/components/Tab/TabSettings";
 import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import { useRouter } from "next/router";
-import { createPortal } from "react-dom";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
 
@@ -53,7 +47,6 @@ const PlaybackModal = dynamic(
 function StaticTab() {
   const { asPath } = useRouter();
 
-  const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
   const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
     {},
   );
@@ -124,15 +117,13 @@ function StaticTab() {
     setShowGlossaryDialog: state.setShowGlossaryDialog,
   }));
 
-  // for screenshot preview, only show first two sections
-  useEffect(() => {
-    if (id === -1 || minifiedTabData || !asPath.includes("screenshot")) return;
-
-    const tabData = getTabData();
-    setMinifiedTabData(tabData.slice(0, 2));
-  }, [id, asPath, minifiedTabData]);
-
   useAutoCompileChords();
+
+  const minifiedTabData = useMemo<Section[] | undefined>(() => {
+    if (id === -1 || !asPath.includes("screenshot")) return undefined;
+
+    return tabData.slice(0, 2);
+  }, [id, asPath, tabData]);
 
   return (
     <div className="baseVertFlex w-full">
@@ -315,16 +306,8 @@ function StaticTab() {
             )}
           </div>
         </div>
-      </div>
 
-      <GlossaryDialog />
-
-      <AnimatePresence mode="wait">
-        {showPlaybackModal && <PlaybackModal />}
-      </AnimatePresence>
-
-      {minifiedTabData &&
-        createPortal(
+        {minifiedTabData && (
           <div className="size-full overflow-hidden">
             <div
               id="tabPreviewScreenshotLight"
@@ -355,9 +338,15 @@ function StaticTab() {
                 theme={"dark"}
               />
             </div>
-          </div>,
-          document.getElementById("mainTabComponent")!,
+          </div>
         )}
+      </div>
+
+      <GlossaryDialog />
+
+      <AnimatePresence mode="wait">
+        {showPlaybackModal && <PlaybackModal />}
+      </AnimatePresence>
     </div>
   );
 }
