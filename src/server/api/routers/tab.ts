@@ -527,7 +527,7 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      // immediately revalidate the tab's page improve end user experience
+      // immediately revalidate the tab's url to improve end user experience
       ctx.res
         .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
         .catch((e) => {
@@ -675,17 +675,12 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      // immediately revalidate the tab's page to improve end user experience
+      // immediately revalidate the tab's url to improve end user experience
       ctx.res
         .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
         .catch((e) => {
           console.error("Error revalidating tab page:", e);
         });
-
-      console.log(
-        "just about to trigger screenshot capture for updated tab:",
-        tab.id,
-      );
 
       // Trigger screenshot capture in background (runs after response is sent)
       ctx.waitUntil(
@@ -769,10 +764,9 @@ export const tabRouter = createTRPCRouter({
       });
 
       try {
-        const res = await s3.send(command);
-        console.log(res);
+        await s3.send(command);
       } catch (e) {
-        console.log(e);
+        console.error(e);
         // return null;
       }
 
