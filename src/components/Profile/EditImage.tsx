@@ -271,8 +271,8 @@ function EditImage({
 
       {imageBeingEdited && (
         <>
-          <div className="baseFlex w-full !justify-between gap-2 text-sm text-foreground/75">
-            <div>
+          <div className="baseFlex w-full !justify-start gap-2 text-sm text-foreground/75">
+            <div className="tabular-nums">
               <span className="font-semibold">Crop size:</span>{" "}
               {Math.round(
                 localCroppedAreaPixels ? localCroppedAreaPixels.width : 0,
@@ -292,8 +292,9 @@ function EditImage({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
+                  className="text-right"
                 >
-                  {"≥"} 500px dimensions are preferred.
+                  ({"≥"} 500px preferred)
                 </motion.span>
               )}
             </AnimatePresence>

@@ -241,8 +241,6 @@ function EditImageSelector({
                 </DrawerDescription>
               </VisuallyHidden>
 
-              <Separator className="mt-2 w-full bg-gray" />
-
               <EditImage
                 imageBeingEdited={imageBeingEdited}
                 setNewProfileImage={setNewProfileImage}
