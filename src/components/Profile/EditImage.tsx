@@ -336,13 +336,21 @@ function EditImage({
             </div>
             <div className="baseFlex gap-2">
               <span className="font-semibold">Rotate:</span>
-              <span>Ctrl + Scroll wheel</span>
+              <span>
+                <kbd>Ctrl</kbd> + Scroll wheel
+              </span>
             </div>
           </div>
 
           <div className="baseFlex mt-8 w-full !justify-between gap-4 px-8 lg:mt-0 lg:px-0">
             <Button
               variant={"outline"}
+              disabled={
+                localCrop.x === 0 &&
+                localCrop.y === 0 &&
+                localRotation === 0 &&
+                localZoom === 1
+              }
               className="w-32 lg:w-auto"
               onClick={resetCrop}
             >
@@ -371,7 +379,7 @@ function EditImage({
                   {saveButtonText}
                   {saveButtonText === "Saving" && (
                     <div
-                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-primary-foreground border-t-transparent text-primary-foreground"
+                      className="inline-block size-3 animate-spin rounded-full border-[1px] border-primary-foreground border-t-transparent text-primary-foreground sm:border-[2px]"
                       role="status"
                       aria-label="loading"
                     >
