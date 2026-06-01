@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FaBook } from "react-icons/fa";
 import {
@@ -135,14 +135,7 @@ function StaticTab() {
   useAutoCompileChords();
 
   return (
-    <motion.div
-      key={"staticTabBeingViewed"}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="baseVertFlex w-full"
-    >
+    <div className="baseVertFlex w-full">
       <div
         id={"mainTabComponent"}
         className="baseVertFlex relative w-full border-y bg-background shadow-lg md:rounded-xl md:border"
@@ -365,7 +358,7 @@ function StaticTab() {
           </div>,
           document.getElementById("mainTabComponent")!,
         )}
-    </motion.div>
+    </div>
   );
 }
 
