@@ -6,13 +6,11 @@ import { useRouter } from "next/router";
 import {
   Fragment,
   useEffect,
-  useRef,
   useState,
   type ChangeEvent,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { createPortal } from "react-dom";
 import { FaEye } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
@@ -30,12 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import {
-  useTabStore,
-  type Section,
-  type COLORS,
-  getTabData,
-} from "~/stores/TabStore";
+import { useTabStore, getTabData } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { genreColors } from "~/utils/genreColors";
 import { tuningNotesToName } from "~/utils/tunings";
@@ -58,7 +51,6 @@ import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import classes from "./TabMetadata.module.css";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import TabScreenshotPreview from "./TabScreenshotPreview";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import RateTab from "~/components/ui/RateTab";
@@ -78,7 +70,6 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { Badge } from "~/components/ui/badge";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import { isMobile } from "react-device-detect";
 
 const KEYS_BY_LETTER = {
@@ -274,7 +265,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
   // hack to prevent createdAt <span> from moving around when <Drawer>
   // is open on mobile
   const [disableCreatedAtLayout, setDisableCreatedAtLayout] = useState(false);
-  const [minifiedTabData, setMinifiedTabData] = useState<Section[]>();
 
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
@@ -310,14 +300,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       }
     };
   }, [artistId, createdByUserId, editing, id, processPageView]);
-
-  // for screenshot preview, only show first two sections
-  useEffect(() => {
-    if (id === -1 || minifiedTabData || !asPath.includes("screenshot")) return;
-
-    const tabData = getTabData();
-    setMinifiedTabData(tabData.slice(0, 2));
-  }, [id, asPath, minifiedTabData]);
 
   function handleBpmChange(event: ChangeEvent<HTMLInputElement>) {
     const inputValue = event.target.value;
@@ -1521,42 +1503,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {minifiedTabData &&
-        createPortal(
-          <div className="size-full overflow-hidden">
-            <div
-              id="tabPreviewScreenshotLight"
-              style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["maple" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
-              }}
-              className="baseFlex h-[615px] w-[1318px] grayscale"
-            >
-              <TabScreenshotPreview
-                tabData={minifiedTabData}
-                bpm={bpm}
-                color={"maple"}
-                theme={"light"}
-              />
-            </div>
-
-            <div
-              id="tabPreviewScreenshotDark"
-              style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["maple" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
-              }}
-              className="baseFlex h-[615px] w-[1318px] grayscale"
-            >
-              <TabScreenshotPreview
-                tabData={minifiedTabData}
-                bpm={bpm}
-                color={"maple"}
-                theme={"dark"}
-              />
-            </div>
-          </div>,
-          document.getElementById("mainTabComponent")!,
-        )}
     </>
   );
 }
