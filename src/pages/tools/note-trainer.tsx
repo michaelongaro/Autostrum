@@ -7,6 +7,7 @@ import { get } from "@tonaljs/note";
 import { isIOS, isSafari } from "react-device-detect";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
+import PlayIcon from "~/components/ui/icons/PlayIcon";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { BsFillVolumeUpFill } from "react-icons/bs";
+import { Label } from "~/components/ui/label";
 
 const CHROMATIC_NOTE_NAMES = [
   "C",
@@ -299,45 +301,51 @@ function NoteTrainerPage() {
               </div>
             </div>
 
-            <div className="mt-3 flex flex-col gap-2 md:mt-0 md:w-auto md:flex-row">
-              <Select
-                value={audioSource}
-                onValueChange={(v) => setAudioSource(v as AudioSource)}
-              >
-                <SelectTrigger className="w-52 md:w-52">
-                  <SelectValue>
-                    <div className="baseFlex gap-2">
-                      <BsFillVolumeUpFill className="size-5" />
-                      {AUDIO_SOURCE_LABELS[audioSource]}
-                    </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
-                    (key) => (
-                      <SelectItem key={key} value={key}>
-                        {AUDIO_SOURCE_LABELS[key]}
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
+            <div className="mt-6 flex flex-col gap-2 md:mt-1 md:w-auto md:flex-row">
+              <div className="baseVertFlex !items-start gap-2">
+                <Label htmlFor="audioSelect">Audio</Label>
+                <Select
+                  value={audioSource}
+                  onValueChange={(v) => setAudioSource(v as AudioSource)}
+                >
+                  <SelectTrigger id="audioSelect" className="w-52 md:w-52">
+                    <SelectValue>
+                      <div className="baseFlex gap-2">
+                        <BsFillVolumeUpFill className="size-5" />
+                        {AUDIO_SOURCE_LABELS[audioSource]}
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(AUDIO_SOURCE_LABELS) as AudioSource[]).map(
+                      (key) => (
+                        <SelectItem key={key} value={key}>
+                          {AUDIO_SOURCE_LABELS[key]}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Select
-                value={noteSet}
-                onValueChange={(value) => setNoteSet(value as NoteSet)}
-              >
-                <SelectTrigger className="w-52 md:w-52">
-                  <SelectValue>{NOTE_SET_LABELS[noteSet]}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(NOTE_SET_LABELS) as NoteSet[]).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {NOTE_SET_LABELS[key]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="baseVertFlex !items-start gap-2">
+                <Label htmlFor="noteSelect">Notes</Label>
+                <Select
+                  value={noteSet}
+                  onValueChange={(value) => setNoteSet(value as NoteSet)}
+                >
+                  <SelectTrigger id="noteSelect" className="w-52 md:w-52">
+                    <SelectValue>{NOTE_SET_LABELS[noteSet]}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(NOTE_SET_LABELS) as NoteSet[]).map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {NOTE_SET_LABELS[key]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -377,10 +385,11 @@ function NoteTrainerPage() {
           <div className="baseFlex mt-8 w-full gap-3 sm:w-auto">
             <Button
               variant="audio"
-              className="h-11 shrink-0 px-6"
-              onClick={playTargetNote}
               disabled={isSoundfontLoading}
+              onClick={playTargetNote}
+              className="baseFlex h-11 shrink-0 gap-3 px-6 sm:w-auto"
             >
+              {!isSoundfontLoading && <PlayIcon />}
               {isSoundfontLoading ? "Loading…" : "Play Note"}
             </Button>
 
