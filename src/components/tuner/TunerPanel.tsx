@@ -206,8 +206,8 @@ function TunerPanel({
             )}
           </div>
 
-          <div className="baseFlex gap-2 lg:gap-3">
-            <p className="text-sm font-semibold text-foreground/80">Capo</p>
+          <div className="baseFlex gap-2 text-sm lg:gap-3">
+            <p className="font-semibold text-foreground/80">Capo</p>
             {forPlaybackModal ? (
               <p>{capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}</p>
             ) : (
