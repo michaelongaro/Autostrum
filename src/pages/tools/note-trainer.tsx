@@ -357,8 +357,8 @@ function NoteTrainerPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className={`text-sm font-medium transition-opacity ${feedbackMessage ? "opacity-100" : "opacity-0"}`}
+                transition={{ duration: 0.2 }}
+                className="text-sm font-medium"
               >
                 {feedbackMessage ?? "\u00a0"}
               </motion.p>
