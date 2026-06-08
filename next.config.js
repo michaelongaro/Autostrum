@@ -32,6 +32,11 @@ const config = {
     ];
   },
   images: {
+    localPatterns: [
+      {
+        pathname: "/api/getTabScreenshot/**",
+      },
+    ],
     remotePatterns: [
       {
         protocol: "https",

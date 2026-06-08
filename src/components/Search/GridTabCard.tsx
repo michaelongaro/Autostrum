@@ -166,8 +166,7 @@ function GridTabCard({
                   src={screenshotSrc}
                   alt={`screenshot of ${minimalTab.title}`}
                   fill
-                  sizes={`${getDynamicWidth()}px`}
-                  unoptimized={true}
+                  sizes={`(max-width: 768px) 100vw, ${getDynamicWidth()}px`}
                   onLoad={() => {
                     loadedTabScreenshotKeys.add(screenshotCacheKey);
                     setTabScreenshotLoaded(true);
