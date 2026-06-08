@@ -908,7 +908,7 @@ function ChordTrainerPage() {
           <div className="baseVertFlex w-full !items-start lg:flex-row lg:gap-6">
             <aside className="hidden w-full max-w-[280px] flex-col gap-3 rounded-md lg:flex">
               <div className="baseVertFlex !items-start gap-1">
-                <p className="text-sm font-medium leading-none">
+                <p className="ml-3 text-sm font-medium leading-none">
                   Chord presets
                 </p>
               </div>
@@ -934,9 +934,7 @@ function ChordTrainerPage() {
                       )}
                     >
                       <div className="flex w-full items-center justify-between gap-3">
-                        <span className="text-sm font-semibold">
-                          {preset.label}
-                        </span>
+                        <span className="text-sm">{preset.label}</span>
                         <span className="text-xs text-foreground/55">
                           {presetCount}
                         </span>
