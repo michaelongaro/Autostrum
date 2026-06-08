@@ -8,7 +8,6 @@ import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
 import { AnimatePresence, motion } from "framer-motion";
 import { FocusTrap } from "focus-trap-react";
 import {
-  type AudioMetadata,
   type PlaybackTabChord as PlaybackTabChordType,
   type PlaybackStrummedChord as PlaybackStrummedChordType,
   type PlaybackLoopDelaySpacerChord,
@@ -751,6 +750,7 @@ function PlaybackModal() {
                 });
               }
             }}
+            className="shadow-none"
           >
             <X className="size-5" />
             <span className="sr-only">Close</span>
