@@ -905,7 +905,7 @@ function ChordTrainerPage() {
         </div>
 
         <div className="baseVertFlex w-full !items-start gap-4 border-y bg-background p-4 shadow-md sm:rounded-md sm:border-x sm:p-6">
-          <div className="baseVertFlex w-full !items-start gap-4 lg:flex-row lg:gap-6">
+          <div className="baseVertFlex w-full !items-start lg:flex-row lg:gap-6">
             <aside className="hidden w-full max-w-[280px] flex-col gap-3 rounded-md lg:flex">
               <div className="baseVertFlex !items-start gap-1">
                 <p className="text-sm font-medium leading-none">
@@ -947,8 +947,8 @@ function ChordTrainerPage() {
               </div>
             </aside>
 
-            <div className="baseVertFlex w-full !items-start gap-4">
-              <div className="baseVertFlex w-full !items-start gap-2 lg:hidden">
+            <div className="baseVertFlex relative w-full !items-start gap-4">
+              <div className="baseVertFlex sticky top-[3.75rem] z-10 w-full !items-start gap-2 bg-background pt-3 lg:hidden">
                 <p className="text-sm font-medium leading-none">
                   Chord presets
                 </p>
@@ -957,7 +957,7 @@ function ChordTrainerPage() {
                   value={activeChordPresetId}
                   onValueChange={handleChordPresetSelect}
                 >
-                  <SelectTrigger className="w-full sm:max-w-[320px]">
+                  <SelectTrigger className="w-full bg-background sm:max-w-[320px]">
                     <SelectValue placeholder="Choose a chord preset" />
                   </SelectTrigger>
 
