@@ -287,8 +287,6 @@ function ChordTrainerPage() {
     "acoustic_guitar_steel",
   );
   const [showColorCoding, setShowColorCoding] = useState(true);
-  const [loadingSoundfont, setLoadingSoundfont] = useState(false);
-  const [audioError, setAudioError] = useState<string | null>(null);
 
   const selectedChordIdSet = useMemo(
     () => new Set(selectedChordIds),
@@ -367,8 +365,6 @@ function ChordTrainerPage() {
 
       let currentInstrument = soundfontCacheRef.current[source];
       if (!currentInstrument) {
-        setLoadingSoundfont(true);
-
         const format = isSafari || isIOS ? "mp3" : "ogg";
 
         try {
@@ -385,8 +381,6 @@ function ChordTrainerPage() {
             nameToUrl: (name: string, _sf: string, fmt: string) =>
               `/sounds/instruments/${name}-${fmt}.js`,
           });
-        } finally {
-          setLoadingSoundfont(false);
         }
 
         soundfontCacheRef.current[source] = currentInstrument;
@@ -409,8 +403,6 @@ function ChordTrainerPage() {
         const { audioContext, masterVolumeGainNode, currentInstrument } =
           await ensureAudioRuntime();
 
-        setAudioError(null);
-
         await playNoteColumn({
           tuning: STANDARD_TUNING,
           capo: 0,
@@ -424,9 +416,6 @@ function ChordTrainerPage() {
         });
       } catch (error) {
         console.error("Unable to play chord trainer audio:", error);
-        setAudioError(
-          "Audio is unavailable right now. The trainer will keep running visually.",
-        );
       }
     },
     [ensureAudioRuntime],
@@ -746,7 +735,7 @@ function ChordTrainerPage() {
       <ToolRouteHeader
         icon={<Logo className="size-5" />}
         title="Chord Trainer"
-        description="Keep a stream of chord shapes moving through center and hear each voicing as it lands."
+        description="Pick a chord set, or make your own, and practice smoother transitions between shapes."
       />
 
       <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
@@ -756,8 +745,8 @@ function ChordTrainerPage() {
               className="relative h-[260px] w-full overflow-hidden bg-background/70 shadow-inner sm:h-[260px]"
               ref={stageRef}
             >
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-background via-background/90 to-transparent sm:w-24" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-background via-background/90 to-transparent sm:w-24" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-background via-background/90 to-transparent sm:w-24" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-4 bg-gradient-to-l from-background via-background/90 to-transparent sm:w-24" />
               <div className="bg-primary/12 pointer-events-none absolute left-1/2 top-1/2 z-10 h-[180px] w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl sm:h-[220px] sm:w-[240px]" />
               <span
                 aria-hidden="true"
@@ -796,7 +785,7 @@ function ChordTrainerPage() {
                     </div>
 
                     <span
-                      className="text-lg font-semibold"
+                      className="text-xl font-semibold sm:text-2xl"
                       style={
                         showColorCoding
                           ? { color: item.chord.color }
@@ -825,14 +814,19 @@ function ChordTrainerPage() {
                 </span>
               </div>
 
-              <div className="flex w-full flex-wrap gap-2">
-                {DIFFICULTY_PRESETS.map((preset) => (
+              <div className="grid w-full grid-cols-6 gap-2 md:flex">
+                {DIFFICULTY_PRESETS.map((preset, index) => (
                   <Button
                     key={preset.id}
                     type="button"
                     variant={
                       selectedDifficultyId === preset.id ? "default" : "outline"
                     }
+                    className={cn(
+                      "w-full",
+                      index < 3 ? "col-span-2" : "col-span-3",
+                      "md:col-span-1",
+                    )}
                     onClick={() => handleDifficultySelect(preset.tempo)}
                   >
                     {preset.label}
@@ -841,7 +835,7 @@ function ChordTrainerPage() {
               </div>
             </div>
 
-            <div className="baseFlex flex-wrap !justify-start gap-3">
+            <div className="baseVertFlex w-full gap-6 md:w-auto md:!flex-row md:gap-3">
               <Select
                 value={audioOption}
                 onValueChange={(v) => setAudioOption(v as AudioOption)}
@@ -865,43 +859,33 @@ function ChordTrainerPage() {
                 </SelectContent>
               </Select>
 
-              <Button
-                type="button"
-                variant={showColorCoding ? "default" : "outline"}
-                onClick={() => setShowColorCoding((previous) => !previous)}
-                className="gap-2"
-              >
-                <Paintbrush className="size-4" />
-                Color-coded
-              </Button>
+              <div className="baseFlex w-full gap-3 md:w-auto">
+                <Button
+                  type="button"
+                  variant={showColorCoding ? "default" : "outline"}
+                  onClick={() => setShowColorCoding((previous) => !previous)}
+                  className="w-full gap-2 md:w-auto"
+                >
+                  <Paintbrush className="size-4" />
+                  Color-coded
+                </Button>
 
-              <Button
-                variant="audio"
-                onClick={() => void handleStartPause()}
-                disabled={selectedChordCount === 0}
-                className="w-[134px] gap-2 px-8 text-base"
-              >
-                {isPlaying ? (
-                  <PauseIcon className="size-4" />
-                ) : (
-                  <Logo className="size-4" />
-                )}
-                {isPlaying ? "Pause" : "Start"}
-              </Button>
+                <Button
+                  variant="audio"
+                  onClick={() => void handleStartPause()}
+                  disabled={selectedChordCount === 0}
+                  className="w-full gap-2 px-8 text-base md:w-[134px]"
+                >
+                  {isPlaying ? (
+                    <PauseIcon className="size-4" />
+                  ) : (
+                    <Logo className="size-4" />
+                  )}
+                  {isPlaying ? "Pause" : "Start"}
+                </Button>
+              </div>
             </div>
           </div>
-
-          {audioError && (
-            <div className="w-full rounded-2xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-foreground/80">
-              {audioError}
-            </div>
-          )}
-
-          {loadingSoundfont && (
-            <p className="text-xs text-foreground/65">
-              Loading guitar samples...
-            </p>
-          )}
         </div>
 
         <div className="baseVertFlex w-full !items-start gap-4 border-y bg-background p-4 shadow-md sm:rounded-md sm:border-x sm:p-6">
