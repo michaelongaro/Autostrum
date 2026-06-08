@@ -121,8 +121,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                 if (!sectionData) continue;
 
                 const subSectionData = sectionData.data[subSectionIndex];
-                if (!subSectionData || subSectionData.type !== "chord")
-                  continue;
+                if (subSectionData?.type !== "chord") continue;
 
                 const chordSequence = subSectionData.data[chordSequenceIndex];
                 if (!chordSequence) continue;
@@ -243,7 +242,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
           </div>
 
           <div className="baseVertFlex w-full gap-2">
-            <div className="baseFlex w-full !items-start !justify-between gap-2">
+            <div className="baseFlex w-full !items-start !justify-between gap-4">
               <Chord
                 chordBeingEdited={chordBeingEdited}
                 highlightChord={

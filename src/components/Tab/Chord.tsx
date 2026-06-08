@@ -190,7 +190,7 @@ function Chord({ chordBeingEdited, highlightChord }: Chord) {
         ))}
       </div>
 
-      <div className="h-[280px] rounded-r-2xl border-2 border-foreground bg-secondary/50 p-1"></div>
+      <div className="h-[280px] shrink-0 rounded-r-2xl border-2 border-foreground bg-secondary/50 p-2"></div>
     </div>
   );
 }
