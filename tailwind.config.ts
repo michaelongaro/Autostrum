@@ -116,7 +116,7 @@ module.exports = {
     // mobile safari was glitchy/inconsistent at best with the default
     // cubic-bezier transition timing function, so currently using linear
     transitionTimingFunction: {
-      DEFAULT: "linear",
+      DEFAULT: "ease-out",
     },
   },
   plugins: [tailwindcssAnimate, containerQueries],
