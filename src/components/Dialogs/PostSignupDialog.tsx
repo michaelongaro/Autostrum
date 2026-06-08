@@ -18,6 +18,7 @@ import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import debounce from "lodash.debounce";
 import ThemePicker from "~/components/Header/ThemePicker";
+import Spinner from "~/components/ui/Spinner";
 
 function PostSignupDialog() {
   const { user } = useClerk();
@@ -237,15 +238,9 @@ function PostSignupDialog() {
               className="baseFlex w-[122.75px] gap-2 overflow-hidden"
             >
               {saveButtonText}
-              {saveButtonText === "Saving" && (
-                <div
-                  className="inline-block size-4 animate-spin rounded-full border-[2px] border-primary-foreground border-t-transparent text-primary-foreground"
-                  role="status"
-                  aria-label="loading"
-                >
-                  <span className="sr-only">Loading...</span>
-                </div>
-              )}
+
+              {saveButtonText === "Saving" && <Spinner className="size-4" />}
+
               {saveButtonText === "" && (
                 <svg
                   fill="none"

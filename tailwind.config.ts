@@ -100,17 +100,12 @@ module.exports = {
           "60%": { translate: "-3px" },
           "80%": { translate: "4px" },
         },
-        stableSpin: {
-          from: { transform: "rotate(0deg)" },
-          to: { transform: "rotate(360deg)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.25s ease-out",
         "accordion-up": "accordion-up 0.25s ease-out",
         errorShake: "errorShake 0.5s ease-in-out forwards",
         smallErrorShake: "smallErrorShake 0.5s ease-in-out forwards",
-        stableSpin: "stableSpin 1s linear infinite",
       },
     },
     // mobile safari was glitchy/inconsistent at best with the default

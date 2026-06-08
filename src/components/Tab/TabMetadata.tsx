@@ -71,6 +71,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Badge } from "~/components/ui/badge";
 import { isMobile } from "react-device-detect";
+import Spinner from "~/components/ui/Spinner";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -600,16 +601,12 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                       className="baseFlex w-[100px] gap-2 overflow-hidden"
                     >
                       {saveButtonText}
+
                       {(saveButtonText === "Publishing" ||
                         saveButtonText === "Saving") && (
-                        <div
-                          className="inline-block size-4 animate-spin rounded-full border-[2px] border-foreground border-t-transparent text-foreground"
-                          role="status"
-                          aria-label="loading"
-                        >
-                          <span className="sr-only">Loading...</span>
-                        </div>
+                        <Spinner className="size-4" />
                       )}
+
                       {saveButtonText === "" && (
                         <svg
                           fill="none"
@@ -1464,16 +1461,13 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                   {deleteButtonText === "Delete" && (
                     <FaTrashAlt className="h-4 w-4" />
                   )}
+
                   {deleteButtonText}
+
                   {deleteButtonText === "Deleting" && (
-                    <div
-                      className="inline-block size-4 animate-spin rounded-full border-[2px] border-foreground border-t-transparent text-foreground"
-                      role="status"
-                      aria-label="loading"
-                    >
-                      <span className="sr-only">Loading...</span>
-                    </div>
+                    <Spinner className="size-4" />
                   )}
+
                   {deleteButtonText === "" && (
                     <svg
                       fill="none"

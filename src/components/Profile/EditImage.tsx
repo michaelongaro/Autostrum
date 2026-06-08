@@ -12,6 +12,7 @@ import { MdCrop } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { X } from "lucide-react";
+import Spinner from "~/components/ui/Spinner";
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -377,15 +378,11 @@ function EditImage({
                   className="baseFlex w-24 gap-2 overflow-hidden"
                 >
                   {saveButtonText}
+
                   {saveButtonText === "Saving" && (
-                    <div
-                      className="inline-block size-3 animate-spin rounded-full border-[1px] border-primary-foreground border-t-transparent text-primary-foreground sm:border-[2px]"
-                      role="status"
-                      aria-label="loading"
-                    >
-                      <span className="sr-only">Loading...</span>
-                    </div>
+                    <Spinner className="size-4" />
                   )}
+
                   {saveButtonText === "" && (
                     <svg
                       fill="none"
