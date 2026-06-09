@@ -1,7 +1,9 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { AppProps } from "next/app";
+import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import NextProgress from "next-progress";
+import ClientErrorBoundary from "~/components/errors/ClientErrorBoundary";
 import GeneralLayout from "~/components/Layout/GeneralLayout";
 import "~/styles/globals.css";
 import "overlayscrollbars/overlayscrollbars.css";
@@ -17,6 +19,7 @@ type ComponentWithPageLayout = AppProps & {
 };
 
 function App({ Component, pageProps }: ComponentWithPageLayout) {
+  const { asPath } = useRouter();
   const { color, theme } = useTabStore((state) => ({
     color: state.color,
     theme: state.theme,
@@ -39,7 +42,9 @@ function App({ Component, pageProps }: ComponentWithPageLayout) {
         options={{ showSpinner: false }}
       />
       <GeneralLayout>
-        <Component {...pageProps} />
+        <ClientErrorBoundary resetKey={asPath}>
+          <Component {...pageProps} />
+        </ClientErrorBoundary>
       </GeneralLayout>
     </ClerkProvider>
   );
