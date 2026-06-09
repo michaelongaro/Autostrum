@@ -79,6 +79,11 @@ const AUDIO_SOURCE_LABELS: Record<AudioSource, string> = {
   electric_guitar_jazz: "Electric - Jazz",
 };
 
+type PlaybackHandle = {
+  stop?: (when?: number) => void;
+  source?: AudioScheduledSourceNode | null;
+} | null;
+
 function getRandomNote(notePool: readonly string[]) {
   return notePool[Math.floor(Math.random() * notePool.length)] ?? "C4";
 }
@@ -88,6 +93,8 @@ function NoteTrainerPage() {
   const soundfontCacheRef = useRef<
     Partial<Record<AudioSource, Soundfont.Player>>
   >({});
+  const currentPlaybackRef = useRef<PlaybackHandle>(null);
+  const playbackRequestIdRef = useRef(0);
 
   const [audioSource, setAudioSource] = useState<AudioSource>("generated");
   const [noteSet, setNoteSet] = useState<NoteSet>("standard");
@@ -112,6 +119,31 @@ function NoteTrainerPage() {
     setLastGuessCorrect(null);
     setTargetNote(getRandomNote(activeNotePool));
   }, [activeNotePool]);
+
+  function stopCurrentPlayback() {
+    const currentPlayback = currentPlaybackRef.current;
+    if (!currentPlayback) return;
+
+    try {
+      currentPlayback.stop?.();
+    } catch {
+      // best-effort cleanup only
+    }
+
+    try {
+      currentPlayback.source?.stop();
+    } catch {
+      // source may already be stopped
+    }
+
+    currentPlaybackRef.current = null;
+  }
+
+  useEffect(() => {
+    return () => {
+      stopCurrentPlayback();
+    };
+  }, []);
 
   const getAudioContext = useCallback(async () => {
     if (!audioContextRef.current) {
@@ -172,6 +204,11 @@ function NoteTrainerPage() {
 
   const playNote = useCallback(
     async (note: string) => {
+      const requestId = playbackRequestIdRef.current + 1;
+      playbackRequestIdRef.current = requestId;
+
+      stopCurrentPlayback();
+
       const source = audioSourceRef.current;
 
       if (source === "generated") {
@@ -179,6 +216,10 @@ function NoteTrainerPage() {
         if (!frequency) return;
 
         const audioContext = await getAudioContext();
+
+        if (playbackRequestIdRef.current !== requestId) {
+          return;
+        }
 
         const oscillator = audioContext.createOscillator();
         oscillator.type = "sine";
@@ -201,13 +242,28 @@ function NoteTrainerPage() {
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
+        const playbackHandle: PlaybackHandle = {
+          stop: (when?: number) => oscillator.stop(when),
+          source: oscillator,
+        };
+        currentPlaybackRef.current = playbackHandle;
+
+        oscillator.onended = () => {
+          if (currentPlaybackRef.current === playbackHandle) {
+            currentPlaybackRef.current = null;
+          }
+        };
+
         oscillator.start();
         oscillator.stop(audioContext.currentTime + 0.82);
       } else {
         const player = soundfontCacheRef.current[source];
         if (!player) return;
 
-        player.play(note, 0, { duration: 1.5, gain: 3 });
+        currentPlaybackRef.current = player.play(note, 0, {
+          duration: 1.5,
+          gain: 3,
+        });
       }
     },
     [getAudioContext],
