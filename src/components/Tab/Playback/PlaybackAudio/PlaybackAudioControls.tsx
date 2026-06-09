@@ -1,5 +1,4 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
 import {
   type Dispatch,
   type SetStateAction,
@@ -39,8 +38,6 @@ function PlaybackAudioControls({
   setChordRepetitions,
   scrollPositionsLength,
 }: PlaybackAudioControls) {
-  const { asPath } = useRouter();
-
   const {
     bpm,
     playbackSpeed,
@@ -117,9 +114,7 @@ function PlaybackAudioControls({
   }, [currentChordIndex]);
 
   function handlePlayButtonClick() {
-    const isViewingTabPath =
-      asPath.includes("/tab") && !asPath.includes("edit");
-    const delayPlayStart = isViewingTabPath && countInTimerEnabled ? 3000 : 0;
+    const delayPlayStart = countInTimerEnabled ? 3000 : 0;
     const delayForStoreStateToUpdate = previewMetadata.playing ? 50 : 0;
 
     if (audioMetadata.playing) {
@@ -127,7 +122,7 @@ function PlaybackAudioControls({
       setArtificalPlayButtonTimeout(true);
       setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
     } else {
-      if (isViewingTabPath && countInTimerEnabled) {
+      if (countInTimerEnabled) {
         setCountInTimer({
           ...countInTimer,
           showing: true,
@@ -142,7 +137,7 @@ function PlaybackAudioControls({
           });
         }, delayForStoreStateToUpdate);
 
-        if (isViewingTabPath) {
+        if (countInTimerEnabled) {
           setCountInTimer({
             ...countInTimer,
             showing: false,
