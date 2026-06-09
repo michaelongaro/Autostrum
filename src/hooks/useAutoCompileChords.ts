@@ -68,6 +68,8 @@ function useAutoCompileChords() {
       return false;
     }
 
+    setTabIsEffectivelyEmpty(tabIsEffectivelyEmpty(tabData));
+
     if (wholeTabIsEmpty()) {
       setAudioMetadata({
         playing: false,
@@ -80,8 +82,6 @@ function useAutoCompileChords() {
       setCurrentlyPlayingMetadata(null);
       return;
     }
-
-    setTabIsEffectivelyEmpty(tabIsEffectivelyEmpty(tabData));
 
     const sanitizedSectionProgression =
       sectionProgression.length > 0

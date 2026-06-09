@@ -1,6 +1,5 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { isMobileOnly } from "react-device-detect";
 import {
@@ -60,8 +59,6 @@ const opacityAndScaleVariants = {
 };
 
 function AudioControls() {
-  const { asPath } = useRouter();
-
   const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
     useState(false);
@@ -126,6 +123,8 @@ function AudioControls() {
     fetchingFullTabData: state.fetchingFullTabData,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
+
+  console.log(tabIsEffectivelyEmpty);
 
   useEffect(() => {
     if (!masterVolumeGainNode) return;
@@ -873,24 +872,25 @@ function AudioControls() {
           {aboveLargeViewportWidth ? (
             <>
               {/* probably have a tooltip for this + loop so that it is clear what they do? */}
-              {(asPath.includes("/tab") || asPath.includes("/create")) && (
-                <Toggle
-                  variant={"outline"}
-                  aria-label="Edit loop range"
-                  disabled={!looping || audioMetadata.playing}
-                  pressed={audioMetadata.editingLoopRange}
-                  className="h-8 w-8 p-1"
-                  onPressedChange={(value) => {
-                    setAudioMetadata({
-                      ...audioMetadata,
-                      editingLoopRange: value,
-                    });
-                    setCurrentChordIndex(0); // reset to start of tab when editing loop range
-                  }}
-                >
-                  <CgArrowsShrinkH className="h-6 w-6" />
-                </Toggle>
-              )}
+
+              <Toggle
+                variant={"outline"}
+                aria-label="Edit loop range"
+                disabled={
+                  !looping || audioMetadata.playing || tabIsEffectivelyEmpty
+                }
+                pressed={audioMetadata.editingLoopRange}
+                className="h-8 w-8 p-1"
+                onPressedChange={(value) => {
+                  setAudioMetadata({
+                    ...audioMetadata,
+                    editingLoopRange: value,
+                  });
+                  setCurrentChordIndex(0); // reset to start of tab when editing loop range
+                }}
+              >
+                <CgArrowsShrinkH className="h-6 w-6" />
+              </Toggle>
 
               <Toggle
                 variant={"outline"}
@@ -1065,25 +1065,27 @@ function AudioControls() {
                     />
                   </div>
 
-                  {(asPath.includes("/tab") || asPath.includes("/create")) && (
-                    <div className="baseFlex w-full">
-                      <Button
-                        disabled={!looping}
-                        onClick={() => {
-                          setAudioMetadata({
-                            ...audioMetadata,
-                            editingLoopRange: true,
-                          });
+                  <div className="baseFlex w-full">
+                    <Button
+                      disabled={
+                        !looping ||
+                        audioMetadata.playing ||
+                        tabIsEffectivelyEmpty
+                      }
+                      onClick={() => {
+                        setAudioMetadata({
+                          ...audioMetadata,
+                          editingLoopRange: true,
+                        });
 
-                          setDrawerOpen(false);
-                        }}
-                        className="baseFlex gap-2"
-                      >
-                        <CgArrowsShrinkH className="h-5 w-5" />
-                        Edit loop range
-                      </Button>
-                    </div>
-                  )}
+                        setDrawerOpen(false);
+                      }}
+                      className="baseFlex gap-2"
+                    >
+                      <CgArrowsShrinkH className="h-5 w-5" />
+                      Edit loop range
+                    </Button>
+                  </div>
                 </DrawerContent>
               </DrawerPortal>
             </Drawer>
