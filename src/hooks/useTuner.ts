@@ -229,7 +229,7 @@ export function useTuner({
   const micSourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const analysisGainNodeRef = useRef<GainNode | null>(null);
   const detectorRef = useRef<PitchDetector<Float32Array> | null>(null);
-  const bufferRef = useRef<Float32Array | null>(null);
+  const bufferRef = useRef<Float32Array<ArrayBuffer> | null>(null);
   const rafRef = useRef<number | null>(null);
   const stableMatchStartTimeRef = useRef<number | null>(null);
   const lastUiUpdateTimeRef = useRef(0);
@@ -239,6 +239,9 @@ export function useTuner({
   const guidePlaybackLockoutUntilRef = useRef(0);
   const guidePlaybackHandleRef = useRef<GuidePlaybackHandle>(null);
   const guidePlaybackRequestIdRef = useRef(0);
+  const shouldBeListeningRef = useRef(false);
+  const isListeningRef = useRef(false);
+  const restartListeningPromiseRef = useRef<Promise<void> | null>(null);
 
   const requiredStableHoldMs =
     stableHoldDurationMs ?? (stableFrameCount / 60) * 1000;
@@ -373,7 +376,7 @@ export function useTuner({
           duration: GUIDE_NOTE_DURATION_SECONDS,
           gain: GUIDE_NOTE_GAIN,
           attack: GUIDE_NOTE_ATTACK_SECONDS,
-        }) as GuidePlaybackHandle;
+        });
       } catch (error) {
         if (guidePlaybackRequestIdRef.current === requestId) {
           guidePlaybackLockoutUntilRef.current = 0;
@@ -433,240 +436,335 @@ export function useTuner({
     setCompleted(false);
   }, [applyUiSnapshot]);
 
-  const stopListening = useCallback(() => {
-    guidePlaybackRequestIdRef.current += 1;
-    guidePlaybackLockoutUntilRef.current = 0;
-    stopGuidePlayback(guidePlaybackHandleRef.current);
-    guidePlaybackHandleRef.current = null;
-
-    if (rafRef.current !== null) {
-      window.cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-
-    analyserRef.current?.disconnect();
-    analyserRef.current = null;
-
-    analysisGainNodeRef.current?.disconnect();
-    analysisGainNodeRef.current = null;
-
-    micSourceNodeRef.current?.disconnect();
-    micSourceNodeRef.current = null;
-
-    if (streamRef.current) {
-      for (const track of streamRef.current.getTracks()) {
-        track.stop();
+  const teardownListening = useCallback(
+    ({ preserveIntent = false }: { preserveIntent?: boolean } = {}) => {
+      if (!preserveIntent) {
+        shouldBeListeningRef.current = false;
       }
-      streamRef.current = null;
+
+      guidePlaybackRequestIdRef.current += 1;
+      guidePlaybackLockoutUntilRef.current = 0;
+      stopGuidePlayback(guidePlaybackHandleRef.current);
+      guidePlaybackHandleRef.current = null;
+
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+
+      analyserRef.current?.disconnect();
+      analyserRef.current = null;
+
+      analysisGainNodeRef.current?.disconnect();
+      analysisGainNodeRef.current = null;
+
+      micSourceNodeRef.current?.disconnect();
+      micSourceNodeRef.current = null;
+
+      if (streamRef.current) {
+        for (const track of streamRef.current.getTracks()) {
+          track.stop();
+        }
+        streamRef.current = null;
+      }
+
+      detectorRef.current = null;
+      bufferRef.current = null;
+      stableMatchStartTimeRef.current = null;
+      centsHistoryRef.current = [];
+
+      setIsListening(false);
+      applyUiSnapshot(createEmptyUiSnapshot(), {
+        force: true,
+        resetThrottle: true,
+      });
+    },
+    [applyUiSnapshot],
+  );
+
+  const stopListening = useCallback(() => {
+    teardownListening();
+  }, [teardownListening]);
+
+  const recoverListening = useCallback(async () => {
+    if (restartListeningPromiseRef.current) {
+      await restartListeningPromiseRef.current;
+      return;
     }
 
-    detectorRef.current = null;
-    bufferRef.current = null;
-    stableMatchStartTimeRef.current = null;
-    centsHistoryRef.current = [];
+    const activeTracks = streamRef.current?.getAudioTracks() ?? [];
+    const hasRecoverableStream =
+      activeTracks.length > 0 &&
+      activeTracks.some(
+        (track) => track.readyState === "live" && track.enabled,
+      );
 
-    setIsListening(false);
-    applyUiSnapshot(createEmptyUiSnapshot(), {
-      force: true,
-      resetThrottle: true,
+    if (isListeningRef.current && hasRecoverableStream) {
+      return;
+    }
+
+    const restartPromise = (async () => {
+      if (streamRef.current || isListeningRef.current) {
+        teardownListening({ preserveIntent: true });
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            autoGainControl: false,
+            noiseSuppression: false,
+            echoCancellation: false,
+          },
+        });
+
+        streamRef.current = stream;
+
+        const activeAudioContext = await getActiveAudioContext(true);
+
+        if (!activeAudioContext) {
+          setError("Could not initialize audio context.");
+          stopListening();
+          return;
+        }
+
+        const micSourceNode =
+          activeAudioContext.createMediaStreamSource(stream);
+        const analysisGainNode = activeAudioContext.createGain();
+        const analyser = activeAudioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.12;
+
+        analysisGainNode.gain.value = ANALYSIS_GAIN;
+
+        micSourceNode.connect(analysisGainNode);
+        analysisGainNode.connect(analyser);
+
+        const inputBuffer = new Float32Array(
+          new ArrayBuffer(analyser.fftSize * Float32Array.BYTES_PER_ELEMENT),
+        );
+        const detector = PitchDetector.forFloat32Array(inputBuffer.length);
+
+        micSourceNodeRef.current = micSourceNode;
+        analysisGainNodeRef.current = analysisGainNode;
+        analyserRef.current = analyser;
+        bufferRef.current = inputBuffer;
+        detectorRef.current = detector;
+
+        setIsListening(true);
+
+        const runDetectionLoop = () => {
+          const activeAnalyser = analyserRef.current;
+          const activeBuffer = bufferRef.current;
+          const activeDetector = detectorRef.current;
+
+          if (!activeAnalyser || !activeBuffer || !activeDetector) {
+            return;
+          }
+
+          if (guidePlaybackLockoutUntilRef.current > performance.now()) {
+            rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+            return;
+          }
+
+          activeAnalyser.getFloatTimeDomainData(activeBuffer);
+
+          let meanSquare = 0;
+          for (const sample of activeBuffer) {
+            meanSquare += sample * sample;
+          }
+          const rms = Math.sqrt(meanSquare / activeBuffer.length);
+
+          if (rms < MIN_INPUT_GATE_RMS) {
+            stableMatchStartTimeRef.current = null;
+            applyUiSnapshot(createEmptyUiSnapshot());
+            rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+            return;
+          }
+
+          const quietnessWeight = Math.max(0, Math.min(1, (0.02 - rms) / 0.02));
+
+          const effectiveMinimumClarity =
+            minimumClarity -
+            quietnessWeight * (minimumClarity - MIN_CLARITY_FLOOR);
+
+          const [pitch, foundClarity] = activeDetector.findPitch(
+            activeBuffer,
+            activeAudioContext.sampleRate,
+          );
+
+          if (
+            !Number.isFinite(pitch) ||
+            pitch <= 0 ||
+            foundClarity < effectiveMinimumClarity
+          ) {
+            stableMatchStartTimeRef.current = null;
+            applyUiSnapshot(createEmptyUiSnapshot(foundClarity));
+            rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+            return;
+          }
+
+          const nearestMidi = midiFromFrequency(pitch);
+          const nearestFrequency = frequencyFromMidi(nearestMidi);
+          const centsFromNearest = centsBetweenFrequencies(
+            pitch,
+            nearestFrequency,
+          );
+
+          centsHistoryRef.current.push(centsFromNearest);
+          if (centsHistoryRef.current.length > 5) {
+            centsHistoryRef.current.shift();
+          }
+
+          const smoothedDetectedCents =
+            centsHistoryRef.current.reduce((sum, value) => sum + value, 0) /
+            centsHistoryRef.current.length;
+
+          const resolvedDetectedNote = midiToNoteName(nearestMidi, {
+            sharps: true,
+          }).toLowerCase();
+
+          const targetMidi =
+            targetMidis[currentTargetIndexRef.current] ?? targetMidis[0] ?? 40;
+          const targetFrequency = frequencyFromMidi(targetMidi);
+          const centsFromTarget = centsBetweenFrequencies(
+            pitch,
+            targetFrequency,
+          );
+
+          const now = performance.now();
+          applyUiSnapshot(
+            createUiSnapshot({
+              signalDetected: true,
+              detectedFrequency: pitch,
+              detectedNote: resolvedDetectedNote,
+              detectedCents: smoothedDetectedCents,
+              targetCentsOffset: centsFromTarget,
+              clarity: foundClarity,
+            }),
+            { timestamp: now },
+          );
+
+          const isMatchingTargetNote = nearestMidi === targetMidi;
+          const isWithinTolerance = Math.abs(centsFromTarget) <= toleranceCents;
+
+          if (isMatchingTargetNote && isWithinTolerance) {
+            if (stableMatchStartTimeRef.current === null) {
+              stableMatchStartTimeRef.current = performance.now();
+            }
+          } else {
+            stableMatchStartTimeRef.current = null;
+          }
+
+          if (
+            stableMatchStartTimeRef.current !== null &&
+            performance.now() - stableMatchStartTimeRef.current >=
+              requiredStableHoldMs
+          ) {
+            stableMatchStartTimeRef.current = null;
+
+            if (currentTargetIndexRef.current >= targetMidis.length - 1) {
+              setCompleted(true);
+            } else {
+              const nextIndex = currentTargetIndexRef.current + 1;
+              setCurrentTargetIndex(nextIndex, {
+                allowCreateAudioContext: false,
+              });
+            }
+          }
+
+          rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+        };
+
+        rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+      } catch {
+        setPermissionDenied(true);
+        setError("Microphone permission was denied.");
+        stopListening();
+      }
+    })();
+
+    restartListeningPromiseRef.current = restartPromise.finally(() => {
+      restartListeningPromiseRef.current = null;
     });
-  }, [applyUiSnapshot]);
+
+    await restartListeningPromiseRef.current;
+  }, [
+    applyUiSnapshot,
+    getActiveAudioContext,
+    minimumClarity,
+    requiredStableHoldMs,
+    setCurrentTargetIndex,
+    stopListening,
+    teardownListening,
+    targetMidis,
+    toleranceCents,
+  ]);
 
   const startListening = useCallback(async () => {
-    if (isListening) return;
+    shouldBeListeningRef.current = true;
+
+    if (isListeningRef.current) return;
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setError("Microphone access is not supported in this browser.");
+      shouldBeListeningRef.current = false;
       return;
     }
 
     setError(null);
     setPermissionDenied(false);
+    await recoverListening();
+  }, [recoverListening]);
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          autoGainControl: false,
-          noiseSuppression: false,
-          echoCancellation: false,
-        },
-      });
-
-      streamRef.current = stream;
-
-      const activeAudioContext = await getActiveAudioContext(true);
-
-      if (!activeAudioContext) {
-        setError("Could not initialize audio context.");
-        stopListening();
-        return;
-      }
-
-      const micSourceNode = activeAudioContext.createMediaStreamSource(stream);
-      const analysisGainNode = activeAudioContext.createGain();
-      const analyser = activeAudioContext.createAnalyser();
-      analyser.fftSize = 2048;
-      analyser.smoothingTimeConstant = 0.12;
-
-      analysisGainNode.gain.value = ANALYSIS_GAIN;
-
-      micSourceNode.connect(analysisGainNode);
-      analysisGainNode.connect(analyser);
-
-      const inputBuffer = new Float32Array(analyser.fftSize);
-      const detector = PitchDetector.forFloat32Array(inputBuffer.length);
-
-      micSourceNodeRef.current = micSourceNode;
-      analysisGainNodeRef.current = analysisGainNode;
-      analyserRef.current = analyser;
-      bufferRef.current = inputBuffer;
-      detectorRef.current = detector;
-
-      setIsListening(true);
-
-      const runDetectionLoop = () => {
-        const activeAnalyser = analyserRef.current;
-        const activeBuffer = bufferRef.current;
-        const activeDetector = detectorRef.current;
-
-        if (!activeAnalyser || !activeBuffer || !activeDetector) {
-          return;
-        }
-
-        if (guidePlaybackLockoutUntilRef.current > performance.now()) {
-          rafRef.current = window.requestAnimationFrame(runDetectionLoop);
-          return;
-        }
-
-        activeAnalyser.getFloatTimeDomainData(
-          activeBuffer as Float32Array<ArrayBuffer>,
-        );
-
-        let meanSquare = 0;
-        for (const sample of activeBuffer) {
-          meanSquare += sample * sample;
-        }
-        const rms = Math.sqrt(meanSquare / activeBuffer.length);
-
-        if (rms < MIN_INPUT_GATE_RMS) {
-          stableMatchStartTimeRef.current = null;
-          applyUiSnapshot(createEmptyUiSnapshot());
-          rafRef.current = window.requestAnimationFrame(runDetectionLoop);
-          return;
-        }
-
-        const quietnessWeight = Math.max(0, Math.min(1, (0.02 - rms) / 0.02));
-
-        const effectiveMinimumClarity =
-          minimumClarity -
-          quietnessWeight * (minimumClarity - MIN_CLARITY_FLOOR);
-
-        const [pitch, foundClarity] = activeDetector.findPitch(
-          activeBuffer,
-          activeAudioContext.sampleRate,
-        );
-
-        if (
-          !Number.isFinite(pitch) ||
-          pitch <= 0 ||
-          foundClarity < effectiveMinimumClarity
-        ) {
-          stableMatchStartTimeRef.current = null;
-          applyUiSnapshot(createEmptyUiSnapshot(foundClarity));
-          rafRef.current = window.requestAnimationFrame(runDetectionLoop);
-          return;
-        }
-
-        const nearestMidi = midiFromFrequency(pitch);
-        const nearestFrequency = frequencyFromMidi(nearestMidi);
-        const centsFromNearest = centsBetweenFrequencies(
-          pitch,
-          nearestFrequency,
-        );
-
-        centsHistoryRef.current.push(centsFromNearest);
-        if (centsHistoryRef.current.length > 5) {
-          centsHistoryRef.current.shift();
-        }
-
-        const smoothedDetectedCents =
-          centsHistoryRef.current.reduce((sum, value) => sum + value, 0) /
-          centsHistoryRef.current.length;
-
-        const resolvedDetectedNote = midiToNoteName(nearestMidi, {
-          sharps: true,
-        }).toLowerCase();
-
-        const targetMidi =
-          targetMidis[currentTargetIndexRef.current] ?? targetMidis[0] ?? 40;
-        const targetFrequency = frequencyFromMidi(targetMidi);
-        const centsFromTarget = centsBetweenFrequencies(pitch, targetFrequency);
-
-        const now = performance.now();
-        applyUiSnapshot(
-          createUiSnapshot({
-            signalDetected: true,
-            detectedFrequency: pitch,
-            detectedNote: resolvedDetectedNote,
-            detectedCents: smoothedDetectedCents,
-            targetCentsOffset: centsFromTarget,
-            clarity: foundClarity,
-          }),
-          { timestamp: now },
-        );
-
-        const isMatchingTargetNote = nearestMidi === targetMidi;
-        const isWithinTolerance = Math.abs(centsFromTarget) <= toleranceCents;
-
-        if (isMatchingTargetNote && isWithinTolerance) {
-          if (stableMatchStartTimeRef.current === null) {
-            stableMatchStartTimeRef.current = performance.now();
-          }
-        } else {
-          stableMatchStartTimeRef.current = null;
-        }
-
-        if (
-          stableMatchStartTimeRef.current !== null &&
-          performance.now() - stableMatchStartTimeRef.current >=
-            requiredStableHoldMs
-        ) {
-          stableMatchStartTimeRef.current = null;
-
-          if (currentTargetIndexRef.current >= targetMidis.length - 1) {
-            setCompleted(true);
-          } else {
-            const nextIndex = currentTargetIndexRef.current + 1;
-            setCurrentTargetIndex(nextIndex, {
-              allowCreateAudioContext: false,
-            });
-          }
-        }
-
-        rafRef.current = window.requestAnimationFrame(runDetectionLoop);
-      };
-
-      rafRef.current = window.requestAnimationFrame(runDetectionLoop);
-    } catch {
-      setPermissionDenied(true);
-      setError("Microphone permission was denied.");
-      stopListening();
-    }
-  }, [
-    applyUiSnapshot,
-    getActiveAudioContext,
-    isListening,
-    minimumClarity,
-    requiredStableHoldMs,
-    setCurrentTargetIndex,
-    stopListening,
-    targetMidis,
-    toleranceCents,
-  ]);
+  useEffect(() => {
+    isListeningRef.current = isListening;
+  }, [isListening]);
 
   useEffect(() => {
     currentTargetIndexRef.current = currentTargetIndex;
   }, [currentTargetIndex]);
+
+  useEffect(() => {
+    const handleBackgrounding = () => {
+      if (
+        !shouldBeListeningRef.current ||
+        document.visibilityState === "visible"
+      ) {
+        return;
+      }
+
+      teardownListening({ preserveIntent: true });
+    };
+
+    document.addEventListener("visibilitychange", handleBackgrounding);
+    window.addEventListener("pagehide", handleBackgrounding);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleBackgrounding);
+      window.removeEventListener("pagehide", handleBackgrounding);
+    };
+  }, [teardownListening]);
+
+  useEffect(() => {
+    const recoverIfNeeded = () => {
+      if (
+        !shouldBeListeningRef.current ||
+        document.visibilityState !== "visible"
+      ) {
+        return;
+      }
+
+      void recoverListening();
+    };
+
+    window.addEventListener("focus", recoverIfNeeded);
+    document.addEventListener("visibilitychange", recoverIfNeeded);
+
+    return () => {
+      window.removeEventListener("focus", recoverIfNeeded);
+      document.removeEventListener("visibilitychange", recoverIfNeeded);
+    };
+  }, [recoverListening]);
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
