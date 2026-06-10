@@ -138,6 +138,11 @@ function VirtualizedStaticTabSection({
     // getBoundingClientRect() is in visual (zoomed) px; row packing happens
     // in the body's own layout px, so divide the zoom back out
     const width = body.getBoundingClientRect().width / zoomRef.current;
+
+    // ignore degenerate measurements (e.g. while the element is hidden) so a
+    // transient 0 width can never knock the subsection back to a full render
+    if (width <= 0) return;
+
     setInnerWidth((prev) => (prev === width ? prev : width));
   }, []);
 
@@ -295,7 +300,13 @@ function VirtualizedStaticTabSection({
   }
 
   return (
-    <SectionCard color={color} theme={theme}>
+    // The card normally shrink-wraps to its flex-wrap content, which would
+    // create a feedback loop once rows are virtualized (fewer rendered rows
+    // -> narrower card -> narrower measured width -> repack). A subsection
+    // that virtualizes always packs more than one row, meaning its wrapped
+    // content already spanned the full container width, so pinning the card
+    // to w-full is visually identical and keeps the measured width stable.
+    <SectionCard color={color} theme={theme} fullWidth={isVirtualized}>
       <div
         ref={bodyRef}
         style={
@@ -318,10 +329,12 @@ function VirtualizedStaticTabSection({
 function SectionCard({
   color,
   theme,
+  fullWidth = false,
   children,
 }: {
   color: COLORS;
   theme: THEME;
+  fullWidth?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -330,7 +343,7 @@ function SectionCard({
         borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
         backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
       }}
-      className="baseVertFlex relative h-full !justify-start rounded-md border px-4 py-4 shadow-md md:px-8"
+      className={`baseVertFlex relative h-full !justify-start rounded-md border px-4 py-4 shadow-md md:px-8 ${fullWidth ? "w-full" : ""}`}
     >
       {children}
     </div>
