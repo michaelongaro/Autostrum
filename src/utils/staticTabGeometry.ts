@@ -60,8 +60,16 @@ export const STATIC_TAB_OVERSCAN_PX = 600;
 /**
  * Subsections that pack into fewer rows than this stay on the simple
  * full-render path; virtualization overhead isn't worth it for them.
+ *
+ * Kept intentionally low (2): even a small subsection collapses to two
+ * spacers while outside the overscan window, which is where the bulk of the
+ * DOM reduction comes from on long tabs made of many modest subsections
+ * (a typical 8-measure subsection is only ~3 rows on desktop, so a higher
+ * threshold would disable virtualization for most real-world tabs).
+ * Single-row subsections must stay on the full-render path regardless,
+ * since their card shrink-wraps narrower than the container.
  */
-export const STATIC_TAB_MIN_VIRTUALIZATION_ROWS = 8;
+export const STATIC_TAB_MIN_VIRTUALIZATION_ROWS = 2;
 
 /**
  * Tolerance used when packing integer-width columns against a fractional
