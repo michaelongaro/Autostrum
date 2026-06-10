@@ -45,7 +45,7 @@ function StaticTabSection({
       <div
         className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto" : "flex-wrap"}`}
       >
-        <div className="baseVertFlex">
+        <div className="baseVertFlex h-[248px] w-[32px]">
           <div className="h-[32px] w-full"></div>
           <div
             style={{

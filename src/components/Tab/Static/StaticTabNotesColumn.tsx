@@ -85,7 +85,7 @@ function StaticTabNotesColumn({
     <div
       className={`baseFlex h-[248px] ${isLastColumn ? "w-[46px]" : "w-[34px]"}`}
     >
-      <div className="baseVertFlex">
+      <div className="baseVertFlex size-full">
         {/* Palm Mute Node */}
         <div className="baseVertFlex h-[32px] w-full">
           <StaticPalmMuteNode
@@ -261,7 +261,7 @@ function StaticTabNotesColumn({
       </div>
 
       {isLastColumn && (
-        <div className="baseVertFlex w-[12px]">
+        <div className="baseVertFlex h-[248px] w-[12px]">
           <div className="h-[32px] w-full"></div>
           <div
             style={{
