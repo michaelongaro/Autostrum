@@ -19,6 +19,7 @@ import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScroll
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
+import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
 
 const backdropVariants = {
   expanded: {
@@ -80,6 +81,7 @@ function PlaybackModal() {
     pauseAudio: state.pauseAudio,
     setCurrentChordIndex: state.setCurrentChordIndex,
   }));
+  const scrollStripRef = useRef<HTMLDivElement | null>(null);
 
   const containerRef = (element: HTMLDivElement | null) => {
     if (element && !containerElement) setContainerElement(element);
@@ -412,7 +414,18 @@ function PlaybackModal() {
     };
   }, [setPlaybackModalViewingState, setCurrentChordIndex]);
 
-  // Compute transform for scroll container using chordRepetitions
+  const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
+
+  usePlaybackStripAnimation({
+    stripRef: scrollStripRef,
+    chordLayoutData,
+    currentChordIndex,
+    currentRepetition: currentChordRepetition,
+    playing: audioMetadata.playing,
+  });
+
+  // Keep the inline transform at the current chord boundary.
+  // While playing, WAAPI owns motion; while paused, this preserves the existing settle/scrub path.
   const scrollContainerTransform = useMemo(() => {
     if (
       !chordLayoutData ||
@@ -423,34 +436,9 @@ function PlaybackModal() {
       return "translateX(0px)";
 
     const { scrollPositions, totalWidth } = chordLayoutData;
-    const chordCount = expandedTabData.length;
-
-    // When playing, we animate toward the NEXT chord position
-    // Use chordRepetitions to determine the correct iteration offset
-    const isAtLastChord = currentChordIndex === chordCount - 1;
-
-    let targetIndex: number;
-    let targetRepetition: number;
-
-    if (audioMetadata.playing) {
-      if (isAtLastChord) {
-        // Transition to first chord of next iteration
-        // The first chord will have already been incremented by virtualization
-        targetIndex = 0;
-        targetRepetition = chordRepetitions[0] ?? 0;
-      } else {
-        // Transition to next chord in same iteration
-        targetIndex = currentChordIndex + 1;
-        targetRepetition = chordRepetitions[targetIndex] ?? 0;
-      }
-    } else {
-      // Not playing - stay at current position
-      targetIndex = currentChordIndex;
-      targetRepetition = chordRepetitions[currentChordIndex] ?? 0;
-    }
-
     const position =
-      (scrollPositions[targetIndex] ?? 0) + targetRepetition * totalWidth;
+      (scrollPositions[currentChordIndex] ?? 0) +
+      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
 
     return `translateX(${position * -1}px)`;
   }, [
@@ -458,7 +446,6 @@ function PlaybackModal() {
     expandedTabData,
     currentlyPlayingMetadata,
     currentChordIndex,
-    audioMetadata.playing,
     chordRepetitions,
   ]);
 
@@ -624,16 +611,13 @@ function PlaybackModal() {
 
                       {chordLayoutData && expandedTabData && (
                         <div
+                          ref={scrollStripRef}
                           style={{
                             width: `${chordLayoutData.totalWidth}px`,
                             transform: scrollContainerTransform,
-                            transition: `transform ${
-                              audioMetadata.playing
-                                ? (chordLayoutData.durations[
-                                    currentChordIndex
-                                  ] ?? 0)
-                                : 0.2
-                            }s linear`,
+                            transition: audioMetadata.playing
+                              ? "none"
+                              : "transform 0.2s linear",
                           }}
                           className="relative flex items-center will-change-transform"
                         >
@@ -786,7 +770,7 @@ interface RenderChordByTypeProps {
 
 const RenderChordByType = memo(function RenderChordByType({
   type,
-  index,
+  index: _index,
   prevChord,
   chord,
   nextChord,

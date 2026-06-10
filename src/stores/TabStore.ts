@@ -921,6 +921,9 @@ const useTabStoreBase = create<TabState>()(
         const repeatedChordCount =
           compiledChords.length *
           (expandedTabData === null ? 1 : expandedTabData.loopCounter);
+        const playbackStartEpsilonSeconds = 0.03;
+        let nextChordStartTime =
+          audioContext.currentTime + playbackStartEpsilonSeconds;
 
         for (
           let chordIndex = currentChordIndex;
@@ -951,12 +954,14 @@ const useTabStoreBase = create<TabState>()(
             const baseBpm = Number(currColumn[9]);
             const effectiveBpm =
               baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
+            const chordDuration = 60 / effectiveBpm;
 
             // Play the current chord
             await playNoteColumn({
               tuning,
               capo: capo ?? 0,
               bpm: effectiveBpm,
+              targetStartTime: nextChordStartTime,
               thirdPrevColumn,
               secondPrevColumn,
               prevColumn,
@@ -967,6 +972,8 @@ const useTabStoreBase = create<TabState>()(
               currentInstrument,
               currentlyPlayingStrings,
             });
+
+            nextChordStartTime += chordDuration;
           }
 
           // If the current chord is the last in the compiledChords sequence
@@ -1008,6 +1015,8 @@ const useTabStoreBase = create<TabState>()(
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
             chordIndex = -1;
+            nextChordStartTime =
+              audioContext.currentTime + playbackStartEpsilonSeconds;
           } else if (!looping && chordIndex === repeatedChordCount - 1) {
             // If not looping, stop the playback and set currentChordIndex to 0
             set({

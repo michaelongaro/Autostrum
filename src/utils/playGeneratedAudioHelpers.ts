@@ -841,6 +841,7 @@ interface PlayNoteColumn {
   tuning: number[];
   capo: number;
   bpm: number;
+  targetStartTime?: number;
   thirdPrevColumn?: string[];
   secondPrevColumn?: string[];
   prevColumn?: string[];
@@ -863,6 +864,7 @@ function playNoteColumn({
   tuning,
   capo,
   bpm,
+  targetStartTime,
   thirdPrevColumn,
   secondPrevColumn,
   prevColumn,
@@ -877,12 +879,17 @@ function playNoteColumn({
   forTuningPreview,
 }: PlayNoteColumn) {
   return new Promise<void>((resolve) => {
-    setTimeout(
-      () => {
-        resolve();
-      },
-      (60 / bpm) * 1000,
+    const chordDuration = 60 / bpm;
+    const resolvedTargetStartTime = targetStartTime ?? audioContext.currentTime;
+    const resolveDelayMs = Math.max(
+      0,
+      (resolvedTargetStartTime + chordDuration - audioContext.currentTime) *
+        1000,
     );
+
+    setTimeout(() => {
+      resolve();
+    }, resolveDelayMs);
 
     // thinking it's better to group "r" and "s" in main if statement here
     // because I don't think you want to be super aggresive on deleting the prev
@@ -1214,7 +1221,12 @@ function playNoteColumn({
         stringIdx: adjustedStringIdx,
         fret,
         bpm,
-        when: chordDelayMultiplier * notesPlayedSoFar,
+        when: Math.max(
+          0,
+          resolvedTargetStartTime -
+            audioContext.currentTime +
+            chordDelayMultiplier * notesPlayedSoFar,
+        ),
         // ^ makes sure that the proper delay is applied to each note in a chord
         // regardless of the number/spacing of notes in the chord
         effects,
