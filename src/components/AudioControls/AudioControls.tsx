@@ -124,8 +124,6 @@ function AudioControls() {
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
 
-  console.log(tabIsEffectivelyEmpty);
-
   useEffect(() => {
     if (!masterVolumeGainNode) return;
 
