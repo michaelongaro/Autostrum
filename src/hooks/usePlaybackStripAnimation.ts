@@ -72,12 +72,14 @@ function buildPlaybackStripKeyframes({
   const keyframeIndices = [0];
 
   for (let index = 1; index < animationData.chordCount; index++) {
-    const previousDurationMs =
-      animationData.cumulativeChordTimesMs[index] -
-      animationData.cumulativeChordTimesMs[index - 1]!;
-    const nextDurationMs =
-      animationData.cumulativeChordTimesMs[index + 1] -
-      animationData.cumulativeChordTimesMs[index]!;
+    const previousStartTimeMs =
+      animationData.cumulativeChordTimesMs[index - 1] ?? 0;
+    const currentStartTimeMs =
+      animationData.cumulativeChordTimesMs[index] ?? previousStartTimeMs;
+    const nextStartTimeMs =
+      animationData.cumulativeChordTimesMs[index + 1] ?? currentStartTimeMs;
+    const previousDurationMs = currentStartTimeMs - previousStartTimeMs;
+    const nextDurationMs = nextStartTimeMs - currentStartTimeMs;
 
     if (previousDurationMs <= 0 || nextDurationMs <= 0) {
       keyframeIndices.push(index);
@@ -230,7 +232,7 @@ function usePlaybackStripAnimation({
     );
     const currentTimeMs = animation.currentTime;
 
-    if (currentTimeMs === null) return;
+    if (typeof currentTimeMs !== "number") return;
 
     if (
       clampedChordIndex === 0 &&
