@@ -2,14 +2,27 @@ import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
-import type { COLORS, THEME, TabNote as TabNoteType } from "~/stores/TabStore";
+import type {
+  COLORS,
+  THEME,
+  TabMeasureLine as TabMeasureLineType,
+  TabNote as TabNoteType,
+} from "~/stores/TabStore";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
-import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 import {
   getStringValue,
   isTabMeasureLine,
   isTabNote,
 } from "~/utils/tabNoteHelpers";
+import {
+  STATIC_TAB_END_CAP_WIDTH_PX,
+  STATIC_TAB_LAST_NOTES_COLUMN_WIDTH_PX,
+  STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
+  STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
+  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX,
+  STATIC_TAB_ROW_HEIGHT_PX,
+  STATIC_TAB_TUNING_BOX_HEIGHT_PX,
+} from "~/utils/staticTabGeometry";
 
 function chordHasAtLeastOneNote(chordData: TabNoteType): boolean {
   return [
@@ -24,34 +37,23 @@ function chordHasAtLeastOneNote(chordData: TabNoteType): boolean {
 
 interface StaticTabNotesColumnProps {
   columnData: TabNoteType;
-  columnIndex: number;
+  // neighbors are resolved by the row renderer in StaticTabSection so that
+  // offscreen (virtualized) columns hold no store subscriptions
+  previousColumn: TabNoteType | TabMeasureLineType | undefined;
+  nextColumn: TabNoteType | TabMeasureLineType | undefined;
   isLastColumn: boolean;
-  sectionIndex: number;
-  subSectionIndex: number;
   color: COLORS;
   theme: THEME;
 }
 
 function StaticTabNotesColumn({
   columnData,
-  columnIndex,
+  previousColumn,
+  nextColumn,
   isLastColumn,
-  sectionIndex,
-  subSectionIndex,
   color,
   theme,
 }: StaticTabNotesColumnProps) {
-  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
-
-  if (!subSection) return null;
-
-  const previousColumn =
-    columnIndex > 0 ? subSection.data[columnIndex - 1] : undefined;
-  const nextColumn =
-    columnIndex < subSection.data.length - 1
-      ? subSection.data[columnIndex + 1]
-      : undefined;
-
   const previousColumnIsPlayable =
     previousColumn !== undefined && isTabNote(previousColumn);
   const nextColumnIsPlayable =
@@ -74,20 +76,26 @@ function StaticTabNotesColumn({
 
   // Determine group boundaries for note length guide beam rendering
   const isFirstInGroup =
-    columnIndex === 0 ||
-    (previousColumn !== undefined && isTabMeasureLine(previousColumn));
+    previousColumn === undefined || isTabMeasureLine(previousColumn);
   const isLastInGroup =
-    isLastColumn ||
-    columnIndex === subSection.data.length - 1 ||
-    (nextColumn !== undefined && isTabMeasureLine(nextColumn));
+    isLastColumn || nextColumn === undefined || isTabMeasureLine(nextColumn);
 
   return (
     <div
-      className={`baseFlex h-[248px] ${isLastColumn ? "w-[46px]" : "w-[34px]"}`}
+      style={{
+        height: STATIC_TAB_ROW_HEIGHT_PX,
+        width: isLastColumn
+          ? STATIC_TAB_LAST_NOTES_COLUMN_WIDTH_PX
+          : STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
+      }}
+      className="baseFlex"
     >
       <div className="baseVertFlex size-full">
         {/* Palm Mute Node */}
-        <div className="baseVertFlex h-[32px] w-full">
+        <div
+          style={{ height: STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX }}
+          className="baseVertFlex w-full"
+        >
           <StaticPalmMuteNode
             value={columnData.palmMute}
             color={color}
@@ -106,9 +114,10 @@ function StaticTabNotesColumn({
             <div
               key={stringIndex}
               style={{
+                width: STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
                 backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
               }}
-              className="baseFlex relative w-[34px] shrink-0"
+              className="baseFlex relative shrink-0"
             >
               {/* top border */}
               {stringIndex === 0 && (
@@ -178,7 +187,10 @@ function StaticTabNotesColumn({
           );
         })}
 
-        <div className="baseVertFlex h-[55px] w-full">
+        <div
+          style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
+          className="baseVertFlex w-full"
+        >
           {/* Note Length Guide */}
           <div className="relative h-5 w-full">
             <div className="baseVertFlex mt-1 h-4 w-full">
@@ -261,17 +273,30 @@ function StaticTabNotesColumn({
       </div>
 
       {isLastColumn && (
-        <div className="baseVertFlex h-[248px] w-[12px]">
-          <div className="h-[32px] w-full"></div>
+        <div
+          style={{
+            height: STATIC_TAB_ROW_HEIGHT_PX,
+            width: STATIC_TAB_END_CAP_WIDTH_PX,
+          }}
+          className="baseVertFlex"
+        >
+          <div
+            style={{ height: STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX }}
+            className="w-full"
+          ></div>
           <div
             style={{
+              height: STATIC_TAB_TUNING_BOX_HEIGHT_PX,
               borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
               color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
               backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
             }}
-            className="h-[160px] rounded-r-2xl border-2 p-1"
+            className="rounded-r-2xl border-2 p-1"
           ></div>
-          <div className="h-[55px] w-full"></div>
+          <div
+            style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
+            className="w-full"
+          ></div>
         </div>
       )}
     </div>

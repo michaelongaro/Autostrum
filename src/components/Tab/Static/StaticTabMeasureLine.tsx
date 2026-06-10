@@ -5,6 +5,11 @@ import type {
   THEME,
   TabMeasureLine as TabMeasureLineType,
 } from "~/stores/TabStore";
+import {
+  STATIC_TAB_MEASURE_LINE_WIDTH_PX,
+  STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
+  STATIC_TAB_ROW_HEIGHT_PX,
+} from "~/utils/staticTabGeometry";
 
 interface StaticTabMeasureLineProps {
   columnData: TabMeasureLineType;
@@ -18,7 +23,13 @@ function StaticTabMeasureLine({
   theme,
 }: StaticTabMeasureLineProps) {
   return (
-    <div className="baseVertFlex relative h-[248px] w-[2px]">
+    <div
+      style={{
+        height: STATIC_TAB_ROW_HEIGHT_PX,
+        width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
+      }}
+      className="baseVertFlex relative"
+    >
       {/* BPM indicator */}
       {columnData.bpmAfterLine !== null ? (
         <div
@@ -85,7 +96,10 @@ function StaticTabMeasureLine({
         </div>
       ))}
 
-      <div className="h-[55px] w-full"></div>
+      <div
+        style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
+        className="w-full"
+      ></div>
     </div>
   );
 }
