@@ -10,9 +10,6 @@ interface StaticPalmMuteNode {
 function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
   return (
     <>
-      {/* filler for consistent height if measure line bpm is rendered */}
-      <div className="h-4 w-full"></div>
-
       {value === "start" && (
         <div className="baseFlex w-full">
           <div
@@ -21,12 +18,14 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
             }}
             className="h-[14px] w-[1px]"
           ></div>
+
           <div
             style={{
               backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
             }}
             className="h-[1px] w-1"
           ></div>
+
           <i
             style={{
               color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
@@ -35,23 +34,25 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
           >
             PM
           </i>
+
           <div
             style={{
               backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
             }}
-            className="h-[1px] w-[4px]"
+            className="h-[1px] w-[8px]"
           ></div>
         </div>
       )}
 
       {value === "end" && (
-        <div className="baseFlex mb-[5px] w-full">
+        <div className="baseFlex w-full">
           <div
             style={{
               backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
             }}
             className="h-[1px] w-full"
           ></div>
+
           <div
             style={{
               backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
@@ -66,7 +67,7 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
           style={{
             backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
           }}
-          className="mb-[8px] h-[1px] w-full"
+          className="h-[1px] w-full"
         ></div>
       )}
     </>
