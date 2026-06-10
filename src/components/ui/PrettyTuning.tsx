@@ -1,4 +1,8 @@
 import { getDisplayTuningNotes } from "~/utils/tunings";
+import {
+  STATIC_TAB_VERTICAL_TUNING_ACCIDENTAL_WIDTH_PX,
+  STATIC_TAB_VERTICAL_TUNING_WIDTH_PX,
+} from "~/utils/staticTabGeometry";
 
 function PrettyNote({
   note,
@@ -73,8 +77,13 @@ function PrettyVerticalTuning({
 
   return (
     <div
-      style={{ height }}
-      className={`baseVertFlex !items-start !justify-between ${notes.toString().includes("#") ? "w-4" : "w-3"}`}
+      style={{
+        height,
+        width: notes.toString().includes("#")
+          ? STATIC_TAB_VERTICAL_TUNING_ACCIDENTAL_WIDTH_PX
+          : STATIC_TAB_VERTICAL_TUNING_WIDTH_PX,
+      }}
+      className="baseVertFlex !items-start !justify-between"
     >
       {notes.toReversed().map((note, index) => (
         <PrettyNote key={`${tuning}-${index}`} note={note.toUpperCase()} />

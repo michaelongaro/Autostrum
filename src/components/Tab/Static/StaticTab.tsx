@@ -186,6 +186,7 @@ function StaticTab() {
                   color={color}
                   theme={theme}
                   tabDataLength={tabData.length}
+                  virtualized={true}
                 />
               </div>
             ),

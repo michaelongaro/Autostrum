@@ -23,6 +23,8 @@ interface StaticSectionContainer {
   color: COLORS;
   theme: THEME;
   tabDataLength: number;
+  /** Opt-in row-level virtualization of tab subsections (StaticTab only). */
+  virtualized?: boolean;
 }
 
 function StaticSectionContainer({
@@ -31,6 +33,7 @@ function StaticSectionContainer({
   color,
   theme,
   tabDataLength,
+  virtualized = false,
 }: StaticSectionContainer) {
   const [accordionOpen, setAccordionOpen] = useState("opened");
 
@@ -149,6 +152,7 @@ function StaticSectionContainer({
                       subSectionIndex={subSectionIndex}
                       color={color}
                       theme={theme}
+                      virtualized={virtualized}
                     />
                   )}
                 </div>

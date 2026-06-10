@@ -18,6 +18,7 @@ import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
 import ChordName from "~/components/ui/ChordName";
+import { STATIC_STRUMMING_PATTERN_STRUM_WIDTH_PX } from "~/utils/staticTabGeometry";
 
 interface StaticStrummingPattern {
   data: StrummingPatternType;
@@ -84,7 +85,11 @@ function StaticStrummingPattern({
     <div className="baseFlex w-full flex-wrap !justify-start gap-1">
       <div className="baseFlex relative mb-1 flex-wrap !justify-start">
         {data?.strums?.map((strum, strumIndex) => (
-          <div key={strumIndex} className="baseVertFlex relative my-1 w-[40px]">
+          <div
+            key={strumIndex}
+            style={{ width: STATIC_STRUMMING_PATTERN_STRUM_WIDTH_PX }}
+            className="baseVertFlex relative my-1"
+          >
             {/* palm mute icon */}
             <div
               style={{
