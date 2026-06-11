@@ -173,7 +173,21 @@ function PlaybackModal() {
     const totalWidth = offsetLeft;
     const finalChordWidth = chordWidths[chordWidths.length - 1] ?? 0;
 
-    const durations = playbackMetadata.map((metadata) => {
+    const durations = expandedTabData.map((chord, index) => {
+      const metadata = playbackMetadata[index];
+
+      if (!metadata) return 0;
+
+      const isZeroDurationMeasureLine =
+        chord?.type === "tab" && chord?.data.chordData.includes("|");
+      const isZeroDurationTypeSpacer =
+        (chord?.type === "tab" && chord?.data.chordData[0] === "-1") ||
+        (chord?.type === "strum" && chord?.data.strumIndex === -1);
+
+      if (isZeroDurationMeasureLine || isZeroDurationTypeSpacer) {
+        return 0;
+      }
+
       const { bpm, noteLengthMultiplier } = metadata;
       return 60 / ((bpm / noteLengthMultiplier) * playbackSpeed);
     });
