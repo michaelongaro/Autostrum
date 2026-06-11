@@ -55,7 +55,7 @@ export const STATIC_STRUMMING_PATTERN_STRUM_WIDTH_PX = 40;
  * Extra distance (viewport px) above and below the viewport within which
  * rows are still rendered, so normal scrolling never reveals blank rows.
  */
-export const STATIC_TAB_OVERSCAN_PX = 600;
+export const STATIC_TAB_OVERSCAN_PX = 300;
 
 /**
  * Subsections that pack into fewer rows than this stay on the simple
