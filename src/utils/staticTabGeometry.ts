@@ -23,7 +23,7 @@ export const STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX = 32;
 export const STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX = 55;
 
 /** Width of the tuning gutter rendered at the start of the first row only. */
-export const STATIC_TAB_TUNING_GUTTER_WIDTH_PX = 32;
+export const STATIC_TAB_TUNING_GUTTER_WIDTH_PX = 34;
 
 /** Height of the rounded tuning box inside the tuning gutter / end cap. */
 export const STATIC_TAB_TUNING_BOX_HEIGHT_PX = 160;

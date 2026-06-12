@@ -375,6 +375,7 @@ function TuningGutter({
       <div
         style={{
           height: STATIC_TAB_TUNING_BOX_HEIGHT_PX,
+          width: STATIC_TAB_TUNING_GUTTER_WIDTH_PX,
           borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
           color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
           backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
