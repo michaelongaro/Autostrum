@@ -44,7 +44,7 @@ function PlaybackTabChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex headerModalGradient relative mb-[72px] h-[144px] w-4 border-y-2 border-foreground mobilePortrait:h-[168px]"
+          className="baseVertFlex headerModalGradient relative mb-[71px] h-[144px] w-4 border-y-2 border-foreground mobilePortrait:h-[168px]"
         >
           {/* show new current bpm */}
           {columnData[8] !== "" && (
@@ -75,7 +75,7 @@ function PlaybackTabChord({
           }}
           className="baseVertFlex relative w-[34px]"
         >
-          <div className="baseVertFlex mb-[3.2rem]">
+          <div className="baseVertFlex mb-[51px]">
             {columnData.map((note, index) => (
               <Fragment key={index}>
                 {index === 0 && (
