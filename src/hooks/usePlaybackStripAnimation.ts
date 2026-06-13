@@ -17,6 +17,8 @@ interface UsePlaybackStripAnimationArgs {
   chordLayoutData: PlaybackStripLayoutData | null;
   currentChordIndex: number;
   currentRepetition: number;
+  audioContext: AudioContext | null;
+  playbackStartedAtAudioTime: number | null;
   playing: boolean;
 }
 
@@ -26,7 +28,6 @@ interface PlaybackStripAnimationData {
   totalDurationMs: number;
 }
 
-const DRIFT_CORRECTION_THRESHOLD_MS = 125;
 const VELOCITY_EPSILON = 0.0001;
 
 function getPlaybackStripAnimationData(
@@ -116,6 +117,8 @@ function usePlaybackStripAnimation({
   chordLayoutData,
   currentChordIndex,
   currentRepetition,
+  audioContext,
+  playbackStartedAtAudioTime,
   playing,
 }: UsePlaybackStripAnimationArgs) {
   const animationRef = useRef<Animation | null>(null);
@@ -153,7 +156,9 @@ function usePlaybackStripAnimation({
       !playing ||
       !chordLayoutData ||
       !animationData ||
-      animationData.totalDurationMs <= 0
+      animationData.totalDurationMs <= 0 ||
+      !audioContext ||
+      playbackStartedAtAudioTime === null
     ) {
       return;
     }
@@ -164,8 +169,23 @@ function usePlaybackStripAnimation({
       animationData.chordCount - 1,
     );
 
+    const anchorStartTimeMs =
+      animationData.cumulativeChordTimesMs[clampedAnchorIndex] ?? 0;
+    const elapsedSincePlaybackStartMs = Math.max(
+      0,
+      (audioContext.currentTime - playbackStartedAtAudioTime) * 1000,
+    );
+    const totalElapsedMs = anchorStartTimeMs + elapsedSincePlaybackStartMs;
+    const completedLoops = Math.floor(
+      totalElapsedMs / animationData.totalDurationMs,
+    );
+    const initialCurrentTimeMs = totalElapsedMs % animationData.totalDurationMs;
+
+    // Use the audio clock as the anchor so occasional JS timer jitter on mobile
+    // does not force visible snaps in the strip animation.
     repetitionBaseRef.current =
-      anchorRepetitionRef.current * chordLayoutData.totalWidth;
+      (anchorRepetitionRef.current + completedLoops) *
+      chordLayoutData.totalWidth;
 
     const startAnimation = (startTimeMs: number) => {
       const animatedElement = stripRef.current;
@@ -204,9 +224,7 @@ function usePlaybackStripAnimation({
       animationRef.current = animation;
     };
 
-    startAnimation(
-      animationData.cumulativeChordTimesMs[clampedAnchorIndex] ?? 0,
-    );
+    startAnimation(initialCurrentTimeMs);
 
     return () => {
       const activeAnimation = animationRef.current;
@@ -218,39 +236,14 @@ function usePlaybackStripAnimation({
 
       animationGenerationRef.current += 1;
     };
-  }, [animationData, chordLayoutData, playing, stripRef]);
-
-  useEffect(() => {
-    if (!playing || !animationData) return;
-
-    const animation = animationRef.current;
-    if (!animation) return;
-
-    const clampedChordIndex = Math.min(
-      Math.max(currentChordIndex, 0),
-      animationData.chordCount - 1,
-    );
-    const currentTimeMs = animation.currentTime;
-
-    if (typeof currentTimeMs !== "number") return;
-
-    if (
-      clampedChordIndex === 0 &&
-      currentTimeMs >=
-        animationData.totalDurationMs - DRIFT_CORRECTION_THRESHOLD_MS
-    ) {
-      return;
-    }
-
-    const expectedTimeMs =
-      animationData.cumulativeChordTimesMs[clampedChordIndex] ?? 0;
-
-    if (
-      Math.abs(currentTimeMs - expectedTimeMs) > DRIFT_CORRECTION_THRESHOLD_MS
-    ) {
-      animation.currentTime = expectedTimeMs;
-    }
-  }, [animationData, currentChordIndex, playing]);
+  }, [
+    animationData,
+    audioContext,
+    chordLayoutData,
+    playbackStartedAtAudioTime,
+    playing,
+    stripRef,
+  ]);
 }
 
 export default usePlaybackStripAnimation;

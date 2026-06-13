@@ -360,6 +360,7 @@ const initialStoreState = {
   playbackSpeed: 1 as const,
   loopDelay: 0,
   currentChordIndex: 0,
+  playbackStartedAtAudioTime: null,
   audioMetadata: {
     playing: false,
     location: null,
@@ -591,6 +592,7 @@ interface TabState {
   setPlaybackSpeed: (speed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5) => void;
   currentChordIndex: number;
   setCurrentChordIndex: (currentChordIndex: number) => void;
+  playbackStartedAtAudioTime: number | null;
   audioMetadata: AudioMetadata;
   setAudioMetadata: (audioMetadata: AudioMetadata) => void;
   instruments: Record<InstrumentNames, Soundfont.Player>;
@@ -780,6 +782,7 @@ const useTabStoreBase = create<TabState>()(
       setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
       currentChordIndex: 0,
       setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
+      playbackStartedAtAudioTime: null,
       audioMetadata: {
         playing: false,
         location: null,
@@ -925,6 +928,10 @@ const useTabStoreBase = create<TabState>()(
         let nextChordStartTime =
           audioContext.currentTime + playbackStartEpsilonSeconds;
 
+        set({
+          playbackStartedAtAudioTime: nextChordStartTime,
+        });
+
         for (
           let chordIndex = currentChordIndex;
           chordIndex < repeatedChordCount;
@@ -1008,19 +1015,22 @@ const useTabStoreBase = create<TabState>()(
             (looping || showPlaybackModal) &&
             audioMetadata.playing
           ) {
+            nextChordStartTime =
+              audioContext.currentTime + playbackStartEpsilonSeconds;
+
             // Reset the current chord index to 0 to start over
             set({
               currentChordIndex: 0,
+              playbackStartedAtAudioTime: nextChordStartTime,
             });
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
             chordIndex = -1;
-            nextChordStartTime =
-              audioContext.currentTime + playbackStartEpsilonSeconds;
           } else if (!looping && chordIndex === repeatedChordCount - 1) {
             // If not looping, stop the playback and set currentChordIndex to 0
             set({
               currentChordIndex: 0,
+              playbackStartedAtAudioTime: null,
               audioMetadata: {
                 ...audioMetadata,
                 playing: false,
@@ -1162,6 +1172,7 @@ const useTabStoreBase = create<TabState>()(
           resetProgressTabSliderPosition("editing");
           set({
             currentChordIndex: 0,
+            playbackStartedAtAudioTime: null,
           });
           return;
         }
@@ -1178,6 +1189,7 @@ const useTabStoreBase = create<TabState>()(
               ...audioMetadata,
               playing: false,
             },
+            playbackStartedAtAudioTime: null,
             breakOnNextChord: true,
           });
 
