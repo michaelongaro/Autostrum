@@ -47,7 +47,10 @@ function PlaybackScrollingContainer({
 
     // If we've passed a 15px threshold to the left or right, increment or decrement
     if (deltaX > 15) {
-      if (currentChordIndex === 0 && !canWrapBackward) return;
+      if (currentChordIndex === 0 && !canWrapBackward) {
+        startXRef.current = e.clientX;
+        return;
+      }
       stepPlaybackChord(-1); // moving right -> chord index goes down
       startXRef.current = e.clientX; // reset the start so you can scroll again
     } else if (deltaX < -15) {

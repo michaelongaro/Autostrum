@@ -454,7 +454,7 @@ function PlaybackModal() {
     const result: VisibleChordInstance[] = [];
 
     for (
-      let cycle = stripLoopCycle - 1;
+      let cycle = Math.max(0, stripLoopCycle - 1);
       cycle <= stripLoopCycle + 1;
       cycle++
     ) {
