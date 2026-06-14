@@ -25,8 +25,8 @@ interface PlaybackAudioControls {
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
-  setChordRepetitions: Dispatch<SetStateAction<number[]>>;
-  scrollPositionsLength: number;
+  resetPlaybackVirtualization: (nextLoopCycle?: number) => void;
+  seekPlaybackChord: (nextChordIndex: number) => void;
 }
 
 function PlaybackAudioControls({
@@ -35,8 +35,8 @@ function PlaybackAudioControls({
   setLoopRange,
   tabProgressValue,
   setTabProgressValue,
-  setChordRepetitions,
-  scrollPositionsLength,
+  resetPlaybackVirtualization,
+  seekPlaybackChord,
 }: PlaybackAudioControls) {
   const {
     bpm,
@@ -44,7 +44,6 @@ function PlaybackAudioControls({
     setPlaybackSpeed,
     masterVolumeGainNode,
     currentChordIndex,
-    setCurrentChordIndex,
     currentlyPlayingMetadata,
     audioMetadata,
     setAudioMetadata,
@@ -66,7 +65,6 @@ function PlaybackAudioControls({
     setPlaybackSpeed: state.setPlaybackSpeed,
     masterVolumeGainNode: state.masterVolumeGainNode,
     currentChordIndex: state.currentChordIndex,
-    setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
@@ -122,6 +120,10 @@ function PlaybackAudioControls({
       setArtificalPlayButtonTimeout(true);
       setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
     } else {
+      if (currentChordIndex === 0) {
+        resetPlaybackVirtualization();
+      }
+
       if (countInTimerEnabled) {
         setCountInTimer({
           ...countInTimer,
@@ -263,8 +265,7 @@ function PlaybackAudioControls({
               chordDurations={chordDurations}
               loopRange={loopRange}
               setLoopRange={setLoopRange}
-              setChordRepetitions={setChordRepetitions}
-              scrollPositionsLength={scrollPositionsLength}
+              seekPlaybackChord={seekPlaybackChord}
             />
 
             <div className="baseFlex w-9 !justify-end self-start">
@@ -287,7 +288,7 @@ function PlaybackAudioControls({
             onPressedChange={(value) => {
               // set to beginning of loop if moving to editing loop range, otherwise
               // reset to beginning of tab
-              setCurrentChordIndex(value ? audioMetadata.startLoopIndex : 0);
+              seekPlaybackChord(value ? audioMetadata.startLoopIndex : 0);
 
               setAudioMetadata({
                 ...audioMetadata,
@@ -307,8 +308,7 @@ function PlaybackAudioControls({
             chordDurations={chordDurations}
             loopRange={loopRange}
             setLoopRange={setLoopRange}
-            setChordRepetitions={setChordRepetitions}
-            scrollPositionsLength={scrollPositionsLength}
+            seekPlaybackChord={seekPlaybackChord}
           />
 
           <div className="baseFlex w-full !justify-between">
@@ -370,7 +370,7 @@ function PlaybackAudioControls({
                       i--;
                     }
 
-                    setCurrentChordIndex(i);
+                    seekPlaybackChord(i);
                   }}
                   className="size-4 shrink-0 rounded-full bg-transparent p-0"
                 >
@@ -432,7 +432,7 @@ function PlaybackAudioControls({
                       i++;
                     }
 
-                    setCurrentChordIndex(i);
+                    seekPlaybackChord(i);
                   }}
                   className="size-4 shrink-0 rounded-full bg-transparent p-0"
                 >

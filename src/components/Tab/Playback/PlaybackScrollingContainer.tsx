@@ -1,17 +1,14 @@
 import {
   useRef,
-  type Dispatch,
   type PointerEvent,
   type ReactNode,
-  type SetStateAction,
 } from "react";
 import { useTabStore } from "~/stores/TabStore";
 
 interface PlaybackScrollingContainerProps {
   children: ReactNode;
-  loopCount: number;
-  setChordRepetitions: Dispatch<SetStateAction<number[]>>;
-  scrollPositionsLength: number;
+  canWrapBackward: boolean;
+  stepPlaybackChord: (direction: 1 | -1) => void;
 }
 
 // TODO: still want to avoid "translateX" reliance at all costs, but this approach is inherently
@@ -19,47 +16,19 @@ interface PlaybackScrollingContainerProps {
 
 function PlaybackScrollingContainer({
   children,
-  loopCount,
-  setChordRepetitions,
-  scrollPositionsLength,
+  canWrapBackward,
+  stepPlaybackChord,
 }: PlaybackScrollingContainerProps) {
-  const {
-    playing,
-    pauseAudio,
-    currentChordIndex,
-    setCurrentChordIndex,
-    expandedTabData,
-  } = useTabStore((state) => ({
+  const { playing, pauseAudio, currentChordIndex } = useTabStore((state) => ({
     playing: state.audioMetadata.playing,
     pauseAudio: state.pauseAudio,
     currentChordIndex: state.currentChordIndex,
-    setCurrentChordIndex: state.setCurrentChordIndex,
-    expandedTabData: state.expandedTabData,
   }));
 
   // We only need to track the horizontal start position and whether the user is touching.
   const containerRef = useRef<HTMLDivElement | null>(null);
   const startXRef = useRef(0);
   const isTouchingRef = useRef(false);
-
-  // Helper to increment chord index (with wrap to 0 if we're at the end).
-  function incrementChordIndex() {
-    if (expandedTabData === null) return;
-
-    const newValue = currentChordIndex + 1;
-    setCurrentChordIndex(newValue > expandedTabData.length - 1 ? 0 : newValue);
-  }
-
-  // Helper to decrement chord index (with wrap to last if we're at 0).
-  function decrementChordIndex() {
-    if (expandedTabData === null) return;
-
-    const newValue = currentChordIndex - 1;
-
-    if (newValue < 0 && loopCount === 0) return;
-
-    setCurrentChordIndex(newValue < 0 ? expandedTabData.length - 1 : newValue);
-  }
 
   function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
     if (playing) pauseAudio();
@@ -78,15 +47,11 @@ function PlaybackScrollingContainer({
 
     // If we've passed a 15px threshold to the left or right, increment or decrement
     if (deltaX > 15) {
-      decrementChordIndex(); // moving right -> chord index goes down
-
-      // virtualization logic is set up to handle "forward" movement only, so we need to reset
-      // whenever we move backwards to ensure the correct chords are rendered
-      setChordRepetitions(new Array(scrollPositionsLength).fill(0));
-
+      if (currentChordIndex === 0 && !canWrapBackward) return;
+      stepPlaybackChord(-1); // moving right -> chord index goes down
       startXRef.current = e.clientX; // reset the start so you can scroll again
     } else if (deltaX < -15) {
-      incrementChordIndex(); // moving left -> chord index goes up
+      stepPlaybackChord(1); // moving left -> chord index goes up
       startXRef.current = e.clientX; // reset the start
     }
   }

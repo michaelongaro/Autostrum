@@ -7,8 +7,7 @@ interface PlaybackProgressSlider {
   chordDurations: number[];
   loopRange: [number, number];
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
-  setChordRepetitions: Dispatch<SetStateAction<number[]>>;
-  scrollPositionsLength: number;
+  seekPlaybackChord: (nextChordIndex: number) => void;
 }
 
 function PlaybackProgressSlider({
@@ -16,12 +15,10 @@ function PlaybackProgressSlider({
   chordDurations,
   loopRange,
   setLoopRange,
-  setChordRepetitions,
-  scrollPositionsLength,
+  seekPlaybackChord,
 }: PlaybackProgressSlider) {
   const {
     currentChordIndex,
-    setCurrentChordIndex,
     currentlyPlayingMetadata,
     audioMetadata,
     setAudioMetadata,
@@ -29,7 +26,6 @@ function PlaybackProgressSlider({
     playbackMetadata,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
-    setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
@@ -89,7 +85,7 @@ function PlaybackProgressSlider({
           ? adjustedStartIndex
           : adjustedEndIndex;
 
-      setCurrentChordIndex(
+      seekPlaybackChord(
         newCurrentChordIndex === -1
           ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
           : (newCurrentChordIndex ?? 0),
@@ -105,21 +101,19 @@ function PlaybackProgressSlider({
     loopRange,
     audioMetadata,
     setAudioMetadata,
-    setCurrentChordIndex,
     playbackMetadata,
+    seekPlaybackChord,
   ]);
 
   useEffect(() => {
     // Check if the value has changed from true to false or false to true
     if (prevEditingLoopRangeState.current !== audioMetadata.editingLoopRange) {
-      setCurrentChordIndex(
-        audioMetadata.editingLoopRange ? loopRange[0] || 0 : 0,
-      );
+      seekPlaybackChord(audioMetadata.editingLoopRange ? loopRange[0] || 0 : 0);
     }
 
     // Update ref to the current value for the next render
     prevEditingLoopRangeState.current = audioMetadata.editingLoopRange;
-  }, [audioMetadata.editingLoopRange, loopRange, setCurrentChordIndex]);
+  }, [audioMetadata.editingLoopRange, loopRange, seekPlaybackChord]);
 
   // might want to do something dynamic visually with isDragged prop for thumbs
 
@@ -229,14 +223,7 @@ function PlaybackProgressSlider({
             }
 
             if (values[0] === undefined) return;
-
-            if (values[0] < currentChordIndex) {
-              // virtualization logic is set up to handle "forward" movement only, so we need to reset
-              // whenever we move backwards to ensure the correct chords are rendered
-              setChordRepetitions(new Array(scrollPositionsLength).fill(0));
-            }
-
-            setCurrentChordIndex(values[0]);
+            seekPlaybackChord(values[0]);
           }}
           renderTrack={({ props, children, disabled }) => (
             <div
