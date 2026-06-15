@@ -1028,17 +1028,10 @@ const useTabStoreBase = create<TabState>()(
               chordIndex,
             });
 
-            // In the playback modal, WAAPI onfinish chains the strip loop on the
-            // compositor. Avoid resetting playbackStartedAtAudioTime here so the
-            // hook does not cancel and restart the animation at every loop seam.
-            if (showPlaybackModal) {
-              set({ currentChordIndex: 0 });
-            } else {
-              set({
-                currentChordIndex: 0,
-                playbackStartedAtAudioTime: nextChordStartTime,
-              });
-            }
+            set({
+              currentChordIndex: 0,
+              playbackStartedAtAudioTime: nextChordStartTime,
+            });
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
             chordIndex = -1;

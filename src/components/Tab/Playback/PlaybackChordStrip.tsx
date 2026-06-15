@@ -21,11 +21,9 @@ import {
   shouldOmitInlineTransformWhilePlaying,
 } from "~/utils/playbackStutterDevFlags";
 import {
-  markPlaybackStutter,
-  measurePlaybackStutter,
-  startPlaybackStutterDiagnostics,
-} from "~/utils/playbackStutterDiagnostics";
-import { computePlaybackVisibleRange } from "~/utils/playbackVisibleRange";
+  buildPlaybackChordPositions,
+  computePlaybackVisibleRange,
+} from "~/utils/playbackVisibleRange";
 import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
 
 const VIRTUALIZATION_BUFFER = 100;
@@ -67,32 +65,31 @@ function PlaybackChordStrip({
   chordRepetitions,
   setChordRepetitions,
 }: PlaybackChordStripProps) {
-  const {
-    currentChordIndex,
-    expandedTabData,
-    visiblePlaybackContainerWidth,
-    audioMetadata,
-    audioContext,
-    playbackStartedAtAudioTime,
-    currentlyPlayingMetadata,
-    loopDelay,
-  } = useTabStore((state) => ({
-    currentChordIndex: state.currentChordIndex,
-    expandedTabData: state.expandedTabData,
-    visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
-    audioMetadata: state.audioMetadata,
-    audioContext: state.audioContext,
-    playbackStartedAtAudioTime: state.playbackStartedAtAudioTime,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-    loopDelay: state.loopDelay,
-  }));
+  const currentChordIndex = useTabStore((state) => state.currentChordIndex);
+  const expandedTabData = useTabStore((state) => state.expandedTabData);
+  const visiblePlaybackContainerWidth = useTabStore(
+    (state) => state.visiblePlaybackContainerWidth,
+  );
+  const audioMetadata = useTabStore((state) => state.audioMetadata);
+  const audioContext = useTabStore((state) => state.audioContext);
+  const playbackStartedAtAudioTime = useTabStore(
+    (state) => state.playbackStartedAtAudioTime,
+  );
+  const currentlyPlayingMetadata = useTabStore(
+    (state) => state.currentlyPlayingMetadata,
+  );
+  const loopDelay = useTabStore((state) => state.loopDelay);
+  const editingLoopRange = useTabStore(
+    (state) => state.audioMetadata.editingLoopRange,
+  );
+  const startLoopIndex = useTabStore(
+    (state) => state.audioMetadata.startLoopIndex,
+  );
+  const endLoopIndex = useTabStore((state) => state.audioMetadata.endLoopIndex);
+  const playing = useTabStore((state) => state.audioMetadata.playing);
 
   const devFlags = useMemo(() => getPlaybackStutterDevFlags(), []);
   const disableHighlightTransitions = devFlags.disableHighlightTransitions;
-
-  useEffect(() => {
-    startPlaybackStutterDiagnostics();
-  }, []);
 
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 
@@ -103,23 +100,20 @@ function PlaybackChordStrip({
     currentRepetition: currentChordRepetition,
     audioContext,
     playbackStartedAtAudioTime,
-    playing: audioMetadata.playing,
+    playing,
   });
 
-  const getChordScrollPosition = useCallback(
-    (index: number) => {
-      const { scrollPositions, totalWidth } = chordLayoutData;
-      return (
-        (scrollPositions[index] ?? 0) +
-        (chordRepetitions[index] ?? 0) * totalWidth
-      );
-    },
-    [chordLayoutData, chordRepetitions],
+  const chordPositions = useMemo(
+    () =>
+      buildPlaybackChordPositions({
+        scrollPositions: chordLayoutData.scrollPositions,
+        chordRepetitions,
+        totalWidth: chordLayoutData.totalWidth,
+      }),
+    [chordLayoutData.scrollPositions, chordLayoutData.totalWidth, chordRepetitions],
   );
 
   const visibleRange = useMemo(() => {
-    markPlaybackStutter("visible-range-compute:start");
-
     if (
       !expandedTabData ||
       visiblePlaybackContainerWidth === 0 ||
@@ -128,26 +122,23 @@ function PlaybackChordStrip({
       return { startIndex: 0, endIndex: 0 };
     }
 
-    const result = devFlags.disableVirtualization
-      ? { startIndex: 0, endIndex: expandedTabData.length - 1 }
-      : computePlaybackVisibleRange({
-          scrollPositions: chordLayoutData.scrollPositions,
-          chordRepetitions,
-          totalWidth: chordLayoutData.totalWidth,
-          currentChordIndex,
-          visiblePlaybackContainerWidth,
-          virtualizationBuffer: VIRTUALIZATION_BUFFER,
-        });
+    if (devFlags.disableVirtualization) {
+      return { startIndex: 0, endIndex: expandedTabData.length - 1 };
+    }
 
-    measurePlaybackStutter("visible-range-compute", "visible-range-compute", {
-      startIndex: result.startIndex,
-      endIndex: result.endIndex,
-      chordCount: expandedTabData.length,
+    return computePlaybackVisibleRange({
+      scrollPositions: chordLayoutData.scrollPositions,
+      chordRepetitions,
+      totalWidth: chordLayoutData.totalWidth,
+      currentChordIndex,
+      visiblePlaybackContainerWidth,
+      virtualizationBuffer: VIRTUALIZATION_BUFFER,
+      chordPositions,
     });
-
-    return result;
   }, [
-    chordLayoutData,
+    chordLayoutData.scrollPositions,
+    chordLayoutData.totalWidth,
+    chordPositions,
     chordRepetitions,
     currentChordIndex,
     devFlags.disableVirtualization,
@@ -155,16 +146,18 @@ function PlaybackChordStrip({
     visiblePlaybackContainerWidth,
   ]);
 
+  const firstRepetition = chordRepetitions[0] ?? 0;
+  const lastRepetition = chordRepetitions[chordRepetitions.length - 1] ?? 0;
+  const repetitionsAreSynced = firstRepetition === lastRepetition;
+
+  // Only depend on currentChordIndex — guard before setState so we do not
+  // schedule updater work on every chord tick.
   useEffect(() => {
     if (devFlags.freezeChordRepetitions) return;
-    if (
-      currentChordIndex < chordLayoutData.virtualizationIndex ||
-      chordRepetitions[0] !== chordRepetitions[chordRepetitions.length - 1]
-    ) {
-      return;
-    }
+    if (chordRepetitions.length === 0) return;
+    if (currentChordIndex < chordLayoutData.virtualizationIndex) return;
+    if (!repetitionsAreSynced) return;
 
-    markPlaybackStutter("chord-repetitions-primary");
     setChordRepetitions((prev) => {
       const newRepetitions = (prev[0] ?? 0) + 1;
       const oldRepetitions = prev[0] ?? 0;
@@ -181,50 +174,43 @@ function PlaybackChordStrip({
       return [...firstNewHalf, ...secondNewHalf];
     });
   }, [
-    chordLayoutData,
-    chordRepetitions,
+    chordLayoutData.virtualizationIndex,
+    chordLayoutData.virtualizationStartIndex,
+    chordRepetitions.length,
     currentChordIndex,
     devFlags.freezeChordRepetitions,
+    repetitionsAreSynced,
     setChordRepetitions,
   ]);
 
   useEffect(() => {
     if (devFlags.freezeChordRepetitions) return;
-    if (
-      currentChordIndex >= chordLayoutData.virtualizationIndex ||
-      currentChordIndex < chordLayoutData.virtualizationCatchupIndex ||
-      chordRepetitions[0] === chordRepetitions[chordRepetitions.length - 1]
-    ) {
-      return;
-    }
+    if (chordRepetitions.length === 0) return;
+    if (currentChordIndex >= chordLayoutData.virtualizationIndex) return;
+    if (currentChordIndex < chordLayoutData.virtualizationCatchupIndex) return;
+    if (repetitionsAreSynced) return;
 
-    markPlaybackStutter("chord-repetitions-catchup");
     setChordRepetitions((prev) => {
       const newRepetitions = prev[0] ?? 0;
       return new Array(prev.length).fill(newRepetitions) as number[];
     });
   }, [
-    chordLayoutData,
-    chordRepetitions,
+    chordLayoutData.virtualizationCatchupIndex,
+    chordLayoutData.virtualizationIndex,
+    chordRepetitions.length,
     currentChordIndex,
     devFlags.freezeChordRepetitions,
+    repetitionsAreSynced,
     setChordRepetitions,
   ]);
 
   const scrollContainerTransform = useMemo(() => {
-    const { scrollPositions, totalWidth } = chordLayoutData;
-    const position =
-      (scrollPositions[currentChordIndex] ?? 0) +
-      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
-
+    const position = chordPositions[currentChordIndex] ?? 0;
     return `translateX(${position * -1}px)`;
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
+  }, [chordPositions, currentChordIndex]);
 
-  const omitInlineTransform = shouldOmitInlineTransformWhilePlaying(
-    audioMetadata.playing,
-  );
   const applyInlineTransform =
-    !audioMetadata.playing || !omitInlineTransform;
+    !playing || !shouldOmitInlineTransformWhilePlaying(playing);
 
   const isChordHighlighted = useCallback(
     (chordIndex: number): boolean => {
@@ -236,7 +222,7 @@ function PlaybackChordStrip({
         return false;
       }
 
-      if (currentChordIndex === chordIndex && audioMetadata.playing) {
+      if (currentChordIndex === chordIndex && playing) {
         return true;
       }
 
@@ -249,11 +235,11 @@ function PlaybackChordStrip({
       return false;
     },
     [
-      audioMetadata.playing,
       chordRepetitions,
       currentChordIndex,
       currentlyPlayingMetadata,
       expandedTabData,
+      playing,
     ],
   );
 
@@ -302,9 +288,7 @@ function PlaybackChordStrip({
         ...(applyInlineTransform
           ? {
               transform: scrollContainerTransform,
-              transition: audioMetadata.playing
-                ? "none"
-                : "transform 0.2s linear",
+              transition: playing ? "none" : "transform 0.2s linear",
             }
           : {}),
       }}
@@ -321,10 +305,9 @@ function PlaybackChordStrip({
       />
       {visibleChords.map(({ chord, index, prevChord, nextChord }) => {
         const isDimmed =
-          audioMetadata.editingLoopRange &&
-          (index < audioMetadata.startLoopIndex ||
-            (audioMetadata.endLoopIndex !== -1 &&
-              index > audioMetadata.endLoopIndex));
+          editingLoopRange &&
+          (index < startLoopIndex ||
+            (endLoopIndex !== -1 && index > endLoopIndex));
 
         const isFirstChordInSection =
           index === 0 &&
@@ -336,9 +319,7 @@ function PlaybackChordStrip({
             style={{
               position: "absolute",
               width: `${chordLayoutData.chordWidths[index] ?? 0}px`,
-              left: `${
-                getChordScrollPosition(index) + initialPlaceholderWidth
-              }px`,
+              left: `${(chordPositions[index] ?? 0) + initialPlaceholderWidth}px`,
             }}
           >
             <RenderChordByType
@@ -358,9 +339,7 @@ function PlaybackChordStrip({
               isFirstChordInSection={isFirstChordInSection}
               isDimmed={isDimmed}
               loopDelay={loopDelay}
-              isHighlighted={
-                !audioMetadata.editingLoopRange && isChordHighlighted(index)
-              }
+              isHighlighted={!editingLoopRange && isChordHighlighted(index)}
               disableHighlightTransitions={disableHighlightTransitions}
             />
           </div>

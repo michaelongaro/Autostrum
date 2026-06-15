@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/router";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackChordStrip from "~/components/Tab/Playback/PlaybackChordStrip";
@@ -14,7 +13,6 @@ import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScroll
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
-import { getPlaybackStutterDevFlags } from "~/utils/playbackStutterDevFlags";
 
 const backdropVariants = {
   expanded: {
@@ -37,8 +35,6 @@ interface ChordLayoutData {
 }
 
 function PlaybackModal() {
-  const router = useRouter();
-
   const {
     currentChordIndex,
     expandedTabData,
@@ -108,12 +104,6 @@ function PlaybackModal() {
   }, [currentChordIndex, currentlyPlayingMetadata]);
 
   useModalScrollbarHandling(true);
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "production") {
-      getPlaybackStutterDevFlags(router.query as Record<string, string>);
-    }
-  }, [router.query]);
 
   useEffect(() => {
     const html = document.documentElement;

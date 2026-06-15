@@ -23,9 +23,10 @@ function getChordPosition(
   );
 }
 
-/** Binary search for the first index whose position is >= target. */
+type PositionLookup = (index: number) => number;
+
 function lowerBound(
-  positions: number[],
+  getPosition: PositionLookup,
   target: number,
   start: number,
   end: number,
@@ -35,7 +36,7 @@ function lowerBound(
 
   while (lo < hi) {
     const mid = Math.floor((lo + hi) / 2);
-    if ((positions[mid] ?? 0) < target) {
+    if (getPosition(mid) < target) {
       lo = mid + 1;
     } else {
       hi = mid;
@@ -45,9 +46,8 @@ function lowerBound(
   return lo;
 }
 
-/** Binary search for the last index whose position is <= target. */
 function upperBound(
-  positions: number[],
+  getPosition: PositionLookup,
   target: number,
   start: number,
   end: number,
@@ -57,7 +57,7 @@ function upperBound(
 
   while (lo < hi) {
     const mid = Math.ceil((lo + hi) / 2);
-    if ((positions[mid] ?? 0) > target) {
+    if (getPosition(mid) > target) {
       hi = mid - 1;
     } else {
       lo = mid;
@@ -67,6 +67,20 @@ function upperBound(
   return lo;
 }
 
+/** Build absolute chord positions once; reuse across visible-range queries. */
+export function buildPlaybackChordPositions({
+  scrollPositions,
+  chordRepetitions,
+  totalWidth,
+}: Pick<
+  ComputePlaybackVisibleRangeArgs,
+  "scrollPositions" | "chordRepetitions" | "totalWidth"
+>): number[] {
+  return scrollPositions.map((position, index) =>
+    getChordPosition(index, scrollPositions, chordRepetitions, totalWidth),
+  );
+}
+
 export function computePlaybackVisibleRange({
   scrollPositions,
   chordRepetitions,
@@ -74,25 +88,30 @@ export function computePlaybackVisibleRange({
   currentChordIndex,
   visiblePlaybackContainerWidth,
   virtualizationBuffer,
-}: ComputePlaybackVisibleRangeArgs): PlaybackVisibleRange {
+  chordPositions,
+}: ComputePlaybackVisibleRangeArgs & {
+  chordPositions?: number[];
+}): PlaybackVisibleRange {
   const chordCount = scrollPositions.length;
   if (chordCount === 0) {
     return { startIndex: 0, endIndex: 0 };
   }
 
-  const positions = scrollPositions.map((position, index) =>
-    getChordPosition(index, scrollPositions, chordRepetitions, totalWidth),
-  );
+  const getPosition: PositionLookup =
+    chordPositions !== undefined
+      ? (index) => chordPositions[index] ?? 0
+      : (index) =>
+          getChordPosition(index, scrollPositions, chordRepetitions, totalWidth);
 
-  const currentScrollPosition = positions[currentChordIndex] ?? 0;
+  const currentScrollPosition = getPosition(currentChordIndex);
   const halfViewport = visiblePlaybackContainerWidth / 2;
   const minVisiblePosition =
     currentScrollPosition - halfViewport - virtualizationBuffer;
   const maxVisiblePosition =
     currentScrollPosition + halfViewport + virtualizationBuffer;
 
-  const rawStart = lowerBound(positions, minVisiblePosition, 0, chordCount - 1);
-  const rawEnd = upperBound(positions, maxVisiblePosition, 0, chordCount - 1);
+  const rawStart = lowerBound(getPosition, minVisiblePosition, 0, chordCount - 1);
+  const rawEnd = upperBound(getPosition, maxVisiblePosition, 0, chordCount - 1);
 
   return {
     startIndex: Math.max(0, rawStart - 1),
