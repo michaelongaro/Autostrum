@@ -18,6 +18,7 @@ interface PlaybackTabChord {
   prevChordIsRest: boolean;
   currentChordIsRest: boolean;
   nextChordIsRest: boolean;
+  disableHighlightTransitions?: boolean;
 }
 
 function PlaybackTabChord({
@@ -32,6 +33,7 @@ function PlaybackTabChord({
   prevChordIsRest,
   currentChordIsRest,
   nextChordIsRest,
+  disableHighlightTransitions,
 }: PlaybackTabChord) {
   const chordEffect = columnData[7] || "";
 
@@ -117,6 +119,7 @@ function PlaybackTabChord({
                             : note
                       }
                       isHighlighted={isHighlighted}
+                      disableHighlightTransitions={disableHighlightTransitions}
                       isAccented={
                         note.includes(">") || columnData[7]?.includes(">")
                       }
@@ -220,6 +223,7 @@ interface PlaybackTabNote {
   isAccented?: boolean;
   isStaccato?: boolean;
   isRest?: boolean;
+  disableHighlightTransitions?: boolean;
 }
 
 const PlaybackTabNote = memo(function PlaybackTabNote({
@@ -228,6 +232,7 @@ const PlaybackTabNote = memo(function PlaybackTabNote({
   isAccented,
   isStaccato,
   isRest,
+  disableHighlightTransitions,
 }: PlaybackTabNote) {
   return (
     <div className="baseFlex w-[34px]">
@@ -237,7 +242,7 @@ const PlaybackTabNote = memo(function PlaybackTabNote({
           color: isHighlighted
             ? "hsl(var(--primary))"
             : "hsl(var(--foreground))",
-          transitionDuration: "75ms",
+          transitionDuration: disableHighlightTransitions ? "0ms" : "75ms",
 
           // "x" wasn't as centered as regular numbers were, manual adjustment below
           marginTop: note === "x" ? "-2px" : "0",

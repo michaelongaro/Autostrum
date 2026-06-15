@@ -13,6 +13,10 @@ import {
 import { resetProgressTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { DEFAULT_TUNING, normalizeTuningValue, parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
+import {
+  recordChordIndexSet,
+  recordLoopBoundary,
+} from "~/utils/playbackStutterDiagnostics";
 import { useShallow } from "zustand/shallow";
 
 export interface SectionProgression {
@@ -949,6 +953,7 @@ const useTabStoreBase = create<TabState>()(
             set({
               currentChordIndex: chordIndex,
             });
+            recordChordIndexSet(chordIndex, true);
 
             const thirdPrevColumn = compiledChords[adjustedChordIndex - 3];
             const secondPrevColumn = compiledChords[adjustedChordIndex - 2];
@@ -1018,11 +1023,22 @@ const useTabStoreBase = create<TabState>()(
             nextChordStartTime =
               audioContext.currentTime + playbackStartEpsilonSeconds;
 
-            // Reset the current chord index to 0 to start over
-            set({
-              currentChordIndex: 0,
-              playbackStartedAtAudioTime: nextChordStartTime,
+            recordLoopBoundary({
+              showPlaybackModal: showPlaybackModal ? 1 : 0,
+              chordIndex,
             });
+
+            // In the playback modal, WAAPI onfinish chains the strip loop on the
+            // compositor. Avoid resetting playbackStartedAtAudioTime here so the
+            // hook does not cancel and restart the animation at every loop seam.
+            if (showPlaybackModal) {
+              set({ currentChordIndex: 0 });
+            } else {
+              set({
+                currentChordIndex: 0,
+                playbackStartedAtAudioTime: nextChordStartTime,
+              });
+            }
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
             chordIndex = -1;

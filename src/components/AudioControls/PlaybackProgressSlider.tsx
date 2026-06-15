@@ -1,6 +1,7 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
 import { useTabStore } from "~/stores/TabStore";
+import { getPlaybackStutterDevFlags } from "~/utils/playbackStutterDevFlags";
 
 interface PlaybackProgressSlider {
   disabled: boolean;
@@ -134,6 +135,15 @@ function PlaybackProgressSlider({
   const isPlayingAndNotAtEnd =
     audioMetadata.playing &&
     (currentChordIndex + 1) % currentlyPlayingMetadata!.length !== 0;
+
+  const disableSliderTransitions =
+    process.env.NODE_ENV !== "production" &&
+    getPlaybackStutterDevFlags().disableSliderTransitions;
+
+  const sliderTransitionDuration =
+    audioMetadata.playing && !disableSliderTransitions
+      ? `${chordDurations[currentChordIndex] ?? 0}s`
+      : "0s";
 
   const maxIndex = currentlyPlayingMetadata
     ? currentlyPlayingMetadata.length - 1
@@ -277,11 +287,7 @@ function PlaybackProgressSlider({
                       })`,
                       transitionProperty: "transform",
                       transitionTimingFunction: "linear",
-                      transitionDuration: `${
-                        audioMetadata.playing
-                          ? `${chordDurations[currentChordIndex] ?? 0}s`
-                          : "0s"
-                      }`,
+                      transitionDuration: sliderTransitionDuration,
                     }}
                     className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary will-change-transform"
                   ></div>
@@ -298,11 +304,7 @@ function PlaybackProgressSlider({
                 ...props.style,
                 transitionProperty: "transform",
                 transitionTimingFunction: "linear",
-                transitionDuration: `${
-                  audioMetadata.playing
-                    ? `${chordDurations[currentChordIndex] ?? 0}s`
-                    : "0s"
-                }`,
+                transitionDuration: sliderTransitionDuration,
               }}
               className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
             />

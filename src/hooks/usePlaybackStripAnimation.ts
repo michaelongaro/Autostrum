@@ -5,6 +5,7 @@ import {
   useRef,
   type RefObject,
 } from "react";
+import { markPlaybackStutter } from "~/utils/playbackStutterDiagnostics";
 
 interface PlaybackStripLayoutData {
   scrollPositions: number[];
@@ -145,6 +146,7 @@ function usePlaybackStripAnimation({
   useLayoutEffect(() => {
     const currentAnimation = animationRef.current;
     if (currentAnimation) {
+      markPlaybackStutter("waapi-cancel");
       currentAnimation.onfinish = null;
       currentAnimation.cancel();
       animationRef.current = null;
@@ -222,6 +224,10 @@ function usePlaybackStripAnimation({
 
       animation.play();
       animationRef.current = animation;
+      markPlaybackStutter("waapi-start", {
+        startTimeMs,
+        repetitionBase: repetitionBaseRef.current,
+      });
     };
 
     startAnimation(initialCurrentTimeMs);

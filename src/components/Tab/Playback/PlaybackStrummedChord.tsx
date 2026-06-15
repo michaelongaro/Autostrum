@@ -27,6 +27,7 @@ interface PlaybackStrummedChord {
   prevChordIsRest: boolean;
   currentChordIsRest: boolean;
   nextChordIsRest: boolean;
+  disableHighlightTransitions?: boolean;
 }
 
 function PlaybackStrummedChord({
@@ -48,6 +49,7 @@ function PlaybackStrummedChord({
   prevChordIsRest,
   currentChordIsRest,
   nextChordIsRest,
+  disableHighlightTransitions,
 }: PlaybackStrummedChord) {
   const { chordDisplayMode } = useTabStore((state) => ({
     chordDisplayMode: state.chordDisplayMode,
@@ -132,7 +134,7 @@ function PlaybackStrummedChord({
                       ? "hsl(var(--primary))"
                       : "hsl(var(--foreground))",
               }}
-              className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
+              className={`baseVertFlex relative mb-2 h-[20px] text-lg ${disableHighlightTransitions ? "" : "transition-colors"}`}
             >
               <div className="baseFlex">
                 {strum.includes("v") && (
