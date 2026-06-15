@@ -16,9 +16,10 @@ interface UsePlaybackStripAnimationArgs {
   stripRef: RefObject<HTMLDivElement | null>;
   chordLayoutData: PlaybackStripLayoutData | null;
   currentChordIndex: number;
-  currentRepetition: number;
+  currentLoopCycle: number;
   audioContext: AudioContext | null;
   playbackStartedAtAudioTime: number | null;
+  onLoopCycle?: () => void;
   playing: boolean;
 }
 
@@ -116,9 +117,10 @@ function usePlaybackStripAnimation({
   stripRef,
   chordLayoutData,
   currentChordIndex,
-  currentRepetition,
+  currentLoopCycle,
   audioContext,
   playbackStartedAtAudioTime,
+  onLoopCycle,
   playing,
 }: UsePlaybackStripAnimationArgs) {
   const animationRef = useRef<Animation | null>(null);
@@ -126,7 +128,7 @@ function usePlaybackStripAnimation({
   const playingRef = useRef(playing);
   const repetitionBaseRef = useRef(0);
   const anchorChordIndexRef = useRef(currentChordIndex);
-  const anchorRepetitionRef = useRef(currentRepetition);
+  const anchorLoopCycleRef = useRef(currentLoopCycle);
 
   const animationData = useMemo(
     () => getPlaybackStripAnimationData(chordLayoutData),
@@ -139,8 +141,8 @@ function usePlaybackStripAnimation({
 
   useLayoutEffect(() => {
     anchorChordIndexRef.current = currentChordIndex;
-    anchorRepetitionRef.current = currentRepetition;
-  }, [currentChordIndex, currentRepetition]);
+    anchorLoopCycleRef.current = currentLoopCycle;
+  }, [currentChordIndex, currentLoopCycle]);
 
   useLayoutEffect(() => {
     const currentAnimation = animationRef.current;
@@ -184,7 +186,7 @@ function usePlaybackStripAnimation({
     // Use the audio clock as the anchor so occasional JS timer jitter on mobile
     // does not force visible snaps in the strip animation.
     repetitionBaseRef.current =
-      (anchorRepetitionRef.current + completedLoops) *
+      (anchorLoopCycleRef.current + completedLoops) *
       chordLayoutData.totalWidth;
 
     const startAnimation = (startTimeMs: number) => {
@@ -217,6 +219,7 @@ function usePlaybackStripAnimation({
         }
 
         repetitionBaseRef.current += chordLayoutData.totalWidth;
+        onLoopCycle?.();
         startAnimation(0);
       };
 
@@ -242,6 +245,7 @@ function usePlaybackStripAnimation({
     chordLayoutData,
     playbackStartedAtAudioTime,
     playing,
+    onLoopCycle,
     stripRef,
   ]);
 }
