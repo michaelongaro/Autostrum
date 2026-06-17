@@ -230,11 +230,8 @@ function PlaybackProgressSlider({
 
             if (values[0] === undefined) return;
 
-            if (values[0] < currentChordIndex) {
-              // virtualization logic is set up to handle "forward" movement only, so we need to reset
-              // whenever we move backwards to ensure the correct chords are rendered
-              setChordRepetitions(new Array(scrollPositionsLength).fill(0));
-            }
+            // Virtualization only handles forward playback movement, so reset on any manual scrub.
+            setChordRepetitions(new Array(scrollPositionsLength).fill(0));
 
             setCurrentChordIndex(values[0]);
           }}

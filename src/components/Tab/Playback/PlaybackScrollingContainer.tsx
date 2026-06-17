@@ -42,11 +42,16 @@ function PlaybackScrollingContainer({
   const startXRef = useRef(0);
   const isTouchingRef = useRef(false);
 
+  function resetChordRepetitions() {
+    setChordRepetitions(new Array(scrollPositionsLength).fill(0));
+  }
+
   // Helper to increment chord index (with wrap to 0 if we're at the end).
   function incrementChordIndex() {
     if (expandedTabData === null) return;
 
     const newValue = currentChordIndex + 1;
+    resetChordRepetitions();
     setCurrentChordIndex(newValue > expandedTabData.length - 1 ? 0 : newValue);
   }
 
@@ -58,6 +63,7 @@ function PlaybackScrollingContainer({
 
     if (newValue < 0 && loopCount === 0) return;
 
+    resetChordRepetitions();
     setCurrentChordIndex(newValue < 0 ? expandedTabData.length - 1 : newValue);
   }
 
@@ -79,10 +85,6 @@ function PlaybackScrollingContainer({
     // If we've passed a 15px threshold to the left or right, increment or decrement
     if (deltaX > 15) {
       decrementChordIndex(); // moving right -> chord index goes down
-
-      // virtualization logic is set up to handle "forward" movement only, so we need to reset
-      // whenever we move backwards to ensure the correct chords are rendered
-      setChordRepetitions(new Array(scrollPositionsLength).fill(0));
 
       startXRef.current = e.clientX; // reset the start so you can scroll again
     } else if (deltaX < -15) {

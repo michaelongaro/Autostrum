@@ -266,17 +266,23 @@ function PlaybackModal() {
     visiblePlaybackContainerWidth,
   ]);
 
+  // Virtualized repetition offsets are only meaningful during active playback.
+  // After a loop completes, currentChordIndex resets while chordRepetitions stay
+  // elevated, which pushes the paused/scrubbed strip off-screen if we keep using them.
+  const useVirtualizedRepetitions = audioMetadata.playing;
+
   // Helper to compute scroll position for a chord using chordRepetitions
   const getChordScrollPosition = useCallback(
     (index: number) => {
       if (!chordLayoutData) return 0;
       const { scrollPositions, totalWidth } = chordLayoutData;
-      return (
-        (scrollPositions[index] ?? 0) +
-        (chordRepetitions[index] ?? 0) * totalWidth
-      );
+      const repetitionOffset = useVirtualizedRepetitions
+        ? (chordRepetitions[index] ?? 0) * totalWidth
+        : 0;
+
+      return (scrollPositions[index] ?? 0) + repetitionOffset;
     },
-    [chordLayoutData, chordRepetitions],
+    [chordLayoutData, chordRepetitions, useVirtualizedRepetitions],
   );
 
   // Compute visible chord range using binary search with chordRepetitions
@@ -300,10 +306,13 @@ function PlaybackModal() {
     const { scrollPositions, totalWidth } = chordLayoutData;
     const chordCount = expandedTabData.length;
 
+    const currentRepetitionOffset = useVirtualizedRepetitions
+      ? (chordRepetitions[currentChordIndex] ?? 0) * totalWidth
+      : 0;
+
     // Get current chord's scroll position using its repetition count
     const currentScrollPosition =
-      (scrollPositions[currentChordIndex] ?? 0) +
-      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
+      (scrollPositions[currentChordIndex] ?? 0) + currentRepetitionOffset;
 
     const halfViewport = visiblePlaybackContainerWidth / 2;
     const minVisiblePosition =
@@ -317,8 +326,10 @@ function PlaybackModal() {
 
     // Find start index
     for (let i = 0; i < chordCount; i++) {
-      const chordPosition =
-        (scrollPositions[i] ?? 0) + (chordRepetitions[i] ?? 0) * totalWidth;
+      const repetitionOffset = useVirtualizedRepetitions
+        ? (chordRepetitions[i] ?? 0) * totalWidth
+        : 0;
+      const chordPosition = (scrollPositions[i] ?? 0) + repetitionOffset;
       if (chordPosition >= minVisiblePosition) {
         startIndex = Math.max(0, i - 1);
         break;
@@ -327,8 +338,10 @@ function PlaybackModal() {
 
     // Find end index
     for (let i = chordCount - 1; i >= 0; i--) {
-      const chordPosition =
-        (scrollPositions[i] ?? 0) + (chordRepetitions[i] ?? 0) * totalWidth;
+      const repetitionOffset = useVirtualizedRepetitions
+        ? (chordRepetitions[i] ?? 0) * totalWidth
+        : 0;
+      const chordPosition = (scrollPositions[i] ?? 0) + repetitionOffset;
       if (chordPosition <= maxVisiblePosition) {
         endIndex = Math.min(chordCount - 1, i + 1);
         break;
@@ -346,6 +359,7 @@ function PlaybackModal() {
     visiblePlaybackContainerWidth,
     currentChordIndex,
     chordRepetitions,
+    useVirtualizedRepetitions,
   ]);
 
   // Primary chord virtualization effect - increments all chords except the last visible portion
@@ -456,9 +470,10 @@ function PlaybackModal() {
       return "translateX(0px)";
 
     const { scrollPositions, totalWidth } = chordLayoutData;
-    const position =
-      (scrollPositions[currentChordIndex] ?? 0) +
-      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
+    const repetitionOffset = useVirtualizedRepetitions
+      ? (chordRepetitions[currentChordIndex] ?? 0) * totalWidth
+      : 0;
+    const position = (scrollPositions[currentChordIndex] ?? 0) + repetitionOffset;
 
     return `translateX(${position * -1}px)`;
   }, [
@@ -467,6 +482,7 @@ function PlaybackModal() {
     currentlyPlayingMetadata,
     currentChordIndex,
     chordRepetitions,
+    useVirtualizedRepetitions,
   ]);
 
   const isChordHighlighted = useCallback(
@@ -477,6 +493,10 @@ function PlaybackModal() {
         chordRepetitions.length === 0
       )
         return false;
+
+      if (!audioMetadata.playing) {
+        return chordIndex <= currentChordIndex;
+      }
 
       if (currentChordIndex === chordIndex && audioMetadata.playing) {
         return true;

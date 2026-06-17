@@ -370,6 +370,7 @@ function PlaybackAudioControls({
                       i--;
                     }
 
+                    setChordRepetitions(new Array(scrollPositionsLength).fill(0));
                     setCurrentChordIndex(i);
                   }}
                   className="size-4 shrink-0 rounded-full bg-transparent p-0"
@@ -432,6 +433,7 @@ function PlaybackAudioControls({
                       i++;
                     }
 
+                    setChordRepetitions(new Array(scrollPositionsLength).fill(0));
                     setCurrentChordIndex(i);
                   }}
                   className="size-4 shrink-0 rounded-full bg-transparent p-0"
