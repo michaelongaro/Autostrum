@@ -366,6 +366,7 @@ function PlaybackModal() {
   // Triggers when current chord index reaches the point where the last chord becomes visible
   useEffect(() => {
     if (
+      !audioMetadata.playing ||
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
       currentChordIndex < chordLayoutData.virtualizationIndex ||
@@ -389,12 +390,18 @@ function PlaybackModal() {
 
       return [...firstNewHalf, ...secondNewHalf];
     });
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
+  }, [
+    audioMetadata.playing,
+    chordLayoutData,
+    chordRepetitions,
+    currentChordIndex,
+  ]);
 
   // Catchup chord virtualization effect - increments the remaining chords after they leave the viewport
   // Triggers after the beginning of the tab leaves the viewport on a new loop
   useEffect(() => {
     if (
+      !audioMetadata.playing ||
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
       // making sure that this only happens post-primary virtualization and not
@@ -410,7 +417,12 @@ function PlaybackModal() {
       const newRepetitions = prev[0] ?? 0;
       return new Array(prev.length).fill(newRepetitions) as number[];
     });
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
+  }, [
+    audioMetadata.playing,
+    chordLayoutData,
+    chordRepetitions,
+    currentChordIndex,
+  ]);
 
   // Handle resize
   useEffect(() => {

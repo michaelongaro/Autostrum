@@ -370,7 +370,16 @@ function PlaybackAudioControls({
                       i--;
                     }
 
-                    setChordRepetitions(new Array(scrollPositionsLength).fill(0));
+                    setChordRepetitions((prev) => {
+                      if (
+                        prev.length === 0 ||
+                        prev.every((repetition) => repetition === 0)
+                      ) {
+                        return prev;
+                      }
+
+                      return new Array(scrollPositionsLength).fill(0);
+                    });
                     setCurrentChordIndex(i);
                   }}
                   className="size-4 shrink-0 rounded-full bg-transparent p-0"
@@ -433,7 +442,16 @@ function PlaybackAudioControls({
                       i++;
                     }
 
-                    setChordRepetitions(new Array(scrollPositionsLength).fill(0));
+                    setChordRepetitions((prev) => {
+                      if (
+                        prev.length === 0 ||
+                        prev.every((repetition) => repetition === 0)
+                      ) {
+                        return prev;
+                      }
+
+                      return new Array(scrollPositionsLength).fill(0);
+                    });
                     setCurrentChordIndex(i);
                   }}
                   className="size-4 shrink-0 rounded-full bg-transparent p-0"

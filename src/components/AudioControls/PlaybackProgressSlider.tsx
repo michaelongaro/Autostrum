@@ -230,10 +230,20 @@ function PlaybackProgressSlider({
 
             if (values[0] === undefined) return;
 
-            // Virtualization only handles forward playback movement, so reset on any manual scrub.
-            setChordRepetitions(new Array(scrollPositionsLength).fill(0));
+            const nextIndex = values[0];
+            if (nextIndex === currentChordIndex) return;
 
-            setCurrentChordIndex(values[0]);
+            // Clear stale virtualization offsets when manually seeking. Skip if already reset
+            // to avoid re-render loops with the virtualization effects in PlaybackModal.
+            setChordRepetitions((prev) => {
+              if (prev.length === 0 || prev.every((repetition) => repetition === 0)) {
+                return prev;
+              }
+
+              return new Array(scrollPositionsLength).fill(0);
+            });
+
+            setCurrentChordIndex(nextIndex);
           }}
           renderTrack={({ props, children, disabled }) => (
             <div

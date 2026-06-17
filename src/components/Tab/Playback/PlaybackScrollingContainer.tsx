@@ -42,8 +42,14 @@ function PlaybackScrollingContainer({
   const startXRef = useRef(0);
   const isTouchingRef = useRef(false);
 
-  function resetChordRepetitions() {
-    setChordRepetitions(new Array(scrollPositionsLength).fill(0));
+  function resetChordRepetitionsIfNeeded() {
+    setChordRepetitions((prev) => {
+      if (prev.length === 0 || prev.every((repetition) => repetition === 0)) {
+        return prev;
+      }
+
+      return new Array(scrollPositionsLength).fill(0);
+    });
   }
 
   // Helper to increment chord index (with wrap to 0 if we're at the end).
@@ -51,7 +57,7 @@ function PlaybackScrollingContainer({
     if (expandedTabData === null) return;
 
     const newValue = currentChordIndex + 1;
-    resetChordRepetitions();
+    resetChordRepetitionsIfNeeded();
     setCurrentChordIndex(newValue > expandedTabData.length - 1 ? 0 : newValue);
   }
 
@@ -63,7 +69,7 @@ function PlaybackScrollingContainer({
 
     if (newValue < 0 && loopCount === 0) return;
 
-    resetChordRepetitions();
+    resetChordRepetitionsIfNeeded();
     setCurrentChordIndex(newValue < 0 ? expandedTabData.length - 1 : newValue);
   }
 
