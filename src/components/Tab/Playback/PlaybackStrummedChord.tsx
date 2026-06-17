@@ -62,7 +62,7 @@ function PlaybackStrummedChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex mb-[71px] h-[144px] w-4 shrink-0 border-y-2 border-foreground mobilePortrait:h-[168px]"
+          className="baseVertFlex mb-[72px] h-[144px] w-4 shrink-0 border-y-2 border-foreground mobilePortrait:h-[168px]"
         >
           {/* spacer to ease transition from strum -> tab */}
           <div className="my-[10px] h-[1px] w-1/2 self-start bg-gradient-to-r from-foreground/50 to-transparent mobilePortrait:my-3"></div>
@@ -89,7 +89,7 @@ function PlaybackStrummedChord({
             opacity: isDimmed ? 0.5 : 1,
             transition: "opacity 0.5s",
           }}
-          className="baseVertFlex relative mb-[71px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
+          className="baseVertFlex relative mb-[72px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
         >
           {bpmToShow && (
             <div className="baseFlex absolute left-[16px] top-[-1.5rem] gap-[6px] text-nowrap text-xs">
