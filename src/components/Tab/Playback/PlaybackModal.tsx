@@ -20,6 +20,7 @@ import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
+import { getEffectiveRepetitionFromScrollPosition } from "~/utils/playbackStripVirtualization";
 
 const backdropVariants = {
   expanded: {
@@ -352,7 +353,6 @@ function PlaybackModal() {
   // Triggers when current chord index reaches the point where the last chord becomes visible
   useEffect(() => {
     if (
-      audioMetadata.playing ||
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
       currentChordIndex < chordLayoutData.virtualizationIndex ||
@@ -376,18 +376,12 @@ function PlaybackModal() {
 
       return [...firstNewHalf, ...secondNewHalf];
     });
-  }, [
-    audioMetadata.playing,
-    chordLayoutData,
-    chordRepetitions,
-    currentChordIndex,
-  ]);
+  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
 
   // Catchup chord virtualization effect - increments the remaining chords after they leave the viewport
   // Triggers after the beginning of the tab leaves the viewport on a new loop
   useEffect(() => {
     if (
-      audioMetadata.playing ||
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
       // making sure that this only happens post-primary virtualization and not
@@ -403,25 +397,7 @@ function PlaybackModal() {
       const newRepetitions = prev[0] ?? 0;
       return new Array(prev.length).fill(newRepetitions) as number[];
     });
-  }, [
-    audioMetadata.playing,
-    chordLayoutData,
-    chordRepetitions,
-    currentChordIndex,
-  ]);
-
-  // Split repetition counts are only needed while the strip is actively scrolling forward.
-  // When paused or scrubbing, normalize so chord positions match the container transform.
-  useLayoutEffect(() => {
-    if (audioMetadata.playing || chordRepetitions.length === 0) return;
-
-    if (chordRepetitions[0] === chordRepetitions[chordRepetitions.length - 1]) {
-      return;
-    }
-
-    const currentRep = chordRepetitions[currentChordIndex] ?? 0;
-    setChordRepetitions(new Array(chordRepetitions.length).fill(currentRep));
-  }, [audioMetadata.playing, chordRepetitions, currentChordIndex]);
+  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
 
   // Handle resize
   useEffect(() => {
@@ -468,6 +444,53 @@ function PlaybackModal() {
     playbackStartedAtAudioTime,
     playing: audioMetadata.playing,
   });
+
+  // WAAPI tracks loop offset in repetitionBase while chordRepetitions may still be split
+  // or behind after a completed loop. Reconcile from the captured strip position on pause.
+  useLayoutEffect(() => {
+    if (
+      audioMetadata.playing ||
+      pausedScrollPosition === null ||
+      !chordLayoutData ||
+      chordRepetitions.length === 0
+    ) {
+      return;
+    }
+
+    const effectiveRepetition = getEffectiveRepetitionFromScrollPosition({
+      scrollPosition: pausedScrollPosition,
+      chordIndex: currentChordIndex,
+      scrollPositions: chordLayoutData.scrollPositions,
+      totalWidth: chordLayoutData.totalWidth,
+    });
+
+    setChordRepetitions((prev) => {
+      if (prev.every((repetition) => repetition === effectiveRepetition)) {
+        return prev;
+      }
+
+      return new Array(prev.length).fill(effectiveRepetition) as number[];
+    });
+  }, [
+    audioMetadata.playing,
+    pausedScrollPosition,
+    currentChordIndex,
+    chordLayoutData,
+    chordRepetitions.length,
+  ]);
+
+  // Scrubbing while paused can still trigger split repetitions from virtualization.
+  // Collapse those back to a single generation for static display.
+  useLayoutEffect(() => {
+    if (audioMetadata.playing || chordRepetitions.length === 0) return;
+
+    if (chordRepetitions[0] === chordRepetitions[chordRepetitions.length - 1]) {
+      return;
+    }
+
+    const currentRep = chordRepetitions[currentChordIndex] ?? 0;
+    setChordRepetitions(new Array(chordRepetitions.length).fill(currentRep));
+  }, [audioMetadata.playing, chordRepetitions, currentChordIndex]);
 
   // Keep the inline transform at the current chord boundary.
   // While playing, WAAPI owns motion; while paused, this preserves the existing settle/scrub path.

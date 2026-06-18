@@ -5,6 +5,7 @@ import {
   useState,
   type RefObject,
 } from "react";
+import { readStripScrollPosition } from "~/utils/playbackStripVirtualization";
 
 interface PlaybackStripLayoutData {
   scrollPositions: number[];
@@ -112,13 +113,6 @@ function buildPlaybackStripKeyframes({
   }));
 }
 
-function readStripScrollPosition(element: HTMLElement): number | null {
-  const transform = getComputedStyle(element).transform;
-  if (!transform || transform === "none") return null;
-
-  return -new DOMMatrixReadOnly(transform).m41;
-}
-
 function usePlaybackStripAnimation({
   stripRef,
   chordLayoutData,
@@ -151,10 +145,7 @@ function usePlaybackStripAnimation({
   }, [currentChordIndex, currentRepetition]);
 
   useLayoutEffect(() => {
-    if (
-      !playing &&
-      previousChordIndexRef.current !== currentChordIndex
-    ) {
+    if (!playing && previousChordIndexRef.current !== currentChordIndex) {
       setPausedScrollPosition(null);
     }
 
@@ -179,9 +170,10 @@ function usePlaybackStripAnimation({
       !audioContext ||
       playbackStartedAtAudioTime === null
     ) {
-      setPausedScrollPosition(null);
       return;
     }
+
+    setPausedScrollPosition(null);
 
     const generation = animationGenerationRef.current;
     const clampedAnchorIndex = Math.min(
