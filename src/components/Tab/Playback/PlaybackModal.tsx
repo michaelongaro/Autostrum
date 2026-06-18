@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
@@ -352,6 +352,7 @@ function PlaybackModal() {
   // Triggers when current chord index reaches the point where the last chord becomes visible
   useEffect(() => {
     if (
+      audioMetadata.playing ||
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
       currentChordIndex < chordLayoutData.virtualizationIndex ||
@@ -375,12 +376,18 @@ function PlaybackModal() {
 
       return [...firstNewHalf, ...secondNewHalf];
     });
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
+  }, [
+    audioMetadata.playing,
+    chordLayoutData,
+    chordRepetitions,
+    currentChordIndex,
+  ]);
 
   // Catchup chord virtualization effect - increments the remaining chords after they leave the viewport
   // Triggers after the beginning of the tab leaves the viewport on a new loop
   useEffect(() => {
     if (
+      audioMetadata.playing ||
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
       // making sure that this only happens post-primary virtualization and not
@@ -396,7 +403,25 @@ function PlaybackModal() {
       const newRepetitions = prev[0] ?? 0;
       return new Array(prev.length).fill(newRepetitions) as number[];
     });
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
+  }, [
+    audioMetadata.playing,
+    chordLayoutData,
+    chordRepetitions,
+    currentChordIndex,
+  ]);
+
+  // Split repetition counts are only needed while the strip is actively scrolling forward.
+  // When paused or scrubbing, normalize so chord positions match the container transform.
+  useLayoutEffect(() => {
+    if (audioMetadata.playing || chordRepetitions.length === 0) return;
+
+    if (chordRepetitions[0] === chordRepetitions[chordRepetitions.length - 1]) {
+      return;
+    }
+
+    const currentRep = chordRepetitions[currentChordIndex] ?? 0;
+    setChordRepetitions(new Array(chordRepetitions.length).fill(currentRep));
+  }, [audioMetadata.playing, chordRepetitions, currentChordIndex]);
 
   // Handle resize
   useEffect(() => {
@@ -434,7 +459,7 @@ function PlaybackModal() {
 
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 
-  usePlaybackStripAnimation({
+  const { pausedScrollPosition } = usePlaybackStripAnimation({
     stripRef: scrollStripRef,
     chordLayoutData,
     currentChordIndex,
@@ -455,6 +480,11 @@ function PlaybackModal() {
     )
       return "translateX(0px)";
 
+    const pausedScrollPositionValue = pausedScrollPosition;
+    if (!audioMetadata.playing && pausedScrollPositionValue !== null) {
+      return `translateX(${pausedScrollPositionValue * -1}px)`;
+    }
+
     const { scrollPositions, totalWidth } = chordLayoutData;
     const position =
       (scrollPositions[currentChordIndex] ?? 0) +
@@ -467,6 +497,8 @@ function PlaybackModal() {
     currentlyPlayingMetadata,
     currentChordIndex,
     chordRepetitions,
+    audioMetadata.playing,
+    pausedScrollPosition,
   ]);
 
   const isChordHighlighted = useCallback(

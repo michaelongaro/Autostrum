@@ -1,8 +1,8 @@
 import {
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   type RefObject,
 } from "react";
 
@@ -112,6 +112,13 @@ function buildPlaybackStripKeyframes({
   }));
 }
 
+function readStripScrollPosition(element: HTMLElement): number | null {
+  const transform = getComputedStyle(element).transform;
+  if (!transform || transform === "none") return null;
+
+  return -new DOMMatrixReadOnly(transform).m41;
+}
+
 function usePlaybackStripAnimation({
   stripRef,
   chordLayoutData,
@@ -124,23 +131,35 @@ function usePlaybackStripAnimation({
   const animationRef = useRef<Animation | null>(null);
   const animationGenerationRef = useRef(0);
   const playingRef = useRef(playing);
+  playingRef.current = playing;
   const repetitionBaseRef = useRef(0);
   const anchorChordIndexRef = useRef(currentChordIndex);
   const anchorRepetitionRef = useRef(currentRepetition);
+  const [pausedScrollPosition, setPausedScrollPosition] = useState<
+    number | null
+  >(null);
+  const previousChordIndexRef = useRef(currentChordIndex);
 
   const animationData = useMemo(
     () => getPlaybackStripAnimationData(chordLayoutData),
     [chordLayoutData],
   );
 
-  useEffect(() => {
-    playingRef.current = playing;
-  }, [playing]);
-
   useLayoutEffect(() => {
     anchorChordIndexRef.current = currentChordIndex;
     anchorRepetitionRef.current = currentRepetition;
   }, [currentChordIndex, currentRepetition]);
+
+  useLayoutEffect(() => {
+    if (
+      !playing &&
+      previousChordIndexRef.current !== currentChordIndex
+    ) {
+      setPausedScrollPosition(null);
+    }
+
+    previousChordIndexRef.current = currentChordIndex;
+  }, [currentChordIndex, playing]);
 
   useLayoutEffect(() => {
     const currentAnimation = animationRef.current;
@@ -160,6 +179,7 @@ function usePlaybackStripAnimation({
       !audioContext ||
       playbackStartedAtAudioTime === null
     ) {
+      setPausedScrollPosition(null);
       return;
     }
 
@@ -228,6 +248,12 @@ function usePlaybackStripAnimation({
 
     return () => {
       const activeAnimation = animationRef.current;
+      const animatedElement = stripRef.current;
+
+      if (activeAnimation && animatedElement && !playingRef.current) {
+        setPausedScrollPosition(readStripScrollPosition(animatedElement));
+      }
+
       if (activeAnimation) {
         activeAnimation.onfinish = null;
         activeAnimation.cancel();
@@ -244,6 +270,8 @@ function usePlaybackStripAnimation({
     playing,
     stripRef,
   ]);
+
+  return { pausedScrollPosition };
 }
 
 export default usePlaybackStripAnimation;
