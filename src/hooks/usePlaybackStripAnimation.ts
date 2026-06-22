@@ -20,6 +20,7 @@ interface UsePlaybackStripAnimationArgs {
   audioContext: AudioContext | null;
   playbackStartedAtAudioTime: number | null;
   playing: boolean;
+  onPauseTransform?: (positionPx: number) => void;
 }
 
 interface PlaybackStripAnimationData {
@@ -112,6 +113,26 @@ function buildPlaybackStripKeyframes({
   }));
 }
 
+function getTranslateXFromTransform(transform: string): number | null {
+  if (!transform || transform === "none") return 0;
+
+  const matrixMatch = /^matrix\((.+)\)$/.exec(transform);
+  if (matrixMatch) {
+    const values = matrixMatch[1]!.split(",").map((value) => Number(value.trim()));
+    return Number.isFinite(values[4]) ? values[4]! : null;
+  }
+
+  const matrix3dMatch = /^matrix3d\((.+)\)$/.exec(transform);
+  if (matrix3dMatch) {
+    const values = matrix3dMatch[1]!
+      .split(",")
+      .map((value) => Number(value.trim()));
+    return Number.isFinite(values[12]) ? values[12]! : null;
+  }
+
+  return null;
+}
+
 function usePlaybackStripAnimation({
   stripRef,
   chordLayoutData,
@@ -120,6 +141,7 @@ function usePlaybackStripAnimation({
   audioContext,
   playbackStartedAtAudioTime,
   playing,
+  onPauseTransform,
 }: UsePlaybackStripAnimationArgs) {
   const animationRef = useRef<Animation | null>(null);
   const animationGenerationRef = useRef(0);
@@ -144,7 +166,17 @@ function usePlaybackStripAnimation({
 
   useLayoutEffect(() => {
     const currentAnimation = animationRef.current;
+    const animatedElement = stripRef.current;
+
     if (currentAnimation) {
+      if (!playing && animatedElement && onPauseTransform) {
+        const computedTransform = window.getComputedStyle(animatedElement).transform;
+        const translateX = getTranslateXFromTransform(computedTransform);
+        if (translateX !== null) {
+          onPauseTransform(Math.abs(translateX));
+        }
+      }
+
       currentAnimation.onfinish = null;
       currentAnimation.cancel();
       animationRef.current = null;
@@ -242,6 +274,7 @@ function usePlaybackStripAnimation({
     chordLayoutData,
     playbackStartedAtAudioTime,
     playing,
+    onPauseTransform,
     stripRef,
   ]);
 }

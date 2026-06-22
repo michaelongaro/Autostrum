@@ -20,6 +20,7 @@ import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
+import { getPlaybackVisibleRange } from "~/utils/playbackVisibleRange";
 
 const backdropVariants = {
   expanded: {
@@ -32,6 +33,25 @@ const backdropVariants = {
 
 const VIRTUALIZATION_BUFFER = 100;
 
+export interface PlaybackModalDevSeed {
+  chordRepetitions: number[];
+  currentChordIndex: number;
+}
+
+export interface PlaybackHarnessSnapshot {
+  chordRepetitions: number[];
+  currentChordIndex: number;
+  visibleRange: { startIndex: number; endIndex: number };
+  virtualizationStartIndex: number;
+  virtualizationCatchupIndex: number;
+  mountedChordIndices: number[];
+}
+
+interface PlaybackModalProps {
+  devSeed?: PlaybackModalDevSeed;
+  onDevStateSnapshot?: (snapshot: PlaybackHarnessSnapshot) => void;
+}
+
 interface ChordLayoutData {
   scrollPositions: number[];
   chordWidths: number[];
@@ -43,7 +63,7 @@ interface ChordLayoutData {
   virtualizationCatchupIndex: number; // Index where the beginning of the tab leaves the viewport
 }
 
-function PlaybackModal() {
+function PlaybackModal({ devSeed, onDevStateSnapshot }: PlaybackModalProps = {}) {
   const {
     currentChordIndex,
     expandedTabData,
@@ -101,6 +121,11 @@ function PlaybackModal() {
   // Per-chord repetition tracking for smooth infinite scroll without visual snapping
   // Each chord tracks how many times it has "looped" for positioning purposes
   const [chordRepetitions, setChordRepetitions] = useState<number[]>([]);
+  const [pausedStripSnapshot, setPausedStripSnapshot] = useState<{
+    positionPx: number;
+    chordIndex: number;
+    repetition: number;
+  } | null>(null);
 
   // v avoids polluting the store with these extra semi-local values
   const [loopRange, setLoopRange] = useState<[number, number]>([
@@ -131,10 +156,17 @@ function PlaybackModal() {
 
   // Initialize chordRepetitions when expandedTabData changes
   useEffect(() => {
-    if (expandedTabData && expandedTabData.length > 0) {
-      setChordRepetitions(new Array(expandedTabData.length).fill(0));
+    if (!expandedTabData || expandedTabData.length === 0) return;
+
+    if (devSeed?.chordRepetitions.length === expandedTabData.length) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- dev harness seed sync
+      setChordRepetitions(devSeed.chordRepetitions);
+      setCurrentChordIndex(devSeed.currentChordIndex);
+      return;
     }
-  }, [expandedTabData]);
+
+    setChordRepetitions(new Array(expandedTabData.length).fill(0));
+  }, [expandedTabData, devSeed, setCurrentChordIndex]);
 
   // Compute chord layout data (positions, widths, durations) - memoized
   const chordLayoutData = useMemo<ChordLayoutData | null>(() => {
@@ -297,48 +329,14 @@ function PlaybackModal() {
       };
     }
 
-    const { scrollPositions, totalWidth } = chordLayoutData;
-    const chordCount = expandedTabData.length;
-
-    // Get current chord's scroll position using its repetition count
-    const currentScrollPosition =
-      (scrollPositions[currentChordIndex] ?? 0) +
-      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
-
-    const halfViewport = visiblePlaybackContainerWidth / 2;
-    const minVisiblePosition =
-      currentScrollPosition - halfViewport - VIRTUALIZATION_BUFFER;
-    const maxVisiblePosition =
-      currentScrollPosition + halfViewport + VIRTUALIZATION_BUFFER;
-
-    // Find visible range - we need to check each chord's actual position with its repetition
-    let startIndex = 0;
-    let endIndex = chordCount - 1;
-
-    // Find start index
-    for (let i = 0; i < chordCount; i++) {
-      const chordPosition =
-        (scrollPositions[i] ?? 0) + (chordRepetitions[i] ?? 0) * totalWidth;
-      if (chordPosition >= minVisiblePosition) {
-        startIndex = Math.max(0, i - 1);
-        break;
-      }
-    }
-
-    // Find end index
-    for (let i = chordCount - 1; i >= 0; i--) {
-      const chordPosition =
-        (scrollPositions[i] ?? 0) + (chordRepetitions[i] ?? 0) * totalWidth;
-      if (chordPosition <= maxVisiblePosition) {
-        endIndex = Math.min(chordCount - 1, i + 1);
-        break;
-      }
-    }
-
-    return {
-      startIndex,
-      endIndex,
-    };
+    return getPlaybackVisibleRange({
+      layout: chordLayoutData,
+      chordCount: expandedTabData.length,
+      currentChordIndex,
+      chordRepetitions,
+      visiblePlaybackContainerWidth,
+      virtualizationBuffer: VIRTUALIZATION_BUFFER,
+    });
   }, [
     chordLayoutData,
     expandedTabData,
@@ -434,6 +432,17 @@ function PlaybackModal() {
 
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 
+  const handlePauseTransform = useCallback(
+    (positionPx: number) => {
+      setPausedStripSnapshot({
+        positionPx,
+        chordIndex: currentChordIndex,
+        repetition: currentChordRepetition,
+      });
+    },
+    [currentChordIndex, currentChordRepetition],
+  );
+
   usePlaybackStripAnimation({
     stripRef: scrollStripRef,
     chordLayoutData,
@@ -442,6 +451,7 @@ function PlaybackModal() {
     audioContext,
     playbackStartedAtAudioTime,
     playing: audioMetadata.playing,
+    onPauseTransform: handlePauseTransform,
   });
 
   // Keep the inline transform at the current chord boundary.
@@ -456,9 +466,15 @@ function PlaybackModal() {
       return "translateX(0px)";
 
     const { scrollPositions, totalWidth } = chordLayoutData;
+    const pausedOffsetMatches =
+      pausedStripSnapshot !== null &&
+      pausedStripSnapshot.chordIndex === currentChordIndex &&
+      pausedStripSnapshot.repetition === currentChordRepetition;
     const position =
-      (scrollPositions[currentChordIndex] ?? 0) +
-      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
+      !audioMetadata.playing && pausedOffsetMatches
+        ? pausedStripSnapshot.positionPx
+        : (scrollPositions[currentChordIndex] ?? 0) +
+          (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
 
     return `translateX(${position * -1}px)`;
   }, [
@@ -467,6 +483,9 @@ function PlaybackModal() {
     currentlyPlayingMetadata,
     currentChordIndex,
     chordRepetitions,
+    audioMetadata.playing,
+    pausedStripSnapshot,
+    currentChordRepetition,
   ]);
 
   const isChordHighlighted = useCallback(
@@ -542,6 +561,26 @@ function PlaybackModal() {
 
     return result;
   }, [expandedTabData, chordLayoutData, visibleRange]);
+
+  useEffect(() => {
+    if (!onDevStateSnapshot || !chordLayoutData) return;
+
+    onDevStateSnapshot({
+      chordRepetitions,
+      currentChordIndex,
+      visibleRange,
+      virtualizationStartIndex: chordLayoutData.virtualizationStartIndex,
+      virtualizationCatchupIndex: chordLayoutData.virtualizationCatchupIndex,
+      mountedChordIndices: visibleChords.map(({ index }) => index),
+    });
+  }, [
+    onDevStateSnapshot,
+    chordLayoutData,
+    chordRepetitions,
+    currentChordIndex,
+    visibleRange,
+    visibleChords,
+  ]);
 
   return (
     <motion.div
@@ -632,6 +671,7 @@ function PlaybackModal() {
                       {chordLayoutData && expandedTabData && (
                         <div
                           ref={scrollStripRef}
+                          data-playback-strip
                           style={{
                             width: `${chordLayoutData.totalWidth}px`,
                             transform: scrollContainerTransform,
@@ -668,6 +708,7 @@ function PlaybackModal() {
                               return (
                                 <div
                                   key={`${index}-${chordRepetitions[index] ?? 0}`}
+                                  data-testid={`playback-chord-${index}`}
                                   style={{
                                     position: "absolute",
                                     width: `${chordLayoutData.chordWidths[index] ?? 0}px`,
