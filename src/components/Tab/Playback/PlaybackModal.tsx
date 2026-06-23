@@ -287,75 +287,6 @@ function PlaybackModal() {
     [chordLayoutData, chordRepetitions],
   );
 
-  // Compute visible chord range using binary search with chordRepetitions
-  const visibleRange = useMemo<{
-    startIndex: number;
-    endIndex: number;
-  }>(() => {
-    if (
-      !chordLayoutData ||
-      !expandedTabData ||
-      !currentlyPlayingMetadata ||
-      visiblePlaybackContainerWidth === 0 ||
-      chordRepetitions.length === 0
-    ) {
-      return {
-        startIndex: 0,
-        endIndex: 0,
-      };
-    }
-
-    const { scrollPositions, totalWidth } = chordLayoutData;
-    const chordCount = expandedTabData.length;
-
-    // Get current chord's scroll position using its repetition count
-    const currentScrollPosition =
-      (scrollPositions[currentChordIndex] ?? 0) +
-      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
-
-    const halfViewport = visiblePlaybackContainerWidth / 2;
-    const minVisiblePosition =
-      currentScrollPosition - halfViewport - VIRTUALIZATION_BUFFER;
-    const maxVisiblePosition =
-      currentScrollPosition + halfViewport + VIRTUALIZATION_BUFFER;
-
-    // Find visible range - we need to check each chord's actual position with its repetition
-    let startIndex = 0;
-    let endIndex = chordCount - 1;
-
-    // Find start index
-    for (let i = 0; i < chordCount; i++) {
-      const chordPosition =
-        (scrollPositions[i] ?? 0) + (chordRepetitions[i] ?? 0) * totalWidth;
-      if (chordPosition >= minVisiblePosition) {
-        startIndex = Math.max(0, i - 1);
-        break;
-      }
-    }
-
-    // Find end index
-    for (let i = chordCount - 1; i >= 0; i--) {
-      const chordPosition =
-        (scrollPositions[i] ?? 0) + (chordRepetitions[i] ?? 0) * totalWidth;
-      if (chordPosition <= maxVisiblePosition) {
-        endIndex = Math.min(chordCount - 1, i + 1);
-        break;
-      }
-    }
-
-    return {
-      startIndex,
-      endIndex,
-    };
-  }, [
-    chordLayoutData,
-    expandedTabData,
-    currentlyPlayingMetadata,
-    visiblePlaybackContainerWidth,
-    currentChordIndex,
-    chordRepetitions,
-  ]);
-
   // Primary chord virtualization effect - increments all chords except the last visible portion
   // Triggers when current chord index reaches the point where the last chord becomes visible
   useLayoutEffect(() => {
@@ -515,41 +446,54 @@ function PlaybackModal() {
     ],
   );
 
-  // Get visible chords - uses chordRepetitions for positioning
   const visibleChords = useMemo(() => {
     if (!expandedTabData || !chordLayoutData) return [];
 
-    const { startIndex, endIndex } = visibleRange;
-    const result: Array<{
-      chord:
-        | PlaybackTabChordType
-        | PlaybackStrummedChordType
-        | PlaybackLoopDelaySpacerChord;
-      index: number;
-      prevChord?:
-        | PlaybackTabChordType
-        | PlaybackStrummedChordType
-        | PlaybackLoopDelaySpacerChord;
-      nextChord?:
-        | PlaybackTabChordType
-        | PlaybackStrummedChordType
-        | PlaybackLoopDelaySpacerChord;
-    }> = [];
+    const { scrollPositions, chordWidths, totalWidth } = chordLayoutData;
 
-    for (let i = startIndex; i <= endIndex; i++) {
-      const chord = expandedTabData[i];
-      if (chord) {
-        result.push({
-          chord,
-          index: i,
-          prevChord: expandedTabData[i - 1],
-          nextChord: expandedTabData[i + 1],
-        });
+    const currentPosition =
+      (scrollPositions[currentChordIndex] ?? 0) +
+      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
+
+    const dynamicVirtualizationBuffer = audioMetadata.playing
+      ? VIRTUALIZATION_BUFFER
+      : VIRTUALIZATION_BUFFER * 10; // having no virtualization at all when paused was too laggy on large tabs
+
+    const halfViewport = visiblePlaybackContainerWidth / 2;
+
+    const minVisiblePosition =
+      currentPosition - halfViewport - dynamicVirtualizationBuffer;
+
+    const maxVisiblePosition =
+      currentPosition + halfViewport + dynamicVirtualizationBuffer;
+
+    return expandedTabData.flatMap((chord, index) => {
+      const left =
+        (scrollPositions[index] ?? 0) +
+        (chordRepetitions[index] ?? 0) * totalWidth;
+      const right = left + (chordWidths[index] ?? 0);
+
+      if (right < minVisiblePosition || left > maxVisiblePosition) {
+        return [];
       }
-    }
 
-    return result;
-  }, [expandedTabData, chordLayoutData, visibleRange]);
+      return [
+        {
+          chord,
+          index,
+          prevChord: expandedTabData[index - 1],
+          nextChord: expandedTabData[index + 1],
+        },
+      ];
+    });
+  }, [
+    expandedTabData,
+    chordLayoutData,
+    currentChordIndex,
+    chordRepetitions,
+    visiblePlaybackContainerWidth,
+    audioMetadata.playing,
+  ]);
 
   return (
     <motion.div
