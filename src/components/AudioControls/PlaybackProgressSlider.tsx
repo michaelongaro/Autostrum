@@ -9,6 +9,7 @@ interface PlaybackProgressSlider {
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
+  clearPausedStripScrollPosition?: () => void;
 }
 
 function PlaybackProgressSlider({
@@ -18,6 +19,7 @@ function PlaybackProgressSlider({
   setLoopRange,
   setChordRepetitions,
   scrollPositionsLength,
+  clearPausedStripScrollPosition,
 }: PlaybackProgressSlider) {
   const {
     currentChordIndex,
@@ -236,6 +238,7 @@ function PlaybackProgressSlider({
               setChordRepetitions(new Array(scrollPositionsLength).fill(0));
             }
 
+            clearPausedStripScrollPosition?.();
             setCurrentChordIndex(values[0]);
           }}
           renderTrack={({ props, children, disabled }) => (

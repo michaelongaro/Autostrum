@@ -12,6 +12,7 @@ interface PlaybackScrollingContainerProps {
   loopCount: number;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
+  clearPausedStripScrollPosition?: () => void;
 }
 
 // TODO: still want to avoid "translateX" reliance at all costs, but this approach is inherently
@@ -22,6 +23,7 @@ function PlaybackScrollingContainer({
   loopCount,
   setChordRepetitions,
   scrollPositionsLength,
+  clearPausedStripScrollPosition,
 }: PlaybackScrollingContainerProps) {
   const {
     playing,
@@ -47,6 +49,7 @@ function PlaybackScrollingContainer({
     if (expandedTabData === null) return;
 
     const newValue = currentChordIndex + 1;
+    clearPausedStripScrollPosition?.();
     setCurrentChordIndex(newValue > expandedTabData.length - 1 ? 0 : newValue);
   }
 
@@ -58,6 +61,7 @@ function PlaybackScrollingContainer({
 
     if (newValue < 0 && loopCount === 0) return;
 
+    clearPausedStripScrollPosition?.();
     setCurrentChordIndex(newValue < 0 ? expandedTabData.length - 1 : newValue);
   }
 
@@ -99,6 +103,7 @@ function PlaybackScrollingContainer({
   return (
     <div
       ref={containerRef}
+      data-testid="playback-scrolling-container"
       className="relative h-[230px] w-full cursor-grab touch-none overflow-hidden active:cursor-grabbing mobilePortrait:h-[255px]"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

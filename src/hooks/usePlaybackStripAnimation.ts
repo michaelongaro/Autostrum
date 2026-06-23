@@ -20,6 +20,7 @@ interface UsePlaybackStripAnimationArgs {
   audioContext: AudioContext | null;
   playbackStartedAtAudioTime: number | null;
   playing: boolean;
+  onPausedScrollPosition?: (scrollPositionPx: number) => void;
 }
 
 interface PlaybackStripAnimationData {
@@ -29,6 +30,21 @@ interface PlaybackStripAnimationData {
 }
 
 const VELOCITY_EPSILON = 0.0001;
+
+function readStripScrollPosition(element: HTMLElement): number | null {
+  const transform =
+    element.style.transform || getComputedStyle(element).transform;
+
+  if (!transform || transform === "none") return null;
+
+  if (transform.startsWith("matrix")) {
+    const matrix = new DOMMatrix(transform);
+    return Math.abs(matrix.m41);
+  }
+
+  const match = transform.match(/translateX\((-?\d+(?:\.\d+)?)px\)/);
+  return match ? Math.abs(Number(match[1])) : null;
+}
 
 function getPlaybackStripAnimationData(
   chordLayoutData: PlaybackStripLayoutData | null,
@@ -120,6 +136,7 @@ function usePlaybackStripAnimation({
   audioContext,
   playbackStartedAtAudioTime,
   playing,
+  onPausedScrollPosition,
 }: UsePlaybackStripAnimationArgs) {
   const animationRef = useRef<Animation | null>(null);
   const animationGenerationRef = useRef(0);
@@ -144,6 +161,15 @@ function usePlaybackStripAnimation({
 
   useLayoutEffect(() => {
     const currentAnimation = animationRef.current;
+    const animatedElement = stripRef.current;
+
+    if (!playing && currentAnimation && animatedElement) {
+      const scrollPosition = readStripScrollPosition(animatedElement);
+      if (scrollPosition !== null) {
+        onPausedScrollPosition?.(scrollPosition);
+      }
+    }
+
     if (currentAnimation) {
       currentAnimation.onfinish = null;
       currentAnimation.cancel();
@@ -243,6 +269,7 @@ function usePlaybackStripAnimation({
     playbackStartedAtAudioTime,
     playing,
     stripRef,
+    onPausedScrollPosition,
   ]);
 }
 

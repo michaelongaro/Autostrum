@@ -27,6 +27,7 @@ interface PlaybackAudioControls {
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
+  clearPausedStripScrollPosition?: () => void;
 }
 
 function PlaybackAudioControls({
@@ -37,6 +38,7 @@ function PlaybackAudioControls({
   setTabProgressValue,
   setChordRepetitions,
   scrollPositionsLength,
+  clearPausedStripScrollPosition,
 }: PlaybackAudioControls) {
   const {
     bpm,
@@ -265,6 +267,7 @@ function PlaybackAudioControls({
               setLoopRange={setLoopRange}
               setChordRepetitions={setChordRepetitions}
               scrollPositionsLength={scrollPositionsLength}
+              clearPausedStripScrollPosition={clearPausedStripScrollPosition}
             />
 
             <div className="baseFlex w-9 !justify-end self-start">
@@ -309,6 +312,7 @@ function PlaybackAudioControls({
             setLoopRange={setLoopRange}
             setChordRepetitions={setChordRepetitions}
             scrollPositionsLength={scrollPositionsLength}
+            clearPausedStripScrollPosition={clearPausedStripScrollPosition}
           />
 
           <div className="baseFlex w-full !justify-between">
@@ -382,6 +386,7 @@ function PlaybackAudioControls({
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={handlePlayButtonClick}
+                  data-testid="playback-play-pause"
                   className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
                 >
                   <PlayButtonIcon
