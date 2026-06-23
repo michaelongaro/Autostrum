@@ -40,6 +40,15 @@ interface PlaybackStripAnimationData {
   totalDurationMs: number;
 }
 
+// Tiny tolerance for comparing adjacent scroll velocities.
+//
+// The strip animation is piecewise linear. If the velocity before and after a
+// chord boundary is effectively the same, we can omit that boundary keyframe
+// because a single linear segment will naturally pass through the same position
+// at the same time.
+//
+// The epsilon avoids creating unnecessary keyframes due to insignificant
+// floating-point/layout measurement differences. Unit is px/ms.
 const VELOCITY_EPSILON = 0.0001;
 
 function preserveCurrentTransform(animatedElement: HTMLElement) {
@@ -75,10 +84,7 @@ function getPlaybackStripAnimationData(
 ): PlaybackStripAnimationData | null {
   if (!chordLayoutData) return null;
 
-  const chordCount = Math.min(
-    chordLayoutData.scrollPositions.length,
-    chordLayoutData.durations.length,
-  );
+  const chordCount = chordLayoutData.scrollPositions.length;
 
   if (chordCount === 0) return null;
 
