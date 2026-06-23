@@ -119,13 +119,6 @@ function PlaybackModal() {
   ]);
   const [tabProgressValue, setTabProgressValue] = useState(0);
 
-  // loopCount tracks how many full iterations through the tab we've completed
-  // This is derived directly from currentChordIndex
-  const loopCount = useMemo(() => {
-    if (!currentlyPlayingMetadata) return 0;
-    return Math.floor(currentChordIndex / currentlyPlayingMetadata.length);
-  }, [currentChordIndex, currentlyPlayingMetadata]);
-
   useModalScrollbarHandling(true);
 
   useEffect(() => {
@@ -563,7 +556,6 @@ function PlaybackModal() {
               >
                 <div className="w-full overflow-hidden">
                   <PlaybackScrollingContainer
-                    loopCount={loopCount}
                     setChordRepetitions={setChordRepetitions}
                     scrollPositionsLength={
                       chordLayoutData?.scrollPositions.length ?? 0

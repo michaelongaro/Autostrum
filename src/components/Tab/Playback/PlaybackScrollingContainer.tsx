@@ -9,7 +9,6 @@ import { useTabStore } from "~/stores/TabStore";
 
 interface PlaybackScrollingContainerProps {
   children: ReactNode;
-  loopCount: number;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
 }
@@ -19,7 +18,6 @@ interface PlaybackScrollingContainerProps {
 
 function PlaybackScrollingContainer({
   children,
-  loopCount,
   setChordRepetitions,
   scrollPositionsLength,
 }: PlaybackScrollingContainerProps) {
@@ -56,7 +54,7 @@ function PlaybackScrollingContainer({
 
     const newValue = currentChordIndex - 1;
 
-    if (newValue < 0 && loopCount === 0) return;
+    if (newValue < 0) return;
 
     setCurrentChordIndex(newValue < 0 ? expandedTabData.length - 1 : newValue);
   }
