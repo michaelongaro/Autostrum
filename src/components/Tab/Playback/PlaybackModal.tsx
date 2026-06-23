@@ -445,7 +445,7 @@ function PlaybackModal() {
   });
 
   // Keep the inline transform at the current chord boundary.
-  // While playing, WAAPI owns motion; while paused, this preserves the existing settle/scrub path.
+  // While playing, WAAPI owns motion. While paused, this preserves the existing settle/scrub path.
   const scrollContainerTransform = useMemo(() => {
     if (
       !chordLayoutData ||
@@ -634,7 +634,9 @@ function PlaybackModal() {
                           ref={scrollStripRef}
                           style={{
                             width: `${chordLayoutData.totalWidth}px`,
-                            transform: scrollContainerTransform,
+                            transform: audioMetadata.playing
+                              ? ""
+                              : scrollContainerTransform,
                             transition: audioMetadata.playing
                               ? "none"
                               : "transform 0.2s linear",

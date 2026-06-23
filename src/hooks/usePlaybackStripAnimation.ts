@@ -6,6 +6,18 @@ import {
   type RefObject,
 } from "react";
 
+// WAAPI owns `transform` while playback is running, but React owns the inline
+// `transform` while paused/scrubbing. Calling `animation.cancel()` immediately
+// removes the WAAPI-computed transform, so the strip can snap back to React's
+// last inline transform. With virtualized/repeated chord content, that snap can
+// land on an empty/out-of-range repetition and make the tab appear to disappear.
+//
+// Before canceling, we snapshot the current computed transform into the element's
+// inline style so the visual position survives the WAAPI -> React handoff.
+// We also cancel every animation created by this hook, because finished animations
+// with `fill: "both"` can otherwise keep stale transforms alive and resurface
+// when the active animation is canceled.
+
 interface PlaybackStripLayoutData {
   scrollPositions: number[];
   durations: number[];
@@ -29,6 +41,34 @@ interface PlaybackStripAnimationData {
 }
 
 const VELOCITY_EPSILON = 0.0001;
+
+function preserveCurrentTransform(animatedElement: HTMLElement) {
+  const computedTransform = window.getComputedStyle(animatedElement).transform;
+
+  animatedElement.style.transform =
+    computedTransform === "none" ? "" : computedTransform;
+}
+
+function cancelPlaybackStripAnimations({
+  animations,
+  animatedElement,
+  preserveTransform,
+}: {
+  animations: Set<Animation>;
+  animatedElement: HTMLElement | null;
+  preserveTransform: boolean;
+}) {
+  if (preserveTransform && animatedElement && animations.size > 0) {
+    preserveCurrentTransform(animatedElement);
+  }
+
+  for (const animation of Array.from(animations)) {
+    animation.onfinish = null;
+    animation.cancel();
+  }
+
+  animations.clear();
+}
 
 function getPlaybackStripAnimationData(
   chordLayoutData: PlaybackStripLayoutData | null,
@@ -122,6 +162,7 @@ function usePlaybackStripAnimation({
   playing,
 }: UsePlaybackStripAnimationArgs) {
   const animationRef = useRef<Animation | null>(null);
+  const animationsRef = useRef<Set<Animation>>(new Set());
   const animationGenerationRef = useRef(0);
   const playingRef = useRef(playing);
   const repetitionBaseRef = useRef(0);
@@ -143,12 +184,13 @@ function usePlaybackStripAnimation({
   }, [currentChordIndex, currentRepetition]);
 
   useLayoutEffect(() => {
-    const currentAnimation = animationRef.current;
-    if (currentAnimation) {
-      currentAnimation.onfinish = null;
-      currentAnimation.cancel();
-      animationRef.current = null;
-    }
+    cancelPlaybackStripAnimations({
+      animations: animationsRef.current,
+      animatedElement: stripRef.current,
+      preserveTransform: true,
+    });
+
+    animationRef.current = null;
 
     animationGenerationRef.current += 1;
 
@@ -208,13 +250,36 @@ function usePlaybackStripAnimation({
         0,
         Math.min(startTimeMs, animationData.totalDurationMs),
       );
+
+      animationsRef.current.add(animation);
+
       animation.onfinish = () => {
         if (
           generation !== animationGenerationRef.current ||
           !playingRef.current
         ) {
+          animation.onfinish = null;
+          animationsRef.current.delete(animation);
+
+          if (animationRef.current === animation) {
+            animationRef.current = null;
+          }
+
+          animation.cancel();
+
           return;
         }
+
+        animation.onfinish = null;
+        animationsRef.current.delete(animation);
+
+        if (animationRef.current === animation) {
+          animationRef.current = null;
+        }
+
+        // This animation used fill: "both". If we leave it alive, it can
+        // resurface later when the next animation is canceled during pause.
+        animation.cancel();
 
         repetitionBaseRef.current += chordLayoutData.totalWidth;
         startAnimation(0);
@@ -227,12 +292,13 @@ function usePlaybackStripAnimation({
     startAnimation(initialCurrentTimeMs);
 
     return () => {
-      const activeAnimation = animationRef.current;
-      if (activeAnimation) {
-        activeAnimation.onfinish = null;
-        activeAnimation.cancel();
-        animationRef.current = null;
-      }
+      cancelPlaybackStripAnimations({
+        animations: animationsRef.current,
+        animatedElement: stripRef.current,
+        preserveTransform: true,
+      });
+
+      animationRef.current = null;
 
       animationGenerationRef.current += 1;
     };
