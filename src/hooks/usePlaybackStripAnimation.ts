@@ -32,8 +32,13 @@ interface PlaybackStripAnimationData {
 const VELOCITY_EPSILON = 0.0001;
 
 function readStripScrollPosition(element: HTMLElement): number | null {
+  // Prefer computed style so an active WAAPI transform is captured even if React
+  // has already written a boundary transform to the inline style.
+  const computedTransform = getComputedStyle(element).transform;
   const transform =
-    element.style.transform || getComputedStyle(element).transform;
+    computedTransform && computedTransform !== "none"
+      ? computedTransform
+      : element.style.transform;
 
   if (!transform || transform === "none") return null;
 
@@ -150,9 +155,7 @@ function usePlaybackStripAnimation({
     [chordLayoutData],
   );
 
-  useEffect(() => {
-    playingRef.current = playing;
-  }, [playing]);
+  playingRef.current = playing;
 
   useLayoutEffect(() => {
     anchorChordIndexRef.current = currentChordIndex;
@@ -161,14 +164,6 @@ function usePlaybackStripAnimation({
 
   useLayoutEffect(() => {
     const currentAnimation = animationRef.current;
-    const animatedElement = stripRef.current;
-
-    if (!playing && currentAnimation && animatedElement) {
-      const scrollPosition = readStripScrollPosition(animatedElement);
-      if (scrollPosition !== null) {
-        onPausedScrollPosition?.(scrollPosition);
-      }
-    }
 
     if (currentAnimation) {
       currentAnimation.onfinish = null;
@@ -254,6 +249,15 @@ function usePlaybackStripAnimation({
 
     return () => {
       const activeAnimation = animationRef.current;
+      const animatedElement = stripRef.current;
+
+      if (activeAnimation && animatedElement && !playingRef.current) {
+        const scrollPosition = readStripScrollPosition(animatedElement);
+        if (scrollPosition !== null) {
+          onPausedScrollPosition?.(scrollPosition);
+        }
+      }
+
       if (activeAnimation) {
         activeAnimation.onfinish = null;
         activeAnimation.cancel();

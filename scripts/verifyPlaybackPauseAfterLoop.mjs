@@ -11,6 +11,7 @@ import { chromium } from "playwright";
 
 const BASE = process.argv[2] ?? "http://localhost:3000";
 const HARNESS = `${BASE}/dev-playback-harness`;
+const MOBILE_VIEWPORT = { width: 375, height: 667 };
 
 const failures = [];
 let checks = 0;
@@ -25,7 +26,22 @@ function assert(condition, message) {
   }
 }
 
-function getVisibleChordSnapshot(page) {
+function readScrollPx(transform) {
+  if (!transform || transform === "none") return 0;
+  if (transform.startsWith("matrix")) {
+    const parts = transform
+      .replace("matrix(", "")
+      .replace("matrix3d(", "")
+      .replace(")", "")
+      .split(",")
+      .map((value) => Number(value.trim()));
+    return Math.abs(parts[4] ?? 0);
+  }
+  const match = transform.match(/translateX\((-?\d+(?:\.\d+)?)px\)/);
+  return match ? Math.abs(Number(match[1])) : 0;
+}
+
+function getPlaybackSnapshot(page) {
   return page.evaluate(() => {
     const strip = document.querySelector(
       '[data-testid="playback-scroll-strip"]',
@@ -37,46 +53,53 @@ function getVisibleChordSnapshot(page) {
         visible: 0,
         mounted: 0,
         transform: null,
-        centerOccupied: false,
+        centerChordIndex: null,
+        visibleIndices: [],
+        viewportWidth: 0,
       };
     }
 
     const viewport = container.getBoundingClientRect();
     const centerX = viewport.left + viewport.width / 2;
-    const chordNodes = strip.querySelectorAll(
-      '[data-testid="playback-chord"]',
-    );
+    const chordNodes = [...strip.querySelectorAll('[data-testid="playback-chord"]')];
 
-    let visible = 0;
-    let centerOccupied = false;
+    const visibleIndices = [];
+    let centerChordIndex = null;
 
     chordNodes.forEach((node) => {
       const rect = node.getBoundingClientRect();
+      const index = Number(node.getAttribute("data-chord-index") ?? "-1");
       const inViewport =
         rect.right > viewport.left + 8 &&
         rect.left < viewport.right - 8 &&
         rect.height > 0 &&
         rect.width > 0;
 
-      if (inViewport) visible++;
+      if (inViewport && index >= 0) {
+        visibleIndices.push(index);
+      }
 
       if (
         rect.left <= centerX &&
         rect.right >= centerX &&
         rect.height > 0 &&
-        rect.width > 0
+        rect.width > 0 &&
+        index >= 0
       ) {
-        centerOccupied = true;
+        centerChordIndex = index;
       }
     });
 
     return {
       ok: true,
-      visible,
+      visible: visibleIndices.length,
       mounted: chordNodes.length,
       transform: strip.style.transform || getComputedStyle(strip).transform,
-      centerOccupied,
+      centerChordIndex,
+      visibleIndices,
       viewportWidth: viewport.width,
+      currentChordIndex: window.__playbackHarness?.currentChordIndex ?? null,
+      chordCount: window.__playbackHarness?.chordCount ?? 0,
     };
   });
 }
@@ -98,139 +121,21 @@ async function initAudio(page) {
   });
 }
 
-async function waitForLoopCompletion(page) {
+async function playThroughFirstLoop(page) {
+  await page.locator('[data-testid="playback-play-pause"]').click();
+  await page.waitForFunction(() => window.__playbackHarness?.playing === true, {
+    timeout: 10000,
+  });
   await page.waitForFunction(
     () => window.__playbackHarness?.hasCompletedLoop === true,
     { timeout: 90000 },
   );
-
-  // shortly after loop boundary
-  await page.waitForTimeout(400);
 }
 
-async function testPauseAfterLoop(browser) {
-  console.log("\n--- pause shortly after loop completion ---");
-
-  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  await context.addCookies([
-    { name: "__clerk_db_jwt", value: "dev_browser_fake_jwt", url: BASE },
-  ]);
-  const page = await context.newPage();
-
-  page.on("pageerror", (err) => {
-    failures.push(`pageerror: ${err.message}`);
-  });
-
-  await openHarness(page);
-  await initAudio(page);
-
-  const chordCount = await page.evaluate(
-    () => window.__playbackHarness?.chordCount ?? 0,
-  );
-  assert(chordCount > 20, `harness tab has enough chords (${chordCount})`);
-
-  const beforePlay = await getVisibleChordSnapshot(page);
-  assert(
-    beforePlay.centerOccupied,
-    `chords occupy center before play (visible=${beforePlay.visible})`,
-  );
-
-  const playButton = page.locator('[data-testid="playback-play-pause"]');
-  await playButton.click();
-
-  await page.waitForFunction(
-    () => window.__playbackHarness?.playing === true,
-    { timeout: 10000 },
-  );
-
-  await waitForLoopCompletion(page);
-
-  await playButton.click();
-
-  await page.waitForFunction(
-    () => window.__playbackHarness?.playing === false,
-    { timeout: 10000 },
-  );
-  await page.waitForTimeout(300);
-
-  const afterPause = await getVisibleChordSnapshot(page);
-  console.log(
-    `  snapshot after pause: visible=${afterPause.visible}/${afterPause.mounted}, transform=${afterPause.transform}`,
-  );
-
-  assert(
-    afterPause.ok,
-    "playback strip is present after pause",
-  );
-  assert(
-    afterPause.visible >= 3,
-    `multiple chords visible after pause (got ${afterPause.visible})`,
-  );
-  assert(
-    afterPause.centerOccupied,
-    "center highlight region has a visible chord after pause",
-  );
-
-  await context.close();
-}
-
-async function getStripScrollPosition(page) {
-  return page.evaluate(() => {
-    const strip = document.querySelector(
-      '[data-testid="playback-scroll-strip"]',
-    );
-    if (!strip) return null;
-
-    const transform =
-      strip.style.transform || getComputedStyle(strip).transform;
-    if (!transform || transform === "none") return 0;
-
-    if (transform.startsWith("matrix")) {
-      const parts = transform
-        .replace("matrix(", "")
-        .replace("matrix3d(", "")
-        .replace(")", "")
-        .split(",")
-        .map((value) => Number(value.trim()));
-      return Math.abs(parts[4] ?? 0);
-    }
-
-    const match = transform.match(/translateX\((-?\d+(?:\.\d+)?)px\)/);
-    return match ? Math.abs(Number(match[1])) : 0;
-  });
-}
-
-async function testPausePreservesStripPosition(browser) {
-  console.log("\n--- pause preserves WAAPI strip position ---");
-
-  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  await context.addCookies([
-    { name: "__clerk_db_jwt", value: "dev_browser_fake_jwt", url: BASE },
-  ]);
-  const page = await context.newPage();
-
-  await openHarness(page);
-  await initAudio(page);
-
-  const playButton = page.locator('[data-testid="playback-play-pause"]');
-  await playButton.click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === true);
-  await page.waitForFunction(
-    () => window.__playbackHarness?.hasCompletedLoop === true,
-    { timeout: 90000 },
-  );
-
-  const { prePauseScroll, postPauseScroll } = await page.evaluate(async () => {
-    const readStripScrollPosition = () => {
-      const strip = document.querySelector(
-        '[data-testid="playback-scroll-strip"]',
-      );
-      if (!strip) return 0;
-
-      const transform =
-        strip.style.transform || getComputedStyle(strip).transform;
+async function pauseViaHarness(page) {
+  const result = await page.evaluate(async () => {
+    const readScrollPx = (transform) => {
       if (!transform || transform === "none") return 0;
-
       if (transform.startsWith("matrix")) {
         const parts = transform
           .replace("matrix(", "")
@@ -240,9 +145,21 @@ async function testPausePreservesStripPosition(browser) {
           .map((value) => Number(value.trim()));
         return Math.abs(parts[4] ?? 0);
       }
-
       const match = transform.match(/translateX\((-?\d+(?:\.\d+)?)px\)/);
       return match ? Math.abs(Number(match[1])) : 0;
+    };
+
+    const readStripScrollPosition = () => {
+      const strip = document.querySelector(
+        '[data-testid="playback-scroll-strip"]',
+      );
+      if (!strip) return 0;
+
+      const transform = getComputedStyle(strip).transform;
+      if (!transform || transform === "none") {
+        return readScrollPx(strip.style.transform);
+      }
+      return readScrollPx(transform);
     };
 
     const prePauseScroll = readStripScrollPosition();
@@ -264,100 +181,100 @@ async function testPausePreservesStripPosition(browser) {
     });
 
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    const postPauseScroll = readStripScrollPosition();
 
-    return { prePauseScroll, postPauseScroll };
+    return {
+      prePauseScroll,
+      postPauseScroll: readStripScrollPosition(),
+    };
   });
 
-  const delta = Math.abs(postPauseScroll - prePauseScroll);
+  return result;
+}
+
+function assertHealthyMobilePause(snapshot, label) {
+  const midpoint = snapshot.chordCount * 0.5;
+  const earlyVisible = snapshot.visibleIndices.filter(
+    (index) => index < midpoint,
+  ).length;
+  const lateOnlyCenter =
+    snapshot.centerChordIndex !== null && snapshot.centerChordIndex >= midpoint;
 
   console.log(
-    `  scroll position pre-pause=${prePauseScroll}px post-pause=${postPauseScroll}px delta=${delta}px`,
+    `  ${label}: visible=${snapshot.visible}/${snapshot.mounted}, centerIndex=${snapshot.centerChordIndex}, earlyVisible=${earlyVisible}, transform=${snapshot.transform}, viewport=${snapshot.viewportWidth}`,
   );
 
+  assert(snapshot.ok, `${label}: playback strip present`);
   assert(
-    prePauseScroll > 500,
-    `meaningful pre-pause scroll depth (${prePauseScroll}px)`,
+    Math.round(snapshot.viewportWidth) === MOBILE_VIEWPORT.width,
+    `${label}: harness uses mobile viewport width (${snapshot.viewportWidth})`,
+  );
+  assert(
+    snapshot.visible >= 3,
+    `${label}: multiple chords visible after pause (got ${snapshot.visible})`,
+  );
+  assert(
+    snapshot.centerChordIndex !== null,
+    `${label}: center highlight has a chord after pause`,
+  );
+  assert(
+    !lateOnlyCenter,
+    `${label}: center chord is not from the tail half (index=${snapshot.centerChordIndex})`,
+  );
+  assert(
+    earlyVisible >= 2,
+    `${label}: early-tab chords visible after pause (got ${earlyVisible})`,
+  );
+}
+
+async function testMobile375PauseAfterLoop(browser) {
+  console.log(
+    `\n--- mobile ${MOBILE_VIEWPORT.width}x${MOBILE_VIEWPORT.height} pause after loop ---`,
+  );
+
+  const context = await browser.newContext({ viewport: MOBILE_VIEWPORT });
+  await context.addCookies([
+    { name: "__clerk_db_jwt", value: "dev_browser_fake_jwt", url: BASE },
+  ]);
+  const page = await context.newPage();
+
+  page.on("pageerror", (err) => {
+    failures.push(`pageerror: ${err.message}`);
+  });
+
+  await openHarness(page);
+  await initAudio(page);
+
+  const beforePlay = await getPlaybackSnapshot(page);
+  assert(
+    beforePlay.centerChordIndex !== null,
+    `chords occupy center before play (visible=${beforePlay.visible})`,
+  );
+
+  await playThroughFirstLoop(page);
+  const { prePauseScroll, postPauseScroll } = await pauseViaHarness(page);
+  const delta = Math.abs(postPauseScroll - prePauseScroll);
+
+  assert(
+    prePauseScroll > 300,
+    `meaningful pre-pause scroll depth on mobile (${prePauseScroll}px)`,
   );
   assert(
     delta < 5,
-    `pause preserves strip position within 5px (delta=${delta}px)`,
+    `mobile pause preserves strip position within 5px (delta=${delta}px)`,
   );
+
+  const afterPause = await getPlaybackSnapshot(page);
+  assertHealthyMobilePause(afterPause, "post-loop pause");
 
   await context.close();
 }
 
-async function testStartOfTabChordsVisibleAfterPause(browser) {
-  console.log("\n--- start-of-tab chords visible after pause (not only tail) ---");
-
-  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  await context.addCookies([
-    { name: "__clerk_db_jwt", value: "dev_browser_fake_jwt", url: BASE },
-  ]);
-  const page = await context.newPage();
-
-  await openHarness(page);
-  await initAudio(page);
-
-  const chordCount = await page.evaluate(
-    () => window.__playbackHarness?.chordCount ?? 0,
-  );
-
-  await page.locator('[data-testid="playback-play-pause"]').click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === true);
-  await waitForLoopCompletion(page);
-  await page.locator('[data-testid="playback-play-pause"]').click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === false);
-  await page.waitForTimeout(300);
-
-  const distribution = await page.evaluate(() => {
-    const strip = document.querySelector(
-      '[data-testid="playback-scroll-strip"]',
-    );
-    const container = strip?.parentElement;
-    if (!strip || !container) {
-      return { ok: false, earlyVisible: 0, lateVisible: 0 };
-    }
-
-    const viewport = container.getBoundingClientRect();
-    const chordNodes = strip.querySelectorAll('[data-testid="playback-chord"]');
-    let earlyVisible = 0;
-    let lateVisible = 0;
-    const midpoint = chordNodes.length / 2;
-
-    chordNodes.forEach((node, index) => {
-      const rect = node.getBoundingClientRect();
-      const inViewport =
-        rect.right > viewport.left + 8 &&
-        rect.left < viewport.right - 8 &&
-        rect.height > 0 &&
-        rect.width > 0;
-
-      if (!inViewport) return;
-      if (index < midpoint) earlyVisible++;
-      else lateVisible++;
-    });
-
-    return { ok: true, earlyVisible, lateVisible, midpoint };
-  });
-
+async function testMobile375DoubleLoopPause(browser) {
   console.log(
-    `  visible chord distribution: early=${distribution.earlyVisible}, late=${distribution.lateVisible}`,
+    `\n--- mobile ${MOBILE_VIEWPORT.width}x${MOBILE_VIEWPORT.height} pause after two loops ---`,
   );
 
-  assert(distribution.ok, "could read visible chord distribution");
-  assert(
-    distribution.earlyVisible >= 2,
-    `early-tab chords visible after pause (got ${distribution.earlyVisible})`,
-  );
-
-  await context.close();
-}
-
-async function testPauseAtLoopBoundary(browser) {
-  console.log("\n--- pause at last chord before store loop reset ---");
-
-  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const context = await browser.newContext({ viewport: MOBILE_VIEWPORT });
   await context.addCookies([
     { name: "__clerk_db_jwt", value: "dev_browser_fake_jwt", url: BASE },
   ]);
@@ -365,104 +282,33 @@ async function testPauseAtLoopBoundary(browser) {
 
   await openHarness(page);
   await initAudio(page);
-
-  const chordCount = await page.evaluate(
-    () => window.__playbackHarness?.chordCount ?? 0,
-  );
-
-  const playButton = page.locator('[data-testid="playback-play-pause"]');
-  await playButton.click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === true);
+  await playThroughFirstLoop(page);
 
   await page.waitForFunction(
-    (count) => (window.__playbackHarness?.currentChordIndex ?? 0) > count * 0.85,
-    chordCount,
+    () => (window.__playbackHarness?.currentChordIndex ?? 0) > 8,
     { timeout: 90000 },
   );
 
-  const prePauseScroll = await getStripScrollPosition(page);
-  await playButton.click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === false);
-  await page.waitForTimeout(200);
-
-  const postPauseScroll = await getStripScrollPosition(page);
-  const afterPause = await getVisibleChordSnapshot(page);
+  const { prePauseScroll, postPauseScroll } = await pauseViaHarness(page);
   const delta = Math.abs(postPauseScroll - prePauseScroll);
 
-  console.log(
-    `  boundary pause: pre=${prePauseScroll}px post=${postPauseScroll}px delta=${delta}px visible=${afterPause.visible}`,
-  );
-
-  assert(
-    afterPause.visible >= 3,
-    `chords visible when pausing near loop end (got ${afterPause.visible})`,
-  );
-  assert(
-    afterPause.centerOccupied,
-    "center occupied when pausing near loop end",
-  );
-  assert(
-    delta <= 40,
-    `strip position stable when pausing near loop end (delta=${delta}px)`,
-  );
-
-  await context.close();
-}
-
-async function testPauseImmediatelyAfterLoopReset(browser) {
-  console.log("\n--- pause immediately after loop reset (split repetitions) ---");
-
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  await context.addCookies([
-    { name: "__clerk_db_jwt", value: "dev_browser_fake_jwt", url: BASE },
-  ]);
-  const page = await context.newPage();
-
-  await openHarness(page);
-  await initAudio(page);
-
-  const playButton = page.locator('[data-testid="playback-play-pause"]');
-  await playButton.click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === true);
-
-  await page.waitForFunction(
-    () => window.__playbackHarness?.hasCompletedLoop === true,
-    { timeout: 90000 },
-  );
-
-  const prePauseScroll = await getStripScrollPosition(page);
-  await playButton.click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === false);
-  await page.waitForTimeout(100);
-
-  const postPauseScroll = await getStripScrollPosition(page);
-  const afterPause = await getVisibleChordSnapshot(page);
-  const delta = Math.abs(postPauseScroll - prePauseScroll);
-
-  console.log(
-    `  mobile post-loop pause: pre=${prePauseScroll}px post=${postPauseScroll}px delta=${delta}px visible=${afterPause.visible}`,
-  );
-
-  assert(
-    afterPause.visible >= 3,
-    `mobile chords visible after post-loop pause (got ${afterPause.visible})`,
-  );
-  assert(
-    afterPause.centerOccupied,
-    "mobile center occupied after post-loop pause",
-  );
   assert(
     delta < 5,
-    `mobile strip position stable after post-loop pause (delta=${delta}px)`,
+    `mobile double-loop pause preserves strip position (delta=${delta}px)`,
   );
+
+  const afterPause = await getPlaybackSnapshot(page);
+  assertHealthyMobilePause(afterPause, "double-loop pause");
 
   await context.close();
 }
 
-async function testManualScrollAfterPause(browser) {
-  console.log("\n--- manual scroll still shows chords across the tab ---");
+async function testMobile375ManualScrollAfterPause(browser) {
+  console.log(
+    `\n--- mobile ${MOBILE_VIEWPORT.width}x${MOBILE_VIEWPORT.height} manual scroll after pause ---`,
+  );
 
-  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const context = await browser.newContext({ viewport: MOBILE_VIEWPORT });
   await context.addCookies([
     { name: "__clerk_db_jwt", value: "dev_browser_fake_jwt", url: BASE },
   ]);
@@ -470,29 +316,19 @@ async function testManualScrollAfterPause(browser) {
 
   await openHarness(page);
   await initAudio(page);
-
-  const chordCount = await page.evaluate(
-    () => window.__playbackHarness?.chordCount ?? 0,
-  );
-
-  await page.locator('[data-testid="playback-play-pause"]').click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === true);
-  await waitForLoopCompletion(page);
-  await page.locator('[data-testid="playback-play-pause"]').click();
-  await page.waitForFunction(() => window.__playbackHarness?.playing === false);
-  await page.waitForTimeout(300);
+  await playThroughFirstLoop(page);
+  await pauseViaHarness(page);
 
   const strip = page.locator('[data-testid="playback-scrolling-container"]');
   const box = await strip.boundingBox();
   if (!box) {
-    failures.push("could not get scrolling container bounds");
+    failures.push("could not get scrolling container bounds on mobile");
     await context.close();
     return;
   }
 
-  // swipe left repeatedly to advance through the tab
-  for (let i = 0; i < 8; i++) {
-    await page.mouse.move(box.x + box.width * 0.7, box.y + box.height / 2);
+  for (let i = 0; i < 10; i++) {
+    await page.mouse.move(box.x + box.width * 0.75, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2, {
       steps: 8,
@@ -501,14 +337,48 @@ async function testManualScrollAfterPause(browser) {
     await page.waitForTimeout(120);
   }
 
-  const afterScroll = await getVisibleChordSnapshot(page);
+  const afterScroll = await getPlaybackSnapshot(page);
   assert(
     afterScroll.visible >= 3,
-    `chords visible after manual forward scroll (got ${afterScroll.visible})`,
+    `mobile chords visible after manual forward scroll (got ${afterScroll.visible})`,
   );
   assert(
-    afterScroll.centerOccupied,
-    "center region occupied after manual forward scroll",
+    afterScroll.centerChordIndex !== null,
+    "mobile center occupied after manual forward scroll",
+  );
+
+  await context.close();
+}
+
+async function testDesktopPauseAfterLoop(browser) {
+  console.log("\n--- desktop pause after loop ---");
+
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await context.addCookies([
+    { name: "__clerk_db_jwt", value: "dev_browser_fake_jwt", url: BASE },
+  ]);
+  const page = await context.newPage();
+
+  await openHarness(page);
+  await initAudio(page);
+  await playThroughFirstLoop(page);
+
+  const { prePauseScroll, postPauseScroll } = await pauseViaHarness(page);
+  const delta = Math.abs(postPauseScroll - prePauseScroll);
+  const afterPause = await getPlaybackSnapshot(page);
+
+  console.log(
+    `  desktop pause: delta=${delta}px visible=${afterPause.visible} center=${afterPause.centerChordIndex}`,
+  );
+
+  assert(delta < 5, `desktop pause preserves strip position (delta=${delta}px)`);
+  assert(
+    afterPause.visible >= 3,
+    `desktop chords visible after pause (got ${afterPause.visible})`,
+  );
+  assert(
+    afterPause.centerChordIndex !== null,
+    "desktop center occupied after pause",
   );
 
   await context.close();
@@ -517,12 +387,13 @@ async function testManualScrollAfterPause(browser) {
 const browser = await chromium.launch();
 
 try {
-  await testPauseAfterLoop(browser);
-  await testPausePreservesStripPosition(browser);
-  await testStartOfTabChordsVisibleAfterPause(browser);
-  await testPauseAtLoopBoundary(browser);
-  await testPauseImmediatelyAfterLoopReset(browser);
-  await testManualScrollAfterPause(browser);
+  for (let run = 1; run <= 3; run++) {
+    console.log(`\n========== deterministic run ${run}/3 ==========`);
+    await testMobile375PauseAfterLoop(browser);
+    await testMobile375DoubleLoopPause(browser);
+    await testMobile375ManualScrollAfterPause(browser);
+    await testDesktopPauseAfterLoop(browser);
+  }
   console.log(`\n${checks - failures.length}/${checks} checks passed`);
 } finally {
   await browser.close();

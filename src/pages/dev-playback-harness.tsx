@@ -93,7 +93,6 @@ export default function DevPlaybackHarness() {
     setPlaybackSpeed,
     setCountInTimerEnabled,
     setShowPlaybackModal,
-    setVisiblePlaybackContainerWidth,
     setAudioMetadata,
     setCurrentChordIndex,
     storeTabData,
@@ -110,7 +109,6 @@ export default function DevPlaybackHarness() {
     setPlaybackSpeed: state.setPlaybackSpeed,
     setCountInTimerEnabled: state.setCountInTimerEnabled,
     setShowPlaybackModal: state.setShowPlaybackModal,
-    setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     setAudioMetadata: state.setAudioMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
     storeTabData: state.tabData,
@@ -146,7 +144,6 @@ export default function DevPlaybackHarness() {
     setPlaybackSpeed(1.5);
     setCountInTimerEnabled(false);
     setCurrentChordIndex(0);
-    setVisiblePlaybackContainerWidth(1280);
     setAudioMetadata({
       playing: false,
       location: null,
@@ -169,7 +166,6 @@ export default function DevPlaybackHarness() {
     setPlaybackSpeed,
     setCountInTimerEnabled,
     setShowPlaybackModal,
-    setVisiblePlaybackContainerWidth,
     setAudioMetadata,
     setCurrentChordIndex,
   ]);

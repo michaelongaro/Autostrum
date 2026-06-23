@@ -104,6 +104,8 @@ function PlaybackModal() {
   const [pausedStripScrollPx, setPausedStripScrollPx] = useState<number | null>(
     null,
   );
+  const frozenStripScrollPxRef = useRef<number | null>(null);
+  const previousPlaybackContainerWidthRef = useRef(0);
 
   // v avoids polluting the store with these extra semi-local values
   const [loopRange, setLoopRange] = useState<[number, number]>([
@@ -143,8 +145,24 @@ function PlaybackModal() {
   useEffect(() => {
     if (audioMetadata.playing) {
       setPausedStripScrollPx(null);
+      frozenStripScrollPxRef.current = null;
     }
   }, [audioMetadata.playing]);
+
+  useEffect(() => {
+    if (
+      previousPlaybackContainerWidthRef.current !== 0 &&
+      previousPlaybackContainerWidthRef.current !==
+        visiblePlaybackContainerWidth &&
+      chordRepetitions.length > 0
+    ) {
+      setChordRepetitions(new Array(chordRepetitions.length).fill(0));
+      setPausedStripScrollPx(null);
+      frozenStripScrollPxRef.current = null;
+    }
+
+    previousPlaybackContainerWidthRef.current = visiblePlaybackContainerWidth;
+  }, [visiblePlaybackContainerWidth, chordRepetitions.length]);
 
   // Compute chord layout data (positions, widths, durations) - memoized
   const chordLayoutData = useMemo<ChordLayoutData | null>(() => {
@@ -317,16 +335,21 @@ function PlaybackModal() {
     // While paused after WAAPI playback, preserve the exact animated strip position
     // instead of snapping to chord boundaries. This avoids offscreen chords when
     // pausing shortly after a loop while virtualization repetitions are catching up.
+    const activePausedScrollPx =
+      pausedStripScrollPx ?? frozenStripScrollPxRef.current;
+
     const currentScrollPosition =
-      !audioMetadata.playing && pausedStripScrollPx !== null
-        ? pausedStripScrollPx
+      !audioMetadata.playing && activePausedScrollPx !== null
+        ? activePausedScrollPx
         : chordBoundaryScrollPosition;
 
-    const halfViewport = visiblePlaybackContainerWidth / 2;
     const minVisiblePosition =
-      currentScrollPosition - halfViewport - VIRTUALIZATION_BUFFER;
+      currentScrollPosition - initialPlaceholderWidth - VIRTUALIZATION_BUFFER;
     const maxVisiblePosition =
-      currentScrollPosition + halfViewport + VIRTUALIZATION_BUFFER;
+      currentScrollPosition -
+      initialPlaceholderWidth +
+      visiblePlaybackContainerWidth +
+      VIRTUALIZATION_BUFFER;
 
     // Find visible range - we need to check each chord's actual position with its repetition
     let startIndex = 0;
@@ -365,9 +388,10 @@ function PlaybackModal() {
     chordRepetitions,
     audioMetadata.playing,
     pausedStripScrollPx,
+    initialPlaceholderWidth,
   ]);
 
-  // Primary chord virtualization effect - increments all chords except the last visible portion
+  // Primary chord virtualization effect
   // Triggers when current chord index reaches the point where the last chord becomes visible
   useEffect(() => {
     if (
@@ -454,10 +478,12 @@ function PlaybackModal() {
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 
   const handlePausedScrollPosition = useCallback((scrollPositionPx: number) => {
+    frozenStripScrollPxRef.current = scrollPositionPx;
     setPausedStripScrollPx(scrollPositionPx);
   }, []);
 
   const clearPausedStripScrollPosition = useCallback(() => {
+    frozenStripScrollPxRef.current = null;
     setPausedStripScrollPx(null);
   }, []);
 
@@ -487,9 +513,11 @@ function PlaybackModal() {
     const chordBoundaryScrollPosition =
       (scrollPositions[currentChordIndex] ?? 0) +
       (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
+    const activePausedScrollPx =
+      pausedStripScrollPx ?? frozenStripScrollPxRef.current;
     const position =
-      !audioMetadata.playing && pausedStripScrollPx !== null
-        ? pausedStripScrollPx
+      !audioMetadata.playing && activePausedScrollPx !== null
+        ? activePausedScrollPx
         : chordBoundaryScrollPosition;
 
     return `translateX(${position * -1}px)`;
@@ -673,9 +701,10 @@ function PlaybackModal() {
                           style={{
                             width: `${chordLayoutData.totalWidth}px`,
                             transform: scrollContainerTransform,
-                            transition: audioMetadata.playing
-                              ? "none"
-                              : "transform 0.2s linear",
+                            transition:
+                              audioMetadata.playing || pausedStripScrollPx !== null
+                                ? "none"
+                                : "transform 0.2s linear",
                           }}
                           className="relative flex items-center will-change-transform"
                         >
@@ -707,6 +736,7 @@ function PlaybackModal() {
                                 <div
                                   key={`${index}-${chordRepetitions[index] ?? 0}`}
                                   data-testid="playback-chord"
+                                  data-chord-index={index}
                                   style={{
                                     position: "absolute",
                                     width: `${chordLayoutData.chordWidths[index] ?? 0}px`,
