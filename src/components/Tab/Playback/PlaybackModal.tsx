@@ -1,4 +1,12 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
@@ -350,7 +358,7 @@ function PlaybackModal() {
 
   // Primary chord virtualization effect - increments all chords except the last visible portion
   // Triggers when current chord index reaches the point where the last chord becomes visible
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
@@ -379,7 +387,7 @@ function PlaybackModal() {
 
   // Catchup chord virtualization effect - increments the remaining chords after they leave the viewport
   // Triggers after the beginning of the tab leaves the viewport on a new loop
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
