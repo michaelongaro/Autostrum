@@ -28,6 +28,7 @@ import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
+import getPlaybackHighlightTransitionDuration from "~/utils/getPlaybackHighlightTransitionDuration";
 
 const backdropVariants = {
   expanded: {
@@ -634,6 +635,7 @@ function PlaybackModal() {
                                           : "loopDelaySpacer"
                                     }
                                     index={index}
+                                    playbackSpeed={playbackSpeed}
                                     prevChord={prevChord}
                                     chord={chord}
                                     nextChord={nextChord}
@@ -716,6 +718,7 @@ export default PlaybackModal;
 interface RenderChordByTypeProps {
   type: "tab" | "measureLine" | "strum" | "loopDelaySpacer";
   index: number;
+  playbackSpeed: number;
   prevChord?:
     | PlaybackTabChordType
     | PlaybackStrummedChordType
@@ -737,6 +740,7 @@ interface RenderChordByTypeProps {
 const RenderChordByType = memo(function RenderChordByType({
   type,
   index: _index,
+  playbackSpeed,
   prevChord,
   chord,
   nextChord,
@@ -783,6 +787,22 @@ const RenderChordByType = memo(function RenderChordByType({
     (nextChord.type === "tab" && nextChord.data.chordData[7] === "r") ||
     (nextChord.type === "strum" && nextChord.data.strum === "r");
 
+  const highlightTransitionDurationMs = chord
+    ? chord.type === "tab"
+      ? getPlaybackHighlightTransitionDuration({
+          bpm: chord.data.bpm,
+          noteLength: chord.data.chordData[8] as FullNoteLengths,
+          playbackSpeed,
+        })
+      : chord.type === "strum"
+        ? getPlaybackHighlightTransitionDuration({
+            bpm: chord.data.bpm,
+            noteLength: chord.data.noteLength,
+            playbackSpeed,
+          })
+        : 75
+    : 75;
+
   if (type === "tab" && chord?.type === "tab") {
     return (
       <PlaybackTabChord
@@ -797,6 +817,7 @@ const RenderChordByType = memo(function RenderChordByType({
         prevChordIsRest={prevChordIsRest}
         currentChordIsRest={currentChordIsRest}
         nextChordIsRest={nextChordIsRest}
+        highlightTransitionDurationMs={highlightTransitionDurationMs}
       />
     );
   }
@@ -831,6 +852,7 @@ const RenderChordByType = memo(function RenderChordByType({
         prevChordIsRest={prevChordIsRest}
         currentChordIsRest={currentChordIsRest}
         nextChordIsRest={nextChordIsRest}
+        highlightTransitionDurationMs={highlightTransitionDurationMs}
       />
     );
   }

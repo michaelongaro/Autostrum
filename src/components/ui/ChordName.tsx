@@ -20,6 +20,7 @@ interface ChordName {
   color: string;
   truncate: boolean;
   isHighlighted?: boolean;
+  transitionDurationMs?: number;
   screenshotColor?: COLORS;
   screenshotTheme?: THEME;
   showFullName?: boolean;
@@ -30,6 +31,7 @@ function ChordName({
   color,
   truncate,
   isHighlighted,
+  transitionDurationMs,
   screenshotColor,
   screenshotTheme,
   showFullName,
@@ -77,6 +79,9 @@ function ChordName({
           chordDisplayMode === "color" && isHighlighted
             ? "scale(1.1)"
             : "scale(1)",
+        transitionDuration: transitionDurationMs
+          ? `${transitionDurationMs}ms`
+          : undefined,
         zIndex: showFullName ? 9 : undefined, // still want hover to take priority over chord popover being open
       }}
       className="baseFlex h-5 shrink-0 rounded-full border-background px-1.5 font-semibold transition-all hover:z-10"

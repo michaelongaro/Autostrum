@@ -12,6 +12,7 @@ interface PlaybackTabChord {
   isLastChordInSection: boolean;
   isHighlighted: boolean;
   isDimmed: boolean;
+  highlightTransitionDurationMs: number;
   prevChordNoteLength?: FullNoteLengths;
   currentChordNoteLength?: FullNoteLengths;
   nextChordNoteLength?: FullNoteLengths;
@@ -26,6 +27,7 @@ function PlaybackTabChord({
   isLastChordInSection,
   isHighlighted,
   isDimmed,
+  highlightTransitionDurationMs,
   prevChordNoteLength,
   currentChordNoteLength,
   nextChordNoteLength,
@@ -124,6 +126,9 @@ function PlaybackTabChord({
                         note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
                       }
                       isRest={index === 4 && columnData[7] === "r"}
+                      highlightTransitionDurationMs={
+                        highlightTransitionDurationMs
+                      }
                     />
 
                     <div className="h-[1px] flex-[1] bg-foreground/50"></div>
@@ -220,6 +225,7 @@ interface PlaybackTabNote {
   isAccented?: boolean;
   isStaccato?: boolean;
   isRest?: boolean;
+  highlightTransitionDurationMs: number;
 }
 
 const PlaybackTabNote = memo(function PlaybackTabNote({
@@ -228,6 +234,7 @@ const PlaybackTabNote = memo(function PlaybackTabNote({
   isAccented,
   isStaccato,
   isRest,
+  highlightTransitionDurationMs,
 }: PlaybackTabNote) {
   return (
     <div className="baseFlex w-[34px]">
@@ -237,7 +244,7 @@ const PlaybackTabNote = memo(function PlaybackTabNote({
           color: isHighlighted
             ? "hsl(var(--primary))"
             : "hsl(var(--foreground))",
-          transitionDuration: "75ms",
+          transitionDuration: `${highlightTransitionDurationMs}ms`,
 
           // "x" wasn't as centered as regular numbers were, manual adjustment below
           marginTop: note === "x" ? "-2px" : "0",
