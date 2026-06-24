@@ -1,22 +1,4 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  type RefObject,
-} from "react";
-
-// WAAPI owns `transform` while playback is running, but React owns the inline
-// `transform` while paused/scrubbing. Calling `animation.cancel()` immediately
-// removes the WAAPI-computed transform, so the strip can snap back to React's
-// last inline transform. With virtualized/repeated chord content, that snap can
-// land on an empty/out-of-range repetition and make the tab appear to disappear.
-//
-// Before canceling, we snapshot the current computed transform into the element's
-// inline style so the visual position survives the WAAPI -> React handoff.
-// We also cancel every animation created by this hook, because finished animations
-// with `fill: "both"` can otherwise keep stale transforms alive and resurface
-// when the active animation is canceled.
+import { useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 
 interface PlaybackStripLayoutData {
   scrollPositions: number[];
@@ -40,43 +22,11 @@ interface PlaybackStripAnimationData {
   totalDurationMs: number;
 }
 
-// Tiny tolerance for comparing adjacent scroll velocities.
-//
-// The strip animation is piecewise linear. If the velocity before and after a
-// chord boundary is effectively the same, we can omit that boundary keyframe
-// because a single linear segment will naturally pass through the same position
-// at the same time.
-//
-// The epsilon avoids creating unnecessary keyframes due to insignificant
-// floating-point/layout measurement differences. Unit is px/ms.
-const VELOCITY_EPSILON = 0.0001;
-
 function preserveCurrentTransform(animatedElement: HTMLElement) {
   const computedTransform = window.getComputedStyle(animatedElement).transform;
 
   animatedElement.style.transform =
     computedTransform === "none" ? "" : computedTransform;
-}
-
-function cancelPlaybackStripAnimations({
-  animations,
-  animatedElement,
-  preserveTransform,
-}: {
-  animations: Set<Animation>;
-  animatedElement: HTMLElement | null;
-  preserveTransform: boolean;
-}) {
-  if (preserveTransform && animatedElement && animations.size > 0) {
-    preserveCurrentTransform(animatedElement);
-  }
-
-  for (const animation of Array.from(animations)) {
-    animation.onfinish = null;
-    animation.cancel();
-  }
-
-  animations.clear();
 }
 
 function getPlaybackStripAnimationData(
@@ -103,59 +53,93 @@ function getPlaybackStripAnimationData(
   };
 }
 
-function buildPlaybackStripKeyframes({
-  chordLayoutData,
-  animationData,
-  repetitionBase,
+function normalizeModulo(value: number, modulus: number) {
+  return ((value % modulus) + modulus) % modulus;
+}
+
+function findChordSegmentIndex({
+  cumulativeChordTimesMs,
+  chordCount,
+  loopTimeMs,
 }: {
-  chordLayoutData: PlaybackStripLayoutData;
-  animationData: PlaybackStripAnimationData;
-  repetitionBase: number;
+  cumulativeChordTimesMs: number[];
+  chordCount: number;
+  loopTimeMs: number;
 }) {
-  const boundaryPositions = [
-    ...chordLayoutData.scrollPositions.slice(0, animationData.chordCount),
-    chordLayoutData.totalWidth,
-  ];
-  const keyframeIndices = [0];
+  let low = 0;
+  let high = chordCount - 1;
 
-  for (let index = 1; index < animationData.chordCount; index++) {
-    const previousStartTimeMs =
-      animationData.cumulativeChordTimesMs[index - 1] ?? 0;
-    const currentStartTimeMs =
-      animationData.cumulativeChordTimesMs[index] ?? previousStartTimeMs;
-    const nextStartTimeMs =
-      animationData.cumulativeChordTimesMs[index + 1] ?? currentStartTimeMs;
-    const previousDurationMs = currentStartTimeMs - previousStartTimeMs;
-    const nextDurationMs = nextStartTimeMs - currentStartTimeMs;
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const startMs = cumulativeChordTimesMs[mid] ?? 0;
+    const endMs = cumulativeChordTimesMs[mid + 1] ?? startMs;
 
-    if (previousDurationMs <= 0 || nextDurationMs <= 0) {
-      keyframeIndices.push(index);
-      continue;
-    }
-
-    const previousVelocity =
-      (boundaryPositions[index]! - boundaryPositions[index - 1]!) /
-      previousDurationMs;
-    const nextVelocity =
-      (boundaryPositions[index + 1]! - boundaryPositions[index]!) /
-      nextDurationMs;
-
-    if (Math.abs(previousVelocity - nextVelocity) > VELOCITY_EPSILON) {
-      keyframeIndices.push(index);
+    if (loopTimeMs < startMs) {
+      high = mid - 1;
+    } else if (loopTimeMs >= endMs) {
+      low = mid + 1;
+    } else {
+      return mid;
     }
   }
 
-  keyframeIndices.push(animationData.chordCount);
+  return Math.max(0, Math.min(chordCount - 1, low));
+}
 
-  return keyframeIndices.map((index) => ({
-    offset:
-      animationData.totalDurationMs <= 0
-        ? 0
-        : animationData.cumulativeChordTimesMs[index]! /
-          animationData.totalDurationMs,
-    transform: `translateX(${(boundaryPositions[index]! + repetitionBase) * -1}px)`,
-    easing: "linear",
-  }));
+function getPlaybackStripTranslateX({
+  chordLayoutData,
+  animationData,
+  baseRepetitionPx,
+  totalElapsedMs,
+}: {
+  chordLayoutData: PlaybackStripLayoutData;
+  animationData: PlaybackStripAnimationData;
+  baseRepetitionPx: number;
+  totalElapsedMs: number;
+}) {
+  const { chordCount, cumulativeChordTimesMs, totalDurationMs } = animationData;
+
+  if (totalDurationMs <= 0) {
+    const startPosition = chordLayoutData.scrollPositions[0] ?? 0;
+    return (startPosition + baseRepetitionPx) * -1;
+  }
+
+  const completedLoops = Math.floor(totalElapsedMs / totalDurationMs);
+  const loopTimeMs = normalizeModulo(totalElapsedMs, totalDurationMs);
+
+  const segmentIndex = findChordSegmentIndex({
+    cumulativeChordTimesMs,
+    chordCount,
+    loopTimeMs,
+  });
+
+  const segmentStartMs = cumulativeChordTimesMs[segmentIndex] ?? 0;
+  const segmentEndMs =
+    cumulativeChordTimesMs[segmentIndex + 1] ?? segmentStartMs;
+
+  const segmentDurationMs = segmentEndMs - segmentStartMs;
+
+  const startPosition = chordLayoutData.scrollPositions[segmentIndex] ?? 0;
+  const endPosition =
+    segmentIndex === chordCount - 1
+      ? chordLayoutData.totalWidth
+      : (chordLayoutData.scrollPositions[segmentIndex + 1] ?? startPosition);
+
+  const progress =
+    segmentDurationMs <= 0
+      ? 1
+      : Math.max(
+          0,
+          Math.min(1, (loopTimeMs - segmentStartMs) / segmentDurationMs),
+        );
+
+  const interpolatedPosition =
+    startPosition + (endPosition - startPosition) * progress;
+
+  const repetitionOffsetPx =
+    baseRepetitionPx + completedLoops * chordLayoutData.totalWidth;
+
+  return (interpolatedPosition + repetitionOffsetPx) * -1;
 }
 
 function usePlaybackStripAnimation({
@@ -167,11 +151,8 @@ function usePlaybackStripAnimation({
   playbackStartedAtAudioTime,
   playing,
 }: UsePlaybackStripAnimationArgs) {
-  const animationRef = useRef<Animation | null>(null);
-  const animationsRef = useRef<Set<Animation>>(new Set());
-  const animationGenerationRef = useRef(0);
+  const rafIdRef = useRef<number | null>(null);
   const playingRef = useRef(playing);
-  const repetitionBaseRef = useRef(0);
   const anchorChordIndexRef = useRef(currentChordIndex);
   const anchorRepetitionRef = useRef(currentRepetition);
 
@@ -180,28 +161,31 @@ function usePlaybackStripAnimation({
     [chordLayoutData],
   );
 
-  useEffect(() => {
-    playingRef.current = playing;
-  }, [playing]);
-
   useLayoutEffect(() => {
     anchorChordIndexRef.current = currentChordIndex;
     anchorRepetitionRef.current = currentRepetition;
   }, [currentChordIndex, currentRepetition]);
 
   useLayoutEffect(() => {
-    cancelPlaybackStripAnimations({
-      animations: animationsRef.current,
-      animatedElement: stripRef.current,
-      preserveTransform: true,
-    });
+    playingRef.current = playing;
 
-    animationRef.current = null;
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
 
-    animationGenerationRef.current += 1;
+    const animatedElement = stripRef.current;
+
+    if (!playing) {
+      if (animatedElement) {
+        preserveCurrentTransform(animatedElement);
+      }
+
+      return;
+    }
 
     if (
-      !playing ||
+      !animatedElement ||
       !chordLayoutData ||
       !animationData ||
       animationData.totalDurationMs <= 0 ||
@@ -211,102 +195,57 @@ function usePlaybackStripAnimation({
       return;
     }
 
-    const generation = animationGenerationRef.current;
-    const clampedAnchorIndex = Math.min(
-      Math.max(anchorChordIndexRef.current, 0),
-      animationData.chordCount - 1,
+    const rawAnchorChordIndex = anchorChordIndexRef.current;
+
+    const normalizedAnchorChordIndex = normalizeModulo(
+      rawAnchorChordIndex,
+      animationData.chordCount,
+    );
+
+    const extraAnchorLoops = Math.floor(
+      rawAnchorChordIndex / animationData.chordCount,
     );
 
     const anchorStartTimeMs =
-      animationData.cumulativeChordTimesMs[clampedAnchorIndex] ?? 0;
-    const elapsedSincePlaybackStartMs = Math.max(
-      0,
-      (audioContext.currentTime - playbackStartedAtAudioTime) * 1000,
-    );
-    const totalElapsedMs = anchorStartTimeMs + elapsedSincePlaybackStartMs;
-    const completedLoops = Math.floor(
-      totalElapsedMs / animationData.totalDurationMs,
-    );
-    const initialCurrentTimeMs = totalElapsedMs % animationData.totalDurationMs;
+      animationData.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
 
-    // Use the audio clock as the anchor so occasional JS timer jitter on mobile
-    // does not force visible snaps in the strip animation.
-    repetitionBaseRef.current =
-      (anchorRepetitionRef.current + completedLoops) *
+    const baseRepetitionPx =
+      (anchorRepetitionRef.current + extraAnchorLoops) *
       chordLayoutData.totalWidth;
 
-    const startAnimation = (startTimeMs: number) => {
-      const animatedElement = stripRef.current;
-      if (!animatedElement) return;
+    const renderFrame = () => {
+      if (!playingRef.current) return;
 
-      const animation = animatedElement.animate(
-        buildPlaybackStripKeyframes({
-          chordLayoutData,
-          animationData,
-          repetitionBase: repetitionBaseRef.current,
-        }),
-        {
-          duration: animationData.totalDurationMs,
-          fill: "both",
-        },
-      );
-
-      animation.pause();
-      animation.currentTime = Math.max(
+      const elapsedSincePlaybackStartMs = Math.max(
         0,
-        Math.min(startTimeMs, animationData.totalDurationMs),
+        (audioContext.currentTime - playbackStartedAtAudioTime) * 1000,
       );
 
-      animationsRef.current.add(animation);
+      const totalElapsedMs = anchorStartTimeMs + elapsedSincePlaybackStartMs;
 
-      animation.onfinish = () => {
-        if (
-          generation !== animationGenerationRef.current ||
-          !playingRef.current
-        ) {
-          animation.onfinish = null;
-          animationsRef.current.delete(animation);
-
-          if (animationRef.current === animation) {
-            animationRef.current = null;
-          }
-
-          animation.cancel();
-
-          return;
-        }
-
-        animation.onfinish = null;
-        animationsRef.current.delete(animation);
-
-        if (animationRef.current === animation) {
-          animationRef.current = null;
-        }
-
-        // This animation used fill: "both". If we leave it alive, it can
-        // resurface later when the next animation is canceled during pause.
-        animation.cancel();
-
-        repetitionBaseRef.current += chordLayoutData.totalWidth;
-        startAnimation(0);
-      };
-
-      animation.play();
-      animationRef.current = animation;
-    };
-
-    startAnimation(initialCurrentTimeMs);
-
-    return () => {
-      cancelPlaybackStripAnimations({
-        animations: animationsRef.current,
-        animatedElement: stripRef.current,
-        preserveTransform: true,
+      const translateX = getPlaybackStripTranslateX({
+        chordLayoutData,
+        animationData,
+        baseRepetitionPx,
+        totalElapsedMs,
       });
 
-      animationRef.current = null;
+      animatedElement.style.transform = `translateX(${translateX}px)`;
 
-      animationGenerationRef.current += 1;
+      rafIdRef.current = requestAnimationFrame(renderFrame);
+    };
+
+    renderFrame();
+
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+
+      if (animatedElement) {
+        preserveCurrentTransform(animatedElement);
+      }
     };
   }, [
     animationData,
