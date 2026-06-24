@@ -185,7 +185,9 @@ function PracticePlaybackPanel({
                     <span className="text-sm font-medium">
                       {exercise.title}
                     </span>
-                    <span className="text-xs text-foreground/80">
+                    <span
+                      className={`text-xs ${selectedExerciseId === exercise.id ? "text-primary-foreground/75" : "text-foreground"}`}
+                    >
                       {exercise.description}
                     </span>
                   </span>
