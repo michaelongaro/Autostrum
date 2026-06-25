@@ -121,36 +121,66 @@ function buildPlaybackStripKeyframes({
     ...chordLayoutData.scrollPositions.slice(0, animationData.chordCount),
     chordLayoutData.totalWidth,
   ];
-  const keyframeIndices = [0];
+  const timedBoundaryIndices = [0];
 
-  for (let index = 1; index < animationData.chordCount; index++) {
+  // Zero-duration items share a timestamp with the next musical boundary.
+  // Keep only the last boundary at each timestamp so WAAPI moves through their
+  // width during the surrounding audible duration instead of stepping instantly.
+  for (let index = 1; index <= animationData.chordCount; index++) {
+    const currentTimeMs = animationData.cumulativeChordTimesMs[index] ?? 0;
+    const lastTimedBoundaryIndex =
+      timedBoundaryIndices[timedBoundaryIndices.length - 1] ?? 0;
+    const lastTimeMs =
+      animationData.cumulativeChordTimesMs[lastTimedBoundaryIndex] ?? 0;
+
+    if (currentTimeMs === lastTimeMs) {
+      timedBoundaryIndices[timedBoundaryIndices.length - 1] = index;
+      continue;
+    }
+
+    timedBoundaryIndices.push(index);
+  }
+
+  const keyframeIndices = [timedBoundaryIndices[0] ?? 0];
+
+  for (let index = 1; index < timedBoundaryIndices.length - 1; index++) {
+    const currentBoundaryIndex = timedBoundaryIndices[index] ?? 0;
+    const previousBoundaryIndex = timedBoundaryIndices[index - 1] ?? 0;
+    const nextBoundaryIndex = timedBoundaryIndices[index + 1] ?? 0;
     const previousStartTimeMs =
-      animationData.cumulativeChordTimesMs[index - 1] ?? 0;
+      animationData.cumulativeChordTimesMs[previousBoundaryIndex] ?? 0;
     const currentStartTimeMs =
-      animationData.cumulativeChordTimesMs[index] ?? previousStartTimeMs;
+      animationData.cumulativeChordTimesMs[currentBoundaryIndex] ??
+      previousStartTimeMs;
     const nextStartTimeMs =
-      animationData.cumulativeChordTimesMs[index + 1] ?? currentStartTimeMs;
+      animationData.cumulativeChordTimesMs[nextBoundaryIndex] ??
+      currentStartTimeMs;
     const previousDurationMs = currentStartTimeMs - previousStartTimeMs;
     const nextDurationMs = nextStartTimeMs - currentStartTimeMs;
 
     if (previousDurationMs <= 0 || nextDurationMs <= 0) {
-      keyframeIndices.push(index);
+      keyframeIndices.push(currentBoundaryIndex);
       continue;
     }
 
     const previousVelocity =
-      (boundaryPositions[index]! - boundaryPositions[index - 1]!) /
+      (boundaryPositions[currentBoundaryIndex]! -
+        boundaryPositions[previousBoundaryIndex]!) /
       previousDurationMs;
     const nextVelocity =
-      (boundaryPositions[index + 1]! - boundaryPositions[index]!) /
+      (boundaryPositions[nextBoundaryIndex]! -
+        boundaryPositions[currentBoundaryIndex]!) /
       nextDurationMs;
 
     if (Math.abs(previousVelocity - nextVelocity) > VELOCITY_EPSILON) {
-      keyframeIndices.push(index);
+      keyframeIndices.push(currentBoundaryIndex);
     }
   }
 
-  keyframeIndices.push(animationData.chordCount);
+  keyframeIndices.push(
+    timedBoundaryIndices[timedBoundaryIndices.length - 1] ??
+      animationData.chordCount,
+  );
 
   return keyframeIndices.map((index) => ({
     offset:
