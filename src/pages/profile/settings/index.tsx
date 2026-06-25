@@ -302,7 +302,7 @@ function UserSettings() {
 
             <Separator
               orientation="horizontal"
-              className="hidden h-[1px] w-full lg:block"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
             />
 
             {/* username */}
@@ -406,7 +406,7 @@ function UserSettings() {
 
             <Separator
               orientation="horizontal"
-              className="hidden h-[1px] w-full lg:block"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
             />
 
             {/* password */}
