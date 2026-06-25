@@ -1,18 +1,14 @@
 import {
   noteLengthMultipliers,
   type AudioMetadata,
-  type BaseNoteLengths,
   type Chord,
   type ChordSection,
   type ChordSequence,
-  type FullNoteLengths,
   type Metadata,
   type Section,
   type SectionProgression,
   type StrummingPattern,
   type TabSection,
-  type TabNote,
-  type TabMeasureLine,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";

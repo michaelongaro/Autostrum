@@ -241,7 +241,7 @@ function expandFullTab({
   // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
   // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
 
-  let loopCounter = 1;
+  let artificialLoopsNecessary = 1;
 
   // getting overall width of the chords
   const baselineTotalChordsWidth = compiledChordsMappedToLoopRange.reduce(
@@ -371,14 +371,14 @@ function expandFullTab({
     metadataMappedToLoopRange.push(...baselineMetadata);
 
     totalChordsWidth += baselineTotalChordsWidth;
-    loopCounter++;
+    artificialLoopsNecessary++;
   }
 
   setPlaybackMetadata(metadataMappedToLoopRange);
 
   return {
     chords: compiledChordsMappedToLoopRange,
-    loopCounter,
+    artificialLoopsNecessary,
   };
 }
 
@@ -853,15 +853,11 @@ function expandChordSequence({
           // TODO: check this logic, might be flaky
           showBpm: Boolean(
             compiledChords.length === 0 ||
-              (prevChord &&
-                prevChord?.data.bpm !==
-                  Number(
-                    getBpmForChord(
-                      chordSequence.bpm,
-                      baselineBpm,
-                      subSectionBpm,
-                    ),
-                  )),
+            (prevChord &&
+              prevChord?.data.bpm !==
+                Number(
+                  getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
+                )),
           ),
           isRaised,
         },

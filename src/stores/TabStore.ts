@@ -851,24 +851,18 @@ const useTabStoreBase = create<TabState>()(
           undefined,
         ];
 
-        set({
-          audioMetadata: {
-            ...audioMetadata,
-            location,
-            playing: true,
-          },
-        });
-
         const sectionProgression =
           rawSectionProgression.length > 0
             ? rawSectionProgression
             : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+
         const tuning = parse(tuningNotes);
 
-        // want to show entire tab while editing loop range
+        // entire tab should be shown while editing the loop range
         const adjStartLoopIndex = audioMetadata.editingLoopRange
           ? 0
           : audioMetadata.startLoopIndex;
+
         const adjEndLoopIndex = audioMetadata.editingLoopRange
           ? -1
           : audioMetadata.endLoopIndex;
@@ -899,7 +893,7 @@ const useTabStoreBase = create<TabState>()(
         const sanitizedSectionProgression =
           sectionProgression.length > 0
             ? sectionProgression
-            : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+            : generateDefaultSectionProgression(tabData);
 
         // TODO: add support for specific sections
         const expandedTabData = editing
@@ -919,48 +913,57 @@ const useTabStoreBase = create<TabState>()(
             });
 
         // note: technically you could have similar duplication logic in regular compilationHelper
-        // function, however I think it's cleaner to just augment the loop range with the % operator
-        // to achieve the same effect
-        const repeatedChordCount =
+        // function, however I think it's cleaner to just augment the loop here range with the
+        // % operator to achieve the same effect
+        const adjChordCount =
           compiledChords.length *
-          (expandedTabData === null ? 1 : expandedTabData.loopCounter);
+          (expandedTabData === null
+            ? 1
+            : expandedTabData.artificialLoopsNecessary);
+
+        // Web Audio is most reliable when you schedule sounds slightly ahead of audioContext.currentTime
         const playbackStartEpsilonSeconds = 0.03;
+
         let nextChordStartTime =
           audioContext.currentTime + playbackStartEpsilonSeconds;
 
         set({
+          audioMetadata: {
+            ...audioMetadata,
+            location,
+            playing: true,
+          },
           playbackStartedAtAudioTime: nextChordStartTime,
         });
 
         for (
           let chordIndex = currentChordIndex;
-          chordIndex < repeatedChordCount;
+          chordIndex < adjChordCount;
           chordIndex++
         ) {
-          const adjustedChordIndex = chordIndex % compiledChords.length;
-          const currColumn = compiledChords[adjustedChordIndex];
-
-          // TODO: figure out whether we should entirely return early if currColumn === undefined or
-          // currColumn.length <= 0
+          const adjChordIndex = chordIndex % compiledChords.length;
+          const currColumn = compiledChords[adjChordIndex];
 
           // Proceed only if the current column is defined and not ornamental (has length > 0)
           if (currColumn && currColumn.length > 0) {
-            // Update the current chord index in the state
             set({
               currentChordIndex: chordIndex,
             });
 
-            const thirdPrevColumn = compiledChords[adjustedChordIndex - 3];
-            const secondPrevColumn = compiledChords[adjustedChordIndex - 2];
-            const prevColumn = compiledChords[adjustedChordIndex - 1];
-            const nextColumn = compiledChords[adjustedChordIndex + 1];
+            const thirdPrevColumn = compiledChords[adjChordIndex - 3];
+            const secondPrevColumn = compiledChords[adjChordIndex - 2];
+            const prevColumn = compiledChords[adjChordIndex - 1];
+            const nextColumn = compiledChords[adjChordIndex + 1];
 
-            // Calculate the altered BPM using the provided formula
+            // Calculate the altered BPM
             const noteLengthMultiplier =
               noteLengthMultipliers[currColumn[8] as FullNoteLengths];
+
             const baseBpm = Number(currColumn[9]);
+
             const effectiveBpm =
               baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
+
             const chordDuration = 60 / effectiveBpm;
 
             // Play the current chord
@@ -987,13 +990,13 @@ const useTabStoreBase = create<TabState>()(
           if (
             // TODO: probably want to have reset of slider to beginning at the very first
             // loop delay spacer chord (if there is one).
-            adjustedChordIndex ===
+            adjChordIndex ===
             compiledChords.length - 1
           ) {
             resetProgressTabSliderPosition(editing ? "editing" : "playback");
           }
 
-          // Retrieve the latest state values within the loop
+          // Since we are in a loop, we need to get up-to-date state values
           const {
             audioMetadata,
             breakOnNextChord,
@@ -1001,7 +1004,7 @@ const useTabStoreBase = create<TabState>()(
             showPlaybackModal,
           } = get();
 
-          // Handle the condition to break the loop early
+          // Tab has been paused, so we should stop the playback loop
           if (breakOnNextChord) {
             set({
               breakOnNextChord: false,
@@ -1011,13 +1014,10 @@ const useTabStoreBase = create<TabState>()(
 
           // Handle the end of the entire repeat sequence
           if (
-            chordIndex === repeatedChordCount - 1 &&
+            chordIndex === adjChordCount - 1 &&
             (looping || showPlaybackModal) &&
             audioMetadata.playing
           ) {
-            nextChordStartTime =
-              audioContext.currentTime + playbackStartEpsilonSeconds;
-
             // Reset the current chord index to 0 to start over
             set({
               currentChordIndex: 0,
@@ -1026,7 +1026,7 @@ const useTabStoreBase = create<TabState>()(
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
             chordIndex = -1;
-          } else if (!looping && chordIndex === repeatedChordCount - 1) {
+          } else if (!looping && chordIndex === adjChordCount - 1) {
             // If not looping, stop the playback and set currentChordIndex to 0
             set({
               currentChordIndex: 0,

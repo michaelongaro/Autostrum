@@ -880,18 +880,18 @@ function playNoteColumn({
 }: PlayNoteColumn) {
   return new Promise<void>((resolve) => {
     const chordDuration = 60 / bpm;
-    const resolvedTargetStartTime = targetStartTime ?? audioContext.currentTime;
-    const resolveDelayMs = Math.max(
-      0,
-      (resolvedTargetStartTime + chordDuration - audioContext.currentTime) *
-        1000,
-    );
+    const scheduledStartTime = targetStartTime ?? audioContext.currentTime;
+    const scheduledEndTime = scheduledStartTime + chordDuration;
+    const secondsUntilScheduledEnd =
+      scheduledEndTime - audioContext.currentTime;
+
+    const resolveDelayMs = Math.max(0, secondsUntilScheduledEnd * 1000);
 
     setTimeout(() => {
       resolve();
     }, resolveDelayMs);
 
-    // thinking it's better to group "r" and "s" in main if statement here
+    // I think it's better to group "r" and "s" here
     // because I don't think you want to be super aggresive on deleting the prev
     // notes if they exist in column ux wise if someone were to add an "s" to [7]
     // while editing
@@ -1223,7 +1223,7 @@ function playNoteColumn({
         bpm,
         when: Math.max(
           0,
-          resolvedTargetStartTime -
+          scheduledStartTime -
             audioContext.currentTime +
             chordDelayMultiplier * notesPlayedSoFar,
         ),
