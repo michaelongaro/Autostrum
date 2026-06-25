@@ -1,4 +1,10 @@
-import { useLayoutEffect, useMemo, useRef, type RefObject } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type RefObject,
+} from "react";
 
 interface PlaybackStripLayoutData {
   scrollPositions: number[];
@@ -22,11 +28,35 @@ interface PlaybackStripAnimationData {
   totalDurationMs: number;
 }
 
+const VELOCITY_EPSILON = 0.0001;
+const CURRENT_TIME_SYNC_THRESHOLD_MS = 12;
+
 function preserveCurrentTransform(animatedElement: HTMLElement) {
   const computedTransform = window.getComputedStyle(animatedElement).transform;
 
   animatedElement.style.transform =
     computedTransform === "none" ? "" : computedTransform;
+}
+
+function cancelPlaybackStripAnimations({
+  animations,
+  animatedElement,
+  preserveTransform,
+}: {
+  animations: Set<Animation>;
+  animatedElement: HTMLElement | null;
+  preserveTransform: boolean;
+}) {
+  if (preserveTransform && animatedElement && animations.size > 0) {
+    preserveCurrentTransform(animatedElement);
+  }
+
+  for (const animation of Array.from(animations)) {
+    animation.onfinish = null;
+    animation.cancel();
+  }
+
+  animations.clear();
 }
 
 function getPlaybackStripAnimationData(
@@ -57,89 +87,80 @@ function normalizeModulo(value: number, modulus: number) {
   return ((value % modulus) + modulus) % modulus;
 }
 
-function findChordSegmentIndex({
-  cumulativeChordTimesMs,
-  chordCount,
-  loopTimeMs,
+function getCircularTimeDeltaMs({
+  currentTimeMs,
+  targetTimeMs,
+  durationMs,
 }: {
-  cumulativeChordTimesMs: number[];
-  chordCount: number;
-  loopTimeMs: number;
+  currentTimeMs: number;
+  targetTimeMs: number;
+  durationMs: number;
 }) {
-  let low = 0;
-  let high = chordCount - 1;
-
-  while (low <= high) {
-    const mid = Math.floor((low + high) / 2);
-    const startMs = cumulativeChordTimesMs[mid] ?? 0;
-    const endMs = cumulativeChordTimesMs[mid + 1] ?? startMs;
-
-    if (loopTimeMs < startMs) {
-      high = mid - 1;
-    } else if (loopTimeMs >= endMs) {
-      low = mid + 1;
-    } else {
-      return mid;
-    }
+  if (durationMs <= 0) {
+    return targetTimeMs - currentTimeMs;
   }
 
-  return Math.max(0, Math.min(chordCount - 1, low));
+  const normalizedDelta = normalizeModulo(
+    targetTimeMs - currentTimeMs + durationMs / 2,
+    durationMs,
+  );
+
+  return normalizedDelta - durationMs / 2;
 }
 
-function getPlaybackStripTranslateX({
+function buildPlaybackStripKeyframes({
   chordLayoutData,
   animationData,
-  baseRepetitionPx,
-  totalElapsedMs,
+  repetitionBase,
 }: {
   chordLayoutData: PlaybackStripLayoutData;
   animationData: PlaybackStripAnimationData;
-  baseRepetitionPx: number;
-  totalElapsedMs: number;
+  repetitionBase: number;
 }) {
-  const { chordCount, cumulativeChordTimesMs, totalDurationMs } = animationData;
+  const boundaryPositions = [
+    ...chordLayoutData.scrollPositions.slice(0, animationData.chordCount),
+    chordLayoutData.totalWidth,
+  ];
+  const keyframeIndices = [0];
 
-  if (totalDurationMs <= 0) {
-    const startPosition = chordLayoutData.scrollPositions[0] ?? 0;
-    return (startPosition + baseRepetitionPx) * -1;
+  for (let index = 1; index < animationData.chordCount; index++) {
+    const previousStartTimeMs =
+      animationData.cumulativeChordTimesMs[index - 1] ?? 0;
+    const currentStartTimeMs =
+      animationData.cumulativeChordTimesMs[index] ?? previousStartTimeMs;
+    const nextStartTimeMs =
+      animationData.cumulativeChordTimesMs[index + 1] ?? currentStartTimeMs;
+    const previousDurationMs = currentStartTimeMs - previousStartTimeMs;
+    const nextDurationMs = nextStartTimeMs - currentStartTimeMs;
+
+    if (previousDurationMs <= 0 || nextDurationMs <= 0) {
+      keyframeIndices.push(index);
+      continue;
+    }
+
+    const previousVelocity =
+      (boundaryPositions[index]! - boundaryPositions[index - 1]!) /
+      previousDurationMs;
+    const nextVelocity =
+      (boundaryPositions[index + 1]! - boundaryPositions[index]!) /
+      nextDurationMs;
+
+    if (Math.abs(previousVelocity - nextVelocity) > VELOCITY_EPSILON) {
+      keyframeIndices.push(index);
+    }
   }
 
-  const completedLoops = Math.floor(totalElapsedMs / totalDurationMs);
-  const loopTimeMs = normalizeModulo(totalElapsedMs, totalDurationMs);
+  keyframeIndices.push(animationData.chordCount);
 
-  const segmentIndex = findChordSegmentIndex({
-    cumulativeChordTimesMs,
-    chordCount,
-    loopTimeMs,
-  });
-
-  const segmentStartMs = cumulativeChordTimesMs[segmentIndex] ?? 0;
-  const segmentEndMs =
-    cumulativeChordTimesMs[segmentIndex + 1] ?? segmentStartMs;
-
-  const segmentDurationMs = segmentEndMs - segmentStartMs;
-
-  const startPosition = chordLayoutData.scrollPositions[segmentIndex] ?? 0;
-  const endPosition =
-    segmentIndex === chordCount - 1
-      ? chordLayoutData.totalWidth
-      : (chordLayoutData.scrollPositions[segmentIndex + 1] ?? startPosition);
-
-  const progress =
-    segmentDurationMs <= 0
-      ? 1
-      : Math.max(
-          0,
-          Math.min(1, (loopTimeMs - segmentStartMs) / segmentDurationMs),
-        );
-
-  const interpolatedPosition =
-    startPosition + (endPosition - startPosition) * progress;
-
-  const repetitionOffsetPx =
-    baseRepetitionPx + completedLoops * chordLayoutData.totalWidth;
-
-  return (interpolatedPosition + repetitionOffsetPx) * -1;
+  return keyframeIndices.map((index) => ({
+    offset:
+      animationData.totalDurationMs <= 0
+        ? 0
+        : animationData.cumulativeChordTimesMs[index]! /
+          animationData.totalDurationMs,
+    transform: `translateX(${(boundaryPositions[index]! + repetitionBase) * -1}px)`,
+    easing: "linear",
+  }));
 }
 
 function usePlaybackStripAnimation({
@@ -151,8 +172,12 @@ function usePlaybackStripAnimation({
   playbackStartedAtAudioTime,
   playing,
 }: UsePlaybackStripAnimationArgs) {
+  const animationRef = useRef<Animation | null>(null);
+  const animationsRef = useRef<Set<Animation>>(new Set());
+  const animationGenerationRef = useRef(0);
   const rafIdRef = useRef<number | null>(null);
   const playingRef = useRef(playing);
+  const repetitionBaseRef = useRef(0);
   const anchorChordIndexRef = useRef(currentChordIndex);
   const anchorRepetitionRef = useRef(currentRepetition);
 
@@ -161,30 +186,35 @@ function usePlaybackStripAnimation({
     [chordLayoutData],
   );
 
+  useEffect(() => {
+    playingRef.current = playing;
+  }, [playing]);
+
   useLayoutEffect(() => {
     anchorChordIndexRef.current = currentChordIndex;
     anchorRepetitionRef.current = currentRepetition;
   }, [currentChordIndex, currentRepetition]);
 
   useLayoutEffect(() => {
-    playingRef.current = playing;
+    const animatedElement = stripRef.current;
+    const animations = animationsRef.current;
 
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
     }
 
-    const animatedElement = stripRef.current;
+    cancelPlaybackStripAnimations({
+      animations,
+      animatedElement,
+      preserveTransform: true,
+    });
 
-    if (!playing) {
-      if (animatedElement) {
-        preserveCurrentTransform(animatedElement);
-      }
-
-      return;
-    }
+    animationRef.current = null;
+    animationGenerationRef.current += 1;
 
     if (
+      !playing ||
       !animatedElement ||
       !chordLayoutData ||
       !animationData ||
@@ -195,47 +225,134 @@ function usePlaybackStripAnimation({
       return;
     }
 
+    const generation = animationGenerationRef.current;
     const rawAnchorChordIndex = anchorChordIndexRef.current;
-
     const normalizedAnchorChordIndex = normalizeModulo(
       rawAnchorChordIndex,
       animationData.chordCount,
     );
-
     const extraAnchorLoops = Math.floor(
       rawAnchorChordIndex / animationData.chordCount,
     );
-
     const anchorStartTimeMs =
       animationData.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
+    const elapsedSincePlaybackStartMs = Math.max(
+      0,
+      (audioContext.currentTime - playbackStartedAtAudioTime) * 1000,
+    );
+    const totalElapsedMs = anchorStartTimeMs + elapsedSincePlaybackStartMs;
+    const completedLoops = Math.floor(
+      totalElapsedMs / animationData.totalDurationMs,
+    );
+    const initialCurrentTimeMs = normalizeModulo(
+      totalElapsedMs,
+      animationData.totalDurationMs,
+    );
 
-    const baseRepetitionPx =
-      (anchorRepetitionRef.current + extraAnchorLoops) *
+    repetitionBaseRef.current =
+      (anchorRepetitionRef.current + extraAnchorLoops + completedLoops) *
       chordLayoutData.totalWidth;
 
-    const renderFrame = () => {
-      if (!playingRef.current) return;
+    const startAnimation = (startTimeMs: number) => {
+      const currentAnimatedElement = stripRef.current;
+      if (!currentAnimatedElement) return;
 
-      const elapsedSincePlaybackStartMs = Math.max(
-        0,
-        (audioContext.currentTime - playbackStartedAtAudioTime) * 1000,
+      const animation = currentAnimatedElement.animate(
+        buildPlaybackStripKeyframes({
+          chordLayoutData,
+          animationData,
+          repetitionBase: repetitionBaseRef.current,
+        }),
+        {
+          duration: animationData.totalDurationMs,
+          fill: "both",
+        },
       );
 
-      const totalElapsedMs = anchorStartTimeMs + elapsedSincePlaybackStartMs;
+      animation.pause();
+      animation.currentTime = Math.max(
+        0,
+        Math.min(startTimeMs, animationData.totalDurationMs),
+      );
 
-      const translateX = getPlaybackStripTranslateX({
-        chordLayoutData,
-        animationData,
-        baseRepetitionPx,
-        totalElapsedMs,
-      });
+      animations.add(animation);
 
-      animatedElement.style.transform = `translateX(${translateX}px)`;
+      animation.onfinish = () => {
+        if (
+          generation !== animationGenerationRef.current ||
+          !playingRef.current
+        ) {
+          animation.onfinish = null;
+          animations.delete(animation);
 
-      rafIdRef.current = requestAnimationFrame(renderFrame);
+          if (animationRef.current === animation) {
+            animationRef.current = null;
+          }
+
+          animation.cancel();
+          return;
+        }
+
+        animation.onfinish = null;
+        animations.delete(animation);
+
+        if (animationRef.current === animation) {
+          animationRef.current = null;
+        }
+
+        animation.cancel();
+
+        repetitionBaseRef.current += chordLayoutData.totalWidth;
+        startAnimation(0);
+      };
+
+      animation.play();
+      animationRef.current = animation;
     };
 
-    renderFrame();
+    startAnimation(initialCurrentTimeMs);
+
+    const syncAnimationToAudioClock = () => {
+      if (
+        generation !== animationGenerationRef.current ||
+        !playingRef.current ||
+        !audioContext
+      ) {
+        return;
+      }
+
+      const activeAnimation = animationRef.current;
+
+      if (activeAnimation) {
+        const syncedElapsedSincePlaybackStartMs = Math.max(
+          0,
+          (audioContext.currentTime - playbackStartedAtAudioTime) * 1000,
+        );
+        const syncedTotalElapsedMs =
+          anchorStartTimeMs + syncedElapsedSincePlaybackStartMs;
+        const targetCurrentTimeMs = normalizeModulo(
+          syncedTotalElapsedMs,
+          animationData.totalDurationMs,
+        );
+        const actualCurrentTimeMs = Number(activeAnimation.currentTime ?? 0);
+        const driftMs = getCircularTimeDeltaMs({
+          currentTimeMs: actualCurrentTimeMs,
+          targetTimeMs: targetCurrentTimeMs,
+          durationMs: animationData.totalDurationMs,
+        });
+
+        if (Math.abs(driftMs) > CURRENT_TIME_SYNC_THRESHOLD_MS) {
+          activeAnimation.currentTime = Math.max(
+            0,
+            Math.min(targetCurrentTimeMs, animationData.totalDurationMs),
+          );
+        }
+      }
+
+      rafIdRef.current = requestAnimationFrame(syncAnimationToAudioClock);
+    };
+
+    rafIdRef.current = requestAnimationFrame(syncAnimationToAudioClock);
 
     return () => {
       if (rafIdRef.current !== null) {
@@ -243,9 +360,14 @@ function usePlaybackStripAnimation({
         rafIdRef.current = null;
       }
 
-      if (animatedElement) {
-        preserveCurrentTransform(animatedElement);
-      }
+      cancelPlaybackStripAnimations({
+        animations,
+        animatedElement,
+        preserveTransform: true,
+      });
+
+      animationRef.current = null;
+      animationGenerationRef.current += 1;
     };
   }, [
     animationData,
