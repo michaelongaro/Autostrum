@@ -1,9 +1,8 @@
 import { useEffect } from "react";
-import Soundfont, { type InstrumentName } from "soundfont-player";
 import { useTabStore } from "~/stores/TabStore";
-import { isIOS, isSafari, isMobileOnly } from "react-device-detect";
+import { isMobileOnly } from "react-device-detect";
+import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
-// An AudioContext is not allowed to be created before a user gesture
 export function useInitializeAudioContext() {
   const {
     audioContext,
@@ -29,48 +28,6 @@ export function useInitializeAudioContext() {
     setCountInBuffer: state.setCountInBuffer,
   }));
 
-  // FYI: this is maybe slightly redundant w/ useFetchAndLoadSoundfonts.ts
-  // but we absolutely need to fetch the instrument as soon as AudioContext is available
-
-  // Helper function to load soundfont with fallback
-  const loadSoundfontWithFallback = async (
-    audioContext: AudioContext,
-    instrumentName: InstrumentName,
-    destination: GainNode,
-    format: string,
-  ) => {
-    try {
-      // Try external CDN first
-      return await Soundfont.instrument(audioContext, instrumentName, {
-        soundfont: "MusyngKite",
-        format: format,
-        destination: destination,
-      });
-    } catch (error) {
-      console.warn(
-        `CDN failed for ${instrumentName}, trying local files...`,
-        error,
-      );
-      try {
-        // Fallback to local files
-        return await Soundfont.instrument(audioContext, instrumentName, {
-          soundfont: "MusyngKite",
-          format: format,
-          destination: destination,
-          nameToUrl: (name: string, soundfont: string, format: string) => {
-            return `/sounds/instruments/${name}-${format}.js`;
-          },
-        });
-      } catch (localError) {
-        console.error(
-          `Both CDN and local loading failed for ${instrumentName}:`,
-          localError,
-        );
-        throw localError;
-      }
-    }
-  };
-
   useEffect(() => {
     if (audioContext && masterVolumeGainNode) return;
 
@@ -78,7 +35,6 @@ export function useInitializeAudioContext() {
       if (audioContext && masterVolumeGainNode) return;
 
       const newAudioContext = new AudioContext();
-      void newAudioContext.resume(); // Resume the context to ensure it is active (iOS safari requirement)
 
       const newMasterVolumeGainNode = newAudioContext.createGain();
 
@@ -104,14 +60,10 @@ export function useInitializeAudioContext() {
         return;
       }
 
-      // If not in cache, fetch it with fallback
-      const format = isSafari || isIOS ? "mp3" : "ogg"; // safari doesn't support .ogg files
-
-      void loadSoundfontWithFallback(
+      void ensureSoundfontPlayer(
         newAudioContext,
         currentInstrumentName,
         newMasterVolumeGainNode,
-        format,
       )
         .then((player) => {
           // Update the cache

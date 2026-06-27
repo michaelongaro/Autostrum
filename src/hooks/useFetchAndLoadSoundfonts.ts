@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import Soundfont, { type InstrumentName } from "soundfont-player";
 import { useTabStore } from "~/stores/TabStore";
-import { isIOS, isSafari } from "react-device-detect";
+import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 function useFetchAndLoadSoundfonts() {
   const {
@@ -22,45 +21,6 @@ function useFetchAndLoadSoundfonts() {
     setCurrentInstrument: state.setCurrentInstrument,
   }));
 
-  // Helper function to load soundfont with fallback
-  const loadSoundfontWithFallback = async (
-    audioContext: AudioContext,
-    instrumentName: InstrumentName,
-    destination: GainNode,
-    format: string,
-  ) => {
-    try {
-      // Try external CDN first
-      return await Soundfont.instrument(audioContext, instrumentName, {
-        soundfont: "MusyngKite",
-        format: format,
-        destination: destination,
-      });
-    } catch (error) {
-      console.warn(
-        `CDN failed for ${instrumentName}, trying local files...`,
-        error,
-      );
-      try {
-        // Fallback to local files
-        return await Soundfont.instrument(audioContext, instrumentName, {
-          soundfont: "MusyngKite",
-          format: format,
-          destination: destination,
-          nameToUrl: (name: string, soundfont: string, format: string) => {
-            return `/sounds/instruments/${name}-${format}.js`;
-          },
-        });
-      } catch (localError) {
-        console.error(
-          `Both CDN and local loading failed for ${instrumentName}:`,
-          localError,
-        );
-        throw localError;
-      }
-    }
-  };
-
   useEffect(() => {
     const fetchInstrument = () => {
       if (!audioContext || !masterVolumeGainNode) return;
@@ -71,13 +31,10 @@ function useFetchAndLoadSoundfonts() {
         return;
       }
 
-      // If not in cache, fetch it with fallback
-      const format = isSafari || isIOS ? "mp3" : "ogg";
-      void loadSoundfontWithFallback(
+      void ensureSoundfontPlayer(
         audioContext,
         currentInstrumentName,
         masterVolumeGainNode,
-        format,
       )
         .then((player) => {
           // Update the cache

@@ -4,7 +4,6 @@ import Head from "next/head";
 import Soundfont from "soundfont-player";
 import { IoEar } from "react-icons/io5";
 import { get } from "@tonaljs/note";
-import { isIOS, isSafari } from "react-device-detect";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
 import PlayIcon from "~/components/ui/icons/PlayIcon";
@@ -17,6 +16,7 @@ import {
 } from "~/components/ui/select";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
+import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 const CHROMATIC_NOTE_NAMES = [
   "C",
@@ -170,22 +170,7 @@ function NoteTrainerPage() {
     void (async () => {
       try {
         const ctx = await getAudioContext();
-        const format = isSafari || isIOS ? "mp3" : "ogg";
-
-        let player: Soundfont.Player;
-        try {
-          player = await Soundfont.instrument(ctx, audioSource, {
-            soundfont: "MusyngKite",
-            format,
-          });
-        } catch {
-          player = await Soundfont.instrument(ctx, audioSource, {
-            soundfont: "MusyngKite",
-            format,
-            nameToUrl: (name: string, _sf: string, fmt: string) =>
-              `/sounds/instruments/${name}-${fmt}.js`,
-          });
-        }
+        const player = await ensureSoundfontPlayer(ctx, audioSource, ctx.destination);
 
         if (!cancelled) {
           soundfontCacheRef.current[audioSource] = player;

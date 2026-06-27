@@ -3,12 +3,12 @@ import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
 import Soundfont, { type InstrumentName } from "soundfont-player";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { isIOS, isSafari } from "react-device-detect";
 import {
   DEFAULT_TUNING,
   normalizeTuningValue,
   transposeTuningValue,
 } from "~/utils/tunings";
+import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 type UseTunerParams = {
   targetTuning: string;
@@ -157,31 +157,11 @@ async function loadGuideInstrument(
     return inFlightLoad;
   }
 
-  const format = isSafari || isIOS ? "mp3" : "ogg";
-  const loadPromise = Soundfont.instrument(
+  const loadPromise = ensureSoundfontPlayer(
     audioContext,
     GUIDE_INSTRUMENT_NAME,
-    {
-      soundfont: "MusyngKite",
-      format,
-      destination,
-    },
+    destination,
   )
-    .catch(async (error) => {
-      console.warn(
-        `CDN failed for ${GUIDE_INSTRUMENT_NAME}, trying local files...`,
-        error,
-      );
-
-      return await Soundfont.instrument(audioContext, GUIDE_INSTRUMENT_NAME, {
-        soundfont: "MusyngKite",
-        format,
-        destination,
-        nameToUrl: (name: string, soundfont: string, localFormat: string) => {
-          return `/sounds/instruments/${name}-${localFormat}.js`;
-        },
-      });
-    })
     .then((instrument) => {
       guideInstrumentCache.set(audioContext, instrument);
       guideInstrumentLoadCache.delete(audioContext);
