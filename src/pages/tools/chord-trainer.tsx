@@ -9,7 +9,7 @@ import {
 import { motion } from "framer-motion";
 import { IoIosArrowUp } from "react-icons/io";
 import Head from "next/head";
-import Soundfont from "soundfont-player";
+import type Soundfont from "soundfont-player";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Paintbrush } from "lucide-react";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
@@ -535,13 +535,20 @@ function ChordTrainerPage() {
     if (selectedChords.length === 0) {
       queueRef.current = [];
       scrollXRef.current = 0;
-      setQueue([]);
-      setIsPlaying(false);
-      updateStreamStyles(0);
-      return;
+      const resetQueueTimeoutId = window.setTimeout(() => {
+        setQueue([]);
+        setIsPlaying(false);
+        updateStreamStyles(0);
+      }, 0);
+
+      return () => window.clearTimeout(resetQueueTimeoutId);
     }
 
-    rebuildQueue(selectedChords);
+    const rebuildQueueTimeoutId = window.setTimeout(() => {
+      rebuildQueue(selectedChords);
+    }, 0);
+
+    return () => window.clearTimeout(rebuildQueueTimeoutId);
   }, [rebuildQueue, selectedChords, updateStreamStyles]);
 
   useEffect(() => {

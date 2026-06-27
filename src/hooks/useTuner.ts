@@ -1,7 +1,8 @@
 import { PitchDetector } from "pitchy";
 import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
-import Soundfont, { type InstrumentName } from "soundfont-player";
+import type Soundfont from "soundfont-player";
+import { type InstrumentName } from "soundfont-player";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_TUNING,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
-import Soundfont from "soundfont-player";
+import type Soundfont from "soundfont-player";
 import { IoEar } from "react-icons/io5";
 import { get } from "@tonaljs/note";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
