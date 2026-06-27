@@ -10,7 +10,6 @@ import { motion } from "framer-motion";
 import { IoIosArrowUp } from "react-icons/io";
 import Head from "next/head";
 import Soundfont from "soundfont-player";
-import { isIOS, isSafari } from "react-device-detect";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Paintbrush } from "lucide-react";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
@@ -32,6 +31,7 @@ import { cn } from "~/utils/cn";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import { DEFAULT_TUNING, parse } from "~/utils/tunings";
 import Logo from "~/components/ui/icons/Logo";
+import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 type AudioSource =
   | "none"
@@ -365,23 +365,11 @@ function ChordTrainerPage() {
 
       let currentInstrument = soundfontCacheRef.current[source];
       if (!currentInstrument) {
-        const format = isSafari || isIOS ? "mp3" : "ogg";
-
-        try {
-          currentInstrument = await Soundfont.instrument(audioContext, source, {
-            soundfont: "MusyngKite",
-            format,
-            destination: masterVolumeGainNode,
-          });
-        } catch {
-          currentInstrument = await Soundfont.instrument(audioContext, source, {
-            soundfont: "MusyngKite",
-            format,
-            destination: masterVolumeGainNode,
-            nameToUrl: (name: string, _sf: string, fmt: string) =>
-              `/sounds/instruments/${name}-${fmt}.js`,
-          });
-        }
+        currentInstrument = await ensureSoundfontPlayer(
+          audioContext,
+          source,
+          masterVolumeGainNode,
+        );
 
         soundfontCacheRef.current[source] = currentInstrument;
       }

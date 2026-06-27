@@ -4,6 +4,7 @@ import { devtools } from "zustand/middleware";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
+import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
@@ -834,9 +835,24 @@ const useTabStoreBase = create<TabState>()(
           visiblePlaybackContainerWidth,
           setPlaybackMetadata,
           loopDelay,
+          currentInstrumentName,
+          instruments,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode) return;
+
+        const resolvedCurrentInstrument =
+          currentInstrument ??
+          instruments[currentInstrumentName] ??
+          (await ensureSoundfontPlayer(
+            audioContext,
+            currentInstrumentName,
+            masterVolumeGainNode,
+          ));
+
+        if (!currentInstrument) {
+          set({ currentInstrument: resolvedCurrentInstrument });
+        }
 
         const currentlyPlayingStrings: (
           | Soundfont.Player
@@ -979,7 +995,7 @@ const useTabStoreBase = create<TabState>()(
               nextColumn,
               audioContext,
               masterVolumeGainNode,
-              currentInstrument,
+              currentInstrument: resolvedCurrentInstrument,
               currentlyPlayingStrings,
             });
 
@@ -1052,13 +1068,26 @@ const useTabStoreBase = create<TabState>()(
           tuning,
           previewMetadata,
           currentInstrument,
+          currentInstrumentName,
           audioContext,
           masterVolumeGainNode,
           instruments,
         } = get();
 
-        if (!audioContext || !masterVolumeGainNode || !currentInstrument)
-          return;
+        if (!audioContext || !masterVolumeGainNode) return;
+
+        const resolvedCurrentInstrument =
+          currentInstrument ??
+          instruments[currentInstrumentName] ??
+          (await ensureSoundfontPlayer(
+            audioContext,
+            currentInstrumentName,
+            masterVolumeGainNode,
+          ));
+
+        if (!currentInstrument) {
+          set({ currentInstrument: resolvedCurrentInstrument });
+        }
 
         const currentlyPlayingStrings: (
           | Soundfont.Player
@@ -1123,7 +1152,7 @@ const useTabStoreBase = create<TabState>()(
             nextColumn,
             audioContext,
             masterVolumeGainNode,
-            currentInstrument,
+            currentInstrument: resolvedCurrentInstrument,
             currentlyPlayingStrings,
             acousticSteelOverrideForPreview: instruments.acoustic_guitar_steel,
             forTuningPreview: customBpm !== undefined,
