@@ -13,9 +13,6 @@ interface PlaybackScrollingContainerProps {
   scrollPositionsLength: number;
 }
 
-// TODO: still want to avoid "translateX" reliance at all costs, but this approach is inherently
-// glitchy when scrolling fast because you can easily interrupt an in-progress scroll transition.
-
 function PlaybackScrollingContainer({
   children,
   setChordRepetitions,
@@ -27,20 +24,20 @@ function PlaybackScrollingContainer({
     currentChordIndex,
     setCurrentChordIndex,
     expandedTabData,
+    countInTimer,
   } = useTabStore((state) => ({
     playing: state.audioMetadata.playing,
     pauseAudio: state.pauseAudio,
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     expandedTabData: state.expandedTabData,
+    countInTimer: state.countInTimer,
   }));
 
-  // We only need to track the horizontal start position and whether the user is touching.
   const containerRef = useRef<HTMLDivElement | null>(null);
   const startXRef = useRef(0);
   const isTouchingRef = useRef(false);
 
-  // Helper to increment chord index (with wrap to 0 if we're at the end).
   function incrementChordIndex() {
     if (expandedTabData === null) return;
 
@@ -48,7 +45,6 @@ function PlaybackScrollingContainer({
     setCurrentChordIndex(newValue > expandedTabData.length - 1 ? 0 : newValue);
   }
 
-  // Helper to decrement chord index (with wrap to last if we're at 0).
   function decrementChordIndex() {
     if (expandedTabData === null) return;
 
@@ -97,7 +93,7 @@ function PlaybackScrollingContainer({
   return (
     <div
       ref={containerRef}
-      className="relative h-[230px] w-full cursor-grab touch-none overflow-hidden active:cursor-grabbing mobilePortrait:h-[255px]"
+      className={`relative h-[230px] w-full touch-none overflow-hidden mobilePortrait:h-[255px] ${countInTimer.showing ? "pointer-events-none" : "cursor-grab active:cursor-grabbing"}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
