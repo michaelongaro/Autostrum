@@ -356,7 +356,7 @@ function MobileSettingsPopover({
       </PopoverTrigger>
       <PopoverContent className="baseVertFlex size-full w-[450px] gap-4 mobilePortrait:w-[300px]">
         <div className="baseVertFlex w-full !items-start gap-2">
-          <span className="font-medium">Instrument</span>
+          <span className="text-sm font-medium">Instrument</span>
 
           <div className="grid w-full grid-cols-2 grid-rows-2 gap-2 mobilePortrait:grid-cols-1 mobilePortrait:grid-rows-4">
             <Button
@@ -414,7 +414,7 @@ function MobileSettingsPopover({
         </div>
 
         <div className="baseVertFlex w-full !items-start gap-2">
-          <span className="font-medium">Loop delay</span>
+          <span className="text-sm font-medium">Loop delay</span>
 
           <div className="baseFlex w-full !justify-start gap-2">
             <Button
@@ -463,53 +463,35 @@ function MobileSettingsPopover({
           </div>
         </div>
 
-        <div className="baseVertFlex w-full !items-start gap-2">
-          <span className="font-medium">Color-coded chords</span>
+        <div className="baseFlex w-full !justify-between gap-2">
+          <Label htmlFor="colorCodedChordsMobile">Color-coded chords</Label>
 
-          <div className="baseFlex w-full gap-2">
-            <Button
-              variant={chordDisplayMode === "color" ? "default" : "outline"}
-              onClick={() => setChordDisplayMode("color")}
-              className="h-8 w-full"
-            >
-              On
-            </Button>
-            <Button
-              variant={chordDisplayMode === "text" ? "default" : "outline"}
-              onClick={() => setChordDisplayMode("text")}
-              className="h-8 w-full"
-            >
-              Off
-            </Button>
-          </div>
+          <Switch
+            id="colorCodedChordsMobile"
+            checked={chordDisplayMode === "color"}
+            onCheckedChange={(value) => {
+              setChordDisplayMode(value === true ? "color" : "text");
+            }}
+          />
         </div>
 
-        <div className="baseVertFlex w-full !items-start gap-2">
-          <span className="font-medium">Count in</span>
+        <div className="baseFlex w-full !justify-between gap-2">
+          <Label htmlFor="countInMobile">Count in</Label>
 
-          <div className="baseFlex w-full gap-2">
-            <Button
-              variant={countInTimerEnabled ? "default" : "outline"}
-              onClick={() => setCountInTimerEnabled(true)}
-              className="h-8 w-full"
-            >
-              On
-            </Button>
-            <Button
-              variant={!countInTimerEnabled ? "default" : "outline"}
-              onClick={() => setCountInTimerEnabled(false)}
-              className="h-8 w-full"
-            >
-              Off
-            </Button>
-          </div>
+          <Switch
+            id="countInMobile"
+            checked={countInTimerEnabled}
+            onCheckedChange={(value) => {
+              setCountInTimerEnabled(value);
+            }}
+          />
         </div>
 
         {/* gives tablet users ability to still control volume */}
         {!isMobileOnly && (
-          <div className="baseVertFlex w-full !items-start gap-2">
-            <span className="font-medium">Volume</span>
-            <div className="baseFlex w-full max-w-64 gap-2 md:justify-self-end">
+          <div className="baseFlex w-full !items-start !justify-between gap-2">
+            <span className="text-sm font-medium">Volume</span>
+            <div className="baseFlex w-full max-w-48 gap-2 md:justify-self-end">
               <AnimatePresence mode="popLayout" initial={false}>
                 {volume === 0 && (
                   <motion.div
@@ -1217,48 +1199,32 @@ function DesktopSettings({
             <IoMdSettings className="size-5" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="baseVertFlex w-64 gap-4">
+        <PopoverContent side="top" className="baseVertFlex w-64 gap-4">
           <div className="baseVertFlex w-full gap-4">
-            <div className="baseVertFlex w-full !items-start gap-2">
-              <span className="font-medium">Color-coded chords</span>
+            <div className="baseFlex w-full !justify-between gap-2">
+              <Label htmlFor="colorCodedChordsDesktop">
+                Color-coded chords
+              </Label>
 
-              <div className="baseFlex w-full gap-2">
-                <Button
-                  variant={chordDisplayMode === "color" ? "default" : "outline"}
-                  onClick={() => setChordDisplayMode("color")}
-                  className="h-8 w-full"
-                >
-                  On
-                </Button>
-                <Button
-                  variant={chordDisplayMode === "text" ? "default" : "outline"}
-                  onClick={() => setChordDisplayMode("text")}
-                  className="h-8 w-full"
-                >
-                  Off
-                </Button>
-              </div>
+              <Switch
+                id="colorCodedChordsDesktop"
+                checked={chordDisplayMode === "color"}
+                onCheckedChange={(value) => {
+                  setChordDisplayMode(value === true ? "color" : "text");
+                }}
+              />
             </div>
 
-            <div className="baseVertFlex w-full !items-start gap-2">
-              <span className="font-medium">Count in</span>
+            <div className="baseFlex w-full !justify-between gap-2">
+              <Label htmlFor="countInDesktop">Count in</Label>
 
-              <div className="baseFlex w-full gap-2">
-                <Button
-                  variant={countInTimerEnabled ? "default" : "outline"}
-                  onClick={() => setCountInTimerEnabled(true)}
-                  className="h-8 w-full"
-                >
-                  On
-                </Button>
-                <Button
-                  variant={!countInTimerEnabled ? "default" : "outline"}
-                  onClick={() => setCountInTimerEnabled(false)}
-                  className="h-8 w-full"
-                >
-                  Off
-                </Button>
-              </div>
+              <Switch
+                id="countInDesktop"
+                checked={countInTimerEnabled}
+                onCheckedChange={(value) => {
+                  setCountInTimerEnabled(value);
+                }}
+              />
             </div>
           </div>
         </PopoverContent>
