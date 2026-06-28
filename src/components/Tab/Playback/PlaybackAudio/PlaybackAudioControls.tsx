@@ -39,6 +39,7 @@ function PlaybackAudioControls({
   scrollPositionsLength,
 }: PlaybackAudioControls) {
   const {
+    audioContext,
     bpm,
     playbackSpeed,
     setPlaybackSpeed,
@@ -56,11 +57,12 @@ function PlaybackAudioControls({
     countInTimer,
     setCountInTimer,
     viewportLabel,
-    looping,
     playbackMetadata,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
+    countInBuffer,
   } = useTabStore((state) => ({
+    audioContext: state.audioContext,
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
@@ -78,19 +80,14 @@ function PlaybackAudioControls({
     countInTimer: state.countInTimer,
     setCountInTimer: state.setCountInTimer,
     viewportLabel: state.viewportLabel,
-    looping: state.looping,
     playbackMetadata: state.playbackMetadata,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
+    countInBuffer: state.countInBuffer,
   }));
-
-  const [previousChordIndex, setPreviousChordIndex] = useState(0);
-  const [previousTabId, setPreviousTabId] = useState(0);
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
-
-  const oneSecondIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const volume = useGetLocalStorageValues().volume;
 
@@ -106,10 +103,7 @@ function PlaybackAudioControls({
 
   useEffect(() => {
     if (currentChordIndex === 0) {
-      setPreviousChordIndex(0);
       setTabProgressValue(0);
-    } else {
-      setPreviousChordIndex(currentChordIndex - 1);
     }
   }, [currentChordIndex]);
 
@@ -127,6 +121,33 @@ function PlaybackAudioControls({
           ...countInTimer,
           showing: true,
         });
+
+        function playCountInSound(index: number) {
+          if (!audioContext || !masterVolumeGainNode || !countInBuffer) return;
+
+          const source = audioContext.createBufferSource();
+          source.buffer = countInBuffer;
+
+          const gainNode = audioContext.createGain();
+          gainNode.gain.value = 0.25;
+
+          source.detune.value = index === 3 ? 0 : index === 2 ? -50 : 0;
+
+          source.connect(gainNode);
+
+          gainNode.connect(masterVolumeGainNode);
+          setTimeout(() => source.start(), 190);
+        }
+
+        setTimeout(() => playCountInSound(3), 115);
+
+        setTimeout(() => {
+          setTimeout(() => playCountInSound(2), 115);
+
+          setTimeout(() => {
+            setTimeout(() => playCountInSound(1), 115);
+          }, 1000);
+        }, 1000);
       }
       if (previewMetadata.playing) pauseAudio();
 
@@ -163,7 +184,7 @@ function PlaybackAudioControls({
       !currentInstrument ||
       // idk why this last condition is going over my head right now, make sure it makes sense before commit
       // maybe doesn't hurt anything, but could be covering some of the statements above,
-      // so maybe try to leverage it's "complete"ness of it's check through the tab?
+      // so maybe try to leverage it's "complete"ness of its check through the tab?
       (tabIsEffectivelyEmpty && !audioMetadata.location)
     );
   }, [

@@ -72,30 +72,11 @@ function PlayButtonIcon({
 
     setCountInNumber(3);
 
-    function playCountInSound(index: number) {
-      const source = audioContext!.createBufferSource();
-      source.buffer = countInBuffer;
-
-      const gainNode = audioContext!.createGain();
-      gainNode.gain.value = 0.25;
-
-      source.detune.value = index === 3 ? 0 : index === 2 ? -50 : 0;
-
-      source.connect(gainNode);
-
-      gainNode.connect(masterVolumeGainNode!);
-      setTimeout(() => source.start(), 190);
-    }
-
-    setTimeout(() => playCountInSound(3), 115);
-
     setTimeout(() => {
       setCountInNumber(2);
-      setTimeout(() => playCountInSound(2), 115);
 
       setTimeout(() => {
         setCountInNumber(1);
-        setTimeout(() => playCountInSound(1), 115);
 
         setTimeout(() => {
           setHideCountInTimer(true);
