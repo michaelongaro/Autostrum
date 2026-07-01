@@ -5,6 +5,16 @@ import {
   useRef,
   type RefObject,
 } from "react";
+import {
+  getElapsedPlaybackMs,
+  getAudioContextOutputTimeSeconds,
+  getPlaybackRateNudge,
+  getSyncThresholdMs,
+} from "~/utils/playbackAudioClock";
+import {
+  getPlaybackDebugFlags,
+  logPlaybackDebug,
+} from "~/utils/playbackDebugFlags";
 
 interface PlaybackStripLayoutData {
   scrollPositions: number[];
@@ -29,7 +39,6 @@ interface PlaybackStripAnimationData {
 }
 
 const VELOCITY_EPSILON = 0.0001;
-const CURRENT_TIME_SYNC_THRESHOLD_MS = 12;
 
 function preserveCurrentTransform(animatedElement: HTMLElement) {
   const computedTransform = window.getComputedStyle(animatedElement).transform;
@@ -210,6 +219,12 @@ function usePlaybackStripAnimation({
   const repetitionBaseRef = useRef(0);
   const anchorChordIndexRef = useRef(currentChordIndex);
   const anchorRepetitionRef = useRef(currentRepetition);
+  const playbackStartedAtAudioTimeRef = useRef(playbackStartedAtAudioTime);
+  const audioContextRef = useRef(audioContext);
+  const anchorStartTimeMsRef = useRef(0);
+  const correctionCountRef = useRef(0);
+  const lastLoggedGenerationRef = useRef(0);
+  const previousChordIndexRef = useRef(currentChordIndex);
 
   const animationData = useMemo(
     () => getPlaybackStripAnimationData(chordLayoutData),
@@ -220,10 +235,36 @@ function usePlaybackStripAnimation({
     playingRef.current = playing;
   }, [playing]);
 
+  useEffect(() => {
+    playbackStartedAtAudioTimeRef.current = playbackStartedAtAudioTime;
+  }, [playbackStartedAtAudioTime]);
+
+  useEffect(() => {
+    audioContextRef.current = audioContext;
+  }, [audioContext]);
+
   useLayoutEffect(() => {
     anchorChordIndexRef.current = currentChordIndex;
     anchorRepetitionRef.current = currentRepetition;
-  }, [currentChordIndex, currentRepetition]);
+
+    if (
+      playing &&
+      currentChordIndex === 0 &&
+      previousChordIndexRef.current > 0 &&
+      audioContext &&
+      playbackStartedAtAudioTimeRef.current !== null
+    ) {
+      anchorStartTimeMsRef.current = 0;
+      playbackStartedAtAudioTimeRef.current =
+        getAudioContextOutputTimeSeconds(audioContext);
+
+      logPlaybackDebug("logLoopTeardown", "lightweight loop re-anchor", {
+        previousChordIndex: previousChordIndexRef.current,
+      });
+    }
+
+    previousChordIndexRef.current = currentChordIndex;
+  }, [currentChordIndex, currentRepetition, playing, audioContext]);
 
   useLayoutEffect(() => {
     const animatedElement = stripRef.current;
@@ -242,6 +283,11 @@ function usePlaybackStripAnimation({
 
     animationRef.current = null;
     animationGenerationRef.current += 1;
+
+    logPlaybackDebug("logLoopTeardown", "animation effect restarted", {
+      generation: animationGenerationRef.current,
+      playing,
+    });
 
     if (
       !playing ||
@@ -266,10 +312,12 @@ function usePlaybackStripAnimation({
     );
     const anchorStartTimeMs =
       animationData.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
-    const elapsedSincePlaybackStartMs = Math.max(
-      0,
-      (audioContext.currentTime - playbackStartedAtAudioTime) * 1000,
-    );
+    anchorStartTimeMsRef.current = anchorStartTimeMs;
+
+    const elapsedSincePlaybackStartMs = getElapsedPlaybackMs({
+      audioContext,
+      playbackStartedAtAudioTime,
+    });
     const totalElapsedMs = anchorStartTimeMs + elapsedSincePlaybackStartMs;
     const completedLoops = Math.floor(
       totalElapsedMs / animationData.totalDurationMs,
@@ -304,6 +352,7 @@ function usePlaybackStripAnimation({
         0,
         Math.min(startTimeMs, animationData.totalDurationMs),
       );
+      animation.playbackRate = 1;
 
       animations.add(animation);
 
@@ -333,6 +382,10 @@ function usePlaybackStripAnimation({
         animation.cancel();
 
         repetitionBaseRef.current += chordLayoutData.totalWidth;
+        logPlaybackDebug("logLoopTeardown", "WAAPI onfinish loop chain", {
+          generation,
+          repetitionBase: repetitionBaseRef.current,
+        });
         startAnimation(0);
       };
 
@@ -345,21 +398,27 @@ function usePlaybackStripAnimation({
     const syncAnimationToAudioClock = () => {
       if (
         generation !== animationGenerationRef.current ||
-        !playingRef.current ||
-        !audioContext
+        !playingRef.current
       ) {
         return;
       }
 
+      const activeAudioContext = audioContextRef.current;
+      const activePlaybackStartedAtAudioTime =
+        playbackStartedAtAudioTimeRef.current;
       const activeAnimation = animationRef.current;
 
-      if (activeAnimation) {
-        const syncedElapsedSincePlaybackStartMs = Math.max(
-          0,
-          (audioContext.currentTime - playbackStartedAtAudioTime) * 1000,
-        );
+      if (
+        activeAnimation &&
+        activeAudioContext &&
+        activePlaybackStartedAtAudioTime !== null
+      ) {
+        const syncedElapsedSincePlaybackStartMs = getElapsedPlaybackMs({
+          audioContext: activeAudioContext,
+          playbackStartedAtAudioTime: activePlaybackStartedAtAudioTime,
+        });
         const syncedTotalElapsedMs =
-          anchorStartTimeMs + syncedElapsedSincePlaybackStartMs;
+          anchorStartTimeMsRef.current + syncedElapsedSincePlaybackStartMs;
         const targetCurrentTimeMs = normalizeModulo(
           syncedTotalElapsedMs,
           animationData.totalDurationMs,
@@ -370,12 +429,43 @@ function usePlaybackStripAnimation({
           targetTimeMs: targetCurrentTimeMs,
           durationMs: animationData.totalDurationMs,
         });
+        const syncThresholdMs = getPlaybackDebugFlags().disableDriftCorrection
+          ? Number.POSITIVE_INFINITY
+          : getSyncThresholdMs();
+        const absDriftMs = Math.abs(driftMs);
 
-        if (Math.abs(driftMs) > CURRENT_TIME_SYNC_THRESHOLD_MS) {
+        if (absDriftMs > syncThresholdMs) {
+          activeAnimation.playbackRate = 1;
           activeAnimation.currentTime = Math.max(
             0,
             Math.min(targetCurrentTimeMs, animationData.totalDurationMs),
           );
+          correctionCountRef.current += 1;
+
+          logPlaybackDebug("logDrift", "hard correction applied", {
+            driftMs,
+            targetCurrentTimeMs,
+            actualCurrentTimeMs,
+            correctionCount: correctionCountRef.current,
+          });
+        } else {
+          const nudgedPlaybackRate = getPlaybackRateNudge(driftMs);
+          activeAnimation.playbackRate = nudgedPlaybackRate;
+
+          if (nudgedPlaybackRate !== 1) {
+            logPlaybackDebug("logDrift", "playbackRate nudge applied", {
+              driftMs,
+              playbackRate: nudgedPlaybackRate,
+            });
+          }
+        }
+
+        if (
+          getPlaybackDebugFlags().logDrift &&
+          generation !== lastLoggedGenerationRef.current
+        ) {
+          lastLoggedGenerationRef.current = generation;
+          correctionCountRef.current = 0;
         }
       }
 
@@ -399,14 +489,7 @@ function usePlaybackStripAnimation({
       animationRef.current = null;
       animationGenerationRef.current += 1;
     };
-  }, [
-    animationData,
-    audioContext,
-    chordLayoutData,
-    playbackStartedAtAudioTime,
-    playing,
-    stripRef,
-  ]);
+  }, [animationData, audioContext, chordLayoutData, playing, stripRef]);
 }
 
 export default usePlaybackStripAnimation;

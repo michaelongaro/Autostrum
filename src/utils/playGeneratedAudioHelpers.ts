@@ -1,5 +1,6 @@
 import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
+import { waitUntilAudioTime } from "~/utils/playbackAudioClock";
 
 interface PlayNoteWithEffects {
   note: GainNode;
@@ -882,14 +883,13 @@ function playNoteColumn({
     const chordDuration = 60 / bpm;
     const scheduledStartTime = targetStartTime ?? audioContext.currentTime;
     const scheduledEndTime = scheduledStartTime + chordDuration;
-    const secondsUntilScheduledEnd =
-      scheduledEndTime - audioContext.currentTime;
 
-    const resolveDelayMs = Math.max(0, secondsUntilScheduledEnd * 1000);
-
-    setTimeout(() => {
+    void waitUntilAudioTime({
+      audioContext,
+      targetTimeSeconds: scheduledEndTime,
+    }).then(() => {
       resolve();
-    }, resolveDelayMs);
+    });
 
     // I think it's better to group "r" and "s" here
     // because I don't think you want to be super aggresive on deleting the prev

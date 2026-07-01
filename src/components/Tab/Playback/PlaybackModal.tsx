@@ -29,6 +29,7 @@ import { Button } from "~/components/ui/button";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
 import getPlaybackHighlightTransitionDuration from "~/utils/getPlaybackHighlightTransitionDuration";
+import { getPlaybackDebugFlags } from "~/utils/playbackDebugFlags";
 
 const backdropVariants = {
   expanded: {
@@ -285,6 +286,13 @@ function PlaybackModal() {
   // Triggers when current chord index reaches the point where the last chord becomes visible
   useLayoutEffect(() => {
     if (
+      getPlaybackDebugFlags().disableVirtualizationDuringPlayback &&
+      audioMetadata.playing
+    ) {
+      return;
+    }
+
+    if (
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
       currentChordIndex < chordLayoutData.virtualizationIndex ||
@@ -308,11 +316,18 @@ function PlaybackModal() {
 
       return [...firstNewHalf, ...secondNewHalf];
     });
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
+  }, [chordLayoutData, chordRepetitions, currentChordIndex, audioMetadata.playing]);
 
   // Catchup chord virtualization effect - increments the remaining chords after they leave the viewport
   // Triggers after the beginning of the tab leaves the viewport on a new loop
   useLayoutEffect(() => {
+    if (
+      getPlaybackDebugFlags().disableVirtualizationDuringPlayback &&
+      audioMetadata.playing
+    ) {
+      return;
+    }
+
     if (
       !chordLayoutData ||
       chordRepetitions.length === 0 ||
@@ -329,7 +344,7 @@ function PlaybackModal() {
       const newRepetitions = prev[0] ?? 0;
       return new Array(prev.length).fill(newRepetitions) as number[];
     });
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
+  }, [chordLayoutData, chordRepetitions, currentChordIndex, audioMetadata.playing]);
 
   // Handle resize
   useEffect(() => {
@@ -648,6 +663,7 @@ function PlaybackModal() {
                                       !audioMetadata.editingLoopRange &&
                                       isChordHighlighted(index)
                                     }
+                                    isPlaying={audioMetadata.playing}
                                   />
                                 </div>
                               );
@@ -735,6 +751,7 @@ interface RenderChordByTypeProps {
   isDimmed: boolean;
   loopDelay: number;
   isHighlighted: boolean;
+  isPlaying: boolean;
 }
 
 const RenderChordByType = memo(function RenderChordByType({
@@ -748,6 +765,7 @@ const RenderChordByType = memo(function RenderChordByType({
   isDimmed,
   loopDelay,
   isHighlighted,
+  isPlaying,
 }: RenderChordByTypeProps) {
   const prevChordNoteLength = prevChord
     ? prevChord.type === "strum" && !prevChord.isLastChord // don't want to have separate strumming patterns' note length guides be connected
@@ -788,19 +806,21 @@ const RenderChordByType = memo(function RenderChordByType({
     (nextChord.type === "strum" && nextChord.data.strum === "r");
 
   const highlightTransitionDurationMs = chord
-    ? chord.type === "tab"
-      ? getPlaybackHighlightTransitionDuration({
-          bpm: chord.data.bpm,
-          noteLength: chord.data.chordData[8] as FullNoteLengths,
-          playbackSpeed,
-        })
-      : chord.type === "strum"
+    ? isPlaying || getPlaybackDebugFlags().disableHighlightTransitions
+      ? 0
+      : chord.type === "tab"
         ? getPlaybackHighlightTransitionDuration({
             bpm: chord.data.bpm,
-            noteLength: chord.data.noteLength,
+            noteLength: chord.data.chordData[8] as FullNoteLengths,
             playbackSpeed,
           })
-        : 75
+        : chord.type === "strum"
+          ? getPlaybackHighlightTransitionDuration({
+              bpm: chord.data.bpm,
+              noteLength: chord.data.noteLength,
+              playbackSpeed,
+            })
+          : 75
     : 75;
 
   if (type === "tab" && chord?.type === "tab") {
