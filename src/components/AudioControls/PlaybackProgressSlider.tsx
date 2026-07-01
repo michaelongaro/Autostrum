@@ -197,16 +197,21 @@ function PlaybackProgressSlider({
               </div>
             </div>
           )}
-          renderThumb={({ props, index }) => (
-            <div
-              {...props}
-              key={`${props.key}-${index}-toggle`}
-              style={{
-                ...props.style,
-              }}
-              className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
-            />
-          )}
+          renderThumb={({ props, index }) => {
+            // react-range was including a key value inside of props
+            const { key, ...thumbProps } = props;
+
+            return (
+              <div
+                key={`${key}-${index}-toggle`}
+                {...thumbProps}
+                style={{
+                  ...thumbProps.style,
+                }}
+                className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
+              />
+            );
+          }}
         />
       ) : (
         <Range
@@ -290,23 +295,28 @@ function PlaybackProgressSlider({
               </div>
             </div>
           )}
-          renderThumb={({ props }) => (
-            <div
-              {...props}
-              id="playbackSliderThumb"
-              style={{
-                ...props.style,
-                transitionProperty: "transform",
-                transitionTimingFunction: "linear",
-                transitionDuration: `${
-                  audioMetadata.playing
-                    ? `${chordDurations[currentChordIndex] ?? 0}s`
-                    : "0s"
-                }`,
-              }}
-              className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
-            />
-          )}
+          renderThumb={({ props }) => {
+            const { key, ...thumbProps } = props;
+
+            return (
+              <div
+                key={key}
+                {...thumbProps}
+                id="playbackSliderThumb"
+                style={{
+                  ...thumbProps.style,
+                  transitionProperty: "transform",
+                  transitionTimingFunction: "linear",
+                  transitionDuration: `${
+                    audioMetadata.playing
+                      ? `${chordDurations[currentChordIndex] ?? 0}s`
+                      : "0s"
+                  }`,
+                }}
+                className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
+              />
+            );
+          }}
         />
       )}
     </>
