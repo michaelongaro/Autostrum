@@ -10,6 +10,8 @@ import {
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
+import { logPlaybackDebug } from "~/utils/playbackDebugFlags";
+import { getAudioContextOutputTimeSeconds } from "~/utils/playbackAudioClock";
 import { resetProgressTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { DEFAULT_TUNING, normalizeTuningValue, parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
@@ -826,6 +828,10 @@ const useTabStoreBase = create<TabState>()(
 
         if (!audioContext || !masterVolumeGainNode) return;
 
+        if (audioContext.state === "suspended") {
+          await audioContext.resume();
+        }
+
         const currentlyPlayingStrings: (
           Soundfont.Player | AudioBufferSourceNode | undefined
         )[] = [
@@ -936,6 +942,15 @@ const useTabStoreBase = create<TabState>()(
               currentChordIndex: chordIndex,
             });
 
+            logPlaybackDebug("logChordIndexTiming", "currentChordIndex updated", {
+              chordIndex,
+              audioContextTime: getAudioContextOutputTimeSeconds(audioContext),
+              targetStartTime: nextChordStartTime,
+              driftSeconds:
+                getAudioContextOutputTimeSeconds(audioContext) -
+                nextChordStartTime,
+            });
+
             const thirdPrevColumn = compiledChords[adjChordIndex - 3];
             const secondPrevColumn = compiledChords[adjChordIndex - 2];
             const prevColumn = compiledChords[adjChordIndex - 1];
@@ -1004,10 +1019,11 @@ const useTabStoreBase = create<TabState>()(
             (looping || showPlaybackModal) &&
             audioMetadata.playing
           ) {
-            // Reset the current chord index to 0 to start over
+            // Reset the current chord index to 0 to start over.
+            // WAAPI onfinish owns visual loop chaining; keep the original audio
+            // anchor so the strip animation is not torn down and recreated.
             set({
               currentChordIndex: 0,
-              playbackStartedAtAudioTime: nextChordStartTime,
             });
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
@@ -1259,6 +1275,8 @@ const useTabStoreBase = create<TabState>()(
 export const useTabStore = <T>(selector: (state: TabState) => T): T => {
   return useTabStoreBase(useShallow(selector));
 };
+
+export const getTabStoreState = () => useTabStoreBase.getState();
 
 export const stringifyFullTabState = () => {
   const store = useTabStoreBase.getState();
