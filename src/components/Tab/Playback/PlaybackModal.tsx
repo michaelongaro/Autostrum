@@ -133,6 +133,21 @@ function PlaybackModal() {
     }
   }, [expandedTabData]);
 
+  // After playback stops, normalize loop offsets so scrubbing uses a single repetition plane.
+  const wasPlayingRef = useRef(audioMetadata.playing);
+  useEffect(() => {
+    if (
+      wasPlayingRef.current &&
+      !audioMetadata.playing &&
+      chordRepetitions.length > 0
+    ) {
+      const activeRepetition = chordRepetitions[currentChordIndex] ?? 0;
+      setChordRepetitions(new Array(chordRepetitions.length).fill(activeRepetition));
+    }
+
+    wasPlayingRef.current = audioMetadata.playing;
+  }, [audioMetadata.playing, chordRepetitions, currentChordIndex]);
+
   // Compute chord layout data (positions, widths, durations) - memoized
   const chordLayoutData = useMemo<ChordLayoutData | null>(() => {
     if (
@@ -512,6 +527,7 @@ function PlaybackModal() {
                         <PlaybackAnimatedStrip
                           chordLayoutData={chordLayoutData}
                           playing={audioMetadata.playing}
+                          currentChordIndex={currentChordIndex}
                           scrollContainerTransform={scrollContainerTransform}
                           currentRepetition={currentChordRepetition}
                           initialPlaceholderWidth={initialPlaceholderWidth}
