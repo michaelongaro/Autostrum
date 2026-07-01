@@ -195,7 +195,7 @@ function usePlaybackStripAnimation({
     [chordLayoutData],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     playingRef.current = playing;
   }, [playing]);
 
@@ -215,7 +215,7 @@ function usePlaybackStripAnimation({
     cancelPlaybackStripAnimations({
       animations,
       animatedElement,
-      preserveTransform: true,
+      preserveTransform: playingRef.current,
     });
 
     animationRef.current = null;
@@ -333,7 +333,7 @@ function usePlaybackStripAnimation({
       cancelPlaybackStripAnimations({
         animations,
         animatedElement,
-        preserveTransform: true,
+        preserveTransform: playingRef.current,
       });
 
       animationRef.current = null;
