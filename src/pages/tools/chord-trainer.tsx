@@ -32,6 +32,7 @@ import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import { DEFAULT_TUNING, parse } from "~/utils/tunings";
 import Logo from "~/components/ui/icons/Logo";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
+import { useTabStore } from "~/stores/TabStore";
 
 type AudioSource =
   | "none"
@@ -253,9 +254,12 @@ function appendQueue(
 }
 
 function ChordTrainerPage() {
+  const { audioContext } = useTabStore((state) => ({
+    audioContext: state.audioContext,
+  }));
+
   const stageRef = useRef<HTMLDivElement | null>(null);
   const sliderContainerRef = useRef<HTMLDivElement | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
   const currentlyPlayingStringsRef = useRef<
     (Soundfont.Player | AudioBufferSourceNode | undefined)[]
@@ -341,18 +345,8 @@ function ChordTrainerPage() {
 
   const ensureAudioRuntime = useCallback(
     async (source: AudioSource | null = audioSource) => {
-      if (!source || source === "none") {
+      if (!source || source === "none" || !audioContext) {
         throw new Error("No audio source selected.");
-      }
-
-      let audioContext = audioContextRef.current;
-      if (!audioContext) {
-        audioContext = new window.AudioContext();
-        audioContextRef.current = audioContext;
-      }
-
-      if (audioContext.state === "suspended") {
-        await audioContext.resume();
       }
 
       let masterVolumeGainNode = masterGainRef.current;
@@ -380,7 +374,7 @@ function ChordTrainerPage() {
         currentInstrument,
       };
     },
-    [audioSource],
+    [audioContext, audioSource],
   );
 
   const playChord = useCallback(
@@ -625,7 +619,6 @@ function ChordTrainerPage() {
 
   useEffect(() => {
     const currentlyPlayingStrings = currentlyPlayingStringsRef.current;
-    const audioContext = audioContextRef.current;
 
     return () => {
       if (rafRef.current !== null) {
@@ -638,10 +631,6 @@ function ChordTrainerPage() {
         } catch {
           // best-effort cleanup only
         }
-      }
-
-      if (audioContext && audioContext.state !== "closed") {
-        void audioContext.close();
       }
     };
   }, []);

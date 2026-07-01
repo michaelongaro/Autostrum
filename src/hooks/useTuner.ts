@@ -134,14 +134,14 @@ function stopGuidePlayback(handle: GuidePlaybackHandle) {
 }
 
 function resolvePlaybackDestination(
-  activeAudioContext: AudioContext,
+  audioContext: AudioContext,
   playbackDestination?: AudioNode | null,
 ) {
-  if (playbackDestination?.context === activeAudioContext) {
+  if (playbackDestination?.context === audioContext) {
     return playbackDestination;
   }
 
-  return activeAudioContext.destination;
+  return audioContext.destination;
 }
 
 async function loadGuideInstrument(
@@ -215,7 +215,6 @@ export function useTuner({
   const stableMatchStartTimeRef = useRef<number | null>(null);
   const lastUiUpdateTimeRef = useRef(0);
   const centsHistoryRef = useRef<number[]>([]);
-  const localAudioContextRef = useRef<AudioContext | null>(null);
   const currentTargetIndexRef = useRef(0);
   const guidePlaybackLockoutUntilRef = useRef(0);
   const guidePlaybackHandleRef = useRef<GuidePlaybackHandle>(null);
@@ -284,40 +283,14 @@ export function useTuner({
     [],
   );
 
-  const getActiveAudioContext = useCallback(
-    async (allowCreateAudioContext = false) => {
-      let activeAudioContext = audioContext ?? localAudioContextRef.current;
-
-      if (!activeAudioContext && allowCreateAudioContext) {
-        activeAudioContext = new AudioContext();
-        localAudioContextRef.current = activeAudioContext;
-      }
-
-      if (activeAudioContext?.state === "suspended") {
-        await activeAudioContext.resume();
-      }
-
-      return activeAudioContext;
-    },
-    [audioContext],
-  );
-
   const playReferenceNote = useCallback(
-    async (
-      targetIndex: number,
-      options?: {
-        allowCreateAudioContext?: boolean;
-      },
-    ) => {
+    async (targetIndex: number) => {
       const targetMidi = targetMidis[targetIndex] ?? targetMidis[0];
       if (targetMidi === undefined) {
         return;
       }
 
-      const activeAudioContext = await getActiveAudioContext(
-        options?.allowCreateAudioContext ?? true,
-      );
-      if (!activeAudioContext) {
+      if (!audioContext) {
         return;
       }
 
@@ -329,8 +302,8 @@ export function useTuner({
 
       try {
         const guideInstrument = await loadGuideInstrument(
-          activeAudioContext,
-          resolvePlaybackDestination(activeAudioContext, playbackDestination),
+          audioContext,
+          resolvePlaybackDestination(audioContext, playbackDestination),
         );
 
         if (guidePlaybackRequestIdRef.current !== requestId) {
@@ -366,7 +339,7 @@ export function useTuner({
         console.error("Failed to play tuner reference note:", error);
       }
     },
-    [applyUiSnapshot, getActiveAudioContext, playbackDestination, targetMidis],
+    [applyUiSnapshot, audioContext, playbackDestination, targetMidis],
   );
 
   const setCurrentTargetIndex = useCallback(
@@ -393,9 +366,7 @@ export function useTuner({
       currentTargetIndexRef.current = clamped;
 
       if (options?.playReferenceNote ?? true) {
-        void playReferenceNote(clamped, {
-          allowCreateAudioContext: options?.allowCreateAudioContext ?? true,
-        });
+        void playReferenceNote(clamped);
       }
     },
     [applyUiSnapshot, playReferenceNote, targetMidis.length],
@@ -500,18 +471,15 @@ export function useTuner({
 
         streamRef.current = stream;
 
-        const activeAudioContext = await getActiveAudioContext(true);
-
-        if (!activeAudioContext) {
+        if (!audioContext) {
           setError("Could not initialize audio context.");
           stopListening();
           return;
         }
 
-        const micSourceNode =
-          activeAudioContext.createMediaStreamSource(stream);
-        const analysisGainNode = activeAudioContext.createGain();
-        const analyser = activeAudioContext.createAnalyser();
+        const micSourceNode = audioContext.createMediaStreamSource(stream);
+        const analysisGainNode = audioContext.createGain();
+        const analyser = audioContext.createAnalyser();
         analyser.fftSize = 2048;
         analyser.smoothingTimeConstant = 0.12;
 
@@ -570,7 +538,7 @@ export function useTuner({
 
           const [pitch, foundClarity] = activeDetector.findPitch(
             activeBuffer,
-            activeAudioContext.sampleRate,
+            audioContext.sampleRate,
           );
 
           if (
@@ -671,7 +639,7 @@ export function useTuner({
     await restartListeningPromiseRef.current;
   }, [
     applyUiSnapshot,
-    getActiveAudioContext,
+    audioContext,
     minimumClarity,
     requiredStableHoldMs,
     setCurrentTargetIndex,

@@ -4,7 +4,6 @@ import { devtools } from "zustand/middleware";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
-import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
@@ -106,11 +105,7 @@ interface CopiedData {
 }
 
 export type BaseNoteLengths =
-  | "whole"
-  | "half"
-  | "quarter"
-  | "eighth"
-  | "sixteenth";
+  "whole" | "half" | "quarter" | "eighth" | "sixteenth";
 
 export type FullNoteLengths =
   | "whole"
@@ -487,9 +482,7 @@ interface TabState {
 
   expandedTabData:
     | (
-        | PlaybackTabChord
-        | PlaybackStrummedChord
-        | PlaybackLoopDelaySpacerChord
+        PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord
       )[]
     | null;
   setExpandedTabData: (
@@ -547,16 +540,10 @@ interface TabState {
     visiblePlaybackContainerWidth: number,
   ) => void;
   playbackModalViewingState:
-    | "Practice"
-    | "Section progression"
-    | "Chords"
-    | "Strumming patterns";
+    "Practice" | "Section progression" | "Chords" | "Strumming patterns";
   setPlaybackModalViewingState: (
     playbackModalViewingState:
-      | "Practice"
-      | "Section progression"
-      | "Chords"
-      | "Strumming patterns",
+      "Practice" | "Section progression" | "Chords" | "Strumming patterns",
   ) => void;
 
   // related to sound generation/playing
@@ -835,29 +822,12 @@ const useTabStoreBase = create<TabState>()(
           visiblePlaybackContainerWidth,
           setPlaybackMetadata,
           loopDelay,
-          currentInstrumentName,
-          instruments,
         } = get();
 
         if (!audioContext || !masterVolumeGainNode) return;
 
-        const resolvedCurrentInstrument =
-          currentInstrument ??
-          instruments[currentInstrumentName] ??
-          (await ensureSoundfontPlayer(
-            audioContext,
-            currentInstrumentName,
-            masterVolumeGainNode,
-          ));
-
-        if (!currentInstrument) {
-          set({ currentInstrument: resolvedCurrentInstrument });
-        }
-
         const currentlyPlayingStrings: (
-          | Soundfont.Player
-          | AudioBufferSourceNode
-          | undefined
+          Soundfont.Player | AudioBufferSourceNode | undefined
         )[] = [
           undefined,
           undefined,
@@ -995,7 +965,7 @@ const useTabStoreBase = create<TabState>()(
               nextColumn,
               audioContext,
               masterVolumeGainNode,
-              currentInstrument: resolvedCurrentInstrument,
+              currentInstrument,
               currentlyPlayingStrings,
             });
 
@@ -1068,31 +1038,16 @@ const useTabStoreBase = create<TabState>()(
           tuning,
           previewMetadata,
           currentInstrument,
-          currentInstrumentName,
           audioContext,
           masterVolumeGainNode,
           instruments,
         } = get();
 
-        if (!audioContext || !masterVolumeGainNode) return;
-
-        const resolvedCurrentInstrument =
-          currentInstrument ??
-          instruments[currentInstrumentName] ??
-          (await ensureSoundfontPlayer(
-            audioContext,
-            currentInstrumentName,
-            masterVolumeGainNode,
-          ));
-
-        if (!currentInstrument) {
-          set({ currentInstrument: resolvedCurrentInstrument });
-        }
+        if (!audioContext || !masterVolumeGainNode || !currentInstrument)
+          return;
 
         const currentlyPlayingStrings: (
-          | Soundfont.Player
-          | AudioBufferSourceNode
-          | undefined
+          Soundfont.Player | AudioBufferSourceNode | undefined
         )[] = [
           undefined,
           undefined,
@@ -1152,7 +1107,7 @@ const useTabStoreBase = create<TabState>()(
             nextColumn,
             audioContext,
             masterVolumeGainNode,
-            currentInstrument: resolvedCurrentInstrument,
+            currentInstrument,
             currentlyPlayingStrings,
             acousticSteelOverrideForPreview: instruments.acoustic_guitar_steel,
             forTuningPreview: customBpm !== undefined,
