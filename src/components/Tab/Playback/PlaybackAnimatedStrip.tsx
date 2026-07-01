@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useRef } from "react";
 import PlaybackVisibleChords from "~/components/Tab/Playback/PlaybackVisibleChords";
 import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
 import {
@@ -26,27 +26,19 @@ interface PlaybackAnimatedStrip {
   currentRepetition: number;
   initialPlaceholderWidth: number;
   expandedTabData: (
-    | PlaybackTabChord
-    | PlaybackStrummedChord
-    | PlaybackLoopDelaySpacerChord
+    PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord
   )[];
   chordRepetitions: number[];
   loopDelay: number;
   playbackSpeed: number;
   renderChord: (props: {
     chord:
-      | PlaybackTabChord
-      | PlaybackStrummedChord
-      | PlaybackLoopDelaySpacerChord;
+      PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
     index: number;
     prevChord?:
-      | PlaybackTabChord
-      | PlaybackStrummedChord
-      | PlaybackLoopDelaySpacerChord;
+      PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
     nextChord?:
-      | PlaybackTabChord
-      | PlaybackStrummedChord
-      | PlaybackLoopDelaySpacerChord;
+      PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
     isFirstChordInSection: boolean;
     isDimmed: boolean;
     isHighlighted: boolean;
