@@ -1,8 +1,6 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
-import usePlaybackAudioProgressDomSync from "~/hooks/usePlaybackAudioProgressDomSync";
 import { useTabStore } from "~/stores/TabStore";
-import { getPlaybackDebugFlags } from "~/utils/playbackDebugFlags";
 
 interface PlaybackProgressSlider {
   disabled: boolean;
@@ -29,8 +27,6 @@ function PlaybackProgressSlider({
     setAudioMetadata,
     pauseAudio,
     playbackMetadata,
-    audioContext,
-    playbackStartedAtAudioTime,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
@@ -39,29 +35,9 @@ function PlaybackProgressSlider({
     setAudioMetadata: state.setAudioMetadata,
     pauseAudio: state.pauseAudio,
     playbackMetadata: state.playbackMetadata,
-    audioContext: state.audioContext,
-    playbackStartedAtAudioTime: state.playbackStartedAtAudioTime,
   }));
 
   const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
-  const debugFlags = getPlaybackDebugFlags();
-  const useAudioClockProgress =
-    audioMetadata.playing && !debugFlags.disableSliderTransitions;
-
-  const maxIndex = currentlyPlayingMetadata
-    ? currentlyPlayingMetadata.length - 1
-    : 0;
-
-  usePlaybackAudioProgressDomSync({
-    enabled: useAudioClockProgress,
-    audioContext,
-    playbackStartedAtAudioTime,
-    chordDurations,
-    anchorChordIndex: currentChordIndex,
-    trackElementId: "playbackSliderTrack",
-    thumbElementId: "playbackSliderThumb",
-    maxIndex,
-  });
 
   // keeps loopRange in sync when changing selected section
   useEffect(() => {
@@ -159,11 +135,9 @@ function PlaybackProgressSlider({
     audioMetadata.playing &&
     (currentChordIndex + 1) % currentlyPlayingMetadata!.length !== 0;
 
-  const discreteProgressValue = mapToRange(
-    currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
-    0,
-    maxIndex,
-  );
+  const maxIndex = currentlyPlayingMetadata
+    ? currentlyPlayingMetadata.length - 1
+    : 0;
 
   if (audioMetadata.fullCurrentlyPlayingMetadataLength <= 1 && maxIndex <= 0) {
     return null;
@@ -241,7 +215,13 @@ function PlaybackProgressSlider({
           step={1}
           min={0}
           max={maxIndex}
-          values={[discreteProgressValue]}
+          values={[
+            mapToRange(
+              currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
+              0,
+              maxIndex,
+            ),
+          ]}
           disabled={disabled}
           onChange={(values) => {
             if (audioMetadata.playing) {
@@ -289,15 +269,19 @@ function PlaybackProgressSlider({
                     id="playbackSliderTrack"
                     style={{
                       transform: `scaleX(${
-                        maxIndex > 0 ? discreteProgressValue / maxIndex : 0
+                        mapToRange(
+                          currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
+                          0,
+                          maxIndex,
+                        ) / maxIndex
                       })`,
                       transitionProperty: "transform",
                       transitionTimingFunction: "linear",
-                      transitionDuration: useAudioClockProgress
-                        ? "0s"
-                        : audioMetadata.playing
+                      transitionDuration: `${
+                        audioMetadata.playing
                           ? `${chordDurations[currentChordIndex] ?? 0}s`
-                          : "0s",
+                          : "0s"
+                      }`,
                     }}
                     className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary will-change-transform"
                   ></div>
@@ -314,11 +298,11 @@ function PlaybackProgressSlider({
                 ...props.style,
                 transitionProperty: "transform",
                 transitionTimingFunction: "linear",
-                transitionDuration: useAudioClockProgress
-                  ? "0s"
-                  : audioMetadata.playing
+                transitionDuration: `${
+                  audioMetadata.playing
                     ? `${chordDurations[currentChordIndex] ?? 0}s`
-                    : "0s",
+                    : "0s"
+                }`,
               }}
               className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
             />
