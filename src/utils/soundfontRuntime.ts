@@ -51,26 +51,44 @@ async function loadSoundfontWithFallback(
   instrumentName: InstrumentName,
   destination: AudioNode,
 ) {
-  const localLoad = loadSoundfontLocally(audioContext, instrumentName, destination);
-  let triggerCdnLoad: (() => void) | undefined;
+  let triggerLocalLoad: (() => void) | undefined;
 
-  const cdnLoad = new Promise<Soundfont.Player>((resolve, reject) => {
-    triggerCdnLoad = () => {
-      void loadSoundfontFromCdn(audioContext, instrumentName, destination)
+  const localLoad = new Promise<Soundfont.Player>((resolve, reject) => {
+    let hasStarted = false;
+
+    triggerLocalLoad = () => {
+      if (hasStarted) {
+        return;
+      }
+
+      hasStarted = true;
+
+      void loadSoundfontLocally(audioContext, instrumentName, destination)
         .then(resolve)
         .catch(reject);
     };
   });
 
   const timeoutId = window.setTimeout(() => {
-    triggerCdnLoad?.();
+    triggerLocalLoad?.();
   }, 600);
 
-  void localLoad.then(() => {
-    window.clearTimeout(timeoutId);
-  });
+  const cdnLoad = loadSoundfontFromCdn(
+    audioContext,
+    instrumentName,
+    destination,
+  )
+    .then((player) => {
+      window.clearTimeout(timeoutId);
+      return player;
+    })
+    .catch((error) => {
+      window.clearTimeout(timeoutId);
+      triggerLocalLoad?.();
+      throw error;
+    });
 
-  return await Promise.any([localLoad, cdnLoad]);
+  return await Promise.any([cdnLoad, localLoad]);
 }
 
 export async function ensureSoundfontPlayer(

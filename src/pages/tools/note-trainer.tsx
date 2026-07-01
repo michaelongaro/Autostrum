@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
-import type Soundfont from "soundfont-player";
 import { IoEar } from "react-icons/io5";
 import { get } from "@tonaljs/note";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
@@ -16,7 +15,17 @@ import {
 } from "~/components/ui/select";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
-import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
+import { useTabStore } from "~/stores/TabStore";
+import Spinner from "~/components/ui/Spinner";
+
+const opacityAndScaleVariants = {
+  expanded: {
+    opacity: 1,
+  },
+  closed: {
+    opacity: 0,
+  },
+};
 
 const CHROMATIC_NOTE_NAMES = [
   "C",
@@ -89,16 +98,23 @@ function getRandomNote(notePool: readonly string[]) {
 }
 
 function NoteTrainerPage() {
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const soundfontCacheRef = useRef<
-    Partial<Record<AudioSource, Soundfont.Player>>
-  >({});
+  const {
+    audioContext,
+    instruments,
+    currentInstrument,
+    setCurrentInstrumentName,
+  } = useTabStore((state) => ({
+    audioContext: state.audioContext,
+    instruments: state.instruments,
+    currentInstrument: state.currentInstrument,
+    setCurrentInstrumentName: state.setCurrentInstrumentName,
+  }));
+
   const currentPlaybackRef = useRef<PlaybackHandle>(null);
   const playbackRequestIdRef = useRef(0);
 
   const [audioSource, setAudioSource] = useState<AudioSource>("generated");
   const [noteSet, setNoteSet] = useState<NoteSet>("standard");
-  const [loadingSoundfont, setLoadingSoundfont] = useState(false);
   const [targetNote, setTargetNote] = useState<string>(() =>
     getRandomNote(NOTE_SET_POOLS.standard),
   );
@@ -110,8 +126,6 @@ function NoteTrainerPage() {
   const [roundsPlayed, setRoundsPlayed] = useState(0);
   const [correctGuesses, setCorrectGuesses] = useState(0);
   const activeNotePool = NOTE_SET_POOLS[noteSet];
-  const audioSourceRef = useRef<AudioSource>(audioSource);
-  audioSourceRef.current = audioSource;
 
   useEffect(() => {
     setSelectedGuess(null);
@@ -120,72 +134,12 @@ function NoteTrainerPage() {
     setTargetNote(getRandomNote(activeNotePool));
   }, [activeNotePool]);
 
-  function stopCurrentPlayback() {
-    const currentPlayback = currentPlaybackRef.current;
-    if (!currentPlayback) return;
-
-    try {
-      currentPlayback.stop?.();
-    } catch {
-      // best-effort cleanup only
-    }
-
-    try {
-      currentPlayback.source?.stop();
-    } catch {
-      // source may already be stopped
-    }
+  const stopCurrentPlayback = useCallback(() => {
+    currentPlaybackRef.current?.stop?.();
+    currentInstrument?.stop();
 
     currentPlaybackRef.current = null;
-  }
-
-  useEffect(() => {
-    return () => {
-      stopCurrentPlayback();
-    };
-  }, []);
-
-  const getAudioContext = useCallback(async () => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new window.AudioContext();
-    }
-
-    if (audioContextRef.current.state === "suspended") {
-      await audioContextRef.current.resume();
-    }
-
-    return audioContextRef.current;
-  }, []);
-
-  // Preload soundfont when audio source changes
-  useEffect(() => {
-    if (audioSource === "generated") return;
-
-    const cached = soundfontCacheRef.current[audioSource];
-    if (cached) return;
-
-    let cancelled = false;
-    setLoadingSoundfont(true);
-
-    void (async () => {
-      try {
-        const ctx = await getAudioContext();
-        const player = await ensureSoundfontPlayer(ctx, audioSource, ctx.destination);
-
-        if (!cancelled) {
-          soundfontCacheRef.current[audioSource] = player;
-        }
-      } catch (err) {
-        console.error(`Failed to load soundfont ${audioSource}:`, err);
-      } finally {
-        if (!cancelled) setLoadingSoundfont(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [audioSource, getAudioContext]);
+  }, [currentInstrument]);
 
   const playNote = useCallback(
     async (note: string) => {
@@ -194,15 +148,13 @@ function NoteTrainerPage() {
 
       stopCurrentPlayback();
 
-      const source = audioSourceRef.current;
+      const source = audioSource;
 
       if (source === "generated") {
         const frequency = get(note).freq;
         if (!frequency) return;
 
-        const audioContext = await getAudioContext();
-
-        if (playbackRequestIdRef.current !== requestId) {
+        if (!audioContext || playbackRequestIdRef.current !== requestId) {
           return;
         }
 
@@ -242,16 +194,13 @@ function NoteTrainerPage() {
         oscillator.start();
         oscillator.stop(audioContext.currentTime + 0.82);
       } else {
-        const player = soundfontCacheRef.current[source];
-        if (!player) return;
-
-        currentPlaybackRef.current = player.play(note, 0, {
+        currentInstrument?.play(note, 0, {
           duration: 1.5,
           gain: 3,
         });
       }
     },
-    [getAudioContext],
+    [audioContext, audioSource, currentInstrument, stopCurrentPlayback],
   );
 
   async function playTargetNote() {
@@ -293,9 +242,8 @@ function NoteTrainerPage() {
     roundsPlayed === 0 ? 0 : Math.round((correctGuesses / roundsPlayed) * 100);
 
   const isSoundfontLoading =
-    audioSource !== "generated" &&
-    !soundfontCacheRef.current[audioSource] &&
-    loadingSoundfont;
+    audioSource !== "generated" && !instruments[audioSource];
+
   const feedbackMessage = selectedGuess
     ? lastGuessCorrect
       ? "Correct!"
@@ -347,7 +295,17 @@ function NoteTrainerPage() {
                 <Label htmlFor="audioSelect">Audio</Label>
                 <Select
                   value={audioSource}
-                  onValueChange={(v) => setAudioSource(v as AudioSource)}
+                  onValueChange={(v) => {
+                    setAudioSource(v as AudioSource);
+
+                    setCurrentInstrumentName(
+                      v as
+                        | "acoustic_guitar_nylon"
+                        | "acoustic_guitar_steel"
+                        | "electric_guitar_clean"
+                        | "electric_guitar_jazz",
+                    );
+                  }}
                 >
                   <SelectTrigger id="audioSelect" className="w-52 md:w-52">
                     <SelectValue>
@@ -428,10 +386,24 @@ function NoteTrainerPage() {
               variant="audio"
               disabled={isSoundfontLoading}
               onClick={playTargetNote}
-              className="baseFlex h-11 shrink-0 gap-3 px-6 sm:w-auto"
+              className="baseFlex h-11 shrink-0 gap-3 px-6 sm:w-36"
             >
-              {!isSoundfontLoading && <PlayIcon />}
-              {isSoundfontLoading ? "Loading…" : "Play Note"}
+              <motion.div
+                key={`note-trainer-audio-loading-status-${isSoundfontLoading ? "loading" : "play"}`}
+                variants={opacityAndScaleVariants}
+                initial="closed"
+                animate="expanded"
+                transition={{ duration: 0.3 }}
+              >
+                {isSoundfontLoading ? (
+                  <Spinner className="size-5" />
+                ) : (
+                  <div className="baseFlex gap-3">
+                    <PlayIcon />
+                    Play Note
+                  </div>
+                )}
+              </motion.div>
             </Button>
 
             {selectedGuess ? (
