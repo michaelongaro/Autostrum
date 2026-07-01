@@ -5,7 +5,6 @@ import {
   useRef,
   type RefObject,
 } from "react";
-import { useTabStore } from "~/stores/TabStore";
 import {
   getPlaybackDebugFlags,
   logPlaybackDebug,
@@ -208,14 +207,6 @@ function usePlaybackStripAnimation({
     anchorChordIndexRef.current = currentChordIndex;
     anchorRepetitionRef.current = currentRepetition;
   }, [currentChordIndex, currentRepetition]);
-
-  useEffect(() => {
-    return useTabStore.subscribe((state, previousState) => {
-      if (state.currentChordIndex !== previousState.currentChordIndex) {
-        anchorChordIndexRef.current = state.currentChordIndex;
-      }
-    });
-  }, []);
 
   useLayoutEffect(() => {
     const animatedElement = stripRef.current;

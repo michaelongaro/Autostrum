@@ -1276,6 +1276,8 @@ export const useTabStore = <T>(selector: (state: TabState) => T): T => {
   return useTabStoreBase(useShallow(selector));
 };
 
+export const getTabStoreState = () => useTabStoreBase.getState();
+
 export const stringifyFullTabState = () => {
   const store = useTabStoreBase.getState();
 

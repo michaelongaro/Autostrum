@@ -1,10 +1,11 @@
-import { memo, useEffect, useRef } from "react";
+import { memo } from "react";
 import PlaybackVisibleChords from "~/components/Tab/Playback/PlaybackVisibleChords";
 import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
 import {
   type PlaybackLoopDelaySpacerChord,
   type PlaybackStrummedChord,
   type PlaybackTabChord,
+  getTabStoreState,
   useTabStore,
 } from "~/stores/TabStore";
 
@@ -65,33 +66,17 @@ const PlaybackAnimatedStrip = memo(function PlaybackAnimatedStrip({
   renderChord,
 }: PlaybackAnimatedStrip) {
   const scrollStripRef = useRef<HTMLDivElement | null>(null);
-  const currentChordIndexRef = useRef(0);
-  const currentRepetitionRef = useRef(currentRepetition);
 
   const audioContext = useTabStore((state) => state.audioContext);
   const playbackStartedAtAudioTime = useTabStore(
     (state) => state.playbackStartedAtAudioTime,
   );
 
-  useEffect(() => {
-    currentChordIndexRef.current = useTabStore.getState().currentChordIndex;
-
-    return useTabStore.subscribe((state, previousState) => {
-      if (state.currentChordIndex !== previousState.currentChordIndex) {
-        currentChordIndexRef.current = state.currentChordIndex;
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    currentRepetitionRef.current = currentRepetition;
-  }, [currentRepetition]);
-
   usePlaybackStripAnimation({
     stripRef: scrollStripRef,
     chordLayoutData,
-    currentChordIndex: currentChordIndexRef.current,
-    currentRepetition: currentRepetitionRef.current,
+    currentChordIndex: getTabStoreState().currentChordIndex,
+    currentRepetition,
     audioContext,
     playbackStartedAtAudioTime,
     playing,
