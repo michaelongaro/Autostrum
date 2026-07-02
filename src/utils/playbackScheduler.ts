@@ -10,6 +10,7 @@ export const PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS = 1.0;
 export const PLAYBACK_START_EPSILON_SECONDS = 0.03;
 
 const SCHEDULER_POLL_INTERVAL_MS = 25;
+const MIN_SCHEDULER_SLEEP_SECONDS = SCHEDULER_POLL_INTERVAL_MS / 1000;
 
 export interface PlaybackTimelineEntry {
   chordIndex: number;
@@ -90,6 +91,41 @@ function getEntryCompletionTime(
   return previousCompletionTime;
 }
 
+function getActiveChordIndexForTime(
+  timeline: PlaybackTimelineEntry[],
+  now: number,
+  timelineAnchorTime: number,
+): number | null {
+  if (timeline.length === 0) return null;
+
+  let previousCompletionTime = timelineAnchorTime;
+  let activeChordIndex = timeline[0]!.chordIndex;
+
+  for (const entry of timeline) {
+    if (entry.startTime !== null) {
+      if (entry.startTime <= now) {
+        activeChordIndex = entry.chordIndex;
+        previousCompletionTime = entry.startTime + entry.duration;
+        continue;
+      }
+
+      break;
+    }
+
+    const completionTime = getEntryCompletionTime(entry, previousCompletionTime);
+
+    if (completionTime <= now) {
+      activeChordIndex = entry.chordIndex;
+      previousCompletionTime = completionTime;
+      continue;
+    }
+
+    break;
+  }
+
+  return activeChordIndex;
+}
+
 export function sleepUntilAudioTime(
   audioContext: AudioContext,
   targetTime: number,
@@ -139,6 +175,7 @@ export interface RunPlaybackSchedulerArgs {
     looping: boolean;
     showPlaybackModal: boolean;
     audioMetadata: { playing: boolean };
+    currentChordIndex: number;
   };
   setState: (partial: Record<string, unknown>) => void;
   resetProgressTabSliderPosition: (mode: "editing" | "playback") => void;
@@ -178,6 +215,7 @@ export async function runPlaybackScheduler({
   let lastCompletionTime = playbackStartTime;
   let timelineAnchorTime = playbackStartTime;
   let segmentEndTime = playbackStartTime;
+  let lastReportedChordIndex = getState().currentChordIndex;
 
   for (const entry of timeline) {
     if (entry.startTime !== null) {
@@ -185,30 +223,25 @@ export async function runPlaybackScheduler({
     }
   }
 
+  const maybeUpdateCurrentChordIndex = (nextChordIndex: number | null) => {
+    if (
+      nextChordIndex === null ||
+      nextChordIndex === lastReportedChordIndex
+    ) {
+      return;
+    }
+
+    lastReportedChordIndex = nextChordIndex;
+    setState({ currentChordIndex: nextChordIndex });
+  };
+
   while (isSessionValid()) {
     const now = audioContext.currentTime;
     const horizon = now + PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS;
 
-    let uiPreviousCompletion = timelineAnchorTime;
-
-    for (let index = 0; index < timeline.length; index++) {
-      const entry = timeline[index]!;
-      const completionTime = getEntryCompletionTime(entry, uiPreviousCompletion);
-
-      if (entry.startTime !== null) {
-        if (entry.startTime <= now) {
-          setState({ currentChordIndex: entry.chordIndex });
-          uiPreviousCompletion = completionTime;
-        } else {
-          break;
-        }
-      } else if (completionTime <= now) {
-        setState({ currentChordIndex: entry.chordIndex });
-        uiPreviousCompletion = completionTime;
-      } else {
-        break;
-      }
-    }
+    maybeUpdateCurrentChordIndex(
+      getActiveChordIndexForTime(timeline, now, timelineAnchorTime),
+    );
 
     while (scheduledIndex < timeline.length && isSessionValid()) {
       const entry = timeline[scheduledIndex]!;
@@ -239,27 +272,25 @@ export async function runPlaybackScheduler({
       scheduledIndex++;
     }
 
-    while (processedIndex < timeline.length && isSessionValid()) {
+    if (processedIndex < timeline.length && isSessionValid()) {
       const entry = timeline[processedIndex]!;
       const completionTime = getEntryCompletionTime(entry, lastCompletionTime);
 
-      if (now < completionTime) {
-        break;
+      if (now >= completionTime) {
+        if (entry.isLastInCompiledSequence) {
+          resetProgressTabSliderPosition(editing ? "editing" : "playback");
+        }
+
+        const { breakOnNextChord } = getState();
+
+        if (breakOnNextChord) {
+          clearBreakOnNextChord();
+          return;
+        }
+
+        lastCompletionTime = completionTime;
+        processedIndex++;
       }
-
-      if (entry.isLastInCompiledSequence) {
-        resetProgressTabSliderPosition(editing ? "editing" : "playback");
-      }
-
-      const { breakOnNextChord } = getState();
-
-      if (breakOnNextChord) {
-        clearBreakOnNextChord();
-        return;
-      }
-
-      lastCompletionTime = completionTime;
-      processedIndex++;
     }
 
     if (processedIndex >= timeline.length) {
@@ -273,7 +304,7 @@ export async function runPlaybackScheduler({
         audioMetadata.playing &&
         isSessionValid()
       ) {
-        setState({ currentChordIndex: 0 });
+        maybeUpdateCurrentChordIndex(0);
 
         timeline = buildPlaybackTimeline({
           compiledChords,
@@ -319,7 +350,7 @@ export async function runPlaybackScheduler({
     const nextUnscheduledEntry = timeline[scheduledIndex];
     const nextUnprocessedEntry = timeline[processedIndex];
 
-    let wakeTime = now + SCHEDULER_POLL_INTERVAL_MS / 1000;
+    let wakeTime = now + MIN_SCHEDULER_SLEEP_SECONDS;
 
     if (
       nextUnscheduledEntry &&
@@ -338,6 +369,8 @@ export async function runPlaybackScheduler({
       );
       wakeTime = Math.min(wakeTime, processWake);
     }
+
+    wakeTime = Math.max(now + MIN_SCHEDULER_SLEEP_SECONDS, wakeTime);
 
     await sleepUntilAudioTime(audioContext, wakeTime, () => !isSessionValid());
   }
