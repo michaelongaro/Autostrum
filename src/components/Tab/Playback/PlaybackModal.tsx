@@ -57,7 +57,6 @@ function PlaybackModal() {
     playbackSpeed,
     playbackMetadata,
     audioMetadata,
-    audioContext,
     showPlaybackModal,
     setShowPlaybackModal,
     visiblePlaybackContainerWidth,
@@ -66,7 +65,6 @@ function PlaybackModal() {
     viewportLabel,
     loopDelay,
     currentlyPlayingMetadata,
-    playbackStartedAtAudioTime,
     setAudioMetadata,
     setPlaybackModalViewingState,
     pauseAudio,
@@ -132,21 +130,6 @@ function PlaybackModal() {
       setChordRepetitions(new Array(expandedTabData.length).fill(0));
     }
   }, [expandedTabData]);
-
-  // After playback stops, normalize loop offsets so scrubbing uses a single repetition plane.
-  const wasPlayingRef = useRef(audioMetadata.playing);
-  useEffect(() => {
-    if (
-      wasPlayingRef.current &&
-      !audioMetadata.playing &&
-      chordRepetitions.length > 0
-    ) {
-      const activeRepetition = chordRepetitions[currentChordIndex] ?? 0;
-      setChordRepetitions(new Array(chordRepetitions.length).fill(activeRepetition));
-    }
-
-    wasPlayingRef.current = audioMetadata.playing;
-  }, [audioMetadata.playing, chordRepetitions, currentChordIndex]);
 
   // Compute chord layout data (positions, widths, durations) - memoized
   const chordLayoutData = useMemo<ChordLayoutData | null>(() => {
