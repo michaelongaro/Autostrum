@@ -39,6 +39,25 @@ const backdropVariants = {
   },
 };
 
+interface RenderVisibleChord {
+  chord:
+    | PlaybackTabChordType
+    | PlaybackStrummedChordType
+    | PlaybackLoopDelaySpacerChord;
+  index: number;
+  prevChord?:
+    | PlaybackTabChordType
+    | PlaybackStrummedChordType
+    | PlaybackLoopDelaySpacerChord;
+  nextChord?:
+    | PlaybackTabChordType
+    | PlaybackStrummedChordType
+    | PlaybackLoopDelaySpacerChord;
+  isFirstChordInSection: boolean;
+  isDimmed: boolean;
+  isHighlighted: boolean;
+}
+
 interface ChordLayoutData {
   scrollPositions: number[];
   chordWidths: number[];
@@ -130,6 +149,23 @@ function PlaybackModal() {
       setChordRepetitions(new Array(expandedTabData.length).fill(0));
     }
   }, [expandedTabData]);
+
+  function closePlaybackModal() {
+    setShowPlaybackModal(false);
+
+    pauseAudio(true);
+
+    setTimeout(() => {
+      setPlaybackModalViewingState("Practice");
+    }, 150); // waiting for the modal to actually close before changing state
+
+    if (audioMetadata.editingLoopRange) {
+      setAudioMetadata({
+        ...audioMetadata,
+        editingLoopRange: false,
+      });
+    }
+  }
 
   // Compute chord layout data (positions, widths, durations) - memoized
   const chordLayoutData = useMemo<ChordLayoutData | null>(() => {
@@ -381,24 +417,7 @@ function PlaybackModal() {
       isFirstChordInSection,
       isDimmed,
       isHighlighted,
-    }: {
-      chord:
-        | PlaybackTabChordType
-        | PlaybackStrummedChordType
-        | PlaybackLoopDelaySpacerChord;
-      index: number;
-      prevChord?:
-        | PlaybackTabChordType
-        | PlaybackStrummedChordType
-        | PlaybackLoopDelaySpacerChord;
-      nextChord?:
-        | PlaybackTabChordType
-        | PlaybackStrummedChordType
-        | PlaybackLoopDelaySpacerChord;
-      isFirstChordInSection: boolean;
-      isDimmed: boolean;
-      isHighlighted: boolean;
-    }) => (
+    }: RenderVisibleChord) => (
       <RenderChordByType
         type={
           chord.type === "strum"
@@ -434,17 +453,7 @@ function PlaybackModal() {
       exit="closed"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
-          setShowPlaybackModal(false);
-          pauseAudio(true);
-          setTimeout(() => {
-            setPlaybackModalViewingState("Practice");
-          }, 150); // waiting for the modal to actually close before changing state
-          if (audioMetadata.editingLoopRange) {
-            setAudioMetadata({
-              ...audioMetadata,
-              editingLoopRange: false,
-            });
-          }
+          closePlaybackModal();
         }
       }}
     >
@@ -558,17 +567,7 @@ function PlaybackModal() {
 
           <Button
             variant={"modalClose"}
-            onClick={() => {
-              setShowPlaybackModal(false);
-              pauseAudio();
-
-              if (audioMetadata.editingLoopRange) {
-                setAudioMetadata({
-                  ...audioMetadata,
-                  editingLoopRange: false,
-                });
-              }
-            }}
+            onClick={closePlaybackModal}
             className="shadow-none"
           >
             <X className="size-5" />
