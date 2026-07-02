@@ -964,6 +964,7 @@ const useTabStoreBase = create<TabState>()(
               looping: state.looping,
               showPlaybackModal: state.showPlaybackModal,
               audioMetadata: state.audioMetadata,
+              currentChordIndex: state.currentChordIndex,
             };
           },
           setState: (partial) => set(partial),
