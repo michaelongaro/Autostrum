@@ -18,27 +18,19 @@ interface ChordLayoutData {
 interface PlaybackVisibleChords {
   chordLayoutData: ChordLayoutData;
   expandedTabData: (
-    | PlaybackTabChord
-    | PlaybackStrummedChord
-    | PlaybackLoopDelaySpacerChord
+    PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord
   )[];
   chordRepetitions: number[];
   initialPlaceholderWidth: number;
   loopDelay: number;
   renderChord: (props: {
     chord:
-      | PlaybackTabChord
-      | PlaybackStrummedChord
-      | PlaybackLoopDelaySpacerChord;
+      PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
     index: number;
     prevChord?:
-      | PlaybackTabChord
-      | PlaybackStrummedChord
-      | PlaybackLoopDelaySpacerChord;
+      PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
     nextChord?:
-      | PlaybackTabChord
-      | PlaybackStrummedChord
-      | PlaybackLoopDelaySpacerChord;
+      PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
     isFirstChordInSection: boolean;
     isDimmed: boolean;
     isHighlighted: boolean;
@@ -164,8 +156,7 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
               index > audioMetadata.endLoopIndex));
 
         const isFirstChordInSection =
-          index === 0 &&
-          (loopDelay !== 0 || (chordRepetitions[0] ?? 0) === 0);
+          index === 0 && (loopDelay !== 0 || (chordRepetitions[0] ?? 0) === 0);
 
         return (
           <div
@@ -174,7 +165,6 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
               position: "absolute",
               width: `${chordLayoutData.chordWidths[index] ?? 0}px`,
               left: `${getChordScrollPosition(index) + initialPlaceholderWidth}px`,
-              contain: "paint",
             }}
           >
             {renderChord({
