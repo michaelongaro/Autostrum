@@ -13,6 +13,10 @@ import {
 import { resetProgressTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { DEFAULT_TUNING, normalizeTuningValue, parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
+import {
+  PLAYBACK_START_EPSILON_SECONDS,
+  runPlaybackScheduler,
+} from "~/utils/playbackScheduler";
 import { useShallow } from "zustand/shallow";
 
 export interface SectionProgression {
@@ -581,6 +585,8 @@ interface TabState {
   currentChordIndex: number;
   setCurrentChordIndex: (currentChordIndex: number) => void;
   playbackStartedAtAudioTime: number | null;
+  playbackSessionId: number;
+  scheduledPlaybackNodes: { stop(when?: number): void }[];
   audioMetadata: AudioMetadata;
   setAudioMetadata: (audioMetadata: AudioMetadata) => void;
   instruments: Record<InstrumentNames, Soundfont.Player>;
@@ -771,6 +777,8 @@ const useTabStoreBase = create<TabState>()(
       currentChordIndex: 0,
       setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
       playbackStartedAtAudioTime: null,
+      playbackSessionId: 0,
+      scheduledPlaybackNodes: [],
       audioMetadata: {
         playing: false,
         location: null,
@@ -913,10 +921,11 @@ const useTabStoreBase = create<TabState>()(
             : expandedTabData.artificialLoopsNecessary);
 
         // Web Audio is most reliable when you schedule sounds slightly ahead of audioContext.currentTime
-        const playbackStartEpsilonSeconds = 0.03;
+        const nextPlaybackSessionId = get().playbackSessionId + 1;
+        const scheduledPlaybackNodes: { stop(when?: number): void }[] = [];
 
         let nextChordStartTime =
-          audioContext.currentTime + playbackStartEpsilonSeconds;
+          audioContext.currentTime + PLAYBACK_START_EPSILON_SECONDS;
 
         set({
           audioMetadata: {
@@ -925,111 +934,42 @@ const useTabStoreBase = create<TabState>()(
             playing: true,
           },
           playbackStartedAtAudioTime: nextChordStartTime,
+          playbackSessionId: nextPlaybackSessionId,
+          scheduledPlaybackNodes,
+          breakOnNextChord: false,
         });
 
-        for (
-          let chordIndex = currentChordIndex;
-          chordIndex < adjChordCount;
-          chordIndex++
-        ) {
-          const adjChordIndex = chordIndex % compiledChords.length;
-          const currColumn = compiledChords[adjChordIndex];
+        const activeSessionId = nextPlaybackSessionId;
 
-          // Proceed only if the current column is defined and not ornamental (has length > 0)
-          if (currColumn && currColumn.length > 0) {
-            set({
-              currentChordIndex: chordIndex,
-            });
-
-            const thirdPrevColumn = compiledChords[adjChordIndex - 3];
-            const secondPrevColumn = compiledChords[adjChordIndex - 2];
-            const prevColumn = compiledChords[adjChordIndex - 1];
-            const nextColumn = compiledChords[adjChordIndex + 1];
-
-            // Calculate the altered BPM
-            const noteLengthMultiplier =
-              noteLengthMultipliers[currColumn[8] as FullNoteLengths];
-
-            const baseBpm = Number(currColumn[9]);
-
-            const effectiveBpm =
-              baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
-
-            const chordDuration = 60 / effectiveBpm;
-
-            // Play the current chord
-            await playNoteColumn({
-              tuning,
-              capo: capo ?? 0,
-              bpm: effectiveBpm,
-              targetStartTime: nextChordStartTime,
-              thirdPrevColumn,
-              secondPrevColumn,
-              prevColumn,
-              currColumn,
-              nextColumn,
-              audioContext,
-              masterVolumeGainNode,
-              currentInstrument,
-              currentlyPlayingStrings,
-            });
-
-            nextChordStartTime += chordDuration;
-          }
-
-          // If the current chord is the last in the compiledChords sequence
-          if (
-            // TODO: probably want to have reset of slider to beginning at the very first
-            // loop delay spacer chord (if there is one).
-            adjChordIndex ===
-            compiledChords.length - 1
-          ) {
-            resetProgressTabSliderPosition(editing ? "editing" : "playback");
-          }
-
-          // Since we are in a loop, we need to get up-to-date state values
-          const {
-            audioMetadata,
-            breakOnNextChord,
-            looping,
-            showPlaybackModal,
-          } = get();
-
-          // Tab has been paused, so we should stop the playback loop
-          if (breakOnNextChord) {
-            set({
-              breakOnNextChord: false,
-            });
-            return;
-          }
-
-          // Handle the end of the entire repeat sequence
-          if (
-            chordIndex === adjChordCount - 1 &&
-            (looping || showPlaybackModal) &&
-            audioMetadata.playing
-          ) {
-            // Reset the current chord index to 0 to start over.
-            // WAAPI onfinish owns visual loop chaining; keep the original audio
-            // anchor so the strip animation is not torn down and recreated.
-            set({
-              currentChordIndex: 0,
-            });
-
-            // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
-            chordIndex = -1;
-          } else if (!looping && chordIndex === adjChordCount - 1) {
-            // If not looping, stop the playback and set currentChordIndex to 0
-            set({
-              currentChordIndex: 0,
-              playbackStartedAtAudioTime: null,
-              audioMetadata: {
-                ...audioMetadata,
-                playing: false,
-              },
-            });
-          }
-        }
+        await runPlaybackScheduler({
+          compiledChords,
+          adjChordCount,
+          startChordIndex: currentChordIndex,
+          playbackStartTime: nextChordStartTime,
+          playbackSpeed,
+          tuning,
+          capo: capo ?? 0,
+          audioContext,
+          masterVolumeGainNode,
+          currentInstrument,
+          currentlyPlayingStrings,
+          scheduledNodes: scheduledPlaybackNodes,
+          playbackSessionId: activeSessionId,
+          editing,
+          isSessionValid: () => get().playbackSessionId === activeSessionId,
+          getState: () => {
+            const state = get();
+            return {
+              breakOnNextChord: state.breakOnNextChord,
+              looping: state.looping,
+              showPlaybackModal: state.showPlaybackModal,
+              audioMetadata: state.audioMetadata,
+            };
+          },
+          setState: (partial) => set(partial),
+          resetProgressTabSliderPosition,
+          clearBreakOnNextChord: () => set({ breakOnNextChord: false }),
+        });
       },
 
       playPreview: async ({
@@ -1146,7 +1086,22 @@ const useTabStoreBase = create<TabState>()(
       },
 
       pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
-        const { audioMetadata, previewMetadata, currentInstrument } = get();
+        const {
+          audioMetadata,
+          previewMetadata,
+          currentInstrument,
+          scheduledPlaybackNodes,
+        } = get();
+
+        for (const scheduledNode of scheduledPlaybackNodes) {
+          try {
+            scheduledNode.stop();
+          } catch {
+            // Node may already have stopped.
+          }
+        }
+
+        const nextPlaybackSessionId = get().playbackSessionId + 1;
 
         if (
           !audioMetadata.playing &&
@@ -1163,6 +1118,8 @@ const useTabStoreBase = create<TabState>()(
           set({
             currentChordIndex: 0,
             playbackStartedAtAudioTime: null,
+            playbackSessionId: nextPlaybackSessionId,
+            scheduledPlaybackNodes: [],
           });
           return;
         }
@@ -1181,6 +1138,8 @@ const useTabStoreBase = create<TabState>()(
             },
             playbackStartedAtAudioTime: null,
             breakOnNextChord: true,
+            playbackSessionId: nextPlaybackSessionId,
+            scheduledPlaybackNodes: [],
           });
 
           if (resetToStart) {
@@ -1197,6 +1156,8 @@ const useTabStoreBase = create<TabState>()(
               playing: false,
             },
             breakOnNextPreviewChord: true,
+            playbackSessionId: nextPlaybackSessionId,
+            scheduledPlaybackNodes: [],
           });
 
           if (resetToStart) {
@@ -1205,6 +1166,11 @@ const useTabStoreBase = create<TabState>()(
               currentChordIndex: 0,
             });
           }
+        } else {
+          set({
+            playbackSessionId: nextPlaybackSessionId,
+            scheduledPlaybackNodes: [],
+          });
         }
 
         currentInstrument?.stop();

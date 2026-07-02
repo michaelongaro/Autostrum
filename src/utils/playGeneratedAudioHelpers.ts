@@ -148,7 +148,7 @@ function applyBendOrReleaseEffect({
 
   if (!pluckBaseNote && note) {
     // @ts-expect-error TODO: fix type
-    note.source.stop(0);
+    note.source.stop(audioContext.currentTime + when);
 
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
@@ -160,7 +160,11 @@ function applyBendOrReleaseEffect({
 
     // @ts-expect-error TODO: fix type
     source.buffer = note.source.buffer as AudioBuffer;
-    source.start(0, 0.5, isPalmMuted ? 0.45 : undefined);
+    source.start(
+      audioContext.currentTime + when,
+      0.5,
+      isPalmMuted ? 0.45 : undefined,
+    );
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.linearRampToValueAtTime(
@@ -236,6 +240,7 @@ interface PlayDeadNote {
   fret: number;
   accented: boolean;
   palmMuted: boolean;
+  when: number;
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
@@ -243,6 +248,7 @@ interface PlayDeadNote {
     | AudioBufferSourceNode
     | undefined
   )[];
+  scheduledNodes?: { stop(when?: number): void }[];
 }
 
 function playDeadNote({
@@ -250,12 +256,15 @@ function playDeadNote({
   fret,
   accented,
   palmMuted,
+  when,
   audioContext,
   masterVolumeGainNode,
   currentlyPlayingStrings,
+  scheduledNodes,
 }: PlayDeadNote) {
-  // stopping any note on string that is currently playing
-  currentlyPlayingStrings[stringIdx]?.stop();
+  setTimeout(() => {
+    currentlyPlayingStrings[stringIdx]?.stop();
+  }, when * 1000);
 
   const frequency = mapStringAndFretToOscillatorFrequency(
     stringIdx,
@@ -300,11 +309,11 @@ function playDeadNote({
       break;
   }
 
-  gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(
-    0.0001,
-    audioContext.currentTime + 0.1,
-  );
+  const startTime = audioContext.currentTime + when;
+  const endTime = startTime + 0.1;
+
+  gainNode.gain.setValueAtTime(gainTarget, startTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, endTime);
 
   // Create a BiquadFilterNode for a low-pass filter
   const highpassFilter = audioContext.createBiquadFilter();
@@ -327,17 +336,17 @@ function playDeadNote({
   gainNode.connect(masterVolumeGainNode);
   masterVolumeGainNode.connect(audioContext.destination);
 
-  // Start the oscillator and noise now
-  oscillator.start(audioContext.currentTime);
+  oscillator.start(startTime);
+  oscillator.stop(endTime);
 
-  // Stop the oscillator and noise shortly afterward to simulate a short, percussive sound
-  oscillator.stop(audioContext.currentTime + 0.1);
+  scheduledNodes?.push(oscillator);
 }
 
 interface PlaySlapSound {
   accented: boolean;
   stacatto?: boolean;
   palmMuted: boolean;
+  when: number;
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
@@ -345,20 +354,24 @@ interface PlaySlapSound {
     | AudioBufferSourceNode
     | undefined
   )[];
+  scheduledNodes?: { stop(when?: number): void }[];
 }
 
 function playSlapSound({
   accented,
   stacatto,
   palmMuted,
+  when,
   audioContext,
   masterVolumeGainNode,
   currentlyPlayingStrings,
+  scheduledNodes,
 }: PlaySlapSound) {
-  // stopping all notes currently playing
-  for (const currentlyPlayingString of currentlyPlayingStrings) {
-    currentlyPlayingString?.stop();
-  }
+  setTimeout(() => {
+    for (const currentlyPlayingString of currentlyPlayingStrings) {
+      currentlyPlayingString?.stop();
+    }
+  }, when * 1000);
 
   // Create an OscillatorNode to simulate the slap sound
   const oscillator = audioContext.createOscillator();
@@ -397,11 +410,11 @@ function playSlapSound({
     gainTarget *= 1.25;
   }
 
-  gainNode.gain.setValueAtTime(gainTarget, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(
-    0.01,
-    audioContext.currentTime + duration,
-  );
+  const startTime = audioContext.currentTime + when;
+  const endTime = startTime + duration;
+
+  gainNode.gain.setValueAtTime(gainTarget, startTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, endTime);
 
   // Create a BiquadFilterNode for a low-pass filter
   const lowPassFilter = audioContext.createBiquadFilter();
@@ -417,11 +430,8 @@ function playSlapSound({
 
   // Create a GainNode for the noise volume
   const noiseGain = audioContext.createGain();
-  noiseGain.gain.setValueAtTime(0.2, audioContext.currentTime);
-  noiseGain.gain.exponentialRampToValueAtTime(
-    0.01,
-    audioContext.currentTime + duration,
-  );
+  noiseGain.gain.setValueAtTime(0.2, startTime);
+  noiseGain.gain.exponentialRampToValueAtTime(0.01, endTime);
 
   // Connect the oscillator and noise to the gainNode
   oscillator.connect(lowPassFilter);
@@ -434,13 +444,12 @@ function playSlapSound({
   gainNode.connect(masterVolumeGainNode);
   masterVolumeGainNode.connect(audioContext.destination);
 
-  // Start the oscillator and noise now
-  oscillator.start(audioContext.currentTime);
-  noise.start(audioContext.currentTime);
+  oscillator.start(startTime);
+  noise.start(startTime);
+  oscillator.stop(endTime);
+  noise.stop(endTime);
 
-  // Stop the oscillator and noise shortly afterward to simulate a short, percussive sound
-  oscillator.stop(audioContext.currentTime + duration);
-  noise.stop(audioContext.currentTime + duration);
+  scheduledNodes?.push(oscillator, noise);
 }
 
 interface ApplyPalmMute {
@@ -532,7 +541,7 @@ function applyTetheredEffect({
   // immediately stop current note because we don't ever want to hear the pluck on
   // a tethered note
   // @ts-expect-error TODO: fix type
-  note.source.stop(0);
+  note.source.stop(audioContext.currentTime + when);
 
   const source = audioContext.createBufferSource();
   const sourceGain = audioContext.createGain();
@@ -634,7 +643,7 @@ function applyVibratoEffect({
 
   if (!pluckBaseNote && note) {
     // @ts-expect-error TODO: fix type
-    note.source.stop(0);
+    note.source.stop(audioContext.currentTime + when);
     source = audioContext.createBufferSource();
     sourceGain = audioContext.createGain();
 
@@ -645,7 +654,7 @@ function applyVibratoEffect({
 
     // @ts-expect-error TODO: fix type
     source.buffer = note.source.buffer as AudioBuffer;
-    source.start(0, 0.5);
+    source.start(audioContext.currentTime + when, 0.5);
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.exponentialRampToValueAtTime(
@@ -858,6 +867,7 @@ interface PlayNoteColumn {
   strumDelayMultiplierScale?: number;
   acousticSteelOverrideForPreview?: Soundfont.Player;
   forTuningPreview?: boolean;
+  scheduledNodes?: { stop(when?: number): void }[];
 }
 
 function playNoteColumn({
@@ -877,6 +887,7 @@ function playNoteColumn({
   strumDelayMultiplierScale,
   acousticSteelOverrideForPreview,
   forTuningPreview,
+  scheduledNodes,
 }: PlayNoteColumn) {
   return new Promise<void>((resolve) => {
     const chordDuration = 60 / bpm;
@@ -884,6 +895,7 @@ function playNoteColumn({
     const scheduledEndTime = scheduledStartTime + chordDuration;
     const secondsUntilScheduledEnd =
       scheduledEndTime - audioContext.currentTime;
+    const baseWhen = Math.max(0, scheduledStartTime - audioContext.currentTime);
 
     const resolveDelayMs = Math.max(0, secondsUntilScheduledEnd * 1000);
 
@@ -905,15 +917,18 @@ function playNoteColumn({
           accented: currColumn[7].includes(">"),
           stacatto: currColumn[7].includes("."),
           palmMuted: currColumn[0] !== "",
+          when: baseWhen,
           audioContext,
           masterVolumeGainNode,
           currentlyPlayingStrings,
+          scheduledNodes,
         });
       } else if (currColumn[7] === "r") {
-        // stopping all notes currently playing
-        for (const currentlyPlayingString of currentlyPlayingStrings) {
-          currentlyPlayingString?.stop();
-        }
+        setTimeout(() => {
+          for (const currentlyPlayingString of currentlyPlayingStrings) {
+            currentlyPlayingString?.stop();
+          }
+        }, baseWhen * 1000);
       }
       return;
     }
@@ -953,9 +968,11 @@ function playNoteColumn({
           fret: capo === 0 ? 1 : capo,
           accented: currColumn[7]?.includes(">") || false,
           palmMuted: currColumn[0] !== "",
+          when: baseWhen + chordDelayMultiplier * notesPlayedSoFar,
           audioContext,
           masterVolumeGainNode,
           currentlyPlayingStrings,
+          scheduledNodes,
         });
 
         continue;
@@ -1223,9 +1240,7 @@ function playNoteColumn({
         bpm,
         when: Math.max(
           0,
-          scheduledStartTime -
-            audioContext.currentTime +
-            chordDelayMultiplier * notesPlayedSoFar,
+          baseWhen + chordDelayMultiplier * notesPlayedSoFar,
         ),
         // ^ makes sure that the proper delay is applied to each note in a chord
         // regardless of the number/spacing of notes in the chord
