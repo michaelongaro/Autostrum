@@ -826,6 +826,11 @@ const useTabStoreBase = create<TabState>()(
 
         if (!audioContext || !masterVolumeGainNode) return;
 
+        // necessary primarily on mobile, where switching apps can cause the AudioContext to be suspended.
+        if (audioContext.state === "suspended") {
+          await audioContext.resume();
+        }
+
         const currentlyPlayingStrings: (
           Soundfont.Player | AudioBufferSourceNode | undefined
         )[] = [
@@ -1004,10 +1009,11 @@ const useTabStoreBase = create<TabState>()(
             (looping || showPlaybackModal) &&
             audioMetadata.playing
           ) {
-            // Reset the current chord index to 0 to start over
+            // Reset the current chord index to 0 to start over.
+            // WAAPI onfinish owns visual loop chaining; keep the original audio
+            // anchor so the strip animation is not torn down and recreated.
             set({
               currentChordIndex: 0,
-              playbackStartedAtAudioTime: nextChordStartTime,
             });
 
             // Reset chordIndex to -1 so that after the loop's increment, it becomes 0
