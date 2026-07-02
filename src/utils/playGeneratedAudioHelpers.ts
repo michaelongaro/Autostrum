@@ -1,6 +1,48 @@
 import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
 
+export type StoppablePlaybackNode = { stop(when?: number): void };
+
+export function registerScheduledPlaybackNode(
+  scheduledNodes: StoppablePlaybackNode[] | undefined,
+  node: StoppablePlaybackNode | null | undefined,
+) {
+  if (scheduledNodes && node) {
+    scheduledNodes.push(node);
+  }
+}
+
+export function stopAllScheduledPlaybackNodes(
+  scheduledNodes: StoppablePlaybackNode[],
+  stopTime: number,
+) {
+  for (const node of scheduledNodes) {
+    try {
+      node.stop(stopTime);
+    } catch {
+      // Node may already have stopped.
+    }
+  }
+}
+
+export function stopActivePlaybackStrings(
+  activePlaybackStrings:
+    | (Soundfont.Player | AudioBufferSourceNode | undefined)[]
+    | null
+    | undefined,
+  stopTime: number,
+) {
+  if (!activePlaybackStrings) return;
+
+  for (const activeString of activePlaybackStrings) {
+    try {
+      activeString?.stop(stopTime);
+    } catch {
+      // Node may already have stopped.
+    }
+  }
+}
+
 interface PlayNoteWithEffects {
   note: GainNode;
   stringIdx: number;
@@ -17,6 +59,7 @@ interface PlayNoteWithEffects {
     | AudioBufferSourceNode
     | undefined
   )[];
+  scheduledNodes?: StoppablePlaybackNode[];
 }
 
 function playNoteWithEffects({
@@ -31,6 +74,7 @@ function playNoteWithEffects({
   audioContext,
   masterVolumeGainNode,
   currentlyPlayingStrings,
+  scheduledNodes,
 }: PlayNoteWithEffects) {
   let noteWithEffectApplied = undefined;
 
@@ -53,6 +97,7 @@ function playNoteWithEffects({
         isArbitrarySlide: tetheredMetadata.effect === "arbitrarySlide",
         audioContext,
         currentlyPlayingStrings,
+        scheduledNodes,
         isPalmMuted: effects?.includes("PM"),
       });
     } else if (tetheredMetadata.transitionFromFret !== undefined) {
@@ -68,6 +113,7 @@ function playNoteWithEffects({
         tetheredMetadata,
         audioContext,
         currentlyPlayingStrings,
+        scheduledNodes,
         isPalmMuted: effects?.includes("PM"),
       });
     }
@@ -83,6 +129,7 @@ function playNoteWithEffects({
         pluckBaseNote,
         audioContext,
         currentlyPlayingStrings,
+        scheduledNodes,
       });
     }
   }
@@ -127,6 +174,7 @@ interface ApplyBendEffect {
     | undefined
   )[];
   isPalmMuted?: boolean;
+  scheduledNodes?: StoppablePlaybackNode[];
 }
 
 function applyBendOrReleaseEffect({
@@ -142,6 +190,7 @@ function applyBendOrReleaseEffect({
   audioContext,
   currentlyPlayingStrings,
   isPalmMuted,
+  scheduledNodes,
 }: ApplyBendEffect) {
   let source: AudioBufferSourceNode | undefined = undefined;
   let sourceGain: GainNode | undefined = undefined;
@@ -165,6 +214,7 @@ function applyBendOrReleaseEffect({
       0.5,
       isPalmMuted ? 0.45 : undefined,
     );
+    registerScheduledPlaybackNode(scheduledNodes, source);
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.linearRampToValueAtTime(
@@ -248,7 +298,7 @@ interface PlayDeadNote {
     | AudioBufferSourceNode
     | undefined
   )[];
-  scheduledNodes?: { stop(when?: number): void }[];
+  scheduledNodes?: StoppablePlaybackNode[];
 }
 
 function playDeadNote({
@@ -354,7 +404,7 @@ interface PlaySlapSound {
     | AudioBufferSourceNode
     | undefined
   )[];
-  scheduledNodes?: { stop(when?: number): void }[];
+  scheduledNodes?: StoppablePlaybackNode[];
 }
 
 function playSlapSound({
@@ -522,6 +572,7 @@ interface ApplyTetheredEffect {
     | undefined
   )[];
   isPalmMuted?: boolean;
+  scheduledNodes?: StoppablePlaybackNode[];
 }
 
 function applyTetheredEffect({
@@ -537,6 +588,7 @@ function applyTetheredEffect({
   audioContext,
   currentlyPlayingStrings,
   isPalmMuted,
+  scheduledNodes,
 }: ApplyTetheredEffect) {
   // immediately stop current note because we don't ever want to hear the pluck on
   // a tethered note
@@ -563,6 +615,7 @@ function applyTetheredEffect({
     tetheredEffect === "p" ? 0 : tetheredEffect === "h" ? 0.1 : 0.2,
     isPalmMuted ? 0.45 : undefined,
   );
+  registerScheduledPlaybackNode(scheduledNodes, source);
 
   sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
   sourceGain.gain.linearRampToValueAtTime(
@@ -592,6 +645,7 @@ function applyTetheredEffect({
         bpm,
         audioContext,
         currentlyPlayingStrings,
+        scheduledNodes,
       });
     } else if (
       currentEffects.includes("b") &&
@@ -606,6 +660,7 @@ function applyTetheredEffect({
         bpm,
         audioContext,
         currentlyPlayingStrings,
+        scheduledNodes,
       });
     }
   }
@@ -626,6 +681,7 @@ interface ApplyVibratoEffect {
     | AudioBufferSourceNode
     | undefined
   )[];
+  scheduledNodes?: StoppablePlaybackNode[];
 }
 
 function applyVibratoEffect({
@@ -637,6 +693,7 @@ function applyVibratoEffect({
   pluckBaseNote = true,
   audioContext,
   currentlyPlayingStrings,
+  scheduledNodes,
 }: ApplyVibratoEffect) {
   let source: AudioBufferSourceNode | undefined = undefined;
   let sourceGain: GainNode | undefined = undefined;
@@ -655,6 +712,7 @@ function applyVibratoEffect({
     // @ts-expect-error TODO: fix type
     source.buffer = note.source.buffer as AudioBuffer;
     source.start(audioContext.currentTime + when, 0.5);
+    registerScheduledPlaybackNode(scheduledNodes, source);
 
     sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
     sourceGain.gain.exponentialRampToValueAtTime(
@@ -678,6 +736,7 @@ function applyVibratoEffect({
 
   const oscillatorDelay = (60 / bpm) * 0.15;
   vibratoOscillator.start(audioContext.currentTime + when + oscillatorDelay);
+  registerScheduledPlaybackNode(scheduledNodes, vibratoOscillator);
 
   if (source && sourceGain) {
     vibratoDepth.connect(source.detune);
@@ -714,6 +773,7 @@ interface PlayNote {
     | undefined
   )[];
   acousticSteelOverrideForPreview?: Soundfont.Player;
+  scheduledNodes?: StoppablePlaybackNode[];
 }
 
 function playNote({
@@ -730,6 +790,7 @@ function playNote({
   masterVolumeGainNode,
   currentlyPlayingStrings,
   acousticSteelOverrideForPreview,
+  scheduledNodes,
 }: PlayNote) {
   let duration = 3;
   let gain = 1;
@@ -779,6 +840,11 @@ function playNote({
     },
   );
 
+  registerScheduledPlaybackNode(
+    scheduledNodes,
+    note as StoppablePlaybackNode | null | undefined,
+  );
+
   if (note && (tetheredMetadata || effects.length > 0)) {
     playNoteWithEffects({
       note: note as unknown as GainNode,
@@ -792,6 +858,7 @@ function playNote({
       audioContext,
       masterVolumeGainNode,
       currentlyPlayingStrings,
+      scheduledNodes,
     });
   }
 
@@ -867,7 +934,8 @@ interface PlayNoteColumn {
   strumDelayMultiplierScale?: number;
   acousticSteelOverrideForPreview?: Soundfont.Player;
   forTuningPreview?: boolean;
-  scheduledNodes?: { stop(when?: number): void }[];
+  scheduledNodes?: StoppablePlaybackNode[];
+  isSessionValid?: () => boolean;
 }
 
 function playNoteColumn({
@@ -1252,6 +1320,7 @@ function playNoteColumn({
         masterVolumeGainNode,
         currentlyPlayingStrings,
         acousticSteelOverrideForPreview,
+        scheduledNodes,
       });
 
       notesPlayedSoFar++;

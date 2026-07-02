@@ -167,6 +167,7 @@ export interface RunPlaybackSchedulerArgs {
     | undefined
   )[];
   scheduledNodes?: { stop(when?: number): void }[];
+  isSessionValid?: () => boolean;
   playbackSessionId: number;
   editing: boolean;
   isSessionValid: () => boolean;

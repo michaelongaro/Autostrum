@@ -3,7 +3,11 @@ import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
+import {
+  playNoteColumn,
+  stopActivePlaybackStrings,
+  stopAllScheduledPlaybackNodes,
+} from "~/utils/playGeneratedAudioHelpers";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
@@ -587,6 +591,11 @@ interface TabState {
   playbackStartedAtAudioTime: number | null;
   playbackSessionId: number;
   scheduledPlaybackNodes: { stop(when?: number): void }[];
+  activePlaybackStrings: (
+    | Soundfont.Player
+    | AudioBufferSourceNode
+    | undefined
+  )[] | null;
   audioMetadata: AudioMetadata;
   setAudioMetadata: (audioMetadata: AudioMetadata) => void;
   instruments: Record<InstrumentNames, Soundfont.Player>;
@@ -779,6 +788,7 @@ const useTabStoreBase = create<TabState>()(
       playbackStartedAtAudioTime: null,
       playbackSessionId: 0,
       scheduledPlaybackNodes: [],
+      activePlaybackStrings: null,
       audioMetadata: {
         playing: false,
         location: null,
@@ -936,6 +946,7 @@ const useTabStoreBase = create<TabState>()(
           playbackStartedAtAudioTime: nextChordStartTime,
           playbackSessionId: nextPlaybackSessionId,
           scheduledPlaybackNodes,
+          activePlaybackStrings: currentlyPlayingStrings,
           breakOnNextChord: false,
         });
 
@@ -1092,15 +1103,15 @@ const useTabStoreBase = create<TabState>()(
           previewMetadata,
           currentInstrument,
           scheduledPlaybackNodes,
+          activePlaybackStrings,
+          audioContext,
         } = get();
 
-        for (const scheduledNode of scheduledPlaybackNodes) {
-          try {
-            scheduledNode.stop();
-          } catch {
-            // Node may already have stopped.
-          }
-        }
+        const stopTime = audioContext?.currentTime ?? 0;
+
+        stopAllScheduledPlaybackNodes(scheduledPlaybackNodes, stopTime);
+        stopActivePlaybackStrings(activePlaybackStrings, stopTime);
+        currentInstrument?.stop(stopTime);
 
         const nextPlaybackSessionId = get().playbackSessionId + 1;
 
@@ -1121,6 +1132,7 @@ const useTabStoreBase = create<TabState>()(
             playbackStartedAtAudioTime: null,
             playbackSessionId: nextPlaybackSessionId,
             scheduledPlaybackNodes: [],
+            activePlaybackStrings: null,
           });
           return;
         }
@@ -1141,6 +1153,7 @@ const useTabStoreBase = create<TabState>()(
             breakOnNextChord: true,
             playbackSessionId: nextPlaybackSessionId,
             scheduledPlaybackNodes: [],
+            activePlaybackStrings: null,
           });
 
           if (resetToStart) {
@@ -1159,6 +1172,7 @@ const useTabStoreBase = create<TabState>()(
             breakOnNextPreviewChord: true,
             playbackSessionId: nextPlaybackSessionId,
             scheduledPlaybackNodes: [],
+            activePlaybackStrings: null,
           });
 
           if (resetToStart) {
@@ -1171,10 +1185,9 @@ const useTabStoreBase = create<TabState>()(
           set({
             playbackSessionId: nextPlaybackSessionId,
             scheduledPlaybackNodes: [],
+            activePlaybackStrings: null,
           });
         }
-
-        currentInstrument?.stop();
       },
 
       expandedTabData: null,
