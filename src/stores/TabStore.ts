@@ -10,8 +10,6 @@ import {
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import { logPlaybackDebug } from "~/utils/playbackDebugFlags";
-import { getAudioContextOutputTimeSeconds } from "~/utils/playbackAudioClock";
 import { resetProgressTabSliderPosition } from "~/utils/tabSliderHelpers";
 import { DEFAULT_TUNING, normalizeTuningValue, parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
@@ -940,15 +938,6 @@ const useTabStoreBase = create<TabState>()(
           if (currColumn && currColumn.length > 0) {
             set({
               currentChordIndex: chordIndex,
-            });
-
-            logPlaybackDebug("logChordIndexTiming", "currentChordIndex updated", {
-              chordIndex,
-              audioContextTime: getAudioContextOutputTimeSeconds(audioContext),
-              targetStartTime: nextChordStartTime,
-              driftSeconds:
-                getAudioContextOutputTimeSeconds(audioContext) -
-                nextChordStartTime,
             });
 
             const thirdPrevColumn = compiledChords[adjChordIndex - 3];

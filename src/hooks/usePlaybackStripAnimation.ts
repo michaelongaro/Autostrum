@@ -5,10 +5,6 @@ import {
   useRef,
   type RefObject,
 } from "react";
-import {
-  getPlaybackDebugFlags,
-  logPlaybackDebug,
-} from "~/utils/playbackDebugFlags";
 
 interface PlaybackStripLayoutData {
   scrollPositions: number[];
@@ -221,11 +217,6 @@ function usePlaybackStripAnimation({
     animationRef.current = null;
     animationGenerationRef.current += 1;
 
-    logPlaybackDebug("logLoopTeardown", "animation effect restarted", {
-      generation: animationGenerationRef.current,
-      playing,
-    });
-
     if (
       !playing ||
       !animatedElement ||
@@ -316,10 +307,6 @@ function usePlaybackStripAnimation({
         animation.cancel();
 
         repetitionBaseRef.current += chordLayoutData.totalWidth;
-        logPlaybackDebug("logLoopTeardown", "WAAPI onfinish loop chain", {
-          generation,
-          repetitionBase: repetitionBaseRef.current,
-        });
         startAnimation(0);
       };
 

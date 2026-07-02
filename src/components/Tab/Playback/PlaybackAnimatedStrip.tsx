@@ -56,7 +56,8 @@ const PlaybackAnimatedStrip = memo(
     expandedTabData,
     chordRepetitions,
     loopDelay,
-    playbackSpeed,
+    // v still used in memo comparison
+    playbackSpeed, // eslint-disable-line @typescript-eslint/no-unused-vars
     renderChord,
   }: PlaybackAnimatedStrip) {
     const scrollStripRef = useRef<HTMLDivElement | null>(null);

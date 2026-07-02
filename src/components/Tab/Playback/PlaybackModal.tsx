@@ -282,6 +282,7 @@ function PlaybackModal() {
       const firstNewHalf = new Array(
         chordLayoutData.virtualizationStartIndex,
       ).fill(newRepetitions) as number[];
+
       const secondNewHalf = new Array(secondHalfLength).fill(
         oldRepetitions,
       ) as number[];
