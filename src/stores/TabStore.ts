@@ -826,6 +826,7 @@ const useTabStoreBase = create<TabState>()(
 
         if (!audioContext || !masterVolumeGainNode) return;
 
+        // necessary primarily on mobile, where switching apps can cause the AudioContext to be suspended.
         if (audioContext.state === "suspended") {
           await audioContext.resume();
         }
@@ -1264,8 +1265,6 @@ const useTabStoreBase = create<TabState>()(
 export const useTabStore = <T>(selector: (state: TabState) => T): T => {
   return useTabStoreBase(useShallow(selector));
 };
-
-export const getTabStoreState = () => useTabStoreBase.getState();
 
 export const stringifyFullTabState = () => {
   const store = useTabStoreBase.getState();
