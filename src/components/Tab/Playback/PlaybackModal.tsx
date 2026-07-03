@@ -481,7 +481,7 @@ function PlaybackModal() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="absolute left-0 top-0 z-10 size-full bg-black/60 backdrop-blur-sm"
+                className="absolute left-0 top-0 z-10 size-full bg-black/40 backdrop-blur-sm"
                 onClick={() => {
                   setShowBackgroundBlur(false);
                 }}
