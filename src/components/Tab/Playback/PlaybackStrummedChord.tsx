@@ -16,7 +16,6 @@ interface PlaybackStrummedChord {
   chordColor?: string;
   noteLength: FullNoteLengths;
   bpmToShow?: number;
-  highlightTransitionDurationMs: number;
   isFirstChordInSection: boolean;
   isLastChordInSection: boolean;
   isHighlighted?: boolean;
@@ -38,7 +37,6 @@ function PlaybackStrummedChord({
   chordColor = "",
   noteLength,
   bpmToShow,
-  highlightTransitionDurationMs,
   isFirstChordInSection,
   isLastChordInSection,
   isHighlighted = false,
@@ -54,6 +52,7 @@ function PlaybackStrummedChord({
   const { chordDisplayMode } = useTabStore((state) => ({
     chordDisplayMode: state.chordDisplayMode,
   }));
+
   return (
     <>
       {/* not my favorite, but strumIndex of -1 indicates a physical spacer between strumming
@@ -116,7 +115,6 @@ function PlaybackStrummedChord({
                 name={chordName}
                 truncate={true}
                 isHighlighted={isHighlighted}
-                transitionDurationMs={highlightTransitionDurationMs}
               />
             )}
           </div>
@@ -134,9 +132,8 @@ function PlaybackStrummedChord({
                     : isHighlighted
                       ? "hsl(var(--primary))"
                       : "hsl(var(--foreground))",
-                transitionDuration: `${highlightTransitionDurationMs}ms`,
               }}
-              className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
+              className="baseVertFlex relative mb-2 h-[20px] text-lg"
             >
               <div className="baseFlex">
                 {strum.includes("v") && (

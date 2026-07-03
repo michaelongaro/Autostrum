@@ -168,7 +168,7 @@ function StaticStrummingPattern({
                         : `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`
                       : `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
                 }}
-                className="baseVertFlex relative mb-2 h-[20px] text-lg transition-colors"
+                className="baseVertFlex relative mb-2 h-[20px] text-lg"
               >
                 {strum.strum.includes("v") && (
                   <BsArrowDown

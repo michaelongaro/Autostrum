@@ -20,7 +20,6 @@ interface ChordName {
   color: string;
   truncate: boolean;
   isHighlighted?: boolean;
-  transitionDurationMs?: number;
   screenshotColor?: COLORS;
   screenshotTheme?: THEME;
   showFullName?: boolean;
@@ -31,7 +30,6 @@ function ChordName({
   color,
   truncate,
   isHighlighted,
-  transitionDurationMs,
   screenshotColor,
   screenshotTheme,
   showFullName,
@@ -62,12 +60,6 @@ function ChordName({
       style={{
         backgroundColor: chordDisplayMode === "color" ? color : undefined,
         color: textColor,
-        boxShadow:
-          chordDisplayMode === "color"
-            ? isHighlighted
-              ? `0 0 0 2px ${color}40`
-              : undefined
-            : undefined,
         fontSize: truncate
           ? `${dynamicFontSize(name.length)}px`
           : chordDisplayMode === "color"
@@ -75,16 +67,11 @@ function ChordName({
             : "16px",
         lineHeight: "1.25rem",
         borderWidth: chordDisplayMode === "color" ? "1px" : undefined,
-        transform:
-          chordDisplayMode === "color" && isHighlighted
-            ? "scale(1.1)"
-            : "scale(1)",
-        transitionDuration: transitionDurationMs
-          ? `${transitionDurationMs}ms`
-          : undefined,
         zIndex: showFullName ? 9 : undefined, // still want hover to take priority over chord popover being open
       }}
-      className="baseFlex h-5 shrink-0 rounded-full border-background px-1.5 font-semibold transition-all hover:z-10"
+      // FYI: I am still unsure why adding "isolate" fixes the issue where the chord name
+      // would sometimes not change color when highlighted on iOS
+      className="baseFlex isolate h-5 shrink-0 rounded-full border-background px-1.5 font-semibold hover:z-10"
     >
       {modifiedChordName}
     </div>
