@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -59,8 +59,29 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     );
 
   useEffect(() => {
-    setSearchQuery(decodeURIComponent((query.search as string) ?? ""));
+    startTransition(() => {
+      setSearchQuery(decodeURIComponent((query.search as string) ?? ""));
+    });
   }, [query]);
+
+  useEffect(() => {
+    if (isAboveLgViewportWidth !== false) return;
+
+    const previousScrollY = window.scrollY;
+    const focusInput = () => {
+      searchInputRef.current?.focus({ preventScroll: true });
+
+      if (window.scrollY !== previousScrollY) {
+        window.scrollTo(0, previousScrollY);
+      }
+    };
+
+    const animationFrame = window.requestAnimationFrame(focusInput);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+    };
+  }, [isAboveLgViewportWidth]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -177,7 +198,6 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
           maxLength={50}
           placeholder={`Search for your favorite ${searchType === "songs" ? "songs" : "artists"}...`}
           showFocusState={false}
-          autoFocus={isAboveLgViewportWidth === false}
           onFocus={() => {
             setShowAutofillResults(true);
           }}
@@ -294,7 +314,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                     setSearchType("songs");
                     setSearchQuery("");
                     setDebouncedSearchQuery("");
-                    searchInputRef.current?.focus();
+                    searchInputRef.current?.focus({ preventScroll: true });
                   }}
                 >
                   <IoIosMusicalNotes className="size-5" />
@@ -317,7 +337,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                     setSearchType("artists");
                     setSearchQuery("");
                     setDebouncedSearchQuery("");
-                    searchInputRef.current?.focus();
+                    searchInputRef.current?.focus({ preventScroll: true });
                   }}
                 >
                   <AiOutlineUser className="size-5" />
