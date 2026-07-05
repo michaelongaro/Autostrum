@@ -314,14 +314,14 @@ function UserSettings() {
                 Username
               </Label>
 
-              <div className="baseVertFlex !items-start">
+              <div className="baseVertFlex w-full !items-start xs:w-auto">
                 <motion.div
                   key={localSettings ? "loadedUsername" : "loadingUsername"}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="baseFlex"
+                  className="baseFlex w-full xs:w-auto"
                 >
                   {localSettings ? (
                     <Input
@@ -329,7 +329,7 @@ function UserSettings() {
                       type="text"
                       value={localSettings?.username}
                       placeholder="Enter your username"
-                      className="w-[275px] !text-foreground"
+                      className="w-full !text-foreground xs:w-[275px]"
                       onFocus={() => setUsernameInputHasReceivedFocus(true)}
                       onChange={(e) => {
                         setLocalSettings((prev) => ({
@@ -339,7 +339,7 @@ function UserSettings() {
                       }}
                     />
                   ) : (
-                    <div className="pulseAnimation h-10 w-[275px] rounded-md lg:h-7"></div>
+                    <div className="pulseAnimation h-10 w-full rounded-md xs:w-[275px] lg:h-7"></div>
                   )}
                 </motion.div>
 
@@ -416,7 +416,7 @@ function UserSettings() {
               </span>
 
               <div
-                className={`baseVertFlex !items-end ${editingPassword ? "gap-8" : "gap-2"}`}
+                className={`baseVertFlex w-full !items-start xs:w-auto xs:!items-end ${editingPassword ? "gap-8" : "gap-2"}`}
               >
                 {editingPassword ? (
                   <motion.div
@@ -424,7 +424,7 @@ function UserSettings() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="baseVertFlex !items-start gap-2"
+                    className="baseVertFlex w-full !items-start gap-2 xs:w-auto"
                   >
                     <Label
                       htmlFor="newPassword"
@@ -433,7 +433,7 @@ function UserSettings() {
                       New password
                     </Label>
 
-                    <div className="baseVertFlex relative !items-start gap-2">
+                    <div className="baseVertFlex relative w-full !items-start gap-2">
                       <Input
                         id="newPassword"
                         type={showPasswords ? "text" : "password"}
@@ -441,7 +441,7 @@ function UserSettings() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Enter your new password"
-                        className="w-full max-w-[275px] !text-foreground lg:w-[275px]"
+                        className="w-full !text-foreground xs:w-[275px]"
                       />
 
                       <Button
@@ -503,14 +503,14 @@ function UserSettings() {
                       Confirm password
                     </Label>
 
-                    <div className="baseVertFlex relative !items-start gap-2">
+                    <div className="baseVertFlex relative w-full !items-start gap-2">
                       <Input
                         id="confirmPassword"
                         type={showPasswords ? "text" : "password"}
                         value={confirmPassword}
                         placeholder="Confirm your new password"
                         maxLength={128}
-                        className="w-full max-w-[275px] !text-foreground lg:w-[275px]"
+                        className="w-full !text-foreground xs:w-[275px]"
                         onChange={(e) => setConfirmPassword(e.target.value)}
                       />
 
