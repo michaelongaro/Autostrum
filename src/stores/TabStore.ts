@@ -21,11 +21,9 @@ import {
   PLAYBACK_START_EPSILON_SECONDS,
   runPlaybackScheduler,
 } from "~/utils/playbackScheduler";
-import {
-  getAudioContextState,
-  recoverOrReinitializeAudioSystem,
-} from "~/utils/audioContextRuntime";
+import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import { useShallow } from "zustand/shallow";
+import { isMobileOnly } from "react-device-detect";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -618,7 +616,12 @@ interface TabState {
   ) => void;
 
   // playing/pausing sound functions
-  ensureAudioSystemReady: () => Promise<boolean>;
+  ensureAudioSystemReady: () => Promise<{
+    audioContext: AudioContext;
+    masterVolumeGainNode: GainNode;
+    currentInstrument: Soundfont.Player | null;
+    countInBuffer: AudioBuffer | null;
+  } | null>;
   playTab: ({ location }: PlayTab) => Promise<void>;
   playPreview: ({ data, index, type }: PlayPreview) => Promise<void>;
   pauseAudio: (
@@ -832,52 +835,103 @@ const useTabStoreBase = create<TabState>()(
           masterVolumeGainNode,
           currentInstrumentName,
           currentInstrument,
-          instruments,
+          countInBuffer,
         } = get();
 
-        if (!audioContext || !masterVolumeGainNode) {
-          return false;
+        if (!audioContext || !masterVolumeGainNode) return null;
+
+        // Ordinary backgrounding: resume is enough.
+        if (audioContext.state === "suspended") {
+          try {
+            await audioContext.resume();
+          } catch {
+            // Fall through to full recreate below.
+          }
         }
 
-        if (getAudioContextState(audioContext) === "running") {
-          return true;
+        if (audioContext.state === "running") {
+          return {
+            audioContext,
+            masterVolumeGainNode,
+            currentInstrument,
+            countInBuffer,
+          };
         }
 
-        const recovered = await recoverOrReinitializeAudioSystem({
-          audioContext,
-          masterVolumeGainNode,
-          currentInstrumentName,
+        // iOS "interrupted" (and failed resumes) need a full recreate.
+        const previousVolume = masterVolumeGainNode.gain.value;
+        try {
+          await audioContext.close();
+        } catch {
+          // Best-effort cleanup only.
+        }
+
+        const nextAudioContext = new AudioContext();
+        const nextMasterVolumeGainNode = nextAudioContext.createGain();
+        nextMasterVolumeGainNode.gain.value = isMobileOnly
+          ? 1.25
+          : previousVolume;
+        nextMasterVolumeGainNode.connect(nextAudioContext.destination);
+        (
+          nextMasterVolumeGainNode as GainNode & {
+            __autostrumConnectedToDestination?: boolean;
+          }
+        ).__autostrumConnectedToDestination = true;
+
+        if (nextAudioContext.state === "suspended") {
+          try {
+            await nextAudioContext.resume();
+          } catch {
+            // Playback may still unlock on the next user gesture.
+          }
+        }
+
+        let nextCurrentInstrument: Soundfont.Player | null = null;
+        try {
+          nextCurrentInstrument = await ensureSoundfontPlayer(
+            nextAudioContext,
+            currentInstrumentName,
+            nextMasterVolumeGainNode,
+          );
+        } catch (error) {
+          console.error(
+            `Failed to reload ${currentInstrumentName} after AudioContext recovery:`,
+            error,
+          );
+        }
+
+        let nextCountInBuffer: AudioBuffer | null = null;
+        try {
+          const response = await fetch("/sounds/countIn.wav");
+          const arrayBuffer = await response.arrayBuffer();
+          nextCountInBuffer = await nextAudioContext.decodeAudioData(
+            arrayBuffer,
+          );
+        } catch (error) {
+          console.error(
+            "Failed to reload count-in audio after AudioContext recovery:",
+            error,
+          );
+        }
+
+        set({
+          audioContext: nextAudioContext,
+          masterVolumeGainNode: nextMasterVolumeGainNode,
+          instruments: nextCurrentInstrument
+            ? ({
+                [currentInstrumentName]: nextCurrentInstrument,
+              } as Record<InstrumentNames, Soundfont.Player>)
+            : ({} as Record<InstrumentNames, Soundfont.Player>),
+          currentInstrument: nextCurrentInstrument,
+          countInBuffer: nextCountInBuffer,
         });
 
-        if (!recovered) {
-          return false;
-        }
-
-        const didFullyReinitialize =
-          recovered.audioContext !== audioContext ||
-          recovered.masterVolumeGainNode !== masterVolumeGainNode;
-
-        if (didFullyReinitialize) {
-          set({
-            audioContext: recovered.audioContext,
-            masterVolumeGainNode: recovered.masterVolumeGainNode,
-            instruments: recovered.instruments as Record<
-              InstrumentNames,
-              Soundfont.Player
-            >,
-            currentInstrument:
-              recovered.currentInstrument ??
-              recovered.instruments[currentInstrumentName] ??
-              null,
-            countInBuffer: recovered.countInBuffer,
-          });
-        } else if (!currentInstrument && instruments[currentInstrumentName]) {
-          set({
-            currentInstrument: instruments[currentInstrumentName],
-          });
-        }
-
-        return getAudioContextState(recovered.audioContext) === "running";
+        return {
+          audioContext: nextAudioContext,
+          masterVolumeGainNode: nextMasterVolumeGainNode,
+          currentInstrument: nextCurrentInstrument,
+          countInBuffer: nextCountInBuffer,
+        };
       },
 
       playTab: async ({ location }: PlayTab) => {
@@ -899,16 +953,14 @@ const useTabStoreBase = create<TabState>()(
           ensureAudioSystemReady,
         } = get();
 
-        const audioReady = await ensureAudioSystemReady();
-        if (!audioReady) return;
+        const audioSystem = await ensureAudioSystemReady();
+        if (!audioSystem) return;
 
         const {
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
-        } = get();
-
-        if (!audioContext || !masterVolumeGainNode) return;
+        } = audioSystem;
 
         const currentlyPlayingStrings: (
           Soundfont.Player | AudioBufferSourceNode | undefined
@@ -1052,25 +1104,20 @@ const useTabStoreBase = create<TabState>()(
         customTuning,
         customBpm,
       }: PlayPreview) => {
-        const {
-          capo,
-          tuning,
-          previewMetadata,
-          ensureAudioSystemReady,
-        } = get();
+        const { capo, tuning, previewMetadata, ensureAudioSystemReady } =
+          get();
 
-        const audioReady = await ensureAudioSystemReady();
-        if (!audioReady) return;
+        const audioSystem = await ensureAudioSystemReady();
+        if (!audioSystem) return;
 
         const {
           currentInstrument,
           audioContext,
           masterVolumeGainNode,
-          instruments,
-        } = get();
+        } = audioSystem;
+        const { instruments } = get();
 
-        if (!audioContext || !masterVolumeGainNode || !currentInstrument)
-          return;
+        if (!currentInstrument) return;
 
         const currentlyPlayingStrings: (
           Soundfont.Player | AudioBufferSourceNode | undefined
@@ -1313,8 +1360,6 @@ const useTabStoreBase = create<TabState>()(
 export const useTabStore = <T>(selector: (state: TabState) => T): T => {
   return useTabStoreBase(useShallow(selector));
 };
-
-export const getTabStoreState = () => useTabStoreBase.getState();
 
 export const stringifyFullTabState = () => {
   const store = useTabStoreBase.getState();

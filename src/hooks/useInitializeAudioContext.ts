@@ -1,9 +1,6 @@
 import { useEffect } from "react";
-import { getTabStoreState, useTabStore } from "~/stores/TabStore";
-import {
-  createAudioGraph,
-  loadCountInBuffer,
-} from "~/utils/audioContextRuntime";
+import { useTabStore } from "~/stores/TabStore";
+import { isMobileOnly } from "react-device-detect";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 export function useInitializeAudioContext() {
@@ -16,6 +13,7 @@ export function useInitializeAudioContext() {
     instruments,
     currentInstrumentName,
     setInstruments,
+    currentInstrument,
     setCountInBuffer,
   } = useTabStore((state) => ({
     audioContext: state.audioContext,
@@ -26,6 +24,7 @@ export function useInitializeAudioContext() {
     instruments: state.instruments,
     currentInstrumentName: state.currentInstrumentName,
     setInstruments: state.setInstruments,
+    currentInstrument: state.currentInstrument,
     setCountInBuffer: state.setCountInBuffer,
   }));
 
@@ -33,13 +32,24 @@ export function useInitializeAudioContext() {
     if (audioContext && masterVolumeGainNode) return;
 
     function handleUserInteraction() {
-      const latestState = getTabStoreState();
-      if (latestState.audioContext && latestState.masterVolumeGainNode) {
-        return;
+      if (audioContext && masterVolumeGainNode) return;
+
+      const newAudioContext = new AudioContext();
+
+      const newMasterVolumeGainNode = newAudioContext.createGain();
+
+      if (isMobileOnly) {
+        // mobile doesn't get access to a volume slider (users expect to use device's volume directly) so initializing at full volume.
+        newMasterVolumeGainNode.gain.value = 1.25;
+        localStorage.setItem("autostrum-volume", "1.25");
       }
 
-      const { audioContext: newAudioContext, masterVolumeGainNode: newMasterVolumeGainNode } =
-        createAudioGraph();
+      newMasterVolumeGainNode.connect(newAudioContext.destination);
+      (
+        newMasterVolumeGainNode as GainNode & {
+          __autostrumConnectedToDestination?: boolean;
+        }
+      ).__autostrumConnectedToDestination = true;
 
       setAudioContext(newAudioContext);
       setMasterVolumeGainNode(newMasterVolumeGainNode);
@@ -71,7 +81,13 @@ export function useInitializeAudioContext() {
           );
         });
 
-      loadCountInBuffer(newAudioContext)
+      async function fetchAudioFile(path: string) {
+        const response = await fetch(path);
+        const arrayBuffer = await response.arrayBuffer();
+        return await newAudioContext.decodeAudioData(arrayBuffer);
+      }
+
+      fetchAudioFile("/sounds/countIn.wav")
         .then((audioBuffer) => {
           setCountInBuffer(audioBuffer);
         })
@@ -96,6 +112,7 @@ export function useInitializeAudioContext() {
     instruments,
     currentInstrumentName,
     setInstruments,
+    currentInstrument,
     setCountInBuffer,
   ]);
 }

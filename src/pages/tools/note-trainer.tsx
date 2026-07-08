@@ -15,7 +15,7 @@ import {
 } from "~/components/ui/select";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
-import { getTabStoreState, useTabStore } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import Spinner from "~/components/ui/Spinner";
 
 const opacityAndScaleVariants = {
@@ -148,15 +148,15 @@ function NoteTrainerPage() {
 
       stopCurrentPlayback();
 
-      const audioReady = await ensureAudioSystemReady();
-      if (!audioReady || playbackRequestIdRef.current !== requestId) {
+      const audioSystem = await ensureAudioSystemReady();
+      if (!audioSystem || playbackRequestIdRef.current !== requestId) {
         return;
       }
 
       const {
         audioContext: readyAudioContext,
         currentInstrument: readyCurrentInstrument,
-      } = getTabStoreState();
+      } = audioSystem;
 
       const source = audioSource;
 
