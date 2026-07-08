@@ -16,7 +16,7 @@ import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore } from "~/stores/TabStore";
+import { getTabStoreState, useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 
 interface PlaybackAudioControls {
@@ -39,7 +39,6 @@ function PlaybackAudioControls({
   scrollPositionsLength,
 }: PlaybackAudioControls) {
   const {
-    audioContext,
     bpm,
     playbackSpeed,
     setPlaybackSpeed,
@@ -53,6 +52,7 @@ function PlaybackAudioControls({
     currentInstrument,
     playTab,
     pauseAudio,
+    ensureAudioSystemReady,
     fetchingFullTabData,
     countInTimer,
     setCountInTimer,
@@ -60,9 +60,7 @@ function PlaybackAudioControls({
     playbackMetadata,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
-    countInBuffer,
   } = useTabStore((state) => ({
-    audioContext: state.audioContext,
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
@@ -76,6 +74,7 @@ function PlaybackAudioControls({
     currentInstrument: state.currentInstrument,
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
+    ensureAudioSystemReady: state.ensureAudioSystemReady,
     fetchingFullTabData: state.fetchingFullTabData,
     countInTimer: state.countInTimer,
     setCountInTimer: state.setCountInTimer,
@@ -83,7 +82,6 @@ function PlaybackAudioControls({
     playbackMetadata: state.playbackMetadata,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
-    countInBuffer: state.countInBuffer,
   }));
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
@@ -115,7 +113,21 @@ function PlaybackAudioControls({
       pauseAudio();
       setArtificalPlayButtonTimeout(true);
       setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
-    } else {
+      return;
+    }
+
+    void (async () => {
+      // Recover/recreate the audio graph before count-in so iOS interrupted
+      // contexts don't silently fail until a full page refresh.
+      const audioReady = await ensureAudioSystemReady();
+      if (!audioReady) return;
+
+      const {
+        audioContext: readyAudioContext,
+        masterVolumeGainNode: readyMasterVolumeGainNode,
+        countInBuffer: readyCountInBuffer,
+      } = getTabStoreState();
+
       if (countInTimerEnabled) {
         setCountInTimer({
           ...countInTimer,
@@ -123,19 +135,25 @@ function PlaybackAudioControls({
         });
 
         function playCountInSound(index: number) {
-          if (!audioContext || !masterVolumeGainNode || !countInBuffer) return;
+          if (
+            !readyAudioContext ||
+            !readyMasterVolumeGainNode ||
+            !readyCountInBuffer
+          ) {
+            return;
+          }
 
-          const source = audioContext.createBufferSource();
-          source.buffer = countInBuffer;
+          const source = readyAudioContext.createBufferSource();
+          source.buffer = readyCountInBuffer;
 
-          const gainNode = audioContext.createGain();
+          const gainNode = readyAudioContext.createGain();
           gainNode.gain.value = 0.25;
 
           source.detune.value = index === 3 ? 0 : index === 2 ? -50 : 0;
 
           source.connect(gainNode);
 
-          gainNode.connect(masterVolumeGainNode);
+          gainNode.connect(readyMasterVolumeGainNode);
           setTimeout(() => source.start(), 190);
         }
 
@@ -149,6 +167,7 @@ function PlaybackAudioControls({
           }, 1000);
         }, 1000);
       }
+
       if (previewMetadata.playing) pauseAudio();
 
       setTimeout(() => {
@@ -165,7 +184,7 @@ function PlaybackAudioControls({
           });
         }
       }, delayPlayStart);
-    }
+    })();
   }
 
   const disablePlayButton = useMemo(() => {

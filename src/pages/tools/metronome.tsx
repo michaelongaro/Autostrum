@@ -221,6 +221,23 @@ function MetronomeToolPage() {
   }
 
   async function getAudioContext() {
+    const existingContext = audioContextRef.current;
+    const existingState = existingContext?.state;
+
+    // iOS can leave a local AudioContext stuck in "interrupted" after
+    // backgrounding; recreate it so the metronome recovers without a refresh.
+    if (
+      existingContext &&
+      (existingState === "interrupted" || existingState === "closed")
+    ) {
+      try {
+        await existingContext.close();
+      } catch {
+        // Best-effort cleanup only.
+      }
+      audioContextRef.current = null;
+    }
+
     if (!audioContextRef.current) {
       audioContextRef.current = new window.AudioContext();
     }
