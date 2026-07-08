@@ -16,7 +16,7 @@ import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { getTabStoreState, useTabStore } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 
 interface PlaybackAudioControls {
@@ -117,16 +117,15 @@ function PlaybackAudioControls({
     }
 
     void (async () => {
-      // Recover/recreate the audio graph before count-in so iOS interrupted
-      // contexts don't silently fail until a full page refresh.
-      const audioReady = await ensureAudioSystemReady();
-      if (!audioReady) return;
+      // Count-in runs before playTab, so recover here too.
+      const audioSystem = await ensureAudioSystemReady();
+      if (!audioSystem) return;
 
       const {
         audioContext: readyAudioContext,
         masterVolumeGainNode: readyMasterVolumeGainNode,
         countInBuffer: readyCountInBuffer,
-      } = getTabStoreState();
+      } = audioSystem;
 
       if (countInTimerEnabled) {
         setCountInTimer({

@@ -32,7 +32,7 @@ import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import { DEFAULT_TUNING, parse } from "~/utils/tunings";
 import Logo from "~/components/ui/icons/Logo";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
-import { getTabStoreState, useTabStore } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 
 type AudioSource =
   | "none"
@@ -254,8 +254,9 @@ function appendQueue(
 }
 
 function ChordTrainerPage() {
-  const { audioContext } = useTabStore((state) => ({
+  const { audioContext, ensureAudioSystemReady } = useTabStore((state) => ({
     audioContext: state.audioContext,
+    ensureAudioSystemReady: state.ensureAudioSystemReady,
   }));
 
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -344,8 +345,6 @@ function ChordTrainerPage() {
   }, [audioEnabled]);
 
   useEffect(() => {
-    // Shared AudioContext recovery recreates the graph; drop local nodes that
-    // were bound to the previous context.
     masterGainRef.current = null;
     soundfontCacheRef.current = {};
   }, [audioContext]);
@@ -356,12 +355,12 @@ function ChordTrainerPage() {
         throw new Error("No audio source selected.");
       }
 
-      const audioReady = await getTabStoreState().ensureAudioSystemReady();
-      const readyAudioContext = getTabStoreState().audioContext;
-
-      if (!audioReady || !readyAudioContext) {
+      const audioSystem = await ensureAudioSystemReady();
+      if (!audioSystem) {
         throw new Error("Audio system is not ready.");
       }
+
+      const readyAudioContext = audioSystem.audioContext;
 
       let masterVolumeGainNode = masterGainRef.current;
       if (masterVolumeGainNode?.context !== readyAudioContext) {
@@ -390,7 +389,7 @@ function ChordTrainerPage() {
         currentInstrument,
       };
     },
-    [audioSource],
+    [audioSource, ensureAudioSystemReady],
   );
 
   const playChord = useCallback(

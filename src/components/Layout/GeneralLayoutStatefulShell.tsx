@@ -3,7 +3,6 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
-import { useAudioContextRecovery } from "~/hooks/useAudioContextRecovery";
 import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useInitializeAudioContext } from "~/hooks/useInitializeAudioContext";
@@ -31,7 +30,6 @@ function GeneralLayoutStatefulShell() {
 
   useColorAndThemeController();
   useInitializeAudioContext();
-  useAudioContextRecovery();
   useFetchAndLoadSoundfonts();
   useDetectRouteChanges();
   useGetViewportLabel();
