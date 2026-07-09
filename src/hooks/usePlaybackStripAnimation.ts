@@ -19,24 +19,20 @@ interface UsePlaybackStripAnimationArgs {
   audioContext: AudioContext | null;
   playbackStartedAtAudioTime: number | null;
   playing: boolean;
+  /** Latest absolute scroll position in px (strip-local, before centering). */
+  scrollPositionRef?: RefObject<number>;
 }
 
 interface PlaybackStripAnimationData {
   chordCount: number;
   cumulativeChordTimesMs: number[];
   totalDurationMs: number;
-  /** Timed boundary indices into scrollPositions (+ totalWidth at end). */
-  timedBoundaryIndices: number[];
   timedBoundaryTimesMs: number[];
   timedBoundaryPositions: number[];
 }
 
-/**
- * How often to re-sample AudioContext into the smoothed clock.
- * AudioContext.currentTime on iOS updates in coarser quanta than rAF; we
- * extrapolate with performance.now() between samples for a continuous target.
- */
-const AUDIO_RESAMPLE_INTERVAL_MS = 250;
+/** Soft-pull displayed elapsed toward AudioContext over this window. */
+const AUDIO_SLEW_TIME_MS = 500;
 
 function getPlaybackStripAnimationData(
   chordLayoutData: PlaybackStripLayoutData | null,
@@ -61,10 +57,10 @@ function getPlaybackStripAnimationData(
     chordLayoutData.totalWidth,
   ];
 
-  // Collapse zero-duration boundaries (measure lines / spacers) so position is
-  // a continuous piecewise-linear function of time with no instantaneous jumps
-  // in the time domain (spatial jumps of 0ms duration are still instantaneous,
-  // but they match the intended ornamental layout).
+  // Build timed boundaries. Critical for loop continuity:
+  // time 0 must map to position 0, and time totalDurationMs to totalWidth.
+  // Never collapse away index 0 — leading zero-duration ornamentals are
+  // absorbed into the first timed segment so the loop wraps without a jump.
   const timedBoundaryIndices = [0];
 
   for (let index = 1; index <= chordCount; index++) {
@@ -74,6 +70,11 @@ function getPlaybackStripAnimationData(
     const lastTimeMs = cumulativeChordTimesMs[lastTimedBoundaryIndex] ?? 0;
 
     if (currentTimeMs === lastTimeMs) {
+      // Keep the true start at index 0 so loop-local t=0 => position 0.
+      if (lastTimedBoundaryIndex === 0 && timedBoundaryIndices.length === 1) {
+        continue;
+      }
+
       timedBoundaryIndices[timedBoundaryIndices.length - 1] = index;
       continue;
     }
@@ -88,11 +89,19 @@ function getPlaybackStripAnimationData(
     (index) => boundaryPositions[index] ?? 0,
   );
 
+  // Guarantee endpoints for seamless looping even if data is degenerate.
+  if (timedBoundaryPositions.length > 0) {
+    timedBoundaryPositions[0] = 0;
+    timedBoundaryTimesMs[0] = 0;
+    timedBoundaryPositions[timedBoundaryPositions.length - 1] =
+      chordLayoutData.totalWidth;
+    timedBoundaryTimesMs[timedBoundaryTimesMs.length - 1] = totalDurationMs;
+  }
+
   return {
     chordCount,
     cumulativeChordTimesMs,
     totalDurationMs,
-    timedBoundaryIndices,
     timedBoundaryTimesMs,
     timedBoundaryPositions,
   };
@@ -104,8 +113,8 @@ function normalizeModulo(value: number, modulus: number) {
 
 /**
  * Continuous scroll position for elapsed time within one loop.
- * Piecewise-linear between timed chord boundaries — never discontinuous in
- * time, so a continuously advancing clock cannot produce a visual jump.
+ * Piecewise-linear between timed chord boundaries. Endpoints are always
+ * 0 → totalWidth so absolute position is continuous across loop wraps.
  */
 function getScrollPositionForLoopTimeMs(
   animationData: PlaybackStripAnimationData,
@@ -130,7 +139,6 @@ function getScrollPositionForLoopTimeMs(
     return timedBoundaryPositions[lastIndex] ?? 0;
   }
 
-  // Binary search for the segment containing clampedTimeMs.
   let low = 0;
   let high = lastIndex;
 
@@ -165,6 +173,7 @@ function usePlaybackStripAnimation({
   audioContext,
   playbackStartedAtAudioTime,
   playing,
+  scrollPositionRef,
 }: UsePlaybackStripAnimationArgs) {
   const playingRef = useRef(playing);
   const anchorChordIndexRef = useRef(currentChordIndex);
@@ -217,53 +226,25 @@ function usePlaybackStripAnimation({
       animationData.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
     const playbackStartAudioTime = playbackStartedAtAudioTime;
     const loopDurationMs = animationData.totalDurationMs;
-    const baseRepetition =
-      anchorRepetitionRef.current + extraAnchorLoops;
+    const baseRepetition = anchorRepetitionRef.current + extraAnchorLoops;
 
-    // Pin the chord-boundary position immediately (kill pause CSS transition).
     const startPositionPx =
       (chordLayoutData.scrollPositions[normalizedAnchorChordIndex] ?? 0) +
       baseRepetition * chordLayoutData.totalWidth;
     animatedElement.style.transition = "none";
     animatedElement.style.transform = `translateX(${startPositionPx * -1}px)`;
+    if (scrollPositionRef) {
+      scrollPositionRef.current = startPositionPx;
+    }
 
-    // Smooth audio clock: hold at 0 until audio actually starts, then sample
-    // AudioContext periodically and extrapolate with performance.now().
-    // This avoids iOS AudioContext quantization stutter and never seeks a
-    // compositor-threaded WAAPI animation (which jumps on Safari when
-    // playbackRate/currentTime are written from a stale main-thread time).
+    // Continuous displayed clock: advance by performance.now() delta each
+    // frame, soft-slew toward AudioContext. Never hard-assign from audio so
+    // iOS quantization / resample cannot snap translateX.
     let audioHasStarted = audioContext.currentTime >= playbackStartAudioTime;
-    let audioElapsedAtSampleMs = audioHasStarted
-      ? (audioContext.currentTime - playbackStartAudioTime) * 1000
+    let displayedElapsedMs = audioHasStarted
+      ? Math.max(0, (audioContext.currentTime - playbackStartAudioTime) * 1000)
       : 0;
-    let audioSamplePerfMs = performance.now();
-
-    const resampleAudioClock = (nowPerfMs: number) => {
-      const rawElapsedMs =
-        (audioContext.currentTime - playbackStartAudioTime) * 1000;
-
-      if (rawElapsedMs < 0) {
-        audioHasStarted = false;
-        audioElapsedAtSampleMs = 0;
-        audioSamplePerfMs = nowPerfMs;
-        return;
-      }
-
-      audioHasStarted = true;
-      audioElapsedAtSampleMs = rawElapsedMs;
-      audioSamplePerfMs = nowPerfMs;
-    };
-
-    const getSmoothedAudioElapsedMs = (nowPerfMs: number) => {
-      if (!audioHasStarted) {
-        return 0;
-      }
-
-      return Math.max(
-        0,
-        audioElapsedAtSampleMs + (nowPerfMs - audioSamplePerfMs),
-      );
-    };
+    let lastPerfMs = performance.now();
 
     const applyTransformForElapsedMs = (audioElapsedMs: number) => {
       const totalElapsedMs = anchorStartTimeMs + audioElapsedMs;
@@ -278,6 +259,9 @@ function usePlaybackStripAnimation({
         (baseRepetition + completedLoops) * chordLayoutData.totalWidth;
 
       animatedElement.style.transform = `translateX(${absolutePositionPx * -1}px)`;
+      if (scrollPositionRef) {
+        scrollPositionRef.current = absolutePositionPx;
+      }
     };
 
     const tick = () => {
@@ -287,25 +271,41 @@ function usePlaybackStripAnimation({
       }
 
       const nowPerfMs = performance.now();
+      const deltaMs = Math.max(0, nowPerfMs - lastPerfMs);
+      lastPerfMs = nowPerfMs;
 
-      if (
-        nowPerfMs - audioSamplePerfMs >= AUDIO_RESAMPLE_INTERVAL_MS ||
-        nowPerfMs < audioSamplePerfMs
-      ) {
-        resampleAudioClock(nowPerfMs);
-      } else if (!audioHasStarted) {
-        // Poll frequently during the lead-in so motion begins on the first
-        // frame after audio start without waiting for the resample interval.
-        resampleAudioClock(nowPerfMs);
+      const rawAudioElapsedMs =
+        (audioContext.currentTime - playbackStartAudioTime) * 1000;
+
+      if (!audioHasStarted) {
+        if (rawAudioElapsedMs < 0) {
+          applyTransformForElapsedMs(0);
+          rafIdRef.current = requestAnimationFrame(tick);
+          return;
+        }
+
+        audioHasStarted = true;
+        displayedElapsedMs = 0;
       }
 
-      applyTransformForElapsedMs(getSmoothedAudioElapsedMs(nowPerfMs));
+      // Advance continuously with wall clock, then soft-pull toward audio.
+      displayedElapsedMs += deltaMs;
+
+      const errorMs = displayedElapsedMs - Math.max(0, rawAudioElapsedMs);
+      if (deltaMs > 0 && Math.abs(errorMs) > 0.05) {
+        const slewFraction = Math.min(1, deltaMs / AUDIO_SLEW_TIME_MS);
+        displayedElapsedMs -= errorMs * slewFraction;
+      }
+
+      if (displayedElapsedMs < 0) {
+        displayedElapsedMs = 0;
+      }
+
+      applyTransformForElapsedMs(displayedElapsedMs);
       rafIdRef.current = requestAnimationFrame(tick);
     };
 
-    // Apply once in layout (pre-paint) so the hold frame is correct, then rAF.
-    resampleAudioClock(performance.now());
-    applyTransformForElapsedMs(getSmoothedAudioElapsedMs(performance.now()));
+    applyTransformForElapsedMs(displayedElapsedMs);
     rafIdRef.current = requestAnimationFrame(tick);
 
     return () => {
@@ -320,6 +320,7 @@ function usePlaybackStripAnimation({
     chordLayoutData,
     playbackStartedAtAudioTime,
     playing,
+    scrollPositionRef,
     stripRef,
   ]);
 }

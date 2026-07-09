@@ -61,6 +61,7 @@ const PlaybackAnimatedStrip = memo(
     renderChord,
   }: PlaybackAnimatedStrip) {
     const scrollStripRef = useRef<HTMLDivElement | null>(null);
+    const scrollPositionRef = useRef(0);
 
     const audioContext = useTabStore((state) => state.audioContext);
     const playbackStartedAtAudioTime = useTabStore(
@@ -75,6 +76,7 @@ const PlaybackAnimatedStrip = memo(
       audioContext,
       playbackStartedAtAudioTime,
       playing,
+      scrollPositionRef,
     });
 
     // While paused, React owns transform for scrubbing. While playing, the
@@ -92,9 +94,9 @@ const PlaybackAnimatedStrip = memo(
         ref={scrollStripRef}
         style={{
           width: `${chordLayoutData.totalWidth}px`,
-          // Omit transform while playing so React cannot overwrite the rAF
-          // position. The hook's layout effect sets the hold frame before paint.
-          ...(playing ? {} : { transform: scrollContainerTransform }),
+          // While playing, leave transform undefined so React does not manage it
+          // (rAF owns the property). While paused, React drives scrubbing.
+          transform: playing ? undefined : scrollContainerTransform,
           transition: playing ? "none" : "transform 0.2s linear",
         }}
         className="relative flex items-center will-change-transform"
@@ -115,6 +117,7 @@ const PlaybackAnimatedStrip = memo(
           initialPlaceholderWidth={initialPlaceholderWidth}
           loopDelay={loopDelay}
           renderChord={renderChord}
+          scrollPositionRef={scrollPositionRef}
         />
       </div>
     );
