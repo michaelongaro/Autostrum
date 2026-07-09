@@ -223,14 +223,13 @@ function compileFullTab({
   // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
   // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
 
-  // TODO: TEMPORARILY doing this always, but should only do if being played from <PlaybackModal />
+  // Spacer count uses quarter-note duration at the last chord's BPM, so each
+  // spacer must also be a quarter note to match the intended loopDelay length
+  // (and the visual expand path).
   if (loopDelay > 0) {
     const numSpacerChordsToAdd = Math.floor(
       loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
     );
-
-    const lastChordMultiplier =
-      metadataMappedToLoopRange.at(-1)?.noteLengthMultiplier ?? 1;
 
     for (let i = 0; i < numSpacerChordsToAdd; i++) {
       compiledChordsMappedToLoopRange.push([
@@ -252,7 +251,7 @@ function compileFullTab({
           chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
         },
         bpm: Number(lastChordBpm),
-        noteLengthMultiplier: lastChordMultiplier,
+        noteLengthMultiplier: 1,
         elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
         type: "ornamental",
       });
