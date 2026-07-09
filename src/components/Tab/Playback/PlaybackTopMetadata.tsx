@@ -374,11 +374,10 @@ function PlaybackTopMetadata({
                               id="sectionPicker"
                               className="!h-8 max-w-32 sm:max-w-none"
                             >
-                              <SelectValue
-                                placeholder="Select a section"
-                                asChild
-                              >
-                                <p className="truncate">
+                              {/* Avoid SelectValue asChild: Radix wraps children in
+                                  Fragment, then Slot merges style onto it. */}
+                              <SelectValue placeholder="Select a section">
+                                <span className="truncate">
                                   {audioMetadata.location === null
                                     ? "Full tab"
                                     : `${
@@ -394,7 +393,7 @@ function PlaybackTopMetadata({
                                           })
                                         ]?.title
                                       }`}
-                                </p>
+                                </span>
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
