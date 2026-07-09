@@ -195,7 +195,7 @@ function PlaybackModal() {
         ? 2
         : isSpacerChord
           ? 16
-          : chord?.type === "tab"
+          : chord?.type === "tab" || chord?.type === "loopDelaySpacer"
             ? 34
             : 40;
 
