@@ -271,7 +271,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
           }}
           className={`${enterButtonBeingPressed ? "!brightness-75" : ""}`}
         >
-          <BiSearchAlt2 className="mt-1 size-5 tablet:mt-0 tablet:size-6" />
+          <BiSearchAlt2 className="mt-1 size-[22px] tablet:mt-0 tablet:size-6" />
         </Button>
       </div>
 
