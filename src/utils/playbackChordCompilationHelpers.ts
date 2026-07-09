@@ -56,9 +56,7 @@ function expandFullTab({
   visiblePlaybackContainerWidth,
 }: ExpandFullTab) {
   const compiledChords: (
-    | PlaybackTabChord
-    | PlaybackStrummedChord
-    | PlaybackLoopDelaySpacerChord
+    PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord
   )[] = [];
   const metadata: PlaybackMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
@@ -105,8 +103,7 @@ function expandFullTab({
         sectionRepeatIndex: sectionRepeatIdx,
         baselineBpm,
         compiledChords: compiledChords as (
-          | PlaybackTabChord
-          | PlaybackStrummedChord
+          PlaybackTabChord | PlaybackStrummedChord
         )[],
         metadata,
         chords,
@@ -254,15 +251,15 @@ function expandFullTab({
           // spacer chord
           return acc + 16;
         }
-        // regular chord
-        return acc + 35;
+        // regular tab chord
+        return acc + 34;
       } else {
         if (curr.type === "strum" && curr.data.strumIndex === -1) {
           // spacer chord
           return acc + 16;
         }
 
-        // regular chord
+        // regular strummed chord
         return acc + 40;
       }
     },
