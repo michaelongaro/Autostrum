@@ -77,21 +77,14 @@ const PlaybackAnimatedStrip = memo(
       playing,
     });
 
-    // Keep the strip transform in sync with scrubbing while paused. On the
-    // paused→playing edge, pin the current transform so React does not clear it
-    // to identity for a frame before WAAPI takes ownership.
+    // While paused, React owns transform for scrubbing. While playing, the
+    // animation hook owns it via rAF — do not write transform from React or it
+    // will fight the continuous scroll and hitch on re-render.
     useLayoutEffect(() => {
       const stripElement = scrollStripRef.current;
-      if (!stripElement) return;
+      if (!stripElement || playing) return;
 
-      if (!playing) {
-        stripElement.style.transform = scrollContainerTransform;
-        return;
-      }
-
-      if (!stripElement.style.transform) {
-        stripElement.style.transform = scrollContainerTransform;
-      }
+      stripElement.style.transform = scrollContainerTransform;
     }, [playing, scrollContainerTransform]);
 
     return (
@@ -99,9 +92,9 @@ const PlaybackAnimatedStrip = memo(
         ref={scrollStripRef}
         style={{
           width: `${chordLayoutData.totalWidth}px`,
-          // Never clear transform via React while playing — the animation hook
-          // owns the handoff and clearing here causes a one-frame hitch.
-          transform: scrollContainerTransform,
+          // Omit transform while playing so React cannot overwrite the rAF
+          // position. The hook's layout effect sets the hold frame before paint.
+          ...(playing ? {} : { transform: scrollContainerTransform }),
           transition: playing ? "none" : "transform 0.2s linear",
         }}
         className="relative flex items-center will-change-transform"

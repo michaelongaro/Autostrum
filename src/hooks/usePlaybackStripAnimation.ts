@@ -25,49 +25,18 @@ interface PlaybackStripAnimationData {
   chordCount: number;
   cumulativeChordTimesMs: number[];
   totalDurationMs: number;
+  /** Timed boundary indices into scrollPositions (+ totalWidth at end). */
+  timedBoundaryIndices: number[];
+  timedBoundaryTimesMs: number[];
+  timedBoundaryPositions: number[];
 }
 
-const VELOCITY_EPSILON = 0.0001;
-
-/** Ignore tiny error so playbackRate does not hunt. */
-const RATE_DEADBAND_MS = 8;
-
-/** Max |playbackRate - 1| while soft-correcting. */
-const MAX_RATE_CORRECTION = 0.04;
-
-/** Convert error (ms) into a rate delta; ~1s error → full correction. */
-const RATE_CORRECTION_GAIN = 1 / 1000;
-
-/** How often to re-sample AudioContext into the smoothed clock. */
+/**
+ * How often to re-sample AudioContext into the smoothed clock.
+ * AudioContext.currentTime on iOS updates in coarser quanta than rAF; we
+ * extrapolate with performance.now() between samples for a continuous target.
+ */
 const AUDIO_RESAMPLE_INTERVAL_MS = 250;
-
-function preserveCurrentTransform(animatedElement: HTMLElement) {
-  const computedTransform = window.getComputedStyle(animatedElement).transform;
-
-  animatedElement.style.transform =
-    computedTransform === "none" ? "" : computedTransform;
-}
-
-function cancelPlaybackStripAnimations({
-  animations,
-  animatedElement,
-  preserveTransform,
-}: {
-  animations: Set<Animation>;
-  animatedElement: HTMLElement | null;
-  preserveTransform: boolean;
-}) {
-  if (preserveTransform && animatedElement && animations.size > 0) {
-    preserveCurrentTransform(animatedElement);
-  }
-
-  for (const animation of Array.from(animations)) {
-    animation.onfinish = null;
-    animation.cancel();
-  }
-
-  animations.clear();
-}
 
 function getPlaybackStripAnimationData(
   chordLayoutData: PlaybackStripLayoutData | null,
@@ -86,48 +55,23 @@ function getPlaybackStripAnimationData(
       Math.max(0, (chordLayoutData.durations[index] ?? 0) * 1000);
   }
 
-  return {
-    chordCount,
-    cumulativeChordTimesMs,
-    totalDurationMs: cumulativeChordTimesMs[chordCount] ?? 0,
-  };
-}
-
-function normalizeModulo(value: number, modulus: number) {
-  return ((value % modulus) + modulus) % modulus;
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function shortestSignedErrorMs(errorMs: number, loopDurationMs: number) {
-  let wrapped = normalizeModulo(errorMs + loopDurationMs / 2, loopDurationMs);
-  wrapped -= loopDurationMs / 2;
-  return wrapped;
-}
-
-function buildPlaybackStripKeyframes({
-  chordLayoutData,
-  animationData,
-  repetitionBase,
-}: {
-  chordLayoutData: PlaybackStripLayoutData;
-  animationData: PlaybackStripAnimationData;
-  repetitionBase: number;
-}) {
+  const totalDurationMs = cumulativeChordTimesMs[chordCount] ?? 0;
   const boundaryPositions = [
-    ...chordLayoutData.scrollPositions.slice(0, animationData.chordCount),
+    ...chordLayoutData.scrollPositions.slice(0, chordCount),
     chordLayoutData.totalWidth,
   ];
+
+  // Collapse zero-duration boundaries (measure lines / spacers) so position is
+  // a continuous piecewise-linear function of time with no instantaneous jumps
+  // in the time domain (spatial jumps of 0ms duration are still instantaneous,
+  // but they match the intended ornamental layout).
   const timedBoundaryIndices = [0];
 
-  for (let index = 1; index <= animationData.chordCount; index++) {
-    const currentTimeMs = animationData.cumulativeChordTimesMs[index] ?? 0;
+  for (let index = 1; index <= chordCount; index++) {
+    const currentTimeMs = cumulativeChordTimesMs[index] ?? 0;
     const lastTimedBoundaryIndex =
       timedBoundaryIndices[timedBoundaryIndices.length - 1] ?? 0;
-    const lastTimeMs =
-      animationData.cumulativeChordTimesMs[lastTimedBoundaryIndex] ?? 0;
+    const lastTimeMs = cumulativeChordTimesMs[lastTimedBoundaryIndex] ?? 0;
 
     if (currentTimeMs === lastTimeMs) {
       timedBoundaryIndices[timedBoundaryIndices.length - 1] = index;
@@ -137,56 +81,80 @@ function buildPlaybackStripKeyframes({
     timedBoundaryIndices.push(index);
   }
 
-  const keyframeIndices = [timedBoundaryIndices[0] ?? 0];
+  const timedBoundaryTimesMs = timedBoundaryIndices.map(
+    (index) => cumulativeChordTimesMs[index] ?? 0,
+  );
+  const timedBoundaryPositions = timedBoundaryIndices.map(
+    (index) => boundaryPositions[index] ?? 0,
+  );
 
-  for (let index = 1; index < timedBoundaryIndices.length - 1; index++) {
-    const currentBoundaryIndex = timedBoundaryIndices[index] ?? 0;
-    const previousBoundaryIndex = timedBoundaryIndices[index - 1] ?? 0;
-    const nextBoundaryIndex = timedBoundaryIndices[index + 1] ?? 0;
-    const previousStartTimeMs =
-      animationData.cumulativeChordTimesMs[previousBoundaryIndex] ?? 0;
-    const currentStartTimeMs =
-      animationData.cumulativeChordTimesMs[currentBoundaryIndex] ??
-      previousStartTimeMs;
-    const nextStartTimeMs =
-      animationData.cumulativeChordTimesMs[nextBoundaryIndex] ??
-      currentStartTimeMs;
-    const previousDurationMs = currentStartTimeMs - previousStartTimeMs;
-    const nextDurationMs = nextStartTimeMs - currentStartTimeMs;
+  return {
+    chordCount,
+    cumulativeChordTimesMs,
+    totalDurationMs,
+    timedBoundaryIndices,
+    timedBoundaryTimesMs,
+    timedBoundaryPositions,
+  };
+}
 
-    if (previousDurationMs <= 0 || nextDurationMs <= 0) {
-      keyframeIndices.push(currentBoundaryIndex);
-      continue;
-    }
+function normalizeModulo(value: number, modulus: number) {
+  return ((value % modulus) + modulus) % modulus;
+}
 
-    const previousVelocity =
-      (boundaryPositions[currentBoundaryIndex]! -
-        boundaryPositions[previousBoundaryIndex]!) /
-      previousDurationMs;
-    const nextVelocity =
-      (boundaryPositions[nextBoundaryIndex]! -
-        boundaryPositions[currentBoundaryIndex]!) /
-      nextDurationMs;
+/**
+ * Continuous scroll position for elapsed time within one loop.
+ * Piecewise-linear between timed chord boundaries — never discontinuous in
+ * time, so a continuously advancing clock cannot produce a visual jump.
+ */
+function getScrollPositionForLoopTimeMs(
+  animationData: PlaybackStripAnimationData,
+  loopTimeMs: number,
+): number {
+  const { timedBoundaryTimesMs, timedBoundaryPositions, totalDurationMs } =
+    animationData;
 
-    if (Math.abs(previousVelocity - nextVelocity) > VELOCITY_EPSILON) {
-      keyframeIndices.push(currentBoundaryIndex);
+  if (totalDurationMs <= 0 || timedBoundaryPositions.length === 0) {
+    return 0;
+  }
+
+  const clampedTimeMs = Math.max(0, Math.min(loopTimeMs, totalDurationMs));
+
+  if (clampedTimeMs <= (timedBoundaryTimesMs[0] ?? 0)) {
+    return timedBoundaryPositions[0] ?? 0;
+  }
+
+  const lastIndex = timedBoundaryTimesMs.length - 1;
+
+  if (clampedTimeMs >= (timedBoundaryTimesMs[lastIndex] ?? 0)) {
+    return timedBoundaryPositions[lastIndex] ?? 0;
+  }
+
+  // Binary search for the segment containing clampedTimeMs.
+  let low = 0;
+  let high = lastIndex;
+
+  while (high - low > 1) {
+    const mid = (low + high) >> 1;
+    if ((timedBoundaryTimesMs[mid] ?? 0) <= clampedTimeMs) {
+      low = mid;
+    } else {
+      high = mid;
     }
   }
 
-  keyframeIndices.push(
-    timedBoundaryIndices[timedBoundaryIndices.length - 1] ??
-      animationData.chordCount,
-  );
+  const startTimeMs = timedBoundaryTimesMs[low] ?? 0;
+  const endTimeMs = timedBoundaryTimesMs[high] ?? startTimeMs;
+  const startPosition = timedBoundaryPositions[low] ?? 0;
+  const endPosition = timedBoundaryPositions[high] ?? startPosition;
+  const segmentDurationMs = endTimeMs - startTimeMs;
 
-  return keyframeIndices.map((index) => ({
-    offset:
-      animationData.totalDurationMs <= 0
-        ? 0
-        : animationData.cumulativeChordTimesMs[index]! /
-          animationData.totalDurationMs,
-    transform: `translateX(${(boundaryPositions[index]! + repetitionBase) * -1}px)`,
-    easing: "linear",
-  }));
+  if (segmentDurationMs <= 0) {
+    return endPosition;
+  }
+
+  const progress = (clampedTimeMs - startTimeMs) / segmentDurationMs;
+  return startPosition + (endPosition - startPosition) * progress;
 }
 
 function usePlaybackStripAnimation({
@@ -198,12 +166,7 @@ function usePlaybackStripAnimation({
   playbackStartedAtAudioTime,
   playing,
 }: UsePlaybackStripAnimationArgs) {
-  const animationRef = useRef<Animation | null>(null);
-  const animationsRef = useRef<Set<Animation>>(new Set());
-  const animationGenerationRef = useRef(0);
   const playingRef = useRef(playing);
-  const repetitionBaseRef = useRef(0);
-  const completedLoopsRef = useRef(0);
   const anchorChordIndexRef = useRef(currentChordIndex);
   const anchorRepetitionRef = useRef(currentRepetition);
   const rafIdRef = useRef<number | null>(null);
@@ -224,24 +187,11 @@ function usePlaybackStripAnimation({
 
   useLayoutEffect(() => {
     const animatedElement = stripRef.current;
-    const animations = animationsRef.current;
 
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
     }
-
-    // Always preserve the last visual frame when tearing down so pause/resume
-    // and dependency churn never flash an identity transform.
-    cancelPlaybackStripAnimations({
-      animations,
-      animatedElement,
-      preserveTransform: true,
-    });
-
-    animationRef.current = null;
-    animationGenerationRef.current += 1;
-    completedLoopsRef.current = 0;
 
     if (
       !playing ||
@@ -255,12 +205,11 @@ function usePlaybackStripAnimation({
       return;
     }
 
-    const generation = animationGenerationRef.current;
     const rawAnchorChordIndex = anchorChordIndexRef.current;
-    const normalizedAnchorChordIndex = normalizeModulo(
-      rawAnchorChordIndex,
-      animationData.chordCount,
-    );
+    const normalizedAnchorChordIndex =
+      ((rawAnchorChordIndex % animationData.chordCount) +
+        animationData.chordCount) %
+      animationData.chordCount;
     const extraAnchorLoops = Math.floor(
       rawAnchorChordIndex / animationData.chordCount,
     );
@@ -268,30 +217,26 @@ function usePlaybackStripAnimation({
       animationData.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
     const playbackStartAudioTime = playbackStartedAtAudioTime;
     const loopDurationMs = animationData.totalDurationMs;
+    const baseRepetition =
+      anchorRepetitionRef.current + extraAnchorLoops;
 
-    // Resume/play always begins at a chord boundary (paused scrub position).
-    completedLoopsRef.current = 0;
-    repetitionBaseRef.current =
-      (anchorRepetitionRef.current + extraAnchorLoops) *
-      chordLayoutData.totalWidth;
-
+    // Pin the chord-boundary position immediately (kill pause CSS transition).
     const startPositionPx =
       (chordLayoutData.scrollPositions[normalizedAnchorChordIndex] ?? 0) +
-      repetitionBaseRef.current;
-
-    // Kill any pause-settle CSS transition and pin the resume position before
-    // WAAPI takes over so the first painted frame cannot hitch.
+      baseRepetition * chordLayoutData.totalWidth;
     animatedElement.style.transition = "none";
     animatedElement.style.transform = `translateX(${startPositionPx * -1}px)`;
 
-    // Smooth audio clock: only advances after audio start. Sample AudioContext
-    // periodically and extrapolate with performance.now() between samples.
+    // Smooth audio clock: hold at 0 until audio actually starts, then sample
+    // AudioContext periodically and extrapolate with performance.now().
+    // This avoids iOS AudioContext quantization stutter and never seeks a
+    // compositor-threaded WAAPI animation (which jumps on Safari when
+    // playbackRate/currentTime are written from a stale main-thread time).
     let audioHasStarted = audioContext.currentTime >= playbackStartAudioTime;
     let audioElapsedAtSampleMs = audioHasStarted
       ? (audioContext.currentTime - playbackStartAudioTime) * 1000
       : 0;
     let audioSamplePerfMs = performance.now();
-    let motionStarted = false;
 
     const resampleAudioClock = (nowPerfMs: number) => {
       const rawElapsedMs =
@@ -320,191 +265,47 @@ function usePlaybackStripAnimation({
       );
     };
 
-    const getTargetTotalElapsedMs = (nowPerfMs: number) =>
-      anchorStartTimeMs + getSmoothedAudioElapsedMs(nowPerfMs);
-
-    const startAnimation = (startTimeMs: number, autoplay: boolean) => {
-      const currentAnimatedElement = stripRef.current;
-      if (!currentAnimatedElement) return;
-
-      const animation = currentAnimatedElement.animate(
-        buildPlaybackStripKeyframes({
-          chordLayoutData,
-          animationData,
-          repetitionBase: repetitionBaseRef.current,
-        }),
-        {
-          duration: loopDurationMs,
-          fill: "both",
-        },
+    const applyTransformForElapsedMs = (audioElapsedMs: number) => {
+      const totalElapsedMs = anchorStartTimeMs + audioElapsedMs;
+      const completedLoops = Math.floor(totalElapsedMs / loopDurationMs);
+      const loopTimeMs = normalizeModulo(totalElapsedMs, loopDurationMs);
+      const loopPositionPx = getScrollPositionForLoopTimeMs(
+        animationData,
+        loopTimeMs,
       );
+      const absolutePositionPx =
+        loopPositionPx +
+        (baseRepetition + completedLoops) * chordLayoutData.totalWidth;
 
-      animation.pause();
-      animation.currentTime = Math.max(0, Math.min(startTimeMs, loopDurationMs));
-      animation.playbackRate = 1;
-
-      animations.add(animation);
-
-      animation.onfinish = () => {
-        if (
-          generation !== animationGenerationRef.current ||
-          !playingRef.current
-        ) {
-          animation.onfinish = null;
-          animations.delete(animation);
-
-          if (animationRef.current === animation) {
-            animationRef.current = null;
-          }
-
-          animation.cancel();
-          return;
-        }
-
-        // Capture end-of-loop transform before cancel so the next iteration's
-        // first frame is continuous (no blank/identity flash).
-        preserveCurrentTransform(currentAnimatedElement);
-
-        animation.onfinish = null;
-        animations.delete(animation);
-
-        if (animationRef.current === animation) {
-          animationRef.current = null;
-        }
-
-        animation.cancel();
-
-        completedLoopsRef.current += 1;
-        repetitionBaseRef.current += chordLayoutData.totalWidth;
-        startAnimation(0, true);
-      };
-
-      animationRef.current = animation;
-
-      if (autoplay) {
-        animation.play();
-      }
-    };
-
-    // Paused WAAPI at the chord boundary so fill:both matches the pinned CSS
-    // transform for the lead-in hold (no motion until audio starts).
-    startAnimation(normalizeModulo(anchorStartTimeMs, loopDurationMs), false);
-
-    const beginMotionIfReady = (
-      nowPerfMs: number,
-      { allowPrePaintSeek }: { allowPrePaintSeek: boolean },
-    ) => {
-      if (motionStarted) return;
-
-      resampleAudioClock(nowPerfMs);
-
-      if (!audioHasStarted) {
-        return;
-      }
-
-      const animation = animationRef.current;
-      if (!animation) return;
-
-      // Seeking is only invisible before the browser has painted the hold frame.
-      // After a painted hold, play() from the boundary with soft rate correction.
-      if (allowPrePaintSeek) {
-        const elapsedMs = getSmoothedAudioElapsedMs(nowPerfMs);
-
-        if (elapsedMs > RATE_DEADBAND_MS) {
-          const totalElapsedMs = anchorStartTimeMs + elapsedMs;
-          completedLoopsRef.current = Math.floor(
-            totalElapsedMs / loopDurationMs,
-          );
-          const currentTimeMs = normalizeModulo(totalElapsedMs, loopDurationMs);
-          const expectedRepetitionBase =
-            (anchorRepetitionRef.current +
-              extraAnchorLoops +
-              completedLoopsRef.current) *
-            chordLayoutData.totalWidth;
-
-          if (expectedRepetitionBase !== repetitionBaseRef.current) {
-            repetitionBaseRef.current = expectedRepetitionBase;
-            animation.onfinish = null;
-            animations.delete(animation);
-            animation.cancel();
-            animationRef.current = null;
-            startAnimation(currentTimeMs, true);
-            motionStarted = true;
-            resampleAudioClock(performance.now());
-            return;
-          }
-
-          animation.currentTime = Math.max(
-            0,
-            Math.min(currentTimeMs, loopDurationMs),
-          );
-        }
-      }
-
-      animation.playbackRate = 1;
-      animation.play();
-      motionStarted = true;
-      resampleAudioClock(performance.now());
+      animatedElement.style.transform = `translateX(${absolutePositionPx * -1}px)`;
     };
 
     const tick = () => {
-      if (
-        generation !== animationGenerationRef.current ||
-        !playingRef.current
-      ) {
+      if (!playingRef.current) {
         rafIdRef.current = null;
         return;
       }
 
       const nowPerfMs = performance.now();
 
-      if (!motionStarted) {
-        // Hold frame has been painted; never seek from here.
-        beginMotionIfReady(nowPerfMs, { allowPrePaintSeek: false });
-        rafIdRef.current = requestAnimationFrame(tick);
-        return;
-      }
-
       if (
         nowPerfMs - audioSamplePerfMs >= AUDIO_RESAMPLE_INTERVAL_MS ||
         nowPerfMs < audioSamplePerfMs
       ) {
         resampleAudioClock(nowPerfMs);
+      } else if (!audioHasStarted) {
+        // Poll frequently during the lead-in so motion begins on the first
+        // frame after audio start without waiting for the resample interval.
+        resampleAudioClock(nowPerfMs);
       }
 
-      const animation = animationRef.current;
-
-      if (animation && typeof animation.currentTime === "number") {
-        const targetTotalElapsedMs = getTargetTotalElapsedMs(nowPerfMs);
-        const visualTotalElapsedMs =
-          completedLoopsRef.current * loopDurationMs + animation.currentTime;
-        const errorMs = shortestSignedErrorMs(
-          visualTotalElapsedMs - targetTotalElapsedMs,
-          loopDurationMs,
-        );
-
-        // Never hard-seek after motion starts: only soft playbackRate correction.
-        if (Math.abs(errorMs) <= RATE_DEADBAND_MS) {
-          if (animation.playbackRate !== 1) {
-            animation.playbackRate = 1;
-          }
-        } else {
-          animation.playbackRate =
-            1 -
-            clamp(
-              errorMs * RATE_CORRECTION_GAIN,
-              -MAX_RATE_CORRECTION,
-              MAX_RATE_CORRECTION,
-            );
-        }
-      }
-
+      applyTransformForElapsedMs(getSmoothedAudioElapsedMs(nowPerfMs));
       rafIdRef.current = requestAnimationFrame(tick);
     };
 
-    // If audio is already past the scheduled start (slow React commit), seek
-    // and start in this layout effect before the browser paints — invisible.
-    beginMotionIfReady(performance.now(), { allowPrePaintSeek: true });
+    // Apply once in layout (pre-paint) so the hold frame is correct, then rAF.
+    resampleAudioClock(performance.now());
+    applyTransformForElapsedMs(getSmoothedAudioElapsedMs(performance.now()));
     rafIdRef.current = requestAnimationFrame(tick);
 
     return () => {
@@ -512,15 +313,6 @@ function usePlaybackStripAnimation({
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
-
-      cancelPlaybackStripAnimations({
-        animations,
-        animatedElement,
-        preserveTransform: true,
-      });
-
-      animationRef.current = null;
-      animationGenerationRef.current += 1;
     };
   }, [
     animationData,
