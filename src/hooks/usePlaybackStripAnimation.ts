@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -41,9 +40,6 @@ const RATE_CORRECTION_GAIN = 1 / 1000;
 
 /** How often to re-sample AudioContext into the smoothed clock. */
 const AUDIO_RESAMPLE_INTERVAL_MS = 250;
-
-/** Only hard-seek if drift is catastrophic (seek recovery). */
-const HARD_RESYNC_THRESHOLD_MS = 250;
 
 function preserveCurrentTransform(animatedElement: HTMLElement) {
   const computedTransform = window.getComputedStyle(animatedElement).transform;
@@ -210,7 +206,6 @@ function usePlaybackStripAnimation({
   const completedLoopsRef = useRef(0);
   const anchorChordIndexRef = useRef(currentChordIndex);
   const anchorRepetitionRef = useRef(currentRepetition);
-  const playbackStartedAtAudioTimeRef = useRef(playbackStartedAtAudioTime);
   const rafIdRef = useRef<number | null>(null);
 
   const animationData = useMemo(
@@ -221,10 +216,6 @@ function usePlaybackStripAnimation({
   useLayoutEffect(() => {
     playingRef.current = playing;
   }, [playing]);
-
-  useEffect(() => {
-    playbackStartedAtAudioTimeRef.current = playbackStartedAtAudioTime;
-  }, [playbackStartedAtAudioTime]);
 
   useLayoutEffect(() => {
     anchorChordIndexRef.current = currentChordIndex;
@@ -240,10 +231,12 @@ function usePlaybackStripAnimation({
       rafIdRef.current = null;
     }
 
+    // Always preserve the last visual frame when tearing down so pause/resume
+    // and dependency churn never flash an identity transform.
     cancelPlaybackStripAnimations({
       animations,
       animatedElement,
-      preserveTransform: playingRef.current,
+      preserveTransform: true,
     });
 
     animationRef.current = null;
@@ -276,42 +269,61 @@ function usePlaybackStripAnimation({
     const playbackStartAudioTime = playbackStartedAtAudioTime;
     const loopDurationMs = animationData.totalDurationMs;
 
-    // Smooth audio clock: sample AudioContext periodically, extrapolate with
-    // performance.now() between samples so the sync target is continuous.
-    let audioElapsedAtSampleMs = Math.max(
-      0,
-      (audioContext.currentTime - playbackStartAudioTime) * 1000,
-    );
+    // Resume/play always begins at a chord boundary (paused scrub position).
+    completedLoopsRef.current = 0;
+    repetitionBaseRef.current =
+      (anchorRepetitionRef.current + extraAnchorLoops) *
+      chordLayoutData.totalWidth;
+
+    const startPositionPx =
+      (chordLayoutData.scrollPositions[normalizedAnchorChordIndex] ?? 0) +
+      repetitionBaseRef.current;
+
+    // Kill any pause-settle CSS transition and pin the resume position before
+    // WAAPI takes over so the first painted frame cannot hitch.
+    animatedElement.style.transition = "none";
+    animatedElement.style.transform = `translateX(${startPositionPx * -1}px)`;
+
+    // Smooth audio clock: only advances after audio start. Sample AudioContext
+    // periodically and extrapolate with performance.now() between samples.
+    let audioHasStarted = audioContext.currentTime >= playbackStartAudioTime;
+    let audioElapsedAtSampleMs = audioHasStarted
+      ? (audioContext.currentTime - playbackStartAudioTime) * 1000
+      : 0;
     let audioSamplePerfMs = performance.now();
+    let motionStarted = false;
 
     const resampleAudioClock = (nowPerfMs: number) => {
-      audioElapsedAtSampleMs = Math.max(
-        0,
-        (audioContext.currentTime - playbackStartAudioTime) * 1000,
-      );
+      const rawElapsedMs =
+        (audioContext.currentTime - playbackStartAudioTime) * 1000;
+
+      if (rawElapsedMs < 0) {
+        audioHasStarted = false;
+        audioElapsedAtSampleMs = 0;
+        audioSamplePerfMs = nowPerfMs;
+        return;
+      }
+
+      audioHasStarted = true;
+      audioElapsedAtSampleMs = rawElapsedMs;
       audioSamplePerfMs = nowPerfMs;
     };
 
-    const getSmoothedAudioElapsedMs = (nowPerfMs: number) =>
-      Math.max(0, audioElapsedAtSampleMs + (nowPerfMs - audioSamplePerfMs));
+    const getSmoothedAudioElapsedMs = (nowPerfMs: number) => {
+      if (!audioHasStarted) {
+        return 0;
+      }
+
+      return Math.max(
+        0,
+        audioElapsedAtSampleMs + (nowPerfMs - audioSamplePerfMs),
+      );
+    };
 
     const getTargetTotalElapsedMs = (nowPerfMs: number) =>
       anchorStartTimeMs + getSmoothedAudioElapsedMs(nowPerfMs);
 
-    const initialTotalElapsedMs = getTargetTotalElapsedMs(performance.now());
-    completedLoopsRef.current = Math.floor(initialTotalElapsedMs / loopDurationMs);
-    const initialCurrentTimeMs = normalizeModulo(
-      initialTotalElapsedMs,
-      loopDurationMs,
-    );
-
-    repetitionBaseRef.current =
-      (anchorRepetitionRef.current +
-        extraAnchorLoops +
-        completedLoopsRef.current) *
-      chordLayoutData.totalWidth;
-
-    const startAnimation = (startTimeMs: number) => {
+    const startAnimation = (startTimeMs: number, autoplay: boolean) => {
       const currentAnimatedElement = stripRef.current;
       if (!currentAnimatedElement) return;
 
@@ -349,6 +361,10 @@ function usePlaybackStripAnimation({
           return;
         }
 
+        // Capture end-of-loop transform before cancel so the next iteration's
+        // first frame is continuous (no blank/identity flash).
+        preserveCurrentTransform(currentAnimatedElement);
+
         animation.onfinish = null;
         animations.delete(animation);
 
@@ -360,14 +376,76 @@ function usePlaybackStripAnimation({
 
         completedLoopsRef.current += 1;
         repetitionBaseRef.current += chordLayoutData.totalWidth;
-        startAnimation(0);
+        startAnimation(0, true);
       };
 
-      animation.play();
       animationRef.current = animation;
+
+      if (autoplay) {
+        animation.play();
+      }
     };
 
-    startAnimation(initialCurrentTimeMs);
+    // Paused WAAPI at the chord boundary so fill:both matches the pinned CSS
+    // transform for the lead-in hold (no motion until audio starts).
+    startAnimation(normalizeModulo(anchorStartTimeMs, loopDurationMs), false);
+
+    const beginMotionIfReady = (
+      nowPerfMs: number,
+      { allowPrePaintSeek }: { allowPrePaintSeek: boolean },
+    ) => {
+      if (motionStarted) return;
+
+      resampleAudioClock(nowPerfMs);
+
+      if (!audioHasStarted) {
+        return;
+      }
+
+      const animation = animationRef.current;
+      if (!animation) return;
+
+      // Seeking is only invisible before the browser has painted the hold frame.
+      // After a painted hold, play() from the boundary with soft rate correction.
+      if (allowPrePaintSeek) {
+        const elapsedMs = getSmoothedAudioElapsedMs(nowPerfMs);
+
+        if (elapsedMs > RATE_DEADBAND_MS) {
+          const totalElapsedMs = anchorStartTimeMs + elapsedMs;
+          completedLoopsRef.current = Math.floor(
+            totalElapsedMs / loopDurationMs,
+          );
+          const currentTimeMs = normalizeModulo(totalElapsedMs, loopDurationMs);
+          const expectedRepetitionBase =
+            (anchorRepetitionRef.current +
+              extraAnchorLoops +
+              completedLoopsRef.current) *
+            chordLayoutData.totalWidth;
+
+          if (expectedRepetitionBase !== repetitionBaseRef.current) {
+            repetitionBaseRef.current = expectedRepetitionBase;
+            animation.onfinish = null;
+            animations.delete(animation);
+            animation.cancel();
+            animationRef.current = null;
+            startAnimation(currentTimeMs, true);
+            motionStarted = true;
+            resampleAudioClock(performance.now());
+            return;
+          }
+
+          animation.currentTime = Math.max(
+            0,
+            Math.min(currentTimeMs, loopDurationMs),
+          );
+        }
+      }
+
+      animation.playbackRate = 1;
+      animation.play();
+      motionStarted = true;
+      resampleAudioClock(performance.now());
+    };
 
     const tick = () => {
       if (
@@ -378,8 +456,14 @@ function usePlaybackStripAnimation({
         return;
       }
 
-      const animation = animationRef.current;
       const nowPerfMs = performance.now();
+
+      if (!motionStarted) {
+        // Hold frame has been painted; never seek from here.
+        beginMotionIfReady(nowPerfMs, { allowPrePaintSeek: false });
+        rafIdRef.current = requestAnimationFrame(tick);
+        return;
+      }
 
       if (
         nowPerfMs - audioSamplePerfMs >= AUDIO_RESAMPLE_INTERVAL_MS ||
@@ -388,49 +472,23 @@ function usePlaybackStripAnimation({
         resampleAudioClock(nowPerfMs);
       }
 
+      const animation = animationRef.current;
+
       if (animation && typeof animation.currentTime === "number") {
         const targetTotalElapsedMs = getTargetTotalElapsedMs(nowPerfMs);
         const visualTotalElapsedMs =
           completedLoopsRef.current * loopDurationMs + animation.currentTime;
-        const rawErrorMs = visualTotalElapsedMs - targetTotalElapsedMs;
-        const errorMs = shortestSignedErrorMs(rawErrorMs, loopDurationMs);
+        const errorMs = shortestSignedErrorMs(
+          visualTotalElapsedMs - targetTotalElapsedMs,
+          loopDurationMs,
+        );
 
-        if (Math.abs(errorMs) >= HARD_RESYNC_THRESHOLD_MS) {
-          // Catastrophic desync only (tab backgrounding, etc.). Soft rate
-          // correction cannot recover this quickly without a seek.
-          const targetCurrentTimeMs = normalizeModulo(
-            targetTotalElapsedMs,
-            loopDurationMs,
-          );
-          const targetLoops = Math.floor(targetTotalElapsedMs / loopDurationMs);
-
-          if (targetLoops !== completedLoopsRef.current) {
-            animation.onfinish = null;
-            animations.delete(animation);
-            animation.cancel();
-            animationRef.current = null;
-
-            completedLoopsRef.current = targetLoops;
-            repetitionBaseRef.current =
-              (anchorRepetitionRef.current +
-                extraAnchorLoops +
-                completedLoopsRef.current) *
-              chordLayoutData.totalWidth;
-            startAnimation(targetCurrentTimeMs);
-          } else {
-            animation.currentTime = Math.max(
-              0,
-              Math.min(targetCurrentTimeMs, loopDurationMs),
-            );
-            animation.playbackRate = 1;
-          }
-        } else if (Math.abs(errorMs) <= RATE_DEADBAND_MS) {
+        // Never hard-seek after motion starts: only soft playbackRate correction.
+        if (Math.abs(errorMs) <= RATE_DEADBAND_MS) {
           if (animation.playbackRate !== 1) {
             animation.playbackRate = 1;
           }
         } else {
-          // Visual ahead (error > 0) → slow down; behind → speed up.
-          // Keep WAAPI free-running so motion stays continuous.
           animation.playbackRate =
             1 -
             clamp(
@@ -444,6 +502,9 @@ function usePlaybackStripAnimation({
       rafIdRef.current = requestAnimationFrame(tick);
     };
 
+    // If audio is already past the scheduled start (slow React commit), seek
+    // and start in this layout effect before the browser paints — invisible.
+    beginMotionIfReady(performance.now(), { allowPrePaintSeek: true });
     rafIdRef.current = requestAnimationFrame(tick);
 
     return () => {
@@ -455,7 +516,7 @@ function usePlaybackStripAnimation({
       cancelPlaybackStripAnimations({
         animations,
         animatedElement,
-        preserveTransform: playingRef.current,
+        preserveTransform: true,
       });
 
       animationRef.current = null;
