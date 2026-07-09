@@ -1,8 +1,5 @@
 import type Soundfont from "soundfont-player";
-import {
-  noteLengthMultipliers,
-  type FullNoteLengths,
-} from "~/stores/TabStore";
+import { noteLengthMultipliers, type FullNoteLengths } from "~/stores/TabStore";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 
 export const PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS = 1.0;
@@ -44,7 +41,11 @@ export function buildPlaybackTimeline({
   const entries: PlaybackTimelineEntry[] = [];
   let nextStartTime = startTime;
 
-  for (let chordIndex = fromChordIndex; chordIndex < adjChordCount; chordIndex++) {
+  for (
+    let chordIndex = fromChordIndex;
+    chordIndex < adjChordCount;
+    chordIndex++
+  ) {
     const adjChordIndex = chordIndex % compiledChords.length;
     const currColumn = compiledChords[adjChordIndex];
 
@@ -112,7 +113,10 @@ function getActiveChordIndexForTime(
       break;
     }
 
-    const completionTime = getEntryCompletionTime(entry, previousCompletionTime);
+    const completionTime = getEntryCompletionTime(
+      entry,
+      previousCompletionTime,
+    );
 
     if (completionTime <= now) {
       activeChordIndex = entry.chordIndex;
@@ -162,12 +166,9 @@ export interface RunPlaybackSchedulerArgs {
   masterVolumeGainNode: GainNode;
   currentInstrument: Soundfont.Player | null;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
   scheduledNodes?: { stop(when?: number): void }[];
-  isSessionValid?: () => boolean;
   playbackSessionId: number;
   editing: boolean;
   isSessionValid: () => boolean;
@@ -225,10 +226,7 @@ export async function runPlaybackScheduler({
   }
 
   const maybeUpdateCurrentChordIndex = (nextChordIndex: number | null) => {
-    if (
-      nextChordIndex === null ||
-      nextChordIndex === lastReportedChordIndex
-    ) {
+    if (nextChordIndex === null || nextChordIndex === lastReportedChordIndex) {
       return;
     }
 
@@ -330,11 +328,7 @@ export async function runPlaybackScheduler({
         continue;
       }
 
-      if (
-        lastEntry &&
-        lastEntry.chordIndex === adjChordCount - 1 &&
-        !looping
-      ) {
+      if (lastEntry && lastEntry.chordIndex === adjChordCount - 1 && !looping) {
         setState({
           currentChordIndex: 0,
           playbackStartedAtAudioTime: null,
