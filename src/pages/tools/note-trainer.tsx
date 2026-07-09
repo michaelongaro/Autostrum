@@ -17,6 +17,7 @@ import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
 import { useTabStore } from "~/stores/TabStore";
 import Spinner from "~/components/ui/Spinner";
+import { PrettyNote } from "~/components/ui/PrettyTuning";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -239,13 +240,23 @@ function NoteTrainerPage() {
   const isSoundfontLoading =
     audioSource !== "generated" && !instruments[audioSource];
 
-  const feedbackMessage = selectedGuess
-    ? lastGuessCorrect
-      ? "Correct!"
-      : revealedNote
-        ? `Not quite, the answer was ${revealedNote}.`
-        : null
-    : null;
+  const feedbackMessage = selectedGuess ? (
+    lastGuessCorrect ? (
+      "Correct!"
+    ) : revealedNote ? (
+      <div className="baseFlex">
+        <span className="mr-1">Not quite, the answer was</span>
+        {
+          <PrettyNote
+            note={revealedNote}
+            displayWithFlex={true}
+            showScientificPitchNotation={true}
+          />
+        }
+        .
+      </div>
+    ) : null
+  ) : null;
 
   return (
     <motion.div
@@ -285,7 +296,7 @@ function NoteTrainerPage() {
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col gap-2 md:mt-1 md:w-auto md:flex-row">
+            <div className="mt-6 flex flex-col gap-2 md:mt-[3px] md:w-auto md:flex-row">
               <div className="baseVertFlex !items-start gap-2">
                 <Label htmlFor="audioSelect">Audio</Label>
                 <Select
@@ -375,7 +386,11 @@ function NoteTrainerPage() {
                   onClick={() => handleGuess(note)}
                   disabled={!!selectedGuess}
                 >
-                  {note}
+                  <PrettyNote
+                    note={note}
+                    displayWithFlex={true}
+                    showScientificPitchNotation={true}
+                  />
                 </Button>
               ))}
             </div>
