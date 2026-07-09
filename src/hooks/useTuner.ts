@@ -14,7 +14,6 @@ type UseTunerParams = {
   targetTuning: string;
   capo?: number;
   toleranceCents?: number;
-  stableFrameCount?: number;
   stableHoldDurationMs?: number;
   minimumClarity?: number;
 };
@@ -32,7 +31,10 @@ type UseTunerResult = {
   currentTargetIndex: number;
   completed: boolean;
   targetNotes: string[];
-  setCurrentTargetIndex: (index: number) => void;
+  setCurrentTargetIndex: (
+    index: number,
+    options?: { playReferenceNote?: boolean },
+  ) => void;
   startListening: () => Promise<void>;
   stopListening: () => void;
   resetProgress: () => void;
@@ -47,49 +49,68 @@ type UiSnapshot = {
   clarity: number;
 };
 
+type TunerLoopConfig = {
+  targetMidis: number[];
+  toleranceCents: number;
+  minimumClarity: number;
+  requiredStableHoldMs: number;
+};
+
 const DEFAULT_TUNING_NOTES = DEFAULT_TUNING.split(" ");
-const ANALYSIS_GAIN = 3.2;
+const DEFAULT_STABLE_HOLD_DURATION_MS = 250;
 const MIN_CLARITY_FLOOR = 0.66;
 const MIN_INPUT_GATE_RMS = 0.001;
-const UI_UPDATE_INTERVAL_MS = 500;
 const GUIDE_INSTRUMENT_NAME = "acoustic_guitar_steel" as const;
 const GUIDE_NOTE_DURATION_SECONDS = 1.2;
 const GUIDE_NOTE_GAIN = 1.65;
 const GUIDE_NOTE_ATTACK_SECONDS = 0.01;
-const GUIDE_NOTE_LOCKOUT_BUFFER_MS = 180;
+const GUIDE_PLAYBACK_QUIET_FRAME_COUNT = 3;
+const GUIDE_SUPPRESSION_MAX_MS = 2500;
 
 type GuidePlaybackHandle = {
   stop?: (when?: number) => void;
   source?: AudioBufferSourceNode | null;
 } | null;
 
-function createUiSnapshot({
-  signalDetected,
-  detectedNote,
-  detectedFrequency,
-  detectedCents,
-  targetCentsOffset,
-  clarity,
-}: UiSnapshot): UiSnapshot {
-  return {
-    signalDetected,
-    detectedNote,
-    detectedFrequency,
-    detectedCents,
-    targetCentsOffset,
-    clarity,
-  };
-}
-
 function createEmptyUiSnapshot(clarity = 0): UiSnapshot {
-  return createUiSnapshot({
+  return {
     signalDetected: false,
     detectedNote: null,
     detectedFrequency: null,
     detectedCents: null,
     targetCentsOffset: null,
     clarity,
-  });
+  };
+}
+
+const EMPTY_UI_SNAPSHOT = createEmptyUiSnapshot();
+
+function roundUiClarity(clarity: number) {
+  return Math.round(clarity * 100) / 100;
+}
+
+function createNoSignalUiSnapshot(clarity: number) {
+  const roundedClarity = roundUiClarity(clarity);
+
+  if (roundedClarity === 0) {
+    return EMPTY_UI_SNAPSHOT;
+  }
+
+  return {
+    ...EMPTY_UI_SNAPSHOT,
+    clarity: roundedClarity,
+  };
+}
+
+function areUiSnapshotsEqual(a: UiSnapshot, b: UiSnapshot) {
+  return (
+    a.signalDetected === b.signalDetected &&
+    a.detectedNote === b.detectedNote &&
+    a.detectedFrequency === b.detectedFrequency &&
+    a.detectedCents === b.detectedCents &&
+    a.targetCentsOffset === b.targetCentsOffset &&
+    a.clarity === b.clarity
+  );
 }
 
 function midiFromFrequency(frequency: number) {
@@ -124,15 +145,60 @@ function stopGuidePlayback(handle: GuidePlaybackHandle) {
   }
 }
 
-function resolvePlaybackDestination(audioContext: AudioContext) {
-  return audioContext.destination;
+function isSingleOctaveJump(a: number, b: number) {
+  return Math.abs(a - b) === 12 && a % 12 === b % 12;
+}
+
+function resolveGetUserMediaError(error: unknown) {
+  if (error instanceof DOMException) {
+    if (
+      error.name === "NotAllowedError" ||
+      error.name === "PermissionDeniedError"
+    ) {
+      return {
+        permissionDenied: true,
+        message: "Microphone permission was denied.",
+      };
+    }
+
+    if (
+      error.name === "NotFoundError" ||
+      error.name === "DevicesNotFoundError"
+    ) {
+      return {
+        permissionDenied: false,
+        message: "No microphone was found.",
+      };
+    }
+
+    if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+      return {
+        permissionDenied: false,
+        message: "The microphone is unavailable or already in use.",
+      };
+    }
+
+    if (
+      error.name === "OverconstrainedError" ||
+      error.name === "ConstraintNotSatisfiedError"
+    ) {
+      return {
+        permissionDenied: false,
+        message: "The requested microphone settings are not supported.",
+      };
+    }
+  }
+
+  return {
+    permissionDenied: false,
+    message: "Unable to access the microphone.",
+  };
 }
 
 export function useTuner({
   targetTuning,
   capo = 0,
   toleranceCents = 8,
-  stableFrameCount = 16,
   stableHoldDurationMs,
   minimumClarity = 0.84,
 }: UseTunerParams): UseTunerResult {
@@ -145,41 +211,49 @@ export function useTuner({
     }));
 
   const [isListening, setIsListening] = useState(false);
-  const [signalDetected, setSignalDetected] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [detectedNote, setDetectedNote] = useState<string | null>(null);
-  const [detectedFrequency, setDetectedFrequency] = useState<number | null>(
-    null,
+  const [uiSnapshot, setUiSnapshot] = useState<UiSnapshot>(
+    () => EMPTY_UI_SNAPSHOT,
   );
-  const [detectedCents, setDetectedCents] = useState<number | null>(null);
-  const [targetCentsOffset, setTargetCentsOffset] = useState<number | null>(
-    null,
-  );
-  const [clarity, setClarity] = useState(0);
   const [currentTargetIndex, setCurrentTargetIndexState] = useState(0);
   const [completed, setCompleted] = useState(false);
 
   const streamRef = useRef<MediaStream | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const micSourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  const analysisGainNodeRef = useRef<GainNode | null>(null);
   const detectorRef = useRef<PitchDetector<Float32Array> | null>(null);
   const bufferRef = useRef<Float32Array<ArrayBuffer> | null>(null);
   const rafRef = useRef<number | null>(null);
   const stableMatchStartTimeRef = useRef<number | null>(null);
-  const lastUiUpdateTimeRef = useRef(0);
   const centsHistoryRef = useRef<number[]>([]);
+  const lastDetectedMidiRef = useRef<number | null>(null);
   const currentTargetIndexRef = useRef(0);
-  const guidePlaybackLockoutUntilRef = useRef(0);
   const guidePlaybackHandleRef = useRef<GuidePlaybackHandle>(null);
   const guidePlaybackRequestIdRef = useRef(0);
+  const guidePlaybackAwaitingSilenceRef = useRef(false);
+  const guidePlaybackActiveRef = useRef(false);
+  const guidePlaybackQuietFrameCountRef = useRef(0);
+  const guidePlaybackSuppressionDeadlineRef = useRef(0);
+  const guidePlaybackActiveTimeoutRef = useRef<number | null>(null);
+  const guidePlaybackSuppressionTokenRef = useRef(0);
   const shouldBeListeningRef = useRef(false);
   const isListeningRef = useRef(false);
   const restartListeningPromiseRef = useRef<Promise<void> | null>(null);
+  const instrumentsRef = useRef(instruments);
+  const pendingOctaveJumpMidiRef = useRef<number | null>(null);
+  const completedRef = useRef(false);
+  const streamGenerationRef = useRef(0);
+  const loopConfigRef = useRef<TunerLoopConfig>({
+    targetMidis: DEFAULT_TUNING_NOTES.map((note) => get(note).midi ?? 40),
+    toleranceCents,
+    minimumClarity,
+    requiredStableHoldMs:
+      stableHoldDurationMs ?? DEFAULT_STABLE_HOLD_DURATION_MS,
+  });
 
   const requiredStableHoldMs =
-    stableHoldDurationMs ?? (stableFrameCount / 60) * 1000;
+    stableHoldDurationMs ?? DEFAULT_STABLE_HOLD_DURATION_MS;
 
   const targetNotes = useMemo(
     () => resolveTargetNotes(targetTuning),
@@ -206,46 +280,69 @@ export function useTuner({
     return DEFAULT_TUNING_NOTES.map((note) => get(note).midi ?? 40);
   }, [comparisonTargetNotes]);
 
-  const applyUiSnapshot = useCallback(
-    (
-      snapshot: UiSnapshot,
-      options?: {
-        force?: boolean;
-        resetThrottle?: boolean;
-        timestamp?: number;
-      },
-    ) => {
-      const timestamp = options?.timestamp ?? performance.now();
+  const resetPitchTracking = useCallback(() => {
+    stableMatchStartTimeRef.current = null;
+    centsHistoryRef.current = [];
+    lastDetectedMidiRef.current = null;
+    pendingOctaveJumpMidiRef.current = null;
+  }, []);
 
-      if (
-        !options?.force &&
-        lastUiUpdateTimeRef.current !== 0 &&
-        timestamp - lastUiUpdateTimeRef.current < UI_UPDATE_INTERVAL_MS
-      ) {
-        return false;
+  const clearGuidePlaybackSuppression = useCallback(() => {
+    guidePlaybackSuppressionTokenRef.current += 1;
+    guidePlaybackSuppressionDeadlineRef.current = 0;
+
+    if (guidePlaybackActiveTimeoutRef.current !== null) {
+      window.clearTimeout(guidePlaybackActiveTimeoutRef.current);
+      guidePlaybackActiveTimeoutRef.current = null;
+    }
+
+    guidePlaybackAwaitingSilenceRef.current = false;
+    guidePlaybackActiveRef.current = false;
+    guidePlaybackQuietFrameCountRef.current = 0;
+  }, []);
+
+  const beginGuidePlaybackSuppression = useCallback(
+    (handle: GuidePlaybackHandle) => {
+      clearGuidePlaybackSuppression();
+
+      guidePlaybackAwaitingSilenceRef.current = true;
+      guidePlaybackActiveRef.current = true;
+      guidePlaybackSuppressionDeadlineRef.current =
+        performance.now() + GUIDE_SUPPRESSION_MAX_MS;
+
+      const token = guidePlaybackSuppressionTokenRef.current;
+      const markPlaybackInactive = () => {
+        if (guidePlaybackSuppressionTokenRef.current !== token) {
+          return;
+        }
+
+        guidePlaybackActiveRef.current = false;
+
+        if (guidePlaybackActiveTimeoutRef.current !== null) {
+          window.clearTimeout(guidePlaybackActiveTimeoutRef.current);
+          guidePlaybackActiveTimeoutRef.current = null;
+        }
+      };
+
+      if (handle?.source) {
+        handle.source.addEventListener("ended", markPlaybackInactive, {
+          once: true,
+        });
+        return;
       }
 
-      setSignalDetected(snapshot.signalDetected);
-      setDetectedFrequency(snapshot.detectedFrequency);
-      setDetectedNote(snapshot.detectedNote);
-      setDetectedCents(snapshot.detectedCents);
-      setTargetCentsOffset(snapshot.targetCentsOffset);
-      setClarity(snapshot.clarity);
-      lastUiUpdateTimeRef.current = options?.resetThrottle ? 0 : timestamp;
-
-      return true;
+      guidePlaybackActiveTimeoutRef.current = window.setTimeout(
+        markPlaybackInactive,
+        GUIDE_NOTE_DURATION_SECONDS * 1000,
+      );
     },
-    [],
+    [clearGuidePlaybackSuppression],
   );
 
   const playReferenceNote = useCallback(
     async (targetIndex: number) => {
       const targetMidi = targetMidis[targetIndex] ?? targetMidis[0];
-      if (targetMidi === undefined) {
-        return;
-      }
-
-      if (!audioContext) {
+      if (targetMidi === undefined || !audioContext) {
         return;
       }
 
@@ -257,27 +354,21 @@ export function useTuner({
       const requestId = guidePlaybackRequestIdRef.current + 1;
       guidePlaybackRequestIdRef.current = requestId;
 
+      clearGuidePlaybackSuppression();
       stopGuidePlayback(guidePlaybackHandleRef.current);
       guidePlaybackHandleRef.current = null;
 
-      const cachedInstrument = instruments[GUIDE_INSTRUMENT_NAME];
+      const cachedInstrument = instrumentsRef.current[GUIDE_INSTRUMENT_NAME];
       if (cachedInstrument) {
-        guidePlaybackLockoutUntilRef.current =
-          performance.now() +
-          GUIDE_NOTE_DURATION_SECONDS * 1000 +
-          GUIDE_NOTE_LOCKOUT_BUFFER_MS;
-        stableMatchStartTimeRef.current = null;
-        centsHistoryRef.current = [];
-        applyUiSnapshot(createEmptyUiSnapshot(), {
-          force: true,
-          resetThrottle: true,
-        });
+        resetPitchTracking();
+        setUiSnapshot(EMPTY_UI_SNAPSHOT);
 
         guidePlaybackHandleRef.current = cachedInstrument.play(noteName, 0, {
           duration: GUIDE_NOTE_DURATION_SECONDS,
           gain: GUIDE_NOTE_GAIN,
           attack: GUIDE_NOTE_ATTACK_SECONDS,
         });
+        beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
 
         return;
       }
@@ -286,72 +377,61 @@ export function useTuner({
         const guideInstrument = await ensureSoundfontPlayer(
           audioContext,
           GUIDE_INSTRUMENT_NAME,
-          masterVolumeGainNode ?? resolvePlaybackDestination(audioContext),
+          masterVolumeGainNode ?? audioContext.destination,
         );
 
-        setInstruments({
-          ...instruments,
+        const nextInstruments = {
+          ...instrumentsRef.current,
           [GUIDE_INSTRUMENT_NAME]: guideInstrument,
-        });
+        };
+
+        instrumentsRef.current = nextInstruments;
+        setInstruments(nextInstruments);
 
         if (guidePlaybackRequestIdRef.current !== requestId) {
           return;
         }
 
-        guidePlaybackLockoutUntilRef.current =
-          performance.now() +
-          GUIDE_NOTE_DURATION_SECONDS * 1000 +
-          GUIDE_NOTE_LOCKOUT_BUFFER_MS;
-        stableMatchStartTimeRef.current = null;
-        centsHistoryRef.current = [];
-        applyUiSnapshot(createEmptyUiSnapshot(), {
-          force: true,
-          resetThrottle: true,
-        });
+        resetPitchTracking();
+        setUiSnapshot(EMPTY_UI_SNAPSHOT);
 
         guidePlaybackHandleRef.current = guideInstrument.play(noteName, 0, {
           duration: GUIDE_NOTE_DURATION_SECONDS,
           gain: GUIDE_NOTE_GAIN,
           attack: GUIDE_NOTE_ATTACK_SECONDS,
         });
-      } catch (error) {
+        beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
+      } catch (caughtError) {
         if (guidePlaybackRequestIdRef.current === requestId) {
-          guidePlaybackLockoutUntilRef.current = 0;
+          clearGuidePlaybackSuppression();
         }
 
-        console.error("Failed to play tuner reference note:", error);
+        console.error("Failed to play tuner reference note:", caughtError);
       }
     },
     [
-      applyUiSnapshot,
       audioContext,
-      instruments,
+      beginGuidePlaybackSuppression,
+      clearGuidePlaybackSuppression,
       masterVolumeGainNode,
+      resetPitchTracking,
       setInstruments,
       targetMidis,
     ],
   );
 
   const setCurrentTargetIndex = useCallback(
-    (
-      index: number,
-      options?: {
-        allowCreateAudioContext?: boolean;
-        playReferenceNote?: boolean;
-      },
-    ) => {
+    (index: number, options?: { playReferenceNote?: boolean }) => {
       const maxTargetIndex = Math.max(targetMidis.length - 1, 0);
       const clamped = Math.max(0, Math.min(index, maxTargetIndex));
 
       if (clamped !== currentTargetIndexRef.current) {
-        stableMatchStartTimeRef.current = null;
-        centsHistoryRef.current = [];
-        applyUiSnapshot(createEmptyUiSnapshot(), {
-          force: true,
-          resetThrottle: true,
-        });
+        resetPitchTracking();
+        setUiSnapshot(EMPTY_UI_SNAPSHOT);
       }
 
+      setCompleted(false);
+      completedRef.current = false;
       setCurrentTargetIndexState(clamped);
       currentTargetIndexRef.current = clamped;
 
@@ -359,24 +439,21 @@ export function useTuner({
         void playReferenceNote(clamped);
       }
     },
-    [applyUiSnapshot, playReferenceNote, targetMidis.length],
+    [playReferenceNote, resetPitchTracking, targetMidis.length],
   );
 
   const resetProgress = useCallback(() => {
     guidePlaybackRequestIdRef.current += 1;
-    guidePlaybackLockoutUntilRef.current = 0;
+    clearGuidePlaybackSuppression();
     stopGuidePlayback(guidePlaybackHandleRef.current);
     guidePlaybackHandleRef.current = null;
-    stableMatchStartTimeRef.current = null;
-    centsHistoryRef.current = [];
-    applyUiSnapshot(createEmptyUiSnapshot(), {
-      force: true,
-      resetThrottle: true,
-    });
+    resetPitchTracking();
+    setUiSnapshot(EMPTY_UI_SNAPSHOT);
     setCurrentTargetIndexState(0);
     currentTargetIndexRef.current = 0;
+    completedRef.current = false;
     setCompleted(false);
-  }, [applyUiSnapshot]);
+  }, [clearGuidePlaybackSuppression, resetPitchTracking]);
 
   const teardownListening = useCallback(
     ({ preserveIntent = false }: { preserveIntent?: boolean } = {}) => {
@@ -385,9 +462,11 @@ export function useTuner({
       }
 
       guidePlaybackRequestIdRef.current += 1;
-      guidePlaybackLockoutUntilRef.current = 0;
+      clearGuidePlaybackSuppression();
       stopGuidePlayback(guidePlaybackHandleRef.current);
       guidePlaybackHandleRef.current = null;
+
+      streamGenerationRef.current += 1;
 
       if (rafRef.current !== null) {
         window.cancelAnimationFrame(rafRef.current);
@@ -396,9 +475,6 @@ export function useTuner({
 
       analyserRef.current?.disconnect();
       analyserRef.current = null;
-
-      analysisGainNodeRef.current?.disconnect();
-      analysisGainNodeRef.current = null;
 
       micSourceNodeRef.current?.disconnect();
       micSourceNodeRef.current = null;
@@ -412,16 +488,12 @@ export function useTuner({
 
       detectorRef.current = null;
       bufferRef.current = null;
-      stableMatchStartTimeRef.current = null;
-      centsHistoryRef.current = [];
+      resetPitchTracking();
 
       setIsListening(false);
-      applyUiSnapshot(createEmptyUiSnapshot(), {
-        force: true,
-        resetThrottle: true,
-      });
+      setUiSnapshot(EMPTY_UI_SNAPSHOT);
     },
-    [applyUiSnapshot],
+    [clearGuidePlaybackSuppression, resetPitchTracking],
   );
 
   const stopListening = useCallback(() => {
@@ -438,7 +510,7 @@ export function useTuner({
     const hasRecoverableStream =
       activeTracks.length > 0 &&
       activeTracks.some(
-        (track) => track.readyState === "live" && track.enabled,
+        (track) => track.readyState === "live" && track.enabled && !track.muted,
       );
 
     if (isListeningRef.current && hasRecoverableStream) {
@@ -463,33 +535,49 @@ export function useTuner({
 
         if (!audioContext) {
           setError("Could not initialize audio context.");
-          stopListening();
+          teardownListening();
           return;
         }
 
+        if (audioContext.state === "suspended") {
+          try {
+            await audioContext.resume();
+          } catch {
+            // Best-effort; detection loop will still run.
+          }
+        }
+
         const micSourceNode = audioContext.createMediaStreamSource(stream);
-        const analysisGainNode = audioContext.createGain();
         const analyser = audioContext.createAnalyser();
         analyser.fftSize = 2048;
-        analyser.smoothingTimeConstant = 0.12;
+        micSourceNode.connect(analyser);
 
-        analysisGainNode.gain.value = ANALYSIS_GAIN;
-
-        micSourceNode.connect(analysisGainNode);
-        analysisGainNode.connect(analyser);
-
-        const inputBuffer = new Float32Array(
-          new ArrayBuffer(analyser.fftSize * Float32Array.BYTES_PER_ELEMENT),
-        );
+        const inputBuffer = new Float32Array(analyser.fftSize);
         const detector = PitchDetector.forFloat32Array(inputBuffer.length);
+        const streamGeneration = ++streamGenerationRef.current;
 
         micSourceNodeRef.current = micSourceNode;
-        analysisGainNodeRef.current = analysisGainNode;
         analyserRef.current = analyser;
         bufferRef.current = inputBuffer;
         detectorRef.current = detector;
 
+        for (const track of stream.getAudioTracks()) {
+          track.addEventListener("ended", () => {
+            if (
+              !shouldBeListeningRef.current ||
+              streamGenerationRef.current !== streamGeneration
+            ) {
+              return;
+            }
+
+            teardownListening({ preserveIntent: true });
+            void recoverListening();
+          });
+        }
+
         setIsListening(true);
+        setError(null);
+        setPermissionDenied(false);
 
         const runDetectionLoop = () => {
           const activeAnalyser = analyserRef.current;
@@ -500,10 +588,12 @@ export function useTuner({
             return;
           }
 
-          if (guidePlaybackLockoutUntilRef.current > performance.now()) {
-            rafRef.current = window.requestAnimationFrame(runDetectionLoop);
-            return;
-          }
+          const {
+            targetMidis: activeTargetMidis,
+            toleranceCents: activeToleranceCents,
+            minimumClarity: activeMinimumClarity,
+            requiredStableHoldMs: activeStableHoldDurationMs,
+          } = loopConfigRef.current;
 
           activeAnalyser.getFloatTimeDomainData(activeBuffer);
 
@@ -513,9 +603,38 @@ export function useTuner({
           }
           const rms = Math.sqrt(meanSquare / activeBuffer.length);
 
+          if (guidePlaybackAwaitingSilenceRef.current) {
+            if (
+              performance.now() > guidePlaybackSuppressionDeadlineRef.current
+            ) {
+              clearGuidePlaybackSuppression();
+            } else if (
+              !guidePlaybackActiveRef.current &&
+              rms < MIN_INPUT_GATE_RMS
+            ) {
+              guidePlaybackQuietFrameCountRef.current += 1;
+
+              if (
+                guidePlaybackQuietFrameCountRef.current >=
+                GUIDE_PLAYBACK_QUIET_FRAME_COUNT
+              ) {
+                clearGuidePlaybackSuppression();
+              }
+            } else {
+              guidePlaybackQuietFrameCountRef.current = 0;
+            }
+
+            setUiSnapshot(EMPTY_UI_SNAPSHOT);
+
+            if (guidePlaybackAwaitingSilenceRef.current) {
+              rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+              return;
+            }
+          }
+
           if (rms < MIN_INPUT_GATE_RMS) {
-            stableMatchStartTimeRef.current = null;
-            applyUiSnapshot(createEmptyUiSnapshot());
+            resetPitchTracking();
+            setUiSnapshot(EMPTY_UI_SNAPSHOT);
             rafRef.current = window.requestAnimationFrame(runDetectionLoop);
             return;
           }
@@ -523,8 +642,8 @@ export function useTuner({
           const quietnessWeight = Math.max(0, Math.min(1, (0.02 - rms) / 0.02));
 
           const effectiveMinimumClarity =
-            minimumClarity -
-            quietnessWeight * (minimumClarity - MIN_CLARITY_FLOOR);
+            activeMinimumClarity -
+            quietnessWeight * (activeMinimumClarity - MIN_CLARITY_FLOOR);
 
           const [pitch, foundClarity] = activeDetector.findPitch(
             activeBuffer,
@@ -536,18 +655,45 @@ export function useTuner({
             pitch <= 0 ||
             foundClarity < effectiveMinimumClarity
           ) {
-            stableMatchStartTimeRef.current = null;
-            applyUiSnapshot(createEmptyUiSnapshot(foundClarity));
+            const noSignalSnapshot = createNoSignalUiSnapshot(foundClarity);
+
+            resetPitchTracking();
+            setUiSnapshot((current) =>
+              areUiSnapshotsEqual(current, noSignalSnapshot)
+                ? current
+                : noSignalSnapshot,
+            );
             rafRef.current = window.requestAnimationFrame(runDetectionLoop);
             return;
           }
 
           const nearestMidi = midiFromFrequency(pitch);
+          const previousDetectedMidi = lastDetectedMidiRef.current;
+
+          if (
+            previousDetectedMidi !== null &&
+            isSingleOctaveJump(nearestMidi, previousDetectedMidi)
+          ) {
+            if (pendingOctaveJumpMidiRef.current !== nearestMidi) {
+              pendingOctaveJumpMidiRef.current = nearestMidi;
+              rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+              return;
+            }
+          }
+
+          pendingOctaveJumpMidiRef.current = null;
+
           const nearestFrequency = frequencyFromMidi(nearestMidi);
           const centsFromNearest = centsBetweenFrequencies(
             pitch,
             nearestFrequency,
           );
+
+          if (lastDetectedMidiRef.current !== nearestMidi) {
+            centsHistoryRef.current = [];
+            lastDetectedMidiRef.current = nearestMidi;
+            pendingOctaveJumpMidiRef.current = null;
+          }
 
           centsHistoryRef.current.push(centsFromNearest);
           if (centsHistoryRef.current.length > 5) {
@@ -563,28 +709,33 @@ export function useTuner({
           }).toLowerCase();
 
           const targetMidi =
-            targetMidis[currentTargetIndexRef.current] ?? targetMidis[0] ?? 40;
+            activeTargetMidis[currentTargetIndexRef.current] ??
+            activeTargetMidis[0] ??
+            40;
           const targetFrequency = frequencyFromMidi(targetMidi);
           const centsFromTarget = centsBetweenFrequencies(
             pitch,
             targetFrequency,
           );
 
-          const now = performance.now();
-          applyUiSnapshot(
-            createUiSnapshot({
-              signalDetected: true,
-              detectedFrequency: pitch,
-              detectedNote: resolvedDetectedNote,
-              detectedCents: smoothedDetectedCents,
-              targetCentsOffset: centsFromTarget,
-              clarity: foundClarity,
-            }),
-            { timestamp: now },
+          const nextUiSnapshot: UiSnapshot = {
+            signalDetected: true,
+            detectedFrequency: Math.round(pitch * 10) / 10,
+            detectedNote: resolvedDetectedNote,
+            detectedCents: Math.round(smoothedDetectedCents * 10) / 10,
+            targetCentsOffset: Math.round(centsFromTarget * 10) / 10,
+            clarity: roundUiClarity(foundClarity),
+          };
+
+          setUiSnapshot((current) =>
+            areUiSnapshotsEqual(current, nextUiSnapshot)
+              ? current
+              : nextUiSnapshot,
           );
 
           const isMatchingTargetNote = nearestMidi === targetMidi;
-          const isWithinTolerance = Math.abs(centsFromTarget) <= toleranceCents;
+          const isWithinTolerance =
+            Math.abs(centsFromTarget) <= activeToleranceCents;
 
           if (isMatchingTargetNote && isWithinTolerance) {
             if (stableMatchStartTimeRef.current === null) {
@@ -597,17 +748,17 @@ export function useTuner({
           if (
             stableMatchStartTimeRef.current !== null &&
             performance.now() - stableMatchStartTimeRef.current >=
-              requiredStableHoldMs
+              activeStableHoldDurationMs
           ) {
             stableMatchStartTimeRef.current = null;
 
-            if (currentTargetIndexRef.current >= targetMidis.length - 1) {
-              setCompleted(true);
+            if (currentTargetIndexRef.current >= activeTargetMidis.length - 1) {
+              if (!completedRef.current) {
+                completedRef.current = true;
+                setCompleted(true);
+              }
             } else {
-              const nextIndex = currentTargetIndexRef.current + 1;
-              setCurrentTargetIndex(nextIndex, {
-                allowCreateAudioContext: false,
-              });
+              setCurrentTargetIndex(currentTargetIndexRef.current + 1);
             }
           }
 
@@ -615,10 +766,12 @@ export function useTuner({
         };
 
         rafRef.current = window.requestAnimationFrame(runDetectionLoop);
-      } catch {
-        setPermissionDenied(true);
-        setError("Microphone permission was denied.");
-        stopListening();
+      } catch (caughtError) {
+        const resolvedError = resolveGetUserMediaError(caughtError);
+
+        setPermissionDenied(resolvedError.permissionDenied);
+        setError(resolvedError.message);
+        teardownListening();
       }
     })();
 
@@ -628,15 +781,11 @@ export function useTuner({
 
     await restartListeningPromiseRef.current;
   }, [
-    applyUiSnapshot,
     audioContext,
-    minimumClarity,
-    requiredStableHoldMs,
+    clearGuidePlaybackSuppression,
+    resetPitchTracking,
     setCurrentTargetIndex,
-    stopListening,
     teardownListening,
-    targetMidis,
-    toleranceCents,
   ]);
 
   const startListening = useCallback(async () => {
@@ -658,6 +807,19 @@ export function useTuner({
   useEffect(() => {
     isListeningRef.current = isListening;
   }, [isListening]);
+
+  useEffect(() => {
+    instrumentsRef.current = instruments;
+  }, [instruments]);
+
+  useEffect(() => {
+    loopConfigRef.current = {
+      targetMidis,
+      toleranceCents,
+      minimumClarity,
+      requiredStableHoldMs,
+    };
+  }, [minimumClarity, requiredStableHoldMs, targetMidis, toleranceCents]);
 
   useEffect(() => {
     currentTargetIndexRef.current = currentTargetIndex;
@@ -723,14 +885,14 @@ export function useTuner({
 
   return {
     isListening,
-    signalDetected,
+    signalDetected: uiSnapshot.signalDetected,
     permissionDenied,
     error,
-    detectedNote,
-    detectedFrequency,
-    detectedCents,
-    targetCentsOffset,
-    clarity,
+    detectedNote: uiSnapshot.detectedNote,
+    detectedFrequency: uiSnapshot.detectedFrequency,
+    detectedCents: uiSnapshot.detectedCents,
+    targetCentsOffset: uiSnapshot.targetCentsOffset,
+    clarity: uiSnapshot.clarity,
     currentTargetIndex,
     completed,
     targetNotes,
