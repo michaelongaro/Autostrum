@@ -364,7 +364,11 @@ function NoteTrainerPage() {
           <div className="baseVertFlex w-full gap-2">
             <AnimatePresence mode="popLayout">
               <motion.p
-                key={feedbackMessage}
+                key={
+                  typeof feedbackMessage === "string"
+                    ? feedbackMessage
+                    : revealedNote
+                }
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -402,7 +406,7 @@ function NoteTrainerPage() {
               variant="audio"
               disabled={isSoundfontLoading}
               onClick={playTargetNote}
-              className="baseFlex h-11 shrink-0 gap-3 px-6 sm:w-36"
+              className="baseFlex h-11 w-36 shrink-0 gap-3 px-6"
             >
               <motion.div
                 key={`note-trainer-audio-loading-status-${isSoundfontLoading ? "loading" : "play"}`}
