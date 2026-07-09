@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import { IoEar } from "react-icons/io5";
@@ -126,13 +126,6 @@ function NoteTrainerPage() {
   const [roundsPlayed, setRoundsPlayed] = useState(0);
   const [correctGuesses, setCorrectGuesses] = useState(0);
   const activeNotePool = NOTE_SET_POOLS[noteSet];
-
-  useEffect(() => {
-    setSelectedGuess(null);
-    setRevealedNote(null);
-    setLastGuessCorrect(null);
-    setTargetNote(getRandomNote(activeNotePool));
-  }, [activeNotePool]);
 
   const stopCurrentPlayback = useCallback(() => {
     currentPlaybackRef.current?.stop?.();
@@ -333,7 +326,13 @@ function NoteTrainerPage() {
                 <Label htmlFor="noteSelect">Notes</Label>
                 <Select
                   value={noteSet}
-                  onValueChange={(value) => setNoteSet(value as NoteSet)}
+                  onValueChange={(value: NoteSet) => {
+                    setNoteSet(value);
+                    setSelectedGuess(null);
+                    setRevealedNote(null);
+                    setLastGuessCorrect(null);
+                    setTargetNote(getRandomNote(NOTE_SET_POOLS[value]));
+                  }}
                 >
                   <SelectTrigger id="noteSelect" className="w-52 md:w-52">
                     <SelectValue>{NOTE_SET_LABELS[noteSet]}</SelectValue>
