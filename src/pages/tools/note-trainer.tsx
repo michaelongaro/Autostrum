@@ -99,15 +99,15 @@ function getRandomNote(notePool: readonly string[]) {
 
 function NoteTrainerPage() {
   const {
+    audioContext,
     instruments,
     currentInstrument,
     setCurrentInstrumentName,
-    ensureAudioSystemReady,
   } = useTabStore((state) => ({
+    audioContext: state.audioContext,
     instruments: state.instruments,
     currentInstrument: state.currentInstrument,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
-    ensureAudioSystemReady: state.ensureAudioSystemReady,
   }));
 
   const currentPlaybackRef = useRef<PlaybackHandle>(null);
@@ -148,46 +148,38 @@ function NoteTrainerPage() {
 
       stopCurrentPlayback();
 
-      const audioSystem = await ensureAudioSystemReady();
-      if (!audioSystem || playbackRequestIdRef.current !== requestId) {
+      if (!audioContext || playbackRequestIdRef.current !== requestId) {
         return;
       }
 
-      const {
-        audioContext: readyAudioContext,
-        currentInstrument: readyCurrentInstrument,
-      } = audioSystem;
-
-      const source = audioSource;
-
-      if (source === "generated") {
+      if (audioSource === "generated") {
         const frequency = get(note).freq;
         if (!frequency) return;
 
-        if (!readyAudioContext || playbackRequestIdRef.current !== requestId) {
+        if (!audioContext || playbackRequestIdRef.current !== requestId) {
           return;
         }
 
-        const oscillator = readyAudioContext.createOscillator();
+        const oscillator = audioContext.createOscillator();
         oscillator.type = "sine";
         oscillator.frequency.setValueAtTime(
           frequency,
-          readyAudioContext.currentTime,
+          audioContext.currentTime,
         );
 
-        const gainNode = readyAudioContext.createGain();
-        gainNode.gain.setValueAtTime(0.0001, readyAudioContext.currentTime);
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(
           0.18,
-          readyAudioContext.currentTime + 0.02,
+          audioContext.currentTime + 0.02,
         );
         gainNode.gain.exponentialRampToValueAtTime(
           0.0001,
-          readyAudioContext.currentTime + 0.8,
+          audioContext.currentTime + 0.8,
         );
 
         oscillator.connect(gainNode);
-        gainNode.connect(readyAudioContext.destination);
+        gainNode.connect(audioContext.destination);
 
         const playbackHandle: PlaybackHandle = {
           stop: (when?: number) => oscillator.stop(when),
@@ -202,15 +194,15 @@ function NoteTrainerPage() {
         };
 
         oscillator.start();
-        oscillator.stop(readyAudioContext.currentTime + 0.82);
+        oscillator.stop(audioContext.currentTime + 0.82);
       } else {
-        readyCurrentInstrument?.play(note, 0, {
+        currentInstrument?.play(note, 0, {
           duration: 1.5,
           gain: 3,
         });
       }
     },
-    [audioSource, ensureAudioSystemReady, stopCurrentPlayback],
+    [audioSource, audioContext, currentInstrument, stopCurrentPlayback],
   );
 
   async function playTargetNote() {

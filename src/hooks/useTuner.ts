@@ -1,9 +1,8 @@
 import { PitchDetector } from "pitchy";
 import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
-import type Soundfont from "soundfont-player";
-import { type InstrumentName } from "soundfont-player";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTabStore } from "~/stores/TabStore";
 import {
   DEFAULT_TUNING,
   normalizeTuningValue,
@@ -18,8 +17,6 @@ type UseTunerParams = {
   stableFrameCount?: number;
   stableHoldDurationMs?: number;
   minimumClarity?: number;
-  audioContext?: AudioContext | null;
-  playbackDestination?: AudioNode | null;
 };
 
 type UseTunerResult = {
@@ -55,7 +52,7 @@ const ANALYSIS_GAIN = 3.2;
 const MIN_CLARITY_FLOOR = 0.66;
 const MIN_INPUT_GATE_RMS = 0.001;
 const UI_UPDATE_INTERVAL_MS = 500;
-const GUIDE_INSTRUMENT_NAME: InstrumentName = "acoustic_guitar_steel";
+const GUIDE_INSTRUMENT_NAME = "acoustic_guitar_steel" as const;
 const GUIDE_NOTE_DURATION_SECONDS = 1.2;
 const GUIDE_NOTE_GAIN = 1.65;
 const GUIDE_NOTE_ATTACK_SECONDS = 0.01;
@@ -65,12 +62,6 @@ type GuidePlaybackHandle = {
   stop?: (when?: number) => void;
   source?: AudioBufferSourceNode | null;
 } | null;
-
-const guideInstrumentCache = new WeakMap<AudioContext, Soundfont.Player>();
-const guideInstrumentLoadCache = new WeakMap<
-  AudioContext,
-  Promise<Soundfont.Player>
->();
 
 function createUiSnapshot({
   signalDetected,
@@ -133,50 +124,8 @@ function stopGuidePlayback(handle: GuidePlaybackHandle) {
   }
 }
 
-function resolvePlaybackDestination(
-  audioContext: AudioContext,
-  playbackDestination?: AudioNode | null,
-) {
-  if (playbackDestination?.context === audioContext) {
-    return playbackDestination;
-  }
-
+function resolvePlaybackDestination(audioContext: AudioContext) {
   return audioContext.destination;
-}
-
-async function loadGuideInstrument(
-  audioContext: AudioContext,
-  destination: AudioNode,
-) {
-  const cachedInstrument = guideInstrumentCache.get(audioContext);
-  if (cachedInstrument) {
-    return cachedInstrument;
-  }
-
-  const inFlightLoad = guideInstrumentLoadCache.get(audioContext);
-  if (inFlightLoad) {
-    return inFlightLoad;
-  }
-
-  const loadPromise = ensureSoundfontPlayer(
-    audioContext,
-    GUIDE_INSTRUMENT_NAME,
-    destination,
-  )
-    .then((instrument) => {
-      guideInstrumentCache.set(audioContext, instrument);
-      guideInstrumentLoadCache.delete(audioContext);
-
-      return instrument;
-    })
-    .catch((error) => {
-      guideInstrumentLoadCache.delete(audioContext);
-      throw error;
-    });
-
-  guideInstrumentLoadCache.set(audioContext, loadPromise);
-
-  return loadPromise;
 }
 
 export function useTuner({
@@ -186,9 +135,15 @@ export function useTuner({
   stableFrameCount = 16,
   stableHoldDurationMs,
   minimumClarity = 0.84,
-  audioContext,
-  playbackDestination,
 }: UseTunerParams): UseTunerResult {
+  const { audioContext, masterVolumeGainNode, instruments, setInstruments } =
+    useTabStore((state) => ({
+      audioContext: state.audioContext,
+      masterVolumeGainNode: state.masterVolumeGainNode,
+      instruments: state.instruments,
+      setInstruments: state.setInstruments,
+    }));
+
   const [isListening, setIsListening] = useState(false);
   const [signalDetected, setSignalDetected] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -294,24 +249,52 @@ export function useTuner({
         return;
       }
 
+      const noteName = midiToNoteName(targetMidi, { sharps: true });
+      if (!noteName) {
+        return;
+      }
+
       const requestId = guidePlaybackRequestIdRef.current + 1;
       guidePlaybackRequestIdRef.current = requestId;
 
       stopGuidePlayback(guidePlaybackHandleRef.current);
       guidePlaybackHandleRef.current = null;
 
+      const cachedInstrument = instruments[GUIDE_INSTRUMENT_NAME];
+      if (cachedInstrument) {
+        guidePlaybackLockoutUntilRef.current =
+          performance.now() +
+          GUIDE_NOTE_DURATION_SECONDS * 1000 +
+          GUIDE_NOTE_LOCKOUT_BUFFER_MS;
+        stableMatchStartTimeRef.current = null;
+        centsHistoryRef.current = [];
+        applyUiSnapshot(createEmptyUiSnapshot(), {
+          force: true,
+          resetThrottle: true,
+        });
+
+        guidePlaybackHandleRef.current = cachedInstrument.play(noteName, 0, {
+          duration: GUIDE_NOTE_DURATION_SECONDS,
+          gain: GUIDE_NOTE_GAIN,
+          attack: GUIDE_NOTE_ATTACK_SECONDS,
+        });
+
+        return;
+      }
+
       try {
-        const guideInstrument = await loadGuideInstrument(
+        const guideInstrument = await ensureSoundfontPlayer(
           audioContext,
-          resolvePlaybackDestination(audioContext, playbackDestination),
+          GUIDE_INSTRUMENT_NAME,
+          masterVolumeGainNode ?? resolvePlaybackDestination(audioContext),
         );
 
-        if (guidePlaybackRequestIdRef.current !== requestId) {
-          return;
-        }
+        setInstruments({
+          ...instruments,
+          [GUIDE_INSTRUMENT_NAME]: guideInstrument,
+        });
 
-        const noteName = midiToNoteName(targetMidi, { sharps: true });
-        if (!noteName) {
+        if (guidePlaybackRequestIdRef.current !== requestId) {
           return;
         }
 
@@ -339,7 +322,14 @@ export function useTuner({
         console.error("Failed to play tuner reference note:", error);
       }
     },
-    [applyUiSnapshot, audioContext, playbackDestination, targetMidis],
+    [
+      applyUiSnapshot,
+      audioContext,
+      instruments,
+      masterVolumeGainNode,
+      setInstruments,
+      targetMidis,
+    ],
   );
 
   const setCurrentTargetIndex = useCallback(

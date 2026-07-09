@@ -31,7 +31,6 @@ import { cn } from "~/utils/cn";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import { DEFAULT_TUNING, parse } from "~/utils/tunings";
 import Logo from "~/components/ui/icons/Logo";
-import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import { useTabStore } from "~/stores/TabStore";
 
 type AudioSource =
@@ -254,10 +253,13 @@ function appendQueue(
 }
 
 function ChordTrainerPage() {
-  const { audioContext, ensureAudioSystemReady } = useTabStore((state) => ({
-    audioContext: state.audioContext,
-    ensureAudioSystemReady: state.ensureAudioSystemReady,
-  }));
+  const { audioContext, masterVolumeGainNode, currentInstrument } = useTabStore(
+    (state) => ({
+      audioContext: state.audioContext,
+      masterVolumeGainNode: state.masterVolumeGainNode,
+      currentInstrument: state.currentInstrument,
+    }),
+  );
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const sliderContainerRef = useRef<HTMLDivElement | null>(null);
@@ -349,57 +351,17 @@ function ChordTrainerPage() {
     soundfontCacheRef.current = {};
   }, [audioContext]);
 
-  const ensureAudioRuntime = useCallback(
-    async (source: AudioSource | null = audioSource) => {
-      if (!source || source === "none") {
-        throw new Error("No audio source selected.");
-      }
-
-      const audioSystem = await ensureAudioSystemReady();
-      if (!audioSystem) {
-        throw new Error("Audio system is not ready.");
-      }
-
-      const readyAudioContext = audioSystem.audioContext;
-
-      let masterVolumeGainNode = masterGainRef.current;
-      if (masterVolumeGainNode?.context !== readyAudioContext) {
-        const nextMasterVolumeGainNode = readyAudioContext.createGain();
-        nextMasterVolumeGainNode.gain.value = 1;
-        nextMasterVolumeGainNode.connect(readyAudioContext.destination);
-        masterGainRef.current = nextMasterVolumeGainNode;
-        soundfontCacheRef.current = {};
-        masterVolumeGainNode = nextMasterVolumeGainNode;
-      }
-
-      let currentInstrument = soundfontCacheRef.current[source];
-      if (!currentInstrument) {
-        currentInstrument = await ensureSoundfontPlayer(
-          readyAudioContext,
-          source,
-          masterVolumeGainNode,
-        );
-
-        soundfontCacheRef.current[source] = currentInstrument;
-      }
-
-      return {
-        audioContext: readyAudioContext,
-        masterVolumeGainNode,
-        currentInstrument,
-      };
-    },
-    [audioSource, ensureAudioSystemReady],
-  );
-
   const playChord = useCallback(
     async (chord: ChordTrainerPreset, bpm: number) => {
-      if (!audioEnabledRef.current) return;
+      if (
+        !audioEnabledRef.current ||
+        !audioContext ||
+        !masterVolumeGainNode ||
+        !currentInstrument
+      )
+        return;
 
       try {
-        const { audioContext, masterVolumeGainNode, currentInstrument } =
-          await ensureAudioRuntime();
-
         await playNoteColumn({
           tuning: STANDARD_TUNING,
           capo: 0,
@@ -415,7 +377,7 @@ function ChordTrainerPage() {
         console.error("Unable to play chord trainer audio:", error);
       }
     },
-    [ensureAudioRuntime],
+    [audioContext, masterVolumeGainNode, currentInstrument],
   );
 
   const playChordRef = useRef(playChord);
@@ -692,27 +654,12 @@ function ChordTrainerPage() {
     if (selectedChords.length === 0 || queue.length === 0) return;
 
     if (!isPlaying) {
-      if (audioEnabled && audioSource) {
-        try {
-          await ensureAudioRuntime(audioSource);
-        } catch (error) {
-          console.error("Unable to initialize chord trainer audio:", error);
-        }
-      }
-
       setIsPlaying(true);
       return;
     }
 
     setIsPlaying(false);
-  }, [
-    audioEnabled,
-    audioSource,
-    ensureAudioRuntime,
-    isPlaying,
-    queue.length,
-    selectedChords.length,
-  ]);
+  }, [isPlaying, queue.length, selectedChords.length]);
 
   return (
     <motion.div

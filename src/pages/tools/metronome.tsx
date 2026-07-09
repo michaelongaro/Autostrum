@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { useTabStore } from "~/stores/TabStore";
 
 type Subdivision = 1 | 2 | 4;
 
@@ -124,7 +125,10 @@ const TAP_RESET_MS = 2000;
 const MAX_TAP_INTERVALS = 8;
 
 function MetronomeToolPage() {
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const { audioContext } = useTabStore((state) => ({
+    audioContext: state.audioContext,
+  }));
+
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentStepRef = useRef(0);
 
@@ -220,32 +224,6 @@ function MetronomeToolPage() {
     oscillator.stop(now + decay + 0.01);
   }
 
-  async function getAudioContext() {
-    const existingContext = audioContextRef.current;
-    if (
-      existingContext &&
-      (existingContext.state === "interrupted" ||
-        existingContext.state === "closed")
-    ) {
-      try {
-        await existingContext.close();
-      } catch {
-        // Best-effort cleanup only.
-      }
-      audioContextRef.current = null;
-    }
-
-    if (!audioContextRef.current) {
-      audioContextRef.current = new window.AudioContext();
-    }
-
-    if (audioContextRef.current.state === "suspended") {
-      await audioContextRef.current.resume();
-    }
-
-    return audioContextRef.current;
-  }
-
   function toggleRunning() {
     setIsRunning((currentlyRunning) => {
       const nextRunningState = !currentlyRunning;
@@ -272,11 +250,6 @@ function MetronomeToolPage() {
         clearTimeout(timerRef.current);
       }
 
-      if (audioContextRef.current) {
-        void audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
-
       if (tapResetTimerRef.current) {
         clearTimeout(tapResetTimerRef.current);
       }
@@ -296,10 +269,8 @@ function MetronomeToolPage() {
     let isCancelled = false;
 
     async function runMetronomeLoop() {
-      const audioContext = await getAudioContext();
-
       const executeTick = () => {
-        if (isCancelled) return;
+        if (isCancelled || !audioContext) return;
 
         const currentBpm = liveBpmRef.current;
         const millisecondsPerSubdivision =
@@ -373,6 +344,7 @@ function MetronomeToolPage() {
       }
     };
   }, [
+    audioContext,
     accentDownbeat,
     isRunning,
     subdivision,

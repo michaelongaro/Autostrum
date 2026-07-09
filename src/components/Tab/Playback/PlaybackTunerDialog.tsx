@@ -15,14 +15,11 @@ import { useTuner } from "~/hooks/useTuner";
 import { useTabStore } from "~/stores/TabStore";
 
 function PlaybackTunerDialog() {
-  const { tuning, capo, audioContext, masterVolumeGainNode, pauseAudio } =
-    useTabStore((state) => ({
-      tuning: state.tuning,
-      capo: state.capo,
-      audioContext: state.audioContext,
-      masterVolumeGainNode: state.masterVolumeGainNode,
-      pauseAudio: state.pauseAudio,
-    }));
+  const { tuning, capo, pauseAudio } = useTabStore((state) => ({
+    tuning: state.tuning,
+    capo: state.capo,
+    pauseAudio: state.pauseAudio,
+  }));
 
   const [open, setOpen] = useState(false);
 
@@ -49,8 +46,6 @@ function PlaybackTunerDialog() {
     toleranceCents: 5,
     stableHoldDurationMs: 1500,
     minimumClarity: 0.84,
-    audioContext,
-    playbackDestination: masterVolumeGainNode,
   });
 
   useScreenWakeLock(isListening);
