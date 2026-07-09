@@ -65,23 +65,28 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
   }, [query]);
 
   useEffect(() => {
-    if (isAboveLgViewportWidth !== false) return;
+    function preventMobileIOSKeyboardScroll(e: TouchEvent) {
+      e.preventDefault();
 
-    const previousScrollY = window.scrollY;
-    const focusInput = () => {
-      searchInputRef.current?.focus({ preventScroll: true });
+      const target = e.target as HTMLInputElement;
 
-      if (window.scrollY !== previousScrollY) {
-        window.scrollTo(0, previousScrollY);
-      }
-    };
+      target.focus({ preventScroll: true });
+    }
 
-    const animationFrame = window.requestAnimationFrame(focusInput);
+    searchInputRef.current?.addEventListener(
+      "touchend",
+      preventMobileIOSKeyboardScroll,
+    );
+
+    const stableSearchInputRef = searchInputRef.current;
 
     return () => {
-      window.cancelAnimationFrame(animationFrame);
+      stableSearchInputRef?.removeEventListener(
+        "touchend",
+        preventMobileIOSKeyboardScroll,
+      );
     };
-  }, [isAboveLgViewportWidth]);
+  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
