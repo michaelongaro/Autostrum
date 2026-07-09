@@ -241,7 +241,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
             </Button>
           </div>
 
-          <div className="baseVertFlex w-full gap-2">
+          <div className="baseVertFlex my-2 w-full gap-2 sm:my-1">
             <div className="baseFlex w-full !items-start !justify-between gap-4">
               <Chord
                 chordBeingEdited={chordBeingEdited}
