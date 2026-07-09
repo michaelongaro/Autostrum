@@ -30,6 +30,21 @@ interface PlaybackStripAnimationData {
 
 const VELOCITY_EPSILON = 0.0001;
 
+/** Ignore tiny error so playbackRate does not hunt. */
+const RATE_DEADBAND_MS = 8;
+
+/** Max |playbackRate - 1| while soft-correcting. */
+const MAX_RATE_CORRECTION = 0.04;
+
+/** Convert error (ms) into a rate delta; ~1s error → full correction. */
+const RATE_CORRECTION_GAIN = 1 / 1000;
+
+/** How often to re-sample AudioContext into the smoothed clock. */
+const AUDIO_RESAMPLE_INTERVAL_MS = 250;
+
+/** Only hard-seek if drift is catastrophic (seek recovery). */
+const HARD_RESYNC_THRESHOLD_MS = 250;
+
 function preserveCurrentTransform(animatedElement: HTMLElement) {
   const computedTransform = window.getComputedStyle(animatedElement).transform;
 
@@ -84,6 +99,16 @@ function getPlaybackStripAnimationData(
 
 function normalizeModulo(value: number, modulus: number) {
   return ((value % modulus) + modulus) % modulus;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function shortestSignedErrorMs(errorMs: number, loopDurationMs: number) {
+  let wrapped = normalizeModulo(errorMs + loopDurationMs / 2, loopDurationMs);
+  wrapped -= loopDurationMs / 2;
+  return wrapped;
 }
 
 function buildPlaybackStripKeyframes({
@@ -182,6 +207,7 @@ function usePlaybackStripAnimation({
   const animationGenerationRef = useRef(0);
   const playingRef = useRef(playing);
   const repetitionBaseRef = useRef(0);
+  const completedLoopsRef = useRef(0);
   const anchorChordIndexRef = useRef(currentChordIndex);
   const anchorRepetitionRef = useRef(currentRepetition);
   const playbackStartedAtAudioTimeRef = useRef(playbackStartedAtAudioTime);
@@ -222,6 +248,7 @@ function usePlaybackStripAnimation({
 
     animationRef.current = null;
     animationGenerationRef.current += 1;
+    completedLoopsRef.current = 0;
 
     if (
       !playing ||
@@ -247,42 +274,46 @@ function usePlaybackStripAnimation({
     const anchorStartTimeMs =
       animationData.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
     const playbackStartAudioTime = playbackStartedAtAudioTime;
+    const loopDurationMs = animationData.totalDurationMs;
 
-    const getAudioDrivenProgress = () => {
-      const elapsedSincePlaybackStartMs = Math.max(
+    // Smooth audio clock: sample AudioContext periodically, extrapolate with
+    // performance.now() between samples so the sync target is continuous.
+    let audioElapsedAtSampleMs = Math.max(
+      0,
+      (audioContext.currentTime - playbackStartAudioTime) * 1000,
+    );
+    let audioSamplePerfMs = performance.now();
+
+    const resampleAudioClock = (nowPerfMs: number) => {
+      audioElapsedAtSampleMs = Math.max(
         0,
         (audioContext.currentTime - playbackStartAudioTime) * 1000,
       );
-      const totalElapsedMs = anchorStartTimeMs + elapsedSincePlaybackStartMs;
-      const completedLoops = Math.floor(
-        totalElapsedMs / animationData.totalDurationMs,
-      );
-      const currentTimeMs = normalizeModulo(
-        totalElapsedMs,
-        animationData.totalDurationMs,
-      );
-
-      return { completedLoops, currentTimeMs };
+      audioSamplePerfMs = nowPerfMs;
     };
 
-    const startPausedAnimation = (
-      completedLoops: number,
-      startTimeMs: number,
-    ) => {
+    const getSmoothedAudioElapsedMs = (nowPerfMs: number) =>
+      Math.max(0, audioElapsedAtSampleMs + (nowPerfMs - audioSamplePerfMs));
+
+    const getTargetTotalElapsedMs = (nowPerfMs: number) =>
+      anchorStartTimeMs + getSmoothedAudioElapsedMs(nowPerfMs);
+
+    const initialTotalElapsedMs = getTargetTotalElapsedMs(performance.now());
+    completedLoopsRef.current = Math.floor(initialTotalElapsedMs / loopDurationMs);
+    const initialCurrentTimeMs = normalizeModulo(
+      initialTotalElapsedMs,
+      loopDurationMs,
+    );
+
+    repetitionBaseRef.current =
+      (anchorRepetitionRef.current +
+        extraAnchorLoops +
+        completedLoopsRef.current) *
+      chordLayoutData.totalWidth;
+
+    const startAnimation = (startTimeMs: number) => {
       const currentAnimatedElement = stripRef.current;
       if (!currentAnimatedElement) return;
-
-      cancelPlaybackStripAnimations({
-        animations,
-        animatedElement: currentAnimatedElement,
-        // Preserve the last frame while rebuilding keyframes for the next
-        // repetition so loop boundaries do not flash/jump.
-        preserveTransform: animations.size > 0,
-      });
-
-      repetitionBaseRef.current =
-        (anchorRepetitionRef.current + extraAnchorLoops + completedLoops) *
-        chordLayoutData.totalWidth;
 
       const animation = currentAnimatedElement.animate(
         buildPlaybackStripKeyframes({
@@ -291,28 +322,52 @@ function usePlaybackStripAnimation({
           repetitionBase: repetitionBaseRef.current,
         }),
         {
-          duration: animationData.totalDurationMs,
+          duration: loopDurationMs,
           fill: "both",
         },
       );
 
-      // Keep the animation paused and drive currentTime from AudioContext so
-      // scroll never drifts from the document timeline independently of audio.
       animation.pause();
-      animation.currentTime = Math.max(
-        0,
-        Math.min(startTimeMs, animationData.totalDurationMs),
-      );
+      animation.currentTime = Math.max(0, Math.min(startTimeMs, loopDurationMs));
+      animation.playbackRate = 1;
 
       animations.add(animation);
+
+      animation.onfinish = () => {
+        if (
+          generation !== animationGenerationRef.current ||
+          !playingRef.current
+        ) {
+          animation.onfinish = null;
+          animations.delete(animation);
+
+          if (animationRef.current === animation) {
+            animationRef.current = null;
+          }
+
+          animation.cancel();
+          return;
+        }
+
+        animation.onfinish = null;
+        animations.delete(animation);
+
+        if (animationRef.current === animation) {
+          animationRef.current = null;
+        }
+
+        animation.cancel();
+
+        completedLoopsRef.current += 1;
+        repetitionBaseRef.current += chordLayoutData.totalWidth;
+        startAnimation(0);
+      };
+
+      animation.play();
       animationRef.current = animation;
     };
 
-    let lastCompletedLoops = getAudioDrivenProgress().completedLoops;
-    startPausedAnimation(
-      lastCompletedLoops,
-      getAudioDrivenProgress().currentTimeMs,
-    );
+    startAnimation(initialCurrentTimeMs);
 
     const tick = () => {
       if (
@@ -323,16 +378,67 @@ function usePlaybackStripAnimation({
         return;
       }
 
-      const { completedLoops, currentTimeMs } = getAudioDrivenProgress();
+      const animation = animationRef.current;
+      const nowPerfMs = performance.now();
 
-      if (completedLoops !== lastCompletedLoops) {
-        lastCompletedLoops = completedLoops;
-        startPausedAnimation(completedLoops, currentTimeMs);
-      } else if (animationRef.current) {
-        animationRef.current.currentTime = Math.max(
-          0,
-          Math.min(currentTimeMs, animationData.totalDurationMs),
-        );
+      if (
+        nowPerfMs - audioSamplePerfMs >= AUDIO_RESAMPLE_INTERVAL_MS ||
+        nowPerfMs < audioSamplePerfMs
+      ) {
+        resampleAudioClock(nowPerfMs);
+      }
+
+      if (animation && typeof animation.currentTime === "number") {
+        const targetTotalElapsedMs = getTargetTotalElapsedMs(nowPerfMs);
+        const visualTotalElapsedMs =
+          completedLoopsRef.current * loopDurationMs + animation.currentTime;
+        const rawErrorMs = visualTotalElapsedMs - targetTotalElapsedMs;
+        const errorMs = shortestSignedErrorMs(rawErrorMs, loopDurationMs);
+
+        if (Math.abs(errorMs) >= HARD_RESYNC_THRESHOLD_MS) {
+          // Catastrophic desync only (tab backgrounding, etc.). Soft rate
+          // correction cannot recover this quickly without a seek.
+          const targetCurrentTimeMs = normalizeModulo(
+            targetTotalElapsedMs,
+            loopDurationMs,
+          );
+          const targetLoops = Math.floor(targetTotalElapsedMs / loopDurationMs);
+
+          if (targetLoops !== completedLoopsRef.current) {
+            animation.onfinish = null;
+            animations.delete(animation);
+            animation.cancel();
+            animationRef.current = null;
+
+            completedLoopsRef.current = targetLoops;
+            repetitionBaseRef.current =
+              (anchorRepetitionRef.current +
+                extraAnchorLoops +
+                completedLoopsRef.current) *
+              chordLayoutData.totalWidth;
+            startAnimation(targetCurrentTimeMs);
+          } else {
+            animation.currentTime = Math.max(
+              0,
+              Math.min(targetCurrentTimeMs, loopDurationMs),
+            );
+            animation.playbackRate = 1;
+          }
+        } else if (Math.abs(errorMs) <= RATE_DEADBAND_MS) {
+          if (animation.playbackRate !== 1) {
+            animation.playbackRate = 1;
+          }
+        } else {
+          // Visual ahead (error > 0) → slow down; behind → speed up.
+          // Keep WAAPI free-running so motion stays continuous.
+          animation.playbackRate =
+            1 -
+            clamp(
+              errorMs * RATE_CORRECTION_GAIN,
+              -MAX_RATE_CORRECTION,
+              MAX_RATE_CORRECTION,
+            );
+        }
       }
 
       rafIdRef.current = requestAnimationFrame(tick);
