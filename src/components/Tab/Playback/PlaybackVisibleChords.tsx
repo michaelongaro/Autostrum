@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   type PlaybackLoopDelaySpacerChord,
   type PlaybackStrummedChord,
@@ -6,7 +6,15 @@ import {
   useTabStore,
 } from "~/stores/TabStore";
 
+/** Extra pixels beyond the viewport for chord mount/unmount hysteresis. */
 const VIRTUALIZATION_BUFFER = 100;
+
+/**
+ * While playing, refresh the visibility window from the rAF scroll position
+ * at this interval so we are not tied to the 25ms-polled currentChordIndex
+ * (which lags the strip at loop wraps).
+ */
+const PLAYING_VISIBILITY_REFRESH_MS = 100;
 
 interface ChordLayoutData {
   scrollPositions: number[];
@@ -23,6 +31,7 @@ interface PlaybackVisibleChords {
   chordRepetitions: number[];
   initialPlaceholderWidth: number;
   loopDelay: number;
+  scrollPositionRef?: React.RefObject<number>;
   renderChord: (props: {
     chord:
       PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
@@ -43,6 +52,7 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
   chordRepetitions,
   initialPlaceholderWidth,
   loopDelay,
+  scrollPositionRef,
   renderChord,
 }: PlaybackVisibleChords) {
   const {
@@ -56,6 +66,24 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
   }));
+
+  // Throttled mirror of the rAF scroll position for visibility culling while
+  // playing. Avoids depending on lagged currentChordIndex at loop wraps.
+  const [playingScrollPosition, setPlayingScrollPosition] = useState(0);
+
+  useEffect(() => {
+    if (!audioMetadata.playing || !scrollPositionRef) {
+      return;
+    }
+
+    setPlayingScrollPosition(scrollPositionRef.current);
+
+    const intervalId = window.setInterval(() => {
+      setPlayingScrollPosition(scrollPositionRef.current);
+    }, PLAYING_VISIBILITY_REFRESH_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [audioMetadata.playing, scrollPositionRef]);
 
   const getChordScrollPosition = useCallback(
     (index: number) => {
@@ -102,9 +130,10 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
   const visibleChords = useMemo(() => {
     const { scrollPositions, chordWidths, totalWidth } = chordLayoutData;
 
-    const currentPosition =
-      (scrollPositions[currentChordIndex] ?? 0) +
-      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
+    const currentPosition = audioMetadata.playing
+      ? playingScrollPosition
+      : (scrollPositions[currentChordIndex] ?? 0) +
+        (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
 
     const dynamicVirtualizationBuffer = audioMetadata.playing
       ? VIRTUALIZATION_BUFFER
@@ -144,6 +173,7 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
     chordRepetitions,
     visiblePlaybackContainerWidth,
     audioMetadata.playing,
+    playingScrollPosition,
   ]);
 
   return (
@@ -160,7 +190,9 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
 
         return (
           <div
-            key={`${index}-${chordRepetitions[index] ?? 0}`}
+            // Stable key: remounting on chordRepetitions changes caused loop
+            // hitches when virtualization bumped repetition counts.
+            key={index}
             style={{
               position: "absolute",
               width: `${chordLayoutData.chordWidths[index] ?? 0}px`,
