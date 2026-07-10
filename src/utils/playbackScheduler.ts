@@ -2,7 +2,7 @@ import type Soundfont from "soundfont-player";
 import { noteLengthMultipliers, type FullNoteLengths } from "~/stores/TabStore";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 
-export const PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS = 1.0;
+export const PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS = 2.0;
 
 export const PLAYBACK_START_EPSILON_SECONDS = 0.03;
 
@@ -54,13 +54,18 @@ export function buildPlaybackTimeline({
     let effectiveBpm = 0;
 
     if (currColumn && currColumn.length > 0) {
+      // guard against malformed columns: an invalid note length or bpm must
+      // never produce NaN, since it would poison every subsequent startTime
       const noteLengthMultiplier =
-        noteLengthMultipliers[currColumn[8] as FullNoteLengths];
+        noteLengthMultipliers[currColumn[8] as FullNoteLengths] ?? 1;
       const baseBpm = Number(currColumn[9]);
-      effectiveBpm = baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
-      duration = 60 / effectiveBpm;
-      entryStartTime = nextStartTime;
-      nextStartTime += duration;
+
+      if (Number.isFinite(baseBpm) && baseBpm > 0 && playbackSpeed > 0) {
+        effectiveBpm = baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
+        duration = 60 / effectiveBpm;
+        entryStartTime = nextStartTime;
+        nextStartTime += duration;
+      }
     }
 
     entries.push({
@@ -204,9 +209,16 @@ export async function runPlaybackScheduler({
   clearBreakOnNextChord,
   editing,
 }: RunPlaybackSchedulerArgs): Promise<void> {
+  // clamp a stale resume index so we never start past the end of the tab,
+  // which would otherwise produce an empty timeline
+  const safeStartChordIndex =
+    startChordIndex >= adjChordCount || startChordIndex < 0
+      ? 0
+      : startChordIndex;
+
   let timeline = buildPlaybackTimeline({
     compiledChords,
-    fromChordIndex: startChordIndex,
+    fromChordIndex: safeStartChordIndex,
     adjChordCount,
     playbackSpeed,
     startTime: playbackStartTime,
@@ -234,6 +246,39 @@ export async function runPlaybackScheduler({
     setState({ currentChordIndex: nextChordIndex });
   };
 
+  const stopAllScheduledAudio = () => {
+    if (scheduledNodes) {
+      for (const node of scheduledNodes) {
+        try {
+          node.stop();
+        } catch {
+          // node may have already finished/been stopped
+        }
+      }
+      scheduledNodes.length = 0;
+    }
+
+    for (const currentlyPlayingString of currentlyPlayingStrings) {
+      try {
+        currentlyPlayingString?.stop();
+      } catch {
+        // ignore already-stopped nodes
+      }
+    }
+  };
+
+  const stopPlaybackState = () => {
+    const { audioMetadata } = getState();
+    setState({
+      currentChordIndex: 0,
+      playbackStartedAtAudioTime: null,
+      audioMetadata: {
+        ...audioMetadata,
+        playing: false,
+      },
+    });
+  };
+
   while (isSessionValid()) {
     const now = audioContext.currentTime;
     const horizon = now + PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS;
@@ -242,6 +287,7 @@ export async function runPlaybackScheduler({
       getActiveChordIndexForTime(timeline, now, timelineAnchorTime),
     );
 
+    // schedule everything inside the lookahead window
     while (scheduledIndex < timeline.length && isSessionValid()) {
       const entry = timeline[scheduledIndex]!;
 
@@ -271,33 +317,45 @@ export async function runPlaybackScheduler({
       scheduledIndex++;
     }
 
-    if (processedIndex < timeline.length && isSessionValid()) {
+    // process ALL entries that have completed by `now` (not just one),
+    // so we recover immediately after background-tab timer throttling
+    while (processedIndex < timeline.length && isSessionValid()) {
       const entry = timeline[processedIndex]!;
       const completionTime = getEntryCompletionTime(entry, lastCompletionTime);
 
-      if (now >= completionTime) {
-        if (entry.isLastInCompiledSequence) {
-          resetProgressTabSliderPosition(editing ? "editing" : "playback");
-        }
+      if (now < completionTime) break;
 
-        const { breakOnNextChord } = getState();
+      const { breakOnNextChord } = getState();
 
-        if (breakOnNextChord) {
-          clearBreakOnNextChord();
-          return;
-        }
-
-        lastCompletionTime = completionTime;
-        processedIndex++;
+      if (breakOnNextChord) {
+        clearBreakOnNextChord();
+        // silence audio already scheduled within the lookahead window,
+        // otherwise up to a second of notes keeps playing after "pause"
+        stopAllScheduledAudio();
+        return;
       }
+
+      if (entry.isLastInCompiledSequence) {
+        console.log("snapping back");
+        resetProgressTabSliderPosition(editing ? "editing" : "playback");
+      }
+
+      lastCompletionTime = completionTime;
+      processedIndex++;
     }
 
     if (processedIndex >= timeline.length) {
       const lastEntry = timeline[timeline.length - 1];
       const { looping, showPlaybackModal, audioMetadata } = getState();
 
+      // empty timeline (e.g. empty compiledChords): make sure we don't
+      // leave the UI stuck in a "playing" state
+      if (!lastEntry) {
+        stopPlaybackState();
+        return;
+      }
+
       if (
-        lastEntry &&
         lastEntry.chordIndex === adjChordCount - 1 &&
         (looping || showPlaybackModal) &&
         audioMetadata.playing &&
@@ -318,7 +376,6 @@ export async function runPlaybackScheduler({
         lastCompletionTime = segmentEndTime;
         timelineAnchorTime = segmentEndTime;
 
-        segmentEndTime = segmentEndTime;
         for (const entry of timeline) {
           if (entry.startTime !== null) {
             segmentEndTime = entry.startTime + entry.duration;
@@ -328,15 +385,8 @@ export async function runPlaybackScheduler({
         continue;
       }
 
-      if (lastEntry && lastEntry.chordIndex === adjChordCount - 1 && !looping) {
-        setState({
-          currentChordIndex: 0,
-          playbackStartedAtAudioTime: null,
-          audioMetadata: {
-            ...audioMetadata,
-            playing: false,
-          },
-        });
+      if (lastEntry.chordIndex === adjChordCount - 1 && !looping) {
+        stopPlaybackState();
       }
 
       return;
@@ -347,11 +397,7 @@ export async function runPlaybackScheduler({
 
     let wakeTime = now + MIN_SCHEDULER_SLEEP_SECONDS;
 
-    if (
-      nextUnscheduledEntry &&
-      nextUnscheduledEntry.startTime !== null &&
-      nextUnscheduledEntry.startTime !== undefined
-    ) {
+    if (nextUnscheduledEntry && nextUnscheduledEntry.startTime !== null) {
       const scheduleWake =
         nextUnscheduledEntry.startTime - PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS;
       wakeTime = Math.min(wakeTime, scheduleWake);

@@ -593,11 +593,8 @@ interface TabState {
   playbackStartedAtAudioTime: number | null;
   playbackSessionId: number;
   scheduledPlaybackNodes: { stop(when?: number): void }[];
-  activePlaybackStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
-  )[] | null;
+  activePlaybackStrings:
+    (Soundfont.Player | AudioBufferSourceNode | undefined)[] | null;
   audioMetadata: AudioMetadata;
   setAudioMetadata: (audioMetadata: AudioMetadata) => void;
   instruments: Record<InstrumentNames, Soundfont.Player>;
@@ -904,9 +901,8 @@ const useTabStoreBase = create<TabState>()(
         try {
           const response = await fetch("/sounds/countIn.wav");
           const arrayBuffer = await response.arrayBuffer();
-          nextCountInBuffer = await nextAudioContext.decodeAudioData(
-            arrayBuffer,
-          );
+          nextCountInBuffer =
+            await nextAudioContext.decodeAudioData(arrayBuffer);
         } catch (error) {
           console.error(
             "Failed to reload count-in audio after AudioContext recovery:",
@@ -956,11 +952,8 @@ const useTabStoreBase = create<TabState>()(
         const audioSystem = await ensureAudioSystemReady();
         if (!audioSystem) return;
 
-        const {
-          currentInstrument,
-          audioContext,
-          masterVolumeGainNode,
-        } = audioSystem;
+        const { currentInstrument, audioContext, masterVolumeGainNode } =
+          audioSystem;
 
         const currentlyPlayingStrings: (
           Soundfont.Player | AudioBufferSourceNode | undefined
@@ -1068,7 +1061,8 @@ const useTabStoreBase = create<TabState>()(
         await runPlaybackScheduler({
           compiledChords,
           adjChordCount,
-          startChordIndex: currentChordIndex,
+          startChordIndex:
+            currentChordIndex >= adjChordCount ? 0 : currentChordIndex,
           playbackStartTime: nextChordStartTime,
           playbackSpeed,
           tuning,
@@ -1104,17 +1098,13 @@ const useTabStoreBase = create<TabState>()(
         customTuning,
         customBpm,
       }: PlayPreview) => {
-        const { capo, tuning, previewMetadata, ensureAudioSystemReady } =
-          get();
+        const { capo, tuning, previewMetadata, ensureAudioSystemReady } = get();
 
         const audioSystem = await ensureAudioSystemReady();
         if (!audioSystem) return;
 
-        const {
-          currentInstrument,
-          audioContext,
-          masterVolumeGainNode,
-        } = audioSystem;
+        const { currentInstrument, audioContext, masterVolumeGainNode } =
+          audioSystem;
         const { instruments } = get();
 
         if (!currentInstrument) return;
