@@ -45,11 +45,6 @@ export function useInitializeAudioContext() {
       }
 
       newMasterVolumeGainNode.connect(newAudioContext.destination);
-      (
-        newMasterVolumeGainNode as GainNode & {
-          __autostrumConnectedToDestination?: boolean;
-        }
-      ).__autostrumConnectedToDestination = true;
 
       setAudioContext(newAudioContext);
       setMasterVolumeGainNode(newMasterVolumeGainNode);

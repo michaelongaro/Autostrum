@@ -869,11 +869,6 @@ const useTabStoreBase = create<TabState>()(
           ? 1.25
           : previousVolume;
         nextMasterVolumeGainNode.connect(nextAudioContext.destination);
-        (
-          nextMasterVolumeGainNode as GainNode & {
-            __autostrumConnectedToDestination?: boolean;
-          }
-        ).__autostrumConnectedToDestination = true;
 
         if (nextAudioContext.state === "suspended") {
           try {
