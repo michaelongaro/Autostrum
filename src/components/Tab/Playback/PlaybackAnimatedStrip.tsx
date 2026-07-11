@@ -80,8 +80,8 @@ const PlaybackAnimatedStrip = memo(
     });
 
     // While paused, React owns transform for scrubbing. While playing, the
-    // animation hook owns it via rAF — do not write transform from React or it
-    // will fight the continuous scroll and hitch on re-render.
+    // animation hook owns it via WAAPI — do not write transform from React or
+    // it will fight the compositor animation and hitch on re-render.
     useLayoutEffect(() => {
       const stripElement = scrollStripRef.current;
       if (!stripElement || playing) return;
@@ -94,8 +94,8 @@ const PlaybackAnimatedStrip = memo(
         ref={scrollStripRef}
         style={{
           width: `${chordLayoutData.totalWidth}px`,
-          // While playing, leave transform undefined so React does not manage it
-          // (rAF owns the property). While paused, React drives scrubbing.
+          // While playing, leave transform undefined so React does not manage
+          // it (WAAPI owns the property). While paused, React drives scrubbing.
           transform: playing ? undefined : scrollContainerTransform,
           transition: playing ? "none" : "transform 0.2s linear",
         }}
