@@ -152,11 +152,7 @@ function PlaybackModal() {
   function closePlaybackModal() {
     setShowPlaybackModal(false);
 
-    pauseAudio(true);
-
-    setTimeout(() => {
-      setPlaybackModalViewingState("Practice");
-    }, 150); // waiting for the modal to actually close before changing state
+    pauseAudio();
 
     if (audioMetadata.editingLoopRange) {
       setAudioMetadata({
@@ -391,8 +387,9 @@ function PlaybackModal() {
       !expandedTabData ||
       !currentlyPlayingMetadata ||
       chordRepetitions.length === 0
-    )
+    ) {
       return "translateX(0px)";
+    }
 
     const { scrollPositions, totalWidth } = chordLayoutData;
     const position =
@@ -450,6 +447,10 @@ function PlaybackModal() {
       initial="closed"
       animate="expanded"
       exit="closed"
+      transition={{
+        duration: 0.3,
+        ease: "easeOut",
+      }}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           closePlaybackModal();
@@ -564,11 +565,7 @@ function PlaybackModal() {
             </div>
           )}
 
-          <Button
-            variant={"modalClose"}
-            onClick={closePlaybackModal}
-            className="shadow-none"
-          >
+          <Button variant={"modalClose"} onClick={closePlaybackModal}>
             <X className="size-5" />
             <span className="sr-only">Close</span>
           </Button>
