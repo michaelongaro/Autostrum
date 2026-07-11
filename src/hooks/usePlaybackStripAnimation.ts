@@ -1,9 +1,4 @@
-import {
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  type RefObject,
-} from "react";
+import { useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 
 interface PlaybackStripLayoutData {
   scrollPositions: number[];
@@ -31,7 +26,7 @@ interface PlaybackStripAnimationData {
   timedBoundaryPositions: number[];
 }
 
-/** Check drift often enough to react without querying WAAPI every frame. */
+/** Check audio drift often enough to react without rate changes every frame. */
 const AUDIO_SYNC_INTERVAL_MS = 50;
 
 /** Ignore sub-frame clock differences so playbackRate does not hunt. */
@@ -48,6 +43,12 @@ const HARD_RESYNC_THRESHOLD_MS = 250;
 
 /** Reject an output timestamp that is clearly stale or from another clock. */
 const MAX_OUTPUT_TIMESTAMP_ERROR_SECONDS = 1;
+
+/** Avoid main-thread loop handoffs during ordinary playback. */
+const MIN_WAAPI_SEGMENT_DURATION_MS = 30_000;
+
+/** Bound keyframe memory for very large tabs and short loops. */
+const MAX_WAAPI_SEGMENT_KEYFRAMES = 2_000;
 
 function getPlaybackStripAnimationData(
   chordLayoutData: PlaybackStripLayoutData | null,
@@ -148,6 +149,8 @@ function getAudioTimeAtPerformanceTime(
       const { contextTime, performanceTime } = timestamp;
 
       if (
+        typeof contextTime === "number" &&
+        typeof performanceTime === "number" &&
         Number.isFinite(contextTime) &&
         Number.isFinite(performanceTime) &&
         performanceTime > 0
@@ -177,18 +180,59 @@ function getAudioTimeAtPerformanceTime(
 function buildPlaybackStripKeyframes({
   animationData,
   repetitionBasePx,
+  totalWidth,
+  loopCount,
 }: {
   animationData: PlaybackStripAnimationData;
   repetitionBasePx: number;
+  totalWidth: number;
+  loopCount: number;
 }): Keyframe[] {
-  return animationData.timedBoundaryTimesMs.map((timeMs, index) => ({
-    offset: timeMs / animationData.totalDurationMs,
-    transform: `translateX(${
-      ((animationData.timedBoundaryPositions[index] ?? 0) + repetitionBasePx) *
-      -1
-    }px)`,
-    easing: "linear",
-  }));
+  const keyframes: Keyframe[] = [];
+  const segmentDurationMs = animationData.totalDurationMs * loopCount;
+
+  for (let loopIndex = 0; loopIndex < loopCount; loopIndex++) {
+    for (
+      let boundaryIndex = loopIndex === 0 ? 0 : 1;
+      boundaryIndex < animationData.timedBoundaryTimesMs.length;
+      boundaryIndex++
+    ) {
+      const timeMs =
+        loopIndex * animationData.totalDurationMs +
+        (animationData.timedBoundaryTimesMs[boundaryIndex] ?? 0);
+      const positionPx =
+        repetitionBasePx +
+        loopIndex * totalWidth +
+        (animationData.timedBoundaryPositions[boundaryIndex] ?? 0);
+
+      keyframes.push({
+        offset: timeMs / segmentDurationMs,
+        transform: `translateX(${positionPx * -1}px)`,
+        easing: "linear",
+      });
+    }
+  }
+
+  return keyframes;
+}
+
+function getLoopsPerWaapiSegment(
+  animationData: PlaybackStripAnimationData,
+): number {
+  const keyframesPerAdditionalLoop = Math.max(
+    1,
+    animationData.timedBoundaryTimesMs.length - 1,
+  );
+  const maxLoopsForKeyframeBudget = Math.max(
+    1,
+    Math.floor((MAX_WAAPI_SEGMENT_KEYFRAMES - 1) / keyframesPerAdditionalLoop),
+  );
+  const loopsForMinimumDuration = Math.max(
+    1,
+    Math.ceil(MIN_WAAPI_SEGMENT_DURATION_MS / animationData.totalDurationMs),
+  );
+
+  return Math.min(loopsForMinimumDuration, maxLoopsForKeyframeBudget);
 }
 
 /**
@@ -197,10 +241,6 @@ function buildPlaybackStripKeyframes({
  * animations, so only use it as a compatibility fallback.
  */
 function setPlaybackRate(animation: Animation, playbackRate: number) {
-  if (Math.abs(animation.playbackRate - playbackRate) < 0.002) {
-    return;
-  }
-
   if (typeof animation.updatePlaybackRate === "function") {
     animation.updatePlaybackRate(playbackRate);
   } else {
@@ -333,6 +373,9 @@ function usePlaybackStripAnimation({
       animationData.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
     const playbackStartAudioTime = playbackStartedAtAudioTime;
     const loopDurationMs = animationData.totalDurationMs;
+    const loopsPerAnimationSegment = getLoopsPerWaapiSegment(animationData);
+    const animationSegmentDurationMs =
+      loopDurationMs * loopsPerAnimationSegment;
     const baseRepetition = anchorRepetitionRef.current + extraAnchorLoops;
     const generation = animationGenerationRef.current;
 
@@ -345,14 +388,12 @@ function usePlaybackStripAnimation({
       scrollPositionRef.current = startPositionPx;
     }
 
-    let completedLoops = 0;
+    let animationStartLoop = 0;
     let motionStarted = false;
     let lastSyncPerformanceTimeMs = Number.NEGATIVE_INFINITY;
+    let requestedPlaybackRate = 1;
 
-    const updateScrollPosition = (
-      loopIndex: number,
-      loopTimeMs: number,
-    ) => {
+    const updateScrollPosition = (loopIndex: number, loopTimeMs: number) => {
       const loopPositionPx = getScrollPositionForLoopTimeMs(
         animationData,
         loopTimeMs,
@@ -366,7 +407,16 @@ function usePlaybackStripAnimation({
       }
     };
 
-    const startAnimationForLoop = ({
+    const updatePlaybackRate = (animation: Animation, playbackRate: number) => {
+      if (Math.abs(requestedPlaybackRate - playbackRate) < 0.002) {
+        return;
+      }
+
+      requestedPlaybackRate = playbackRate;
+      setPlaybackRate(animation, playbackRate);
+    };
+
+    const startAnimationSegment = ({
       loopIndex,
       loopTimeMs,
       autoplay,
@@ -380,21 +430,23 @@ function usePlaybackStripAnimation({
           animationData,
           repetitionBasePx:
             (baseRepetition + loopIndex) * chordLayoutData.totalWidth,
+          totalWidth: chordLayoutData.totalWidth,
+          loopCount: loopsPerAnimationSegment,
         }),
         {
-          duration: loopDurationMs,
+          duration: animationSegmentDurationMs,
           easing: "linear",
           fill: "both",
         },
       );
 
       animation.pause();
-      animation.currentTime = clamp(loopTimeMs, 0, loopDurationMs);
-      setPlaybackRate(animation, 1);
+      animation.currentTime = clamp(loopTimeMs, 0, animationSegmentDurationMs);
+      requestedPlaybackRate = 1;
 
       const replacedAnimation = animationRef.current;
       animationRef.current = animation;
-      completedLoops = loopIndex;
+      animationStartLoop = loopIndex;
 
       animation.onfinish = () => {
         if (
@@ -407,10 +459,11 @@ function usePlaybackStripAnimation({
           return;
         }
 
-        // Both frames resolve to the same absolute transform: the old loop's
-        // totalWidth endpoint and the new loop's zero endpoint plus one width.
-        startAnimationForLoop({
-          loopIndex: completedLoops + 1,
+        // Each segment contains multiple absolute loops, so routine tab wraps
+        // remain entirely on the compositor. Segment endpoints also resolve to
+        // the same transform for the less frequent main-thread handoff.
+        startAnimationSegment({
+          loopIndex: loopIndex + loopsPerAnimationSegment,
           loopTimeMs: 0,
           autoplay: true,
         });
@@ -439,7 +492,7 @@ function usePlaybackStripAnimation({
         loopDurationMs,
       );
 
-      startAnimationForLoop({
+      startAnimationSegment({
         loopIndex: targetLoop,
         loopTimeMs: targetLoopTimeMs,
         autoplay,
@@ -451,23 +504,28 @@ function usePlaybackStripAnimation({
         audioContext,
         performanceTimeMs,
       );
-      const audioElapsedMs =
-        (audioTime - playbackStartAudioTime) * 1000;
+      const audioElapsedMs = (audioTime - playbackStartAudioTime) * 1000;
 
       return {
         audioHasStarted: audioElapsedMs >= 0,
-        targetTotalElapsedMs:
-          anchorStartTimeMs + Math.max(0, audioElapsedMs),
+        targetTotalElapsedMs: anchorStartTimeMs + Math.max(0, audioElapsedMs),
       };
     };
 
     const synchronizeAnimation = (performanceTimeMs: number) => {
       const target = getTargetTotalElapsedMs(performanceTimeMs);
 
+      if (audioContext.state !== "running") {
+        animationRef.current?.pause();
+        motionStarted = false;
+        return;
+      }
+
       if (!target.audioHasStarted) {
-        if (!animationRef.current) {
+        if (motionStarted || !animationRef.current) {
           seekToTotalElapsedTime(anchorStartTimeMs, false);
         }
+        motionStarted = false;
         return;
       }
 
@@ -485,9 +543,8 @@ function usePlaybackStripAnimation({
       }
 
       const visualTotalElapsedMs =
-        completedLoops * loopDurationMs + currentTime;
-      const driftMs =
-        target.targetTotalElapsedMs - visualTotalElapsedMs;
+        animationStartLoop * loopDurationMs + currentTime;
+      const driftMs = target.targetTotalElapsedMs - visualTotalElapsedMs;
       const hardResyncThresholdMs = Math.min(
         HARD_RESYNC_THRESHOLD_MS,
         Math.max(DRIFT_DEADBAND_MS, loopDurationMs / 2),
@@ -501,10 +558,8 @@ function usePlaybackStripAnimation({
         return;
       }
 
-      updateScrollPosition(completedLoops, currentTime);
-
       if (Math.abs(driftMs) <= DRIFT_DEADBAND_MS) {
-        setPlaybackRate(animation, 1);
+        updatePlaybackRate(animation, 1);
         return;
       }
 
@@ -514,19 +569,37 @@ function usePlaybackStripAnimation({
         -MAX_PLAYBACK_RATE_CORRECTION,
         MAX_PLAYBACK_RATE_CORRECTION,
       );
-      setPlaybackRate(animation, 1 + correction);
+      updatePlaybackRate(animation, 1 + correction);
     };
 
     const initialPerformanceTimeMs = performance.now();
     const initialTarget = getTargetTotalElapsedMs(initialPerformanceTimeMs);
+    const initialMotionStarted =
+      initialTarget.audioHasStarted && audioContext.state === "running";
     seekToTotalElapsedTime(
-      initialTarget.audioHasStarted
+      initialMotionStarted
         ? initialTarget.targetTotalElapsedMs
         : anchorStartTimeMs,
-      initialTarget.audioHasStarted,
+      initialMotionStarted,
     );
-    motionStarted = initialTarget.audioHasStarted;
+    motionStarted = initialMotionStarted;
     lastSyncPerformanceTimeMs = initialPerformanceTimeMs;
+
+    const refreshScrollPosition = () => {
+      const currentTime = animationRef.current?.currentTime;
+      if (typeof currentTime !== "number") {
+        return;
+      }
+
+      const visualTotalElapsedMs =
+        animationStartLoop * loopDurationMs + currentTime;
+      const visualLoop = Math.floor(visualTotalElapsedMs / loopDurationMs);
+      const visualLoopTimeMs = normalizeModulo(
+        visualTotalElapsedMs,
+        loopDurationMs,
+      );
+      updateScrollPosition(visualLoop, visualLoopTimeMs);
+    };
 
     const tick = (performanceTimeMs: number) => {
       if (
@@ -539,13 +612,16 @@ function usePlaybackStripAnimation({
 
       if (
         performanceTimeMs < lastSyncPerformanceTimeMs ||
-        performanceTimeMs - lastSyncPerformanceTimeMs >=
-          AUDIO_SYNC_INTERVAL_MS
+        performanceTimeMs - lastSyncPerformanceTimeMs >= AUDIO_SYNC_INTERVAL_MS
       ) {
         lastSyncPerformanceTimeMs = performanceTimeMs;
         synchronizeAnimation(performanceTimeMs);
       }
 
+      // Virtualization samples this ref every 100ms. Refresh it every frame so
+      // fast tabs cannot outrun the culling window, without writing transform
+      // or forcing layout on the main thread.
+      refreshScrollPosition();
       rafIdRef.current = requestAnimationFrame(tick);
     };
 
