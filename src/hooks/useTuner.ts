@@ -1,14 +1,14 @@
-import { PitchDetector } from "pitchy";
 import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
+import { PitchDetector } from "pitchy";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTabStore } from "~/stores/TabStore";
+import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import {
   DEFAULT_TUNING,
   normalizeTuningValue,
   transposeTuningValue,
 } from "~/utils/tunings";
-import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 type UseTunerParams = {
   targetTuning: string;
@@ -60,6 +60,9 @@ const DEFAULT_TUNING_NOTES = DEFAULT_TUNING.split(" ");
 const DEFAULT_STABLE_HOLD_DURATION_MS = 250;
 const MIN_CLARITY_FLOOR = 0.66;
 const MIN_INPUT_GATE_RMS = 0.001;
+const INPUT_LOSS_RELEASE_MS = 180;
+const PITCH_LOSS_RELEASE_MS = 350;
+const CLARITY_RELEASE_HYSTERESIS = 0.12;
 const GUIDE_INSTRUMENT_NAME = "acoustic_guitar_steel" as const;
 const GUIDE_NOTE_DURATION_SECONDS = 1.2;
 const GUIDE_NOTE_GAIN = 1.65;
@@ -228,6 +231,7 @@ export function useTuner({
   const stableMatchStartTimeRef = useRef<number | null>(null);
   const centsHistoryRef = useRef<number[]>([]);
   const lastDetectedMidiRef = useRef<number | null>(null);
+  const lastValidPitchTimeRef = useRef<number | null>(null);
   const currentTargetIndexRef = useRef(0);
   const guidePlaybackHandleRef = useRef<GuidePlaybackHandle>(null);
   const guidePlaybackRequestIdRef = useRef(0);
@@ -259,10 +263,12 @@ export function useTuner({
     () => resolveTargetNotes(targetTuning),
     [targetTuning],
   );
+
   const comparisonTargetTuning = useMemo(
     () => transposeTuningValue(targetTuning, capo),
     [capo, targetTuning],
   );
+
   const comparisonTargetNotes = useMemo(
     () => resolveTargetNotes(comparisonTargetTuning),
     [comparisonTargetTuning],
@@ -284,6 +290,7 @@ export function useTuner({
     stableMatchStartTimeRef.current = null;
     centsHistoryRef.current = [];
     lastDetectedMidiRef.current = null;
+    lastValidPitchTimeRef.current = null;
     pendingOctaveJumpMidiRef.current = null;
   }, []);
 
@@ -311,6 +318,7 @@ export function useTuner({
         performance.now() + GUIDE_SUPPRESSION_MAX_MS;
 
       const token = guidePlaybackSuppressionTokenRef.current;
+
       const markPlaybackInactive = () => {
         if (guidePlaybackSuppressionTokenRef.current !== token) {
           return;
@@ -342,11 +350,13 @@ export function useTuner({
   const playReferenceNote = useCallback(
     async (targetIndex: number) => {
       const targetMidi = targetMidis[targetIndex] ?? targetMidis[0];
+
       if (targetMidi === undefined || !audioContext) {
         return;
       }
 
       const noteName = midiToNoteName(targetMidi, { sharps: true });
+
       if (!noteName) {
         return;
       }
@@ -359,6 +369,7 @@ export function useTuner({
       guidePlaybackHandleRef.current = null;
 
       const cachedInstrument = instrumentsRef.current[GUIDE_INSTRUMENT_NAME];
+
       if (cachedInstrument) {
         resetPitchTracking();
         setUiSnapshot(EMPTY_UI_SNAPSHOT);
@@ -368,8 +379,8 @@ export function useTuner({
           gain: GUIDE_NOTE_GAIN,
           attack: GUIDE_NOTE_ATTACK_SECONDS,
         });
-        beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
 
+        beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
         return;
       }
 
@@ -400,6 +411,7 @@ export function useTuner({
           gain: GUIDE_NOTE_GAIN,
           attack: GUIDE_NOTE_ATTACK_SECONDS,
         });
+
         beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
       } catch (caughtError) {
         if (guidePlaybackRequestIdRef.current === requestId) {
@@ -483,6 +495,7 @@ export function useTuner({
         for (const track of streamRef.current.getTracks()) {
           track.stop();
         }
+
         streamRef.current = null;
       }
 
@@ -597,16 +610,18 @@ export function useTuner({
 
           activeAnalyser.getFloatTimeDomainData(activeBuffer);
 
+          const frameTime = performance.now();
+
           let meanSquare = 0;
+
           for (const sample of activeBuffer) {
             meanSquare += sample * sample;
           }
+
           const rms = Math.sqrt(meanSquare / activeBuffer.length);
 
           if (guidePlaybackAwaitingSilenceRef.current) {
-            if (
-              performance.now() > guidePlaybackSuppressionDeadlineRef.current
-            ) {
+            if (frameTime > guidePlaybackSuppressionDeadlineRef.current) {
               clearGuidePlaybackSuppression();
             } else if (
               !guidePlaybackActiveRef.current &&
@@ -633,8 +648,25 @@ export function useTuner({
           }
 
           if (rms < MIN_INPUT_GATE_RMS) {
-            resetPitchTracking();
-            setUiSnapshot(EMPTY_UI_SNAPSHOT);
+            // A quiet frame must never contribute toward the stable hold,
+            // even if the previously detected pitch remains visible.
+            stableMatchStartTimeRef.current = null;
+
+            const lastValidPitchTime = lastValidPitchTimeRef.current;
+            const shouldReleaseDisplayedPitch =
+              lastValidPitchTime === null ||
+              frameTime - lastValidPitchTime >= INPUT_LOSS_RELEASE_MS;
+
+            if (shouldReleaseDisplayedPitch) {
+              resetPitchTracking();
+
+              setUiSnapshot((current) =>
+                areUiSnapshotsEqual(current, EMPTY_UI_SNAPSHOT)
+                  ? current
+                  : EMPTY_UI_SNAPSHOT,
+              );
+            }
+
             rafRef.current = window.requestAnimationFrame(runDetectionLoop);
             return;
           }
@@ -645,6 +677,21 @@ export function useTuner({
             activeMinimumClarity -
             quietnessWeight * (activeMinimumClarity - MIN_CLARITY_FLOOR);
 
+          const lastValidPitchTime = lastValidPitchTimeRef.current;
+          const isRetainingRecentPitch =
+            lastValidPitchTime !== null &&
+            frameTime - lastValidPitchTime < PITCH_LOSS_RELEASE_MS;
+
+          // Acquiring a pitch requires the normal clarity threshold. Once a
+          // pitch has been acquired, a slightly lower threshold is allowed so
+          // ordinary guitar decay does not cause the display to flicker.
+          const requiredClarity = isRetainingRecentPitch
+            ? Math.max(
+                MIN_CLARITY_FLOOR,
+                effectiveMinimumClarity - CLARITY_RELEASE_HYSTERESIS,
+              )
+            : effectiveMinimumClarity;
+
           const [pitch, foundClarity] = activeDetector.findPitch(
             activeBuffer,
             audioContext.sampleRate,
@@ -653,16 +700,34 @@ export function useTuner({
           if (
             !Number.isFinite(pitch) ||
             pitch <= 0 ||
-            foundClarity < effectiveMinimumClarity
+            foundClarity < requiredClarity
           ) {
-            const noSignalSnapshot = createNoSignalUiSnapshot(foundClarity);
+            // Keep the last valid result visible through short confidence
+            // dropouts, but do not let those frames count as stable tuning.
+            stableMatchStartTimeRef.current = null;
+
+            const shouldReleaseDisplayedPitch =
+              lastValidPitchTime === null ||
+              frameTime - lastValidPitchTime >= PITCH_LOSS_RELEASE_MS;
+
+            if (!shouldReleaseDisplayedPitch) {
+              rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+              return;
+            }
+
+            const safeClarity = Number.isFinite(foundClarity)
+              ? foundClarity
+              : 0;
+            const noSignalSnapshot = createNoSignalUiSnapshot(safeClarity);
 
             resetPitchTracking();
+
             setUiSnapshot((current) =>
               areUiSnapshotsEqual(current, noSignalSnapshot)
                 ? current
                 : noSignalSnapshot,
             );
+
             rafRef.current = window.requestAnimationFrame(runDetectionLoop);
             return;
           }
@@ -676,12 +741,14 @@ export function useTuner({
           ) {
             if (pendingOctaveJumpMidiRef.current !== nearestMidi) {
               pendingOctaveJumpMidiRef.current = nearestMidi;
+              stableMatchStartTimeRef.current = null;
               rafRef.current = window.requestAnimationFrame(runDetectionLoop);
               return;
             }
           }
 
           pendingOctaveJumpMidiRef.current = null;
+          lastValidPitchTimeRef.current = frameTime;
 
           const nearestFrequency = frequencyFromMidi(nearestMidi);
           const centsFromNearest = centsBetweenFrequencies(
@@ -696,6 +763,7 @@ export function useTuner({
           }
 
           centsHistoryRef.current.push(centsFromNearest);
+
           if (centsHistoryRef.current.length > 5) {
             centsHistoryRef.current.shift();
           }
@@ -739,7 +807,7 @@ export function useTuner({
 
           if (isMatchingTargetNote && isWithinTolerance) {
             if (stableMatchStartTimeRef.current === null) {
-              stableMatchStartTimeRef.current = performance.now();
+              stableMatchStartTimeRef.current = frameTime;
             }
           } else {
             stableMatchStartTimeRef.current = null;
@@ -747,7 +815,7 @@ export function useTuner({
 
           if (
             stableMatchStartTimeRef.current !== null &&
-            performance.now() - stableMatchStartTimeRef.current >=
+            frameTime - stableMatchStartTimeRef.current >=
               activeStableHoldDurationMs
           ) {
             stableMatchStartTimeRef.current = null;
