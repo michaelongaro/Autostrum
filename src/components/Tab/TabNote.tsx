@@ -43,8 +43,7 @@ function TabNote({
   return (
     <div
       className={`relative ${
-        chordPulse &&
-        chordPulse.location.sectionIndex === sectionIndex &&
+        chordPulse?.location.sectionIndex === sectionIndex &&
         chordPulse.location.subSectionIndex === subSectionIndex &&
         chordPulse.location.chordIndex === columnIndex
           ? "copyAndPaste"
