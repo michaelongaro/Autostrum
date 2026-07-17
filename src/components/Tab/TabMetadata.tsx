@@ -524,10 +524,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                       prefetch={false}
                       href={`/tab/${id}/${encodeURIComponent(title)}`}
                       className="baseFlex w-full !justify-between gap-2 font-normal"
-                      onClick={() => {
-                        pauseAudio(true);
-                        setEditing(false);
-                      }}
                     >
                       View tab
                       <HiOutlineExternalLink className="size-4" />
