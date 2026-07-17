@@ -366,13 +366,6 @@ function DesktopHeader() {
                     </Button>
 
                     <SignOutButton
-                    // afterSignOutUrl={`${
-                    //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                    // }/`}
-                    // onSignOut={() => {
-                    //   localStorageTabData.set(getStringifiedTabData());
-                    //   localStorageRedirectRoute.set(asPath);
-                    // }}
                     >
                       <Button variant={"link"} asChild>
                         <Link
@@ -381,7 +374,7 @@ function DesktopHeader() {
                           onClick={() => {
                             setUserPopoverOpen(false);
                           }}
-                          className="baseFlex !p-0 underline"
+                          className="baseFlex !p-0"
                         >
                           Sign out
                         </Link>

@@ -462,20 +462,12 @@ function MobileHeader() {
                         </Link>
                       </Button>
 
-                      <SignOutButton
-                      // afterSignOutUrl={`${
-                      //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                      // }/`}
-                      // onSignOut={() => {
-                      //   localStorageTabData.set(getStringifiedTabData());
-                      //   localStorageRedirectRoute.set(asPath);
-                      // }}
-                      >
+                      <SignOutButton>
                         <Button variant={"link"} asChild>
                           <Link
                             prefetch={false}
                             href={`/`}
-                            className="baseFlex !p-0 underline"
+                            className="baseFlex !p-0"
                           >
                             Sign out
                           </Link>
