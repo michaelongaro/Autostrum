@@ -1,11 +1,9 @@
 import * as React from "react";
-import { useState, useEffect } from "react";
 
 import { cn } from "~/utils/cn";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  showingErrorShakeAnimation?: boolean;
-  smallErrorShakeAnimation?: boolean;
+  invalid?: boolean;
   showFocusState?: boolean;
 }
 
@@ -13,29 +11,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
       className,
-      showingErrorShakeAnimation,
-      smallErrorShakeAnimation,
+      invalid = false,
       showFocusState = true,
       type,
       ...props
     },
     ref,
   ) => {
-    // needed since once flag for errorShake turns off, it immediately reverts back to "transition-all",
-    // and results in a lop-sided animation
-    const [extraTimeoutForShakeAnimation, setExtraTimeoutForShakeAnimation] =
-      useState(false);
-
-    useEffect(() => {
-      if (showingErrorShakeAnimation) {
-        setExtraTimeoutForShakeAnimation(true);
-
-        setTimeout(() => {
-          setExtraTimeoutForShakeAnimation(false);
-        }, 1000);
-      }
-    }, [showingErrorShakeAnimation]);
-
     const focusClasses = showFocusState
       ? "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70"
       : "";
@@ -46,31 +28,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         autoComplete="off"
         autoCorrect="off"
         spellCheck="false"
-        style={{
-          ...(showingErrorShakeAnimation
-            ? {
-                boxShadow: "0 0 0 0.25rem hsl(var(--destructive))",
-                transitionProperty: "box-shadow",
-                transitionDuration: "500ms",
-                transitionTimingFunction: "ease-in-out",
-              }
-            : {
-                transitionProperty: "box-shadow",
-                transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-              }),
-          transitionDuration:
-            showingErrorShakeAnimation || extraTimeoutForShakeAnimation
-              ? "500ms"
-              : "150ms",
-        }}
+        aria-invalid={invalid || undefined}
         className={cn(
-          `flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-base ring-offset-background ${
-            showingErrorShakeAnimation
-              ? smallErrorShakeAnimation
-                ? "animate-smallErrorShake"
-                : "animate-errorShake"
-              : "transition-all"
-          } file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-foreground/50 ${focusClasses} disabled:cursor-not-allowed disabled:opacity-50`,
+          `flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-base ring-offset-background transition-[box-shadow] duration-200 ease-in-out file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-foreground/50 ${focusClasses} disabled:cursor-not-allowed disabled:opacity-50`,
+          invalid && "ring-2 ring-destructive",
           className,
         )}
         ref={ref}

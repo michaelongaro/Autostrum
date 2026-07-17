@@ -28,6 +28,13 @@ const backdropVariants = {
   },
 };
 
+const validNotationRegex =
+  /^(A[0-7]|A#[0-7]|B[0-7]|C[1-8]|C#[1-8]|D[1-7]|D#[1-7]|E[1-7]|F[1-7]|F#[1-7]|G[1-7]|G#[1-7])$/;
+
+function isValidManualTuningInput(value: string) {
+  return validNotationRegex.test(value.toUpperCase());
+}
+
 function CustomTuningModal() {
   const {
     previewMetadata,
@@ -79,11 +86,8 @@ function CustomTuningModal() {
   function getInvalidInputIndicies() {
     const invalidInputs: boolean[] = [];
 
-    const validNotationRegex =
-      /^(A[0-7]|A#[0-7]|B[0-7]|C[1-8]|C#[1-8]|D[1-7]|D#[1-7]|E[1-7]|F[1-7]|F#[1-7]|G[1-7]|G#[1-7])$/;
-
     newTuning.forEach((value) => {
-      invalidInputs.push(!validNotationRegex.test(value.toUpperCase()));
+      invalidInputs.push(!isValidManualTuningInput(value));
     });
 
     return invalidInputs;
@@ -95,10 +99,6 @@ function CustomTuningModal() {
     if (invalidInputIndicies.includes(true)) {
       setShowInvalidInputPerIndex(invalidInputIndicies);
 
-      setTimeout(() => {
-        setShowInvalidInputPerIndex([false, false, false, false, false, false]);
-      }, 500);
-
       return;
     }
 
@@ -106,10 +106,6 @@ function CustomTuningModal() {
 
     if (!normalizedTuning) {
       setShowInvalidInputPerIndex([true, true, true, true, true, true]);
-
-      setTimeout(() => {
-        setShowInvalidInputPerIndex([false, false, false, false, false, false]);
-      }, 500);
 
       return;
     }
@@ -124,10 +120,6 @@ function CustomTuningModal() {
 
     if (!normalizedTuning) {
       setShowInvalidQuickInput(true);
-
-      setTimeout(() => {
-        setShowInvalidQuickInput(false);
-      }, 500);
 
       return;
     }
@@ -222,10 +214,17 @@ function CustomTuningModal() {
                 <Input
                   placeholder="C# B E F# A# E"
                   value={quickTuningInput.toUpperCase()}
-                  showingErrorShakeAnimation={showInvalidQuickInput}
-                  smallErrorShakeAnimation={true}
+                  invalid={showInvalidQuickInput}
                   onChange={(e) => {
-                    setQuickTuningInput(e.target.value.toLowerCase());
+                    const nextValue = e.target.value.toLowerCase();
+                    setQuickTuningInput(nextValue);
+
+                    if (
+                      showInvalidQuickInput &&
+                      normalizeCustomTuningInput(nextValue)
+                    ) {
+                      setShowInvalidQuickInput(false);
+                    }
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -302,8 +301,7 @@ function CustomTuningModal() {
                     key={index}
                     placeholder={placeholderNotes[index]}
                     value={value.toUpperCase()}
-                    showingErrorShakeAnimation={showInvalidInputPerIndex[index]}
-                    smallErrorShakeAnimation={true}
+                    invalid={showInvalidInputPerIndex[index]}
                     style={{
                       color:
                         highlightedNoteInputIndex === index
@@ -318,6 +316,17 @@ function CustomTuningModal() {
                       newTuningValues[index] = e.target.value.toLowerCase();
                       setNewTuning(newTuningValues);
                       setQuickTuningInput(newTuningValues.join(" "));
+
+                      if (
+                        showInvalidInputPerIndex[index] &&
+                        isValidManualTuningInput(newTuningValues[index]!)
+                      ) {
+                        setShowInvalidInputPerIndex((invalidInputs) =>
+                          invalidInputs.map((invalid, inputIndex) =>
+                            inputIndex === index ? false : invalid,
+                          ),
+                        );
+                      }
                     }}
                   />
                 ))}
