@@ -214,7 +214,7 @@ html body[data-scroll-locked] {
 @keyframes copyAndPasteAnimation {
   0% {
     opacity: 0;
-    scale: 0;
+    scale: 0.5;
   }
 
   50% {
@@ -232,7 +232,7 @@ html body[data-scroll-locked] {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.25);
+  background-color: hsl(var(--primary) / 0.25);
   border-radius: 9999px;
   animation: copyAndPasteAnimation 0.35s ease-in-out;
 }
