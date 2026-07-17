@@ -33,7 +33,6 @@ import {
   isTabNote,
 } from "~/utils/tabNoteHelpers";
 
-const noteLengthDurations = ["quarter", "eighth", "sixteenth"];
 interface TabNotesColumnProps {
   columnData: TabNoteType;
   sectionIndex: number;
@@ -141,8 +140,8 @@ function TabNotesColumn({
     columnIndex === subSection.data.length - 1 ||
     (nextColumn !== undefined && isTabMeasureLine(nextColumn));
 
-  // ideally don't need this and can just use prop values passed in, but need to have
-  // [0] index special case since when looping it would keep the [0] index at 100% width
+  // ideally don't need this and can just use prop values passed in, but need to have a
+  // [0] index special case, since when looping it would keep the [0] index at 100% width
   // immediately, so we need this semi hacky solution
   useEffect(() => {
     if (columnIndex === 0) {
