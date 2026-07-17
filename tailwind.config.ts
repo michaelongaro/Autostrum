@@ -86,26 +86,10 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        errorShake: {
-          "0%, 100%": { translate: "0px" },
-          "20%": { translate: "-15px" },
-          "40%": { translate: "15px" },
-          "60%": { translate: "-7px" },
-          "80%": { translate: "8px" },
-        },
-        smallErrorShake: {
-          "0%, 100%": { translate: "0px" },
-          "20%": { translate: "-5px" },
-          "40%": { translate: "5px" },
-          "60%": { translate: "-3px" },
-          "80%": { translate: "4px" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.25s ease-out",
         "accordion-up": "accordion-up 0.25s ease-out",
-        errorShake: "errorShake 0.5s ease-in-out forwards",
-        smallErrorShake: "smallErrorShake 0.5s ease-in-out forwards",
       },
     },
     // mobile safari was glitchy/inconsistent at best with the default

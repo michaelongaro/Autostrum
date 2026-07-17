@@ -270,7 +270,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
   const [showPublishPopover, setShowPublishPopover] = useState(false);
 
   const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
-  const [showPulsingError, setShowPulsingError] = useState(false);
+  const [showInvalidTitle, setShowInvalidTitle] = useState(false);
 
   const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
 
@@ -322,9 +322,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       bpm === -1 ||
       tabIsEffectivelyEmpty
     ) {
-      setShowPulsingError(true);
-      setTimeout(() => setShowPulsingError(false), 500);
-
       return;
     }
 
@@ -349,9 +346,8 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       bpm === -1 ||
       tabIsEffectivelyEmpty
     ) {
-      setShowPulsingError(true);
+      setShowInvalidTitle(!title);
       setShowPublishPopover(true);
-      setTimeout(() => setShowPulsingError(false), 500);
 
       return;
     }
@@ -553,7 +549,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
 
             <Button
               variant={"secondary"}
-              disabled={showPulsingError}
               onClick={handlePreview}
               className="baseFlex gap-2"
             >
@@ -578,7 +573,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                   disabled={
                     audioMetadata.playing || // helps with performance when playing audio (while editing)
                     isLoadingARoute ||
-                    showPulsingError ||
                     isPublishing ||
                     isUpdating ||
                     isDeleting ||
@@ -654,11 +648,15 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 type="text"
                 placeholder="My new tab"
                 value={title}
-                showingErrorShakeAnimation={showPulsingError && !title}
+                invalid={showInvalidTitle}
                 className={`w-full tablet:max-w-72 ${isMobile ? "text-base" : "text-sm"}`}
                 onChange={(e) => {
                   if (e.target.value.length > 50) return;
                   setTitle(e.target.value);
+
+                  if (showInvalidTitle && e.target.value) {
+                    setShowInvalidTitle(false);
+                  }
                 }}
               />
             </div>
@@ -708,21 +706,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               <Select value={genre} onValueChange={(value) => setGenre(value)}>
                 <SelectTrigger
                   id="genre"
-                  style={{
-                    boxShadow:
-                      showPulsingError && genre === ""
-                        ? "0 0 0 0.25rem hsl(var(--destructive))"
-                        : "",
-                    transitionProperty:
-                      showPulsingError && genre === "" ? "box-shadow" : "",
-                    transitionTimingFunction:
-                      showPulsingError && genre === "" ? "ease-in-out" : "",
-                    transitionDuration:
-                      showPulsingError && genre === "" ? "500ms" : "",
-                  }}
-                  className={`w-[180px] ${
-                    showPulsingError && genre === "" ? "animate-errorShake" : ""
-                  }`}
+                  className="w-[180px]"
                 >
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
@@ -807,7 +791,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                   pattern="[0-9]*"
                   className="w-[53px]"
                   value={bpm === -1 ? "" : bpm}
-                  showingErrorShakeAnimation={showPulsingError && bpm === -1}
                   onChange={handleBpmChange}
                 />
                 <span className="ml-1">BPM</span>
