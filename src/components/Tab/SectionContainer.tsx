@@ -13,9 +13,11 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
   useTabStore,
+  getTabData,
   type ChordSection as ChordSectionType,
   type StrummingPattern,
   type TabSection as TabSectionType,
+  type BaseNoteLengths,
 } from "~/stores/TabStore";
 import { Separator } from "~/components/ui/separator";
 import ChordSection from "./ChordSection";
@@ -100,10 +102,23 @@ function SectionContainer({
   function generateDefaultTabSection(): TabSectionType {
     const initialChords = [];
 
+    let prevTabSubsectionNoteLength = "quarter" as BaseNoteLengths;
+
+    const tabData = getTabData();
+
+    for (let i = tabData.length - 1; i >= 0; i--) {
+      const section = tabData[i]?.data.at(-1);
+
+      if (section?.type === "tab") {
+        prevTabSubsectionNoteLength = section.baseNoteLength;
+        break;
+      }
+    }
+
     for (let i = 0; i < 8; i++) {
       initialChords.push(
         createTabNote({
-          noteLength: "quarter",
+          noteLength: prevTabSubsectionNoteLength,
         }),
       );
     }
@@ -112,7 +127,7 @@ function SectionContainer({
       id: crypto.randomUUID(),
       type: "tab",
       bpm: -1,
-      baseNoteLength: "quarter",
+      baseNoteLength: prevTabSubsectionNoteLength,
       repetitions: 1,
       data: initialChords,
     };
