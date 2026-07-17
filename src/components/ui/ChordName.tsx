@@ -66,12 +66,11 @@ function ChordName({
             ? "14px"
             : "16px",
         lineHeight: "1.25rem",
-        borderWidth: chordDisplayMode === "color" ? "1px" : undefined,
         zIndex: showFullName ? 9 : undefined, // still want hover to take priority over chord popover being open
       }}
       // FYI: I am still unsure why adding "isolate" fixes the issue where the chord name
       // would sometimes not change color when highlighted on iOS
-      className="baseFlex isolate h-5 shrink-0 rounded-full border-background px-1.5 font-semibold hover:z-10"
+      className="baseFlex isolate h-5 shrink-0 rounded-full px-[5px] font-semibold hover:z-10"
     >
       {modifiedChordName}
     </div>
