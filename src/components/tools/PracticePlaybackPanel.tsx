@@ -55,6 +55,8 @@ function PracticePlaybackPanel({
     setTabData,
     setCurrentChordIndex,
     setAudioMetadata,
+    setExpandedTabData,
+    setVisiblePlaybackContainerWidth,
     audioMetadata,
     playbackSpeed,
     setPlaybackSpeed,
@@ -75,6 +77,8 @@ function PracticePlaybackPanel({
     setTabData: state.setTabData,
     setCurrentChordIndex: state.setCurrentChordIndex,
     setAudioMetadata: state.setAudioMetadata,
+    setExpandedTabData: state.setExpandedTabData,
+    setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     audioMetadata: state.audioMetadata,
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
@@ -126,6 +130,10 @@ function PracticePlaybackPanel({
     setStrummingPatterns([]);
     setSectionProgression([]);
     setCurrentChordIndex(0);
+    // Clear stale playback layout from the previous exercise so the modal
+    // remeasures/recompiles instead of inheriting the old strip width/data.
+    setExpandedTabData(null);
+    setVisiblePlaybackContainerWidth(0);
 
     setAudioMetadata({
       playing: false,
@@ -153,6 +161,8 @@ function PracticePlaybackPanel({
     setStrummingPatterns,
     setSectionProgression,
     setCurrentChordIndex,
+    setExpandedTabData,
+    setVisiblePlaybackContainerWidth,
     setAudioMetadata,
     setTabData,
   ]);
