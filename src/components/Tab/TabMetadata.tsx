@@ -271,6 +271,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
 
   const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
   const [showInvalidTitle, setShowInvalidTitle] = useState(false);
+  const [showInvalidGenre, setShowInvalidGenre] = useState(false);
 
   const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
 
@@ -347,6 +348,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       tabIsEffectivelyEmpty
     ) {
       setShowInvalidTitle(!title);
+      setShowInvalidGenre(!genre);
       setShowPublishPopover(true);
 
       return;
@@ -703,8 +705,18 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               <Label htmlFor="genre">
                 Genre <span className="text-destructive">*</span>
               </Label>
-              <Select value={genre} onValueChange={(value) => setGenre(value)}>
-                <SelectTrigger id="genre" className="w-[180px]">
+              <Select
+                value={genre}
+                onValueChange={(value) => {
+                  setGenre(value);
+                  setShowInvalidGenre(false);
+                }}
+              >
+                <SelectTrigger
+                  id="genre"
+                  invalid={showInvalidGenre}
+                  className="w-[180px]"
+                >
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
                 <SelectContent>

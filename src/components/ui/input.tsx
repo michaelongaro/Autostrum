@@ -25,7 +25,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         spellCheck="false"
         aria-invalid={invalid || undefined}
         className={cn(
-          `ease-in-out flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-base ring-offset-background transition-[box-shadow] duration-200 file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-foreground/50 ${focusClasses} disabled:cursor-not-allowed disabled:opacity-50`,
+          `border-input flex h-10 w-full rounded-md border bg-transparent px-3 py-2 text-base ring-offset-background transition file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-foreground/50 ${focusClasses} disabled:cursor-not-allowed disabled:opacity-50`,
           invalid && "ring-2 ring-destructive",
           className,
         )}
