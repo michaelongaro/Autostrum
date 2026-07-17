@@ -262,7 +262,7 @@ function TabNotesColumn({
 
       const newColumnData = createTabNote({
         palmMute: newColumnPalmMuteValue,
-        noteLength: "quarter", // will be overwritten by note length if it's specified
+        noteLength: subSection.baseNoteLength,
       });
 
       currentSubSection.data.splice(
