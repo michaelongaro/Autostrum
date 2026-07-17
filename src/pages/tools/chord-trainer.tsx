@@ -857,7 +857,7 @@ function ChordTrainerPage() {
                       type="button"
                       onClick={() => handleChordPresetSelect(preset.id)}
                       className={cn(
-                        "baseVertFlex w-full !items-start gap-2 rounded-md border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "baseVertFlex w-full !items-start gap-2 rounded-md border px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                         isActive
                           ? "border bg-background text-foreground shadow-sm"
                           : "border-transparent bg-background/55 text-foreground/80 hover:border-border hover:bg-background",

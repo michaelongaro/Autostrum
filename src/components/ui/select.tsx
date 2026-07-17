@@ -23,7 +23,7 @@ const SelectTrigger = React.forwardRef<
       transitionDuration: "150ms",
     }}
     className={cn(
-      "border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm ring-offset-background placeholder:text-foreground/75 focus:outline-none focus:ring-2 focus:ring-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
+      "border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm ring-offset-background placeholder:text-foreground/75 focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
       className,
     )}
     {...props}

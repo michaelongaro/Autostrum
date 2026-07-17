@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 
 import { cn } from "~/utils/cn";
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   showingErrorShakeAnimation?: boolean;
   smallErrorShakeAnimation?: boolean;
   showFocusState?: boolean;
@@ -38,7 +37,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }, [showingErrorShakeAnimation]);
 
     const focusClasses = showFocusState
-      ? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/70"
+      ? "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70"
       : "";
 
     return (

@@ -1136,7 +1136,7 @@ function DesktopInstrumentAndSpeedSelects() {
         >
           <SelectTrigger
             id="instrument"
-            className="focus:ring-2 focus:ring-primary-foreground/75"
+            className="focus:ring-1 focus:ring-primary-foreground/75"
           >
             <SelectValue />
           </SelectTrigger>
@@ -1179,7 +1179,7 @@ function DesktopInstrumentAndSpeedSelects() {
         >
           <SelectTrigger
             id="speed"
-            className="focus:ring-2 focus:ring-primary-foreground/75"
+            className="focus:ring-1 focus:ring-primary-foreground/75"
           >
             <SelectValue />
           </SelectTrigger>

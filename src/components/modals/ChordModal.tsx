@@ -204,7 +204,7 @@ function ChordModal({ chordBeingEdited }: ChordModal) {
                       }}
                       className={`baseFlex size-7 rounded-full transition-all ${
                         chordBeingEdited.value.color === color
-                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                          ? "ring-1 ring-primary ring-offset-2 ring-offset-background"
                           : "hover:scale-110"
                       }`}
                     >

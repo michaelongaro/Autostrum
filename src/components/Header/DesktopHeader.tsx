@@ -56,7 +56,7 @@ function DesktopHeader() {
       <div className={classes.desktopHeader}>
         <Link
           href={"/"}
-          className={`${classes.logo} shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/70`}
+          className={`${classes.logo} shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70`}
         >
           <Image
             src={LOGO_PATHS_WITH_TITLE[color]}
@@ -365,8 +365,7 @@ function DesktopHeader() {
                       </Link>
                     </Button>
 
-                    <SignOutButton
-                    >
+                    <SignOutButton>
                       <Button variant={"link"} asChild>
                         <Link
                           prefetch={false}

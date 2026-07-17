@@ -24,8 +24,9 @@ const AccordionItem = React.forwardRef<
 ));
 AccordionItem.displayName = "AccordionItem";
 
-interface AccordionTriggerProps
-  extends React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> {
+interface AccordionTriggerProps extends React.ComponentPropsWithoutRef<
+  typeof AccordionPrimitive.Trigger
+> {
   extraPadding?: boolean;
   showUnderline?: boolean;
   editingSectionContainer?: boolean;
@@ -60,7 +61,7 @@ const AccordionTrigger = React.forwardRef<
             extraPadding ? "py-2" : "py-0"
           } ${
             showUnderline ? "hover:underline" : ""
-          } group rounded-lg font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/70`,
+          } group rounded-lg font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70`,
           className,
         )}
         {...props}
@@ -81,8 +82,9 @@ const AccordionTrigger = React.forwardRef<
 );
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 
-interface AccordionContentProps
-  extends React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content> {
+interface AccordionContentProps extends React.ComponentPropsWithoutRef<
+  typeof AccordionPrimitive.Content
+> {
   extraPaddingBottom?: boolean;
   animated?: boolean;
 }
