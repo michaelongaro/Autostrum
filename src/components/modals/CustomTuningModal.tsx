@@ -319,7 +319,7 @@ function CustomTuningModal() {
 
                       if (
                         showInvalidInputPerIndex[index] &&
-                        isValidManualTuningInput(newTuningValues[index]!)
+                        isValidManualTuningInput(newTuningValues[index])
                       ) {
                         setShowInvalidInputPerIndex((invalidInputs) =>
                           invalidInputs.map((invalid, inputIndex) =>

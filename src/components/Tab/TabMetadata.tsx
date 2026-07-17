@@ -704,10 +704,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 Genre <span className="text-destructive">*</span>
               </Label>
               <Select value={genre} onValueChange={(value) => setGenre(value)}>
-                <SelectTrigger
-                  id="genre"
-                  className="w-[180px]"
-                >
+                <SelectTrigger id="genre" className="w-[180px]">
                   <SelectValue placeholder="Select a genre" />
                 </SelectTrigger>
                 <SelectContent>
