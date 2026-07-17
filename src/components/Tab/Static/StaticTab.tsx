@@ -209,7 +209,7 @@ function StaticTab() {
                 <TooltipTrigger asChild>
                   <Button
                     variant={"secondary"}
-                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
                     onClick={() => setShowGlossaryDialog(true)}
                   >
                     <FaBook className="size-4" />
@@ -243,7 +243,7 @@ function StaticTab() {
                 <DrawerTrigger asChild>
                   <Button
                     variant={"secondary"}
-                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
                   >
                     <IoMdSettings className="size-5" />
                   </Button>
@@ -284,7 +284,7 @@ function StaticTab() {
                         <PopoverTrigger asChild>
                           <Button
                             variant={"secondary"}
-                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
+                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
                           >
                             <IoMdSettings className="size-5" />
                           </Button>
