@@ -202,8 +202,7 @@ function TabNotesColumn({
     setTabData((draft) => {
       const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
 
-      if (currentSubSection === undefined || currentSubSection.type !== "tab")
-        return;
+      if (currentSubSection?.type !== "tab") return;
 
       const currentColumn = currentSubSection.data[columnIndex];
       if (!currentColumn || !isTabNote(currentColumn)) return;
@@ -250,8 +249,8 @@ function TabNotesColumn({
   function addNewColumn(after: boolean) {
     setTabData((draft) => {
       const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-      if (currentSubSection === undefined || currentSubSection.type !== "tab")
-        return;
+
+      if (currentSubSection?.type !== "tab") return;
 
       const newColumnPalmMuteValue: "" | "-" =
         (columnData.palmMute === "start" && after) ||
@@ -277,8 +276,7 @@ function TabNotesColumn({
     setTabData((draft) => {
       const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
 
-      if (currentSubSection === undefined || currentSubSection.type !== "tab")
-        return;
+      if (currentSubSection?.type !== "tab") return;
 
       const column = currentSubSection.data[columnIndex];
       if (column && isTabNote(column)) {
