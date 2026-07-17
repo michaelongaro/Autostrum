@@ -676,7 +676,9 @@ export const tabRouter = createTRPCRouter({
       });
 
       // immediately revalidate the tab's url to improve end user experience
-      ctx.res
+      // using "await" since a user immediately clicking the "View tab" button
+      // would show them a stale page
+      await ctx.res
         .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
         .catch((e) => {
           console.error("Error revalidating tab page:", e);
