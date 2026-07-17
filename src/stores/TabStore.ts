@@ -359,6 +359,10 @@ const initialStoreState = {
   // playback
   showPlaybackModal: false,
   playbackModalViewingState: "Practice" as const,
+  // Must reset with the route: stale width/expanded data from a previous tab
+  // (or orientation) leaves the modal unable to virtualize/highlight chords.
+  visiblePlaybackContainerWidth: 0,
+  expandedTabData: null,
 
   // related to sound generation/playing
   currentlyPlayingMetadata: null,
@@ -625,6 +629,13 @@ interface TabState {
     resetToStart?: boolean,
     resetCurrentlyPlayingMetadata?: boolean,
   ) => void;
+  /**
+   * Re-anchors the strip animation clock to "now" at the current chord without
+   * stopping audio. Used after orientation/layout invalidation or visibility
+   * resume when chordRepetitions were reset and would otherwise desync from a
+   * stale playbackStartedAtAudioTime.
+   */
+  reanchorPlaybackStripAnimation: () => void;
 
   isLoadingARoute: boolean;
   setIsLoadingARoute: (isLoadingARoute: boolean) => void;
@@ -1288,6 +1299,17 @@ const useTabStoreBase = create<TabState>()(
             activePlaybackStrings: null,
           });
         }
+      },
+
+      reanchorPlaybackStripAnimation: () => {
+        const { audioContext, audioMetadata } = get();
+
+        if (!audioContext || !audioMetadata.playing) return;
+
+        set({
+          playbackStartedAtAudioTime:
+            audioContext.currentTime + PLAYBACK_START_EPSILON_SECONDS,
+        });
       },
 
       expandedTabData: null,

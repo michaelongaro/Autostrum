@@ -28,6 +28,11 @@ import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import PlaybackAnimatedStrip from "~/components/Tab/Playback/PlaybackAnimatedStrip";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
+import {
+  computePlaybackChordLayoutData,
+  resyncChordRepetitionsAfterIndexJump,
+  type PlaybackChordLayoutData,
+} from "~/utils/playbackModalLayout";
 
 const backdropVariants = {
   expanded: {
@@ -57,17 +62,6 @@ interface RenderVisibleChord {
   isHighlighted: boolean;
 }
 
-interface ChordLayoutData {
-  scrollPositions: number[];
-  chordWidths: number[];
-  totalWidth: number;
-  durations: number[];
-  // Virtualization indices for smooth loop transitions
-  virtualizationIndex: number; // Index where the last visible chord comes into view
-  virtualizationStartIndex: number; // Index where the full viewport ends (start of "catchup" zone)
-  virtualizationCatchupIndex: number; // Index where the beginning of the tab leaves the viewport
-}
-
 function PlaybackModal() {
   const {
     currentChordIndex,
@@ -87,6 +81,8 @@ function PlaybackModal() {
     setPlaybackModalViewingState,
     pauseAudio,
     setCurrentChordIndex,
+    reanchorPlaybackStripAnimation,
+    playTab,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -105,12 +101,23 @@ function PlaybackModal() {
     setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
     setCurrentChordIndex: state.setCurrentChordIndex,
+    reanchorPlaybackStripAnimation: state.reanchorPlaybackStripAnimation,
+    playTab: state.playTab,
   }));
 
+  // Always track the latest strip container — a one-shot ref goes stale when
+  // AnimatePresence remounts the Practice view after switching modal tabs.
   const containerRef = (element: HTMLDivElement | null) => {
-    if (element && !containerElement) setContainerElement(element);
+    setContainerElement(element);
   };
   const modalContentRef = useRef<HTMLDivElement | null>(null);
+  const measureRetryRafRef = useRef<number | null>(null);
+  const wasDocumentHiddenRef = useRef(false);
+  // Sentinel so the first effect run always initializes chordRepetitions.
+  const prevExpandedTabDataRef = useRef<typeof expandedTabData | undefined>(
+    undefined,
+  );
+  const prevChordIndexRef = useRef(currentChordIndex);
 
   const [containerElement, setContainerElement] =
     useState<HTMLDivElement | null>(null);
@@ -142,12 +149,83 @@ function PlaybackModal() {
     };
   }, []);
 
-  // Initialize chordRepetitions when expandedTabData changes
-  useEffect(() => {
-    if (expandedTabData && expandedTabData.length > 0) {
-      setChordRepetitions(new Array(expandedTabData.length).fill(0));
+  const measurePlaybackContainer = useCallback(() => {
+    const modalElement = modalContentRef.current;
+
+    if (
+      modalElement === null ||
+      modalElement.clientWidth === 0 ||
+      modalElement.clientHeight === 0
+    ) {
+      return false;
     }
-  }, [expandedTabData]);
+
+    const width = modalElement.clientWidth;
+    setInitialPlaceholderWidth(width / 2 - 5);
+    setVisiblePlaybackContainerWidth(width);
+    return true;
+  }, [setVisiblePlaybackContainerWidth]);
+
+  const scheduleMeasureRetry = useCallback(() => {
+    if (measureRetryRafRef.current !== null) {
+      cancelAnimationFrame(measureRetryRafRef.current);
+    }
+
+    // Orientation / app-switch can report 0x0 for a frame or two. Retry on the
+    // next couple of animation frames before giving up on this pulse.
+    let attempts = 0;
+    const retry = () => {
+      attempts += 1;
+      if (measurePlaybackContainer() || attempts >= 8) {
+        measureRetryRafRef.current = null;
+        return;
+      }
+      measureRetryRafRef.current = requestAnimationFrame(retry);
+    };
+
+    measureRetryRafRef.current = requestAnimationFrame(retry);
+  }, [measurePlaybackContainer]);
+
+  // Initialize / resync chordRepetitions when expanded tab data changes.
+  // If playback is active, re-anchor the strip clock so completedLoops does not
+  // stay tied to a pre-recompile playbackStartedAtAudioTime (orientation, etc.).
+  useEffect(() => {
+    if (!expandedTabData || expandedTabData.length === 0) {
+      setChordRepetitions([]);
+      prevExpandedTabDataRef.current = expandedTabData;
+      return;
+    }
+
+    const previousExpandedTabData = prevExpandedTabDataRef.current;
+    const expandedTabDataChanged = previousExpandedTabData !== expandedTabData;
+    prevExpandedTabDataRef.current = expandedTabData;
+
+    // currentChordIndex / playing are deps so the change-handler closure is
+    // fresh, but we only mutate repetitions when the compiled strip changes.
+    if (!expandedTabDataChanged) {
+      return;
+    }
+
+    setChordRepetitions(new Array(expandedTabData.length).fill(0));
+
+    // Orientation recompiles can shrink artificial loops; keep the index in range.
+    const clampedIndex =
+      currentChordIndex >= expandedTabData.length ? 0 : currentChordIndex;
+    if (clampedIndex !== currentChordIndex) {
+      setCurrentChordIndex(clampedIndex);
+      prevChordIndexRef.current = clampedIndex;
+    }
+
+    if (audioMetadata.playing) {
+      reanchorPlaybackStripAnimation();
+    }
+  }, [
+    expandedTabData,
+    currentChordIndex,
+    audioMetadata.playing,
+    setCurrentChordIndex,
+    reanchorPlaybackStripAnimation,
+  ]);
 
   function closePlaybackModal() {
     setShowPlaybackModal(false);
@@ -162,220 +240,187 @@ function PlaybackModal() {
     }
   }
 
-  // Compute chord layout data (positions, widths, durations) - memoized
-  const chordLayoutData = useMemo<ChordLayoutData | null>(() => {
+  const chordLayoutData = useMemo<PlaybackChordLayoutData | null>(
+    () =>
+      computePlaybackChordLayoutData({
+        expandedTabData,
+        playbackMetadata,
+        playbackSpeed,
+        visiblePlaybackContainerWidth,
+      }),
+    [
+      expandedTabData,
+      playbackMetadata,
+      playbackSpeed,
+      visiblePlaybackContainerWidth,
+    ],
+  );
+
+  // Primary / catchup virtualization, plus resync after large index jumps
+  // (background-tab timer throttling skips intermediate thresholds).
+  useLayoutEffect(() => {
+    if (!chordLayoutData || chordRepetitions.length === 0) {
+      prevChordIndexRef.current = currentChordIndex;
+      return;
+    }
+
+    const previousChordIndex = prevChordIndexRef.current;
+    prevChordIndexRef.current = currentChordIndex;
+
+    const indexJumped = Math.abs(currentChordIndex - previousChordIndex) > 1;
+    const wrappedForward =
+      audioMetadata.playing && currentChordIndex < previousChordIndex;
+
+    if (indexJumped || wrappedForward) {
+      setChordRepetitions((prev) =>
+        resyncChordRepetitionsAfterIndexJump({
+          length: prev.length,
+          previousRepetitions: prev,
+          currentChordIndex,
+          previousChordIndex,
+          virtualizationIndex: chordLayoutData.virtualizationIndex,
+          virtualizationStartIndex: chordLayoutData.virtualizationStartIndex,
+          virtualizationCatchupIndex: chordLayoutData.virtualizationCatchupIndex,
+          canVirtualize: chordLayoutData.canVirtualize,
+          wrappedForward,
+        }),
+      );
+      return;
+    }
+
+    if (!chordLayoutData.canVirtualize) {
+      return;
+    }
+
+    // Primary: bump the first half once the end of the strip is entering view.
     if (
-      !expandedTabData ||
-      !playbackMetadata ||
-      expandedTabData.length === 0 ||
-      visiblePlaybackContainerWidth === 0
+      currentChordIndex >= chordLayoutData.virtualizationIndex &&
+      chordRepetitions[0] === chordRepetitions[chordRepetitions.length - 1]
     ) {
-      return null;
+      setChordRepetitions((prev) => {
+        const newRepetitions = (prev[0] ?? 0) + 1;
+        const oldRepetitions = prev[0] ?? 0;
+        const secondHalfLength =
+          prev.length - chordLayoutData.virtualizationStartIndex;
+
+        return [
+          ...(new Array(chordLayoutData.virtualizationStartIndex).fill(
+            newRepetitions,
+          ) as number[]),
+          ...(new Array(secondHalfLength).fill(oldRepetitions) as number[]),
+        ];
+      });
+      return;
     }
 
-    const scrollPositions: number[] = [];
-    const chordWidths: number[] = [];
-    let offsetLeft = 0;
-
-    for (let i = 0; i < expandedTabData.length; i++) {
-      const chord = expandedTabData[i];
-
-      const isMeasureLine =
-        chord?.type === "tab" && chord?.data.chordData.includes("|");
-
-      const isSpacerChord =
-        (chord?.type === "tab" && chord?.data.chordData[0] === "-1") ||
-        (chord?.type === "strum" && chord?.data.strumIndex === -1);
-
-      const chordWidth = isMeasureLine
-        ? 2
-        : isSpacerChord
-          ? 16
-          : chord?.type === "tab" || chord?.type === "loopDelaySpacer"
-            ? 34
-            : 40;
-
-      scrollPositions[i] = offsetLeft;
-      chordWidths[i] = chordWidth;
-      offsetLeft += chordWidth;
+    // Catchup: finish bumping the trailing half after the previous loop leaves.
+    if (
+      currentChordIndex < chordLayoutData.virtualizationIndex &&
+      currentChordIndex >= chordLayoutData.virtualizationCatchupIndex &&
+      chordRepetitions[0] !== chordRepetitions[chordRepetitions.length - 1]
+    ) {
+      setChordRepetitions((prev) => {
+        const newRepetitions = prev[0] ?? 0;
+        return new Array(prev.length).fill(newRepetitions) as number[];
+      });
     }
-
-    const totalWidth = offsetLeft;
-    const finalChordWidth = chordWidths[chordWidths.length - 1] ?? 0;
-
-    const durations = expandedTabData.map((chord, index) => {
-      const metadata = playbackMetadata[index];
-
-      if (!metadata) return 0;
-
-      const isZeroDurationMeasureLine =
-        chord?.type === "tab" && chord?.data.chordData.includes("|");
-      const isZeroDurationTypeSpacer =
-        (chord?.type === "tab" && chord?.data.chordData[0] === "-1") ||
-        (chord?.type === "strum" && chord?.data.strumIndex === -1);
-
-      if (isZeroDurationMeasureLine || isZeroDurationTypeSpacer) {
-        return 0;
-      }
-
-      const { bpm, noteLengthMultiplier } = metadata;
-      return 60 / ((bpm / noteLengthMultiplier) * playbackSpeed);
-    });
-
-    // Compute virtualization indices for smooth loop transitions
-    // virtualizationIndex: the earliest chord index where the final chord becomes visible
-    let virtualizationIndex = 0;
-    for (let i = expandedTabData.length - 1; i >= 0; i--) {
-      const currentPosition = scrollPositions[i];
-      const lastChordPosition = scrollPositions[scrollPositions.length - 1];
-
-      if (currentPosition === undefined || lastChordPosition === undefined) {
-        continue;
-      }
-
-      if (
-        currentPosition + visiblePlaybackContainerWidth * 0.5 <=
-        lastChordPosition + finalChordWidth
-      ) {
-        virtualizationIndex = i;
-        break;
-      }
-    }
-
-    // virtualizationStartIndex: where the full viewport ends (chords after this won't be incremented in first phase)
-    let virtualizationStartIndex = 0;
-    for (let i = expandedTabData.length - 1; i >= 0; i--) {
-      const currentPosition = scrollPositions[i];
-      const lastChordPosition = scrollPositions[scrollPositions.length - 1];
-
-      if (currentPosition === undefined || lastChordPosition === undefined) {
-        continue;
-      }
-
-      if (
-        currentPosition + visiblePlaybackContainerWidth <=
-        lastChordPosition + finalChordWidth
-      ) {
-        virtualizationStartIndex = i;
-        break;
-      }
-    }
-
-    // virtualizationCatchupIndex: where the beginning of the tab leaves the viewport
-    let virtualizationCatchupIndex = 0;
-    for (let i = 0; i < expandedTabData.length - 1; i++) {
-      const currentPosition = scrollPositions[i];
-
-      if (currentPosition === undefined) {
-        continue;
-      }
-
-      if (currentPosition - visiblePlaybackContainerWidth * 0.5 >= 0) {
-        virtualizationCatchupIndex = i;
-        break;
-      }
-    }
-
-    return {
-      scrollPositions,
-      chordWidths,
-      totalWidth,
-      durations,
-      virtualizationIndex,
-      virtualizationStartIndex,
-      virtualizationCatchupIndex,
-    };
   }, [
-    expandedTabData,
-    playbackMetadata,
-    playbackSpeed,
-    visiblePlaybackContainerWidth,
+    chordLayoutData,
+    chordRepetitions,
+    currentChordIndex,
+    audioMetadata.playing,
   ]);
 
-  // Primary chord virtualization effect - increments all chords except the last visible portion
-  // Triggers when current chord index reaches the point where the last chord becomes visible
-  useLayoutEffect(() => {
-    if (
-      !chordLayoutData ||
-      chordRepetitions.length === 0 ||
-      currentChordIndex < chordLayoutData.virtualizationIndex ||
-      chordRepetitions[0] !== chordRepetitions[chordRepetitions.length - 1] // primary virtualization already happened
-    ) {
-      return;
-    }
-
-    setChordRepetitions((prev) => {
-      const newRepetitions = (prev[0] ?? 0) + 1;
-      const oldRepetitions = prev[0] ?? 0;
-      const secondHalfLength =
-        prev.length - chordLayoutData.virtualizationStartIndex;
-
-      const firstNewHalf = new Array(
-        chordLayoutData.virtualizationStartIndex,
-      ).fill(newRepetitions) as number[];
-
-      const secondNewHalf = new Array(secondHalfLength).fill(
-        oldRepetitions,
-      ) as number[];
-
-      return [...firstNewHalf, ...secondNewHalf];
-    });
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
-
-  // Catchup chord virtualization effect - increments the remaining chords after they leave the viewport
-  // Triggers after the beginning of the tab leaves the viewport on a new loop
-  useLayoutEffect(() => {
-    if (
-      !chordLayoutData ||
-      chordRepetitions.length === 0 ||
-      // making sure that this only happens post-primary virtualization and not
-      // before the virtualizationCatchupIndex has been reached
-      currentChordIndex >= chordLayoutData.virtualizationIndex ||
-      currentChordIndex < chordLayoutData.virtualizationCatchupIndex ||
-      chordRepetitions[0] === chordRepetitions[chordRepetitions.length - 1] // all chords are already caught up
-    ) {
-      return;
-    }
-
-    setChordRepetitions((prev) => {
-      const newRepetitions = prev[0] ?? 0;
-      return new Array(prev.length).fill(newRepetitions) as number[];
-    });
-  }, [chordLayoutData, chordRepetitions, currentChordIndex]);
-
-  // Handle resize
+  // Measure modal width on mount/resize/orientation/visibility. Zero-size
+  // frames (common mid-orientation on mobile) schedule rAF retries.
   useEffect(() => {
-    function handleResize() {
-      if (
-        modalContentRef.current === null ||
-        modalContentRef.current.clientWidth === 0 ||
-        modalContentRef.current.clientHeight === 0
-      ) {
+    function handleMeasurePulse() {
+      if (!measurePlaybackContainer()) {
+        scheduleMeasureRetry();
+      }
+    }
+
+    function handleVisibilityResume() {
+      handleMeasurePulse();
+
+      if (document.visibilityState === "hidden") {
+        wasDocumentHiddenRef.current = true;
         return;
       }
 
-      setInitialPlaceholderWidth(modalContentRef.current.clientWidth / 2 - 5);
-      setVisiblePlaybackContainerWidth(modalContentRef.current.clientWidth);
+      if (!wasDocumentHiddenRef.current) {
+        return;
+      }
+      wasDocumentHiddenRef.current = false;
+
+      // App-switching can advance the scheduler through multiple loop wraps in
+      // one JS turn, so React only sees the final chord index (no wrap signal).
+      // Soft pause+resume from the current chord fully rebuilds strip state.
+      if (audioMetadata.playing && showPlaybackModal) {
+        const location = audioMetadata.location;
+        pauseAudio();
+        setChordRepetitions((prev) =>
+          prev.length > 0 ? new Array(prev.length).fill(0) : prev,
+        );
+        void playTab({ location });
+      }
     }
 
-    handleResize();
+    handleMeasurePulse();
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const modalElement = modalContentRef.current;
+    let resizeObserver: ResizeObserver | null = null;
+
+    if (modalElement && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        handleMeasurePulse();
+      });
+      resizeObserver.observe(modalElement);
+    }
+
+    window.addEventListener("resize", handleMeasurePulse);
+    window.addEventListener("orientationchange", handleMeasurePulse);
+    document.addEventListener("visibilitychange", handleVisibilityResume);
+    window.addEventListener("pageshow", handleVisibilityResume);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", handleMeasurePulse);
+      window.removeEventListener("orientationchange", handleMeasurePulse);
+      document.removeEventListener("visibilitychange", handleVisibilityResume);
+      window.removeEventListener("pageshow", handleVisibilityResume);
+
+      if (measureRetryRafRef.current !== null) {
+        cancelAnimationFrame(measureRetryRafRef.current);
+        measureRetryRafRef.current = null;
+      }
+    };
   }, [
     expandedTabData,
     showPlaybackModal,
     containerElement,
-    setVisiblePlaybackContainerWidth,
+    playbackModalViewingState,
+    measurePlaybackContainer,
+    scheduleMeasureRetry,
+    audioMetadata.playing,
+    audioMetadata.location,
+    pauseAudio,
+    playTab,
   ]);
 
-  // Reset on modal close
+  // Reset playback-modal-owned defaults on close so the next open remeasures
+  // and recompiles from a clean width instead of a stale orientation/tab size.
   useEffect(() => {
     return () => {
       setPlaybackModalViewingState("Practice");
       setCurrentChordIndex(0);
+      setVisiblePlaybackContainerWidth(0);
     };
-  }, [setPlaybackModalViewingState, setCurrentChordIndex]);
+  }, [
+    setPlaybackModalViewingState,
+    setCurrentChordIndex,
+    setVisiblePlaybackContainerWidth,
+  ]);
 
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 

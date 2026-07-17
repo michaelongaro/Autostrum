@@ -98,12 +98,18 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
 
   const isChordHighlighted = useCallback(
     (chordIndex: number): boolean => {
-      if (!currentlyPlayingMetadata || chordRepetitions.length === 0) {
+      if (!currentlyPlayingMetadata) {
         return false;
       }
 
+      // Prefer live index/playing state even if chordRepetitions is briefly
+      // empty during modal reinitialization after orientation/tab switches.
       if (currentChordIndex === chordIndex && audioMetadata.playing) {
         return true;
+      }
+
+      if (chordRepetitions.length === 0) {
+        return chordIndex < currentChordIndex;
       }
 
       const chordRep = chordRepetitions[chordIndex] ?? 0;
@@ -129,6 +135,28 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
 
   const visibleChords = useMemo(() => {
     const { scrollPositions, chordWidths, totalWidth } = chordLayoutData;
+
+    // Until the modal has a measured width, mount a small window around the
+    // current chord so we never paint an empty strip during remeasure/orientation.
+    if (visiblePlaybackContainerWidth <= 0) {
+      const fallbackStart = Math.max(0, currentChordIndex - 8);
+      const fallbackEnd = Math.min(
+        expandedTabData.length,
+        currentChordIndex + 16,
+      );
+
+      return expandedTabData
+        .slice(fallbackStart, fallbackEnd)
+        .map((chord, offset) => {
+          const index = fallbackStart + offset;
+          return {
+            chord,
+            index,
+            prevChord: expandedTabData[index - 1],
+            nextChord: expandedTabData[index + 1],
+          };
+        });
+    }
 
     const currentPosition = audioMetadata.playing
       ? playingScrollPosition
