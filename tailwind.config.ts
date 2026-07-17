@@ -93,7 +93,7 @@ module.exports = {
       },
     },
     // mobile safari was glitchy/inconsistent at best with the default
-    // cubic-bezier transition timing function, so currently using linear
+    // cubic-bezier transition timing function
     transitionTimingFunction: {
       DEFAULT: "ease-out",
     },
