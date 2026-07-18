@@ -179,7 +179,7 @@ function PalmMuteNode({
     subSectionIndex: number,
   ) {
     const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-    if (currentSubSection === undefined || currentSubSection.type !== "tab") {
+    if (currentSubSection?.type !== "tab") {
       return null;
     }
     return currentSubSection;
@@ -377,7 +377,8 @@ function PalmMuteNode({
       );
       if (!result) return;
 
-      let { startIdx, endIdx, clearRangeStart, clearRangeEnd } = result;
+      let { startIdx, endIdx } = result;
+      const { clearRangeStart, clearRangeEnd } = result;
 
       // Swap if clicked "before" the anchor point
       if (startIdx > endIdx) {
