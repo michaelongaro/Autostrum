@@ -14,7 +14,7 @@ import {
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import { resetProgressTabSliderPosition } from "~/utils/tabSliderHelpers";
+import { resetAudioRangeToStart } from "~/utils/tabSliderHelpers";
 import { DEFAULT_TUNING, normalizeTuningValue, parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import {
@@ -385,7 +385,7 @@ const initialStoreState = {
     type: "chord" as const,
     playing: false,
   },
-  resetProgressTabSliderPosition: "editing",
+  resetAudioRangeToStart: "editing",
 
   isLoadingARoute: false,
   // idk if search needs to be included here
@@ -1092,7 +1092,7 @@ const useTabStoreBase = create<TabState>()(
             };
           },
           setState: (partial) => set(partial),
-          resetProgressTabSliderPosition,
+          resetAudioRangeToStart,
           clearBreakOnNextChord: () => set({ breakOnNextChord: false }),
         });
       },
@@ -1237,7 +1237,7 @@ const useTabStoreBase = create<TabState>()(
             });
           }
 
-          resetProgressTabSliderPosition("editing");
+          resetAudioRangeToStart("editing");
           set({
             currentChordIndex: 0,
             playbackStartedAtAudioTime: null,
@@ -1268,7 +1268,7 @@ const useTabStoreBase = create<TabState>()(
           });
 
           if (resetToStart) {
-            resetProgressTabSliderPosition("editing");
+            resetAudioRangeToStart("editing");
             set({
               currentChordIndex: 0,
             });
@@ -1287,7 +1287,7 @@ const useTabStoreBase = create<TabState>()(
           });
 
           if (resetToStart) {
-            resetProgressTabSliderPosition("editing");
+            resetAudioRangeToStart("editing");
             set({
               currentChordIndex: 0,
             });

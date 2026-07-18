@@ -185,7 +185,7 @@ export interface RunPlaybackSchedulerArgs {
     currentChordIndex: number;
   };
   setState: (partial: Record<string, unknown>) => void;
-  resetProgressTabSliderPosition: (mode: "editing" | "playback") => void;
+  resetAudioRangeToStart: (mode: "editing" | "playback") => void;
   clearBreakOnNextChord: () => void;
 }
 
@@ -205,7 +205,7 @@ export async function runPlaybackScheduler({
   isSessionValid,
   getState,
   setState,
-  resetProgressTabSliderPosition,
+  resetAudioRangeToStart,
   clearBreakOnNextChord,
   editing,
 }: RunPlaybackSchedulerArgs): Promise<void> {
@@ -336,8 +336,7 @@ export async function runPlaybackScheduler({
       }
 
       if (entry.isLastInCompiledSequence) {
-        console.log("snapping back");
-        resetProgressTabSliderPosition(editing ? "editing" : "playback");
+        resetAudioRangeToStart(editing ? "editing" : "playback");
       }
 
       lastCompletionTime = completionTime;

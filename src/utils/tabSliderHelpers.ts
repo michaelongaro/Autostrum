@@ -1,4 +1,4 @@
-function resetProgressTabSliderPosition(type: "editing" | "playback") {
+function resetAudioRangeToStart(type: "editing" | "playback") {
   const track = document.getElementById(
     type === "editing" ? "editingSliderTrack" : "playbackSliderTrack",
   );
@@ -27,4 +27,4 @@ function resetProgressTabSliderPosition(type: "editing" | "playback") {
   });
 }
 
-export { resetProgressTabSliderPosition };
+export { resetAudioRangeToStart };
