@@ -1,106 +1,64 @@
-import { useAuth } from "@clerk/nextjs";
+import type { InfiniteData } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
 import {
   OverlayScrollbarsComponent,
   type OverlayScrollbarsComponentRef,
 } from "overlayscrollbars-react";
-import {
-  useEffect,
-  type Dispatch,
-  type RefObject,
-  type SetStateAction,
-} from "react";
+import { type RefObject } from "react";
 import { useInView } from "react-intersection-observer";
+import Spinner from "~/components/ui/Spinner";
 import { Table, TableBody } from "~/components/ui/table";
-import type { InfiniteQueryParams } from "~/server/api/routers/search";
-import { api } from "~/utils/api";
+import type {
+  InfiniteQueryParams,
+  MinimalTabRepresentation,
+} from "~/server/api/routers/search";
+import type { UserMetadata } from "~/server/api/routers/user";
 import NoResultsFound from "./NoResultsFound";
 import TableTabRow from "./TableTabRow";
-import Spinner from "~/components/ui/Spinner";
 
 interface TableTabView {
   searchQuery?: string;
-  genre?: string;
-  tuning?: string;
-  capo?: boolean;
-  difficulty?: number;
-  sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
-  setSearchResultsCount: Dispatch<SetStateAction<number>>;
-  setSearchsearchResultsCountIsLoading: Dispatch<SetStateAction<boolean>>;
+  tabResults:
+    | InfiniteData<{
+        data: {
+          tabs: MinimalTabRepresentation[];
+          nextCursor: number | null;
+        };
+        count: number;
+      }>
+    | undefined;
+  isFetching: boolean;
+  isFetchingNextPage: boolean;
+  hasNextPage?: boolean;
+  fetchNextPage: () => void;
+  getInfiniteQueryParams: () => InfiniteQueryParams;
+  currentUser: UserMetadata | null | undefined;
   tableHeaderRef: RefObject<OverlayScrollbarsComponentRef<"div"> | null>;
   tableBodyRef: RefObject<OverlayScrollbarsComponentRef<"div"> | null>;
   activeScrollerRef: RefObject<"header" | "body" | null>;
   handlePointerDown: (scroller: "header" | "body") => void;
   handlePointerUp: () => void;
+  asPath: string;
   theme: "light" | "dark";
 }
 
 function TableTabView({
   searchQuery,
-  genre,
-  tuning,
-  capo,
-  difficulty,
-  sortBy,
-  setSearchResultsCount,
-  setSearchsearchResultsCountIsLoading,
+  tabResults,
+  isFetching,
+  isFetchingNextPage,
+  hasNextPage,
+  fetchNextPage,
+  getInfiniteQueryParams,
+  currentUser,
   tableHeaderRef,
   tableBodyRef,
   activeScrollerRef,
   handlePointerDown,
   handlePointerUp,
+  asPath,
   theme,
 }: TableTabView) {
-  const { userId } = useAuth();
-  const { query, asPath } = useRouter();
-
-  const { data: currentUser } = api.user.getById.useQuery(userId!, {
-    enabled: !!userId,
-  });
-
-  function getInfiniteQueryParams(): InfiniteQueryParams {
-    return {
-      searchQuery: decodeURIComponent(searchQuery ?? ""),
-      genre,
-      tuning,
-      capo: capo ?? undefined,
-      difficulty: difficulty ?? undefined,
-      sortBy,
-      usernameToSelectFrom: asPath.includes("/user")
-        ? ((query.username as string) ?? undefined)
-        : asPath.includes("/profile/tabs")
-          ? (currentUser?.username ?? undefined)
-          : undefined,
-      artistIdToSelectFrom:
-        asPath.includes("/artist") && query.id ? Number(query.id) : undefined,
-      bookmarkedByUserId:
-        asPath.includes("/profile/bookmarks") && userId ? userId : undefined,
-    };
-  }
-
-  const {
-    data: tabResults,
-    isFetching,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = api.search.getInfiniteTabsBySearchQuery.useInfiniteQuery(
-    getInfiniteQueryParams(),
-    {
-      getNextPageParam: (lastPage) => lastPage.data.nextCursor,
-      onSuccess: (data) => {
-        setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
-      },
-      enabled: Boolean(asPath.includes("/profile/tabs") ? currentUser : true),
-    },
-  );
-
-  useEffect(() => {
-    // only want to show loading indicator if we're fetching initial "page"
-    setSearchsearchResultsCountIsLoading(isFetching && !isFetchingNextPage);
-  }, [isFetching, isFetchingNextPage, setSearchsearchResultsCountIsLoading]);
-
   const { ref } = useInView({
     threshold: 0.25,
     onChange: (inView) => {

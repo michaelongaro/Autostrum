@@ -52,6 +52,9 @@ import Link from "next/link";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import Spinner from "~/components/ui/Spinner";
+import { useAuth } from "@clerk/nextjs";
+import { api } from "~/utils/api";
+import type { InfiniteQueryParams } from "~/server/api/routers/search";
 
 const opacityVariants = {
   expanded: {
@@ -122,6 +125,7 @@ function SearchResults({
   relatedArtists,
   isFetchingRelatedArtists,
 }: SearchResults) {
+  const { userId } = useAuth();
   const { asPath, push, query, pathname } = useRouter();
 
   const { viewportLabel, color, theme } = useTabStore((state) => ({
@@ -139,8 +143,6 @@ function SearchResults({
     useState(true);
 
   const [searchResultsCount, setSearchResultsCount] = useState(0);
-  const [searchResultsCountIsLoading, setSearchsearchResultsCountIsLoading] =
-    useState(false);
 
   useEffect(() => {
     setGateUntilWindowIsAvailable(false);
@@ -164,12 +166,55 @@ function SearchResults({
     searchParamsParsed,
   } = useGetUrlParamFilters();
 
+  const { data: currentUser } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
+
+  function getInfiniteQueryParams(): InfiniteQueryParams {
+    return {
+      searchQuery: decodeURIComponent(searchQuery ?? ""),
+      genre,
+      tuning,
+      capo: capo ?? undefined,
+      difficulty: difficulty ?? undefined,
+      sortBy,
+      usernameToSelectFrom: asPath.includes("/user")
+        ? ((query.username as string) ?? undefined)
+        : asPath.includes("/profile/tabs")
+          ? (currentUser?.username ?? undefined)
+          : undefined,
+      artistIdToSelectFrom:
+        asPath.includes("/artist") && query.id ? Number(query.id) : undefined,
+      bookmarkedByUserId:
+        asPath.includes("/profile/bookmarks") && userId ? userId : undefined,
+    };
+  }
+
+  const {
+    data: tabResults,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = api.search.getInfiniteTabsBySearchQuery.useInfiniteQuery(
+    getInfiniteQueryParams(),
+    {
+      getNextPageParam: (lastPage) => lastPage.data.nextCursor,
+      onSuccess: (data) => {
+        setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
+      },
+      enabled: Boolean(asPath.includes("/profile/tabs") ? currentUser : true),
+      // need to wait for currentUser to be fetched before trying to search when
+      // on current user's tabs page
+    },
+  );
+
   const layoutType = useLocalStorageValue("autostrum-layout", {
     defaultValue: "grid",
     initializeWithValue: true,
   });
 
-  // really bad ux to immediately push() user to new route whenever they
+  // it's really bad UX to immediately push() user to new route whenever they
   // select a new filter, as selecting multiple filters would mean the user
   // would have to wait for the page to reload multiple times. gating push()
   // behind the "Apply" button.
@@ -735,31 +780,30 @@ function SearchResults({
               <div className="baseFlex w-full !justify-between gap-2 px-4">
                 {/* # of results */}
                 <AnimatePresence mode="popLayout">
-                  {searchResultsCountIsLoading ? (
-                    <motion.div
-                      key={"mobileSearchResultsCountSkeleton"}
-                      variants={opacityVariants}
-                      initial="closed"
-                      animate="expanded"
-                      exit="closed"
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="pulseAnimation h-6 w-36 rounded-md !bg-primary-foreground/35"></div>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key={"mobileSearchResultsCount"}
-                      variants={opacityVariants}
-                      initial="closed"
-                      animate="expanded"
-                      exit="closed"
-                      transition={{ duration: 0.3 }}
-                    >
-                      {`${searchResultsCount} tab${
-                        searchResultsCount === 1 ? "" : "s"
-                      } found`}
-                    </motion.div>
-                  )}
+                  <motion.div
+                    key={
+                      isFetching && !isFetchingNextPage
+                        ? "mobileSearchResultsCountSkeleton"
+                        : "mobileSearchResultsCount"
+                    }
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    transition={{ duration: 0.3 }}
+                  >
+                    <>
+                      {isFetching && !isFetchingNextPage ? (
+                        <div className="pulseAnimation h-6 w-36 rounded-md !bg-primary-foreground/35"></div>
+                      ) : (
+                        <span>
+                          {`${searchResultsCount} tab${
+                            searchResultsCount === 1 ? "" : "s"
+                          } found`}
+                        </span>
+                      )}
+                    </>
+                  </motion.div>
                 </AnimatePresence>
 
                 <div className="baseFlex gap-2">
@@ -1629,33 +1673,30 @@ function SearchResults({
               <div className="baseFlex w-full !justify-between gap-2 px-4">
                 {/* # of results */}
                 <AnimatePresence mode="popLayout">
-                  {searchResultsCountIsLoading ? (
-                    <motion.div
-                      key={"tabletSearchResultsCountSkeleton"}
-                      variants={opacityVariants}
-                      initial="closed"
-                      animate="expanded"
-                      exit="closed"
-                      transition={{
-                        duration: 0.3,
-                      }}
-                    >
-                      <div className="pulseAnimation h-6 w-48 rounded-md !bg-primary-foreground/35"></div>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key={"tabletSearchResultsCount"}
-                      variants={opacityVariants}
-                      initial="closed"
-                      animate="expanded"
-                      exit="closed"
-                      transition={{
-                        duration: 0.3,
-                      }}
-                    >
-                      {`${searchResultsCount} tab${searchResultsCount === 1 ? "" : "s"} found`}
-                    </motion.div>
-                  )}
+                  <motion.div
+                    key={
+                      isFetching && !isFetchingNextPage
+                        ? "tabletSearchResultsCountSkeleton"
+                        : "tabletSearchResultsCount"
+                    }
+                    variants={opacityVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    transition={{ duration: 0.3 }}
+                  >
+                    <>
+                      {isFetching && !isFetchingNextPage ? (
+                        <div className="pulseAnimation h-6 w-48 rounded-md !bg-primary-foreground/35"></div>
+                      ) : (
+                        <span>
+                          {`${searchResultsCount} tab${
+                            searchResultsCount === 1 ? "" : "s"
+                          } found`}
+                        </span>
+                      )}
+                    </>
+                  </motion.div>
                 </AnimatePresence>
 
                 {/* layout type toggle */}
@@ -1928,15 +1969,13 @@ function SearchResults({
                           {layoutType.value === "grid" && (
                             <GridTabView
                               searchQuery={searchQuery}
-                              genre={genre}
-                              tuning={tuning}
-                              capo={capo}
-                              difficulty={difficulty}
-                              sortBy={sortBy}
-                              setSearchResultsCount={setSearchResultsCount}
-                              setSearchsearchResultsCountIsLoading={
-                                setSearchsearchResultsCountIsLoading
-                              }
+                              tabResults={tabResults}
+                              isFetching={isFetching}
+                              isFetchingNextPage={isFetchingNextPage}
+                              hasNextPage={hasNextPage}
+                              fetchNextPage={fetchNextPage}
+                              getInfiniteQueryParams={getInfiniteQueryParams}
+                              currentUser={currentUser}
                               color={color}
                               theme={theme}
                             />
@@ -1945,20 +1984,19 @@ function SearchResults({
                           {layoutType.value === "table" && (
                             <TableTabView
                               searchQuery={searchQuery}
-                              genre={genre}
-                              tuning={tuning}
-                              capo={capo}
-                              difficulty={difficulty}
-                              sortBy={sortBy}
-                              setSearchResultsCount={setSearchResultsCount}
-                              setSearchsearchResultsCountIsLoading={
-                                setSearchsearchResultsCountIsLoading
-                              }
+                              tabResults={tabResults}
+                              isFetching={isFetching}
+                              isFetchingNextPage={isFetchingNextPage}
+                              hasNextPage={hasNextPage}
+                              fetchNextPage={fetchNextPage}
+                              getInfiniteQueryParams={getInfiniteQueryParams}
+                              currentUser={currentUser}
                               tableHeaderRef={tableHeaderRef}
                               tableBodyRef={tableBodyRef}
                               activeScrollerRef={activeScrollerRef}
                               handlePointerDown={handlePointerDown}
                               handlePointerUp={handlePointerUp}
+                              asPath={asPath}
                               theme={theme}
                             />
                           )}
