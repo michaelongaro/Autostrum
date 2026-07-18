@@ -113,6 +113,11 @@ function PlaybackModal() {
   const modalContentRef = useRef<HTMLDivElement | null>(null);
   const measureRetryRafRef = useRef<number | null>(null);
   const wasDocumentHiddenRef = useRef(false);
+  const orientationBucketRef = useRef<"portrait" | "landscape">(
+    typeof window !== "undefined" && window.innerWidth > window.innerHeight
+      ? "landscape"
+      : "portrait",
+  );
   // Sentinel so the first effect run always initializes chordRepetitions.
   const prevExpandedTabDataRef = useRef<typeof expandedTabData | undefined>(
     undefined,
@@ -187,8 +192,9 @@ function PlaybackModal() {
   }, [measurePlaybackContainer]);
 
   // Initialize / resync chordRepetitions when expanded tab data changes.
-  // If playback is active, re-anchor the strip clock so completedLoops does not
-  // stay tied to a pre-recompile playbackStartedAtAudioTime (orientation, etc.).
+  // If playback is still active (e.g. loop-range recompile), re-anchor the
+  // strip clock so completedLoops does not stay tied to a stale start time.
+  // Orientation changes pause first, so they typically skip the re-anchor path.
   useEffect(() => {
     if (!expandedTabData || expandedTabData.length === 0) {
       setChordRepetitions([]);
@@ -333,11 +339,48 @@ function PlaybackModal() {
 
   // Measure modal width on mount/resize/orientation/visibility. Zero-size
   // frames (common mid-orientation on mobile) schedule rAF retries.
+  // Portrait↔landscape while playing pauses playback for a stable re-layout.
   useEffect(() => {
+    function getOrientationBucket(): "portrait" | "landscape" {
+      return window.innerWidth > window.innerHeight ? "landscape" : "portrait";
+    }
+
+    function pauseForOrientationChange() {
+      if (!audioMetadata.playing || !showPlaybackModal) {
+        return;
+      }
+
+      // Keep currentChordIndex so the user can resume from the same spot after
+      // the modal settles in the new orientation.
+      pauseAudio();
+      setChordRepetitions((prev) =>
+        prev.length > 0 ? new Array(prev.length).fill(0) : prev,
+      );
+    }
+
     function handleMeasurePulse() {
       if (!measurePlaybackContainer()) {
         scheduleMeasureRetry();
       }
+    }
+
+    function handleOrientationBucketChange() {
+      const nextBucket = getOrientationBucket();
+      const orientationFlipped = nextBucket !== orientationBucketRef.current;
+      orientationBucketRef.current = nextBucket;
+
+      if (orientationFlipped) {
+        pauseForOrientationChange();
+      }
+
+      handleMeasurePulse();
+    }
+
+    function handleOrientationChangeEvent() {
+      // orientationchange often fires before layout settles; pause immediately,
+      // then remeasure (with rAF retries) once dimensions are non-zero.
+      pauseForOrientationChange();
+      handleOrientationBucketChange();
     }
 
     function handleVisibilityResume() {
@@ -366,6 +409,7 @@ function PlaybackModal() {
       }
     }
 
+    orientationBucketRef.current = getOrientationBucket();
     handleMeasurePulse();
 
     const modalElement = modalContentRef.current;
@@ -373,20 +417,26 @@ function PlaybackModal() {
 
     if (modalElement && typeof ResizeObserver !== "undefined") {
       resizeObserver = new ResizeObserver(() => {
-        handleMeasurePulse();
+        // Some mobile browsers only surface orientation via resize/RO with new
+        // aspect ratio — treat portrait↔landscape flips the same as
+        // orientationchange.
+        handleOrientationBucketChange();
       });
       resizeObserver.observe(modalElement);
     }
 
-    window.addEventListener("resize", handleMeasurePulse);
-    window.addEventListener("orientationchange", handleMeasurePulse);
+    window.addEventListener("resize", handleOrientationBucketChange);
+    window.addEventListener("orientationchange", handleOrientationChangeEvent);
     document.addEventListener("visibilitychange", handleVisibilityResume);
     window.addEventListener("pageshow", handleVisibilityResume);
 
     return () => {
       resizeObserver?.disconnect();
-      window.removeEventListener("resize", handleMeasurePulse);
-      window.removeEventListener("orientationchange", handleMeasurePulse);
+      window.removeEventListener("resize", handleOrientationBucketChange);
+      window.removeEventListener(
+        "orientationchange",
+        handleOrientationChangeEvent,
+      );
       document.removeEventListener("visibilitychange", handleVisibilityResume);
       window.removeEventListener("pageshow", handleVisibilityResume);
 
