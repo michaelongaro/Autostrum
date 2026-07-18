@@ -252,13 +252,17 @@ function appendQueue(
 }
 
 function ChordTrainerPage() {
-  const { audioContext, masterVolumeGainNode, currentInstrument } = useTabStore(
-    (state) => ({
-      audioContext: state.audioContext,
-      masterVolumeGainNode: state.masterVolumeGainNode,
-      currentInstrument: state.currentInstrument,
-    }),
-  );
+  const {
+    audioContext,
+    masterVolumeGainNode,
+    currentInstrument,
+    setCurrentInstrumentName,
+  } = useTabStore((state) => ({
+    audioContext: state.audioContext,
+    masterVolumeGainNode: state.masterVolumeGainNode,
+    currentInstrument: state.currentInstrument,
+    setCurrentInstrumentName: state.setCurrentInstrumentName,
+  }));
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const sliderContainerRef = useRef<HTMLDivElement | null>(null);
@@ -781,7 +785,16 @@ function ChordTrainerPage() {
             <div className="baseVertFlex w-full gap-6 md:w-auto md:!flex-row md:gap-3">
               <Select
                 value={audioOption}
-                onValueChange={(v) => setAudioOption(v as AudioOption)}
+                onValueChange={(v) => {
+                  setAudioOption(v as AudioOption);
+                  setCurrentInstrumentName(
+                    v as
+                      | "acoustic_guitar_nylon"
+                      | "acoustic_guitar_steel"
+                      | "electric_guitar_clean"
+                      | "electric_guitar_jazz",
+                  );
+                }}
               >
                 <SelectTrigger className="w-full sm:w-48">
                   <SelectValue>
