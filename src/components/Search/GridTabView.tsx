@@ -54,14 +54,7 @@ function GridTabView({
   });
 
   return (
-    <motion.div
-      key={"GridTabViewSearchResults"}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
-      className="baseVertFlex size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] !justify-start @container md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
-    >
+    <div className="baseVertFlex size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] !justify-start @container md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]">
       <AnimatePresence mode="popLayout">
         {tabResults && tabResults.pages[0]?.count !== 0 && (
           <div
@@ -120,7 +113,7 @@ function GridTabView({
           </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 

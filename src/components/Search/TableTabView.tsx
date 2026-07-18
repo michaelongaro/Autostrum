@@ -39,7 +39,6 @@ interface TableTabView {
   handlePointerDown: (scroller: "header" | "body") => void;
   handlePointerUp: () => void;
   asPath: string;
-  theme: "light" | "dark";
 }
 
 function TableTabView({
@@ -57,7 +56,6 @@ function TableTabView({
   handlePointerDown,
   handlePointerUp,
   asPath,
-  theme,
 }: TableTabView) {
   const { ref } = useInView({
     threshold: 0.25,
@@ -72,14 +70,7 @@ function TableTabView({
   // because <OverlayScrollbarsComponent> needs to be a direct child of the DOM element I guess?
 
   return (
-    <motion.div
-      key={"TableTabViewSearchResults"}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
-      className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full !justify-start gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]"
-    >
+    <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full !justify-start gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]">
       {tabResults && tabResults.pages[0]?.count !== 0 && (
         <OverlayScrollbarsComponent
           ref={tableBodyRef}
@@ -165,7 +156,6 @@ function TableTabView({
                         minimalTab={tab}
                         currentUser={currentUser}
                         infiniteQueryParams={getInfiniteQueryParams()}
-                        theme={theme}
                         ref={
                           index === page.data.tabs.length - 1
                             ? (ref as unknown as React.RefObject<HTMLTableRowElement>)
@@ -214,7 +204,7 @@ function TableTabView({
           </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 

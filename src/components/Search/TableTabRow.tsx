@@ -23,7 +23,6 @@ interface TableTabRow {
   minimalTab: MinimalTabRepresentation;
   currentUser: UserMetadata | null | undefined;
   infiniteQueryParams?: InfiniteQueryParams;
-  theme: "light" | "dark";
   ref?: React.RefObject<HTMLTableRowElement>;
 }
 
@@ -31,7 +30,6 @@ function TableTabRow({
   minimalTab,
   currentUser,
   infiniteQueryParams,
-  theme,
   ref,
 }: TableTabRow) {
   const { asPath } = useRouter();
@@ -67,7 +65,7 @@ function TableTabRow({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.25 }}
+          transition={{ duration: 0.3 }}
           className="w-full"
         >
           <Button variant={"link"} asChild>
@@ -91,7 +89,7 @@ function TableTabRow({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.25 }}
+            transition={{ duration: 0.3 }}
             className="w-full"
           >
             {minimalTab.artist || minimalTab.createdBy ? (
@@ -136,7 +134,7 @@ function TableTabRow({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.25 }}
+          transition={{ duration: 0.3 }}
           className="w-full"
         >
           {minimalTab.ratingsCount > 0 ? (
@@ -156,7 +154,7 @@ function TableTabRow({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.25 }}
+          transition={{ duration: 0.3 }}
           className="w-full"
         >
           <div className="baseFlex !justify-start gap-2">
@@ -173,7 +171,7 @@ function TableTabRow({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.25 }}
+          transition={{ duration: 0.3 }}
           className="w-full"
         >
           <Badge
@@ -197,7 +195,7 @@ function TableTabRow({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.25 }}
+          transition={{ duration: 0.3 }}
           className="w-full"
         >
           {formatDate(minimalTab.createdAt)}

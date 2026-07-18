@@ -1997,7 +1997,6 @@ function SearchResults({
                               handlePointerDown={handlePointerDown}
                               handlePointerUp={handlePointerUp}
                               asPath={asPath}
-                              theme={theme}
                             />
                           )}
                         </>
