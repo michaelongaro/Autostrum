@@ -62,11 +62,11 @@ const AUDIO_SOURCE_LABELS: Record<AudioSource, string> = {
 };
 
 const DIFFICULTY_PRESETS = [
-  { id: "beginner", label: "Beginner", tempo: 48 },
+  { id: "beginner", label: "Beginner", tempo: 40 },
   { id: "easy", label: "Easy", tempo: 60 },
   { id: "intermediate", label: "Intermediate", tempo: 72 },
-  { id: "advanced", label: "Advanced", tempo: 108 },
-  { id: "expert", label: "Expert", tempo: 128 },
+  { id: "advanced", label: "Advanced", tempo: 100 },
+  { id: "expert", label: "Expert", tempo: 120 },
 ] as const;
 
 const DEFAULT_CHORD_PRESET_ID = "common-open";
@@ -141,7 +141,7 @@ const DEFAULT_SELECTED_CHORD_IDS =
     (preset) => preset.id === DEFAULT_CHORD_PRESET_ID,
   )?.chordIds ?? [];
 const DEFAULT_TEMPO = 72;
-const MIN_TEMPO = 40;
+const MIN_TEMPO = 10;
 const MAX_TEMPO = 180;
 const STANDARD_TUNING = parse(DEFAULT_TUNING);
 
@@ -152,7 +152,6 @@ const CHORD_ITEM_GAP = 40;
 const TOTAL_CHORD_WIDTH = CHORD_ITEM_WIDTH + CHORD_ITEM_GAP;
 const CENTER_TRIGGER_EPSILON = 0.001;
 const MIN_EDGE_OPACITY = 0.18;
-const CHORD_TRAINER_STRUM_DELAY_SCALE = 0.55;
 const CUSTOM_CHORD_PRESET_OPTION: ChordTrainerSelectionPreset = {
   id: CUSTOM_CHORD_PRESET_ID,
   label: "Custom",
@@ -318,7 +317,6 @@ function ChordTrainerPage() {
 
   const selectedChordCount = selectedChords.length;
   const audioEnabled = audioOption !== "none";
-  const audioSource = audioOption === "none" ? null : audioOption;
   const selectedDifficultyId =
     DIFFICULTY_PRESETS.find((preset) => preset.tempo === tempo)?.id ?? null;
 
@@ -365,9 +363,8 @@ function ChordTrainerPage() {
         await playNoteColumn({
           tuning: STANDARD_TUNING,
           capo: 0,
-          bpm,
-          currColumn: ["", ...chord.frets, "v", "quarter", `${bpm}`],
-          strumDelayMultiplierScale: CHORD_TRAINER_STRUM_DELAY_SCALE,
+          bpm: bpm * 1.4,
+          currColumn: ["", ...chord.frets, "v", "quarter", `${bpm * 1.4}`],
           audioContext,
           masterVolumeGainNode,
           currentInstrument,

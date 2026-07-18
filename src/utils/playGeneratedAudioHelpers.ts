@@ -27,9 +27,7 @@ export function stopAllScheduledPlaybackNodes(
 
 export function stopActivePlaybackStrings(
   activePlaybackStrings:
-    | (Soundfont.Player | AudioBufferSourceNode | undefined)[]
-    | null
-    | undefined,
+    (Soundfont.Player | AudioBufferSourceNode | undefined)[] | null | undefined,
   stopTime: number,
 ) {
   if (!activePlaybackStrings) return;
@@ -55,9 +53,7 @@ interface PlayNoteWithEffects {
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
   scheduledNodes?: StoppablePlaybackNode[];
 }
@@ -169,9 +165,7 @@ interface ApplyBendEffect {
   isArbitrarySlide?: boolean;
   audioContext: AudioContext;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
   isPalmMuted?: boolean;
   scheduledNodes?: StoppablePlaybackNode[];
@@ -294,9 +288,7 @@ interface PlayDeadNote {
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
   scheduledNodes?: StoppablePlaybackNode[];
 }
@@ -400,9 +392,7 @@ interface PlaySlapSound {
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
   scheduledNodes?: StoppablePlaybackNode[];
 }
@@ -567,9 +557,7 @@ interface ApplyTetheredEffect {
   tetheredMetadata: TetheredMetadata; // idk maybe want to refactor the props to try and go through this as much as possible?
   audioContext: AudioContext;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
   isPalmMuted?: boolean;
   scheduledNodes?: StoppablePlaybackNode[];
@@ -677,9 +665,7 @@ interface ApplyVibratoEffect {
   pluckBaseNote?: boolean;
   audioContext: AudioContext;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
   scheduledNodes?: StoppablePlaybackNode[];
 }
@@ -768,9 +754,7 @@ interface PlayNote {
   currentInstrument: Soundfont.Player | null;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
   acousticSteelOverrideForPreview?: Soundfont.Player;
   scheduledNodes?: StoppablePlaybackNode[];
@@ -927,11 +911,8 @@ interface PlayNoteColumn {
   masterVolumeGainNode: GainNode;
   currentInstrument: Soundfont.Player | null;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
-  strumDelayMultiplierScale?: number;
   acousticSteelOverrideForPreview?: Soundfont.Player;
   forTuningPreview?: boolean;
   scheduledNodes?: StoppablePlaybackNode[];
@@ -952,7 +933,6 @@ function playNoteColumn({
   masterVolumeGainNode,
   currentInstrument,
   currentlyPlayingStrings,
-  strumDelayMultiplierScale,
   acousticSteelOverrideForPreview,
   forTuningPreview,
   scheduledNodes,
@@ -1003,20 +983,15 @@ function playNoteColumn({
 
     let notesPlayedSoFar = 0;
     let chordDelayMultiplier = 0;
-    const resolvedStrumDelayMultiplierScale =
-      strumDelayMultiplierScale && strumDelayMultiplierScale > 0
-        ? strumDelayMultiplierScale
-        : 1;
 
     // TODO: allow just > and or . to be present + provide handling for these cases
     if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
-      chordDelayMultiplier =
-        (forTuningPreview
-          ? 0.35
-          : calculateRelativeChordDelayMultiplier(
-              bpm,
-              currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
-            )) * resolvedStrumDelayMultiplierScale;
+      chordDelayMultiplier = forTuningPreview
+        ? 0.35
+        : calculateRelativeChordDelayMultiplier(
+            bpm,
+            currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
+          );
     }
 
     const allInlineEffects = /[hp\/\\\\br~>.x]/g;
@@ -1085,14 +1060,8 @@ function playNoteColumn({
       let transitionToFret = undefined;
       let pluckBaseNote = true;
       let effect:
-        | "h"
-        | "p"
-        | "/"
-        | "\\"
-        | "b"
-        | "r"
-        | "arbitrarySlide"
-        | undefined = undefined;
+        "h" | "p" | "/" | "\\" | "b" | "r" | "arbitrarySlide" | undefined =
+        undefined;
 
       // handling bends and releases (assigning transitionToFret)
       if (currNote && (currNote.includes("b") || currNote.includes("r"))) {
@@ -1306,10 +1275,7 @@ function playNoteColumn({
         stringIdx: adjustedStringIdx,
         fret,
         bpm,
-        when: Math.max(
-          0,
-          baseWhen + chordDelayMultiplier * notesPlayedSoFar,
-        ),
+        when: Math.max(0, baseWhen + chordDelayMultiplier * notesPlayedSoFar),
         // ^ makes sure that the proper delay is applied to each note in a chord
         // regardless of the number/spacing of notes in the chord
         effects,
