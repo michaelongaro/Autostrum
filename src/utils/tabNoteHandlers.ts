@@ -1,17 +1,10 @@
-// ~/utils/tabNoteHandlers.ts
-import type {
-  Section,
-  TabSection,
-  TabNote,
-  FullNoteLengths,
-} from "~/stores/TabStore";
+import type { Section, TabSection, FullNoteLengths } from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import {
   createTabNote,
   createTabMeasureLine,
   isTabNote,
   isTabMeasureLine,
-  getStringValue,
   setStringValue,
 } from "~/utils/tabNoteHelpers";
 
