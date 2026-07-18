@@ -874,7 +874,7 @@ function SearchResults({
                       </Button>
                     </DrawerTrigger>
                     <DrawerPortal>
-                      <DrawerContent className="baseVertFlex fixed bottom-0 left-0 right-0 h-[471px] !items-start !justify-start rounded-t-2xl pt-3">
+                      <DrawerContent className="baseVertFlex !items-start !justify-start">
                         <VisuallyHidden>
                           <DrawerTitle>Search filters</DrawerTitle>
                           <DrawerDescription>
