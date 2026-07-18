@@ -318,8 +318,7 @@ function StrummingPattern({
 
       const order = noteLengthCycle;
       const current =
-        (newStrummingPattern.strums[beatIndex]?.noteLength as NoteLength) ??
-        "quarter";
+        newStrummingPattern.strums[beatIndex]?.noteLength ?? "quarter";
       let idx = order.indexOf(current);
       if (idx === -1) idx = order.indexOf("quarter");
 
@@ -415,20 +414,7 @@ function StrummingPattern({
 
     newStrummingPattern.strums[beatIndex] = {
       ...data.strums[beatIndex]!, // ! because we know it's not undefined
-      strum: value as
-        | ""
-        | "v"
-        | "^"
-        | "s"
-        | "v>"
-        | "^>"
-        | "s>"
-        | "v.>"
-        | "^.>"
-        | "s.>"
-        | "v>."
-        | "u>."
-        | "s>.",
+      strum: value,
     };
 
     setStrummingPatternBeingEdited({
@@ -444,7 +430,7 @@ function StrummingPattern({
       after ? strumIdxBeingHovered! + 1 : strumIdxBeingHovered!,
       0,
       {
-        palmMute: "" as "" | "start" | "end",
+        palmMute: "",
         strum: "",
         noteLength: data.baseNoteLength,
       },
@@ -556,7 +542,7 @@ function StrummingPattern({
     setTabData?.((draft) => {
       const chordSection = draft[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
 
-      if (chordSection && chordSection.type === "chord") {
+      if (chordSection?.type === "chord") {
         const newChordSection = { ...chordSection };
         const newChord = value === "noChord" ? "" : value;
         newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] =

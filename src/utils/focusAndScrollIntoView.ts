@@ -1,19 +1,21 @@
 function focusAndScrollIntoView(
   currentElement: HTMLElement | null,
-  targetElement: HTMLElement | null
+  targetElement: HTMLElement | null,
+  noScroll?: boolean,
 ) {
   if (!currentElement || !targetElement) return;
 
   targetElement.focus();
+
+  if (noScroll) return;
 
   let scrollToElement = false;
 
   const currentElementOffsetTop = getOffsetTop(currentElement);
   const targetElementOffsetTop = getOffsetTop(targetElement);
 
-  // only relevant for arrow key navigation within tab sections, which
-  // have a height while editing of 400px
-  if (Math.abs(targetElementOffsetTop - currentElementOffsetTop) >= 400) {
+  // only want to scroll when needing to switch between tab sub section rows
+  if (Math.abs(targetElementOffsetTop - currentElementOffsetTop) >= 100) {
     scrollToElement = true;
   }
 

@@ -119,7 +119,7 @@ function TabMeasureLine({
           `${sectionIndex}${subSectionIndex}ExtendTabButton`,
         );
 
-        focusAndScrollIntoView(currentNote, newNoteToFocus);
+        focusAndScrollIntoView(currentNote, newNoteToFocus, true);
         return;
       }
 

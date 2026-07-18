@@ -144,7 +144,7 @@ function PalmMuteNode({
       const newNoteToFocus = document.getElementById(
         `${sectionIndex}${subSectionIndex}ExtendTabButton`,
       );
-      focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus);
+      focusAndScrollIntoView(currentPalmMuteNode, newNoteToFocus, true);
     }
   }
 

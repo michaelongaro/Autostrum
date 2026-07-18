@@ -369,7 +369,7 @@ export function handleTabNoteKeyDown(
         `${sectionIndex}${subSectionIndex}ExtendTabButton`,
       );
 
-      focusAndScrollIntoView(currentNote, newNoteToFocus);
+      focusAndScrollIntoView(currentNote, newNoteToFocus, true);
       return;
     }
 

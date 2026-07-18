@@ -671,8 +671,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       const prevSectionData = draft[sectionIndex]?.data[subSectionIndex];
 
       if (
-        prevSectionData === undefined ||
-        prevSectionData.type !== "tab" ||
+        prevSectionData?.type !== "tab" ||
         typeof active.id !== "string" ||
         typeof over?.id !== "string" ||
         active.id === over.id
@@ -867,9 +866,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       const subSection = draft[sectionIndex]!.data[subSectionIndex];
       if (subSection?.type === "tab") {
         subSection.baseNoteLength = newNoteLength;
-        for (let i = 0; i < subSection.data.length; i++) {
-          const column = subSection.data[i]!;
-
+        for (const column of subSection.data) {
           // Skip measure lines since they don't have a note length
           if (isTabMeasureLine(column)) continue;
 
@@ -1216,7 +1213,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         />
       </div>
 
-      <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start">
+      <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4">
         {editingPalmMuteNodes && (
           <p className="absolute left-[6px] top-[14px] text-sm italic">PM</p>
         )}
