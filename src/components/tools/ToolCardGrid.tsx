@@ -6,6 +6,7 @@ import { PiMetronome } from "react-icons/pi";
 import Logo from "~/components/ui/icons/Logo";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import type { ToolDefinition } from "~/data/tools/toolDefinitions";
+import { useTabStore } from "~/stores/TabStore";
 
 const toolIcons: Record<string, ReactNode> = {
   warmups: <IoMusicalNotes className="size-5" />,
@@ -21,6 +22,10 @@ type ToolCardGridProps = {
 };
 
 function ToolCardGrid({ tools }: ToolCardGridProps) {
+  const { theme } = useTabStore((state) => ({
+    theme: state.theme,
+  }));
+
   return (
     <div className="grid w-full gap-4 sm:grid-cols-2">
       {tools.map((tool) => (
@@ -28,7 +33,7 @@ function ToolCardGrid({ tools }: ToolCardGridProps) {
           key={tool.id}
           prefetch={false}
           href={tool.href}
-          className="baseFlex h-full !items-start !justify-between gap-6 rounded-lg border bg-secondary p-4 shadow-md transition-colors hover:!bg-background/80 dark:hover:bg-secondary/80"
+          className={`baseFlex h-full !items-start !justify-between gap-6 rounded-lg border bg-secondary p-4 shadow-md transition ${theme === "light" ? "hover:brightness-95 active:brightness-95" : "hover:brightness-90 active:brightness-90"}`}
         >
           <div className="baseVertFlex !items-start gap-2">
             <div className="baseFlex gap-2">
