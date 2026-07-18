@@ -83,8 +83,6 @@ function MiscellaneousControls({
   const subSection = useSubSectionData(sectionIndex, subSectionIndex || 0);
   const tabDataLength = useTabDataLength();
 
-  const [artificalPlayButtonTimeout, setArtificialPlayButtonTimeout] =
-    useState(false);
   const [showCopyCheckmark, setShowCopyCheckmark] = useState(false);
   const [showPasteCheckmark, setShowPasteCheckmark] = useState(false);
 
@@ -222,10 +220,8 @@ function MiscellaneousControls({
     }
   }
 
-  // need to make paste button disabled if either there isn't any data copied
-  // or if the data copied is of a different type
   function disablePaste() {
-    return !currentlyCopiedData || currentlyCopiedData.type !== type;
+    return currentlyCopiedData?.type !== type;
   }
 
   function pasteSection() {
@@ -265,7 +261,7 @@ function MiscellaneousControls({
         draft[sectionIndex] = {
           ...section,
           data: replaceIdInSection(currentlyCopiedData.data as Section),
-        } as Section;
+        };
       }
     });
   }
@@ -329,7 +325,6 @@ function MiscellaneousControls({
             audioMetadata.editingLoopRange ||
             bpm === -1 ||
             !currentInstrument ||
-            artificalPlayButtonTimeout ||
             sectionIsEffectivelyEmpty(section, subSectionIndex)
           }
           onClick={() => {
@@ -341,11 +336,6 @@ function MiscellaneousControls({
 
             if (audioMetadata.playing && locationIsEqual) {
               pauseAudio();
-              setArtificialPlayButtonTimeout(true);
-
-              setTimeout(() => {
-                setArtificialPlayButtonTimeout(false);
-              }, 300);
             } else {
               if (!locationIsEqual) {
                 pauseAudio(true);

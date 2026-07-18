@@ -60,10 +60,6 @@ const opacityAndScaleVariants = {
 
 function AudioControls() {
   const [chordDurations, setChordDurations] = useState<number[]>([]);
-  const [wasPlayingBeforeScrubbing, setWasPlayingBeforeScrubbing] =
-    useState(false);
-  const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
-    useState(false);
   const [visibility, setVisibility] = useState<"expanded" | "minimized">(
     "expanded",
   );
@@ -147,8 +143,6 @@ function AudioControls() {
 
     if (audioMetadata.playing) {
       pauseAudio();
-      setArtificalPlayButtonTimeout(true);
-      setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
     } else {
       if (currentlyPlayingMetadata?.[currentChordIndex] && autoscrollEnabled) {
         scrollChordIntoView({
@@ -181,12 +175,7 @@ function AudioControls() {
   }, [aboveLargeViewportWidth, visibility]);
 
   const disablePlayButton = useMemo(() => {
-    if (
-      artificalPlayButtonTimeout ||
-      fetchingFullTabData ||
-      audioMetadata.editingLoopRange
-    )
-      return true;
+    if (fetchingFullTabData || audioMetadata.editingLoopRange) return true;
 
     return (
       bpm === -1 ||
@@ -204,7 +193,6 @@ function AudioControls() {
     audioMetadata.location,
     audioMetadata.editingLoopRange,
     currentInstrument,
-    artificalPlayButtonTimeout,
     currentlyPlayingMetadata,
     tabIsEffectivelyEmpty,
   ]);
@@ -277,12 +265,6 @@ function AudioControls() {
                       <Button
                         variant="ghost" // or secondary maybe
                         onClick={() => {
-                          setArtificalPlayButtonTimeout(true);
-
-                          setTimeout(() => {
-                            setArtificalPlayButtonTimeout(false);
-                          }, 300);
-
                           pauseAudio(true);
 
                           setAudioMetadata({
@@ -468,12 +450,6 @@ function AudioControls() {
                   <Button
                     variant="ghost" // or secondary maybe
                     onClick={() => {
-                      setArtificalPlayButtonTimeout(true);
-
-                      setTimeout(() => {
-                        setArtificalPlayButtonTimeout(false);
-                      }, 300);
-
                       pauseAudio(true);
 
                       setAudioMetadata({
@@ -769,27 +745,10 @@ function AudioControls() {
                     onTouchStart={props.onTouchStart}
                     onPointerDown={() => {
                       setInteractingWithAudioProgressSlider(true);
-                      setWasPlayingBeforeScrubbing(audioMetadata.playing);
                       if (audioMetadata.playing) pauseAudio();
                     }}
                     onPointerUp={() => {
                       setInteractingWithAudioProgressSlider(false);
-                      if (!wasPlayingBeforeScrubbing) return;
-
-                      // waiting, as playTab() needs to have currentChordIndex
-                      // updated before it's called so it plays from the correct chord
-                      // (really only is necessary for fast click+release cases)
-                      setTimeout(() => {
-                        void playTab({
-                          location: audioMetadata.location,
-                        });
-
-                        setArtificalPlayButtonTimeout(true);
-
-                        setTimeout(() => {
-                          setArtificalPlayButtonTimeout(false);
-                        }, 300);
-                      }, 50);
                     }}
                     style={{
                       ...props.style,
