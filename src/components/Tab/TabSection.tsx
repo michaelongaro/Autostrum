@@ -137,15 +137,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
 
-  const [showNoteLengthChangeDialog, setShowNoteLengthChangeDialog] =
-    useState(false);
-  const [noteLengthChangeType, setNoteLengthChangeType] = useState<
-    "onlyUnchanged" | "all"
-  >("onlyUnchanged");
-  const [proposedNoteLength, setProposedNoteLength] = useState<
-    "whole" | "half" | "quarter" | "eighth" | "sixteenth" | null
-  >(null);
-
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [reorderingColumns, setReorderingColumns] = useState(false);
