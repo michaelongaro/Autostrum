@@ -6,7 +6,6 @@ import {
   type PlaybackMetadata,
   type Section,
   type SectionProgression,
-  type StrummingPattern,
   type TabSection,
   type PlaybackTabChord,
   type PlaybackStrummedChord,
@@ -16,7 +15,7 @@ import {
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
-import isEqual from "lodash.isequal";
+import { sliceToLoopRange } from "./loopRangeHelpers";
 import {
   isTabMeasureLine,
   isTabNote,
@@ -61,81 +60,73 @@ function expandFullTab({
   const metadata: PlaybackMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
 
-  const modifiedSectionProg =
-    location?.sectionIndex === undefined
-      ? sectionProgression
-      : [
-          {
-            id: "",
-            sectionId: tabData[location.sectionIndex]?.id ?? "",
-            title: "",
-            repetitions: 1,
-            startSeconds: 0,
-            endSeconds: 0,
-          },
-        ];
-
-  for (
-    let sectionProgressionIndex = 0;
-    sectionProgressionIndex < modifiedSectionProg.length;
-    sectionProgressionIndex++
-  ) {
-    const sectionIndex = getSectionIndexFromId(
+  if (location) {
+    expandSpecificChordGrouping({
       tabData,
-      modifiedSectionProg[sectionProgressionIndex]!.sectionId,
-    );
+      location,
+      baselineBpm,
+      compiledChords: compiledChords as (
+        PlaybackTabChord | PlaybackStrummedChord
+      )[],
+      metadata,
+      chords,
+      elapsedSeconds,
+      playbackSpeed,
+    });
+  } else {
+    for (const sectionProgressionItem of sectionProgression) {
+      const sectionIndex = getSectionIndexFromId(
+        tabData,
+        sectionProgressionItem.sectionId,
+      );
+      const sectionRepetitions = getRepetitions(
+        sectionProgressionItem.repetitions,
+      );
 
-    const sectionRepetitions = getRepetitions(
-      modifiedSectionProg[sectionProgressionIndex]?.repetitions,
-    );
+      for (
+        let sectionRepeatIdx = 0;
+        sectionRepeatIdx < sectionRepetitions;
+        sectionRepeatIdx++
+      ) {
+        const section = tabData[sectionIndex]?.data;
+        if (!section) continue;
 
-    for (
-      let sectionRepeatIdx = 0;
-      sectionRepeatIdx < sectionRepetitions;
-      sectionRepeatIdx++
-    ) {
-      const section = tabData[sectionIndex]?.data;
-      if (!section) continue;
-
-      expandSection({
-        section,
-        sectionIndex,
-        sectionRepeatIndex: sectionRepeatIdx,
-        baselineBpm,
-        compiledChords: compiledChords as (
-          PlaybackTabChord | PlaybackStrummedChord
-        )[],
-        metadata,
-        chords,
-        elapsedSeconds,
-        playbackSpeed,
-      });
+        expandSection({
+          section,
+          sectionIndex,
+          sectionRepeatIndex: sectionRepeatIdx,
+          baselineBpm,
+          compiledChords: compiledChords as (
+            PlaybackTabChord | PlaybackStrummedChord
+          )[],
+          metadata,
+          chords,
+          elapsedSeconds,
+          playbackSpeed,
+        });
+      }
     }
   }
 
-  // hacky: but is used incase the slice returns an empty array, which we couldn't then access
-  // the last element in metadataMappedToLoopRange below for.
-  const backupFirstChordMetadata = metadata[startLoopIndex];
-
-  const compiledChordsMappedToLoopRange = compiledChords.slice(
+  const compiledChordsMappedToLoopRange = sliceToLoopRange(
+    compiledChords,
     startLoopIndex,
-    endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
+    endLoopIndex,
   );
-
-  const metadataMappedToLoopRange = metadata.slice(
+  const metadataMappedToLoopRange = sliceToLoopRange(
+    metadata,
     startLoopIndex,
-    endLoopIndex === -1 ? metadata.length : endLoopIndex,
+    endLoopIndex,
   );
 
   if (metadataMappedToLoopRange.length === 0) {
-    metadataMappedToLoopRange.push(backupFirstChordMetadata!);
+    setPlaybackMetadata([]);
+    return { chords: [], artificialLoopsNecessary: 1 };
   }
 
-  // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
-  const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
-
-  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
-    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
+  const secondsToSubtract = metadataMappedToLoopRange[0]!.elapsedSeconds;
+  for (const item of metadataMappedToLoopRange) {
+    item.elapsedSeconds -= secondsToSubtract;
   }
 
   // Use metadata types (not chord types) so measure-line / ornamental endings
@@ -144,8 +135,8 @@ function expandFullTab({
   const lastMetadataType = metadataMappedToLoopRange.at(-1)?.type ?? "tab";
   const firstChordType = compiledChordsMappedToLoopRange[0]?.type ?? "tab";
 
-  const firstChordBpm = `${compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm}`;
-  const lastChordBpm = `${compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm}`;
+  const firstChordBpm = metadataMappedToLoopRange[0]!.bpm;
+  const lastChordBpm = metadataMappedToLoopRange.at(-1)!.bpm;
 
   // right before duplication step, need to add a spacer chord if the first chord and last
   // chord are different types (tab vs strum / ornamental)
@@ -166,7 +157,7 @@ function expandFullTab({
                 "",
                 "",
                 "",
-                firstChordBpm !== lastChordBpm ? firstChordBpm : "",
+                firstChordBpm !== lastChordBpm ? `${firstChordBpm}` : "",
                 "",
               ],
               bpm: compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm,
@@ -197,10 +188,7 @@ function expandFullTab({
         ...metadataMappedToLoopRange.at(-1)!.location,
         chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
       },
-      bpm: getBpmForChord(
-        compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-        baselineBpm,
-      ),
+      bpm: getBpmForChord(lastChordBpm, baselineBpm),
       noteLengthMultiplier: 1,
       noteLength: "quarter",
       elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
@@ -217,8 +205,19 @@ function expandFullTab({
       isFirstChord: false,
       isLastChord: false,
       data: {
-        chordData: ["", "|", "|", "|", "|", "|", "|", firstChordBpm, "", "1"],
-        bpm: Number(firstChordBpm),
+        chordData: [
+          "",
+          "|",
+          "|",
+          "|",
+          "|",
+          "|",
+          "|",
+          `${firstChordBpm}`,
+          "",
+          "1",
+        ],
+        bpm: firstChordBpm,
       },
     });
     metadataMappedToLoopRange.push({
@@ -226,10 +225,7 @@ function expandFullTab({
         ...metadataMappedToLoopRange.at(-1)!.location,
         chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
       },
-      bpm: getBpmForChord(
-        compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-        baselineBpm,
-      ),
+      bpm: getBpmForChord(lastChordBpm, baselineBpm),
 
       noteLengthMultiplier: 1,
       noteLength: "quarter",
@@ -242,38 +238,36 @@ function expandFullTab({
   // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
 
   // Rounded right border at the end of each baseline loop (before delay spacers / duplication).
-  // @ts-expect-error asdf
-  compiledChordsMappedToLoopRange.at(-1)!.isLastChord = true;
+  const lastBaselineChord = compiledChordsMappedToLoopRange.at(-1);
+  if (lastBaselineChord && lastBaselineChord.type !== "loopDelaySpacer") {
+    lastBaselineChord.isLastChord = true;
+  }
 
   // Always append loop-delay spacers to the baseline (matching audio compile),
   // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
   if (loopDelay > 0) {
     const numSpacerChordsToAdd = Math.floor(
-      loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
+      loopDelay / ((60 / lastChordBpm) * playbackSpeed),
     );
 
     for (let i = 0; i < numSpacerChordsToAdd; i++) {
       compiledChordsMappedToLoopRange.push({
         type: "loopDelaySpacer",
         data: {
-          bpm: Number(lastChordBpm),
+          bpm: lastChordBpm,
         },
       });
 
       metadataMappedToLoopRange.push({
         location: {
           ...metadataMappedToLoopRange.at(-1)!.location,
-          chordIndex:
-            metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
         },
-        bpm: getBpmForChord(
-          compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
+        bpm: getBpmForChord(lastChordBpm, baselineBpm),
         noteLengthMultiplier: 1,
         noteLength: "quarter",
         elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-        type: "ornamental",
+        type: "loopDelaySpacer",
       });
     }
   }
@@ -337,6 +331,113 @@ function expandFullTab({
     chords: compiledChordsMappedToLoopRange,
     artificialLoopsNecessary,
   };
+}
+
+interface ExpandSpecificChordGrouping {
+  tabData: Section[];
+  location: NonNullable<ExpandFullTab["location"]>;
+  baselineBpm: number;
+  compiledChords: (PlaybackTabChord | PlaybackStrummedChord)[];
+  metadata: PlaybackMetadata[];
+  chords: Chord[];
+  elapsedSeconds: { value: number };
+  playbackSpeed: number;
+}
+
+function expandSpecificChordGrouping({
+  tabData,
+  location,
+  baselineBpm,
+  compiledChords,
+  metadata,
+  chords,
+  elapsedSeconds,
+  playbackSpeed,
+}: ExpandSpecificChordGrouping) {
+  const section = tabData[location.sectionIndex]?.data;
+  if (!section) return;
+
+  if (
+    location.subSectionIndex !== undefined &&
+    location.chordSequenceIndex !== undefined
+  ) {
+    const subSection = section[location.subSectionIndex];
+    if (subSection?.type !== "chord") return;
+
+    const chordSequence = subSection.data[location.chordSequenceIndex];
+    if (!chordSequence) return;
+
+    expandChordSequence({
+      chordSequence,
+      subSectionIndex: location.subSectionIndex,
+      subSectionRepeatIndex: 0,
+      sectionIndex: location.sectionIndex,
+      sectionRepeatIndex: 0,
+      chordSequenceIndex: location.chordSequenceIndex,
+      baselineBpm,
+      subSectionBpm: subSection.bpm,
+      compiledChords,
+      metadata,
+      chords,
+      elapsedSeconds,
+      playbackSpeed,
+    });
+    return;
+  }
+
+  if (location.subSectionIndex !== undefined) {
+    const subSection = section[location.subSectionIndex];
+    if (!subSection) return;
+
+    const repetitions = getRepetitions(subSection.repetitions);
+    for (
+      let subSectionRepeatIndex = 0;
+      subSectionRepeatIndex < repetitions;
+      subSectionRepeatIndex++
+    ) {
+      if (subSection.type === "tab") {
+        expandTabSection({
+          subSection,
+          subSectionIndex: location.subSectionIndex,
+          subSectionRepeatIndex,
+          sectionIndex: location.sectionIndex,
+          sectionRepeatIndex: 0,
+          baselineBpm,
+          compiledChords,
+          metadata,
+          elapsedSeconds,
+          playbackSpeed,
+        });
+      } else {
+        expandChordSection({
+          subSection,
+          subSectionIndex: location.subSectionIndex,
+          subSectionRepeatIndex,
+          sectionIndex: location.sectionIndex,
+          sectionRepeatIndex: 0,
+          baselineBpm,
+          compiledChords,
+          metadata,
+          chords,
+          elapsedSeconds,
+          playbackSpeed,
+        });
+      }
+    }
+    return;
+  }
+
+  expandSection({
+    section,
+    sectionIndex: location.sectionIndex,
+    sectionRepeatIndex: 0,
+    baselineBpm,
+    compiledChords,
+    metadata,
+    chords,
+    elapsedSeconds,
+    playbackSpeed,
+  });
 }
 
 interface ExpandSection {

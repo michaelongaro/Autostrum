@@ -998,6 +998,7 @@ const useTabStoreBase = create<TabState>()(
               setCurrentlyPlayingMetadata,
               startLoopIndex: adjStartLoopIndex,
               endLoopIndex: adjEndLoopIndex,
+              loopDelay,
             })
           : compileFullTab({
               tabData,
@@ -1021,7 +1022,7 @@ const useTabStoreBase = create<TabState>()(
           ? null
           : expandFullTab({
               tabData,
-              location: audioMetadata.location,
+              location,
               sectionProgression: sanitizedSectionProgression,
               chords,
               baselineBpm,

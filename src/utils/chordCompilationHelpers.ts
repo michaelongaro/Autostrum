@@ -12,6 +12,7 @@ import {
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
+import { sliceToLoopRange } from "./loopRangeHelpers";
 import { isTabMeasureLine, tabNoteToArray } from "./tabNoteHelpers";
 
 interface CompileChord {
@@ -88,8 +89,116 @@ interface CompileFullTab {
   loopDelay: number;
 }
 
-// try passing through playbackSpeed to all children functions and see if it changes
-// total # of compiled chords
+interface FinalizeCompiledChords {
+  compiledChords: string[][];
+  metadata: Metadata[];
+  baselineBpm: number;
+  playbackSpeed: number;
+  setCurrentlyPlayingMetadata: (
+    currentlyPlayingMetadata: Metadata[] | null,
+  ) => void;
+  startLoopIndex: number;
+  endLoopIndex: number;
+  atomicallyUpdateAudioMetadata?: (
+    updatedFields: Partial<AudioMetadata>,
+  ) => void;
+  loopDelay: number;
+}
+
+function finalizeCompiledChords({
+  compiledChords,
+  metadata,
+  baselineBpm,
+  playbackSpeed,
+  setCurrentlyPlayingMetadata,
+  startLoopIndex,
+  endLoopIndex,
+  atomicallyUpdateAudioMetadata,
+  loopDelay,
+}: FinalizeCompiledChords) {
+  atomicallyUpdateAudioMetadata?.({
+    fullCurrentlyPlayingMetadataLength: metadata.length,
+  });
+
+  const compiledChordsMappedToLoopRange = sliceToLoopRange(
+    compiledChords,
+    startLoopIndex,
+    endLoopIndex,
+  );
+  const metadataMappedToLoopRange = sliceToLoopRange(
+    metadata,
+    startLoopIndex,
+    endLoopIndex,
+  );
+
+  if (metadataMappedToLoopRange.length === 0) {
+    setCurrentlyPlayingMetadata([]);
+    return compiledChordsMappedToLoopRange;
+  }
+
+  const secondsToSubtract = metadataMappedToLoopRange[0]!.elapsedSeconds;
+  for (const item of metadataMappedToLoopRange) {
+    item.elapsedSeconds -= secondsToSubtract;
+  }
+
+  const firstChordType = metadataMappedToLoopRange[0]!.type;
+  const lastChordType = metadataMappedToLoopRange.at(-1)!.type;
+  const firstChordBpm = metadataMappedToLoopRange[0]!.bpm;
+  const lastChordBpm = metadataMappedToLoopRange.at(-1)!.bpm;
+
+  if (
+    firstChordType !== lastChordType ||
+    (firstChordType === "tab" &&
+      lastChordType === "tab" &&
+      firstChordBpm !== lastChordBpm)
+  ) {
+    compiledChordsMappedToLoopRange.push([]);
+    metadataMappedToLoopRange.push({
+      location: {
+        ...metadataMappedToLoopRange.at(-1)!.location,
+        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+      },
+      bpm: getBpmForChord(lastChordBpm, baselineBpm),
+      noteLengthMultiplier: 1,
+      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+      type: "ornamental",
+    });
+  }
+
+  if (loopDelay > 0) {
+    const numSpacerChordsToAdd = Math.floor(
+      loopDelay / ((60 / lastChordBpm) * playbackSpeed),
+    );
+
+    for (let i = 0; i < numSpacerChordsToAdd; i++) {
+      compiledChordsMappedToLoopRange.push([
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "quarter",
+        `${lastChordBpm}`,
+      ]);
+      metadataMappedToLoopRange.push({
+        location: {
+          ...metadataMappedToLoopRange.at(-1)!.location,
+          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+        },
+        bpm: lastChordBpm,
+        noteLengthMultiplier: 1,
+        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+        type: "loopDelaySpacer",
+      });
+    }
+  }
+
+  setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
+  return compiledChordsMappedToLoopRange;
+}
 
 function compileFullTab({
   tabData,
@@ -107,17 +216,13 @@ function compileFullTab({
   const metadata: Metadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues, prob want to combine all three into one obj
 
-  for (
-    let sectionProgressionIndex = 0;
-    sectionProgressionIndex < sectionProgression.length;
-    sectionProgressionIndex++
-  ) {
+  for (const sectionProgressionItem of sectionProgression) {
     const sectionIndex = getSectionIndexFromId(
       tabData,
-      sectionProgression[sectionProgressionIndex]!.sectionId,
+      sectionProgressionItem.sectionId,
     );
     const sectionRepetitions = getRepetitions(
-      sectionProgression[sectionProgressionIndex]?.repetitions,
+      sectionProgressionItem.repetitions,
     );
 
     for (
@@ -141,126 +246,17 @@ function compileFullTab({
     }
   }
 
-  // hacky: but is used incase the slice returns an empty array, which we couldn't then access
-  // the last element in metadataMappedToLoopRange below for.
-  const backupFirstChordMetadata = metadata[startLoopIndex];
-
-  // TODO: probably remove +1 since we aren't using ghost chord right now
-  // +1 to account for ghost chord that's added below
-  if (atomicallyUpdateAudioMetadata) {
-    atomicallyUpdateAudioMetadata({
-      fullCurrentlyPlayingMetadataLength: metadata.length - 1, // + 1,
-    });
-  }
-
-  const compiledChordsMappedToLoopRange = compiledChords.slice(
+  return finalizeCompiledChords({
+    compiledChords,
+    metadata,
+    baselineBpm,
+    playbackSpeed,
+    setCurrentlyPlayingMetadata,
     startLoopIndex,
-    endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
-  );
-
-  const metadataMappedToLoopRange = metadata.slice(
-    startLoopIndex,
-    endLoopIndex === -1 ? metadata.length : endLoopIndex,
-  );
-
-  if (metadataMappedToLoopRange.length === 0) {
-    metadataMappedToLoopRange.push(backupFirstChordMetadata!);
-  }
-
-  // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
-  const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
-
-  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
-    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
-  }
-
-  // fyi: perfectly fine for these to be duplicated, since they are in playback helpers as well!
-  // was there any reason we didn't include this before? feels like a decent sized oversight if so...
-  const firstChordType = metadataMappedToLoopRange[0]?.type ?? "tab";
-  const lastChordType = metadataMappedToLoopRange.at(-1)?.type ?? "tab";
-
-  const firstChordBpm = `${metadataMappedToLoopRange[0]?.bpm ?? baselineBpm}`;
-  const lastChordBpm = `${metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm}`;
-
-  if (firstChordType !== lastChordType) {
-    compiledChordsMappedToLoopRange.push([]);
-
-    metadataMappedToLoopRange.push({
-      location: {
-        ...metadataMappedToLoopRange.at(-1)!.location,
-        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-      },
-      bpm: getBpmForChord(
-        metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
-        baselineBpm,
-      ),
-      noteLengthMultiplier: 1,
-      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-      type: "ornamental",
-    });
-  } else if (
-    firstChordType === "tab" &&
-    lastChordType === "tab" &&
-    firstChordBpm !== lastChordBpm
-  ) {
-    // add a measure line w/ the new bpm
-    compiledChordsMappedToLoopRange.push([]);
-    metadataMappedToLoopRange.push({
-      location: {
-        ...metadataMappedToLoopRange.at(-1)!.location,
-        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-      },
-      bpm: getBpmForChord(
-        metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
-        baselineBpm,
-      ),
-      noteLengthMultiplier: 1,
-      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-      type: "ornamental",
-    });
-  }
-
-  // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
-  // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
-
-  // Spacer count uses quarter-note duration at the last chord's BPM, so each
-  // spacer must also be a quarter note to match the intended loopDelay length
-  // (and the visual expand path).
-  if (loopDelay > 0) {
-    const numSpacerChordsToAdd = Math.floor(
-      loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
-    );
-
-    for (let i = 0; i < numSpacerChordsToAdd; i++) {
-      compiledChordsMappedToLoopRange.push([
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "quarter",
-        lastChordBpm,
-      ]);
-
-      metadataMappedToLoopRange.push({
-        location: {
-          ...metadataMappedToLoopRange.at(-1)!.location,
-          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-        },
-        bpm: Number(lastChordBpm),
-        noteLengthMultiplier: 1,
-        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-        type: "ornamental",
-      });
-    }
-  }
-
-  setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
-
-  return compiledChordsMappedToLoopRange;
+    endLoopIndex,
+    atomicallyUpdateAudioMetadata,
+    loopDelay,
+  });
 }
 
 interface CompileSection {
@@ -567,8 +563,10 @@ function compileChordSequence({
         subSectionBpm,
       );
 
-      const noteLengthMultiplier =
-        noteLengthMultipliers[chordSequence.strummingPattern.baseNoteLength];
+      const noteLength =
+        chordSequence.strummingPattern.strums[chordIdx]?.noteLength ??
+        "quarter";
+      const noteLengthMultiplier = noteLengthMultipliers[noteLength];
 
       metadata.push({
         location: {
@@ -617,6 +615,7 @@ interface CompileSpecificChordGrouping {
   atomicallyUpdateAudioMetadata?: (
     updatedFields: Partial<AudioMetadata>,
   ) => void;
+  loopDelay: number;
 }
 
 function compileSpecificChordGrouping({
@@ -629,6 +628,7 @@ function compileSpecificChordGrouping({
   startLoopIndex,
   endLoopIndex,
   atomicallyUpdateAudioMetadata,
+  loopDelay,
 }: CompileSpecificChordGrouping) {
   const compiledChords: string[][] = [];
   const metadata: Metadata[] = [];
@@ -721,112 +721,27 @@ function compileSpecificChordGrouping({
     });
   }
 
-  // hacky: but is used incase the slice returns an empty array, which we couldn't then access
-  // the last element in metadataMappedToLoopRange below for.
-  const backupFirstChordMetadata = metadata[startLoopIndex];
-
-  // TODO: probably remove +1 since we aren't using ghost chord right now
-  // +1 to account for ghost chord that's added below
-  if (atomicallyUpdateAudioMetadata) {
-    atomicallyUpdateAudioMetadata({
-      fullCurrentlyPlayingMetadataLength: metadata.length - 1, //+ 1,
-    });
-  }
-
-  const compiledChordsMappedToLoopRange = compiledChords.slice(
+  return finalizeCompiledChords({
+    compiledChords,
+    metadata,
+    baselineBpm,
+    playbackSpeed,
+    setCurrentlyPlayingMetadata,
     startLoopIndex,
-    endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
-  );
-
-  const metadataMappedToLoopRange = metadata.slice(
-    startLoopIndex,
-    endLoopIndex === -1 ? metadata.length : endLoopIndex,
-  );
-
-  let ghostChordIndex = 0;
-
-  if (metadataMappedToLoopRange.length > 0) {
-    if (endLoopIndex === -1) {
-      ghostChordIndex =
-        metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1;
-    } else {
-      ghostChordIndex = metadataMappedToLoopRange.at(-1)!.location.chordIndex;
-      // ^ this is not perfect, somehow maybe want the chordIndex to be +1 more?
-    }
-  }
-
-  if (endLoopIndex !== -1) {
-    metadataMappedToLoopRange.pop();
-  }
-
-  const lastActualChord = metadataMappedToLoopRange.at(-1)!;
-
-  // TODO: keep an eye on this, not sure how ghost chords should be handled in current setup
-  // conditionally adding fake chord + metadata to align the audio controls slider with the visual progress indicator
-  // really absolutely *hate* this solution, but technically it should work.
-  // if (metadataMappedToLoopRange.length > 0 && lastActualChord) {
-  //   metadataMappedToLoopRange.push({
-  //     location: {
-  //       ...lastActualChord.location,
-  //       chordIndex: ghostChordIndex,
-  //     },
-  //     bpm: Number(getBpmForChord(lastActualChord.bpm, baselineBpm)),
-  //     noteLengthMultiplier: lastActualChord.noteLengthMultiplier,
-  //     elapsedSeconds: Math.ceil(
-  //       lastActualChord.elapsedSeconds +
-  //         60 /
-  //           ((Number(lastActualChord.bpm) /
-  //             Number(lastActualChord.noteLengthMultiplier)) *
-  //             playbackSpeed) +
-  //         1,
-  //     ),
-  //     type: "tab"
-  //   });
-
-  //   compiledChordsMappedToLoopRange.push([]);
-  // }
-
-  // right before duplication step, need to add a spacer chord if the first chord and last
-  // chord are different types (tab vs strum)
-  if (metadata[0]?.type !== metadata.at(-1)?.type) {
-    compiledChordsMappedToLoopRange.push([]);
-
-    metadataMappedToLoopRange.push({
-      location: {
-        ...metadataMappedToLoopRange.at(-1)!.location,
-        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-      },
-      bpm: metadataMappedToLoopRange.at(-1)!.bpm,
-      noteLengthMultiplier: 1,
-      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-      type: "tab",
-    });
-  }
-
-  if (metadataMappedToLoopRange.length === 0) {
-    metadataMappedToLoopRange.push(backupFirstChordMetadata!);
-  }
-
-  // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
-  const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
-
-  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
-    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
-  }
-
-  setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
-
-  return compiledChordsMappedToLoopRange;
+    endLoopIndex,
+    atomicallyUpdateAudioMetadata,
+    loopDelay,
+  });
 }
 
 function generateDefaultSectionProgression(tabData: Section[]) {
   const sectionProgression: SectionProgression[] = [];
 
-  for (let i = 0; i < tabData.length; i++) {
+  for (const section of tabData) {
     sectionProgression.push({
       id: crypto.randomUUID(),
-      sectionId: tabData[i]?.id ?? "",
-      title: tabData[i]?.title ?? "",
+      sectionId: section.id,
+      title: section.title,
       repetitions: 1,
       startSeconds: 0, // will be overwritten by useAutoCompileChords
       endSeconds: 0, // will be overwritten by useAutoCompileChords

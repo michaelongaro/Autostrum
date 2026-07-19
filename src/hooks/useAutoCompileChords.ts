@@ -96,13 +96,10 @@ function useAutoCompileChords() {
         baselineBpm: bpm,
         playbackSpeed,
         setCurrentlyPlayingMetadata,
-        startLoopIndex: audioMetadata.editingLoopRange
-          ? 0
-          : audioMetadata.startLoopIndex,
-        endLoopIndex: audioMetadata.editingLoopRange
-          ? -1
-          : audioMetadata.endLoopIndex,
+        startLoopIndex: audioMetadata.startLoopIndex,
+        endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
+        loopDelay,
       });
     } else {
       compileFullTab({
@@ -166,6 +163,7 @@ function useAutoCompileChords() {
     setSectionProgression,
     visiblePlaybackContainerWidth,
     loopDelay,
+    setTabIsEffectivelyEmpty,
   ]);
 
   // runs at most every 2 seconds when editing

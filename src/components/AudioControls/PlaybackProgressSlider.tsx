@@ -1,6 +1,10 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
 import { useTabStore } from "~/stores/TabStore";
+import {
+  getLoopEndIndexFromSlider,
+  getLoopRangeMaxIndex,
+} from "~/utils/loopRangeHelpers";
 
 interface PlaybackProgressSlider {
   disabled: boolean;
@@ -38,6 +42,9 @@ function PlaybackProgressSlider({
   }));
 
   const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
+  const loopRangeMaxIndex = getLoopRangeMaxIndex(
+    audioMetadata.fullCurrentlyPlayingMetadataLength,
+  );
 
   // keeps loopRange in sync when changing selected section
   useEffect(() => {
@@ -45,12 +52,13 @@ function PlaybackProgressSlider({
       audioMetadata.startLoopIndex === 0 &&
       audioMetadata.endLoopIndex === -1
     ) {
-      setLoopRange([0, audioMetadata.fullCurrentlyPlayingMetadataLength - 1]);
+      setLoopRange([0, loopRangeMaxIndex]);
     }
   }, [
     audioMetadata.startLoopIndex,
     audioMetadata.endLoopIndex,
     audioMetadata.fullCurrentlyPlayingMetadataLength,
+    loopRangeMaxIndex,
     setLoopRange,
   ]);
 
@@ -72,17 +80,17 @@ function PlaybackProgressSlider({
     ) {
       if (
         loopRange[0] === audioMetadata.startLoopIndex &&
-        loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1 &&
+        loopRange[1] === loopRangeMaxIndex &&
         audioMetadata.endLoopIndex === -1
       ) {
         return;
       }
 
       const adjustedStartIndex = loopRange[0] || 0;
-      const adjustedEndIndex =
-        loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-          ? -1
-          : loopRange[1] || 0;
+      const adjustedEndIndex = getLoopEndIndexFromSlider(
+        loopRange[1],
+        audioMetadata.fullCurrentlyPlayingMetadataLength,
+      );
 
       const newCurrentChordIndex =
         adjustedStartIndex !== audioMetadata.startLoopIndex
@@ -91,7 +99,7 @@ function PlaybackProgressSlider({
 
       setCurrentChordIndex(
         newCurrentChordIndex === -1
-          ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+          ? loopRangeMaxIndex
           : (newCurrentChordIndex ?? 0),
       );
 
@@ -107,6 +115,7 @@ function PlaybackProgressSlider({
     setAudioMetadata,
     setCurrentChordIndex,
     playbackMetadata,
+    loopRangeMaxIndex,
   ]);
 
   useEffect(() => {
@@ -151,7 +160,7 @@ function PlaybackProgressSlider({
           label="Start/end slider to control range to loop within current tab"
           step={1}
           min={0}
-          max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
+          max={loopRangeMaxIndex}
           // allowOverlap={true}
           draggableTrack
           values={loopRange}
@@ -187,7 +196,7 @@ function PlaybackProgressSlider({
                       "hsl(var(--gray) / 0.75)",
                     ],
                     min: 0,
-                    max: audioMetadata.fullCurrentlyPlayingMetadataLength - 1,
+                    max: loopRangeMaxIndex,
                   }),
                   alignSelf: "center",
                 }}

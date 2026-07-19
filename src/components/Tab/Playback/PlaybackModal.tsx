@@ -33,6 +33,7 @@ import {
   resyncChordRepetitionsAfterIndexJump,
   type PlaybackChordLayoutData,
 } from "~/utils/playbackModalLayout";
+import { getLoopEndSliderValue } from "~/utils/loopRangeHelpers";
 
 const backdropVariants = {
   expanded: {
@@ -137,9 +138,10 @@ function PlaybackModal() {
   // v avoids polluting the store with these extra semi-local values
   const [loopRange, setLoopRange] = useState<[number, number]>([
     audioMetadata.startLoopIndex,
-    audioMetadata.endLoopIndex === -1
-      ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-      : audioMetadata.endLoopIndex,
+    getLoopEndSliderValue(
+      audioMetadata.endLoopIndex,
+      audioMetadata.fullCurrentlyPlayingMetadataLength,
+    ),
   ]);
   const [tabProgressValue, setTabProgressValue] = useState(0);
 
@@ -286,7 +288,8 @@ function PlaybackModal() {
           previousChordIndex,
           virtualizationIndex: chordLayoutData.virtualizationIndex,
           virtualizationStartIndex: chordLayoutData.virtualizationStartIndex,
-          virtualizationCatchupIndex: chordLayoutData.virtualizationCatchupIndex,
+          virtualizationCatchupIndex:
+            chordLayoutData.virtualizationCatchupIndex,
           canVirtualize: chordLayoutData.canVirtualize,
           wrappedForward,
         }),

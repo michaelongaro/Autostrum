@@ -42,6 +42,11 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import scrollChordIntoView from "~/utils/scrollChordIntoView";
+import {
+  getLoopEndIndexFromSlider,
+  getLoopEndSliderValue,
+  getLoopRangeMaxIndex,
+} from "~/utils/loopRangeHelpers";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Direction, getTrackBackground, Range } from "react-range";
@@ -119,6 +124,14 @@ function AudioControls() {
     fetchingFullTabData: state.fetchingFullTabData,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
+
+  const loopRangeMaxIndex = getLoopRangeMaxIndex(
+    audioMetadata.fullCurrentlyPlayingMetadataLength,
+  );
+  const loopRangeEndSliderValue = getLoopEndSliderValue(
+    audioMetadata.endLoopIndex,
+    audioMetadata.fullCurrentlyPlayingMetadataLength,
+  );
 
   useEffect(() => {
     if (!masterVolumeGainNode) return;
@@ -626,27 +639,22 @@ function AudioControls() {
               )}
             </span>
 
-            {audioMetadata.editingLoopRange ? (
+            {audioMetadata.editingLoopRange &&
+            audioMetadata.fullCurrentlyPlayingMetadataLength > 1 ? (
               <Range
                 key={"rangeTwoThumbs"} // needed so thumb is properly initialized
                 label="Start/end slider to control range to loop within current tab"
                 step={1}
                 min={0}
-                max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
-                values={[
-                  audioMetadata.startLoopIndex,
-                  audioMetadata.endLoopIndex === -1
-                    ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1 // could be jank with total tab length of one or two..
-                    : audioMetadata.endLoopIndex,
-                ]}
+                max={loopRangeMaxIndex}
+                values={[audioMetadata.startLoopIndex, loopRangeEndSliderValue]}
                 draggableTrack
                 onChange={(values) => {
-                  const tabLength =
-                    audioMetadata.fullCurrentlyPlayingMetadataLength - 1;
-
                   const newStartLoopIndex = values[0]!;
-                  const newEndLoopIndex =
-                    values[1] === tabLength ? -1 : values[1]!;
+                  const newEndLoopIndex = getLoopEndIndexFromSlider(
+                    values[1]!,
+                    audioMetadata.fullCurrentlyPlayingMetadataLength,
+                  );
 
                   if (
                     newStartLoopIndex !== audioMetadata.startLoopIndex ||
@@ -679,10 +687,7 @@ function AudioControls() {
                         background: getTrackBackground({
                           values: [
                             audioMetadata.startLoopIndex,
-                            audioMetadata.endLoopIndex === -1
-                              ? audioMetadata.fullCurrentlyPlayingMetadataLength -
-                                1 // could be jank with total tab length of one or two..
-                              : audioMetadata.endLoopIndex,
+                            loopRangeEndSliderValue,
                           ],
                           colors: [
                             "hsl(var(--gray) / 0.75)",
@@ -690,9 +695,7 @@ function AudioControls() {
                             "hsl(var(--gray) / 0.75)",
                           ],
                           min: 0,
-                          max:
-                            audioMetadata.fullCurrentlyPlayingMetadataLength -
-                            1,
+                          max: loopRangeMaxIndex,
                         }),
                         alignSelf: "center",
                       }}
@@ -834,7 +837,10 @@ function AudioControls() {
                 variant={"outline"}
                 aria-label="Edit loop range"
                 disabled={
-                  !looping || audioMetadata.playing || tabIsEffectivelyEmpty
+                  !looping ||
+                  audioMetadata.playing ||
+                  tabIsEffectivelyEmpty ||
+                  audioMetadata.fullCurrentlyPlayingMetadataLength <= 1
                 }
                 pressed={audioMetadata.editingLoopRange}
                 className="h-8 w-8 p-1"
@@ -1027,7 +1033,8 @@ function AudioControls() {
                       disabled={
                         !looping ||
                         audioMetadata.playing ||
-                        tabIsEffectivelyEmpty
+                        tabIsEffectivelyEmpty ||
+                        audioMetadata.fullCurrentlyPlayingMetadataLength <= 1
                       }
                       onClick={() => {
                         setAudioMetadata({

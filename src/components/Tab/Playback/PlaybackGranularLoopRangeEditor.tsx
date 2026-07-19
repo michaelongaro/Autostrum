@@ -1,6 +1,7 @@
 import { FaLessThan } from "react-icons/fa";
 import { Button } from "~/components/ui/button";
 import { useTabStore } from "~/stores/TabStore";
+import { getLoopRangeMaxIndex } from "~/utils/loopRangeHelpers";
 
 interface PlaybackGranularLoopRangeEditor {
   loopRange: [number, number];
@@ -17,6 +18,9 @@ function PlaybackGranularLoopRangeEditor({
       playbackMetadata: state.playbackMetadata,
       viewportLabel: state.viewportLabel,
     }),
+  );
+  const loopRangeMaxIndex = getLoopRangeMaxIndex(
+    audioMetadata.fullCurrentlyPlayingMetadataLength,
   );
 
   return (
@@ -63,14 +67,12 @@ function PlaybackGranularLoopRangeEditor({
         <Button
           variant={"outline"}
           disabled={
-            loopRange[0] ===
-              audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+            loopRange[0] === loopRangeMaxIndex ||
             Math.abs(loopRange[0] - loopRange[1]) < 2
           }
           onClick={() => {
             if (
-              loopRange[0] ===
-                audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+              loopRange[0] === loopRangeMaxIndex ||
               Math.abs(loopRange[0] - loopRange[1]) < 2
             )
               return;
@@ -80,11 +82,7 @@ function PlaybackGranularLoopRangeEditor({
             while (
               playbackMetadata?.[newStartLoopIndex]?.type === "ornamental"
             ) {
-              if (
-                newStartLoopIndex ===
-                audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-              )
-                return;
+              if (newStartLoopIndex === loopRangeMaxIndex) return;
               newStartLoopIndex++;
             }
 
@@ -123,14 +121,12 @@ function PlaybackGranularLoopRangeEditor({
         <Button
           variant={"outline"}
           disabled={
-            loopRange[1] ===
-              audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+            loopRange[1] === loopRangeMaxIndex ||
             Math.abs(loopRange[0] - loopRange[1]) < 2
           }
           onClick={() => {
             if (
-              loopRange[1] ===
-                audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+              loopRange[1] === loopRangeMaxIndex ||
               Math.abs(loopRange[0] - loopRange[1]) < 2
             )
               return;
@@ -138,11 +134,7 @@ function PlaybackGranularLoopRangeEditor({
             let newEndLoopIndex = loopRange[1] + 1;
 
             while (playbackMetadata?.[newEndLoopIndex]?.type === "ornamental") {
-              if (
-                newEndLoopIndex ===
-                audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-              )
-                return;
+              if (newEndLoopIndex === loopRangeMaxIndex) return;
               newEndLoopIndex++;
             }
 
