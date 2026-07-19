@@ -649,8 +649,9 @@ function AudioControls() {
                     values[1] === tabLength ? -1 : values[1]!;
 
                   if (
-                    newStartLoopIndex !== audioMetadata.startLoopIndex ||
-                    newEndLoopIndex !== audioMetadata.endLoopIndex
+                    newStartLoopIndex !== newEndLoopIndex &&
+                    (newStartLoopIndex !== audioMetadata.startLoopIndex ||
+                      newEndLoopIndex !== audioMetadata.endLoopIndex)
                   ) {
                     setAudioMetadata({
                       ...audioMetadata,
