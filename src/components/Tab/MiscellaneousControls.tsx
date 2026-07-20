@@ -92,7 +92,7 @@ function MiscellaneousControls({
 
       return chordSequenceIndex === chordSequence.length - 1;
     } else if (subSectionIndex !== undefined) {
-      return subSectionIndex === subSection.data.length - 1;
+      return subSectionIndex === section.data.length - 1;
     } else {
       return sectionIndex === tabDataLength - 1;
     }
