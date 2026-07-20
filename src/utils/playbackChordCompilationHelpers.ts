@@ -187,7 +187,6 @@ function expandFullTab({
               beatIndicator: "",
               bpm: compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm,
               showBpm: false,
-              isRaised: true,
             },
           },
     );
@@ -263,8 +262,7 @@ function expandFullTab({
       metadataMappedToLoopRange.push({
         location: {
           ...metadataMappedToLoopRange.at(-1)!.location,
-          chordIndex:
-            metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
         },
         bpm: getBpmForChord(
           compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
@@ -618,7 +616,6 @@ function expandChordSection({
         beatIndicator: "",
         bpm: baselineBpm,
         showBpm: false,
-        isRaised: false,
       },
     });
 
@@ -774,14 +771,6 @@ function expandChordSequence({
       elapsedSeconds.value +=
         60 / ((chordBpm / noteLengthMultiplier) * playbackSpeed);
 
-      const previousChordName = chordSequence.data[chordIdx - 1] ?? "";
-      const currentChordName = chordSequence.data[chordIdx] ?? "";
-
-      const isRaised =
-        chordIdx === 0
-          ? false
-          : previousChordName.length > 5 && currentChordName.length > 5;
-
       const prevChord = compiledChords?.at(-1);
 
       // Look up chord color from the chords array
@@ -816,7 +805,6 @@ function expandChordSequence({
                   getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
                 )),
           ),
-          isRaised,
         },
       };
 

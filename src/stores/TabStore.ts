@@ -287,9 +287,9 @@ interface PlaybackChord {
   noteLength: FullNoteLengths;
   beatIndicator: string; // e.g. "1", "e", "&", "a"
   bpm: number;
-  showBpm: boolean; // only want to show bpm on first strummed chord of a strumming pattern and
+  // only want to show bpm on first strummed chord of a strumming pattern and
   // only if it's different from the previous chord
-  isRaised: boolean; // only true if this chord and strummed chord to the left are both > 5 characters. Allowing entire chord names to render w/o overlap
+  showBpm: boolean;
 }
 
 export type COLORS =
