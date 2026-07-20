@@ -141,7 +141,7 @@ function PracticePlaybackPanel({
       startLoopIndex: 0,
       endLoopIndex: -1,
       editingLoopRange: false,
-      fullCurrentlyPlayingMetadataLength: -1,
+      fullTabMetadataLength: -1,
     });
 
     setTabData((draft) => {
@@ -270,7 +270,7 @@ function PracticePlaybackPanel({
           <Button
             variant="audio"
             className="baseFlex gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
-            disabled={audioMetadata.fullCurrentlyPlayingMetadataLength <= 0}
+            disabled={audioMetadata.fullTabMetadataLength <= 0}
             onClick={() => {
               setCurrentChordIndex(0);
               setShowPlaybackModal(true);

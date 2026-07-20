@@ -91,7 +91,6 @@ function AudioControls() {
     currentlyPlayingMetadata,
     audioMetadata,
     setAudioMetadata,
-    previewMetadata,
     currentInstrument,
     setInteractingWithAudioProgressSlider,
     playTab,
@@ -110,7 +109,6 @@ function AudioControls() {
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
-    previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
     setInteractingWithAudioProgressSlider:
       state.setInteractingWithAudioProgressSlider,
@@ -139,8 +137,6 @@ function AudioControls() {
   }, [currentlyPlayingMetadata, playbackSpeed]);
 
   function handlePlayButtonClick() {
-    const delayForStoreStateToUpdate = previewMetadata.playing ? 50 : 0;
-
     if (audioMetadata.playing) {
       pauseAudio();
     } else {
@@ -150,11 +146,7 @@ function AudioControls() {
         });
       }
 
-      if (previewMetadata.playing) pauseAudio();
-
-      setTimeout(() => {
-        void playTab({ location: audioMetadata.location });
-      }, delayForStoreStateToUpdate);
+      void playTab({ location: audioMetadata.location });
     }
   }
 
@@ -632,17 +624,16 @@ function AudioControls() {
                 label="Start/end slider to control range to loop within current tab"
                 step={1}
                 min={0}
-                max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
+                max={audioMetadata.fullTabMetadataLength - 1}
                 values={[
                   audioMetadata.startLoopIndex,
                   audioMetadata.endLoopIndex === -1
-                    ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1 // could be jank with total tab length of one or two..
+                    ? audioMetadata.fullTabMetadataLength - 1
                     : audioMetadata.endLoopIndex,
                 ]}
                 draggableTrack
                 onChange={(values) => {
-                  const tabLength =
-                    audioMetadata.fullCurrentlyPlayingMetadataLength - 1;
+                  const tabLength = audioMetadata.fullTabMetadataLength - 1;
 
                   const newStartLoopIndex = values[0]!;
                   const newEndLoopIndex =
@@ -681,8 +672,7 @@ function AudioControls() {
                           values: [
                             audioMetadata.startLoopIndex,
                             audioMetadata.endLoopIndex === -1
-                              ? audioMetadata.fullCurrentlyPlayingMetadataLength -
-                                1 // could be jank with total tab length of one or two..
+                              ? audioMetadata.fullTabMetadataLength - 1
                               : audioMetadata.endLoopIndex,
                           ],
                           colors: [
@@ -691,9 +681,7 @@ function AudioControls() {
                             "hsl(var(--gray) / 0.75)",
                           ],
                           min: 0,
-                          max:
-                            audioMetadata.fullCurrentlyPlayingMetadataLength -
-                            1,
+                          max: audioMetadata.fullTabMetadataLength - 1,
                         }),
                         alignSelf: "center",
                       }}

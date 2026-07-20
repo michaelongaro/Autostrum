@@ -14,7 +14,7 @@ import {
   compileStrummingPatternPreview,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import { resetAudioRangeToStart } from "~/utils/tabSliderHelpers";
+import { resetAudioRangeToStart } from "~/utils/audioRangeHelpers";
 import { DEFAULT_TUNING, normalizeTuningValue, parse } from "~/utils/tunings";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import {
@@ -226,7 +226,7 @@ export interface AudioMetadata {
   startLoopIndex: number;
   endLoopIndex: number;
   editingLoopRange: boolean;
-  fullCurrentlyPlayingMetadataLength: number;
+  fullTabMetadataLength: number;
 }
 
 export interface PreviewMetadata {
@@ -377,7 +377,7 @@ const initialStoreState = {
     startLoopIndex: 0,
     endLoopIndex: -1,
     editingLoopRange: false,
-    fullCurrentlyPlayingMetadataLength: -1,
+    fullTabMetadataLength: -1,
   },
   previewMetadata: {
     indexOfPattern: -1,
@@ -385,7 +385,6 @@ const initialStoreState = {
     type: "chord" as const,
     playing: false,
   },
-  resetAudioRangeToStart: "editing",
 
   isLoadingARoute: false,
   // idk if search needs to be included here
@@ -811,7 +810,7 @@ const useTabStoreBase = create<TabState>()(
         startLoopIndex: 0,
         endLoopIndex: -1,
         editingLoopRange: false,
-        fullCurrentlyPlayingMetadataLength: -1,
+        fullTabMetadataLength: -1,
       },
       setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
       instruments: {} as Record<InstrumentNames, Soundfont.Player>,
@@ -946,6 +945,7 @@ const useTabStoreBase = create<TabState>()(
           bpm: baselineBpm,
           capo,
           chords,
+          strummingPatterns,
           playbackSpeed,
           currentChordIndex,
           setCurrentlyPlayingMetadata,
@@ -953,6 +953,7 @@ const useTabStoreBase = create<TabState>()(
           setPlaybackMetadata,
           loopDelay,
           ensureAudioSystemReady,
+          atomicallyUpdateAudioMetadata,
         } = get();
 
         const audioSystem = await ensureAudioSystemReady();
@@ -993,22 +994,26 @@ const useTabStoreBase = create<TabState>()(
               tabData,
               location,
               chords,
+              strummingPatterns,
               baselineBpm,
               playbackSpeed,
               setCurrentlyPlayingMetadata,
               startLoopIndex: adjStartLoopIndex,
               endLoopIndex: adjEndLoopIndex,
+              atomicallyUpdateAudioMetadata,
             })
           : compileFullTab({
               tabData,
               sectionProgression,
               chords,
+              strummingPatterns,
               baselineBpm,
               playbackSpeed,
               setCurrentlyPlayingMetadata,
               startLoopIndex: adjStartLoopIndex,
               endLoopIndex: adjEndLoopIndex,
-              loopDelay,
+              atomicallyUpdateAudioMetadata,
+              forPlayback: editing ? undefined : { loopDelay },
             });
 
         const sanitizedSectionProgression =
@@ -1146,15 +1151,9 @@ const useTabStoreBase = create<TabState>()(
               type,
             },
           });
-          // ^^ doing this here because didn't update in time with one that was above
+          // ^^ doing this here because didn't update in time with one that was above the loop
 
-          // prob don't need anything but currColumn since you can't have any fancy effects
-          // in the previews...
-
-          const secondPrevColumn = compiledChords[chordIndex - 2];
-          const prevColumn = compiledChords[chordIndex - 1];
           const currColumn = compiledChords[chordIndex];
-          const nextColumn = compiledChords[chordIndex + 1];
 
           if (currColumn === undefined) continue;
 
@@ -1170,10 +1169,7 @@ const useTabStoreBase = create<TabState>()(
             ),
             capo: type === "chord" ? capo : 0,
             bpm: effectiveBpm,
-            secondPrevColumn,
-            prevColumn,
             currColumn,
-            nextColumn,
             audioContext,
             masterVolumeGainNode,
             currentInstrument,

@@ -10,21 +10,19 @@ function resetAudioRangeToStart(type: "editing" | "playback") {
 
   const prevTransitionDuration = thumb.style.transitionDuration;
 
-  // Avoid forced synchronous layout (offsetWidth). Reading layout during
-  // playback loop boundaries steals main-thread time from the scroll rAF and
-  // causes visible hitches on mobile Safari. Zeroing transitionDuration and
-  // writing transforms is enough for an instantaneous reset.
   track.style.transitionDuration = "0s";
   track.style.transform = "scaleX(0)";
 
   thumb.style.transitionDuration = "0s";
   thumb.style.transform = "translate(-9px, -5px)"; // default px values for "starting" thumb position
 
-  // Restore transitions on the next frame without a sync reflow.
-  requestAnimationFrame(() => {
-    track.style.transitionDuration = prevTransitionDuration;
-    thumb.style.transitionDuration = prevTransitionDuration;
-  });
+  // force a reflow to apply the new styles
+  void thumb.offsetWidth;
+  void track.offsetWidth;
+
+  // re-apply the transition on the next frame after resetting the position
+  track.style.transitionDuration = prevTransitionDuration;
+  thumb.style.transitionDuration = prevTransitionDuration;
 }
 
 export { resetAudioRangeToStart };

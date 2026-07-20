@@ -107,7 +107,6 @@ function PlaybackAudioControls({
 
   function handlePlayButtonClick() {
     const delayPlayStart = countInTimerEnabled ? 3000 : 0;
-    const delayForStoreStateToUpdate = previewMetadata.playing ? 50 : 0;
 
     if (audioMetadata.playing) {
       pauseAudio();
@@ -170,11 +169,9 @@ function PlaybackAudioControls({
       if (previewMetadata.playing) pauseAudio();
 
       setTimeout(() => {
-        setTimeout(() => {
-          void playTab({
-            location: audioMetadata.location,
-          });
-        }, delayForStoreStateToUpdate);
+        void playTab({
+          location: audioMetadata.location,
+        });
 
         if (countInTimerEnabled) {
           setCountInTimer({
@@ -261,12 +258,7 @@ function PlaybackAudioControls({
                   if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
                   else
                     newPlaybackSpeed = (playbackSpeed + 0.25) as
-                      | 0.25
-                      | 0.5
-                      | 0.75
-                      | 1
-                      | 1.25
-                      | 1.5;
+                      0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 
                   // Normalize the progress value to 1x speed
                   const normalizedProgress = tabProgressValue * playbackSpeed;

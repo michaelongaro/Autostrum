@@ -45,12 +45,12 @@ function PlaybackProgressSlider({
       audioMetadata.startLoopIndex === 0 &&
       audioMetadata.endLoopIndex === -1
     ) {
-      setLoopRange([0, audioMetadata.fullCurrentlyPlayingMetadataLength - 1]);
+      setLoopRange([0, audioMetadata.fullTabMetadataLength - 1]);
     }
   }, [
     audioMetadata.startLoopIndex,
     audioMetadata.endLoopIndex,
-    audioMetadata.fullCurrentlyPlayingMetadataLength,
+    audioMetadata.fullTabMetadataLength,
     setLoopRange,
   ]);
 
@@ -72,7 +72,7 @@ function PlaybackProgressSlider({
     ) {
       if (
         loopRange[0] === audioMetadata.startLoopIndex &&
-        loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1 &&
+        loopRange[1] === audioMetadata.fullTabMetadataLength - 1 &&
         audioMetadata.endLoopIndex === -1
       ) {
         return;
@@ -80,7 +80,7 @@ function PlaybackProgressSlider({
 
       const adjustedStartIndex = loopRange[0] || 0;
       const adjustedEndIndex =
-        loopRange[1] === audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+        loopRange[1] === audioMetadata.fullTabMetadataLength - 1
           ? -1
           : loopRange[1] || 0;
 
@@ -91,7 +91,7 @@ function PlaybackProgressSlider({
 
       setCurrentChordIndex(
         newCurrentChordIndex === -1
-          ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+          ? audioMetadata.fullTabMetadataLength - 1
           : (newCurrentChordIndex ?? 0),
       );
 
@@ -139,7 +139,7 @@ function PlaybackProgressSlider({
     ? currentlyPlayingMetadata.length - 1
     : 0;
 
-  if (audioMetadata.fullCurrentlyPlayingMetadataLength <= 1 && maxIndex <= 0) {
+  if (audioMetadata.fullTabMetadataLength <= 1 && maxIndex <= 0) {
     return null;
   }
 
@@ -151,7 +151,7 @@ function PlaybackProgressSlider({
           label="Start/end slider to control range to loop within current tab"
           step={1}
           min={0}
-          max={audioMetadata.fullCurrentlyPlayingMetadataLength - 1}
+          max={audioMetadata.fullTabMetadataLength - 1}
           // allowOverlap={true}
           draggableTrack
           values={loopRange}
@@ -187,7 +187,7 @@ function PlaybackProgressSlider({
                       "hsl(var(--gray) / 0.75)",
                     ],
                     min: 0,
-                    max: audioMetadata.fullCurrentlyPlayingMetadataLength - 1,
+                    max: audioMetadata.fullTabMetadataLength - 1,
                   }),
                   alignSelf: "center",
                 }}

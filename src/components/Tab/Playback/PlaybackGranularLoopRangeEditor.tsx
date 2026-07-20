@@ -63,14 +63,12 @@ function PlaybackGranularLoopRangeEditor({
         <Button
           variant={"outline"}
           disabled={
-            loopRange[0] ===
-              audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+            loopRange[0] === audioMetadata.fullTabMetadataLength - 1 ||
             Math.abs(loopRange[0] - loopRange[1]) < 2
           }
           onClick={() => {
             if (
-              loopRange[0] ===
-                audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+              loopRange[0] === audioMetadata.fullTabMetadataLength - 1 ||
               Math.abs(loopRange[0] - loopRange[1]) < 2
             )
               return;
@@ -80,10 +78,7 @@ function PlaybackGranularLoopRangeEditor({
             while (
               playbackMetadata?.[newStartLoopIndex]?.type === "ornamental"
             ) {
-              if (
-                newStartLoopIndex ===
-                audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-              )
+              if (newStartLoopIndex === audioMetadata.fullTabMetadataLength - 1)
                 return;
               newStartLoopIndex++;
             }
@@ -123,14 +118,12 @@ function PlaybackGranularLoopRangeEditor({
         <Button
           variant={"outline"}
           disabled={
-            loopRange[1] ===
-              audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+            loopRange[1] === audioMetadata.fullTabMetadataLength - 1 ||
             Math.abs(loopRange[0] - loopRange[1]) < 2
           }
           onClick={() => {
             if (
-              loopRange[1] ===
-                audioMetadata.fullCurrentlyPlayingMetadataLength - 1 ||
+              loopRange[1] === audioMetadata.fullTabMetadataLength - 1 ||
               Math.abs(loopRange[0] - loopRange[1]) < 2
             )
               return;
@@ -138,10 +131,7 @@ function PlaybackGranularLoopRangeEditor({
             let newEndLoopIndex = loopRange[1] + 1;
 
             while (playbackMetadata?.[newEndLoopIndex]?.type === "ornamental") {
-              if (
-                newEndLoopIndex ===
-                audioMetadata.fullCurrentlyPlayingMetadataLength - 1
-              )
+              if (newEndLoopIndex === audioMetadata.fullTabMetadataLength - 1)
                 return;
               newEndLoopIndex++;
             }

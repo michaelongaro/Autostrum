@@ -1,4 +1,3 @@
-import isEqual from "lodash.isequal";
 import { MdModeEditOutline } from "react-icons/md";
 import { FaTrashAlt } from "react-icons/fa";
 import { useState } from "react";
@@ -65,14 +64,14 @@ function StrummingPatterns() {
     index: number,
     strummingPattern: StrummingPatternType,
   ) {
-    setTabData((draft) => {
-      // fyi: this is lazy, but only a copied type of a tab subsection is guaranteed
-      // to not need to be modified/removed from currentlyCopiedData. Just resetting
-      // to null otherwise
-      if (currentlyCopiedData?.type !== "tab") {
-        setCurrentlyCopiedData(null);
-      }
+    // FYI: this is lazy, but only a copied type of a tab subsection is guaranteed
+    // to not need to be modified/removed from currentlyCopiedData. Just resetting
+    // to null otherwise
+    if (currentlyCopiedData?.type !== "tab") {
+      setCurrentlyCopiedData(null);
+    }
 
+    setTabData((draft) => {
       for (
         let sectionIndex = draft.length - 1;
         sectionIndex >= 0;
@@ -94,22 +93,13 @@ function StrummingPatterns() {
               chordSequenceIndex >= 0;
               chordSequenceIndex--
             ) {
-              const chordGroup = subSection.data[chordSequenceIndex];
+              const chordSequence = subSection.data[chordSequenceIndex];
 
-              if (
-                !chordGroup ||
-                !isEqual(chordGroup.strummingPattern, strummingPattern)
-              )
+              if (chordSequence?.strummingPattern.id !== strummingPattern.id) {
                 continue;
+              }
 
-              draft[sectionIndex]!.data[subSectionIndex]!.data[
-                chordSequenceIndex
-              ] = {
-                ...chordGroup,
-                // @ts-expect-error useEffect within <ChordSequence /> will set strummingPattern to first existing strumming pattern (if one exists)
-                strummingPattern: {} as StrummingPattern,
-                data: [],
-              };
+              subSection.data.splice(chordSequenceIndex, 1);
             }
           }
         }

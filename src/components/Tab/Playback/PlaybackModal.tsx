@@ -138,7 +138,7 @@ function PlaybackModal() {
   const [loopRange, setLoopRange] = useState<[number, number]>([
     audioMetadata.startLoopIndex,
     audioMetadata.endLoopIndex === -1
-      ? audioMetadata.fullCurrentlyPlayingMetadataLength - 1
+      ? audioMetadata.fullTabMetadataLength - 1
       : audioMetadata.endLoopIndex,
   ]);
   const [tabProgressValue, setTabProgressValue] = useState(0);
@@ -286,7 +286,8 @@ function PlaybackModal() {
           previousChordIndex,
           virtualizationIndex: chordLayoutData.virtualizationIndex,
           virtualizationStartIndex: chordLayoutData.virtualizationStartIndex,
-          virtualizationCatchupIndex: chordLayoutData.virtualizationCatchupIndex,
+          virtualizationCatchupIndex:
+            chordLayoutData.virtualizationCatchupIndex,
           canVirtualize: chordLayoutData.canVirtualize,
           wrappedForward,
         }),
@@ -354,7 +355,7 @@ function PlaybackModal() {
       // the modal settles in the new orientation.
       pauseAudio();
       setChordRepetitions((prev) =>
-        prev.length > 0 ? new Array(prev.length).fill(0) : prev,
+        prev.length > 0 ? Array.from({ length: prev.length }, () => 0) : prev,
       );
     }
 
@@ -403,7 +404,7 @@ function PlaybackModal() {
         const location = audioMetadata.location;
         pauseAudio();
         setChordRepetitions((prev) =>
-          prev.length > 0 ? new Array(prev.length).fill(0) : prev,
+          prev.length > 0 ? Array.from({ length: prev.length }, () => 0) : prev,
         );
         void playTab({ location });
       }

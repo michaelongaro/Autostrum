@@ -341,6 +341,7 @@ function MiscellaneousControls({
                 pauseAudio(true);
               }
 
+              // I think we ideally drop the setTimeout here
               setTimeout(
                 () => {
                   void playTab({

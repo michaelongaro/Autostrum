@@ -847,7 +847,12 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       location.sectionIndex === sectionIndex &&
       location.subSectionIndex === subSectionIndex;
 
-    return isSameSection && location.chordIndex > columnIndex;
+    return (
+      isSameSection &&
+      (location.chordIndex > columnIndex ||
+        (location.chordIndex === columnIndex &&
+          location.chordIndex === subSection.data.length))
+    );
   }
 
   function handleBaseNoteLengthChange(

@@ -96,15 +96,6 @@ function StrummingPatternModal({
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
 
-  const [showNoteLengthChangeDialog, setShowNoteLengthChangeDialog] =
-    useState(false);
-  const [noteLengthChangeType, setNoteLengthChangeType] = useState<
-    "onlyUnchanged" | "all"
-  >("onlyUnchanged");
-  const [proposedNoteLength, setProposedNoteLength] = useState<
-    "whole" | "half" | "quarter" | "eighth" | "sixteenth" | null
-  >(null);
-
   const [showingDeleteStrumsButtons, setShowingDeleteStrumsButtons] =
     useState(false);
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
@@ -203,10 +194,8 @@ function StrummingPatternModal({
                 if (
                   !chordProgression ||
                   !strummingPattern ||
-                  !isEqual(
-                    strummingPattern,
-                    strummingPatterns[strummingPatternBeingEdited.index],
-                  )
+                  strummingPattern.id !==
+                    strummingPatterns[strummingPatternBeingEdited.index]?.id
                 )
                   continue;
 
@@ -266,7 +255,7 @@ function StrummingPatternModal({
       exit="closed"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
-          if (audioMetadata.playing) pauseAudio();
+          if (previewMetadata.playing) pauseAudio();
           setStrummingPatternBeingEdited(null);
         }
       }}
@@ -284,7 +273,7 @@ function StrummingPatternModal({
           <Button
             variant={"modalClose"}
             onClick={() => {
-              if (audioMetadata.playing) pauseAudio();
+              if (previewMetadata.playing) pauseAudio();
               setStrummingPatternBeingEdited(null);
             }}
           >

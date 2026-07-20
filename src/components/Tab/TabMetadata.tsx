@@ -333,7 +333,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       startLoopIndex: 0,
       endLoopIndex: -1,
       editingLoopRange: false,
-      fullCurrentlyPlayingMetadataLength: -1,
+      fullTabMetadataLength: -1,
     });
     setEditing(false);
   }

@@ -38,6 +38,7 @@ function PlaybackMenuContent() {
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] = useState<
     boolean[]
   >([]);
+
   // this is hacky dummy state so that the <StrummingPattern /> can render the palm mute node
   // as expected without actually having access to that state. Works fine for this case because
   // we are only ever rendering the static palm mute data visually and never modifying it.

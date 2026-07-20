@@ -323,8 +323,7 @@ function Tab() {
               id="stickyBottomControls"
               style={{
                 opacity:
-                  audioMetadata.fullCurrentlyPlayingMetadataLength > 0 &&
-                  tabContentIsInView
+                  audioMetadata.fullTabMetadataLength > 0 && tabContentIsInView
                     ? 1
                     : 0,
                 transition: "opacity 0.2s ease-in-out",

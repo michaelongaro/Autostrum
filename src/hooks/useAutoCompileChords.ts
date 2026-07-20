@@ -20,6 +20,7 @@ function useAutoCompileChords() {
     bpm,
     sectionProgression,
     chords,
+    strummingPatterns,
     atomicallyUpdateAudioMetadata,
     setExpandedTabData,
     setPlaybackMetadata,
@@ -27,6 +28,7 @@ function useAutoCompileChords() {
     visiblePlaybackContainerWidth,
     loopDelay,
     tabData,
+    setCurrentChordIndex,
     setTabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
     editing: state.editing,
@@ -37,6 +39,7 @@ function useAutoCompileChords() {
     bpm: state.bpm,
     sectionProgression: state.sectionProgression,
     chords: state.chords,
+    strummingPatterns: state.strummingPatterns,
     atomicallyUpdateAudioMetadata: state.atomicallyUpdateAudioMetadata,
     setExpandedTabData: state.setExpandedTabData,
     setPlaybackMetadata: state.setPlaybackMetadata,
@@ -44,40 +47,26 @@ function useAutoCompileChords() {
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     loopDelay: state.loopDelay,
     tabData: state.tabData,
+    setCurrentChordIndex: state.setCurrentChordIndex,
     setTabIsEffectivelyEmpty: state.setTabIsEffectivelyEmpty,
   }));
 
-  const [
-    prevFullCurrentlyPlayingMetadataLength,
-    setPrevFullCurrentlyPlayingMetadataLength,
-  ] = useState(-1);
+  const [prevFullTabMetadataLength, setPrevFullTabMetadataLength] =
+    useState(-1);
 
   const handleTabLogic = useCallback(() => {
-    function wholeTabIsEmpty() {
-      if (tabData.length === 0 || tabData[0]?.data.length === 0) {
-        return true;
-      }
+    const isEffectivelyEmpty = tabIsEffectivelyEmpty(tabData);
 
-      if (
-        tabData[0]?.data?.[0]?.type === "chord" &&
-        tabData[0]?.data?.[0]?.data?.[0]?.data?.length === 0
-      ) {
-        return true;
-      }
+    setTabIsEffectivelyEmpty(isEffectivelyEmpty);
 
-      return false;
-    }
-
-    setTabIsEffectivelyEmpty(tabIsEffectivelyEmpty(tabData));
-
-    if (wholeTabIsEmpty()) {
+    if (isEffectivelyEmpty) {
       setAudioMetadata({
         playing: false,
         location: null,
         startLoopIndex: 0,
         endLoopIndex: -1,
         editingLoopRange: false,
-        fullCurrentlyPlayingMetadataLength: -1,
+        fullTabMetadataLength: -1,
       });
       setCurrentlyPlayingMetadata(null);
       return;
@@ -93,15 +82,12 @@ function useAutoCompileChords() {
         tabData,
         location: audioMetadata.location,
         chords,
+        strummingPatterns,
         baselineBpm: bpm,
         playbackSpeed,
         setCurrentlyPlayingMetadata,
-        startLoopIndex: audioMetadata.editingLoopRange
-          ? 0
-          : audioMetadata.startLoopIndex,
-        endLoopIndex: audioMetadata.editingLoopRange
-          ? -1
-          : audioMetadata.endLoopIndex,
+        startLoopIndex: audioMetadata.startLoopIndex,
+        endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
       });
     } else {
@@ -109,13 +95,14 @@ function useAutoCompileChords() {
         tabData,
         sectionProgression: sanitizedSectionProgression,
         chords,
+        strummingPatterns,
         baselineBpm: bpm,
         playbackSpeed,
         setCurrentlyPlayingMetadata,
         startLoopIndex: audioMetadata.startLoopIndex,
         endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
-        loopDelay,
+        forPlayback: editing ? undefined : { loopDelay },
       });
     }
 
@@ -158,6 +145,7 @@ function useAutoCompileChords() {
     audioMetadata.editingLoopRange,
     sectionProgression,
     chords,
+    strummingPatterns,
     setAudioMetadata,
     setCurrentlyPlayingMetadata,
     atomicallyUpdateAudioMetadata,
@@ -182,30 +170,24 @@ function useAutoCompileChords() {
     };
   }, [debouncedHandleTabLogic]);
 
+  // resets loop range on any chord (or larger size) addition/removal
   useEffect(() => {
-    if (
-      audioMetadata.fullCurrentlyPlayingMetadataLength ===
-      prevFullCurrentlyPlayingMetadataLength
-    )
+    if (audioMetadata.fullTabMetadataLength === prevFullTabMetadataLength)
       return;
 
-    if (
-      audioMetadata.fullCurrentlyPlayingMetadataLength <
-      prevFullCurrentlyPlayingMetadataLength
-    ) {
-      atomicallyUpdateAudioMetadata({
-        startLoopIndex: 0,
-        endLoopIndex: -1,
-      });
-    }
+    setCurrentChordIndex(0);
 
-    setPrevFullCurrentlyPlayingMetadataLength(
-      audioMetadata.fullCurrentlyPlayingMetadataLength,
-    );
+    atomicallyUpdateAudioMetadata({
+      location: null,
+      startLoopIndex: 0,
+      endLoopIndex: -1,
+    });
+
+    setPrevFullTabMetadataLength(audioMetadata.fullTabMetadataLength);
   }, [
-    audioMetadata.fullCurrentlyPlayingMetadataLength,
+    audioMetadata.fullTabMetadataLength,
     atomicallyUpdateAudioMetadata,
-    prevFullCurrentlyPlayingMetadataLength,
+    prevFullTabMetadataLength,
   ]);
 }
 

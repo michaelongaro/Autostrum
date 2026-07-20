@@ -14,8 +14,9 @@ function AnimatedTabs({
   setActiveTabName,
   tabNames,
 }: AnimatedTabs) {
-  const { playing, pauseAudio } = useTabStore((state) => ({
+  const { playing, playingPreview, pauseAudio } = useTabStore((state) => ({
     playing: state.audioMetadata.playing,
+    playingPreview: state.previewMetadata.playing,
     pauseAudio: state.pauseAudio,
   }));
 
@@ -28,7 +29,9 @@ function AnimatedTabs({
           onClick={() => {
             setActiveTabName(tabName);
 
-            if (playing && tabName !== "Practice") pauseAudio();
+            if ((playing && tabName !== "Practice") || playingPreview) {
+              pauseAudio();
+            }
           }}
           className="relative !p-0 font-medium transition focus-visible:outline-2 sm:whitespace-nowrap sm:text-nowrap"
         >
