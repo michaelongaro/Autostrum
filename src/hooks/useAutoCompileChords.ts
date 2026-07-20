@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
@@ -28,7 +28,6 @@ function useAutoCompileChords() {
     visiblePlaybackContainerWidth,
     loopDelay,
     tabData,
-    setCurrentChordIndex,
     setTabIsEffectivelyEmpty,
   } = useTabStore((state) => ({
     editing: state.editing,
@@ -47,12 +46,8 @@ function useAutoCompileChords() {
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     loopDelay: state.loopDelay,
     tabData: state.tabData,
-    setCurrentChordIndex: state.setCurrentChordIndex,
     setTabIsEffectivelyEmpty: state.setTabIsEffectivelyEmpty,
   }));
-
-  const [prevFullTabMetadataLength, setPrevFullTabMetadataLength] =
-    useState(-1);
 
   const handleTabLogic = useCallback(() => {
     const isEffectivelyEmpty = tabIsEffectivelyEmpty(tabData);
@@ -146,14 +141,15 @@ function useAutoCompileChords() {
     sectionProgression,
     chords,
     strummingPatterns,
+    visiblePlaybackContainerWidth,
+    loopDelay,
     setAudioMetadata,
     setCurrentlyPlayingMetadata,
     atomicallyUpdateAudioMetadata,
     setExpandedTabData,
     setPlaybackMetadata,
     setSectionProgression,
-    visiblePlaybackContainerWidth,
-    loopDelay,
+    setTabIsEffectivelyEmpty,
   ]);
 
   // runs at most every 2 seconds when editing
@@ -169,26 +165,6 @@ function useAutoCompileChords() {
       debouncedHandleTabLogic.cancel();
     };
   }, [debouncedHandleTabLogic]);
-
-  // resets loop range on any chord (or larger size) addition/removal
-  useEffect(() => {
-    if (audioMetadata.fullTabMetadataLength === prevFullTabMetadataLength)
-      return;
-
-    setCurrentChordIndex(0);
-
-    atomicallyUpdateAudioMetadata({
-      location: null,
-      startLoopIndex: 0,
-      endLoopIndex: -1,
-    });
-
-    setPrevFullTabMetadataLength(audioMetadata.fullTabMetadataLength);
-  }, [
-    audioMetadata.fullTabMetadataLength,
-    atomicallyUpdateAudioMetadata,
-    prevFullTabMetadataLength,
-  ]);
 }
 
 export default useAutoCompileChords;
