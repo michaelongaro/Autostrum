@@ -238,12 +238,12 @@ function PlaybackModal() {
 
     pauseAudio();
 
-    if (audioMetadata.editingLoopRange) {
-      setAudioMetadata({
-        ...audioMetadata,
-        editingLoopRange: false,
-      });
-    }
+    setAudioMetadata({
+      ...audioMetadata,
+      editingLoopRange: false,
+      startLoopIndex: 0,
+      endLoopIndex: -1,
+    });
   }
 
   const chordLayoutData = useMemo<PlaybackChordLayoutData | null>(

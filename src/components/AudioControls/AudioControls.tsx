@@ -7,7 +7,6 @@ import {
   BsFillVolumeMuteFill,
   BsFillVolumeUpFill,
 } from "react-icons/bs";
-import { CgArrowsShrinkH } from "react-icons/cg";
 import { GoChevronDown, GoChevronUp } from "react-icons/go";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
@@ -295,129 +294,110 @@ function AudioControls() {
               )}
             </Button>
 
-            {audioMetadata.editingLoopRange ? (
-              <div className="baseFlex col-span-5 w-full">
-                <Button
-                  className="baseFlex gap-2 text-[0.6rem]"
-                  onClick={() => {
-                    setAudioMetadata({
-                      ...audioMetadata,
-                      editingLoopRange: false,
-                    });
-                  }}
-                >
-                  <CgArrowsShrinkH className="h-5 w-5" />
-                  Save looping range
-                </Button>
-              </div>
-            ) : (
-              <>
-                {!isMobileOnly && (
-                  <div
-                    className={`baseFlex col-span-5 w-full gap-2 md:w-1/2 md:justify-self-end ${
-                      visibility === "minimized" ? "opacity-0" : "opacity-100"
-                    } transition-opacity`}
-                  >
-                    <AnimatePresence mode="popLayout" initial={false}>
-                      {volume === 0 && (
-                        <motion.div
-                          key="muteIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeMuteFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      )}
-                      {volume > 0 && volume < 1 ? (
-                        <motion.div
-                          key="lowVolumeIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeDownFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      ) : null}
-                      {volume >= 1 ? (
-                        <motion.div
-                          key="highVolumeIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeUpFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      ) : null}
-                    </AnimatePresence>
+            {!isMobileOnly && (
+              <div
+                className={`baseFlex col-span-5 w-full gap-2 md:w-1/2 md:justify-self-end ${
+                  visibility === "minimized" ? "opacity-0" : "opacity-100"
+                } transition-opacity`}
+              >
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {volume === 0 && (
+                    <motion.div
+                      key="muteIcon"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      className="baseFlex"
+                    >
+                      <BsFillVolumeMuteFill
+                        size={"1.5rem"}
+                        className="shrink-0"
+                      />
+                    </motion.div>
+                  )}
+                  {volume > 0 && volume < 1 ? (
+                    <motion.div
+                      key="lowVolumeIcon"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      className="baseFlex"
+                    >
+                      <BsFillVolumeDownFill
+                        size={"1.5rem"}
+                        className="shrink-0"
+                      />
+                    </motion.div>
+                  ) : null}
+                  {volume >= 1 ? (
+                    <motion.div
+                      key="highVolumeIcon"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      className="baseFlex"
+                    >
+                      <BsFillVolumeUpFill
+                        size={"1.5rem"}
+                        className="shrink-0"
+                      />
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
 
-                    <Range
-                      label="Slider to control the playback volume"
-                      min={0}
-                      max={100}
-                      step={1}
-                      values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
-                      disabled={disablePlayButton}
-                      onChange={(values) => {
-                        localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                <Range
+                  label="Slider to control the playback volume"
+                  min={0}
+                  max={100}
+                  step={1}
+                  values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                  disabled={disablePlayButton}
+                  onChange={(values) => {
+                    localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                  }}
+                  renderTrack={({ props, children, disabled }) => (
+                    <div
+                      onMouseDown={props.onMouseDown}
+                      onTouchStart={props.onTouchStart}
+                      style={{
+                        ...props.style,
+                        display: "flex",
+                        width: "100%",
+                        justifyContent: "center",
+                        margin: "0 0.35rem",
                       }}
-                      renderTrack={({ props, children, disabled }) => (
-                        <div
-                          onMouseDown={props.onMouseDown}
-                          onTouchStart={props.onTouchStart}
-                          style={{
-                            ...props.style,
-                            display: "flex",
-                            width: "100%",
-                            justifyContent: "center",
-                            margin: "0 0.35rem",
-                          }}
-                        >
-                          <div
-                            ref={props.ref}
-                            style={{
-                              height: "8px",
-                              borderRadius: "4px",
-                              filter: disabled ? "brightness(0.75)" : "none",
-                              alignSelf: "center",
-                              background: getTrackBackground({
-                                values: [volume * 50],
-                                colors: [
-                                  "hsl(var(--primary))",
-                                  "hsl(var(--gray)/0.75)",
-                                ],
-                                min: 0,
-                                max: 100,
-                              }),
-                            }}
-                            className={`relative w-full`}
-                          >
-                            {children}
-                          </div>
-                        </div>
-                      )}
-                      renderThumb={({ props }) => (
-                        <div
-                          {...props}
-                          className="!z-20 size-[18px] rounded-full border bg-primary"
-                        />
-                      )}
+                    >
+                      <div
+                        ref={props.ref}
+                        style={{
+                          height: "8px",
+                          borderRadius: "4px",
+                          filter: disabled ? "brightness(0.75)" : "none",
+                          alignSelf: "center",
+                          background: getTrackBackground({
+                            values: [volume * 50],
+                            colors: [
+                              "hsl(var(--primary))",
+                              "hsl(var(--gray)/0.75)",
+                            ],
+                            min: 0,
+                            max: 100,
+                          }),
+                        }}
+                        className={`relative w-full`}
+                      >
+                        {children}
+                      </div>
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="!z-20 size-[18px] rounded-full border bg-primary"
                     />
-                  </div>
-                )}
-              </>
+                  )}
+                />
+              </div>
             )}
           </div>
         )}
@@ -590,11 +570,9 @@ function AudioControls() {
           </div>
         )}
 
-        {/* bottom layer: play/pause, loop, slider*/}
-        <div className="baseFlex mt-2 w-full gap-4">
-          {/* instrument, speed selects*/}
-
-          {/* play/pause button*/}
+        {/* bottom layer: play/pause, range, loop toggle, minimize */}
+        <div className="baseFlex mt-2 w-full !justify-between gap-4">
+          {/* play/pause button */}
           <Button
             variant="audio"
             size={aboveLargeViewportWidth ? "default" : "sm"}
@@ -813,37 +791,14 @@ function AudioControls() {
             </span>
           </div>
 
-          {/* conceptually: what should you do if user toggles looping while playing already... */}
-
           {aboveLargeViewportWidth ? (
             <>
-              {/* probably have a tooltip for this + loop so that it is clear what they do? */}
-
-              <Toggle
-                variant={"outline"}
-                aria-label="Edit loop range"
-                disabled={
-                  !looping || audioMetadata.playing || tabIsEffectivelyEmpty
-                }
-                pressed={audioMetadata.editingLoopRange}
-                className="h-8 w-8 p-1"
-                onPressedChange={(value) => {
-                  setAudioMetadata({
-                    ...audioMetadata,
-                    editingLoopRange: value,
-                  });
-                  setCurrentChordIndex(0); // reset to start of tab when editing loop range
-                }}
-              >
-                <CgArrowsShrinkH className="h-6 w-6" />
-              </Toggle>
-
               <Toggle
                 variant={"outline"}
                 aria-label="Loop toggle"
                 disabled={audioMetadata.playing}
                 pressed={looping}
-                className="h-8 w-8 p-1"
+                className="h-8 px-2 py-1"
                 onPressedChange={(value) => {
                   setAudioMetadata({
                     ...audioMetadata,
@@ -1009,28 +964,6 @@ function AudioControls() {
                         localStorageLooping.set(String(value));
                       }}
                     />
-                  </div>
-
-                  <div className="baseFlex w-full">
-                    <Button
-                      disabled={
-                        !looping ||
-                        audioMetadata.playing ||
-                        tabIsEffectivelyEmpty
-                      }
-                      onClick={() => {
-                        setAudioMetadata({
-                          ...audioMetadata,
-                          editingLoopRange: true,
-                        });
-
-                        setDrawerOpen(false);
-                      }}
-                      className="baseFlex gap-2"
-                    >
-                      <CgArrowsShrinkH className="h-5 w-5" />
-                      Edit loop range
-                    </Button>
                   </div>
                 </DrawerContent>
               </DrawerPortal>
