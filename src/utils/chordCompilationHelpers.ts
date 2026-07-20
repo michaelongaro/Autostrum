@@ -52,18 +52,9 @@ function compileFullTab({
   const metadata: Metadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues by storing in an object
 
-  for (
-    let sectionProgressionIndex = 0;
-    sectionProgressionIndex < sectionProgression.length;
-    sectionProgressionIndex++
-  ) {
-    const sectionIndex = getSectionIndexFromId(
-      tabData,
-      sectionProgression[sectionProgressionIndex]!.sectionId,
-    );
-    const sectionRepetitions = getRepetitions(
-      sectionProgression[sectionProgressionIndex]?.repetitions,
-    );
+  for (const sectionProg of sectionProgression) {
+    const sectionIndex = getSectionIndexFromId(tabData, sectionProg.sectionId);
+    const sectionRepetitions = getRepetitions(sectionProg?.repetitions);
 
     for (
       let sectionRepeatIdx = 0;
@@ -107,8 +98,8 @@ function compileFullTab({
   // adjusting the elapsedSeconds to start at 0 no matter the startLoopIndex
   const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
 
-  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
-    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
+  for (const metadata of metadataMappedToLoopRange) {
+    metadata.elapsedSeconds -= secondsToSubtract;
   }
 
   // for playback compilation
@@ -790,8 +781,8 @@ function compileSpecificChordGrouping({
   // adjusting the elapsedSeconds to start at 0 no matter the startLoopIndex
   const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
 
-  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
-    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
+  for (const metadata of metadataMappedToLoopRange) {
+    metadata.elapsedSeconds -= secondsToSubtract;
   }
 
   // for playback compilation
@@ -910,11 +901,11 @@ function compileSpecificChordGrouping({
 function generateDefaultSectionProgression(tabData: Section[]) {
   const sectionProgression: SectionProgression[] = [];
 
-  for (let i = 0; i < tabData.length; i++) {
+  for (const section of tabData) {
     sectionProgression.push({
       id: crypto.randomUUID(),
-      sectionId: tabData[i]?.id ?? "",
-      title: tabData[i]?.title ?? "",
+      sectionId: section.id,
+      title: section.title,
       repetitions: 1,
       startSeconds: 0, // will be overwritten by useAutoCompileChords
       endSeconds: 0, // will be overwritten by useAutoCompileChords
