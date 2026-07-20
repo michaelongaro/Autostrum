@@ -95,6 +95,24 @@ function PlaybackTopMetadata({
     return Object.values(sections);
   }, [sectionProgression]);
 
+  function handleChangeSection(value: string) {
+    setAudioMetadata({
+      ...audioMetadata,
+      location:
+        value === "fullTab"
+          ? null
+          : {
+              sectionIndex: uniqueSections.findIndex((elem) => {
+                return elem.sectionId === value;
+              }),
+            },
+      startLoopIndex: 0,
+      endLoopIndex: -1,
+    });
+
+    setCurrentChordIndex(0);
+  }
+
   if (playbackMetadata === null || viewportLabel === "mobileNarrowLandscape") {
     return null;
   }
@@ -177,22 +195,7 @@ function PlaybackTopMetadata({
                                 ]?.sectionId
                           }
                           onValueChange={(value) => {
-                            setAudioMetadata({
-                              ...audioMetadata,
-                              location:
-                                value === "fullTab"
-                                  ? null
-                                  : {
-                                      sectionIndex: uniqueSections.findIndex(
-                                        (elem) => {
-                                          return elem.sectionId === value;
-                                        },
-                                      ),
-                                    },
-                              startLoopIndex: 0,
-                              endLoopIndex: -1,
-                            });
-                            setCurrentChordIndex(0);
+                            handleChangeSection(value);
                           }}
                         >
                           <SelectTrigger
@@ -355,19 +358,7 @@ function PlaybackTopMetadata({
                                   ]?.sectionId
                             }
                             onValueChange={(value) => {
-                              setAudioMetadata({
-                                ...audioMetadata,
-                                location:
-                                  value === "fullTab"
-                                    ? null
-                                    : {
-                                        sectionIndex: uniqueSections.findIndex(
-                                          (elem) => {
-                                            return elem.sectionId === value;
-                                          },
-                                        ),
-                                      },
-                              });
+                              handleChangeSection(value);
                             }}
                           >
                             <SelectTrigger
