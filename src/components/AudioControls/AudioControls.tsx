@@ -233,7 +233,6 @@ function AudioControls() {
             </motion.div>
           )}
         </AnimatePresence>
-
         {/* mobile top layer: return to tab, v/^ chevron, audio slider */}
         {!aboveLargeViewportWidth && (
           <div className="grid w-full grid-cols-12 place-items-center">
@@ -401,7 +400,6 @@ function AudioControls() {
             )}
           </div>
         )}
-
         {/* desktop top layer: instrument, speed  + volume slider */}
         {aboveLargeViewportWidth && (
           <div className="baseFlex w-full !justify-between">
@@ -569,7 +567,6 @@ function AudioControls() {
             </div>
           </div>
         )}
-
         {/* bottom layer: play/pause, range, loop toggle, minimize */}
         <div className="baseFlex mt-2 w-full !justify-between gap-4">
           {/* play/pause button */}

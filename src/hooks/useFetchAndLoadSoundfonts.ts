@@ -9,7 +9,6 @@ function useFetchAndLoadSoundfonts() {
     currentInstrumentName,
     instruments,
     setInstruments,
-    currentInstrument,
     setCurrentInstrument,
   } = useTabStore((state) => ({
     audioContext: state.audioContext,
@@ -17,7 +16,6 @@ function useFetchAndLoadSoundfonts() {
     currentInstrumentName: state.currentInstrumentName,
     instruments: state.instruments,
     setInstruments: state.setInstruments,
-    currentInstrument: state.currentInstrument,
     setCurrentInstrument: state.setCurrentInstrument,
   }));
 
@@ -30,6 +28,8 @@ function useFetchAndLoadSoundfonts() {
         setCurrentInstrument(instruments[currentInstrumentName]);
         return;
       }
+
+      setCurrentInstrument(null);
 
       void ensureSoundfontPlayer(
         audioContext,
@@ -59,7 +59,6 @@ function useFetchAndLoadSoundfonts() {
     audioContext,
     currentInstrumentName,
     instruments,
-    currentInstrument,
     setCurrentInstrument,
     setInstruments,
   ]);

@@ -31,73 +31,61 @@ export function useInitializeAudioContext() {
   useEffect(() => {
     if (audioContext && masterVolumeGainNode) return;
 
-    function handleUserInteraction() {
-      if (audioContext && masterVolumeGainNode) return;
+    const newAudioContext = new AudioContext();
 
-      const newAudioContext = new AudioContext();
+    const newMasterVolumeGainNode = newAudioContext.createGain();
 
-      const newMasterVolumeGainNode = newAudioContext.createGain();
-
-      if (isMobileOnly) {
-        // mobile doesn't get access to a volume slider (users expect to use device's volume directly) so initializing at full volume.
-        newMasterVolumeGainNode.gain.value = 1.25;
-        localStorage.setItem("autostrum-volume", "1.25");
-      }
-
-      newMasterVolumeGainNode.connect(newAudioContext.destination);
-
-      setAudioContext(newAudioContext);
-      setMasterVolumeGainNode(newMasterVolumeGainNode);
-
-      // Check if the instrument is already in cache
-      if (instruments[currentInstrumentName]) {
-        setCurrentInstrument(instruments[currentInstrumentName]);
-        return;
-      }
-
-      void ensureSoundfontPlayer(
-        newAudioContext,
-        currentInstrumentName,
-        newMasterVolumeGainNode,
-      )
-        .then((player) => {
-          // Update the cache
-          const updatedInstruments = {
-            ...instruments,
-            [currentInstrumentName]: player,
-          };
-          setInstruments(updatedInstruments);
-          setCurrentInstrument(player);
-        })
-        .catch((error) => {
-          console.error(
-            `Failed to load ${currentInstrumentName} from both sources:`,
-            error,
-          );
-        });
-
-      async function fetchAudioFile(path: string) {
-        const response = await fetch(path);
-        const arrayBuffer = await response.arrayBuffer();
-        return await newAudioContext.decodeAudioData(arrayBuffer);
-      }
-
-      fetchAudioFile("/sounds/countIn.wav")
-        .then((audioBuffer) => {
-          setCountInBuffer(audioBuffer);
-        })
-        .catch((error) => {
-          console.error("Error fetching count-in audio file:", error);
-        });
+    if (isMobileOnly) {
+      // mobile doesn't get access to a volume slider (users expect to use device's volume directly) so initializing at full volume.
+      newMasterVolumeGainNode.gain.value = 1.25;
+      localStorage.setItem("autostrum-volume", "1.25");
     }
 
-    window.addEventListener("click", handleUserInteraction);
-    window.addEventListener("keydown", handleUserInteraction);
+    newMasterVolumeGainNode.connect(newAudioContext.destination);
 
-    return () => {
-      window.removeEventListener("click", handleUserInteraction);
-      window.removeEventListener("keydown", handleUserInteraction);
-    };
+    setAudioContext(newAudioContext);
+    setMasterVolumeGainNode(newMasterVolumeGainNode);
+
+    // Check if the instrument is already in cache
+    if (instruments[currentInstrumentName]) {
+      setCurrentInstrument(instruments[currentInstrumentName]);
+      return;
+    }
+
+    void ensureSoundfontPlayer(
+      newAudioContext,
+      currentInstrumentName,
+      newMasterVolumeGainNode,
+    )
+      .then((player) => {
+        // Update the cache
+        const updatedInstruments = {
+          ...instruments,
+          [currentInstrumentName]: player,
+        };
+        setInstruments(updatedInstruments);
+        setCurrentInstrument(player);
+      })
+      .catch((error) => {
+        console.error(
+          `Failed to load ${currentInstrumentName} from both sources:`,
+          error,
+        );
+      });
+
+    async function fetchAudioFile(path: string) {
+      const response = await fetch(path);
+      const arrayBuffer = await response.arrayBuffer();
+      return await newAudioContext.decodeAudioData(arrayBuffer);
+    }
+
+    fetchAudioFile("/sounds/countIn.wav")
+      .then((audioBuffer) => {
+        setCountInBuffer(audioBuffer);
+      })
+      .catch((error) => {
+        console.error("Error fetching count-in audio file:", error);
+      });
   }, [
     audioContext,
     masterVolumeGainNode,

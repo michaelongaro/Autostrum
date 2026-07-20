@@ -96,10 +96,6 @@ export async function ensureSoundfontPlayer(
   instrumentName: InstrumentName,
   destination: AudioNode,
 ) {
-  if (audioContext.state === "suspended") {
-    await audioContext.resume();
-  }
-
   const contextCache = getOrCreateContextCache(audioContext);
   const cachedLoad = contextCache.get(instrumentName);
 
