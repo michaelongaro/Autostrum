@@ -28,7 +28,6 @@ import { createTabNote } from "~/utils/tabNoteHelpers";
 
 interface SectionContainer {
   sectionIndex: number;
-  currentlyPlayingSectionIndex: number;
   forceCloseSectionAccordions: boolean;
   setForceCloseSectionAccordions: Dispatch<SetStateAction<boolean>>;
   tabDataLength: number;
@@ -36,7 +35,6 @@ interface SectionContainer {
 
 function SectionContainer({
   sectionIndex,
-  currentlyPlayingSectionIndex,
   forceCloseSectionAccordions,
   setForceCloseSectionAccordions,
   tabDataLength,
@@ -46,16 +44,24 @@ function SectionContainer({
     strummingPatterns,
     sectionProgression,
     setSectionProgression,
-    audioMetadata,
     setTabData,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     strummingPatterns: state.strummingPatterns,
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
-    audioMetadata: state.audioMetadata,
     setTabData: state.setTabData,
   }));
+
+  // Boolean stays stable while playback advances within this section, so chord
+  // ticks don't re-render the whole section tree.
+  const shouldOpenAccordionForPlayback = useTabStore((state) => {
+    if (!state.audioMetadata.playing) return false;
+    const playingSectionIndex =
+      state.currentlyPlayingMetadata?.[state.currentChordIndex]?.location
+        .sectionIndex;
+    return playingSectionIndex === sectionIndex;
+  });
 
   const section = useSectionData(sectionIndex);
 
@@ -70,13 +76,10 @@ function SectionContainer({
   }, [forceCloseSectionAccordions, setForceCloseSectionAccordions]);
 
   useEffect(() => {
-    if (
-      audioMetadata.playing &&
-      currentlyPlayingSectionIndex === sectionIndex
-    ) {
+    if (shouldOpenAccordionForPlayback) {
       setAccordionOpen("opened");
     }
-  }, [audioMetadata.playing, currentlyPlayingSectionIndex, sectionIndex]);
+  }, [shouldOpenAccordionForPlayback]);
 
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;

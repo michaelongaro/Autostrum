@@ -18,6 +18,7 @@ import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import { useMeasureLineHasBeenPlayed } from "~/hooks/useColumnPlaybackHighlight";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 
 // FYI: this whole component is such a mess architecture-wise, but I don't really know
@@ -30,7 +31,6 @@ interface TabMeasureLineProps {
   columnIndex: number;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
-  columnHasBeenPlayed: boolean;
 }
 
 function TabMeasureLine({
@@ -40,10 +40,14 @@ function TabMeasureLine({
   columnIndex,
   reorderingColumns,
   showingDeleteColumnsButtons,
-  columnHasBeenPlayed,
 }: TabMeasureLineProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
+  const columnHasBeenPlayed = useMeasureLineHasBeenPlayed(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  );
   const {
     attributes,
     listeners,

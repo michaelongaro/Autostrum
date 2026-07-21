@@ -79,6 +79,14 @@ const opacityAndScaleVariants = {
   },
 };
 
+// Stable dnd-kit config: inline `{ coordinateGetter }` / `[modifier]` identities
+// change every render and force DndContext to publish new context, re-rendering
+// every useSortable column even when their props are unchanged.
+const keyboardSensorOptions = {
+  coordinateGetter: sortableKeyboardCoordinates,
+};
+const dndModifiers = [restrictToParentElement];
+
 const xVariants = {
   hidden: { scale: 0, opacity: 0 },
   visible: {
@@ -142,9 +150,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
     useState(false);
-  const [columnIdxBeingHovered, setColumnIdxBeingHovered] = useState<
-    number | null
-  >(null);
 
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
@@ -152,9 +157,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
   const sensors = useSensors(
     useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    useSensor(KeyboardSensor, keyboardSensorOptions),
   );
 
   const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
@@ -174,21 +177,12 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     return subSection.data.map((column) => column.id);
   }
 
-  const {
-    bpm,
-    tuning,
-    currentlyPlayingMetadata,
-    currentChordIndex,
-    playbackSpeed,
-    audioMetadata,
-    setTabData,
-  } = useTabStore((state) => ({
+  // Intentionally omit currentChordIndex / currentlyPlayingMetadata / playback
+  // fields: columns subscribe to those with fine-grained selectors so playback
+  // ticks don't re-render the whole section (and invalidate DndContext).
+  const { bpm, tuning, setTabData } = useTabStore((state) => ({
     bpm: state.bpm,
     tuning: state.tuning,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-    currentChordIndex: state.currentChordIndex,
-    playbackSpeed: state.playbackSpeed,
-    audioMetadata: state.audioMetadata,
     setTabData: state.setTabData,
   }));
 
@@ -794,67 +788,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     }
   }
 
-  function columnIsBeingPlayed(columnIndex: number) {
-    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
-    if (
-      !currentlyPlayingMetadata ||
-      !location ||
-      audioMetadata.editingLoopRange
-    )
-      return false;
-
-    const isSameSection =
-      location.sectionIndex === sectionIndex &&
-      location.subSectionIndex === subSectionIndex;
-
-    const columnIsBeingPlayed =
-      isSameSection && location.chordIndex === columnIndex;
-
-    return columnIsBeingPlayed && audioMetadata.playing;
-  }
-
-  function columnHasBeenPlayed(columnIndex: number) {
-    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
-    if (!currentlyPlayingMetadata || !location) return false;
-
-    if (audioMetadata.editingLoopRange) {
-      const isInSectionBeingLooped = currentlyPlayingMetadata.some(
-        (metadata) => {
-          return (
-            sectionIndex === metadata.location.sectionIndex &&
-            subSectionIndex === metadata.location.subSectionIndex &&
-            columnIndex === metadata.location.chordIndex
-          );
-        },
-      );
-
-      return isInSectionBeingLooped;
-    }
-
-    const correspondingChordIndex = currentlyPlayingMetadata.some(
-      (metadata) => {
-        return (
-          sectionIndex === metadata.location.sectionIndex &&
-          subSectionIndex === metadata.location.subSectionIndex &&
-          columnIndex === metadata.location.chordIndex
-        );
-      },
-    );
-
-    if (!correspondingChordIndex) return false;
-
-    const isSameSection =
-      location.sectionIndex === sectionIndex &&
-      location.subSectionIndex === subSectionIndex;
-
-    return (
-      isSameSection &&
-      (location.chordIndex > columnIndex ||
-        (location.chordIndex === columnIndex &&
-          location.chordIndex === subSection.data.length))
-    );
-  }
-
   function handleBaseNoteLengthChange(
     newNoteLength: "whole" | "half" | "quarter" | "eighth" | "sixteenth",
   ) {
@@ -870,16 +803,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         }
       }
     });
-  }
-
-  function getDurationOfCurrentChord() {
-    const location = currentlyPlayingMetadata?.[currentChordIndex]?.location;
-    if (!currentlyPlayingMetadata || !location) return 0;
-
-    const { bpm, noteLengthMultiplier } =
-      currentlyPlayingMetadata[currentChordIndex]!;
-
-    return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
   }
 
   return (
@@ -1224,7 +1147,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
         <DndContext
           sensors={sensors}
-          modifiers={[restrictToParentElement]}
+          modifiers={dndModifiers}
           collisionDetection={rectIntersection}
           onDragEnd={handleDragEnd}
         >
@@ -1242,7 +1165,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     columnIndex={index}
                     reorderingColumns={reorderingColumns}
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
-                    columnHasBeenPlayed={columnHasBeenPlayed(index - 1)} // measure lines aren't "played", so tying logic to closest previous column
                   />
                 ) : (
                   <TabNotesColumn
@@ -1251,9 +1173,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     columnIndex={index}
                     columnData={column}
                     isLastColumn={index === subSection.data.length - 1}
-                    columnIsBeingPlayed={columnIsBeingPlayed(index)}
-                    columnHasBeenPlayed={columnHasBeenPlayed(index)}
-                    durationOfChord={getDurationOfCurrentChord()}
                     pmNodeOpacity={pmNodeOpacities[index] ?? "1"}
                     editingPalmMuteNodes={editingPalmMuteNodes}
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
@@ -1261,8 +1180,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
                     reorderingColumns={reorderingColumns}
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
-                    columnIdxBeingHovered={columnIdxBeingHovered}
-                    setColumnIdxBeingHovered={setColumnIdxBeingHovered}
                   />
                 )}
               </Fragment>
