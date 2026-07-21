@@ -593,193 +593,110 @@ function AudioControls() {
               )}
             </span>
 
-            {audioMetadata.editingLoopRange ? (
-              <Range
-                key={"rangeTwoThumbs"} // needed so thumb is properly initialized
-                label="Start/end slider to control range to loop within current tab"
-                step={1}
-                min={0}
-                max={audioMetadata.fullTabMetadataLength - 1}
-                values={[
-                  audioMetadata.startLoopIndex,
-                  audioMetadata.endLoopIndex === -1
-                    ? audioMetadata.fullTabMetadataLength - 1
-                    : audioMetadata.endLoopIndex,
-                ]}
-                draggableTrack
-                onChange={(values) => {
-                  const tabLength = audioMetadata.fullTabMetadataLength - 1;
-
-                  const newStartLoopIndex = values[0]!;
-                  const newEndLoopIndex =
-                    values[1] === tabLength ? -1 : values[1]!;
-
-                  if (
-                    newStartLoopIndex !== newEndLoopIndex &&
-                    (newStartLoopIndex !== audioMetadata.startLoopIndex ||
-                      newEndLoopIndex !== audioMetadata.endLoopIndex)
-                  ) {
-                    setAudioMetadata({
-                      ...audioMetadata,
-                      startLoopIndex: newStartLoopIndex,
-                      endLoopIndex: newEndLoopIndex,
-                    });
-                  }
-                }}
-                renderTrack={({ props, children, disabled }) => (
-                  <div
-                    onMouseDown={props.onMouseDown}
-                    onTouchStart={props.onTouchStart}
-                    style={{
-                      ...props.style,
-                      display: "flex",
-                      width: "100%",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <div
-                      ref={props.ref}
-                      style={{
-                        height: "8px",
-                        borderRadius: "4px",
-                        filter: disabled ? "brightness(0.75)" : "none",
-                        background: getTrackBackground({
-                          values: [
-                            audioMetadata.startLoopIndex,
-                            audioMetadata.endLoopIndex === -1
-                              ? audioMetadata.fullTabMetadataLength - 1
-                              : audioMetadata.endLoopIndex,
-                          ],
-                          colors: [
-                            "hsl(var(--gray) / 0.75)",
-                            "hsl(var(--primary))",
-                            "hsl(var(--gray) / 0.75)",
-                          ],
-                          min: 0,
-                          max: audioMetadata.fullTabMetadataLength - 1,
-                        }),
-                        alignSelf: "center",
-                      }}
-                      className={`relative w-full`}
-                    >
-                      {children}
-                    </div>
-                  </div>
-                )}
-                renderThumb={({ props }) => (
-                  <div
-                    {...props}
-                    className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary"
-                  />
-                )}
-              />
-            ) : (
-              <Range
-                key={"rangeOneThumb"} // needed so thumb is properly initialized
-                label="Slider to control the progress within the current tab"
-                step={1}
-                min={0}
-                max={
-                  currentlyPlayingMetadata
-                    ? currentlyPlayingMetadata.length - 1
-                    : 1
+            <Range
+              label="Slider to control the progress within the current tab"
+              step={1}
+              min={0}
+              max={
+                currentlyPlayingMetadata
+                  ? currentlyPlayingMetadata.length - 1
+                  : 1
+              }
+              values={[
+                Math.min(
+                  currentChordIndex +
+                    (audioMetadata.playing &&
+                    currentChordIndex !==
+                      (currentlyPlayingMetadata?.length ?? 1) - 1
+                      ? 1
+                      : 0),
+                  (currentlyPlayingMetadata?.length ?? 1) - 1,
+                ),
+              ]}
+              disabled={disablePlayButton}
+              onChange={(values) => {
+                if (audioMetadata.playing) {
+                  pauseAudio();
                 }
-                values={[
-                  Math.min(
-                    currentChordIndex +
-                      (audioMetadata.playing &&
-                      currentChordIndex !==
-                        (currentlyPlayingMetadata?.length ?? 1) - 1
-                        ? 1
-                        : 0),
-                    (currentlyPlayingMetadata?.length ?? 1) - 1,
-                  ),
-                ]}
-                disabled={disablePlayButton}
-                onChange={(values) => {
-                  if (audioMetadata.playing) {
-                    pauseAudio();
-                  }
 
-                  setCurrentChordIndex(values[0] ?? 0);
-                }}
-                renderTrack={({ props, children, disabled }) => (
+                setCurrentChordIndex(values[0] ?? 0);
+              }}
+              renderTrack={({ props, children, disabled }) => (
+                <div
+                  onMouseDown={props.onMouseDown}
+                  onTouchStart={props.onTouchStart}
+                  onPointerDown={() => {
+                    setInteractingWithAudioProgressSlider(true);
+                    if (audioMetadata.playing) pauseAudio();
+                  }}
+                  onPointerUp={() => {
+                    setInteractingWithAudioProgressSlider(false);
+                  }}
+                  style={{
+                    ...props.style,
+                    display: "flex",
+                    width: "100%",
+                    justifyContent: "center",
+                  }}
+                >
                   <div
-                    onMouseDown={props.onMouseDown}
-                    onTouchStart={props.onTouchStart}
-                    onPointerDown={() => {
-                      setInteractingWithAudioProgressSlider(true);
-                      if (audioMetadata.playing) pauseAudio();
-                    }}
-                    onPointerUp={() => {
-                      setInteractingWithAudioProgressSlider(false);
-                    }}
+                    ref={props.ref}
                     style={{
-                      ...props.style,
-                      display: "flex",
-                      width: "100%",
-                      justifyContent: "center",
+                      height: "8px",
+                      borderRadius: "4px",
+                      filter: disabled ? "brightness(0.75)" : "none",
+                      alignSelf: "center",
                     }}
+                    className={`relative w-full bg-neutral-200 transition-[filter] mobileLandscape:w-[95%]`}
                   >
-                    <div
-                      ref={props.ref}
-                      style={{
-                        height: "8px",
-                        borderRadius: "4px",
-                        filter: disabled ? "brightness(0.75)" : "none",
-                        alignSelf: "center",
-                      }}
-                      className={`relative w-full bg-neutral-200 transition-[filter] mobileLandscape:w-[95%]`}
-                    >
-                      <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
-                        <div
-                          id="editingSliderTrack"
-                          style={{
-                            transform: `scaleX(${Math.min(
-                              (currentChordIndex +
-                                (audioMetadata.playing &&
-                                currentChordIndex !==
-                                  (currentlyPlayingMetadata?.length ?? 1) - 1
-                                  ? 1
-                                  : 0)) /
-                                ((currentlyPlayingMetadata?.length ?? 1) - 1 ||
-                                  1),
-                              1,
-                            )})`,
-                            transitionProperty: "transform",
-                            transitionTimingFunction: "linear",
-                            transitionDuration: `${
-                              audioMetadata.playing
-                                ? `${chordDurations[currentChordIndex] ?? 0}s`
-                                : "0s"
-                            }`,
-                          }}
-                          className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary will-change-transform"
-                        ></div>
-                      </div>
-                      {children}
+                    <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
+                      <div
+                        id="editingSliderTrack"
+                        style={{
+                          transform: `scaleX(${Math.min(
+                            (currentChordIndex +
+                              (audioMetadata.playing &&
+                              currentChordIndex !==
+                                (currentlyPlayingMetadata?.length ?? 1) - 1
+                                ? 1
+                                : 0)) /
+                              ((currentlyPlayingMetadata?.length ?? 1) - 1 ||
+                                1),
+                            1,
+                          )})`,
+                          transitionProperty: "transform",
+                          transitionTimingFunction: "linear",
+                          transitionDuration: `${
+                            audioMetadata.playing
+                              ? `${chordDurations[currentChordIndex] ?? 0}s`
+                              : "0s"
+                          }`,
+                        }}
+                        className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary will-change-transform"
+                      ></div>
                     </div>
+                    {children}
                   </div>
-                )}
-                renderThumb={({ props }) => (
-                  <div
-                    {...props}
-                    id="editingSliderThumb"
-                    style={{
-                      ...props.style,
-                      transitionProperty: "transform",
-                      transitionTimingFunction: "linear",
-                      transitionDuration: `${
-                        audioMetadata.playing
-                          ? `${chordDurations[currentChordIndex] ?? 0}s`
-                          : "0s"
-                      }`,
-                    }}
-                    className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
-                  />
-                )}
-              />
-            )}
+                </div>
+              )}
+              renderThumb={({ props }) => (
+                <div
+                  {...props}
+                  id="editingSliderThumb"
+                  style={{
+                    ...props.style,
+                    transitionProperty: "transform",
+                    transitionTimingFunction: "linear",
+                    transitionDuration: `${
+                      audioMetadata.playing
+                        ? `${chordDurations[currentChordIndex] ?? 0}s`
+                        : "0s"
+                    }`,
+                  }}
+                  className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
+                />
+              )}
+            />
 
             <span className="ml-2">
               {formatSecondsToMinutes(
