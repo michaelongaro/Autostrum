@@ -30,6 +30,7 @@ interface CompileFullTab {
   atomicallyUpdateAudioMetadata?: (
     updatedFields: Partial<AudioMetadata>,
   ) => void;
+  forMetadataOnly: boolean; // aims to improve metadata compilation speed while editing
   forPlayback?: {
     loopDelay: number;
   };
@@ -46,6 +47,7 @@ function compileFullTab({
   startLoopIndex,
   endLoopIndex,
   atomicallyUpdateAudioMetadata,
+  forMetadataOnly,
   forPlayback,
 }: CompileFullTab) {
   const compiledChords: string[][] = [];
@@ -74,6 +76,7 @@ function compileFullTab({
         strummingPatterns,
         elapsedSeconds,
         playbackSpeed,
+        forMetadataOnly,
         forPlayback: forPlayback !== undefined,
       });
     }
@@ -225,6 +228,7 @@ interface CompileSection {
   strummingPatterns: StrummingPattern[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
+  forMetadataOnly: boolean;
   forPlayback: boolean;
 }
 
@@ -238,6 +242,7 @@ function compileSection({
   strummingPatterns,
   elapsedSeconds,
   playbackSpeed,
+  forMetadataOnly,
   forPlayback,
 }: CompileSection) {
   for (
@@ -265,6 +270,7 @@ function compileSection({
           metadata,
           elapsedSeconds,
           playbackSpeed,
+          forMetadataOnly,
           forPlayback,
         });
       } else {
@@ -279,6 +285,7 @@ function compileSection({
           strummingPatterns,
           elapsedSeconds,
           playbackSpeed,
+          forMetadataOnly,
           forPlayback,
         });
       }
@@ -295,6 +302,7 @@ interface CompileTabSection {
   metadata: Metadata[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
+  forMetadataOnly: boolean;
   forPlayback: boolean;
 }
 
@@ -307,6 +315,7 @@ function compileTabSection({
   metadata,
   elapsedSeconds,
   playbackSpeed,
+  forMetadataOnly,
   forPlayback,
 }: CompileTabSection) {
   const data = subSection.data;
@@ -381,12 +390,15 @@ function compileTabSection({
       continue;
     }
 
+    if (!forMetadataOnly) {
+      // Convert to array format for compiledChords, embedding current BPM
+      const chordArray = tabNoteToArray(column);
+      chordArray[9] = `${currentBpm}`;
+      compiledChords.push(chordArray);
+    }
+
     // column is TabNote at this point
     const noteLengthMultiplier = noteLengthMultipliers[column.noteLength] ?? 1;
-
-    // Convert to array format for compiledChords, embedding current BPM
-    const chordArray = tabNoteToArray(column);
-    chordArray[9] = `${currentBpm}`;
 
     metadata.push({
       location: {
@@ -402,8 +414,6 @@ function compileTabSection({
 
     elapsedSeconds.value +=
       60 / ((currentBpm / noteLengthMultiplier) * playbackSpeed);
-
-    compiledChords.push(chordArray);
   }
 }
 
@@ -418,6 +428,7 @@ interface CompileChordSection {
   strummingPatterns: StrummingPattern[];
   elapsedSeconds: { value: number };
   playbackSpeed: number;
+  forMetadataOnly: boolean;
   forPlayback: boolean;
 }
 
@@ -432,6 +443,7 @@ function compileChordSection({
   strummingPatterns,
   elapsedSeconds,
   playbackSpeed,
+  forMetadataOnly,
   forPlayback,
 }: CompileChordSection) {
   const chordSection = subSection.data;
@@ -475,6 +487,7 @@ function compileChordSection({
       chords,
       strummingPatterns,
       elapsedSeconds,
+      forMetadataOnly,
       playbackSpeed,
     });
   }
@@ -492,6 +505,7 @@ interface CompileChordSequence {
   chords: Chord[];
   strummingPatterns: StrummingPattern[];
   elapsedSeconds: { value: number };
+  forMetadataOnly: boolean;
   playbackSpeed: number;
 }
 
@@ -507,6 +521,7 @@ function compileChordSequence({
   chords,
   strummingPatterns,
   elapsedSeconds,
+  forMetadataOnly,
   playbackSpeed,
 }: CompileChordSequence) {
   const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
@@ -539,6 +554,18 @@ function compileChordSequence({
         subSectionBpm,
       );
 
+      if (!forMetadataOnly) {
+        compiledChords.push(
+          compileChord({
+            chordName: chordName ?? "",
+            chordIdx,
+            strummingPattern: chordSequence.strummingPattern,
+            chords,
+            bpm: chordBpm,
+          }),
+        );
+      }
+
       const strummingPattern = strummingPatterns.find(
         (pattern) => pattern.id === chordSequence.strummingPattern.id,
       );
@@ -563,16 +590,6 @@ function compileChordSequence({
 
       elapsedSeconds.value +=
         60 / ((chordBpm / noteLengthMultiplier) * playbackSpeed);
-
-      compiledChords.push(
-        compileChord({
-          chordName: chordName ?? "",
-          chordIdx,
-          strummingPattern: chordSequence.strummingPattern,
-          chords,
-          bpm: chordBpm,
-        }),
-      );
     }
   }
 }
@@ -643,6 +660,7 @@ interface CompileSpecificChordGrouping {
   atomicallyUpdateAudioMetadata?: (
     updatedFields: Partial<AudioMetadata>,
   ) => void;
+  forMetadataOnly: boolean;
   forPlayback?: {
     loopDelay: number;
   };
@@ -659,6 +677,7 @@ function compileSpecificChordGrouping({
   startLoopIndex,
   endLoopIndex,
   atomicallyUpdateAudioMetadata,
+  forMetadataOnly,
   forPlayback,
 }: CompileSpecificChordGrouping) {
   const compiledChords: string[][] = [];
@@ -693,6 +712,7 @@ function compileSpecificChordGrouping({
       strummingPatterns,
       elapsedSeconds,
       playbackSpeed,
+      forMetadataOnly,
     });
   }
 
@@ -723,6 +743,7 @@ function compileSpecificChordGrouping({
           metadata,
           elapsedSeconds,
           playbackSpeed,
+          forMetadataOnly,
           forPlayback: forPlayback !== undefined,
         });
       } else {
@@ -737,6 +758,7 @@ function compileSpecificChordGrouping({
           strummingPatterns,
           elapsedSeconds,
           playbackSpeed,
+          forMetadataOnly,
           forPlayback: forPlayback !== undefined,
         });
       }
@@ -758,6 +780,7 @@ function compileSpecificChordGrouping({
       strummingPatterns,
       elapsedSeconds,
       playbackSpeed,
+      forMetadataOnly,
       forPlayback: forPlayback !== undefined,
     });
   }

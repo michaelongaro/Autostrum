@@ -1001,6 +1001,7 @@ const useTabStoreBase = create<TabState>()(
               startLoopIndex: adjStartLoopIndex,
               endLoopIndex: adjEndLoopIndex,
               atomicallyUpdateAudioMetadata,
+              forMetadataOnly: false,
             })
           : compileFullTab({
               tabData,
@@ -1013,6 +1014,7 @@ const useTabStoreBase = create<TabState>()(
               startLoopIndex: adjStartLoopIndex,
               endLoopIndex: adjEndLoopIndex,
               atomicallyUpdateAudioMetadata,
+              forMetadataOnly: false,
               forPlayback: editing ? undefined : { loopDelay },
             });
 

@@ -84,6 +84,7 @@ function useAutoCompileChords() {
         startLoopIndex: audioMetadata.startLoopIndex,
         endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
+        forMetadataOnly: true,
       });
     } else {
       compileFullTab({
@@ -97,6 +98,7 @@ function useAutoCompileChords() {
         startLoopIndex: audioMetadata.startLoopIndex,
         endLoopIndex: audioMetadata.endLoopIndex,
         atomicallyUpdateAudioMetadata,
+        forMetadataOnly: true,
         forPlayback: editing ? undefined : { loopDelay },
       });
     }
@@ -154,7 +156,7 @@ function useAutoCompileChords() {
 
   // runs at most every 2 seconds when editing
   const debouncedHandleTabLogic = useMemo(
-    () => debounce(handleTabLogic, editing ? 2000 : 0),
+    () => debounce(handleTabLogic, editing ? 1000 : 0),
     [handleTabLogic, editing],
   );
 
