@@ -28,13 +28,14 @@ import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSecti
 import { useStrumHighlight } from "~/hooks/useStrumHighlight";
 import {
   useTabStore,
+  type Chord,
   type FullNoteLengths,
   type Strum,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 
-const emptyChords: { name: string }[] = [];
+const emptyChords: Chord[] = [];
 
 type StrummingPatternMode =
   | "editingStrummingPattern"
