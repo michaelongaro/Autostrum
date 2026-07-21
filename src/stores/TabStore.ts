@@ -1023,7 +1023,6 @@ const useTabStoreBase = create<TabState>()(
             ? sectionProgression
             : generateDefaultSectionProgression(tabData);
 
-        // TODO: add support for specific sections
         const expandedTabData = editing
           ? null
           : expandFullTab({

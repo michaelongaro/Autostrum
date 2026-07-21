@@ -6,7 +6,6 @@ import {
   type PlaybackMetadata,
   type Section,
   type SectionProgression,
-  type StrummingPattern,
   type TabSection,
   type PlaybackTabChord,
   type PlaybackStrummedChord,
@@ -16,7 +15,6 @@ import {
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
-import isEqual from "lodash.isequal";
 import {
   isTabMeasureLine,
   isTabNote,
@@ -59,7 +57,7 @@ function expandFullTab({
     PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord
   )[] = [];
   const metadata: PlaybackMetadata[] = [];
-  const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues
+  const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues by storing in an object
 
   const modifiedSectionProg =
     location?.sectionIndex === undefined
@@ -75,19 +73,9 @@ function expandFullTab({
           },
         ];
 
-  for (
-    let sectionProgressionIndex = 0;
-    sectionProgressionIndex < modifiedSectionProg.length;
-    sectionProgressionIndex++
-  ) {
-    const sectionIndex = getSectionIndexFromId(
-      tabData,
-      modifiedSectionProg[sectionProgressionIndex]!.sectionId,
-    );
-
-    const sectionRepetitions = getRepetitions(
-      modifiedSectionProg[sectionProgressionIndex]?.repetitions,
-    );
+  for (const sectionProg of modifiedSectionProg) {
+    const sectionIndex = getSectionIndexFromId(tabData, sectionProg.sectionId);
+    const sectionRepetitions = getRepetitions(sectionProg?.repetitions);
 
     for (
       let sectionRepeatIdx = 0;
@@ -113,10 +101,6 @@ function expandFullTab({
     }
   }
 
-  // hacky: but is used incase the slice returns an empty array, which we couldn't then access
-  // the last element in metadataMappedToLoopRange below for.
-  const backupFirstChordMetadata = metadata[startLoopIndex];
-
   const compiledChordsMappedToLoopRange = compiledChords.slice(
     startLoopIndex,
     endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
@@ -127,15 +111,11 @@ function expandFullTab({
     endLoopIndex === -1 ? metadata.length : endLoopIndex,
   );
 
-  if (metadataMappedToLoopRange.length === 0) {
-    metadataMappedToLoopRange.push(backupFirstChordMetadata!);
-  }
-
-  // scaling the elapsedSeconds to start at 0 no matter the startLoopIndex
+  // adjusting the elapsedSeconds to start at 0 no matter the startLoopIndex
   const secondsToSubtract = metadataMappedToLoopRange[0]?.elapsedSeconds ?? 0;
 
-  for (let i = 0; i < metadataMappedToLoopRange.length; i++) {
-    metadataMappedToLoopRange[i]!.elapsedSeconds -= secondsToSubtract;
+  for (const metadata of metadataMappedToLoopRange) {
+    metadata.elapsedSeconds -= secondsToSubtract;
   }
 
   // Use metadata types (not chord types) so measure-line / ornamental endings
@@ -241,8 +221,11 @@ function expandFullTab({
   // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
 
   // Rounded right border at the end of each baseline loop (before delay spacers / duplication).
-  // @ts-expect-error asdf
-  compiledChordsMappedToLoopRange.at(-1)!.isLastChord = true;
+  const lastChord = compiledChordsMappedToLoopRange.at(-1) as
+    PlaybackTabChord | PlaybackStrummedChord;
+  if (lastChord) {
+    lastChord.isLastChord = true;
+  }
 
   // Always append loop-delay spacers to the baseline (matching audio compile),
   // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
@@ -311,6 +294,7 @@ function expandFullTab({
   );
 
   let totalChordsWidth = baselineTotalChordsWidth;
+
   const baselineCompiledChords = structuredClone(
     compiledChordsMappedToLoopRange,
   );
