@@ -295,7 +295,7 @@ function AudioControls() {
 
             {!isMobileOnly && (
               <div
-                className={`baseFlex col-span-5 w-full gap-2 md:w-1/2 md:justify-self-end ${
+                className={`baseFlex col-span-5 w-full gap-2 ${
                   visibility === "minimized" ? "opacity-0" : "opacity-100"
                 } transition-opacity`}
               >
