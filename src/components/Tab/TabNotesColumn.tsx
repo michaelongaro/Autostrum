@@ -24,6 +24,7 @@ import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
 import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
 import { NoteLengthDropdown } from "./NoteLengthDropdown";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
@@ -40,10 +41,6 @@ interface TabNotesColumnProps {
   columnIndex: number;
   isLastColumn: boolean;
 
-  columnIsBeingPlayed: boolean;
-  columnHasBeenPlayed: boolean;
-  durationOfChord: number;
-
   pmNodeOpacity: string;
   editingPalmMuteNodes: boolean;
   setEditingPalmMuteNodes: Dispatch<SetStateAction<boolean>>;
@@ -53,8 +50,6 @@ interface TabNotesColumnProps {
   >;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
-  columnIdxBeingHovered: number | null;
-  setColumnIdxBeingHovered: Dispatch<SetStateAction<number | null>>;
 }
 
 function TabNotesColumn({
@@ -64,10 +59,6 @@ function TabNotesColumn({
   columnIndex,
   isLastColumn,
 
-  columnIsBeingPlayed,
-  columnHasBeenPlayed,
-  durationOfChord,
-
   pmNodeOpacity,
   editingPalmMuteNodes,
   setEditingPalmMuteNodes,
@@ -75,14 +66,17 @@ function TabNotesColumn({
   setLastModifiedPalmMuteNode,
   reorderingColumns,
   showingDeleteColumnsButtons,
-  columnIdxBeingHovered,
-  setColumnIdxBeingHovered,
 }: TabNotesColumnProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
   const [highlightChord, setHighlightChord] = useState(false);
   const [chordSettingDropdownIsOpen, setChordSettingDropdownIsOpen] =
     useState(false);
+  // Local hover state avoids re-rendering every column in the section on mouse move
+  const [isHovered, setIsHovered] = useState(false);
+
+  const { columnIsBeingPlayed, columnHasBeenPlayed, durationOfChord } =
+    useColumnPlaybackHighlight(sectionIndex, subSectionIndex, columnIndex);
 
   const {
     attributes,
@@ -296,8 +290,8 @@ function TabNotesColumn({
         transition,
         zIndex: isDragging ? 20 : "auto",
       }}
-      onMouseEnter={() => setColumnIdxBeingHovered(columnIndex)}
-      onMouseLeave={() => setColumnIdxBeingHovered(null)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className="baseVertFlex h-[380px] cursor-default"
     >
       <Element
@@ -365,8 +359,7 @@ function TabNotesColumn({
           ))}
 
           {/* Chord Settings Dropdown */}
-          {columnIdxBeingHovered === columnIndex ||
-          chordSettingDropdownIsOpen ? (
+          {isHovered || chordSettingDropdownIsOpen ? (
             <DropdownMenu
               modal={true}
               open={chordSettingDropdownIsOpen}

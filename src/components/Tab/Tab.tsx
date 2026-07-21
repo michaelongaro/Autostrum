@@ -95,8 +95,6 @@ function Tab() {
     chordBeingEdited,
     strummingPatternBeingEdited,
     showCustomTuningModal,
-    currentlyPlayingMetadata,
-    currentChordIndex,
     sectionProgression,
     chords,
     strummingPatterns,
@@ -116,8 +114,6 @@ function Tab() {
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     showCustomTuningModal: state.showCustomTuningModal,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-    currentChordIndex: state.currentChordIndex,
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
@@ -280,10 +276,6 @@ function Tab() {
               {editing ? (
                 <SectionContainer
                   sectionIndex={index}
-                  currentlyPlayingSectionIndex={
-                    currentlyPlayingMetadata?.[currentChordIndex]?.location
-                      .sectionIndex ?? 0
-                  }
                   forceCloseSectionAccordions={
                     forceCloseSectionAccordions && index !== tabData.length - 1
                   }
