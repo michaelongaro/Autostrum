@@ -190,7 +190,7 @@ function renderNoteLengthGuide({
   const connectsLeftFirstBeam = prevSupportsBeams;
   const connectsRightFirstBeam = nextSupportsBeams;
 
-  // For eighth notes: only one beam level
+  // For eighth notes: one beam level (and dots)
   if (parsedCurrent.base === "eighth") {
     const leftBeams = connectsLeftFirstBeam
       ? createBeamSegments("left", [0], noteColor)
@@ -202,15 +202,15 @@ function renderNoteLengthGuide({
 
     return (
       <div className="baseFlex relative size-full !flex-nowrap">
-        {verticalStem}
         {leftBeams}
+        {verticalStem}
         {rightBeams}
         {renderDots(parsedCurrent.dotCount, noteColor, "default")}
       </div>
     );
   }
 
-  // For sixteenth notes: two beam levels with intelligent second beam rendering
+  // For sixteenth notes: two beam levels (and dots)
   if (parsedCurrent.base === "sixteenth") {
     // First beam: standard beaming to any eighth/sixteenth neighbor
     const showLeftFirstBeam = connectsLeftFirstBeam;
@@ -265,15 +265,15 @@ function renderNoteLengthGuide({
 
     return (
       <div className="baseFlex relative size-full !flex-nowrap">
-        {verticalStem}
         {leftBeams}
+        {verticalStem}
         {rightBeams}
         {renderDots(parsedCurrent.dotCount, noteColor, "default")}
       </div>
     );
   }
 
-  // Quarter and half notes: just the stem (and dots)
+  // Quarter / half / whole notes: just the stem (and dots)
   return (
     <div className="baseFlex relative size-full !flex-nowrap">
       {verticalStem}
