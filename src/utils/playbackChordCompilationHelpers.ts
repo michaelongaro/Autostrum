@@ -103,12 +103,12 @@ function expandFullTab({
 
   const compiledChordsMappedToLoopRange = compiledChords.slice(
     startLoopIndex,
-    endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
+    endLoopIndex === -1 ? compiledChords.length : endLoopIndex + 1,
   );
 
   const metadataMappedToLoopRange = metadata.slice(
     startLoopIndex,
-    endLoopIndex === -1 ? metadata.length : endLoopIndex,
+    endLoopIndex === -1 ? metadata.length : endLoopIndex + 1,
   );
 
   // adjusting the elapsedSeconds to start at 0 no matter the startLoopIndex
@@ -217,17 +217,14 @@ function expandFullTab({
     });
   }
 
+  // these need to be set before spacer chords are added
+  compiledChordsMappedToLoopRange.at(0)!.isFirstChordInTab = true;
+  compiledChordsMappedToLoopRange.at(-1)!.isLastChordInTab = true;
+
   // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
   // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
 
-  // Rounded right border at the end of each baseline loop (before delay spacers / duplication).
-  const lastChord = compiledChordsMappedToLoopRange.at(-1) as
-    PlaybackTabChord | PlaybackStrummedChord;
-  if (lastChord) {
-    lastChord.isLastChord = true;
-  }
-
-  // Always append loop-delay spacers to the baseline (matching audio compile),
+  // appending loop-delay spacers,
   // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
   if (loopDelay > 0) {
     const numSpacerChordsToAdd = Math.floor(

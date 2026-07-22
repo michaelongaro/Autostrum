@@ -39,7 +39,8 @@ interface PlaybackAnimatedStrip {
       PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
     nextChord?:
       PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
-    isFirstChordInSection: boolean;
+    isFirstChordInTab: boolean;
+    isLastChordInTab: boolean;
     isDimmed: boolean;
     isHighlighted: boolean;
   }) => React.ReactNode;

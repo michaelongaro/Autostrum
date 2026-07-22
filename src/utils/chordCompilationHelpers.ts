@@ -90,12 +90,12 @@ function compileFullTab({
 
   const compiledChordsMappedToLoopRange = compiledChords.slice(
     startLoopIndex,
-    endLoopIndex === -1 ? compiledChords.length : endLoopIndex,
+    endLoopIndex === -1 ? compiledChords.length : endLoopIndex + 1,
   );
 
   const metadataMappedToLoopRange = metadata.slice(
     startLoopIndex,
-    endLoopIndex === -1 ? metadata.length : endLoopIndex,
+    endLoopIndex === -1 ? metadata.length : endLoopIndex + 1,
   );
 
   // adjusting the elapsedSeconds to start at 0 no matter the startLoopIndex

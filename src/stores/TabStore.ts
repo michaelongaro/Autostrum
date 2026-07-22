@@ -255,6 +255,8 @@ export interface PlaybackTabChord {
   type: "tab";
   isFirstChord: boolean;
   isLastChord: boolean;
+  isFirstChordInTab?: boolean;
+  isLastChordInTab?: boolean;
   // not my favorite approach below but it makes it easier to compare
   // bpm between tab/strummed chords
   data: {
@@ -267,12 +269,16 @@ export interface PlaybackStrummedChord {
   type: "strum";
   isFirstChord: boolean;
   isLastChord: boolean;
+  isFirstChordInTab?: boolean;
+  isLastChordInTab?: boolean;
   data: PlaybackChord;
   baseNoteLength: BaseNoteLengths;
 }
 
 export interface PlaybackLoopDelaySpacerChord {
   type: "loopDelaySpacer";
+  isFirstChordInTab?: boolean;
+  isLastChordInTab?: boolean;
   data: {
     bpm: number;
   };

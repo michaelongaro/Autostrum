@@ -8,8 +8,10 @@ import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 
 interface PlaybackTabChord {
   columnData: string[];
-  isFirstChordInSection: boolean;
-  isLastChordInSection: boolean;
+  isFirstChord: boolean;
+  isLastChord: boolean;
+  isFirstChordInTab: boolean;
+  isLastChordInTab: boolean;
   isHighlighted: boolean;
   isDimmed: boolean;
   prevChordNoteLength?: FullNoteLengths;
@@ -22,8 +24,10 @@ interface PlaybackTabChord {
 
 function PlaybackTabChord({
   columnData,
-  isFirstChordInSection,
-  isLastChordInSection,
+  isFirstChord,
+  isLastChord,
+  isFirstChordInTab,
+  isLastChordInTab,
   isHighlighted,
   isDimmed,
   prevChordNoteLength,
@@ -86,19 +90,27 @@ function PlaybackTabChord({
 
                 {index > 0 && index < 7 && (
                   <div
+                    // key is just used here to force a re-render, borderRadius was glitchy
+                    key={
+                      isFirstChordInTab
+                        ? "firstRounded"
+                        : isLastChordInTab
+                          ? "lastRounded"
+                          : "regular"
+                    }
                     style={{
                       borderTop: `${index === 1 ? "2px solid" : "none"}`,
                       paddingTop: `${index === 1 ? "7px" : "0"}`,
-                      borderLeft: isFirstChordInSection ? "2px solid" : "none",
-                      borderRight: isLastChordInSection ? "2px solid" : "none",
+                      borderLeft: isFirstChordInTab ? "2px solid" : "none",
+                      borderRight: isLastChordInTab ? "2px solid" : "none",
                       borderRadius:
-                        isFirstChordInSection && index === 1
+                        isFirstChordInTab && index === 1
                           ? "10px 0 0 0" // top left
-                          : isFirstChordInSection && index === 6
+                          : isFirstChordInTab && index === 6
                             ? "0 0 0 10px" // bottom left
-                            : isLastChordInSection && index === 1
+                            : isLastChordInTab && index === 1
                               ? "0 10px 0 0" // top right
-                              : isLastChordInSection && index === 6
+                              : isLastChordInTab && index === 6
                                 ? "0 0 10px 0" // bottom right
                                 : "none",
                       borderBottom: `${index === 6 ? "2px solid" : "none"}`,
@@ -139,8 +151,8 @@ function PlaybackTabChord({
                       previousIsRestStrum: prevChordIsRest,
                       currentIsRestStrum: currentChordIsRest,
                       nextIsRestStrum: nextChordIsRest,
-                      isFirstInGroup: isFirstChordInSection,
-                      isLastInGroup: isLastChordInSection,
+                      isFirstInGroup: isFirstChord,
+                      isLastInGroup: isLastChord,
                     })}
                   </div>
                 )}

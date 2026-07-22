@@ -152,7 +152,6 @@ function PlaybackProgressSlider({
           step={1}
           min={0}
           max={audioMetadata.fullTabMetadataLength - 1}
-          // allowOverlap={true}
           draggableTrack
           values={loopRange}
           onChange={(newLoopRange) => {

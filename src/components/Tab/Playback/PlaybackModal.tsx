@@ -57,7 +57,8 @@ interface RenderVisibleChord {
     | PlaybackTabChordType
     | PlaybackStrummedChordType
     | PlaybackLoopDelaySpacerChord;
-  isFirstChordInSection: boolean;
+  isFirstChordInTab: boolean;
+  isLastChordInTab: boolean;
   isDimmed: boolean;
   isHighlighted: boolean;
 }
@@ -506,11 +507,13 @@ function PlaybackModal() {
       chord,
       prevChord,
       nextChord,
-      isFirstChordInSection,
+      isFirstChordInTab,
+      isLastChordInTab,
       isDimmed,
       isHighlighted,
     }: RenderVisibleChord) => (
       <RenderChordByType
+        key={loopDelay}
         type={
           chord.type === "strum"
             ? "strum"
@@ -520,17 +523,16 @@ function PlaybackModal() {
                 : "tab"
               : "loopDelaySpacer"
         }
-        playbackSpeed={playbackSpeed}
         prevChord={prevChord}
         chord={chord}
         nextChord={nextChord}
-        isFirstChordInSection={isFirstChordInSection}
+        isFirstChordInTab={isFirstChordInTab}
+        isLastChordInTab={isLastChordInTab}
         isDimmed={isDimmed}
-        loopDelay={loopDelay}
         isHighlighted={isHighlighted}
       />
     ),
-    [loopDelay, playbackSpeed],
+    [loopDelay],
   );
 
   return (
@@ -675,7 +677,6 @@ export default PlaybackModal;
 
 interface RenderChordByTypeProps {
   type: "tab" | "measureLine" | "strum" | "loopDelaySpacer";
-  playbackSpeed: number;
   prevChord?:
     | PlaybackTabChordType
     | PlaybackStrummedChordType
@@ -688,21 +689,20 @@ interface RenderChordByTypeProps {
     | PlaybackTabChordType
     | PlaybackStrummedChordType
     | PlaybackLoopDelaySpacerChord;
-  isFirstChordInSection: boolean;
+  isFirstChordInTab: boolean;
+  isLastChordInTab: boolean;
   isDimmed: boolean;
-  loopDelay: number;
   isHighlighted: boolean;
 }
 
 const RenderChordByType = memo(function RenderChordByType({
   type,
-  playbackSpeed,
   prevChord,
   chord,
   nextChord,
-  isFirstChordInSection,
+  isFirstChordInTab,
+  isLastChordInTab,
   isDimmed,
-  loopDelay,
   isHighlighted,
 }: RenderChordByTypeProps) {
   const prevChordNoteLength = prevChord
@@ -734,21 +734,33 @@ const RenderChordByType = memo(function RenderChordByType({
     prevChord === undefined ||
     (prevChord.type === "tab" && prevChord.data.chordData[7] === "r") ||
     (prevChord.type === "strum" && prevChord.data.strum === "r");
+
   const currentChordIsRest =
     chord === undefined ||
     (chord.type === "tab" && chord.data.chordData[7] === "r") ||
     (chord.type === "strum" && chord.data.strum === "r");
+
   const nextChordIsRest =
     nextChord === undefined ||
     (nextChord.type === "tab" && nextChord.data.chordData[7] === "r") ||
     (nextChord.type === "strum" && nextChord.data.strum === "r");
 
+  if (isFirstChordInTab) {
+    console.log("first");
+  }
+
+  if (isLastChordInTab) {
+    console.log("last");
+  }
+
   if (type === "tab" && chord?.type === "tab") {
     return (
       <PlaybackTabChord
         columnData={chord?.data.chordData}
-        isFirstChordInSection={isFirstChordInSection}
-        isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
+        isFirstChord={chord?.isFirstChord}
+        isLastChord={chord?.isLastChord}
+        isFirstChordInTab={isFirstChordInTab}
+        isLastChordInTab={isLastChordInTab}
         isHighlighted={isHighlighted}
         isDimmed={isDimmed}
         prevChordNoteLength={prevChordNoteLength}
@@ -776,8 +788,10 @@ const RenderChordByType = memo(function RenderChordByType({
         strumIndex={chord?.data.strumIndex || 0}
         strum={chord?.data.strum || ""}
         palmMute={chord?.data.palmMute || ""}
-        isFirstChordInSection={isFirstChordInSection}
-        isLastChordInSection={chord?.isLastChord && loopDelay !== 0}
+        isFirstChord={chord?.isFirstChord}
+        isLastChord={chord?.isLastChord}
+        isFirstChordInTab={isFirstChordInTab}
+        isLastChordInTab={isLastChordInTab}
         noteLength={chord?.data.noteLength || "quarter"}
         bpmToShow={chord?.data.showBpm ? chord?.data.bpm : undefined}
         chordName={chord?.data.chordName || ""}

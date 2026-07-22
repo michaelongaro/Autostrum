@@ -40,7 +40,8 @@ interface PlaybackVisibleChords {
       PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
     nextChord?:
       PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
-    isFirstChordInSection: boolean;
+    isFirstChordInTab: boolean;
+    isLastChordInTab: boolean;
     isDimmed: boolean;
     isHighlighted: boolean;
   }) => React.ReactNode;
@@ -136,6 +137,7 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
   const visibleChords = useMemo(() => {
     const { scrollPositions, chordWidths, totalWidth } = chordLayoutData;
 
+    // v TODO: verify if this is a path that can ever be hit v
     // Until the modal has a measured width, mount a small window around the
     // current chord so we never paint an empty strip during remeasure/orientation.
     if (visiblePlaybackContainerWidth <= 0) {
@@ -154,6 +156,11 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
             index,
             prevChord: expandedTabData[index - 1],
             nextChord: expandedTabData[index + 1],
+            isFirstChordInTab:
+              index === 0 &&
+              (loopDelay !== 0 || (chordRepetitions[0] ?? 0) === 0),
+            isLastChordInTab:
+              index === expandedTabData.length - 1 && loopDelay !== 0,
           };
         });
     }
@@ -185,12 +192,19 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
         return [];
       }
 
+      const isFirstChordInFirstLoop =
+        index === 0 && (chordRepetitions[0] ?? 0) === 0;
+
       return [
         {
           chord,
           index,
           prevChord: expandedTabData[index - 1],
           nextChord: expandedTabData[index + 1],
+          isFirstChordInTab:
+            chord.isFirstChordInTab === true &&
+            (loopDelay !== 0 || isFirstChordInFirstLoop),
+          isLastChordInTab: chord.isLastChordInTab === true && loopDelay !== 0,
         },
       ];
     });
@@ -202,44 +216,50 @@ const PlaybackVisibleChords = memo(function PlaybackVisibleChords({
     visiblePlaybackContainerWidth,
     audioMetadata.playing,
     playingScrollPosition,
+    loopDelay,
   ]);
 
   return (
     <>
-      {visibleChords.map(({ chord, index, prevChord, nextChord }) => {
-        const isDimmed =
-          audioMetadata.editingLoopRange &&
-          (index < audioMetadata.startLoopIndex ||
-            (audioMetadata.endLoopIndex !== -1 &&
-              index > audioMetadata.endLoopIndex));
+      {visibleChords.map(
+        ({
+          chord,
+          index,
+          prevChord,
+          nextChord,
+          isFirstChordInTab,
+          isLastChordInTab,
+        }) => {
+          const isDimmed =
+            audioMetadata.editingLoopRange &&
+            (index < audioMetadata.startLoopIndex ||
+              (audioMetadata.endLoopIndex !== -1 &&
+                index > audioMetadata.endLoopIndex));
 
-        const isFirstChordInSection =
-          index === 0 && (loopDelay !== 0 || (chordRepetitions[0] ?? 0) === 0);
-
-        return (
-          <div
-            // Stable key: remounting on chordRepetitions changes caused loop
-            // hitches when virtualization bumped repetition counts.
-            key={index}
-            style={{
-              position: "absolute",
-              width: `${chordLayoutData.chordWidths[index] ?? 0}px`,
-              left: `${getChordScrollPosition(index) + initialPlaceholderWidth}px`,
-            }}
-          >
-            {renderChord({
-              chord,
-              index,
-              prevChord,
-              nextChord,
-              isFirstChordInSection,
-              isDimmed,
-              isHighlighted:
-                !audioMetadata.editingLoopRange && isChordHighlighted(index),
-            })}
-          </div>
-        );
-      })}
+          return (
+            <div
+              key={index}
+              style={{
+                position: "absolute",
+                width: `${chordLayoutData.chordWidths[index] ?? 0}px`,
+                left: `${getChordScrollPosition(index) + initialPlaceholderWidth}px`,
+              }}
+            >
+              {renderChord({
+                chord,
+                index,
+                prevChord,
+                nextChord,
+                isFirstChordInTab,
+                isLastChordInTab,
+                isDimmed,
+                isHighlighted:
+                  !audioMetadata.editingLoopRange && isChordHighlighted(index),
+              })}
+            </div>
+          );
+        },
+      )}
     </>
   );
 });

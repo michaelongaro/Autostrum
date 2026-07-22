@@ -16,8 +16,10 @@ interface PlaybackStrummedChord {
   chordColor?: string;
   noteLength: FullNoteLengths;
   bpmToShow?: number;
-  isFirstChordInSection: boolean;
-  isLastChordInSection: boolean;
+  isFirstChord: boolean;
+  isLastChord: boolean;
+  isFirstChordInTab: boolean;
+  isLastChordInTab: boolean;
   isHighlighted?: boolean;
   isDimmed: boolean;
   beatIndicator: string;
@@ -37,8 +39,10 @@ function PlaybackStrummedChord({
   chordColor = "",
   noteLength,
   bpmToShow,
-  isFirstChordInSection,
-  isLastChordInSection,
+  isFirstChord,
+  isLastChord,
+  isFirstChordInTab,
+  isLastChordInTab,
   isHighlighted = false,
   isDimmed,
   beatIndicator,
@@ -77,12 +81,20 @@ function PlaybackStrummedChord({
 
       {strumIndex !== -1 && (
         <div
+          // key is just used here to force a re-render, borderRadius was glitchy
+          key={
+            isFirstChordInTab
+              ? "firstRounded"
+              : isLastChordInTab
+                ? "lastRounded"
+                : "regular"
+          }
           style={{
-            borderLeft: isFirstChordInSection ? "2px solid" : "none",
-            borderRight: isLastChordInSection ? "2px solid" : "none",
-            borderRadius: isFirstChordInSection
+            borderLeft: isFirstChordInTab ? "2px solid" : "none",
+            borderRight: isLastChordInTab ? "2px solid" : "none",
+            borderRadius: isFirstChordInTab
               ? "10px 0 0 10px"
-              : isLastChordInSection
+              : isLastChordInTab
                 ? "0 10px 10px 0"
                 : "none",
             borderTop: "2px solid",
@@ -225,8 +237,8 @@ function PlaybackStrummedChord({
               previousIsRestStrum: prevChordIsRest,
               currentIsRestStrum: currentChordIsRest,
               nextIsRestStrum: nextChordIsRest,
-              isFirstInGroup: isFirstChordInSection,
-              isLastInGroup: isLastChordInSection,
+              isFirstInGroup: isFirstChord,
+              isLastInGroup: isLastChord,
             })}
           </div>
         </div>

@@ -4,12 +4,11 @@ import {
   type SetStateAction,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
-import PlaybackProgressSlider from "~/components/AudioControls/PlaybackProgressSlider";
+import PlaybackProgressRange from "~/components/AudioControls/PlaybackProgressRange";
 import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 import { Button } from "~/components/ui/button";
 import { Toggle } from "~/components/ui/toggle";
@@ -103,7 +102,7 @@ function PlaybackAudioControls({
     if (currentChordIndex === 0) {
       setTabProgressValue(0);
     }
-  }, [currentChordIndex]);
+  }, [currentChordIndex, setTabProgressValue]);
 
   function handlePlayButtonClick() {
     const delayPlayStart = countInTimerEnabled ? 3000 : 0;
@@ -289,7 +288,7 @@ function PlaybackAudioControls({
               )}
             </div>
 
-            <PlaybackProgressSlider
+            <PlaybackProgressRange
               disabled={disablePlayButton}
               chordDurations={chordDurations}
               loopRange={loopRange}
@@ -333,7 +332,7 @@ function PlaybackAudioControls({
 
       {!viewportLabel.includes("Landscape") && (
         <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-xl">
-          <PlaybackProgressSlider
+          <PlaybackProgressRange
             disabled={disablePlayButton}
             chordDurations={chordDurations}
             loopRange={loopRange}
