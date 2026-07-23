@@ -11,6 +11,18 @@ import {
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
 
+/**
+ * Fine-grained tabData selectors for the editing tree.
+ *
+ * Rules of thumb (keep re-renders local):
+ * - Parents map by ID/type lists, never by full section/subsection objects.
+ * - Leaves select only the column/fields they render.
+ * - Event handlers that need more data should call `getTabData()` /
+ *   `getTabStore()` instead of widening a React subscription.
+ * - Prefer primitives / ID arrays so `useShallow` (applied in `useTabStore`)
+ *   keeps results stable across unrelated immer updates.
+ */
+
 const EMPTY_STRING_ARRAY: string[] = [];
 const EMPTY_TYPE_ARRAY: ("tab" | "chord" | "note" | "measureLine")[] = [];
 
@@ -87,7 +99,7 @@ export const useTabSubSectionMeta = (
 ) => {
   return useTabStore((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
-    if (!sub || sub.type !== "tab") {
+    if (sub?.type !== "tab") {
       return {
         id: "",
         bpm: -1,
@@ -106,13 +118,24 @@ export const useTabSubSectionMeta = (
   });
 };
 
+/** Single primitive — e.g. measure-line BPM placeholder fallback. */
+export const useTabSubSectionBpm = (
+  sectionIndex: number,
+  subSectionIndex: number,
+) => {
+  return useTabStore((state) => {
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    return sub?.type === "tab" ? sub.bpm : -1;
+  });
+};
+
 export const useTabColumnIds = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
   return useTabStore((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
-    if (!sub || sub.type !== "tab") return EMPTY_STRING_ARRAY;
+    if (sub?.type !== "tab") return EMPTY_STRING_ARRAY;
     return sub.data.map((column) => column.id);
   });
 };
@@ -123,7 +146,7 @@ export const useTabColumnTypes = (
 ) => {
   return useTabStore((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
-    if (!sub || sub.type !== "tab") {
+    if (sub?.type !== "tab") {
       return EMPTY_TYPE_ARRAY as ("note" | "measureLine")[];
     }
     return sub.data.map((column) => column.type);
@@ -135,11 +158,37 @@ export const useTabColumnData = (
   sectionIndex: number,
   subSectionIndex: number,
   columnIndex: number,
-) => {
+): TabNote | TabMeasureLine | undefined => {
   return useTabStore((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
-    if (!sub || sub.type !== "tab") return undefined;
-    return sub.data[columnIndex] as TabNote | TabMeasureLine | undefined;
+    if (sub?.type !== "tab") return undefined;
+    return sub.data[columnIndex];
+  });
+};
+
+export const useTabNoteColumnData = (
+  sectionIndex: number,
+  subSectionIndex: number,
+  columnIndex: number,
+): TabNote | undefined => {
+  return useTabStore((state) => {
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    if (sub?.type !== "tab") return undefined;
+    const column = sub.data[columnIndex];
+    return column && isTabNote(column) ? column : undefined;
+  });
+};
+
+export const useTabMeasureLineColumnData = (
+  sectionIndex: number,
+  subSectionIndex: number,
+  columnIndex: number,
+): TabMeasureLine | undefined => {
+  return useTabStore((state) => {
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    if (sub?.type !== "tab") return undefined;
+    const column = sub.data[columnIndex];
+    return column && isTabMeasureLine(column) ? column : undefined;
   });
 };
 
@@ -155,7 +204,7 @@ export const useTabColumnNeighborMeta = (
 ) => {
   return useTabStore((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
-    if (!sub || sub.type !== "tab") {
+    if (sub?.type !== "tab") {
       return {
         columnCount: 0,
         baseNoteLength: "quarter" as const,
@@ -230,7 +279,7 @@ export const useChordSubSectionMeta = (
 ) => {
   return useTabStore((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
-    if (!sub || sub.type !== "chord") {
+    if (sub?.type !== "chord") {
       return {
         id: "",
         bpm: -1,
@@ -253,7 +302,7 @@ export const useChordSequenceIds = (
 ) => {
   return useTabStore((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
-    if (!sub || sub.type !== "chord") return EMPTY_STRING_ARRAY;
+    if (sub?.type !== "chord") return EMPTY_STRING_ARRAY;
     return sub.data.map((sequence) => sequence.id);
   });
 };

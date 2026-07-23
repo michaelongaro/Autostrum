@@ -81,11 +81,9 @@ function SectionContainer({
   const subSectionTypes = useSubSectionTypes(sectionIndex);
 
   const [accordionOpen, setAccordionOpen] = useState("opened");
+  // Local while typing; store updates are debounced. Remount (new section id /
+  // index) re-initializes from the store value.
   const [localTitle, setLocalTitle] = useState(sectionTitle);
-
-  useEffect(() => {
-    setLocalTitle(sectionTitle);
-  }, [sectionTitle]);
 
   useEffect(() => {
     if (forceCloseSectionAccordions) {
