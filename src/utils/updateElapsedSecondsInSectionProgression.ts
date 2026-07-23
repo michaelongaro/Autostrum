@@ -27,15 +27,7 @@ function updateElapsedSecondsInSectionProgression({
   const sectionProgressionWithElapsedSeconds: SectionProgression[] = [];
   const elapsedSeconds = { value: 0 }; // Using an object to pass by reference
 
-  for (
-    let sectionProgressionIndex = 0;
-    sectionProgressionIndex < sectionProgression.length;
-    sectionProgressionIndex++
-  ) {
-    const currentSectionProgression =
-      sectionProgression[sectionProgressionIndex];
-    if (!currentSectionProgression) continue;
-
+  for (const currentSectionProgression of sectionProgression) {
     // Record the start time before processing the section
     const startSeconds = Math.floor(elapsedSeconds.value);
 
@@ -89,14 +81,7 @@ function updateElapsedTimeForSection({
   baselineBpm: number;
   elapsedSeconds: { value: number };
 }) {
-  for (
-    let subSectionIndex = 0;
-    subSectionIndex < section.length;
-    subSectionIndex++
-  ) {
-    const subSection = section[subSectionIndex];
-    if (!subSection) continue;
-
+  for (const subSection of section) {
     const subSectionRepetitions = getRepetitions(subSection.repetitions);
 
     for (
@@ -132,10 +117,7 @@ function updateElapsedTimeForTabSection({
 }) {
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
-  for (let chordIdx = 0; chordIdx < subSection.data.length; chordIdx++) {
-    const column = subSection.data[chordIdx];
-    if (!column) continue;
-
+  for (const column of subSection.data) {
     if (isTabMeasureLine(column)) {
       const specifiedBpmToUsePostMeasureLine = column.bpmAfterLine;
       if (specifiedBpmToUsePostMeasureLine !== null) {
@@ -170,14 +152,7 @@ function updateElapsedTimeForChordSection({
 }) {
   const chordSection = subSection.data;
 
-  for (
-    let chordSequenceIndex = 0;
-    chordSequenceIndex < chordSection.length;
-    chordSequenceIndex++
-  ) {
-    const chordSequence = chordSection[chordSequenceIndex];
-    if (!chordSequence) continue;
-
+  for (const chordSequence of chordSection) {
     const chordSequenceRepetitions = getRepetitions(chordSequence?.repetitions);
 
     for (
