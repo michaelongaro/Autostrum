@@ -15,7 +15,7 @@ interface UpdateElapsedSecondsInSectionProgression {
   tabData: Section[];
   sectionProgression: SectionProgression[];
   baselineBpm: number;
-  setSectionProgression: (sectionProgression: SectionProgression[]) => void;
+  setSectionProgression?: (sectionProgression: SectionProgression[]) => void;
 }
 
 function updateElapsedSecondsInSectionProgression({
@@ -67,9 +67,15 @@ function updateElapsedSecondsInSectionProgression({
   }
 
   // Update the state only if there's a change to prevent infinite loops
-  if (!isEqual(sectionProgression, sectionProgressionWithElapsedSeconds)) {
+  if (
+    setSectionProgression &&
+    !isEqual(sectionProgression, sectionProgressionWithElapsedSeconds)
+  ) {
     setSectionProgression(sectionProgressionWithElapsedSeconds);
+    return;
   }
+
+  return sectionProgressionWithElapsedSeconds;
 }
 
 function updateElapsedTimeForSection({

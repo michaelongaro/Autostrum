@@ -1,3 +1,4 @@
+import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 import { useEffect } from "react";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useTabStore, type Section } from "~/stores/TabStore";
@@ -129,8 +130,16 @@ export function useHydrateTabStore({ fetchedTab }: UseHydrateTabStoreOptions) {
         // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
         draft.splice(0, draft.length, ...tab.tabData);
       });
-      // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
-      setSectionProgression(tab.sectionProgression ?? []);
+      setSectionProgression(
+        // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
+        updateElapsedSecondsInSectionProgression({
+          // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
+          tabData: tab.tabData,
+          // @ts-expect-error can't specify type from prisma Json value, but we know* it's correct
+          sectionProgression: tab.sectionProgression ?? [],
+          baselineBpm: tab.bpm,
+        }),
+      );
 
       localStorage.removeItem("autostrum-tabData");
     }

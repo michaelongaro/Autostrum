@@ -42,7 +42,6 @@ interface ExpandFullTab {
 
 function expandFullTab({
   tabData,
-  location,
   sectionProgression,
   chords,
   baselineBpm,
@@ -59,21 +58,7 @@ function expandFullTab({
   const metadata: PlaybackMetadata[] = [];
   const elapsedSeconds = { value: 0 }; // getting around pass by value/reference issues by storing in an object
 
-  const modifiedSectionProg =
-    location?.sectionIndex === undefined
-      ? sectionProgression
-      : [
-          {
-            id: "",
-            sectionId: tabData[location.sectionIndex]?.id ?? "",
-            title: "",
-            repetitions: 1,
-            startSeconds: 0,
-            endSeconds: 0,
-          },
-        ];
-
-  for (const sectionProg of modifiedSectionProg) {
+  for (const sectionProg of sectionProgression) {
     const sectionIndex = getSectionIndexFromId(tabData, sectionProg.sectionId);
     const sectionRepetitions = getRepetitions(sectionProg?.repetitions);
 

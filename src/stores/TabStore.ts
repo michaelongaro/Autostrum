@@ -984,9 +984,23 @@ const useTabStoreBase = create<TabState>()(
         ];
 
         const sectionProgression =
-          rawSectionProgression.length > 0
-            ? rawSectionProgression
-            : generateDefaultSectionProgression(tabData); // I think you could get by without doing this, but leave it for now
+          !editing && audioMetadata.location?.sectionIndex !== undefined
+            ? // just for when playing back specific section within PlaybackModal
+              [
+                {
+                  id: "",
+                  sectionId:
+                    tabData[audioMetadata.location.sectionIndex]?.id ?? "",
+                  title: "",
+                  repetitions: 1,
+                  startSeconds: 0,
+                  endSeconds: 0,
+                },
+              ]
+            : // all other use-cases
+              rawSectionProgression.length > 0
+              ? rawSectionProgression
+              : generateDefaultSectionProgression(tabData);
 
         const tuning = parse(tuningNotes);
 
@@ -999,46 +1013,42 @@ const useTabStoreBase = create<TabState>()(
           ? -1
           : audioMetadata.endLoopIndex;
 
-        const compiledChords = location
-          ? compileSpecificChordGrouping({
-              tabData,
-              location,
-              chords,
-              strummingPatterns,
-              baselineBpm,
-              playbackSpeed,
-              setCurrentlyPlayingMetadata,
-              startLoopIndex: adjStartLoopIndex,
-              endLoopIndex: adjEndLoopIndex,
-              atomicallyUpdateAudioMetadata,
-              forMetadataOnly: false,
-            })
-          : compileFullTab({
-              tabData,
-              sectionProgression,
-              chords,
-              strummingPatterns,
-              baselineBpm,
-              playbackSpeed,
-              setCurrentlyPlayingMetadata,
-              startLoopIndex: adjStartLoopIndex,
-              endLoopIndex: adjEndLoopIndex,
-              atomicallyUpdateAudioMetadata,
-              forMetadataOnly: false,
-              forPlayback: editing ? undefined : { loopDelay },
-            });
-
-        const sanitizedSectionProgression =
-          sectionProgression.length > 0
-            ? sectionProgression
-            : generateDefaultSectionProgression(tabData);
+        const compiledChords =
+          editing && location
+            ? compileSpecificChordGrouping({
+                tabData,
+                location,
+                chords,
+                strummingPatterns,
+                baselineBpm,
+                playbackSpeed,
+                setCurrentlyPlayingMetadata,
+                startLoopIndex: adjStartLoopIndex,
+                endLoopIndex: adjEndLoopIndex,
+                atomicallyUpdateAudioMetadata,
+                forMetadataOnly: false,
+              })
+            : compileFullTab({
+                tabData,
+                sectionProgression,
+                chords,
+                strummingPatterns,
+                baselineBpm,
+                playbackSpeed,
+                setCurrentlyPlayingMetadata,
+                startLoopIndex: adjStartLoopIndex,
+                endLoopIndex: adjEndLoopIndex,
+                atomicallyUpdateAudioMetadata,
+                forMetadataOnly: false,
+                forPlayback: editing ? undefined : { loopDelay },
+              });
 
         const expandedTabData = editing
           ? null
           : expandFullTab({
               tabData,
               location: audioMetadata.location,
-              sectionProgression: sanitizedSectionProgression,
+              sectionProgression,
               chords,
               baselineBpm,
               playbackSpeed,
