@@ -4,7 +4,11 @@ import {
   compileSpecificChordGrouping,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import { getTabStore, subscribeTabStore, useTabStore } from "../stores/TabStore";
+import {
+  getTabStore,
+  subscribeTabStore,
+  useTabStore,
+} from "../stores/TabStore";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";

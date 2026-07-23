@@ -1,6 +1,5 @@
 import {
   useTabStore,
-  type Section,
   type TabSection,
   type ChordSection,
   type ChordSequence,
@@ -65,7 +64,7 @@ export const useSectionDataLength = (sectionIndex: number) => {
 };
 
 export const useSectionData = (sectionIndex: number) => {
-  return useTabStore((state) => state.tabData[sectionIndex] as Section);
+  return useTabStore((state) => state.tabData[sectionIndex]!);
 };
 
 export const useSubSectionData = (
@@ -76,7 +75,7 @@ export const useSubSectionData = (
     const section = state.tabData[sectionIndex];
 
     // @ts-expect-error TODO come back later
-    return section.data[subSectionIndex] as TabSection | ChordSection;
+    return section.data[subSectionIndex]!;
   });
 };
 
@@ -222,9 +221,7 @@ export const useTabColumnNeighborMeta = (
     const previousColumn =
       columnIndex > 0 ? sub.data[columnIndex - 1] : undefined;
     const nextColumn =
-      columnIndex < sub.data.length - 1
-        ? sub.data[columnIndex + 1]
-        : undefined;
+      columnIndex < sub.data.length - 1 ? sub.data[columnIndex + 1] : undefined;
 
     const previousColumnIsPlayable =
       previousColumn !== undefined && isTabNote(previousColumn);
@@ -244,9 +241,7 @@ export const useTabColumnNeighborMeta = (
       previousNoteLength: previousColumnIsPlayable
         ? previousColumn.noteLength
         : undefined,
-      nextNoteLength: nextColumnIsPlayable
-        ? nextColumn.noteLength
-        : undefined,
+      nextNoteLength: nextColumnIsPlayable ? nextColumn.noteLength : undefined,
       previousIsRestStrum: previousColumnIsPlayable
         ? previousColumn.chordEffects === "r"
         : undefined,
