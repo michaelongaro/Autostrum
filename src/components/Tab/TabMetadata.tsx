@@ -317,12 +317,17 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
 
   function handlePreview() {
     if (
+      !userId ||
       !title ||
       !tuning ||
-      genre === "" ||
+      !genre ||
       bpm === -1 ||
       tabIsEffectivelyEmpty
     ) {
+      setShowInvalidTitle(!title);
+      setShowInvalidGenre(!genre);
+      setShowPublishPopover(true);
+
       return;
     }
 
@@ -343,7 +348,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       !userId ||
       !title ||
       !tuning ||
-      genre === "" ||
+      !genre ||
       bpm === -1 ||
       tabIsEffectivelyEmpty
     ) {
