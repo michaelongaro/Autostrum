@@ -1,4 +1,4 @@
-import { Fragment, memo } from "react";
+import { Fragment } from "react";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 
 interface PlaybackTabMeasureLine {
@@ -59,4 +59,4 @@ function PlaybackTabMeasureLine({
   );
 }
 
-export default memo(PlaybackTabMeasureLine);
+export default PlaybackTabMeasureLine;

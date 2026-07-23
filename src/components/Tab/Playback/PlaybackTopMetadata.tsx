@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useMemo } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import { useRouter } from "next/router";
 import { FaBook } from "react-icons/fa";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
@@ -80,20 +80,19 @@ function PlaybackTopMetadata({
     useDifficultyLabels,
   });
 
-  const uniqueSections = useMemo(() => {
-    const sections: Record<string, { sectionId: string; title: string }> = {};
+  const sectionsById: Record<string, { sectionId: string; title: string }> =
+    {};
 
-    for (const section of sectionProgression) {
-      if (!sections[section.sectionId]) {
-        sections[section.sectionId] = {
-          sectionId: section.sectionId,
-          title: section.title,
-        };
-      }
+  for (const section of sectionProgression) {
+    if (!sectionsById[section.sectionId]) {
+      sectionsById[section.sectionId] = {
+        sectionId: section.sectionId,
+        title: section.title,
+      };
     }
+  }
 
-    return Object.values(sections);
-  }, [sectionProgression]);
+  const uniqueSections = Object.values(sectionsById);
 
   function handleChangeSection(value: string) {
     setAudioMetadata({
