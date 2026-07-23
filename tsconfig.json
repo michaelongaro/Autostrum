@@ -27,6 +27,7 @@
     "incremental": true,
     /* Path Aliases */
     "paths": {
+      "public/*": ["./public/*"],
       "~/*": ["./src/*"]
     }
   },
