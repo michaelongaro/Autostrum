@@ -96,6 +96,8 @@ function StrummingPattern({
     }
   }, [inputIdToFocus]);
 
+  // React Compiler escape hatch: identity is an effect dependency that
+  // recomputes palm-mute node opacities.
   const getPMNodeOpacities = useCallback(() => {
     const strums = data.strums;
 

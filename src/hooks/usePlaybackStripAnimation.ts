@@ -180,6 +180,8 @@ function usePlaybackStripAnimation({
   const anchorRepetitionRef = useRef(currentRepetition);
   const rafIdRef = useRef<number | null>(null);
 
+  // React Compiler escape hatch: layout-effect dep that starts/stops the rAF
+  // scroll loop; identity must stay tied to chordLayoutData.
   const animationData = useMemo(
     () => getPlaybackStripAnimationData(chordLayoutData),
     [chordLayoutData],

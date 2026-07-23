@@ -190,6 +190,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     setTabData: state.setTabData,
   }));
 
+  // React Compiler escape hatch: identity is an effect dependency that
+  // recomputes palm-mute node opacities.
   const getPMNodeOpacities = useCallback(() => {
     const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
     const columns =

@@ -131,6 +131,7 @@ function VirtualizedStaticTabSection({
   const zoomRef = useRef(safeZoom);
   const layoutRef = useRef<StaticTabRowLayout | null>(null);
 
+  // React Compiler escape hatch: identity is a layout/resize effect dependency.
   const measureWidth = useCallback(() => {
     const body = bodyRef.current;
     if (!body) return;
@@ -146,6 +147,7 @@ function VirtualizedStaticTabSection({
     setInnerWidth((prev) => (prev === width ? prev : width));
   }, []);
 
+  // React Compiler escape hatch: identity is a layout/scroll effect dependency.
   const recomputeVisibleRange = useCallback(() => {
     const body = bodyRef.current;
     const currentLayout = layoutRef.current;

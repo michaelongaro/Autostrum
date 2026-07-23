@@ -14,6 +14,7 @@ function useSpacebarAudioControl() {
   const isSpacebarPressed = useRef(false);
   const isPlayingStateLocked = useRef(false); // Prevents concurrent executions
 
+  // React Compiler escape hatch: identity is a keydown effect dependency.
   const toggleAudioPlayingState = useCallback(() => {
     if (isPlayingStateLocked.current) return; // If already in progress, ignore
     isPlayingStateLocked.current = true;

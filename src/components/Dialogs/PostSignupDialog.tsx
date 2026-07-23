@@ -39,6 +39,8 @@ function PostSignupDialog() {
   const [usernameInputHasReceivedFocus, setUsernameInputHasReceivedFocus] =
     useState(false);
 
+  // React Compiler escape hatch: lodash debounce is stateful; stable identity
+  // preserves pending timers and pairs with the cancel() cleanup effect.
   const debouncedSetUsername = useMemo(
     () =>
       debounce((username: string) => {

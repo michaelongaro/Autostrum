@@ -386,6 +386,7 @@ function ChordTrainerPage() {
     playChordRef.current = playChord;
   }, [playChord]);
 
+  // React Compiler escape hatch: identity is a layout + ResizeObserver effect dep.
   const updateStreamStyles = useCallback((scrollX: number) => {
     const stageElement = stageRef.current;
     const sliderElement = sliderContainerRef.current;

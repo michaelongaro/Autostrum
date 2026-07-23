@@ -46,6 +46,9 @@ interface PlaybackAnimatedStrip {
   }) => React.ReactNode;
 }
 
+// React Compiler escape hatch: custom compare intentionally ignores
+// currentChordIndex/scrollContainerTransform/currentRepetition while playing
+// so rAF owns transform without per-chord React re-renders.
 const PlaybackAnimatedStrip = memo(
   function PlaybackAnimatedStrip({
     chordLayoutData,
