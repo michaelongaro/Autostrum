@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -116,10 +115,10 @@ function VirtualizedStaticTabSection({
   );
   const [isNearViewport, setIsNearViewport] = useState(false);
 
-  const layout = useMemo<StaticTabRowLayout | null>(() => {
-    if (innerWidth === null) return null;
-    return buildStaticTabRowLayout(subSectionData.data, innerWidth);
-  }, [subSectionData.data, innerWidth]);
+  const layout: StaticTabRowLayout | null =
+    innerWidth === null
+      ? null
+      : buildStaticTabRowLayout(subSectionData.data, innerWidth);
 
   // below the minimum-row threshold the subsection stays fully rendered
   const virtualizedLayout =

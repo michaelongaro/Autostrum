@@ -1,7 +1,6 @@
 import { AnimatePresence } from "framer-motion";
 import debounce from "lodash.debounce";
 import {
-  memo,
   useEffect,
   useState,
   type Dispatch,
@@ -311,4 +310,4 @@ function SectionContainer({
   );
 }
 
-export default memo(SectionContainer);
+export default SectionContainer;

@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -207,29 +206,19 @@ function StrummingPattern({
     }
   }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
 
-  const patternHasPalmMuting = useCallback(() => {
+  function patternHasPalmMuting() {
     return data.strums.some((strum) => strum.palmMute !== "");
-  }, [data]);
+  }
 
-  const heightOfStrummingPatternFiller = useMemo(() => {
-    if (patternHasPalmMuting()) {
-      if (mode === "editingStrummingPattern") {
-        return "36px";
-      } else {
-        return "1.5rem";
-      }
-    }
+  const heightOfStrummingPatternFiller = patternHasPalmMuting()
+    ? mode === "editingStrummingPattern"
+      ? "36px"
+      : "1.5rem"
+    : "0";
 
-    return "0";
-  }, [mode, patternHasPalmMuting]);
-
-  const beatLabels = useMemo(() => {
-    const strumsWithNoteLengths = data.strums.map((strum) => {
-      return strum.noteLength;
-    });
-
-    return generateBeatLabels(strumsWithNoteLengths);
-  }, [data]);
+  const beatLabels = generateBeatLabels(
+    data.strums.map((strum) => strum.noteLength),
+  );
 
   function handleKeyDown(
     e: React.KeyboardEvent<HTMLInputElement>,

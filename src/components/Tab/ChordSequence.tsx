@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { memo, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Select,
@@ -114,15 +114,14 @@ function ChordSequence({
     setTabData,
   ]);
 
-  const placeholderBpm = useMemo(() => {
-    if (chordSequence.bpm !== -1) return chordSequence.bpm.toString();
-
-    if (subSectionBpm !== -1) return subSectionBpm.toString();
-
-    if (bpm !== -1) return bpm.toString();
-
-    return "";
-  }, [bpm, subSectionBpm, chordSequence.bpm]);
+  const placeholderBpm =
+    chordSequence.bpm !== -1
+      ? chordSequence.bpm.toString()
+      : subSectionBpm !== -1
+        ? subSectionBpm.toString()
+        : bpm !== -1
+          ? bpm.toString()
+          : "";
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepetitions =
@@ -395,4 +394,4 @@ function ChordSequence({
   );
 }
 
-export default memo(ChordSequence);
+export default ChordSequence;

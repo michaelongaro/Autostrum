@@ -15,7 +15,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment, memo, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -1206,4 +1206,4 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   );
 }
 
-export default memo(TabSection);
+export default TabSection;

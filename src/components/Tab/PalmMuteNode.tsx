@@ -1,4 +1,4 @@
-import { memo, type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
 import { getTabData, useTabStore } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
@@ -520,4 +520,4 @@ function PalmMuteNode({
   );
 }
 
-export default memo(PalmMuteNode);
+export default PalmMuteNode;

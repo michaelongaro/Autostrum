@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { FaBook } from "react-icons/fa";
 import { useTabStore } from "~/stores/TabStore";
 import { useSectionIds } from "~/hooks/useTabDataSelectors";
@@ -77,18 +77,18 @@ function Tab() {
   );
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const measureSectionHeight = useCallback(
-    (sectionId: string, element: HTMLDivElement | null) => {
-      if (element && !sectionHeights[sectionId]) {
-        sectionRefs.current[sectionId] = element;
-        const height = element.getBoundingClientRect().height;
-        if (height > 0) {
-          setSectionHeights((prev) => ({ ...prev, [sectionId]: height }));
-        }
+  function measureSectionHeight(
+    sectionId: string,
+    element: HTMLDivElement | null,
+  ) {
+    if (element && !sectionHeights[sectionId]) {
+      sectionRefs.current[sectionId] = element;
+      const height = element.getBoundingClientRect().height;
+      if (height > 0) {
+        setSectionHeights((prev) => ({ ...prev, [sectionId]: height }));
       }
-    },
-    [sectionHeights],
-  );
+    }
+  }
 
   const {
     showSectionProgressionModal,

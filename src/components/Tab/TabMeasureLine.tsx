@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { memo, useState } from "react";
+import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import {
@@ -471,4 +471,4 @@ function TabMeasureLine({
   );
 }
 
-export default memo(TabMeasureLine);
+export default TabMeasureLine;
