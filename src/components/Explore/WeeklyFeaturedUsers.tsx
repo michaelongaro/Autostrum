@@ -241,11 +241,13 @@ function WeeklyFeaturedUsers({
     slideIndex,
   ]);
 
+  // React Compiler escape hatch: Embla listener effect dependencies.
   const pauseTimer = useCallback(() => {
     setIsTimerPaused(true);
     progressPausedAt.current[slideIndex] = performance.now();
   }, [slideIndex]);
 
+  // React Compiler escape hatch: Embla listener effect dependencies.
   const resumeTimer = useCallback(() => {
     setIsTimerPaused(false);
     if (
@@ -259,6 +261,7 @@ function WeeklyFeaturedUsers({
     progressPausedAt.current[slideIndex] = null;
   }, [slideIndex]);
 
+  // React Compiler escape hatch: Embla listener effect dependencies.
   const resetAllProgressExcept = useCallback((current: number) => {
     setProgress((prev) => {
       const arr = [...prev];
@@ -286,7 +289,7 @@ function WeeklyFeaturedUsers({
     prevSlideIndex.current = slideIndex;
   }, [slideIndex]);
 
-  // Handle scroll progress updates
+  // React Compiler escape hatch: Embla listener effect dependencies.
   const updateScrollProgress = useCallback(() => {
     if (!weeklyFeaturedUsersCarouselApi) return;
 

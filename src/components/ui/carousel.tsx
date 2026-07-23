@@ -68,6 +68,7 @@ const Carousel = React.forwardRef<
     const [canScrollPrev, setCanScrollPrev] = React.useState(false);
     const [canScrollNext, setCanScrollNext] = React.useState(false);
 
+    // React Compiler escape hatch: passed directly to Embla api.on/api.off.
     const onSelect = React.useCallback((api: CarouselApi) => {
       if (!api) {
         return;

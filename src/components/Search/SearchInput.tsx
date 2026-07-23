@@ -108,6 +108,8 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     };
   }, [showAutofillResults, isAboveLgViewportWidth]);
 
+  // React Compiler escape hatch: lodash debounce is stateful; stable identity
+  // preserves pending timers and pairs with the cancel() cleanup effect.
   const debouncedSetSearch = useMemo(
     () =>
       debounce((query: string) => {
