@@ -16,9 +16,11 @@ import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { useSectionData } from "~/hooks/useTabDataSelectors";
 
 interface StaticSectionContainer {
-  sectionData: Section;
+  /** When omitted, section data is read from the store by sectionIndex. */
+  sectionData?: Section;
   sectionIndex: number;
   color: COLORS;
   theme: THEME;
@@ -28,7 +30,7 @@ interface StaticSectionContainer {
 }
 
 function StaticSectionContainer({
-  sectionData,
+  sectionData: sectionDataProp,
   sectionIndex,
   color,
   theme,
@@ -40,6 +42,9 @@ function StaticSectionContainer({
   const { bpm } = useTabStore((state) => ({
     bpm: state.bpm,
   }));
+
+  const sectionFromStore = useSectionData(sectionIndex);
+  const sectionData = sectionDataProp ?? sectionFromStore;
 
   const zoom = useGetLocalStorageValues().zoom;
 

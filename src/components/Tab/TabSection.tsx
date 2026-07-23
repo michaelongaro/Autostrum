@@ -15,7 +15,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, memo, useCallback, useEffect, useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -34,9 +34,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import {
+  useTabColumnIds,
+  useTabColumnTypes,
+  useTabSubSectionMeta,
+} from "~/hooks/useTabDataSelectors";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
+  getTabData,
   useTabStore,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
@@ -160,7 +165,10 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     useSensor(KeyboardSensor, keyboardSensorOptions),
   );
 
-  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
+  // Meta + column identity only — note edits must not re-render this section shell.
+  const subSection = useTabSubSectionMeta(sectionIndex, subSectionIndex);
+  const columnIds = useTabColumnIds(sectionIndex, subSectionIndex);
+  const columnTypes = useTabColumnTypes(sectionIndex, subSectionIndex);
 
   useEffect(() => {
     if (inputIdToFocus) {
@@ -173,10 +181,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     }
   }, [inputIdToFocus, sectionIndex, subSectionIndex]);
 
-  function getColumnIds() {
-    return subSection.data.map((column) => column.id);
-  }
-
   // Intentionally omit currentChordIndex / currentlyPlayingMetadata / playback
   // fields: columns subscribe to those with fine-grained selectors so playback
   // ticks don't re-render the whole section (and invalidate DndContext).
@@ -187,16 +191,18 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   }));
 
   const getPMNodeOpacities = useCallback(() => {
+    const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
+    const columns =
+      tabSubSection?.type === "tab" ? tabSubSection.data : [];
+
     if (lastModifiedPalmMuteNode === null) {
-      return new Array(subSection.data.length).fill("1") as string[];
+      return new Array(columns.length).fill("1") as string[];
     }
 
-    const newOpacities = new Array(subSection.data.length).fill(
-      "0.25",
-    ) as string[];
+    const newOpacities = new Array(columns.length).fill("0.25") as string[];
 
     const getPalmMute = (index: number) => {
-      const col = subSection.data[index];
+      const col = columns[index];
       return col && isTabNote(col) ? col.palmMute : "";
     };
 
@@ -206,10 +212,10 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
 
       // Find the nearest existing "start" node to the right (can't place end past it)
-      let nearestStartNodeIndex = subSection.data.length;
+      let nearestStartNodeIndex = columns.length;
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < subSection.data.length;
+        i < columns.length;
         i++
       ) {
         const pm = getPalmMute(i);
@@ -249,7 +255,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       // Enable all empty nodes to the right until the pair "end" node is found
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < subSection.data.length;
+        i < columns.length;
         i++
       ) {
         const pm = getPalmMute(i);
@@ -269,7 +275,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       // Enable all empty nodes to the right until a "start" node is found
       for (
         let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < subSection.data.length;
+        i < columns.length;
         i++
       ) {
         const pm = getPalmMute(i);
@@ -290,7 +296,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     }
 
     return newOpacities;
-  }, [subSection.data, lastModifiedPalmMuteNode]);
+  }, [sectionIndex, subSectionIndex, lastModifiedPalmMuteNode]);
 
   useEffect(() => {
     if (editingPalmMuteNodes) {
@@ -768,7 +774,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
-      const firstNewColumnIndex = subSection.data.length - 1; // this will be the first of the 8 new strums added
+      const firstNewColumnIndex = subSection.columnCount - 1; // this will be the first of the 8 new strums added
 
       const currentNote = document.getElementById(
         `${sectionIndex}${subSectionIndex}ExtendTabButton`,
@@ -781,7 +787,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     } else if (e.key === "Enter") {
       addNewColumns();
 
-      const firstNewColumnIndex = subSection.data.length;
+      const firstNewColumnIndex = subSection.columnCount;
       setInputIdToFocus(
         `input-${sectionIndex}-${subSectionIndex}-${firstNewColumnIndex}-3`,
       );
@@ -1152,14 +1158,13 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={getColumnIds()}
+            items={columnIds}
             strategy={rectSortingStrategy}
           >
-            {subSection.data.map((column, index) => (
-              <Fragment key={column.id}>
-                {isTabMeasureLine(column) ? (
+            {columnIds.map((columnId, index) => (
+              <Fragment key={columnId}>
+                {columnTypes[index] === "measureLine" ? (
                   <TabMeasureLine
-                    columnData={column}
                     sectionIndex={sectionIndex}
                     subSectionIndex={subSectionIndex}
                     columnIndex={index}
@@ -1171,8 +1176,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     sectionIndex={sectionIndex}
                     subSectionIndex={subSectionIndex}
                     columnIndex={index}
-                    columnData={column}
-                    isLastColumn={index === subSection.data.length - 1}
+                    isLastColumn={index === columnIds.length - 1}
                     pmNodeOpacity={pmNodeOpacities[index] ?? "1"}
                     editingPalmMuteNodes={editingPalmMuteNodes}
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
@@ -1200,4 +1204,4 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   );
 }
 
-export default TabSection;
+export default memo(TabSection);

@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import {
@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import {
+  getTabData,
   useTabStore,
   type TabMeasureLine as TabMeasureLineType,
 } from "~/stores/TabStore";
@@ -17,7 +18,10 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import { QuarterNote } from "~/utils/noteLengthIcons";
-import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import {
+  useTabColumnData,
+  useTabColumnNeighborMeta,
+} from "~/hooks/useTabDataSelectors";
 import { useMeasureLineHasBeenPlayed } from "~/hooks/useColumnPlaybackHighlight";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 
@@ -25,7 +29,6 @@ import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 // how to refactor it so we don't have so many magic numbers
 
 interface TabMeasureLineProps {
-  columnData: TabMeasureLineType;
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
@@ -34,7 +37,6 @@ interface TabMeasureLineProps {
 }
 
 function TabMeasureLine({
-  columnData,
   sectionIndex,
   subSectionIndex,
   columnIndex,
@@ -48,6 +50,19 @@ function TabMeasureLine({
     subSectionIndex,
     columnIndex,
   );
+
+  const columnData = useTabColumnData(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  ) as TabMeasureLineType | undefined;
+
+  const neighborMeta = useTabColumnNeighborMeta(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  );
+
   const {
     attributes,
     listeners,
@@ -57,17 +72,21 @@ function TabMeasureLine({
     transition,
     isDragging,
   } = useSortable({
-    id: columnData.id,
+    id: columnData?.id ?? `measure-line-${columnIndex}`,
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { audioMetadata, bpm, setTabData } = useTabStore((state) => ({
-    audioMetadata: state.audioMetadata,
+  const { bpm, setTabData } = useTabStore((state) => ({
     bpm: state.bpm,
     setTabData: state.setTabData,
   }));
 
-  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
+  // Only the playing boolean — avoid re-rendering on loop-range / location ticks.
+  const audioIsPlaying = useTabStore((state) => state.audioMetadata.playing);
+
+  if (!columnData || !isTabMeasureLine(columnData)) {
+    return null;
+  }
 
   function handleDeleteMeasureLine() {
     setTabData((draft) => {
@@ -99,11 +118,14 @@ function TabMeasureLine({
       `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`,
     );
 
+    const subSection = getTabData()[sectionIndex]?.data[subSectionIndex];
+    const columns = subSection?.type === "tab" ? subSection.data : [];
+
     // tab arrow key navigation (limited to current section, so sectionIdx will stay constant)
     if (e.key === "ArrowLeft") {
       e.preventDefault(); // prevent cursor from moving
 
-      const prevColumn = subSection.data[columnIndex - 1];
+      const prevColumn = columns[columnIndex - 1];
       const adjColumnIndex =
         prevColumn && isTabMeasureLine(prevColumn)
           ? columnIndex - 2
@@ -118,7 +140,7 @@ function TabMeasureLine({
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
 
-      if (columnIndex === subSection.data.length - 1) {
+      if (columnIndex === neighborMeta.columnCount - 1) {
         const newNoteToFocus = document.getElementById(
           `${sectionIndex}${subSectionIndex}ExtendTabButton`,
         );
@@ -127,7 +149,7 @@ function TabMeasureLine({
         return;
       }
 
-      const nextColumn = subSection.data[columnIndex + 1];
+      const nextColumn = columns[columnIndex + 1];
       const adjColumnIndex =
         nextColumn && isTabMeasureLine(nextColumn)
           ? columnIndex + 2
@@ -435,7 +457,7 @@ function TabMeasureLine({
               <Button
                 variant={"destructive"}
                 size="sm"
-                disabled={audioMetadata.playing}
+                disabled={audioIsPlaying}
                 className="absolute top-[20px] z-20 h-[1.75rem] w-[1.75rem] p-1"
                 onClick={handleDeleteMeasureLine}
               >
@@ -451,4 +473,4 @@ function TabMeasureLine({
   );
 }
 
-export default TabMeasureLine;
+export default memo(TabMeasureLine);

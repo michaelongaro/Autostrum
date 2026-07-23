@@ -1,5 +1,5 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { LiaEllipsisVSolid } from "react-icons/lia";
 import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
 import { FaTrashAlt } from "react-icons/fa";
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
+  getTabData,
   useTabStore,
   type ChordSection,
   type ChordSequence,
@@ -27,12 +28,13 @@ import {
   replaceIdInSection,
 } from "~/utils/replaceWithUniqueIdHelpers";
 import isEqual from "lodash.isequal";
-import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import { Check } from "lucide-react";
 import {
-  useSectionData,
-  useSubSectionData,
+  useChordSequenceLength,
+  useSectionDataLength,
+  useSectionId,
+  useSectionIsEffectivelyEmpty,
   useTabDataLength,
 } from "~/hooks/useTabDataSelectors";
 
@@ -79,20 +81,26 @@ function MiscellaneousControls({
     setTabData: state.setTabData,
   }));
 
-  const section = useSectionData(sectionIndex);
-  const subSection = useSubSectionData(sectionIndex, subSectionIndex || 0);
+  const sectionId = useSectionId(sectionIndex);
+  const sectionDataLength = useSectionDataLength(sectionIndex);
+  const chordSequenceLength = useChordSequenceLength(
+    sectionIndex,
+    subSectionIndex ?? 0,
+  );
   const tabDataLength = useTabDataLength();
+  const sectionIsEmpty = useSectionIsEffectivelyEmpty(
+    sectionIndex,
+    subSectionIndex,
+  );
 
   const [showCopyCheckmark, setShowCopyCheckmark] = useState(false);
   const [showPasteCheckmark, setShowPasteCheckmark] = useState(false);
 
   function disableMoveDown() {
     if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
-      const chordSequence = subSection?.data as ChordSequence[];
-
-      return chordSequenceIndex === chordSequence.length - 1;
+      return chordSequenceIndex === chordSequenceLength - 1;
     } else if (subSectionIndex !== undefined) {
-      return subSectionIndex === section.data.length - 1;
+      return subSectionIndex === sectionDataLength - 1;
     } else {
       return sectionIndex === tabDataLength - 1;
     }
@@ -181,10 +189,18 @@ function MiscellaneousControls({
   function copySection() {
     setShowCopyCheckmark(true);
 
+    const tabData = getTabData();
+    const section = tabData[sectionIndex];
+    const subSection =
+      subSectionIndex !== undefined
+        ? section?.data[subSectionIndex]
+        : undefined;
+
     if (
       chordSequenceIndex !== undefined &&
       subSectionIndex !== undefined &&
-      sectionIndex !== undefined
+      sectionIndex !== undefined &&
+      subSection?.type === "chord"
     ) {
       const newChordSequence = structuredClone(
         subSection.data[chordSequenceIndex] as ChordSequence,
@@ -195,14 +211,14 @@ function MiscellaneousControls({
         data: newChordSequence,
       });
     } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
-      if (type === "chord") {
+      if (type === "chord" && subSection?.type === "chord") {
         const newSubSection = structuredClone(subSection as ChordSection);
 
         setCurrentlyCopiedData({
           type: "chord",
           data: newSubSection,
         });
-      } else if (type === "tab") {
+      } else if (type === "tab" && subSection?.type === "tab") {
         const newSubSection = replaceIdInTabSection(
           structuredClone(subSection as TabSection),
         );
@@ -212,7 +228,7 @@ function MiscellaneousControls({
           data: newSubSection,
         });
       }
-    } else if (sectionIndex !== undefined) {
+    } else if (sectionIndex !== undefined && section) {
       setCurrentlyCopiedData({
         type: "section",
         data: structuredClone(section),
@@ -228,6 +244,8 @@ function MiscellaneousControls({
     if (!currentlyCopiedData) return;
 
     setShowPasteCheckmark(true);
+
+    const currentSection = getTabData()[sectionIndex];
 
     setTabData((draft) => {
       if (
@@ -256,10 +274,11 @@ function MiscellaneousControls({
         );
       } else if (
         currentlyCopiedData.type === "section" &&
-        sectionIndex !== undefined
+        sectionIndex !== undefined &&
+        currentSection
       ) {
         draft[sectionIndex] = {
-          ...section,
+          ...currentSection,
           data: replaceIdInSection(currentlyCopiedData.data as Section),
         };
       }
@@ -276,7 +295,7 @@ function MiscellaneousControls({
 
     // Capture the section ID before modifying tabData, so we can filter
     // the section progression outside the setTabData immer callback
-    const sectionIdToDelete = section?.id;
+    const sectionIdToDelete = sectionId;
 
     setTabData((draft) => {
       if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
@@ -325,7 +344,7 @@ function MiscellaneousControls({
             audioMetadata.editingLoopRange ||
             bpm === -1 ||
             !currentInstrument ||
-            sectionIsEffectivelyEmpty(section, subSectionIndex)
+            sectionIsEmpty
           }
           onClick={() => {
             const locationIsEqual = isEqual(audioMetadata.location, {
@@ -459,4 +478,4 @@ function MiscellaneousControls({
   );
 }
 
-export default MiscellaneousControls;
+export default memo(MiscellaneousControls);

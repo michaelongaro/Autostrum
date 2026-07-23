@@ -1375,6 +1375,11 @@ export const useTabStore = <T>(selector: (state: TabState) => T): T => {
   return useTabStoreBase(useShallow(selector));
 };
 
+/** Non-reactive store access for event handlers / imperative subscriptions. */
+export const getTabStore = () => useTabStoreBase.getState();
+
+export const subscribeTabStore = useTabStoreBase.subscribe;
+
 export const stringifyFullTabState = () => {
   const store = useTabStoreBase.getState();
 

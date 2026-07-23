@@ -1,4 +1,5 @@
-import type { Section, TabSection, FullNoteLengths } from "~/stores/TabStore";
+import type { Section, FullNoteLengths } from "~/stores/TabStore";
+import { getTabData } from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import {
   createTabNote,
@@ -133,7 +134,6 @@ export interface TabNoteHandlerParams {
   subSectionIndex: number;
   columnIndex: number;
   noteIndex: number;
-  subSection: TabSection;
   setTabData: (updater: (draft: Section[]) => void) => void;
   currentlyCopiedChord: string[] | null;
   setCurrentlyCopiedChord: (chord: string[] | null) => void;
@@ -167,12 +167,15 @@ export function handleTabNoteKeyDown(
     subSectionIndex,
     columnIndex,
     noteIndex,
-    subSection,
     setTabData,
     currentlyCopiedChord,
     setCurrentlyCopiedChord,
     setChordPulse,
   } = params;
+
+  const maybeSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
+  if (!maybeSubSection || maybeSubSection.type !== "tab") return;
+  const subSection = maybeSubSection;
 
   const currentNote = document.getElementById(
     `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`,
@@ -489,7 +492,6 @@ export function handleTabNoteChange(
     sectionIndex: number;
     subSectionIndex: number;
     columnIndex: number;
-    subSection: TabSection;
     setTabData: (updater: (draft: Section[]) => void) => void;
   },
 ) {
@@ -498,9 +500,12 @@ export function handleTabNoteChange(
     sectionIndex,
     subSectionIndex,
     columnIndex,
-    subSection,
     setTabData,
   } = params;
+
+  const maybeSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
+  if (!maybeSubSection || maybeSubSection.type !== "tab") return;
+  const subSection = maybeSubSection;
 
   let value = e.target.value;
 

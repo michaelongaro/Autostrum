@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef, useCallback } from "react";
 import { FaBook } from "react-icons/fa";
 import { useTabStore } from "~/stores/TabStore";
+import { useSectionIds } from "~/hooks/useTabDataSelectors";
 import { Button } from "~/components/ui/button";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import { Separator } from "~/components/ui/separator";
@@ -103,7 +104,6 @@ function Tab() {
     color,
     theme,
     showingAudioControls,
-    tabData,
     setTabData,
     audioMetadata,
     setShowPlaybackModal,
@@ -122,12 +122,15 @@ function Tab() {
     color: state.color,
     theme: state.theme,
     showingAudioControls: state.showingAudioControls,
-    tabData: state.tabData,
     setTabData: state.setTabData,
     audioMetadata: state.audioMetadata,
     setShowPlaybackModal: state.setShowPlaybackModal,
     editing: state.editing,
   }));
+
+  // IDs only — nested note edits must not re-render the entire tab tree.
+  const sectionIds = useSectionIds();
+  const tabDataLength = sectionIds.length;
 
   useAutoCompileChords();
 
@@ -260,10 +263,10 @@ function Tab() {
             showPinnedChords={showPinnedChords}
           />
 
-          {tabData.map((section, index) => (
+          {sectionIds.map((sectionId, index) => (
             <motion.div
-              key={section.id}
-              ref={(el) => measureSectionHeight(section.id, el)}
+              key={sectionId}
+              ref={(el) => measureSectionHeight(sectionId, el)}
               transition={{
                 layout: {
                   type: "spring",
@@ -277,26 +280,25 @@ function Tab() {
                 <SectionContainer
                   sectionIndex={index}
                   forceCloseSectionAccordions={
-                    forceCloseSectionAccordions && index !== tabData.length - 1
+                    forceCloseSectionAccordions && index !== tabDataLength - 1
                   }
                   setForceCloseSectionAccordions={
                     setForceCloseSectionAccordions
                   }
-                  tabDataLength={tabData.length}
+                  tabDataLength={tabDataLength}
                 />
               ) : showPlaybackModal ? (
                 <div
-                  key={section.id}
-                  style={{ height: sectionHeights[section.id] ?? 0 }}
+                  key={sectionId}
+                  style={{ height: sectionHeights[sectionId] ?? 0 }}
                   className="w-full"
                 />
               ) : (
                 <StaticSectionContainer
                   sectionIndex={index}
-                  sectionData={section}
                   color={color}
                   theme={theme}
-                  tabDataLength={tabData.length}
+                  tabDataLength={tabDataLength}
                 />
               )}
             </motion.div>
