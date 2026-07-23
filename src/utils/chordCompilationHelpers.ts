@@ -77,7 +77,6 @@ function compileFullTab({
         elapsedSeconds,
         playbackSpeed,
         forMetadataOnly,
-        forPlayback: forPlayback !== undefined,
       });
     }
   }
@@ -107,57 +106,10 @@ function compileFullTab({
 
   // for playback compilation
   if (forPlayback) {
-    const firstChordType = metadataMappedToLoopRange[0]?.type ?? "tab";
-    const lastChordType = metadataMappedToLoopRange.at(-1)?.type ?? "tab";
-
-    const firstChordBpm = `${metadataMappedToLoopRange[0]?.bpm ?? baselineBpm}`;
-    const lastChordBpm = `${metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm}`;
-
-    if (firstChordType !== lastChordType) {
-      compiledChordsMappedToLoopRange.push([]);
-
-      metadataMappedToLoopRange.push({
-        location: {
-          ...metadataMappedToLoopRange.at(-1)!.location,
-          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-        },
-        bpm: getBpmForChord(
-          metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
-        noteLengthMultiplier: 1,
-        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-        type: "ornamental",
-      });
-    } else if (
-      firstChordType === "tab" &&
-      lastChordType === "tab" &&
-      firstChordBpm !== lastChordBpm
-    ) {
-      // add a measure line w/ the new bpm
-      compiledChordsMappedToLoopRange.push([]);
-      metadataMappedToLoopRange.push({
-        location: {
-          ...metadataMappedToLoopRange.at(-1)!.location,
-          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-        },
-        bpm: getBpmForChord(
-          metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
-        noteLengthMultiplier: 1,
-        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-        type: "ornamental",
-      });
-    }
-
-    // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
-    // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
-
-    // Spacer count uses quarter-note duration at the last chord's BPM, so each
-    // spacer must also be a quarter note to match the intended loopDelay length
-    // (and the visual expand path).
+    // appending loop-delay spacers,
+    // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
     if (forPlayback.loopDelay > 0) {
+      const lastChordBpm = `${metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm}`;
       const numSpacerChordsToAdd = Math.floor(
         forPlayback.loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
       );
@@ -229,7 +181,6 @@ interface CompileSection {
   elapsedSeconds: { value: number };
   playbackSpeed: number;
   forMetadataOnly: boolean;
-  forPlayback: boolean;
 }
 
 function compileSection({
@@ -243,7 +194,6 @@ function compileSection({
   elapsedSeconds,
   playbackSpeed,
   forMetadataOnly,
-  forPlayback,
 }: CompileSection) {
   for (
     let subSectionIndex = 0;
@@ -271,7 +221,6 @@ function compileSection({
           elapsedSeconds,
           playbackSpeed,
           forMetadataOnly,
-          forPlayback,
         });
       } else {
         compileChordSection({
@@ -286,7 +235,6 @@ function compileSection({
           elapsedSeconds,
           playbackSpeed,
           forMetadataOnly,
-          forPlayback,
         });
       }
     }
@@ -303,7 +251,6 @@ interface CompileTabSection {
   elapsedSeconds: { value: number };
   playbackSpeed: number;
   forMetadataOnly: boolean;
-  forPlayback: boolean;
 }
 
 function compileTabSection({
@@ -316,53 +263,9 @@ function compileTabSection({
   elapsedSeconds,
   playbackSpeed,
   forMetadataOnly,
-  forPlayback,
 }: CompileTabSection) {
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
-
-  if (forPlayback) {
-    // if not the very first chord in the tab, and the last section type
-    // was a chord section, we need to add a spacer "chord"
-    if (compiledChords.length > 0 && metadata.at(-1)?.type === "strum") {
-      compiledChords.push([]);
-      metadata.push({
-        location: {
-          sectionIndex,
-          subSectionIndex,
-          chordIndex: -1,
-        },
-        bpm: currentBpm,
-        noteLengthMultiplier: 1,
-        elapsedSeconds: Math.floor(elapsedSeconds.value),
-        type: "ornamental",
-      });
-    }
-
-    // FYI: would like to be !== 0, however you would be rendering a measure line at
-    // the very start of the tab, which goes against your current tab making rules and
-    // visually wouldn't work out. maybe just need to live with the fact that the first
-    // chord won't show bpm, instead just showing it in top right (or wherever) of
-    // playback dialog.
-    if (
-      compiledChords.length > 0 &&
-      metadata.at(-1) !== undefined &&
-      metadata.at(-1)!.bpm !== Number(currentBpm)
-    ) {
-      compiledChords.push([]);
-      metadata.push({
-        location: {
-          sectionIndex,
-          subSectionIndex,
-          chordIndex: -1,
-        },
-        bpm: Number(currentBpm),
-        noteLengthMultiplier: 1,
-        elapsedSeconds: Math.floor(elapsedSeconds.value),
-        type: "ornamental",
-      });
-    }
-  }
 
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
     const column = data[chordIdx]!;
@@ -429,7 +332,6 @@ interface CompileChordSection {
   elapsedSeconds: { value: number };
   playbackSpeed: number;
   forMetadataOnly: boolean;
-  forPlayback: boolean;
 }
 
 function compileChordSection({
@@ -444,27 +346,8 @@ function compileChordSection({
   elapsedSeconds,
   playbackSpeed,
   forMetadataOnly,
-  forPlayback,
 }: CompileChordSection) {
   const chordSection = subSection.data;
-
-  if (forPlayback) {
-    // if last section was a tab section, need to add a spacer "chord"
-    if (compiledChords.length > 0 && metadata.at(-1)?.type === "tab") {
-      compiledChords.push([]);
-      metadata.push({
-        location: {
-          sectionIndex,
-          subSectionIndex,
-          chordIndex: -1,
-        },
-        bpm: subSection.bpm,
-        noteLengthMultiplier: 1,
-        elapsedSeconds: Math.floor(elapsedSeconds.value),
-        type: "ornamental",
-      });
-    }
-  }
 
   for (
     let chordSequenceIndex = 0;
@@ -744,7 +627,6 @@ function compileSpecificChordGrouping({
           elapsedSeconds,
           playbackSpeed,
           forMetadataOnly,
-          forPlayback: forPlayback !== undefined,
         });
       } else {
         compileChordSection({
@@ -759,7 +641,6 @@ function compileSpecificChordGrouping({
           elapsedSeconds,
           playbackSpeed,
           forMetadataOnly,
-          forPlayback: forPlayback !== undefined,
         });
       }
     }
@@ -781,7 +662,6 @@ function compileSpecificChordGrouping({
       elapsedSeconds,
       playbackSpeed,
       forMetadataOnly,
-      forPlayback: forPlayback !== undefined,
     });
   }
 
@@ -810,57 +690,10 @@ function compileSpecificChordGrouping({
 
   // for playback compilation
   if (forPlayback) {
-    const firstChordType = metadataMappedToLoopRange[0]?.type ?? "tab";
-    const lastChordType = metadataMappedToLoopRange.at(-1)?.type ?? "tab";
-
-    const firstChordBpm = `${metadataMappedToLoopRange[0]?.bpm ?? baselineBpm}`;
-    const lastChordBpm = `${metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm}`;
-
-    if (firstChordType !== lastChordType) {
-      compiledChordsMappedToLoopRange.push([]);
-
-      metadataMappedToLoopRange.push({
-        location: {
-          ...metadataMappedToLoopRange.at(-1)!.location,
-          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-        },
-        bpm: getBpmForChord(
-          metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
-        noteLengthMultiplier: 1,
-        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-        type: "ornamental",
-      });
-    } else if (
-      firstChordType === "tab" &&
-      lastChordType === "tab" &&
-      firstChordBpm !== lastChordBpm
-    ) {
-      // add a measure line w/ the new bpm
-      compiledChordsMappedToLoopRange.push([]);
-      metadataMappedToLoopRange.push({
-        location: {
-          ...metadataMappedToLoopRange.at(-1)!.location,
-          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-        },
-        bpm: getBpmForChord(
-          metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
-        noteLengthMultiplier: 1,
-        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-        type: "ornamental",
-      });
-    }
-
-    // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
-    // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
-
-    // Spacer count uses quarter-note duration at the last chord's BPM, so each
-    // spacer must also be a quarter note to match the intended loopDelay length
-    // (and the visual expand path).
+    // appending loop-delay spacers,
+    // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
     if (forPlayback.loopDelay > 0) {
+      const lastChordBpm = `${metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm}`;
       const numSpacerChordsToAdd = Math.floor(
         forPlayback.loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
       );

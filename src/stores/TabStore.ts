@@ -262,6 +262,10 @@ export interface PlaybackTabChord {
   data: {
     chordData: string[];
     bpm: number;
+    // outside of on measure lines which already show bpm,
+    // only want to show bpm on first chord of a tab sub section and
+    // if a chord's bpm is different from the previous chord
+    showBpm: boolean;
   };
 }
 

@@ -24,7 +24,7 @@ function PlaybackTabMeasureLine({
             <>
               {columnData[7] && columnData[7] !== "-1" && (
                 <div
-                  className={`baseFlex absolute gap-[0.125rem] text-foreground ${
+                  className={`baseFlex absolute gap-[2px] text-foreground ${
                     note === "-" ? "-top-1" : "top-3"
                   }`}
                 >

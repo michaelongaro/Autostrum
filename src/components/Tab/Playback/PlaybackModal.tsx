@@ -745,14 +745,6 @@ const RenderChordByType = memo(function RenderChordByType({
     (nextChord.type === "tab" && nextChord.data.chordData[7] === "r") ||
     (nextChord.type === "strum" && nextChord.data.strum === "r");
 
-  if (isFirstChordInTab) {
-    console.log("first");
-  }
-
-  if (isLastChordInTab) {
-    console.log("last");
-  }
-
   if (type === "tab" && chord?.type === "tab") {
     return (
       <PlaybackTabChord
@@ -769,6 +761,7 @@ const RenderChordByType = memo(function RenderChordByType({
         prevChordIsRest={prevChordIsRest}
         currentChordIsRest={currentChordIsRest}
         nextChordIsRest={nextChordIsRest}
+        showBpm={chord.data.showBpm}
       />
     );
   }
@@ -785,7 +778,6 @@ const RenderChordByType = memo(function RenderChordByType({
   if (type === "strum" && chord?.type === "strum") {
     return (
       <PlaybackStrummedChord
-        strumIndex={chord?.data.strumIndex || 0}
         strum={chord?.data.strum || ""}
         palmMute={chord?.data.palmMute || ""}
         isFirstChord={chord?.isFirstChord}

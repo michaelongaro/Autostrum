@@ -1,26 +1,26 @@
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
+import { getSectionIndexFromId } from "~/utils/getSectionIndexFromId";
 import {
   type Chord,
   type ChordSection,
   type ChordSequence,
+  type FullNoteLengths,
+  noteLengthMultipliers,
+  type PlaybackLoopDelaySpacerChord,
   type PlaybackMetadata,
+  type PlaybackStrummedChord,
+  type PlaybackTabChord,
   type Section,
   type SectionProgression,
   type TabSection,
-  type PlaybackTabChord,
-  type PlaybackStrummedChord,
-  type PlaybackLoopDelaySpacerChord,
-  type FullNoteLengths,
-  noteLengthMultipliers,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
 import {
-  isTabMeasureLine,
   isTabNote,
+  isTabMeasureLine,
   tabColumnToArray,
 } from "./tabNoteHelpers";
-import { getSectionIndexFromId } from "~/utils/getSectionIndexFromId";
 
 interface ExpandFullTab {
   tabData: Section[];
@@ -118,115 +118,14 @@ function expandFullTab({
     metadata.elapsedSeconds -= secondsToSubtract;
   }
 
-  // Use metadata types (not chord types) so measure-line / ornamental endings
-  // match the audio compile path's loop-boundary spacer count.
-  const firstMetadataType = metadataMappedToLoopRange[0]?.type ?? "tab";
-  const lastMetadataType = metadataMappedToLoopRange.at(-1)?.type ?? "tab";
-  const firstChordType = compiledChordsMappedToLoopRange[0]?.type ?? "tab";
-
-  const firstChordBpm = `${compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm}`;
-  const lastChordBpm = `${compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm}`;
-
-  // right before duplication step, need to add a spacer chord if the first chord and last
-  // chord are different types (tab vs strum / ornamental)
-  if (firstMetadataType !== lastMetadataType) {
-    compiledChordsMappedToLoopRange.push(
-      firstChordType === "tab"
-        ? {
-            type: "tab",
-            isFirstChord: false,
-            isLastChord: false,
-            data: {
-              chordData: [
-                "-1",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                firstChordBpm !== lastChordBpm ? firstChordBpm : "",
-                "",
-              ],
-              bpm: compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm,
-            },
-          }
-        : {
-            type: "strum",
-            isFirstChord: false,
-            isLastChord: false,
-            baseNoteLength: "quarter",
-            data: {
-              strumIndex: -1,
-              chordName: "",
-              chordColor: "",
-              palmMute: "",
-              strum: "",
-              noteLength: "quarter",
-              beatIndicator: "",
-              bpm: compiledChordsMappedToLoopRange[0]?.data.bpm ?? baselineBpm,
-              showBpm: false,
-            },
-          },
-    );
-
-    metadataMappedToLoopRange.push({
-      location: {
-        ...metadataMappedToLoopRange.at(-1)!.location,
-        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-      },
-      bpm: getBpmForChord(
-        compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-        baselineBpm,
-      ),
-      noteLengthMultiplier: 1,
-      noteLength: "quarter",
-      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-      type: "ornamental",
-    });
-  } else if (
-    firstMetadataType === "tab" &&
-    lastMetadataType === "tab" &&
-    firstChordBpm !== lastChordBpm
-  ) {
-    // add a measure line w/ the new bpm
-    compiledChordsMappedToLoopRange.push({
-      type: "tab",
-      isFirstChord: false,
-      isLastChord: false,
-      data: {
-        chordData: ["", "|", "|", "|", "|", "|", "|", firstChordBpm, "", "1"],
-        bpm: Number(firstChordBpm),
-      },
-    });
-    metadataMappedToLoopRange.push({
-      location: {
-        ...metadataMappedToLoopRange.at(-1)!.location,
-        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-      },
-      bpm: getBpmForChord(
-        compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-        baselineBpm,
-      ),
-
-      noteLengthMultiplier: 1,
-      noteLength: "quarter",
-      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-      type: "ornamental",
-    });
-  }
-
   // these need to be set before spacer chords are added
   compiledChordsMappedToLoopRange.at(0)!.isFirstChordInTab = true;
   compiledChordsMappedToLoopRange.at(-1)!.isLastChordInTab = true;
 
-  // FYI: don't need a spacer chord if the first + last chords are strums, since if the very first
-  // chord is a strum, it already automatically shows its bpm anyways, and no "spacer" chord is needed
-
   // appending loop-delay spacers,
   // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
   if (loopDelay > 0) {
+    const lastChordBpm = `${compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm}`;
     const numSpacerChordsToAdd = Math.floor(
       loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
     );
@@ -416,83 +315,15 @@ function expandTabSection({
   const data = subSection.data;
   let currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
 
-  // if not the very first chord in the tab, and the last section type
-  // was a chord section, we need to add a spacer "chord"
-  if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "strum") {
-    compiledChords.push({
-      type: "tab",
-      isFirstChord: false,
-      isLastChord: false,
-      data: {
-        chordData: [
-          "-1",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          compiledChords.at(-1)!.data.bpm !== currentBpm ? `${currentBpm}` : "",
-          "",
-        ],
-        bpm: currentBpm,
-      },
-    });
-    metadata.push({
-      location: {
-        sectionIndex,
-        sectionRepeatIndex,
-        subSectionIndex,
-        subSectionRepeatIndex,
-        chordIndex: compiledChords.length - 1,
-      },
-      bpm: currentBpm,
-      noteLengthMultiplier: 1,
-      noteLength: "quarter",
-      elapsedSeconds: Math.floor(elapsedSeconds.value),
-      type: "ornamental",
-    });
-  }
-
-  // FYI: would like to be !== 0, however you would be rendering a measure line at
-  // the very start of the tab, which goes against your current tab making rules and
-  // visually wouldn't work out. maybe just need to live with the fact that the first
-  // chord won't show bpm, instead just showing it in top right (or wherever) of
-  // playback dialog.
-  if (
-    compiledChords.length > 0 &&
-    compiledChords.at(-1) !== undefined &&
-    compiledChords.at(-1)!.data.bpm !== currentBpm
-  ) {
-    compiledChords.push({
-      type: "tab",
-      isFirstChord: false,
-      isLastChord: false,
-      data: {
-        chordData: ["", "|", "|", "|", "|", "|", "|", `${currentBpm}`, "", "1"],
-        bpm: currentBpm,
-      },
-    });
-    metadata.push({
-      location: {
-        sectionIndex,
-        sectionRepeatIndex,
-        subSectionIndex,
-        subSectionRepeatIndex,
-        chordIndex: compiledChords.length - 1,
-      },
-      bpm: currentBpm,
-      noteLengthMultiplier: 1,
-      noteLength: "quarter",
-      elapsedSeconds: Math.floor(elapsedSeconds.value),
-      type: "ornamental",
-    });
-  }
-
   for (let chordIdx = 0; chordIdx < data.length; chordIdx++) {
     const column = data[chordIdx]!;
     const chordArray = tabColumnToArray(column);
+
+    const isANote = isTabNote(column);
+    const isAMeasureLine = isTabMeasureLine(column);
+
+    const prevChord = compiledChords?.at(-1);
+    const prevChordIsAMeasureLine = isTabMeasureLine(data[chordIdx - 1]!); // TODO: do actual type checking here
 
     const chordData: PlaybackTabChord = {
       type: "tab",
@@ -501,10 +332,11 @@ function expandTabSection({
       data: {
         chordData: chordArray,
         bpm: currentBpm,
+        showBpm:
+          compiledChords.length === 0 ||
+          (prevChord?.data.bpm !== currentBpm && !prevChordIsAMeasureLine),
       },
     };
-
-    const isAMeasureLine = isTabMeasureLine(column);
 
     if (isAMeasureLine) {
       const newBpmPostMeasureLine = column.bpmAfterLine;
@@ -515,7 +347,7 @@ function expandTabSection({
       }
     }
 
-    const noteLength = isTabNote(column)
+    const noteLength = isANote
       ? column.noteLength
       : ("quarter" as FullNoteLengths);
 
@@ -578,45 +410,6 @@ function expandChordSection({
   playbackSpeed,
 }: ExpandChordSection) {
   const chordSection = subSection.data;
-
-  // if not the very first chord in the tab, and the last section type
-  // was a chord section, we need to add a spacer "chord"
-  if (compiledChords.length > 0 && compiledChords.at(-1)?.type === "tab") {
-    compiledChords.push({
-      type: "strum",
-      isFirstChord: false,
-      isLastChord: false,
-      baseNoteLength: "quarter",
-      data: {
-        strumIndex: -1,
-        chordName: "",
-        chordColor: "",
-        palmMute: "",
-        strum: "",
-        noteLength: "quarter",
-        beatIndicator: "",
-        bpm: baselineBpm,
-        showBpm: false,
-      },
-    });
-
-    metadata.push({
-      location: {
-        sectionIndex,
-        sectionRepeatIndex,
-        subSectionIndex,
-        subSectionRepeatIndex,
-        chordSequenceIndex: 0,
-        chordSequenceRepeatIndex: 0,
-        chordIndex: -1,
-      },
-      bpm: baselineBpm,
-      noteLengthMultiplier: 1,
-      noteLength: "quarter",
-      elapsedSeconds: Math.floor(elapsedSeconds.value),
-      type: "ornamental",
-    });
-  }
 
   for (
     let chordSequenceIndex = 0;
@@ -780,11 +573,10 @@ function expandChordSequence({
           // TODO: check this logic, might be flaky
           showBpm: Boolean(
             compiledChords.length === 0 ||
-            (prevChord &&
-              prevChord?.data.bpm !==
-                Number(
-                  getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
-                )),
+            prevChord?.data.bpm !==
+              Number(
+                getBpmForChord(chordSequence.bpm, baselineBpm, subSectionBpm),
+              ),
           ),
         },
       };

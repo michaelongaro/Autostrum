@@ -7,13 +7,13 @@ import type {
 
 // Type guards
 export function isTabNote(item: TabNote | TabMeasureLine): item is TabNote {
-  return item.type === "note";
+  return item?.type === "note";
 }
 
 export function isTabMeasureLine(
   item: TabNote | TabMeasureLine,
 ): item is TabMeasureLine {
-  return item.type === "measureLine";
+  return item?.type === "measureLine";
 }
 
 // Factory functions
