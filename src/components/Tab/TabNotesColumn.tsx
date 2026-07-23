@@ -2,7 +2,13 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Element } from "react-scroll";
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  memo,
+  useEffect,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import {
@@ -23,19 +29,20 @@ import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
-import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
+import {
+  useTabColumnData,
+  useTabColumnNeighborMeta,
+} from "~/hooks/useTabDataSelectors";
 import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
 import { NoteLengthDropdown } from "./NoteLengthDropdown";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
   createTabNote,
   getStringValue,
-  isTabMeasureLine,
   isTabNote,
 } from "~/utils/tabNoteHelpers";
 
 interface TabNotesColumnProps {
-  columnData: TabNoteType;
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
@@ -53,7 +60,6 @@ interface TabNotesColumnProps {
 }
 
 function TabNotesColumn({
-  columnData,
   sectionIndex,
   subSectionIndex,
   columnIndex,
@@ -78,6 +84,18 @@ function TabNotesColumn({
   const { columnIsBeingPlayed, columnHasBeenPlayed, durationOfChord } =
     useColumnPlaybackHighlight(sectionIndex, subSectionIndex, columnIndex);
 
+  const columnData = useTabColumnData(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  ) as TabNoteType | undefined;
+
+  const neighborMeta = useTabColumnNeighborMeta(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  );
+
   const {
     attributes,
     listeners,
@@ -87,7 +105,7 @@ function TabNotesColumn({
     transition,
     isDragging,
   } = useSortable({
-    id: columnData.id,
+    id: columnData?.id ?? `tab-note-${columnIndex}`,
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
@@ -95,44 +113,6 @@ function TabNotesColumn({
     pauseAudio: state.pauseAudio,
     setTabData: state.setTabData,
   }));
-
-  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
-
-  const previousColumn =
-    columnIndex > 0 ? subSection.data[columnIndex - 1] : undefined;
-  const nextColumn =
-    columnIndex < subSection.data.length - 1
-      ? subSection.data[columnIndex + 1]
-      : undefined;
-
-  const previousColumnIsPlayable =
-    previousColumn !== undefined && isTabNote(previousColumn);
-  const nextColumnIsPlayable =
-    nextColumn !== undefined && isTabNote(nextColumn);
-
-  const previousNoteLength = previousColumnIsPlayable
-    ? previousColumn.noteLength
-    : undefined;
-  const nextNoteLength = nextColumnIsPlayable
-    ? nextColumn.noteLength
-    : undefined;
-
-  const previousIsRestStrum = previousColumnIsPlayable
-    ? previousColumn.chordEffects === "r"
-    : undefined;
-  const currentIsRestStrum = columnData.chordEffects === "r";
-  const nextIsRestStrum = nextColumnIsPlayable
-    ? nextColumn.chordEffects === "r"
-    : undefined;
-
-  // Determine group boundaries for note length guide beam rendering
-  const isFirstInGroup =
-    columnIndex === 0 ||
-    (previousColumn !== undefined && isTabMeasureLine(previousColumn));
-  const isLastInGroup =
-    isLastColumn ||
-    columnIndex === subSection.data.length - 1 ||
-    (nextColumn !== undefined && isTabMeasureLine(nextColumn));
 
   // ideally don't need this and can just use prop values passed in, but need to have a
   // [0] index special case, since when looping it would keep the [0] index at 100% width
@@ -153,35 +133,31 @@ function TabNotesColumn({
     }
   }, [columnIndex, columnIsBeingPlayed]);
 
+  if (!columnData || !isTabNote(columnData)) {
+    return null;
+  }
+
   function deleteColumnButtonDisabled() {
     let disabled = false;
 
-    if (subSection.data.length === 1) {
+    if (neighborMeta.columnCount === 1) {
       disabled = true;
     }
-
-    const prevColumn = subSection.data[columnIndex - 1];
-    const nextColumnData = subSection.data[columnIndex + 1];
 
     // if the current chord is the first/last "elem" in the section and there is a measure line
     // right after/before -> disable
     if (
-      (columnIndex === 0 &&
-        nextColumnData &&
-        isTabMeasureLine(nextColumnData)) ||
-      (columnIndex === subSection.data.length - 1 &&
-        prevColumn &&
-        isTabMeasureLine(prevColumn))
+      (columnIndex === 0 && neighborMeta.nextIsMeasureLine) ||
+      (columnIndex === neighborMeta.columnCount - 1 &&
+        neighborMeta.previousIsMeasureLine)
     ) {
       disabled = true;
     }
 
     // if the current chord is being flanked by two measure lines -> disable
     if (
-      prevColumn &&
-      isTabMeasureLine(prevColumn) &&
-      nextColumnData &&
-      isTabMeasureLine(nextColumnData)
+      neighborMeta.previousIsMeasureLine &&
+      neighborMeta.nextIsMeasureLine
     ) {
       disabled = true;
     }
@@ -245,16 +221,19 @@ function TabNotesColumn({
 
       if (currentSubSection?.type !== "tab") return;
 
+      const currentColumn = currentSubSection.data[columnIndex];
+      if (!currentColumn || !isTabNote(currentColumn)) return;
+
       const newColumnPalmMuteValue: "" | "-" =
-        (columnData.palmMute === "start" && after) ||
-        (columnData.palmMute === "end" && !after) ||
-        columnData.palmMute === "-"
+        (currentColumn.palmMute === "start" && after) ||
+        (currentColumn.palmMute === "end" && !after) ||
+        currentColumn.palmMute === "-"
           ? "-"
           : "";
 
       const newColumnData = createTabNote({
         palmMute: newColumnPalmMuteValue,
-        noteLength: subSection.baseNoteLength,
+        noteLength: neighborMeta.baseNoteLength,
       });
 
       currentSubSection.data.splice(
@@ -277,6 +256,8 @@ function TabNotesColumn({
       }
     });
   }
+
+  const currentIsRestStrum = columnData.chordEffects === "r";
 
   return (
     <motion.div
@@ -467,14 +448,14 @@ function TabNotesColumn({
           {/* Note Length Guide */}
           <div className="baseVertFlex mt-2 h-4 w-full">
             {renderNoteLengthGuide({
-              previousNoteLength,
+              previousNoteLength: neighborMeta.previousNoteLength,
               currentNoteLength: columnData.noteLength,
-              nextNoteLength,
-              previousIsRestStrum,
+              nextNoteLength: neighborMeta.nextNoteLength,
+              previousIsRestStrum: neighborMeta.previousIsRestStrum,
               currentIsRestStrum,
-              nextIsRestStrum,
-              isFirstInGroup,
-              isLastInGroup,
+              nextIsRestStrum: neighborMeta.nextIsRestStrum,
+              isFirstInGroup: neighborMeta.isFirstInGroup,
+              isLastInGroup: neighborMeta.isLastInGroup,
             })}
           </div>
         </div>
@@ -487,4 +468,4 @@ function TabNotesColumn({
   );
 }
 
-export default TabNotesColumn;
+export default memo(TabNotesColumn);

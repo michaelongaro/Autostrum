@@ -1,13 +1,16 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment } from "react";
+import { Fragment, memo } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import ChordSequence from "./ChordSequence";
 import MiscellaneousControls from "./MiscellaneousControls";
-import { useChordSubSectionData } from "~/hooks/useTabDataSelectors";
+import {
+  useChordSequenceIds,
+  useChordSubSectionMeta,
+} from "~/hooks/useTabDataSelectors";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -38,7 +41,8 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
     setTabData: state.setTabData,
   }));
 
-  const subSection = useChordSubSectionData(sectionIndex, subSectionIndex);
+  const subSection = useChordSubSectionMeta(sectionIndex, subSectionIndex);
+  const chordSequenceIds = useChordSequenceIds(sectionIndex, subSectionIndex);
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepetitions =
@@ -183,8 +187,8 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
           }}
           className="baseVertFlex w-full !items-end !justify-start gap-6"
         >
-          {subSection.data.map((chordSequence, index) => (
-            <Fragment key={`${chordSequence.id}wrapper`}>
+          {chordSequenceIds.map((chordSequenceId, index) => (
+            <Fragment key={`${chordSequenceId}wrapper`}>
               <div className="baseVertFlex w-full !items-start">
                 <AnimatePresence mode="wait">
                   <ChordSequence
@@ -204,4 +208,4 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
   );
 }
 
-export default ChordSection;
+export default memo(ChordSection);

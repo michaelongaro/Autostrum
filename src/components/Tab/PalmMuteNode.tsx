@@ -1,11 +1,10 @@
-import { type Dispatch, type SetStateAction } from "react";
+import { memo, type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
-import { useTabStore } from "~/stores/TabStore";
+import { getTabData, useTabStore } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
 import { Button } from "~/components/ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
-import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 import type { Section } from "~/stores/TabStore";
 import {
   isTabMeasureLine,
@@ -43,8 +42,6 @@ function PalmMuteNode({
     setTabData: state.setTabData,
   }));
 
-  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
-
   function getButtonOpacity() {
     if (!editingPalmMuteNodes) {
       if (value === "start" || value === "end") return "1";
@@ -68,6 +65,10 @@ function PalmMuteNode({
       `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`,
     );
 
+    const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
+    const columns =
+      tabSubSection?.type === "tab" ? tabSubSection.data : [];
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
 
@@ -82,7 +83,7 @@ function PalmMuteNode({
       let currentIndex = columnIndex - 1;
 
       while (currentIndex >= 0) {
-        const currentColumn = subSection.data[currentIndex];
+        const currentColumn = columns[currentIndex];
         if (!currentColumn) {
           currentIndex--;
           continue;
@@ -113,8 +114,8 @@ function PalmMuteNode({
 
       let currentIndex = columnIndex + 1;
 
-      while (currentIndex < subSection.data.length) {
-        const currentColumn = subSection.data[currentIndex];
+      while (currentIndex < columns.length) {
+        const currentColumn = columns[currentIndex];
         if (!currentColumn) {
           currentIndex++;
           continue;
@@ -152,10 +153,14 @@ function PalmMuteNode({
     startIndex: number,
     nodeType: "start" | "end",
   ): number {
+    const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
+    const columns =
+      tabSubSection?.type === "tab" ? tabSubSection.data : [];
+
     if (nodeType === "start") {
       // Find the corresponding "end" node to the right
-      for (let i = startIndex + 1; i < subSection.data.length; i++) {
-        const col = subSection.data[i];
+      for (let i = startIndex + 1; i < columns.length; i++) {
+        const col = columns[i];
         if (col && isTabNote(col) && col.palmMute === "end") {
           return i;
         }
@@ -163,7 +168,7 @@ function PalmMuteNode({
     } else {
       // Find the corresponding "start" node to the left
       for (let i = startIndex - 1; i >= 0; i--) {
-        const col = subSection.data[i];
+        const col = columns[i];
         if (col && isTabNote(col) && col.palmMute === "start") {
           return i;
         }
@@ -515,4 +520,4 @@ function PalmMuteNode({
   );
 }
 
-export default PalmMuteNode;
+export default memo(PalmMuteNode);

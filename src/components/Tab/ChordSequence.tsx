@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Select,
@@ -21,7 +21,7 @@ import StrummingPatternPreview from "./StrummingPatternPreview";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
   useChordSequenceData,
-  useChordSubSectionData,
+  useChordSequenceParentBpm,
 } from "~/hooks/useTabDataSelectors";
 
 const opacityAndScaleVariants = {
@@ -73,7 +73,10 @@ function ChordSequence({
       setTabData: state.setTabData,
     }));
 
-  const subSection = useChordSubSectionData(sectionIndex, subSectionIndex);
+  const subSectionBpm = useChordSequenceParentBpm(
+    sectionIndex,
+    subSectionIndex,
+  );
   const chordSequence = useChordSequenceData(
     sectionIndex,
     subSectionIndex,
@@ -114,12 +117,12 @@ function ChordSequence({
   const placeholderBpm = useMemo(() => {
     if (chordSequence.bpm !== -1) return chordSequence.bpm.toString();
 
-    if (subSection.bpm !== -1) return subSection.bpm.toString();
+    if (subSectionBpm !== -1) return subSectionBpm.toString();
 
     if (bpm !== -1) return bpm.toString();
 
     return "";
-  }, [bpm, subSection.bpm, chordSequence.bpm]);
+  }, [bpm, subSectionBpm, chordSequence.bpm]);
 
   function handleRepetitionsChange(e: React.ChangeEvent<HTMLInputElement>) {
     const newRepetitions =
@@ -392,4 +395,4 @@ function ChordSequence({
   );
 }
 
-export default ChordSequence;
+export default memo(ChordSequence);

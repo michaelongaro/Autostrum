@@ -1,6 +1,12 @@
 import { AnimatePresence } from "framer-motion";
 import debounce from "lodash.debounce";
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  memo,
+  useEffect,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { BsPlus } from "react-icons/bs";
 import {
   Accordion,
@@ -23,7 +29,12 @@ import { Separator } from "~/components/ui/separator";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
-import { useSectionData } from "~/hooks/useTabDataSelectors";
+import {
+  useSectionId,
+  useSectionTitle,
+  useSubSectionIds,
+  useSubSectionTypes,
+} from "~/hooks/useTabDataSelectors";
 import { createTabNote } from "~/utils/tabNoteHelpers";
 
 interface SectionContainer {
@@ -63,10 +74,18 @@ function SectionContainer({
     return playingSectionIndex === sectionIndex;
   });
 
-  const section = useSectionData(sectionIndex);
+  // Title / id / child identity only — not full section.data contents.
+  const sectionTitle = useSectionTitle(sectionIndex);
+  const sectionId = useSectionId(sectionIndex);
+  const subSectionIds = useSubSectionIds(sectionIndex);
+  const subSectionTypes = useSubSectionTypes(sectionIndex);
 
   const [accordionOpen, setAccordionOpen] = useState("opened");
-  const [localTitle, setLocalTitle] = useState(section.title);
+  const [localTitle, setLocalTitle] = useState(sectionTitle);
+
+  useEffect(() => {
+    setLocalTitle(sectionTitle);
+  }, [sectionTitle]);
 
   useEffect(() => {
     if (forceCloseSectionAccordions) {
@@ -95,7 +114,7 @@ function SectionContainer({
       });
 
       const newSectionProgression = sectionProgression.map((s) =>
-        s.sectionId === section.id ? { ...s, title: e.target.value } : s,
+        s.sectionId === sectionId ? { ...s, title: e.target.value } : s,
       );
 
       setSectionProgression(newSectionProgression);
@@ -247,13 +266,13 @@ function SectionContainer({
               id={`sectionIndex${sectionIndex}`}
               className="baseVertFlex w-full gap-4"
             >
-              {section.data.map((subSection, index) => (
+              {subSectionIds.map((subSectionId, index) => (
                 <div
-                  key={subSection.id}
+                  key={subSectionId}
                   className="baseVertFlex w-full !items-start pb-2"
                 >
                   <AnimatePresence mode="wait">
-                    {subSection.type === "chord" ? (
+                    {subSectionTypes[index] === "chord" ? (
                       <ChordSection
                         sectionIndex={sectionIndex}
                         subSectionIndex={index}
@@ -294,4 +313,4 @@ function SectionContainer({
   );
 }
 
-export default SectionContainer;
+export default memo(SectionContainer);

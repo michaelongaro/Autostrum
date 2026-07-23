@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { memo, useState } from "react";
+import { getTabStore, useTabStore } from "~/stores/TabStore";
 import { Input } from "~/components/ui/input";
 import {
   handleTabNoteChange,
   handleTabNoteKeyDown,
 } from "~/utils/tabNoteHandlers";
-import { useTabSubSectionData } from "~/hooks/useTabDataSelectors";
 
 interface TabNote {
   note: string;
@@ -22,33 +21,24 @@ function TabNote({
   columnIndex,
   noteIndex,
 }: TabNote) {
-  const {
-    currentlyCopiedChord,
-    setCurrentlyCopiedChord,
-    chordPulse,
-    setChordPulse,
-    setTabData,
-  } = useTabStore((state) => ({
-    currentlyCopiedChord: state.currentlyCopiedChord,
-    setCurrentlyCopiedChord: state.setCurrentlyCopiedChord,
-    chordPulse: state.chordPulse,
-    setChordPulse: state.setChordPulse,
-    setTabData: state.setTabData,
-  }));
+  const setTabData = useTabStore((state) => state.setTabData);
+  const setChordPulse = useTabStore((state) => state.setChordPulse);
 
-  const subSection = useTabSubSectionData(sectionIndex, subSectionIndex);
+  // Only this column's pulse should re-render the input chrome.
+  const isPulsing = useTabStore((state) => {
+    const pulse = state.chordPulse;
+    return (
+      pulse?.location.sectionIndex === sectionIndex &&
+      pulse.location.subSectionIndex === subSectionIndex &&
+      pulse.location.chordIndex === columnIndex
+    );
+  });
 
   const [isFocused, setIsFocused] = useState(false);
 
   return (
     <div
-      className={`relative ${
-        chordPulse?.location.sectionIndex === sectionIndex &&
-        chordPulse.location.subSectionIndex === subSectionIndex &&
-        chordPulse.location.chordIndex === columnIndex
-          ? "copyAndPaste"
-          : ""
-      }`}
+      className={`relative ${isPulsing ? "copyAndPaste" : ""}`}
       onAnimationEnd={() => setChordPulse(null)}
     >
       <Input
@@ -75,18 +65,24 @@ function TabNote({
         autoComplete="off"
         value={note}
         onKeyDown={(e) => {
+          const {
+            currentlyCopiedChord,
+            setCurrentlyCopiedChord,
+            chordPulse,
+            setChordPulse: setPulse,
+          } = getTabStore();
+
           handleTabNoteKeyDown(e, {
             note,
             sectionIndex,
             subSectionIndex,
             columnIndex,
-            subSection,
             setTabData,
             noteIndex,
             currentlyCopiedChord,
             setCurrentlyCopiedChord,
             chordPulse,
-            setChordPulse,
+            setChordPulse: setPulse,
             setIsFocused,
           });
         }}
@@ -96,7 +92,6 @@ function TabNote({
             sectionIndex,
             subSectionIndex,
             columnIndex,
-            subSection,
             setTabData,
           });
         }}
@@ -105,4 +100,4 @@ function TabNote({
   );
 }
 
-export default TabNote;
+export default memo(TabNote);
