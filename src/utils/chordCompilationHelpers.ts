@@ -544,11 +544,12 @@ interface CompileSpecificChordGrouping {
     updatedFields: Partial<AudioMetadata>,
   ) => void;
   forMetadataOnly: boolean;
-  forPlayback?: {
-    loopDelay: number;
-  };
 }
 
+// FYI: there is no need for the "forPlayback" logic in this function,
+// since the <PlaybackModal> can only ever play back the whole tab or an
+// whole section at once, and in the latter we just .slice() the appropriate
+// section and pass it to compileFullTab().
 function compileSpecificChordGrouping({
   tabData,
   location,
@@ -561,7 +562,6 @@ function compileSpecificChordGrouping({
   endLoopIndex,
   atomicallyUpdateAudioMetadata,
   forMetadataOnly,
-  forPlayback,
 }: CompileSpecificChordGrouping) {
   const compiledChords: string[][] = [];
   const metadata: Metadata[] = [];
@@ -688,65 +688,24 @@ function compileSpecificChordGrouping({
     metadata.elapsedSeconds -= secondsToSubtract;
   }
 
-  // for playback compilation
-  if (forPlayback) {
-    // appending loop-delay spacers,
-    // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
-    if (forPlayback.loopDelay > 0) {
-      const lastChordBpm = `${metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm}`;
-      const numSpacerChordsToAdd = Math.floor(
-        forPlayback.loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
-      );
+  // adding a "ghost" chord here since it makes the logic for whether to
+  // highlight the last chord in a sub section more straightforward
 
-      for (let i = 0; i < numSpacerChordsToAdd; i++) {
-        compiledChordsMappedToLoopRange.push([
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "quarter",
-          lastChordBpm,
-        ]);
+  const lastMetadataLocation = metadataMappedToLoopRange.at(-1);
 
-        metadataMappedToLoopRange.push({
-          location: {
-            ...metadataMappedToLoopRange.at(-1)!.location,
-            chordIndex:
-              metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-          },
-          bpm: Number(lastChordBpm),
-          noteLengthMultiplier: 1,
-          elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-          type: "ornamental",
-        });
-      }
-    }
-  }
-  // for editing compilation
-  else {
-    // adding a "ghost" chord here since it makes the logic for whether to
-    // highlight the last chord in a sub section more straightforward
-
-    const lastMetadataLocation = metadataMappedToLoopRange.at(-1);
-
-    if (lastMetadataLocation) {
-      compiledChordsMappedToLoopRange.push([]);
-      metadataMappedToLoopRange.push({
-        location: {
-          sectionIndex: lastMetadataLocation?.location.sectionIndex,
-          subSectionIndex: lastMetadataLocation?.location.subSectionIndex,
-          chordIndex: lastMetadataLocation?.location.chordIndex + 1,
-        },
-        bpm: lastMetadataLocation.bpm,
-        noteLengthMultiplier: 1,
-        elapsedSeconds: lastMetadataLocation.elapsedSeconds,
-        type: "ornamental",
-      });
-    }
+  if (lastMetadataLocation) {
+    compiledChordsMappedToLoopRange.push([]);
+    metadataMappedToLoopRange.push({
+      location: {
+        sectionIndex: lastMetadataLocation?.location.sectionIndex,
+        subSectionIndex: lastMetadataLocation?.location.subSectionIndex,
+        chordIndex: lastMetadataLocation?.location.chordIndex + 1,
+      },
+      bpm: lastMetadataLocation.bpm,
+      noteLengthMultiplier: 1,
+      elapsedSeconds: lastMetadataLocation.elapsedSeconds,
+      type: "ornamental",
+    });
   }
 
   setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
