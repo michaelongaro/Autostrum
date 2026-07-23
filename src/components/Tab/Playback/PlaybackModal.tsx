@@ -1,9 +1,6 @@
 import {
-  memo,
-  useCallback,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -155,7 +152,7 @@ function PlaybackModal() {
     };
   }, []);
 
-  const measurePlaybackContainer = useCallback(() => {
+  function measurePlaybackContainer() {
     const modalElement = modalContentRef.current;
 
     if (
@@ -170,9 +167,9 @@ function PlaybackModal() {
     setInitialPlaceholderWidth(width / 2 - 5);
     setVisiblePlaybackContainerWidth(width);
     return true;
-  }, [setVisiblePlaybackContainerWidth]);
+  }
 
-  const scheduleMeasureRetry = useCallback(() => {
+  function scheduleMeasureRetry() {
     if (measureRetryRafRef.current !== null) {
       cancelAnimationFrame(measureRetryRafRef.current);
     }
@@ -190,7 +187,7 @@ function PlaybackModal() {
     };
 
     measureRetryRafRef.current = requestAnimationFrame(retry);
-  }, [measurePlaybackContainer]);
+  }
 
   // Initialize / resync chordRepetitions when expanded tab data changes.
   // If playback is still active (e.g. loop-range recompile), re-anchor the
@@ -247,21 +244,13 @@ function PlaybackModal() {
     });
   }
 
-  const chordLayoutData = useMemo<PlaybackChordLayoutData | null>(
-    () =>
-      computePlaybackChordLayoutData({
-        expandedTabData,
-        playbackMetadata,
-        playbackSpeed,
-        visiblePlaybackContainerWidth,
-      }),
-    [
+  const chordLayoutData: PlaybackChordLayoutData | null =
+    computePlaybackChordLayoutData({
       expandedTabData,
       playbackMetadata,
       playbackSpeed,
       visiblePlaybackContainerWidth,
-    ],
-  );
+    });
 
   // Primary / catchup virtualization, plus resync after large index jumps
   // (background-tab timer throttling skips intermediate thresholds).
@@ -452,12 +441,11 @@ function PlaybackModal() {
     showPlaybackModal,
     containerElement,
     playbackModalViewingState,
-    measurePlaybackContainer,
-    scheduleMeasureRetry,
     audioMetadata.playing,
     audioMetadata.location,
     pauseAudio,
     playTab,
+    setVisiblePlaybackContainerWidth,
   ]);
 
   // Reset playback-modal-owned defaults on close so the next open remeasures
@@ -478,40 +466,24 @@ function PlaybackModal() {
 
   // Keep the inline transform at the current chord boundary.
   // While playing, WAAPI owns motion. While paused, this preserves the existing settle/scrub path.
-  const scrollContainerTransform = useMemo(() => {
-    if (
-      !chordLayoutData ||
-      !expandedTabData ||
-      !currentlyPlayingMetadata ||
-      chordRepetitions.length === 0
-    ) {
-      return "translateX(0px)";
-    }
+  const scrollContainerTransform =
+    !chordLayoutData ||
+    !expandedTabData ||
+    !currentlyPlayingMetadata ||
+    chordRepetitions.length === 0
+      ? "translateX(0px)"
+      : `translateX(${((chordLayoutData.scrollPositions[currentChordIndex] ?? 0) + (chordRepetitions[currentChordIndex] ?? 0) * chordLayoutData.totalWidth) * -1}px)`;
 
-    const { scrollPositions, totalWidth } = chordLayoutData;
-    const position =
-      (scrollPositions[currentChordIndex] ?? 0) +
-      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
-
-    return `translateX(${position * -1}px)`;
-  }, [
-    chordLayoutData,
-    expandedTabData,
-    currentlyPlayingMetadata,
-    currentChordIndex,
-    chordRepetitions,
-  ]);
-
-  const renderVisibleChord = useCallback(
-    ({
-      chord,
-      prevChord,
-      nextChord,
-      isFirstChordInTab,
-      isLastChordInTab,
-      isDimmed,
-      isHighlighted,
-    }: RenderVisibleChord) => (
+  function renderVisibleChord({
+    chord,
+    prevChord,
+    nextChord,
+    isFirstChordInTab,
+    isLastChordInTab,
+    isDimmed,
+    isHighlighted,
+  }: RenderVisibleChord) {
+    return (
       <RenderChordByType
         key={loopDelay}
         type={
@@ -531,9 +503,8 @@ function PlaybackModal() {
         isDimmed={isDimmed}
         isHighlighted={isHighlighted}
       />
-    ),
-    [loopDelay],
-  );
+    );
+  }
 
   return (
     <motion.div
@@ -695,7 +666,7 @@ interface RenderChordByTypeProps {
   isHighlighted: boolean;
 }
 
-const RenderChordByType = memo(function RenderChordByType({
+function RenderChordByType({
   type,
   prevChord,
   chord,
@@ -804,4 +775,4 @@ const RenderChordByType = memo(function RenderChordByType({
   if (type === "loopDelaySpacer") {
     return <div className="absolute left-0 h-full w-[34px]"></div>;
   }
-});
+}

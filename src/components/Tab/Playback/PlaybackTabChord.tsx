@@ -1,4 +1,4 @@
-import { Fragment, memo } from "react";
+import { Fragment } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
@@ -202,7 +202,7 @@ function chordHasAtLeastOneNote(chordData: string[]): boolean {
   return chordData.slice(1, 7).some((note) => note !== "");
 }
 
-export default memo(PlaybackTabChord);
+export default PlaybackTabChord;
 
 interface PlaybackTabNote {
   note: string;
@@ -212,7 +212,7 @@ interface PlaybackTabNote {
   isRest?: boolean;
 }
 
-const PlaybackTabNote = memo(function PlaybackTabNote({
+function PlaybackTabNote({
   note,
   isHighlighted,
   isAccented,
@@ -245,4 +245,4 @@ const PlaybackTabNote = memo(function PlaybackTabNote({
       <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
     </div>
   );
-});
+}

@@ -5,7 +5,6 @@ import {
   type Dispatch,
   type SetStateAction,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
@@ -100,12 +99,10 @@ function PlaybackBottomMetadata({
   }));
 
   // idk if best approach, but need unique section titles, not the whole progression
-  const sections = useMemo(() => {
-    return sectionProgression.map((section) => ({
-      id: section.id,
-      title: section.title,
-    }));
-  }, [sectionProgression]);
+  const sections = sectionProgression.map((section) => ({
+    id: section.id,
+    title: section.title,
+  }));
 
   // const index = realChordsToFullChordsMap[currentChordIndex];
 

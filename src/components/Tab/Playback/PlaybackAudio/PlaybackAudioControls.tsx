@@ -3,7 +3,6 @@ import {
   type Dispatch,
   type SetStateAction,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
@@ -182,36 +181,19 @@ function PlaybackAudioControls({
     })();
   }
 
-  const disablePlayButton = useMemo(() => {
-    if (
-      countInTimer.showing ||
-      artificalPlayButtonTimeout ||
-      fetchingFullTabData ||
-      audioMetadata.editingLoopRange
-    )
-      return true;
-
-    return (
-      bpm === -1 ||
-      currentlyPlayingMetadata === null ||
-      currentlyPlayingMetadata.length === 0 ||
-      !currentInstrument ||
-      // idk why this last condition is going over my head right now, make sure it makes sense before commit
-      // maybe doesn't hurt anything, but could be covering some of the statements above,
-      // so maybe try to leverage it's "complete"ness of its check through the tab?
-      (tabIsEffectivelyEmpty && !audioMetadata.location)
-    );
-  }, [
-    countInTimer.showing,
-    bpm,
-    fetchingFullTabData,
-    audioMetadata.location,
-    audioMetadata.editingLoopRange,
-    currentInstrument,
-    artificalPlayButtonTimeout,
-    currentlyPlayingMetadata,
-    tabIsEffectivelyEmpty,
-  ]);
+  const disablePlayButton =
+    countInTimer.showing ||
+    artificalPlayButtonTimeout ||
+    fetchingFullTabData ||
+    audioMetadata.editingLoopRange ||
+    bpm === -1 ||
+    currentlyPlayingMetadata === null ||
+    currentlyPlayingMetadata.length === 0 ||
+    !currentInstrument ||
+    // idk why this last condition is going over my head right now, make sure it makes sense before commit
+    // maybe doesn't hurt anything, but could be covering some of the statements above,
+    // so maybe try to leverage it's "complete"ness of its check through the tab?
+    (tabIsEffectivelyEmpty && !audioMetadata.location);
 
   return (
     <>
