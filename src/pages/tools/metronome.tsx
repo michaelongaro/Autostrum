@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import { PiMetronome } from "react-icons/pi";
@@ -163,7 +163,7 @@ function MetronomeToolPage() {
   const tapResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [tapBpm, setTapBpm] = useState<number | null>(null);
 
-  const handleTap = useCallback(() => {
+  function handleTap() {
     const now = performance.now();
 
     if (tapResetTimerRef.current) {
@@ -191,7 +191,7 @@ function MetronomeToolPage() {
       setTapBpm(clamped);
       setBpm(clamped);
     }
-  }, []);
+  }
 
   function playClick({
     audioContext,

@@ -2,7 +2,6 @@ import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useMemo } from "react";
 import superjson from "superjson";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
@@ -35,10 +34,7 @@ interface Explore {
 }
 
 function Explore({ json }: { json: string }) {
-  const { weeklyFeaturedUsers } = useMemo(
-    () => superjson.parse<Explore>(json),
-    [json],
-  );
+  const { weeklyFeaturedUsers } = superjson.parse<Explore>(json);
 
   const { userId } = useAuth();
 

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import { IoEar } from "react-icons/io5";
@@ -128,76 +128,73 @@ function NoteTrainerPage() {
   const [correctGuesses, setCorrectGuesses] = useState(0);
   const activeNotePool = NOTE_SET_POOLS[noteSet];
 
-  const stopCurrentPlayback = useCallback(() => {
+  function stopCurrentPlayback() {
     currentPlaybackRef.current?.stop?.();
     currentInstrument?.stop();
 
     currentPlaybackRef.current = null;
-  }, [currentInstrument]);
+  }
 
-  const playNote = useCallback(
-    async (note: string) => {
-      const requestId = playbackRequestIdRef.current + 1;
-      playbackRequestIdRef.current = requestId;
+  async function playNote(note: string) {
+    const requestId = playbackRequestIdRef.current + 1;
+    playbackRequestIdRef.current = requestId;
 
-      stopCurrentPlayback();
+    stopCurrentPlayback();
+
+    if (!audioContext || playbackRequestIdRef.current !== requestId) {
+      return;
+    }
+
+    if (audioSource === "generated") {
+      const frequency = get(note).freq;
+      if (!frequency) return;
 
       if (!audioContext || playbackRequestIdRef.current !== requestId) {
         return;
       }
 
-      if (audioSource === "generated") {
-        const frequency = get(note).freq;
-        if (!frequency) return;
+      const oscillator = audioContext.createOscillator();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(
+        frequency,
+        audioContext.currentTime,
+      );
 
-        if (!audioContext || playbackRequestIdRef.current !== requestId) {
-          return;
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.18,
+        audioContext.currentTime + 0.02,
+      );
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.0001,
+        audioContext.currentTime + 0.8,
+      );
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      const playbackHandle: PlaybackHandle = {
+        stop: (when?: number) => oscillator.stop(when),
+        source: oscillator,
+      };
+      currentPlaybackRef.current = playbackHandle;
+
+      oscillator.onended = () => {
+        if (currentPlaybackRef.current === playbackHandle) {
+          currentPlaybackRef.current = null;
         }
+      };
 
-        const oscillator = audioContext.createOscillator();
-        oscillator.type = "sine";
-        oscillator.frequency.setValueAtTime(
-          frequency,
-          audioContext.currentTime,
-        );
-
-        const gainNode = audioContext.createGain();
-        gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.18,
-          audioContext.currentTime + 0.02,
-        );
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.0001,
-          audioContext.currentTime + 0.8,
-        );
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        const playbackHandle: PlaybackHandle = {
-          stop: (when?: number) => oscillator.stop(when),
-          source: oscillator,
-        };
-        currentPlaybackRef.current = playbackHandle;
-
-        oscillator.onended = () => {
-          if (currentPlaybackRef.current === playbackHandle) {
-            currentPlaybackRef.current = null;
-          }
-        };
-
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.82);
-      } else {
-        currentInstrument?.play(note, 0, {
-          duration: 1.5,
-          gain: 3,
-        });
-      }
-    },
-    [audioSource, audioContext, currentInstrument, stopCurrentPlayback],
-  );
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.82);
+    } else {
+      currentInstrument?.play(note, 0, {
+        duration: 1.5,
+        gain: 3,
+      });
+    }
+  }
 
   async function playTargetNote() {
     await playNote(targetNote);

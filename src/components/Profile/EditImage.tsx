@@ -1,6 +1,5 @@
 import {
   useState,
-  useCallback,
   useEffect,
   useRef,
   type Dispatch,
@@ -174,9 +173,9 @@ function EditImage({
 
   const isAboveLgViewport = useViewportWidthBreakpoint(1024);
 
-  const onCropComplete = useCallback((_: Area, croppedAreaPixels: Area) => {
+  function onCropComplete(_: Area, croppedAreaPixels: Area) {
     setLocalCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  }
 
   async function handleSave(): Promise<void> {
     if (!localCroppedAreaPixels || !imageBeingEdited) return;

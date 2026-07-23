@@ -11,7 +11,7 @@
 //                             (no StaticTab chrome) for 1:1 geometry parity
 import ErrorPage from "next/error";
 import { useRouter } from "next/router";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import StaticTab from "~/components/Tab/Static/StaticTab";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 import {
@@ -107,7 +107,7 @@ export default function DevVirtualizationHarness() {
 
   const fixture =
     typeof query.fixture === "string" ? query.fixture : "realistic";
-  const tabData = useMemo(() => buildFixture(fixture), [fixture]);
+  const tabData = buildFixture(fixture);
 
   // ready once the fixture has landed in the store (mirrors how the real
   // tab page hydrates the store from a client-side effect)

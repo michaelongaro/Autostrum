@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
@@ -88,27 +88,18 @@ function PracticePlaybackPanel({
 
   useAutoCompileChords();
 
-  const selectedExercise = useMemo(
-    () =>
-      exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null,
-    [exercises, selectedExerciseId],
-  );
+  const selectedExercise =
+    exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null;
 
-  const selectedExerciseTabData = useMemo(
-    () =>
-      selectedExercise
-        ? buildPracticeExerciseTabData(selectedExercise, {
-            repetitions: 2,
-          })
-        : [],
-    [selectedExercise],
-  );
+  const selectedExerciseTabData = selectedExercise
+    ? buildPracticeExerciseTabData(selectedExercise, {
+        repetitions: 2,
+      })
+    : [];
 
-  const selectedExerciseTabSection = useMemo(() => {
-    const subSection = selectedExerciseTabData[0]?.data[0];
-
-    return subSection?.type === "tab" ? subSection : null;
-  }, [selectedExerciseTabData]);
+  const subSection = selectedExerciseTabData[0]?.data[0];
+  const selectedExerciseTabSection =
+    subSection?.type === "tab" ? subSection : null;
 
   const selectedDifficultyValue = getPlaybackControlValue({
     playbackSpeed,
