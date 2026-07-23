@@ -7,7 +7,7 @@ import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
 import { type User } from "../../generated/browser";
 import type { GetStaticProps } from "next";
-import GuitarImage from "../../../public/explore/header.jpg";
+import GuitarImage from "public/explore/header.jpg";
 import GenreCards from "~/components/Explore/GenreCards";
 import { FaRankingStar } from "react-icons/fa6";
 import { IoFlash, IoStatsChart } from "react-icons/io5";
