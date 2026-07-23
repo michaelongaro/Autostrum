@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { useState } from "react";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
 import { Input } from "~/components/ui/input";
 import {
@@ -100,4 +100,4 @@ function TabNote({
   );
 }
 
-export default memo(TabNote);
+export default TabNote;

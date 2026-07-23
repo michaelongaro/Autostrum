@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
 import {
@@ -40,46 +40,36 @@ function StaticStrummingPattern({
 
   const [strumIndexPopoverOpen, setStrumIndexPopoverOpen] = useState(-1);
 
-  const heightOfStrummingPatternFiller = useMemo(() => {
-    const patternHasPalmMuting = data.strums.some(
-      (strum) => strum.palmMute !== "",
-    );
+  const patternHasPalmMuting = data.strums.some(
+    (strum) => strum.palmMute !== "",
+  );
 
-    return patternHasPalmMuting ? "24px" : "0";
-  }, [data]);
+  const heightOfStrummingPatternFiller = patternHasPalmMuting ? "24px" : "0";
 
-  const beatLabels = useMemo(() => {
-    const strumsWithNoteLengths = data.strums.map((strum) => {
-      return strum.noteLength;
-    });
-
-    return generateBeatLabels(strumsWithNoteLengths);
-  }, [data]);
+  const beatLabels = generateBeatLabels(
+    data.strums.map((strum) => strum.noteLength),
+  );
 
   // Compute the active chord color for each strum position (only when color mode is active)
   // Chords only appear at positions where they change, so we track the "current" chord
-  const [strumChords, strumColors] = useMemo(() => {
-    const strumChords: (string | null)[] = [];
-    const colors: (string | null)[] = [];
-    let currentChordColor: string | null = null;
-    let lastChordName: string | null = null;
+  const strumChords: (string | null)[] = [];
+  const strumColors: (string | null)[] = [];
+  let currentChordColor: string | null = null;
+  let lastChordName: string | null = null;
 
-    for (let i = 0; i < data.strums.length; i++) {
-      const chordName = chordSequenceData?.[i];
-      if (chordName && chordName !== "") {
-        // Find the chord and get its color
-        const chord = chords.find((c) => c.name === chordName);
-        currentChordColor = chord?.color ?? null;
-      }
-      strumChords.push(lastChordName !== chordName ? (chordName ?? "") : "");
-      colors.push(currentChordColor);
-      if (chordName && chordName !== "" && lastChordName !== chordName) {
-        lastChordName = chordName;
-      }
+  for (let i = 0; i < data.strums.length; i++) {
+    const chordName = chordSequenceData?.[i];
+    if (chordName && chordName !== "") {
+      // Find the chord and get its color
+      const chord = chords.find((c) => c.name === chordName);
+      currentChordColor = chord?.color ?? null;
     }
-
-    return [strumChords, colors];
-  }, [data.strums.length, chordSequenceData, chords]);
+    strumChords.push(lastChordName !== chordName ? (chordName ?? "") : "");
+    strumColors.push(currentChordColor);
+    if (chordName && chordName !== "" && lastChordName !== chordName) {
+      lastChordName = chordName;
+    }
+  }
 
   return (
     <div className="baseFlex w-full flex-wrap !justify-start gap-1">

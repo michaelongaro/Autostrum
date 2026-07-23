@@ -3,7 +3,6 @@ import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Element } from "react-scroll";
 import {
-  memo,
   useEffect,
   useState,
   type Dispatch,
@@ -464,4 +463,4 @@ function TabNotesColumn({
   );
 }
 
-export default memo(TabNotesColumn);
+export default TabNotesColumn;

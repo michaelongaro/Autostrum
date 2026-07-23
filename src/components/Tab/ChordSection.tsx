@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment, memo } from "react";
+import { Fragment } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -208,4 +208,4 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
   );
 }
 
-export default memo(ChordSection);
+export default ChordSection;

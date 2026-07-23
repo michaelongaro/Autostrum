@@ -1,5 +1,5 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import { memo, useState } from "react";
+import { useState } from "react";
 import { LiaEllipsisVSolid } from "react-icons/lia";
 import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
 import { FaTrashAlt } from "react-icons/fa";
@@ -478,4 +478,4 @@ function MiscellaneousControls({
   );
 }
 
-export default memo(MiscellaneousControls);
+export default MiscellaneousControls;
