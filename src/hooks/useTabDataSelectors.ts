@@ -153,18 +153,6 @@ export const useTabColumnTypes = (
 };
 
 /** Single column — only this column's subscribers re-render when it changes. */
-export const useTabColumnData = (
-  sectionIndex: number,
-  subSectionIndex: number,
-  columnIndex: number,
-): TabNote | TabMeasureLine | undefined => {
-  return useTabStore((state) => {
-    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
-    if (sub?.type !== "tab") return undefined;
-    return sub.data[columnIndex];
-  });
-};
-
 export const useTabNoteColumnData = (
   sectionIndex: number,
   subSectionIndex: number,
