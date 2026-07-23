@@ -520,14 +520,13 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
 
                 <DropdownMenuContent side={"bottom"}>
                   <DropdownMenuItem className="baseFlex">
-                    <Link
-                      prefetch={false}
+                    <a
                       href={`/tab/${id}/${encodeURIComponent(title)}`}
                       className="baseFlex w-full !justify-between gap-2 font-normal"
                     >
                       View tab
                       <HiOutlineExternalLink className="size-4" />
-                    </Link>
+                    </a>
                   </DropdownMenuItem>
 
                   <DropdownMenuSeparator />
