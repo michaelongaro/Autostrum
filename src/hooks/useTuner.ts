@@ -1,7 +1,7 @@
 import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
 import { PitchDetector } from "pitchy";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import {
@@ -259,22 +259,13 @@ export function useTuner({
   const requiredStableHoldMs =
     stableHoldDurationMs ?? DEFAULT_STABLE_HOLD_DURATION_MS;
 
-  const targetNotes = useMemo(
-    () => resolveTargetNotes(targetTuning),
-    [targetTuning],
-  );
+  const targetNotes = resolveTargetNotes(targetTuning);
 
-  const comparisonTargetTuning = useMemo(
-    () => transposeTuningValue(targetTuning, capo),
-    [capo, targetTuning],
-  );
+  const comparisonTargetTuning = transposeTuningValue(targetTuning, capo);
 
-  const comparisonTargetNotes = useMemo(
-    () => resolveTargetNotes(comparisonTargetTuning),
-    [comparisonTargetTuning],
-  );
+  const comparisonTargetNotes = resolveTargetNotes(comparisonTargetTuning);
 
-  const targetMidis = useMemo(() => {
+  const targetMidis = (() => {
     const resolved = comparisonTargetNotes
       .map((note) => get(note).midi)
       .filter((midi): midi is number => midi !== null);
@@ -284,17 +275,17 @@ export function useTuner({
     }
 
     return DEFAULT_TUNING_NOTES.map((note) => get(note).midi ?? 40);
-  }, [comparisonTargetNotes]);
+  })();
 
-  const resetPitchTracking = useCallback(() => {
+  function resetPitchTracking() {
     stableMatchStartTimeRef.current = null;
     centsHistoryRef.current = [];
     lastDetectedMidiRef.current = null;
     lastValidPitchTimeRef.current = null;
     pendingOctaveJumpMidiRef.current = null;
-  }, []);
+  }
 
-  const clearGuidePlaybackSuppression = useCallback(() => {
+  function clearGuidePlaybackSuppression() {
     guidePlaybackSuppressionTokenRef.current += 1;
     guidePlaybackSuppressionDeadlineRef.current = 0;
 
@@ -306,155 +297,141 @@ export function useTuner({
     guidePlaybackAwaitingSilenceRef.current = false;
     guidePlaybackActiveRef.current = false;
     guidePlaybackQuietFrameCountRef.current = 0;
-  }, []);
+  }
 
-  const beginGuidePlaybackSuppression = useCallback(
-    (handle: GuidePlaybackHandle) => {
-      clearGuidePlaybackSuppression();
+  function beginGuidePlaybackSuppression(handle: GuidePlaybackHandle) {
+    clearGuidePlaybackSuppression();
 
-      guidePlaybackAwaitingSilenceRef.current = true;
-      guidePlaybackActiveRef.current = true;
-      guidePlaybackSuppressionDeadlineRef.current =
-        performance.now() + GUIDE_SUPPRESSION_MAX_MS;
+    guidePlaybackAwaitingSilenceRef.current = true;
+    guidePlaybackActiveRef.current = true;
+    guidePlaybackSuppressionDeadlineRef.current =
+      performance.now() + GUIDE_SUPPRESSION_MAX_MS;
 
-      const token = guidePlaybackSuppressionTokenRef.current;
+    const token = guidePlaybackSuppressionTokenRef.current;
 
-      const markPlaybackInactive = () => {
-        if (guidePlaybackSuppressionTokenRef.current !== token) {
-          return;
-        }
+    const markPlaybackInactive = () => {
+      if (guidePlaybackSuppressionTokenRef.current !== token) {
+        return;
+      }
 
-        guidePlaybackActiveRef.current = false;
+      guidePlaybackActiveRef.current = false;
 
-        if (guidePlaybackActiveTimeoutRef.current !== null) {
-          window.clearTimeout(guidePlaybackActiveTimeoutRef.current);
-          guidePlaybackActiveTimeoutRef.current = null;
-        }
+      if (guidePlaybackActiveTimeoutRef.current !== null) {
+        window.clearTimeout(guidePlaybackActiveTimeoutRef.current);
+        guidePlaybackActiveTimeoutRef.current = null;
+      }
+    };
+
+    if (handle?.source) {
+      handle.source.addEventListener("ended", markPlaybackInactive, {
+        once: true,
+      });
+      return;
+    }
+
+    guidePlaybackActiveTimeoutRef.current = window.setTimeout(
+      markPlaybackInactive,
+      GUIDE_NOTE_DURATION_SECONDS * 1000,
+    );
+  }
+
+  const playReferenceNote = async (targetIndex: number) => {
+    const targetMidi = targetMidis[targetIndex] ?? targetMidis[0];
+
+    if (targetMidi === undefined || !audioContext) {
+      return;
+    }
+
+    const noteName = midiToNoteName(targetMidi, { sharps: true });
+
+    if (!noteName) {
+      return;
+    }
+
+    const requestId = guidePlaybackRequestIdRef.current + 1;
+    guidePlaybackRequestIdRef.current = requestId;
+
+    clearGuidePlaybackSuppression();
+    stopGuidePlayback(guidePlaybackHandleRef.current);
+    guidePlaybackHandleRef.current = null;
+
+    const cachedInstrument = instrumentsRef.current[GUIDE_INSTRUMENT_NAME];
+
+    if (cachedInstrument) {
+      resetPitchTracking();
+      setUiSnapshot(EMPTY_UI_SNAPSHOT);
+
+      guidePlaybackHandleRef.current = cachedInstrument.play(noteName, 0, {
+        duration: GUIDE_NOTE_DURATION_SECONDS,
+        gain: GUIDE_NOTE_GAIN,
+        attack: GUIDE_NOTE_ATTACK_SECONDS,
+      });
+
+      beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
+      return;
+    }
+
+    try {
+      const guideInstrument = await ensureSoundfontPlayer(
+        audioContext,
+        GUIDE_INSTRUMENT_NAME,
+        masterVolumeGainNode ?? audioContext.destination,
+      );
+
+      const nextInstruments = {
+        ...instrumentsRef.current,
+        [GUIDE_INSTRUMENT_NAME]: guideInstrument,
       };
 
-      if (handle?.source) {
-        handle.source.addEventListener("ended", markPlaybackInactive, {
-          once: true,
-        });
+      instrumentsRef.current = nextInstruments;
+      setInstruments(nextInstruments);
+
+      if (guidePlaybackRequestIdRef.current !== requestId) {
         return;
       }
 
-      guidePlaybackActiveTimeoutRef.current = window.setTimeout(
-        markPlaybackInactive,
-        GUIDE_NOTE_DURATION_SECONDS * 1000,
-      );
-    },
-    [clearGuidePlaybackSuppression],
-  );
+      resetPitchTracking();
+      setUiSnapshot(EMPTY_UI_SNAPSHOT);
 
-  const playReferenceNote = useCallback(
-    async (targetIndex: number) => {
-      const targetMidi = targetMidis[targetIndex] ?? targetMidis[0];
+      guidePlaybackHandleRef.current = guideInstrument.play(noteName, 0, {
+        duration: GUIDE_NOTE_DURATION_SECONDS,
+        gain: GUIDE_NOTE_GAIN,
+        attack: GUIDE_NOTE_ATTACK_SECONDS,
+      });
 
-      if (targetMidi === undefined || !audioContext) {
-        return;
+      beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
+    } catch (caughtError) {
+      if (guidePlaybackRequestIdRef.current === requestId) {
+        clearGuidePlaybackSuppression();
       }
 
-      const noteName = midiToNoteName(targetMidi, { sharps: true });
+      console.error("Failed to play tuner reference note:", caughtError);
+    }
+  };
 
-      if (!noteName) {
-        return;
-      }
+  function setCurrentTargetIndex(
+    index: number,
+    options?: { playReferenceNote?: boolean },
+  ) {
+    const maxTargetIndex = Math.max(targetMidis.length - 1, 0);
+    const clamped = Math.max(0, Math.min(index, maxTargetIndex));
 
-      const requestId = guidePlaybackRequestIdRef.current + 1;
-      guidePlaybackRequestIdRef.current = requestId;
+    if (clamped !== currentTargetIndexRef.current) {
+      resetPitchTracking();
+      setUiSnapshot(EMPTY_UI_SNAPSHOT);
+    }
 
-      clearGuidePlaybackSuppression();
-      stopGuidePlayback(guidePlaybackHandleRef.current);
-      guidePlaybackHandleRef.current = null;
+    setCompleted(false);
+    completedRef.current = false;
+    setCurrentTargetIndexState(clamped);
+    currentTargetIndexRef.current = clamped;
 
-      const cachedInstrument = instrumentsRef.current[GUIDE_INSTRUMENT_NAME];
+    if (options?.playReferenceNote ?? true) {
+      void playReferenceNote(clamped);
+    }
+  }
 
-      if (cachedInstrument) {
-        resetPitchTracking();
-        setUiSnapshot(EMPTY_UI_SNAPSHOT);
-
-        guidePlaybackHandleRef.current = cachedInstrument.play(noteName, 0, {
-          duration: GUIDE_NOTE_DURATION_SECONDS,
-          gain: GUIDE_NOTE_GAIN,
-          attack: GUIDE_NOTE_ATTACK_SECONDS,
-        });
-
-        beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
-        return;
-      }
-
-      try {
-        const guideInstrument = await ensureSoundfontPlayer(
-          audioContext,
-          GUIDE_INSTRUMENT_NAME,
-          masterVolumeGainNode ?? audioContext.destination,
-        );
-
-        const nextInstruments = {
-          ...instrumentsRef.current,
-          [GUIDE_INSTRUMENT_NAME]: guideInstrument,
-        };
-
-        instrumentsRef.current = nextInstruments;
-        setInstruments(nextInstruments);
-
-        if (guidePlaybackRequestIdRef.current !== requestId) {
-          return;
-        }
-
-        resetPitchTracking();
-        setUiSnapshot(EMPTY_UI_SNAPSHOT);
-
-        guidePlaybackHandleRef.current = guideInstrument.play(noteName, 0, {
-          duration: GUIDE_NOTE_DURATION_SECONDS,
-          gain: GUIDE_NOTE_GAIN,
-          attack: GUIDE_NOTE_ATTACK_SECONDS,
-        });
-
-        beginGuidePlaybackSuppression(guidePlaybackHandleRef.current);
-      } catch (caughtError) {
-        if (guidePlaybackRequestIdRef.current === requestId) {
-          clearGuidePlaybackSuppression();
-        }
-
-        console.error("Failed to play tuner reference note:", caughtError);
-      }
-    },
-    [
-      audioContext,
-      beginGuidePlaybackSuppression,
-      clearGuidePlaybackSuppression,
-      masterVolumeGainNode,
-      resetPitchTracking,
-      setInstruments,
-      targetMidis,
-    ],
-  );
-
-  const setCurrentTargetIndex = useCallback(
-    (index: number, options?: { playReferenceNote?: boolean }) => {
-      const maxTargetIndex = Math.max(targetMidis.length - 1, 0);
-      const clamped = Math.max(0, Math.min(index, maxTargetIndex));
-
-      if (clamped !== currentTargetIndexRef.current) {
-        resetPitchTracking();
-        setUiSnapshot(EMPTY_UI_SNAPSHOT);
-      }
-
-      setCompleted(false);
-      completedRef.current = false;
-      setCurrentTargetIndexState(clamped);
-      currentTargetIndexRef.current = clamped;
-
-      if (options?.playReferenceNote ?? true) {
-        void playReferenceNote(clamped);
-      }
-    },
-    [playReferenceNote, resetPitchTracking, targetMidis.length],
-  );
-
-  const resetProgress = useCallback(() => {
+  function resetProgress() {
     guidePlaybackRequestIdRef.current += 1;
     clearGuidePlaybackSuppression();
     stopGuidePlayback(guidePlaybackHandleRef.current);
@@ -465,55 +442,54 @@ export function useTuner({
     currentTargetIndexRef.current = 0;
     completedRef.current = false;
     setCompleted(false);
-  }, [clearGuidePlaybackSuppression, resetPitchTracking]);
+  }
 
-  const teardownListening = useCallback(
-    ({ preserveIntent = false }: { preserveIntent?: boolean } = {}) => {
-      if (!preserveIntent) {
-        shouldBeListeningRef.current = false;
+  function teardownListening({
+    preserveIntent = false,
+  }: { preserveIntent?: boolean } = {}) {
+    if (!preserveIntent) {
+      shouldBeListeningRef.current = false;
+    }
+
+    guidePlaybackRequestIdRef.current += 1;
+    clearGuidePlaybackSuppression();
+    stopGuidePlayback(guidePlaybackHandleRef.current);
+    guidePlaybackHandleRef.current = null;
+
+    streamGenerationRef.current += 1;
+
+    if (rafRef.current !== null) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+
+    analyserRef.current?.disconnect();
+    analyserRef.current = null;
+
+    micSourceNodeRef.current?.disconnect();
+    micSourceNodeRef.current = null;
+
+    if (streamRef.current) {
+      for (const track of streamRef.current.getTracks()) {
+        track.stop();
       }
 
-      guidePlaybackRequestIdRef.current += 1;
-      clearGuidePlaybackSuppression();
-      stopGuidePlayback(guidePlaybackHandleRef.current);
-      guidePlaybackHandleRef.current = null;
+      streamRef.current = null;
+    }
 
-      streamGenerationRef.current += 1;
+    detectorRef.current = null;
+    bufferRef.current = null;
+    resetPitchTracking();
 
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
+    setIsListening(false);
+    setUiSnapshot(EMPTY_UI_SNAPSHOT);
+  }
 
-      analyserRef.current?.disconnect();
-      analyserRef.current = null;
-
-      micSourceNodeRef.current?.disconnect();
-      micSourceNodeRef.current = null;
-
-      if (streamRef.current) {
-        for (const track of streamRef.current.getTracks()) {
-          track.stop();
-        }
-
-        streamRef.current = null;
-      }
-
-      detectorRef.current = null;
-      bufferRef.current = null;
-      resetPitchTracking();
-
-      setIsListening(false);
-      setUiSnapshot(EMPTY_UI_SNAPSHOT);
-    },
-    [clearGuidePlaybackSuppression, resetPitchTracking],
-  );
-
-  const stopListening = useCallback(() => {
+  function stopListening() {
     teardownListening();
-  }, [teardownListening]);
+  }
 
-  const recoverListening = useCallback(async () => {
+  const recoverListening = async () => {
     if (restartListeningPromiseRef.current) {
       await restartListeningPromiseRef.current;
       return;
@@ -848,15 +824,9 @@ export function useTuner({
     });
 
     await restartListeningPromiseRef.current;
-  }, [
-    audioContext,
-    clearGuidePlaybackSuppression,
-    resetPitchTracking,
-    setCurrentTargetIndex,
-    teardownListening,
-  ]);
+  };
 
-  const startListening = useCallback(async () => {
+  const startListening = async () => {
     shouldBeListeningRef.current = true;
 
     if (isListeningRef.current) return;
@@ -870,7 +840,7 @@ export function useTuner({
     setError(null);
     setPermissionDenied(false);
     await recoverListening();
-  }, [recoverListening]);
+  };
 
   useEffect(() => {
     isListeningRef.current = isListening;

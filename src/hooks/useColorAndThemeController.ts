@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/nextjs";
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
@@ -50,7 +50,7 @@ function useColorAndThemeController() {
 
   const initializedUserDBColorRef = useRef(false);
 
-  const setDefaultPreferences = useCallback(() => {
+  function setDefaultPreferences() {
     const systemTheme = getSystemTheme();
     const defaultColor = "maple";
 
@@ -64,27 +64,24 @@ function useColorAndThemeController() {
     setStorageValue(STORAGE_KEYS.COLOR, defaultColor);
     setStorageValue(STORAGE_KEYS.THEME, systemTheme);
     setStorageValue(STORAGE_KEYS.FOLLOWS_DEVICE_THEME, "true");
-  }, [setColor, setFollowsDeviceTheme, setTheme]);
+  }
 
-  const applyStoredPreferences = useCallback(
-    (
+  function applyStoredPreferences(
     storedColor: string,
     storedTheme: string,
     followsDevice: boolean,
-    ) => {
-      const systemTheme = getSystemTheme();
-      const effectiveTheme = followsDevice
-        ? systemTheme
-        : (storedTheme as THEME);
+  ) {
+    const systemTheme = getSystemTheme();
+    const effectiveTheme = followsDevice
+      ? systemTheme
+      : (storedTheme as THEME);
 
-      // Update CSS and store state
-      updateCSSThemeVars(storedColor as COLORS, effectiveTheme);
-      setColor(storedColor as COLORS);
-      setTheme(effectiveTheme);
-      setFollowsDeviceTheme(followsDevice);
-    },
-    [setColor, setFollowsDeviceTheme, setTheme],
-  );
+    // Update CSS and store state
+    updateCSSThemeVars(storedColor as COLORS, effectiveTheme);
+    setColor(storedColor as COLORS);
+    setTheme(effectiveTheme);
+    setFollowsDeviceTheme(followsDevice);
+  }
 
   // Initialize color and theme from localStorage or set defaults
   useLayoutEffect(() => {
