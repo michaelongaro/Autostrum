@@ -35,7 +35,7 @@ function useAutoCompileChords() {
         playbackSpeed,
         audioMetadata,
         bpm,
-        sectionProgression,
+        sectionProgression: rawSectionProgression,
         chords,
         strummingPatterns,
         visiblePlaybackContainerWidth,
@@ -67,12 +67,26 @@ function useAutoCompileChords() {
         return;
       }
 
-      const sanitizedSectionProgression =
-        sectionProgression.length > 0
-          ? sectionProgression
-          : generateDefaultSectionProgression(tabData);
+      const sectionProgression =
+        !editing && audioMetadata.location?.sectionIndex !== undefined
+          ? // just for when playing back specific section within PlaybackModal
+            [
+              {
+                id: "",
+                sectionId:
+                  tabData[audioMetadata.location.sectionIndex]?.id ?? "",
+                title: "",
+                repetitions: 1,
+                startSeconds: 0,
+                endSeconds: 0,
+              },
+            ]
+          : // all other use-cases
+            rawSectionProgression.length > 0
+            ? rawSectionProgression
+            : generateDefaultSectionProgression(tabData);
 
-      if (audioMetadata.location) {
+      if (isEditing && audioMetadata.location) {
         compileSpecificChordGrouping({
           tabData,
           location: audioMetadata.location,
@@ -89,7 +103,7 @@ function useAutoCompileChords() {
       } else {
         compileFullTab({
           tabData,
-          sectionProgression: sanitizedSectionProgression,
+          sectionProgression: sectionProgression,
           chords,
           strummingPatterns,
           baselineBpm: bpm,
@@ -103,11 +117,18 @@ function useAutoCompileChords() {
         });
       }
 
-      if (!isEditing) {
+      if (editing) {
+        updateElapsedSecondsInSectionProgression({
+          tabData,
+          sectionProgression: sectionProgression,
+          baselineBpm: bpm,
+          setSectionProgression,
+        });
+      } else {
         const expandedTabData = expandFullTab({
           tabData,
           location: audioMetadata.location,
-          sectionProgression: sanitizedSectionProgression,
+          sectionProgression: sectionProgression,
           chords,
           baselineBpm: bpm,
           playbackSpeed,
@@ -124,13 +145,6 @@ function useAutoCompileChords() {
 
         setExpandedTabData(expandedTabData.chords);
       }
-
-      updateElapsedSecondsInSectionProgression({
-        tabData,
-        sectionProgression: sanitizedSectionProgression,
-        baselineBpm: bpm,
-        setSectionProgression,
-      });
     };
 
     const debouncedHandleTabLogic = debounce(
