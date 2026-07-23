@@ -4,21 +4,21 @@ import { useState } from "react";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
 import { genreColors } from "~/utils/genreColors";
-
-import rockImage from "../../../public/genreThumbnails/rock.webp";
-import indieImage from "../../../public/genreThumbnails/indie.webp";
-import popImage from "../../../public/genreThumbnails/pop.webp";
-import hipHopImage from "../../../public/genreThumbnails/hiphop.webp";
-import jazzImage from "../../../public/genreThumbnails/jazz.webp";
-import bluesImage from "../../../public/genreThumbnails/blues.webp";
-import classicalImage from "../../../public/genreThumbnails/classical.webp";
-import countryImage from "../../../public/genreThumbnails/country.webp";
-import metalImage from "../../../public/genreThumbnails/metal.webp";
-import folkImage from "../../../public/genreThumbnails/folk.webp";
-import electronicImage from "../../../public/genreThumbnails/electronic.webp";
-import miscImage from "../../../public/genreThumbnails/misc.webp";
 import type { StaticImageData } from "next/image";
 import Image from "next/image";
+
+import rockImage from "public/genreThumbnails/rock.webp";
+import indieImage from "public/genreThumbnails/indie.webp";
+import popImage from "public/genreThumbnails/pop.webp";
+import hipHopImage from "public/genreThumbnails/hiphop.webp";
+import jazzImage from "public/genreThumbnails/jazz.webp";
+import bluesImage from "public/genreThumbnails/blues.webp";
+import classicalImage from "public/genreThumbnails/classical.webp";
+import countryImage from "public/genreThumbnails/country.webp";
+import metalImage from "public/genreThumbnails/metal.webp";
+import folkImage from "public/genreThumbnails/folk.webp";
+import electronicImage from "public/genreThumbnails/electronic.webp";
+import miscImage from "public/genreThumbnails/misc.webp";
 
 const genreNameToImageMap: Record<string, StaticImageData> = {
   Rock: rockImage,
