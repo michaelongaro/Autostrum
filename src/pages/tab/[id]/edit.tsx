@@ -4,7 +4,6 @@ import type { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useMemo } from "react";
 import { BiErrorCircle } from "react-icons/bi";
 import { BsArrowLeftShort } from "react-icons/bs";
 import Tab from "~/components/Tab/Tab";
@@ -26,10 +25,8 @@ interface PageData {
 }
 
 function EditIndividualTab({ json }: { json: string }) {
-  const { userAllowedToEdit, tab, openGraphData } = useMemo(
-    () => superjson.parse<PageData>(json),
-    [json],
-  );
+  const { userAllowedToEdit, tab, openGraphData } =
+    superjson.parse<PageData>(json);
 
   const { query } = useRouter();
 

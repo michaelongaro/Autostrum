@@ -2,7 +2,6 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -298,24 +297,16 @@ function ChordTrainerPage() {
   );
   const [showColorCoding, setShowColorCoding] = useState(true);
 
-  const selectedChordIdSet = useMemo(
-    () => new Set(selectedChordIds),
-    [selectedChordIds],
+  const selectedChordIdSet = new Set(selectedChordIds);
+
+  const selectedChords = chordTrainerPresets.filter((chord) =>
+    selectedChordIdSet.has(chord.id),
   );
 
-  const selectedChords = useMemo(() => {
-    return chordTrainerPresets.filter((chord) =>
-      selectedChordIdSet.has(chord.id),
-    );
-  }, [selectedChordIdSet]);
-
-  const activeChordPreset = useMemo(() => {
-    return (
-      CHORD_SELECTION_PRESETS.find(
-        (preset) => preset.id === activeChordPresetId,
-      ) ?? null
-    );
-  }, [activeChordPresetId]);
+  const activeChordPreset =
+    CHORD_SELECTION_PRESETS.find(
+      (preset) => preset.id === activeChordPresetId,
+    ) ?? null;
 
   const isCustomChordPreset = activeChordPresetId === CUSTOM_CHORD_PRESET_ID;
 
@@ -353,33 +344,30 @@ function ChordTrainerPage() {
     soundfontCacheRef.current = {};
   }, [audioContext]);
 
-  const playChord = useCallback(
-    async (chord: ChordTrainerPreset, bpm: number) => {
-      if (
-        !audioEnabledRef.current ||
-        !audioContext ||
-        !masterVolumeGainNode ||
-        !currentInstrument
-      )
-        return;
+  async function playChord(chord: ChordTrainerPreset, bpm: number) {
+    if (
+      !audioEnabledRef.current ||
+      !audioContext ||
+      !masterVolumeGainNode ||
+      !currentInstrument
+    )
+      return;
 
-      try {
-        await playNoteColumn({
-          tuning: STANDARD_TUNING,
-          capo: 0,
-          bpm: bpm * 1.4,
-          currColumn: ["", ...chord.frets, "v", "quarter", `${bpm * 1.4}`],
-          audioContext,
-          masterVolumeGainNode,
-          currentInstrument,
-          currentlyPlayingStrings: currentlyPlayingStringsRef.current,
-        });
-      } catch (error) {
-        console.error("Unable to play chord trainer audio:", error);
-      }
-    },
-    [audioContext, masterVolumeGainNode, currentInstrument],
-  );
+    try {
+      await playNoteColumn({
+        tuning: STANDARD_TUNING,
+        capo: 0,
+        bpm: bpm * 1.4,
+        currColumn: ["", ...chord.frets, "v", "quarter", `${bpm * 1.4}`],
+        audioContext,
+        masterVolumeGainNode,
+        currentInstrument,
+        currentlyPlayingStrings: currentlyPlayingStringsRef.current,
+      });
+    } catch (error) {
+      console.error("Unable to play chord trainer audio:", error);
+    }
+  }
 
   const playChordRef = useRef(playChord);
   useEffect(() => {
@@ -425,7 +413,7 @@ function ChordTrainerPage() {
     updateStreamStyles(scrollXRef.current);
   }, [queue, updateStreamStyles]);
 
-  const rebuildQueue = useCallback((chords: ChordTrainerPreset[]) => {
+  function rebuildQueue(chords: ChordTrainerPreset[]) {
     scrollXRef.current = 0;
     lastFrameTimeRef.current = null;
     lastTriggeredIndexRef.current = -1;
@@ -434,9 +422,9 @@ function ChordTrainerPage() {
     const nextQueue = buildInitialQueue(chords);
     queueRef.current = nextQueue;
     setQueue(nextQueue);
-  }, []);
+  }
 
-  const extendQueue = useCallback(() => {
+  function extendQueue() {
     if (
       queueMutationPendingRef.current ||
       selectedChordsRef.current.length === 0
@@ -455,9 +443,9 @@ function ChordTrainerPage() {
       queueRef.current = nextQueue;
       return nextQueue;
     });
-  }, []);
+  }
 
-  const trimQueue = useCallback((currentCenterIndex: number) => {
+  function trimQueue(currentCenterIndex: number) {
     if (
       queueMutationPendingRef.current ||
       currentCenterIndex <= 14 ||
@@ -484,7 +472,7 @@ function ChordTrainerPage() {
       queueRef.current = nextQueue;
       return nextQueue;
     });
-  }, []);
+  }
 
   useEffect(() => {
     const stageElement = stageRef.current;
@@ -614,11 +602,11 @@ function ChordTrainerPage() {
     };
   }, []);
 
-  const handleDifficultySelect = useCallback((nextTempo: number) => {
+  function handleDifficultySelect(nextTempo: number) {
     setTempo(clampTempo(nextTempo));
-  }, []);
+  }
 
-  const handleChordPresetSelect = useCallback((nextPresetId: string) => {
+  function handleChordPresetSelect(nextPresetId: string) {
     if (nextPresetId === CUSTOM_CHORD_PRESET_ID) {
       setActiveChordPresetId(CUSTOM_CHORD_PRESET_ID);
       return;
@@ -632,27 +620,24 @@ function ChordTrainerPage() {
 
     setActiveChordPresetId(nextPreset.id);
     setSelectedChordIds([...nextPreset.chordIds]);
-  }, []);
+  }
 
-  const handleChordToggle = useCallback(
-    (chordId: string) => {
-      setActiveChordPresetId(CUSTOM_CHORD_PRESET_ID);
-      setSelectedChordIds((previous) => {
-        const sourceIds = isCustomChordPreset
-          ? previous
-          : (activeChordPreset?.chordIds ?? previous);
+  function handleChordToggle(chordId: string) {
+    setActiveChordPresetId(CUSTOM_CHORD_PRESET_ID);
+    setSelectedChordIds((previous) => {
+      const sourceIds = isCustomChordPreset
+        ? previous
+        : (activeChordPreset?.chordIds ?? previous);
 
-        if (sourceIds.includes(chordId)) {
-          return sourceIds.filter((id) => id !== chordId);
-        }
+      if (sourceIds.includes(chordId)) {
+        return sourceIds.filter((id) => id !== chordId);
+      }
 
-        return [...sourceIds, chordId];
-      });
-    },
-    [activeChordPreset, isCustomChordPreset],
-  );
+      return [...sourceIds, chordId];
+    });
+  }
 
-  const handleStartPause = useCallback(async () => {
+  async function handleStartPause() {
     if (selectedChords.length === 0 || queue.length === 0) return;
 
     if (!isPlaying) {
@@ -661,7 +646,7 @@ function ChordTrainerPage() {
     }
 
     setIsPlaying(false);
-  }, [isPlaying, queue.length, selectedChords.length]);
+  }
 
   return (
     <motion.div

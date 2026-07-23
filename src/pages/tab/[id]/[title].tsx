@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import type { GetStaticProps } from "next";
 import Head from "next/head";
-import { useMemo } from "react";
 import StaticTab from "~/components/Tab/Static/StaticTab";
 import superjson from "superjson";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
@@ -23,10 +22,7 @@ interface PageData {
 function ViewIndividualTab({ json }: { json: string }) {
   const { asPath } = useRouter();
 
-  const { tab, openGraphData } = useMemo(
-    () => superjson.parse<PageData>(json),
-    [json],
-  );
+  const { tab, openGraphData } = superjson.parse<PageData>(json);
 
   useHydrateTabStore({
     fetchedTab: tab,

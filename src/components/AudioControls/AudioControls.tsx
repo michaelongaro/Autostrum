@@ -1,6 +1,6 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { isMobileOnly } from "react-device-detect";
 import {
   BsFillVolumeDownFill,
@@ -149,44 +149,29 @@ function AudioControls() {
     }
   }
 
-  const dynamicBottomValue = useMemo(() => {
-    let bottomValue = "1rem";
+  let dynamicBottomValue = "1rem";
 
-    if (visibility === "minimized") {
-      if (aboveLargeViewportWidth) {
-        bottomValue = "-6.15rem";
-      } else {
-        bottomValue = "-2.85rem";
-      }
-    } else if (visibility === "expanded") {
-      bottomValue = "1rem";
+  if (visibility === "minimized") {
+    if (aboveLargeViewportWidth) {
+      dynamicBottomValue = "-6.15rem";
+    } else {
+      dynamicBottomValue = "-2.85rem";
     }
+  } else if (visibility === "expanded") {
+    dynamicBottomValue = "1rem";
+  }
 
-    return bottomValue;
-  }, [aboveLargeViewportWidth, visibility]);
-
-  const disablePlayButton = useMemo(() => {
-    if (fetchingFullTabData || audioMetadata.editingLoopRange) return true;
-
-    return (
-      bpm === -1 ||
-      currentlyPlayingMetadata === null ||
-      currentlyPlayingMetadata.length === 0 ||
-      !currentInstrument ||
-      // idk why this last condition is going over my head right now, make sure it makes sense before commit
-      // maybe doesn't hurt anything, but could be covering some of the statements above,
-      // so maybe try to leverage it's "complete"ness of it's check through the tab?
-      (tabIsEffectivelyEmpty && !audioMetadata.location)
-    );
-  }, [
-    bpm,
-    fetchingFullTabData,
-    audioMetadata.location,
-    audioMetadata.editingLoopRange,
-    currentInstrument,
-    currentlyPlayingMetadata,
-    tabIsEffectivelyEmpty,
-  ]);
+  const disablePlayButton =
+    fetchingFullTabData ||
+    audioMetadata.editingLoopRange ||
+    bpm === -1 ||
+    currentlyPlayingMetadata === null ||
+    currentlyPlayingMetadata.length === 0 ||
+    !currentInstrument ||
+    // idk why this last condition is going over my head right now, make sure it makes sense before commit
+    // maybe doesn't hurt anything, but could be covering some of the statements above,
+    // so maybe try to leverage it's "complete"ness of it's check through the tab?
+    (tabIsEffectivelyEmpty && !audioMetadata.location);
 
   const mainAudioControlsVariants = {
     expanded: {

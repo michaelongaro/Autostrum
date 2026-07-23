@@ -1,7 +1,7 @@
 import { FocusTrap } from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
@@ -64,9 +64,10 @@ function SectionProgressionModal() {
     setLocalSectionProgression(baseSectionProgression);
   }, [sectionProgression]);
 
-  const sections = useMemo(() => {
-    return tabData.map((section) => ({ id: section.id, title: section.title }));
-  }, [tabData]);
+  const sections = tabData.map((section) => ({
+    id: section.id,
+    title: section.title,
+  }));
 
   function addNewSectionToProgression() {
     const newId = crypto.randomUUID();

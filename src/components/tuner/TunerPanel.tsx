@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { get } from "@tonaljs/note";
 import { Button } from "~/components/ui/button";
 import { FaMicrophone } from "react-icons/fa";
@@ -83,10 +83,7 @@ function TunerPanel({
 
   const [mode, setMode] = useState<"regular" | "chromatic">("regular");
   const currentTarget = targetNotes[currentTargetIndex] ?? "e2";
-  const currentTargetFrequency = useMemo(
-    () => frequencyFromNote(currentTarget),
-    [currentTarget],
-  );
+  const currentTargetFrequency = frequencyFromNote(currentTarget);
   const hasDetectedFrequency = signalDetected && detectedFrequency !== null;
   const hasChromaticCents = signalDetected && detectedCents !== null;
   const hasRegularCents = signalDetected && targetCentsOffset !== null;
@@ -109,24 +106,22 @@ function TunerPanel({
     ? `${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`
     : "--";
 
-  const regularSemicircleGradient = useMemo(() => {
-    const toAngle = (centsOffset: number) =>
-      Math.max(
-        0,
-        Math.min(
-          180,
-          ((centsOffset + regularRangeCents) / (regularRangeCents * 2)) * 180,
-        ),
-      );
-    const leftOrange = toAngle(-25);
-    const leftYellow = toAngle(-10);
-    const leftGreen = toAngle(-toleranceCents);
-    const rightGreen = toAngle(toleranceCents);
-    const rightYellow = toAngle(10);
-    const rightOrange = toAngle(25);
+  const toAngle = (centsOffset: number) =>
+    Math.max(
+      0,
+      Math.min(
+        180,
+        ((centsOffset + regularRangeCents) / (regularRangeCents * 2)) * 180,
+      ),
+    );
+  const leftOrange = toAngle(-25);
+  const leftYellow = toAngle(-10);
+  const leftGreen = toAngle(-toleranceCents);
+  const rightGreen = toAngle(toleranceCents);
+  const rightYellow = toAngle(10);
+  const rightOrange = toAngle(25);
 
-    return `conic-gradient(from 270deg at 50% 100%, rgba(239, 68, 68, 0.2) 0deg ${leftOrange}deg, rgba(249, 115, 22, 0.2) ${leftOrange}deg ${leftYellow}deg, rgba(250, 204, 21, 0.2) ${leftYellow}deg ${leftGreen}deg, rgba(34, 197, 94, 0.18) ${leftGreen}deg ${rightGreen}deg, rgba(250, 204, 21, 0.2) ${rightGreen}deg ${rightYellow}deg, rgba(249, 115, 22, 0.2) ${rightYellow}deg ${rightOrange}deg, rgba(239, 68, 68, 0.2) ${rightOrange}deg 180deg, transparent 180deg 360deg)`;
-  }, [toleranceCents]);
+  const regularSemicircleGradient = `conic-gradient(from 270deg at 50% 100%, rgba(239, 68, 68, 0.2) 0deg ${leftOrange}deg, rgba(249, 115, 22, 0.2) ${leftOrange}deg ${leftYellow}deg, rgba(250, 204, 21, 0.2) ${leftYellow}deg ${leftGreen}deg, rgba(34, 197, 94, 0.18) ${leftGreen}deg ${rightGreen}deg, rgba(250, 204, 21, 0.2) ${rightGreen}deg ${rightYellow}deg, rgba(249, 115, 22, 0.2) ${rightYellow}deg ${rightOrange}deg, rgba(239, 68, 68, 0.2) ${rightOrange}deg 180deg, transparent 180deg 360deg)`;
 
   const regularNeedleStyle = !hasRegularCents
     ? {

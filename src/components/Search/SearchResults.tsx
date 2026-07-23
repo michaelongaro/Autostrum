@@ -11,7 +11,6 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  useCallback,
   Fragment,
 } from "react";
 import { BsGridFill, BsPlus } from "react-icons/bs";
@@ -281,23 +280,23 @@ function SearchResults({
     rootMargin: "-64px", // height of the sticky header
   });
 
-  const handlePointerDown = useCallback((scroller: "header" | "body") => {
+  function handlePointerDown(scroller: "header" | "body") {
     // Clear any pending timeout from a previous momentum scroll
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = null;
     }
     activeScrollerRef.current = scroller;
-  }, []);
+  }
 
-  const handlePointerUp = useCallback(() => {
+  function handlePointerUp() {
     // To handle momentum scrolling, we don't clear the active scroller
     // immediately. Instead, we set a timeout.
     scrollTimeoutRef.current = setTimeout(() => {
       activeScrollerRef.current = null;
       scrollTimeoutRef.current = null;
     }, 750);
-  }, []);
+  }
 
   function getDynamicGridTemplateColumns() {
     let gridTemplateColumns = "";

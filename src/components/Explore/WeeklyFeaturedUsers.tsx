@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TbPinned } from "react-icons/tb";
 import GridTabCard from "~/components/Search/GridTabCard";
 import { Button } from "~/components/ui/button";
@@ -101,25 +101,23 @@ function WeeklyFeaturedUsers({
   const prevSlideIndex = useRef(slideIndex);
   const progressBarRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const progressBarOpacities = useMemo(() => {
-    // Home values for each slide
-    const homeValues = [0, 0.2, 0.4, 0.6, 0.8];
-    // How far away (in scrollProgress units) before opacity is 0
-    const maxDistance = 0.2; // 0.2 = one full slide away
+  // Home values for each slide
+  const homeValues = [0, 0.2, 0.4, 0.6, 0.8];
+  // How far away (in scrollProgress units) before opacity is 0
+  const maxDistance = 0.2; // 0.2 = one full slide away
 
-    return homeValues.map((home) => {
-      // Find the shortest distance, accounting for looping
-      let dist = Math.abs(scrollProgress - home);
-      if (dist > 0.5) dist = 1 - dist; // handle looping
+  const progressBarOpacities = homeValues.map((home) => {
+    // Find the shortest distance, accounting for looping
+    let dist = Math.abs(scrollProgress - home);
+    if (dist > 0.5) dist = 1 - dist; // handle looping
 
-      // Opacity is 1 at dist=0, 0 at dist=maxDistance or more
-      const opacity = Math.max(0, 1 - dist / maxDistance);
-      return opacity;
-    });
-  }, [scrollProgress]);
+    // Opacity is 1 at dist=0, 0 at dist=maxDistance or more
+    const opacity = Math.max(0, 1 - dist / maxDistance);
+    return opacity;
+  });
 
   // Calculate button widths based on scroll progress
-  const calculateButtonWidths = useCallback((scrollProgress: number) => {
+  function calculateButtonWidths(scrollProgress: number) {
     const baseWidth = 12; // w-3 = 12px (circle size)
     const expandedWidth = 36; // w-6 = 36px (3x as wide)
 
@@ -148,14 +146,10 @@ function WeeklyFeaturedUsers({
     }
 
     return widths;
-  }, []);
+  }
 
-  const calculatedButtonWidths = useMemo(() => {
-    const roundedProgress = snapToExpectedValue(scrollProgress);
-    const newButtonWidths = calculateButtonWidths(roundedProgress);
-
-    return newButtonWidths;
-  }, [scrollProgress, calculateButtonWidths]);
+  const roundedProgress = snapToExpectedValue(scrollProgress);
+  const calculatedButtonWidths = calculateButtonWidths(roundedProgress);
 
   useEffect(() => {
     const handleFocus = () => setWindowHasFocus(true);
@@ -318,13 +312,10 @@ function WeeklyFeaturedUsers({
   }, [windowHasFocus]);
 
   // Handle button clicks
-  const handleButtonClick = useCallback(
-    (index: number) => {
-      if (!weeklyFeaturedUsersCarouselApi) return;
-      weeklyFeaturedUsersCarouselApi.scrollTo(index);
-    },
-    [weeklyFeaturedUsersCarouselApi],
-  );
+  function handleButtonClick(index: number) {
+    if (!weeklyFeaturedUsersCarouselApi) return;
+    weeklyFeaturedUsersCarouselApi.scrollTo(index);
+  }
 
   // Setup carousel event listeners
   useEffect(() => {
