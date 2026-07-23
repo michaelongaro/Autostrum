@@ -78,9 +78,9 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
           id: crypto.randomUUID(),
           repetitions: 1,
           bpm: -1,
-          // @ts-expect-error the correct strummingPattern will get set in <ChordSequence /> if it is available
+          // Filled in by <ChordSequence /> once a real pattern exists.
           strummingPattern: {} as StrummingPattern,
-          data: [], // this will also get set in <ChordSequence />
+          data: [],
         });
       }
     });

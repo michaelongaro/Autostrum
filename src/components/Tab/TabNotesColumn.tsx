@@ -11,11 +11,7 @@ import {
 } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import {
-  useTabStore,
-  type FullNoteLengths,
-  type TabNote as TabNoteType,
-} from "~/stores/TabStore";
+import { useTabStore, type FullNoteLengths } from "~/stores/TabStore";
 import { BsPlus } from "react-icons/bs";
 import {
   DropdownMenu,
@@ -30,8 +26,8 @@ import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import Ellipsis from "~/components/ui/icons/Ellipsis";
 import {
-  useTabColumnData,
   useTabColumnNeighborMeta,
+  useTabNoteColumnData,
 } from "~/hooks/useTabDataSelectors";
 import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
 import { NoteLengthDropdown } from "./NoteLengthDropdown";
@@ -84,11 +80,11 @@ function TabNotesColumn({
   const { columnIsBeingPlayed, columnHasBeenPlayed, durationOfChord } =
     useColumnPlaybackHighlight(sectionIndex, subSectionIndex, columnIndex);
 
-  const columnData = useTabColumnData(
+  const columnData = useTabNoteColumnData(
     sectionIndex,
     subSectionIndex,
     columnIndex,
-  ) as TabNoteType | undefined;
+  );
 
   const neighborMeta = useTabColumnNeighborMeta(
     sectionIndex,
@@ -133,7 +129,7 @@ function TabNotesColumn({
     }
   }, [columnIndex, columnIsBeingPlayed]);
 
-  if (!columnData || !isTabNote(columnData)) {
+  if (!columnData) {
     return null;
   }
 

@@ -9,18 +9,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import {
-  getTabData,
-  useTabStore,
-  type TabMeasureLine as TabMeasureLineType,
-} from "~/stores/TabStore";
+import { getTabData, useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
-  useTabColumnData,
   useTabColumnNeighborMeta,
+  useTabMeasureLineColumnData,
+  useTabSubSectionBpm,
 } from "~/hooks/useTabDataSelectors";
 import { useMeasureLineHasBeenPlayed } from "~/hooks/useColumnPlaybackHighlight";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
@@ -51,17 +48,19 @@ function TabMeasureLine({
     columnIndex,
   );
 
-  const columnData = useTabColumnData(
+  const columnData = useTabMeasureLineColumnData(
     sectionIndex,
     subSectionIndex,
     columnIndex,
-  ) as TabMeasureLineType | undefined;
+  );
 
   const neighborMeta = useTabColumnNeighborMeta(
     sectionIndex,
     subSectionIndex,
     columnIndex,
   );
+
+  const subSectionBpm = useTabSubSectionBpm(sectionIndex, subSectionIndex);
 
   const {
     attributes,
@@ -84,7 +83,7 @@ function TabMeasureLine({
   // Only the playing boolean — avoid re-rendering on loop-range / location ticks.
   const audioIsPlaying = useTabStore((state) => state.audioMetadata.playing);
 
-  if (!columnData || !isTabMeasureLine(columnData)) {
+  if (!columnData) {
     return null;
   }
 
@@ -100,9 +99,9 @@ function TabMeasureLine({
     if (newBpm !== null && (isNaN(newBpm) || newBpm > 500)) return;
 
     setTabData((draft) => {
-      const section = draft[sectionIndex]!.data[subSectionIndex];
+      const section = draft[sectionIndex]?.data[subSectionIndex];
 
-      if (!section || section.type !== "tab") return;
+      if (section?.type !== "tab") return;
 
       const column = section.data[columnIndex];
       if (column && isTabMeasureLine(column)) {
@@ -327,7 +326,6 @@ function TabMeasureLine({
   }
 
   function inputPlaceholder() {
-    const subSectionBpm = subSection.bpm;
     if (subSectionBpm === -1) {
       return bpm === -1 ? "" : bpm.toString();
     }
