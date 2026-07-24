@@ -93,8 +93,6 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.2.10",
-    "eslint-plugin-react-compiler": "^19.1.0-rc.1-rc-af1b7da-20250421",
-    "eslint-plugin-react-hooks": "^7.1.1",
     "p-limit": "^7.3.0",
     "playwright": "^1.61.1",
     "postcss": "^8.5.16",

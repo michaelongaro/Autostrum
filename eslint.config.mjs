@@ -20,7 +20,6 @@ export default defineConfig(
       ...tseslint.configs.stylisticTypeChecked,
     ],
     rules: {
-      "react-hooks/exhaustive-deps": "warn",
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/prefer-nullish-coalescing": "off",
