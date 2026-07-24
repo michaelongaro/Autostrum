@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
@@ -202,13 +209,23 @@ function PlaybackModal() {
     });
   }
 
-  const chordLayoutData: PlaybackChordLayoutData | null =
-    computePlaybackChordLayoutData({
+  // React Compiler escape hatch: stable identity so PlaybackAnimatedStrip's
+  // custom memo and the rAF effect deps do not thrash on every parent render.
+  const chordLayoutData = useMemo<PlaybackChordLayoutData | null>(
+    () =>
+      computePlaybackChordLayoutData({
+        expandedTabData,
+        playbackMetadata,
+        playbackSpeed,
+        visiblePlaybackContainerWidth,
+      }),
+    [
       expandedTabData,
       playbackMetadata,
       playbackSpeed,
       visiblePlaybackContainerWidth,
-    });
+    ],
+  );
 
   // Primary / catchup virtualization, plus resync after large index jumps
   // (background-tab timer throttling skips intermediate thresholds).
@@ -460,25 +477,42 @@ function PlaybackModal() {
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 
   // Keep the inline transform at the current chord boundary.
-  // While playing, WAAPI owns motion. While paused, this preserves the existing settle/scrub path.
-  const scrollContainerTransform =
-    !chordLayoutData ||
-    !expandedTabData ||
-    !currentlyPlayingMetadata ||
-    chordRepetitions.length === 0
-      ? "translateX(0px)"
-      : `translateX(${((chordLayoutData.scrollPositions[currentChordIndex] ?? 0) + (chordRepetitions[currentChordIndex] ?? 0) * chordLayoutData.totalWidth) * -1}px)`;
+  // While playing, rAF owns motion. While paused, this preserves the existing settle/scrub path.
+  const scrollContainerTransform = useMemo(() => {
+    if (
+      !chordLayoutData ||
+      !expandedTabData ||
+      !currentlyPlayingMetadata ||
+      chordRepetitions.length === 0
+    ) {
+      return "translateX(0px)";
+    }
 
-  function renderVisibleChord({
-    chord,
-    prevChord,
-    nextChord,
-    isFirstChordInTab,
-    isLastChordInTab,
-    isDimmed,
-    isHighlighted,
-  }: RenderVisibleChord) {
-    return (
+    const { scrollPositions, totalWidth } = chordLayoutData;
+    const position =
+      (scrollPositions[currentChordIndex] ?? 0) +
+      (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
+
+    return `translateX(${position * -1}px)`;
+  }, [
+    chordLayoutData,
+    expandedTabData,
+    currentlyPlayingMetadata,
+    currentChordIndex,
+    chordRepetitions,
+  ]);
+
+  // React Compiler escape hatch: stable renderChord identity for the strip memo.
+  const renderVisibleChord = useCallback(
+    ({
+      chord,
+      prevChord,
+      nextChord,
+      isFirstChordInTab,
+      isLastChordInTab,
+      isDimmed,
+      isHighlighted,
+    }: RenderVisibleChord) => (
       <RenderChordByType
         key={loopDelay}
         type={
@@ -498,8 +532,9 @@ function PlaybackModal() {
         isDimmed={isDimmed}
         isHighlighted={isHighlighted}
       />
-    );
-  }
+    ),
+    [loopDelay],
+  );
 
   return (
     <motion.div
