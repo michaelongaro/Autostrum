@@ -41,6 +41,42 @@ const AUDIO_SLEW_TIME_MS = 500;
  */
 const MAX_FRAME_DELTA_MS = 100;
 
+const WRITER_WATCHDOG_INTERVAL_MS = 250;
+const WRITER_STALL_THRESHOLD_MS = 180;
+const WATCHDOG_AUDIO_ADVANCE_THRESHOLD_MS = 40;
+
+// WebKit can retain the first promoted transform layer after a cold page load
+// even while JS and getComputedStyle report changing transforms. Rebuild that
+// layer at most once per page lifetime; subsequent sessions keep the warm layer.
+let firstWebKitPlaybackLayerRefreshed = false;
+
+function getStripTransform(positionPx: number) {
+  return `translate3d(${positionPx * -1}px, 0, 0)`;
+}
+
+function isTouchWebKit() {
+  return (
+    navigator.maxTouchPoints > 0 &&
+    navigator.userAgent.includes("AppleWebKit")
+  );
+}
+
+function refreshWebKitTransformLayer(
+  element: HTMLDivElement,
+  transform: string,
+) {
+  element.style.transition = "none";
+  element.style.backfaceVisibility = "visible";
+  element.style.webkitBackfaceVisibility = "visible";
+  element.style.transform = "none";
+  void element.getBoundingClientRect();
+
+  element.style.backfaceVisibility = "hidden";
+  element.style.webkitBackfaceVisibility = "hidden";
+  element.style.transform = transform;
+  void window.getComputedStyle(element).transform;
+}
+
 function getPlaybackStripAnimationData(
   chordLayoutData: PlaybackStripLayoutData | null,
 ): PlaybackStripAnimationData | null {
@@ -186,6 +222,7 @@ function usePlaybackStripAnimation({
   const anchorChordIndexRef = useRef(currentChordIndex);
   const anchorRepetitionRef = useRef(currentRepetition);
   const rafIdRef = useRef<number | null>(null);
+  const writerGenerationRef = useRef(0);
 
   // React Compiler escape hatch: layout-effect dep that starts/stops the rAF
   // scroll loop; identity must stay tied to chordLayoutData.
@@ -205,6 +242,10 @@ function usePlaybackStripAnimation({
 
   useLayoutEffect(() => {
     const animatedElement = stripRef.current;
+    writerGenerationRef.current += 1;
+    const writerGeneration = writerGenerationRef.current;
+    let writerActive = true;
+    let scheduledRafId: number | null = null;
 
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
@@ -245,13 +286,20 @@ function usePlaybackStripAnimation({
     // Rapid Range / finger scrub leaves interrupted transitions that can keep
     // owning transform after React flips transition to none on play.
     animatedElement.style.transition = "none";
+    animatedElement.style.backfaceVisibility = "hidden";
+    animatedElement.style.webkitBackfaceVisibility = "hidden";
     if (typeof animatedElement.getAnimations === "function") {
       for (const animation of animatedElement.getAnimations()) {
         animation.cancel();
       }
     }
 
-    animatedElement.style.transform = `translateX(${startPositionPx * -1}px)`;
+    // Cold iOS WebKit can defer activation of the first transform compositor
+    // layer. Seed a 3D transform and synchronously flush style/layout before the
+    // first rAF so the layer exists before continuous writes begin.
+    animatedElement.style.transform = getStripTransform(startPositionPx);
+    void window.getComputedStyle(animatedElement).transform;
+    void animatedElement.getBoundingClientRect();
     if (scrollPositionRef) {
       scrollPositionRef.current = startPositionPx;
     }
@@ -264,6 +312,11 @@ function usePlaybackStripAnimation({
       ? Math.max(0, (audioContext.currentTime - playbackStartAudioTime) * 1000)
       : 0;
     let lastPerfMs = performance.now();
+    const animationStartTransform = animatedElement.style.transform;
+    let lastWriterPerfMs = lastPerfMs;
+    let watchdogPreviousAudioTime = audioContext.currentTime;
+    let watchdogPreviousTransform = animationStartTransform;
+    let isFirstWatchdogCheck = true;
 
     const applyTransformForElapsedMs = (audioElapsedMs: number) => {
       const totalElapsedMs = anchorStartTimeMs + audioElapsedMs;
@@ -277,15 +330,55 @@ function usePlaybackStripAnimation({
         loopPositionPx +
         (baseRepetition + completedLoops) * chordLayoutData.totalWidth;
 
-      animatedElement.style.transform = `translateX(${absolutePositionPx * -1}px)`;
+      const nextTransform = getStripTransform(absolutePositionPx);
+      animatedElement.style.transform = nextTransform;
+      lastWriterPerfMs = performance.now();
       if (scrollPositionRef) {
         scrollPositionRef.current = absolutePositionPx;
       }
     };
 
+    const scheduleNextFrame = () => {
+      if (
+        !writerActive ||
+        writerGenerationRef.current !== writerGeneration ||
+        !playingRef.current ||
+        scheduledRafId !== null
+      ) {
+        return;
+      }
+
+      const nextRafId = requestAnimationFrame(() => {
+        if (scheduledRafId === nextRafId) {
+          scheduledRafId = null;
+        }
+        if (rafIdRef.current === nextRafId) {
+          rafIdRef.current = null;
+        }
+
+        if (
+          !writerActive ||
+          writerGenerationRef.current !== writerGeneration
+        ) {
+          return;
+        }
+
+        tick();
+      });
+
+      scheduledRafId = nextRafId;
+      rafIdRef.current = nextRafId;
+    };
+
     const tick = () => {
+      if (
+        !writerActive ||
+        writerGenerationRef.current !== writerGeneration
+      ) {
+        return;
+      }
+
       if (!playingRef.current) {
-        rafIdRef.current = null;
         return;
       }
 
@@ -303,7 +396,7 @@ function usePlaybackStripAnimation({
       if (audioContext.state !== "running") {
         if (audioHasStarted) {
           applyTransformForElapsedMs(displayedElapsedMs);
-          rafIdRef.current = requestAnimationFrame(tick);
+          scheduleNextFrame();
           return;
         }
 
@@ -316,7 +409,7 @@ function usePlaybackStripAnimation({
       if (!audioHasStarted) {
         if (rawAudioElapsedMs < 0) {
           applyTransformForElapsedMs(0);
-          rafIdRef.current = requestAnimationFrame(tick);
+          scheduleNextFrame();
           return;
         }
 
@@ -338,16 +431,92 @@ function usePlaybackStripAnimation({
       }
 
       applyTransformForElapsedMs(displayedElapsedMs);
-      rafIdRef.current = requestAnimationFrame(tick);
+      scheduleNextFrame();
     };
 
     applyTransformForElapsedMs(displayedElapsedMs);
-    rafIdRef.current = requestAnimationFrame(tick);
+    scheduleNextFrame();
+
+    const watchdogIntervalId = window.setInterval(() => {
+      const nowPerfMs = performance.now();
+      const currentAudioTime = audioContext.currentTime;
+      const currentInlineTransform = animatedElement.style.transform;
+      const audioAdvanceSinceWatchdogMs =
+        (currentAudioTime - watchdogPreviousAudioTime) * 1000;
+      const writerAgeMs = nowPerfMs - lastWriterPerfMs;
+      const audioIsAdvancing =
+        audioAdvanceSinceWatchdogMs >= WATCHDOG_AUDIO_ADVANCE_THRESHOLD_MS;
+      const writerMissedDeadline =
+        writerAgeMs >= WRITER_STALL_THRESHOLD_MS;
+      const transformDidNotAdvance =
+        currentInlineTransform === watchdogPreviousTransform;
+      const recoveryEligible =
+        writerActive &&
+        writerGenerationRef.current === writerGeneration &&
+        playingRef.current &&
+        audioContext.state === "running" &&
+        currentAudioTime >= playbackStartAudioTime &&
+        document.visibilityState === "visible" &&
+        animatedElement.isConnected &&
+        stripRef.current === animatedElement;
+      const shouldRecover =
+        recoveryEligible &&
+        audioIsAdvancing &&
+        (writerMissedDeadline || transformDidNotAdvance);
+
+      if (shouldRecover) {
+        const directAudioElapsedMs = Math.max(
+          0,
+          (currentAudioTime - playbackStartAudioTime) * 1000,
+        );
+        audioHasStarted = true;
+        displayedElapsedMs = directAudioElapsedMs;
+        lastPerfMs = nowPerfMs;
+        applyTransformForElapsedMs(directAudioElapsedMs);
+
+        if (scheduledRafId !== null) {
+          cancelAnimationFrame(scheduledRafId);
+          if (rafIdRef.current === scheduledRafId) {
+            rafIdRef.current = null;
+          }
+          scheduledRafId = null;
+        }
+        scheduleNextFrame();
+      }
+
+      const shouldRefreshLayer =
+        recoveryEligible &&
+        !firstWebKitPlaybackLayerRefreshed &&
+        isTouchWebKit() &&
+        isFirstWatchdogCheck &&
+        audioIsAdvancing &&
+        animatedElement.style.transform !== animationStartTransform;
+
+      if (shouldRefreshLayer) {
+        refreshWebKitTransformLayer(
+          animatedElement,
+          animatedElement.style.transform,
+        );
+        firstWebKitPlaybackLayerRefreshed = true;
+      }
+
+      isFirstWatchdogCheck = false;
+      watchdogPreviousAudioTime = currentAudioTime;
+      watchdogPreviousTransform = animatedElement.style.transform;
+    }, WRITER_WATCHDOG_INTERVAL_MS);
 
     return () => {
-      if (rafIdRef.current !== null) {
-        cancelAnimationFrame(rafIdRef.current);
-        rafIdRef.current = null;
+      writerActive = false;
+      window.clearInterval(watchdogIntervalId);
+      if (scheduledRafId !== null) {
+        cancelAnimationFrame(scheduledRafId);
+        if (rafIdRef.current === scheduledRafId) {
+          rafIdRef.current = null;
+        }
+        scheduledRafId = null;
+      }
+      if (writerGenerationRef.current === writerGeneration) {
+        writerGenerationRef.current += 1;
       }
     };
   }, [
