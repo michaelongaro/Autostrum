@@ -36,7 +36,7 @@ function StaticTabMeasureLine({
           style={{
             color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
           }}
-          className={`baseFlex h-4 shrink-0 gap-[0.125rem] ${columnData.isInPalmMuteSection ? "" : "relative top-3"}`}
+          className="baseFlex h-4 shrink-0 gap-[2px]"
         >
           <QuarterNote />
           <p className="text-center text-xs">
@@ -54,7 +54,7 @@ function StaticTabMeasureLine({
             style={{
               backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
             }}
-            className="relative mt-[-8px] h-[1px] w-full"
+            className="relative mt-[-16px] h-[1px] w-full"
           ></div>
         )}
       </div>
