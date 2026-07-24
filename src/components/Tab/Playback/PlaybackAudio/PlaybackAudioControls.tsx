@@ -3,6 +3,7 @@ import {
   type Dispatch,
   type SetStateAction,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
@@ -14,7 +15,7 @@ import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore } from "~/stores/TabStore";
+import { getTabStore, useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 
 interface PlaybackAudioControls {
@@ -84,6 +85,9 @@ function PlaybackAudioControls({
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
+  // Invalidates delayed count-in → playTab work after app switch / pause so
+  // iOS cannot start playback without a fresh user gesture.
+  const playRequestIdRef = useRef(0);
 
   const volume = useGetLocalStorageValues().volume;
 
@@ -103,20 +107,52 @@ function PlaybackAudioControls({
     }
   }, [currentChordIndex, setTabProgressValue]);
 
+  useEffect(() => {
+    function cancelPendingPlayStart() {
+      playRequestIdRef.current += 1;
+      const { countInTimer: latestCountInTimer, setCountInTimer: setTimer } =
+        getTabStore();
+      if (latestCountInTimer.showing) {
+        setTimer({
+          ...latestCountInTimer,
+          showing: false,
+        });
+      }
+    }
+
+    function handleBackground() {
+      if (document.visibilityState === "hidden") {
+        cancelPendingPlayStart();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleBackground);
+    window.addEventListener("pagehide", cancelPendingPlayStart);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleBackground);
+      window.removeEventListener("pagehide", cancelPendingPlayStart);
+    };
+  }, []);
+
   function handlePlayButtonClick() {
     const delayPlayStart = countInTimerEnabled ? 3000 : 0;
 
     if (audioMetadata.playing) {
+      playRequestIdRef.current += 1;
       pauseAudio();
       setArtificalPlayButtonTimeout(true);
       setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
       return;
     }
 
+    const playRequestId = playRequestIdRef.current + 1;
+    playRequestIdRef.current = playRequestId;
+
     void (async () => {
       // Count-in runs before playTab, so recover here too.
       const audioSystem = await ensureAudioSystemReady();
-      if (!audioSystem) return;
+      if (!audioSystem || playRequestIdRef.current !== playRequestId) return;
 
       const {
         audioContext: readyAudioContext,
@@ -132,6 +168,7 @@ function PlaybackAudioControls({
 
         function playCountInSound(index: number) {
           if (
+            playRequestIdRef.current !== playRequestId ||
             !readyAudioContext ||
             !readyMasterVolumeGainNode ||
             !readyCountInBuffer
@@ -167,6 +204,8 @@ function PlaybackAudioControls({
       if (previewMetadata.playing) pauseAudio();
 
       setTimeout(() => {
+        if (playRequestIdRef.current !== playRequestId) return;
+
         void playTab({
           location: audioMetadata.location,
         });

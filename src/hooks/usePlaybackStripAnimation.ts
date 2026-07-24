@@ -34,6 +34,13 @@ interface PlaybackStripAnimationData {
 /** Soft-pull displayed elapsed toward AudioContext over this window. */
 const AUDIO_SLEW_TIME_MS = 500;
 
+/**
+ * Cap a single rAF delta so a background→foreground gap (iOS throttles rAF
+ * while suspended) cannot jump translateX by seconds of wall-clock time before
+ * the visibility pause handler finishes tearing down playback.
+ */
+const MAX_FRAME_DELTA_MS = 100;
+
 function getPlaybackStripAnimationData(
   chordLayoutData: PlaybackStripLayoutData | null,
 ): PlaybackStripAnimationData | null {
@@ -283,8 +290,20 @@ function usePlaybackStripAnimation({
       }
 
       const nowPerfMs = performance.now();
-      const deltaMs = Math.max(0, nowPerfMs - lastPerfMs);
+      const deltaMs = Math.min(
+        MAX_FRAME_DELTA_MS,
+        Math.max(0, nowPerfMs - lastPerfMs),
+      );
       lastPerfMs = nowPerfMs;
+
+      // Suspended / interrupted AudioContext (common after iOS app switch)
+      // freezes currentTime. Hold the strip until audio is running again so we
+      // do not drift ahead on wall-clock alone.
+      if (audioContext.state !== "running") {
+        applyTransformForElapsedMs(displayedElapsedMs);
+        rafIdRef.current = requestAnimationFrame(tick);
+        return;
+      }
 
       const rawAudioElapsedMs =
         (audioContext.currentTime - playbackStartAudioTime) * 1000;
