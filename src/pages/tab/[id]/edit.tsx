@@ -147,44 +147,62 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
 function TabNotFound() {
   return (
-    <div className="baseVertFlex w-10/12 gap-4 rounded-md border bg-background p-4 shadow-lg md:w-[500px]">
-      <div className="baseFlex gap-3 sm:gap-4">
-        <div className="baseFlex gap-2">
-          <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
-          <h1 className="text-xl font-bold sm:text-2xl">Tab not found</h1>
+    <motion.div
+      key={"editTabNotFound"}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="baseVertFlex my-12 min-h-[calc(100dvh-4rem-6rem)] w-full max-w-[1400px] md:my-24 md:min-h-[calc(100dvh-4rem-12rem)] md:w-3/4"
+    >
+      <div className="baseVertFlex w-10/12 gap-4 rounded-md border bg-background p-4 shadow-lg md:w-[500px]">
+        <div className="baseFlex gap-3 sm:gap-4">
+          <div className="baseFlex gap-2">
+            <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+            <h1 className="text-xl font-bold sm:text-2xl">Tab not found</h1>
+          </div>
         </div>
+        <p className="text-center text-base sm:text-lg">
+          The tab you are looking for does not exist. Please check the URL and
+          try again.
+        </p>
       </div>
-      <p className="text-center text-base sm:text-lg">
-        The tab you are looking for does not exist. Please check the URL and try
-        again.
-      </p>
-    </div>
+    </motion.div>
   );
 }
 
 function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
   return (
-    <div className="baseVertFlex w-10/12 gap-4 rounded-md border bg-background p-4 shadow-lg md:w-[550px]">
-      <div className="baseFlex gap-3 sm:gap-4">
-        <div className="baseFlex gap-2">
-          <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
-          <h1 className="text-xl font-bold sm:text-2xl">Access denied</h1>
+    <motion.div
+      key={"notAllowedToEdit"}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="baseVertFlex my-12 min-h-[calc(100dvh-4rem-6rem)] w-full max-w-[1400px] md:my-24 md:min-h-[calc(100dvh-4rem-12rem)] md:w-3/4"
+    >
+      <div className="baseVertFlex w-10/12 gap-4 rounded-md border bg-background p-4 shadow-lg md:w-[550px]">
+        <div className="baseFlex gap-3 sm:gap-4">
+          <div className="baseFlex gap-2">
+            <BiErrorCircle className="h-6 w-6 sm:h-8 sm:w-8" />
+            <h1 className="text-xl font-bold sm:text-2xl">Access denied</h1>
+          </div>
         </div>
-      </div>
-      <span className="text-center text-base sm:text-lg">
-        You must be logged in as the owner of the tab to edit it.
-      </span>
+        <span className="text-center text-base sm:text-lg">
+          You must be logged in as the owner of the tab to edit it.
+        </span>
 
-      <Button asChild>
-        <Link
-          prefetch={false}
-          href={`/tab/${tabId}`}
-          className="baseFlex gap-1 pr-6"
-        >
-          <BsArrowLeftShort className="h-6 w-8" />
-          Return to tab
-        </Link>
-      </Button>
-    </div>
+        <Button asChild>
+          <Link
+            prefetch={false}
+            href={`/tab/${tabId}`}
+            className="baseFlex gap-1 pr-6"
+          >
+            <BsArrowLeftShort className="h-6 w-8" />
+            Return to tab
+          </Link>
+        </Button>
+      </div>
+    </motion.div>
   );
 }
