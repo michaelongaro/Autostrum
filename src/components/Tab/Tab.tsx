@@ -44,6 +44,7 @@ import Logo from "~/components/ui/icons/Logo";
 import { useInView } from "react-intersection-observer";
 import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
+import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -345,6 +346,7 @@ function Tab() {
                 variant="audio"
                 className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
                 onClick={() => {
+                  primePlaybackUserGesture();
                   setShowPlaybackModal(true);
                 }}
               >

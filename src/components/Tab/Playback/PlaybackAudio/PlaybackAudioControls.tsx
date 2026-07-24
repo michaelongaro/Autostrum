@@ -17,6 +17,7 @@ import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 interface PlaybackAudioControls {
   chordDurations: number[];
@@ -135,6 +136,15 @@ function PlaybackAudioControls({
     };
   }, []);
 
+  function handlePlayPointerDown() {
+    // Stay inside the gesture stack before any await/setTimeout (count-in).
+    // iOS Safari otherwise leaves AudioContext suspended until too late for
+    // the strip writer on the first Play after a cold reload.
+    if (!audioMetadata.playing) {
+      primePlaybackUserGesture();
+    }
+  }
+
   function handlePlayButtonClick() {
     const delayPlayStart = countInTimerEnabled ? 3000 : 0;
 
@@ -145,6 +155,10 @@ function PlaybackAudioControls({
       setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
       return;
     }
+
+    // Sync unlock again on click — pointerdown may have been skipped for
+    // keyboard / some assistive paths.
+    primePlaybackUserGesture();
 
     const playRequestId = playRequestIdRef.current + 1;
     playRequestIdRef.current = playRequestId;
@@ -254,6 +268,7 @@ function PlaybackAudioControls({
             variant="audio"
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
+            onPointerDown={handlePlayPointerDown}
             onClick={handlePlayButtonClick}
             className="size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
           >
@@ -441,6 +456,7 @@ function PlaybackAudioControls({
                   variant="audio"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
+                  onPointerDown={handlePlayPointerDown}
                   onClick={handlePlayButtonClick}
                   className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
                 >

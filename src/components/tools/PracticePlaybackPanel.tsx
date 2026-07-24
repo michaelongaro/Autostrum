@@ -21,6 +21,7 @@ import {
   getPlaybackControlValue,
   playbackDifficultyOptions,
 } from "../../utils/playbackSpeedControls";
+import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -263,6 +264,7 @@ function PracticePlaybackPanel({
             className="baseFlex gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
             disabled={audioMetadata.fullTabMetadataLength <= 0}
             onClick={() => {
+              primePlaybackUserGesture();
               setCurrentChordIndex(0);
               setShowPlaybackModal(true);
             }}

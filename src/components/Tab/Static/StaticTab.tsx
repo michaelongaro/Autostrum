@@ -39,6 +39,7 @@ import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import { useRouter } from "next/router";
 import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
+import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -223,6 +224,9 @@ function StaticTab() {
               variant="audio"
               className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
               onClick={() => {
+                // Unlock AudioContext + preload the modal chunk inside this
+                // gesture so the first Play is not blocked on Safari resume/lazy JS.
+                primePlaybackUserGesture();
                 setShowPlaybackModal(true);
               }}
             >
