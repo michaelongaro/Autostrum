@@ -45,11 +45,6 @@ const WRITER_WATCHDOG_INTERVAL_MS = 250;
 const WRITER_STALL_THRESHOLD_MS = 180;
 const WATCHDOG_AUDIO_ADVANCE_THRESHOLD_MS = 40;
 
-// WebKit can retain the first promoted transform layer after a cold page load
-// even while JS and getComputedStyle report changing transforms. Rebuild that
-// layer at most once per page lifetime; subsequent sessions keep the warm layer.
-let firstWebKitPlaybackLayerRefreshed = false;
-
 function getStripTransform(positionPx: number) {
   return `translate3d(${positionPx * -1}px, 0, 0)`;
 }
@@ -241,121 +236,177 @@ function usePlaybackStripAnimation({
   }, [currentChordIndex, currentRepetition]);
 
   useLayoutEffect(() => {
-    const animatedElement = stripRef.current;
     writerGenerationRef.current += 1;
     const writerGeneration = writerGenerationRef.current;
     let writerActive = true;
     let scheduledRafId: number | null = null;
+    let pollRafId: number | null = null;
+    let watchdogIntervalId: number | null = null;
+    let startedWriter = false;
 
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
     }
 
-    if (
-      !playing ||
-      !animatedElement ||
-      !chordLayoutData ||
-      !animationData ||
-      animationData.totalDurationMs <= 0 ||
-      !audioContext ||
-      playbackStartedAtAudioTime === null
-    ) {
+    // Critical Safari fix: while `playing` is true, never bail permanently when
+    // the strip/layout/clock is not ready yet. Cold first-play after a lazy
+    // modal mount often races those prerequisites; a bare return left zero
+    // writers and zero watchdog → frozen strip with healthy audio/highlights.
+    if (!playing) {
       return;
     }
 
-    const rawAnchorChordIndex = anchorChordIndexRef.current;
-    const normalizedAnchorChordIndex =
-      ((rawAnchorChordIndex % animationData.chordCount) +
-        animationData.chordCount) %
-      animationData.chordCount;
-    const extraAnchorLoops = Math.floor(
-      rawAnchorChordIndex / animationData.chordCount,
-    );
-    const anchorStartTimeMs =
-      animationData.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
-    const playbackStartAudioTime = playbackStartedAtAudioTime;
-    const loopDurationMs = animationData.totalDurationMs;
-    const baseRepetition = anchorRepetitionRef.current + extraAnchorLoops;
-
-    const startPositionPx =
-      (chordLayoutData.scrollPositions[normalizedAnchorChordIndex] ?? 0) +
-      baseRepetition * chordLayoutData.totalWidth;
-
-    // Kill any in-flight CSS scrub transitions before reseeding translateX.
-    // Rapid Range / finger scrub leaves interrupted transitions that can keep
-    // owning transform after React flips transition to none on play.
-    animatedElement.style.transition = "none";
-    animatedElement.style.backfaceVisibility = "hidden";
-    animatedElement.style.webkitBackfaceVisibility = "hidden";
-    if (typeof animatedElement.getAnimations === "function") {
-      for (const animation of animatedElement.getAnimations()) {
-        animation.cancel();
-      }
-    }
-
-    // Cold iOS WebKit can defer activation of the first transform compositor
-    // layer. Seed a 3D transform and synchronously flush style/layout before the
-    // first rAF so the layer exists before continuous writes begin.
-    animatedElement.style.transform = getStripTransform(startPositionPx);
-    void window.getComputedStyle(animatedElement).transform;
-    void animatedElement.getBoundingClientRect();
-    if (scrollPositionRef) {
-      scrollPositionRef.current = startPositionPx;
-    }
-
-    // Continuous displayed clock: advance by performance.now() delta each
-    // frame, soft-slew toward AudioContext. Never hard-assign from audio so
-    // iOS quantization / resample cannot snap translateX.
-    let audioHasStarted = audioContext.currentTime >= playbackStartAudioTime;
-    let displayedElapsedMs = audioHasStarted
-      ? Math.max(0, (audioContext.currentTime - playbackStartAudioTime) * 1000)
-      : 0;
-    let lastPerfMs = performance.now();
-    const animationStartTransform = animatedElement.style.transform;
-    let lastWriterPerfMs = lastPerfMs;
-    let watchdogPreviousAudioTime = audioContext.currentTime;
-    let watchdogPreviousTransform = animationStartTransform;
-    let isFirstWatchdogCheck = true;
-
-    const applyTransformForElapsedMs = (audioElapsedMs: number) => {
-      const totalElapsedMs = anchorStartTimeMs + audioElapsedMs;
-      const completedLoops = Math.floor(totalElapsedMs / loopDurationMs);
-      const loopTimeMs = normalizeModulo(totalElapsedMs, loopDurationMs);
-      const loopPositionPx = getScrollPositionForLoopTimeMs(
-        animationData,
-        loopTimeMs,
-      );
-      const absolutePositionPx =
-        loopPositionPx +
-        (baseRepetition + completedLoops) * chordLayoutData.totalWidth;
-
-      const nextTransform = getStripTransform(absolutePositionPx);
-      animatedElement.style.transform = nextTransform;
-      lastWriterPerfMs = performance.now();
-      if (scrollPositionRef) {
-        scrollPositionRef.current = absolutePositionPx;
+    const clearPolling = () => {
+      if (pollRafId !== null) {
+        cancelAnimationFrame(pollRafId);
+        pollRafId = null;
       }
     };
 
-    const scheduleNextFrame = () => {
-      if (
-        !writerActive ||
-        writerGenerationRef.current !== writerGeneration ||
-        !playingRef.current ||
-        scheduledRafId !== null
-      ) {
-        return;
+    const clearWatchdog = () => {
+      if (watchdogIntervalId !== null) {
+        window.clearInterval(watchdogIntervalId);
+        watchdogIntervalId = null;
+      }
+    };
+
+    const startWriter = (
+      animatedElement: HTMLDivElement,
+      layoutData: PlaybackStripLayoutData,
+      data: PlaybackStripAnimationData,
+      ctx: AudioContext,
+      playbackStartAudioTime: number,
+    ) => {
+      if (!writerActive || startedWriter) return;
+      if (writerGenerationRef.current !== writerGeneration) return;
+      startedWriter = true;
+      clearPolling();
+
+      const rawAnchorChordIndex = anchorChordIndexRef.current;
+      const normalizedAnchorChordIndex =
+        ((rawAnchorChordIndex % data.chordCount) + data.chordCount) %
+        data.chordCount;
+      const extraAnchorLoops = Math.floor(
+        rawAnchorChordIndex / data.chordCount,
+      );
+      const anchorStartTimeMs =
+        data.cumulativeChordTimesMs[normalizedAnchorChordIndex] ?? 0;
+      const loopDurationMs = data.totalDurationMs;
+      const baseRepetition = anchorRepetitionRef.current + extraAnchorLoops;
+
+      const startPositionPx =
+        (layoutData.scrollPositions[normalizedAnchorChordIndex] ?? 0) +
+        baseRepetition * layoutData.totalWidth;
+
+      // Kill any in-flight CSS scrub transitions before reseeding translateX.
+      // Rapid Range / finger scrub leaves interrupted transitions that can keep
+      // owning transform after React flips transition to none on play.
+      animatedElement.style.transition = "none";
+      animatedElement.style.willChange = "auto";
+      animatedElement.style.backfaceVisibility = "hidden";
+      animatedElement.style.webkitBackfaceVisibility = "hidden";
+      if (typeof animatedElement.getAnimations === "function") {
+        for (const animation of animatedElement.getAnimations()) {
+          animation.cancel();
+        }
       }
 
-      const nextRafId = requestAnimationFrame(() => {
-        if (scheduledRafId === nextRafId) {
-          scheduledRafId = null;
+      // Cold iOS WebKit can defer activation of the first transform compositor
+      // layer. Seed a 3D transform and synchronously flush style/layout before the
+      // first rAF so the layer exists before continuous writes begin.
+      const startTransform = getStripTransform(startPositionPx);
+      animatedElement.style.transform = startTransform;
+      void window.getComputedStyle(animatedElement).transform;
+      void animatedElement.getBoundingClientRect();
+
+      // Rebuild the layer immediately on every touch-WebKit play edge. Waiting
+      // for the watchdog (and requiring transform !== start) skipped the exact
+      // failure mode: first Play after reload with a frozen start layer. A
+      // once-per-page gate also left later sessions stuck after app-switch.
+      if (isTouchWebKit()) {
+        refreshWebKitTransformLayer(animatedElement, startTransform);
+      }
+
+      if (scrollPositionRef) {
+        scrollPositionRef.current = startPositionPx;
+      }
+
+      // Continuous displayed clock: advance by performance.now() delta each
+      // frame, soft-slew toward AudioContext. Never hard-assign from audio so
+      // iOS quantization / resample cannot snap translateX.
+      let audioHasStarted = ctx.currentTime >= playbackStartAudioTime;
+      let displayedElapsedMs = audioHasStarted
+        ? Math.max(0, (ctx.currentTime - playbackStartAudioTime) * 1000)
+        : 0;
+      let lastPerfMs = performance.now();
+      let lastWriterPerfMs = lastPerfMs;
+      let lastMovedTransformPerfMs = lastPerfMs;
+      let lastAppliedTransform = startTransform;
+      let watchdogPreviousAudioTime = ctx.currentTime;
+      let watchdogPreviousTransform = startTransform;
+
+      const getAbsolutePositionForElapsedMs = (audioElapsedMs: number) => {
+        const totalElapsedMs = anchorStartTimeMs + audioElapsedMs;
+        const completedLoops = Math.floor(totalElapsedMs / loopDurationMs);
+        const loopTimeMs = normalizeModulo(totalElapsedMs, loopDurationMs);
+        const loopPositionPx = getScrollPositionForLoopTimeMs(data, loopTimeMs);
+        return (
+          loopPositionPx +
+          (baseRepetition + completedLoops) * layoutData.totalWidth
+        );
+      };
+
+      const applyTransformForElapsedMs = (audioElapsedMs: number) => {
+        const absolutePositionPx = getAbsolutePositionForElapsedMs(audioElapsedMs);
+        const nextTransform = getStripTransform(absolutePositionPx);
+        animatedElement.style.transform = nextTransform;
+        // Only treat the writer as "alive for motion" when the transform string
+        // actually changes. Holding at start (apply 0 forever) used to refresh
+        // lastWriterPerfMs and hide stuck-at-start freezes from the watchdog.
+        if (nextTransform !== lastAppliedTransform) {
+          lastMovedTransformPerfMs = performance.now();
+          lastAppliedTransform = nextTransform;
         }
-        if (rafIdRef.current === nextRafId) {
-          rafIdRef.current = null;
+        lastWriterPerfMs = performance.now();
+        if (scrollPositionRef) {
+          scrollPositionRef.current = absolutePositionPx;
+        }
+      };
+
+      const scheduleNextFrame = () => {
+        if (
+          !writerActive ||
+          writerGenerationRef.current !== writerGeneration ||
+          !playingRef.current ||
+          scheduledRafId !== null
+        ) {
+          return;
         }
 
+        const nextRafId = requestAnimationFrame(() => {
+          if (scheduledRafId === nextRafId) {
+            scheduledRafId = null;
+          }
+          if (rafIdRef.current === nextRafId) {
+            rafIdRef.current = null;
+          }
+
+          if (
+            !writerActive ||
+            writerGenerationRef.current !== writerGeneration
+          ) {
+            return;
+          }
+
+          tick();
+        });
+
+        scheduledRafId = nextRafId;
+        rafIdRef.current = nextRafId;
+      };
+
+      const tick = () => {
         if (
           !writerActive ||
           writerGenerationRef.current !== writerGeneration
@@ -363,151 +414,167 @@ function usePlaybackStripAnimation({
           return;
         }
 
-        tick();
-      });
-
-      scheduledRafId = nextRafId;
-      rafIdRef.current = nextRafId;
-    };
-
-    const tick = () => {
-      if (
-        !writerActive ||
-        writerGenerationRef.current !== writerGeneration
-      ) {
-        return;
-      }
-
-      if (!playingRef.current) {
-        return;
-      }
-
-      const nowPerfMs = performance.now();
-      const deltaMs = Math.min(
-        MAX_FRAME_DELTA_MS,
-        Math.max(0, nowPerfMs - lastPerfMs),
-      );
-      lastPerfMs = nowPerfMs;
-
-      // Suspended AudioContext freezes currentTime. After a real mid-playback
-      // suspend (app switch race), hold position. On a cold start that somehow
-      // began while suspended, keep polling — do not permanently freeze the
-      // strip; resume() here can complete once iOS unlocks audio.
-      if (audioContext.state !== "running") {
-        if (audioHasStarted) {
-          applyTransformForElapsedMs(displayedElapsedMs);
-          scheduleNextFrame();
+        if (!playingRef.current) {
           return;
         }
 
-        void audioContext.resume().catch(() => undefined);
-      }
+        const nowPerfMs = performance.now();
+        const deltaMs = Math.min(
+          MAX_FRAME_DELTA_MS,
+          Math.max(0, nowPerfMs - lastPerfMs),
+        );
+        lastPerfMs = nowPerfMs;
 
-      const rawAudioElapsedMs =
-        (audioContext.currentTime - playbackStartAudioTime) * 1000;
+        // Suspended AudioContext freezes currentTime. After a real mid-playback
+        // suspend (app switch race), hold position. On a cold start that somehow
+        // began while suspended, keep polling — do not permanently freeze the
+        // strip; resume() here can complete once iOS unlocks audio.
+        if (ctx.state !== "running") {
+          if (audioHasStarted) {
+            applyTransformForElapsedMs(displayedElapsedMs);
+            scheduleNextFrame();
+            return;
+          }
 
-      if (!audioHasStarted) {
-        if (rawAudioElapsedMs < 0) {
-          applyTransformForElapsedMs(0);
-          scheduleNextFrame();
-          return;
+          void ctx.resume().catch(() => undefined);
         }
 
-        audioHasStarted = true;
-        displayedElapsedMs = 0;
-      }
+        const rawAudioElapsedMs =
+          (ctx.currentTime - playbackStartAudioTime) * 1000;
 
-      // Advance continuously with wall clock, then soft-pull toward audio.
-      displayedElapsedMs += deltaMs;
+        if (!audioHasStarted) {
+          if (rawAudioElapsedMs < 0) {
+            applyTransformForElapsedMs(0);
+            scheduleNextFrame();
+            return;
+          }
 
-      const errorMs = displayedElapsedMs - Math.max(0, rawAudioElapsedMs);
-      if (deltaMs > 0 && Math.abs(errorMs) > 0.05) {
-        const slewFraction = Math.min(1, deltaMs / AUDIO_SLEW_TIME_MS);
-        displayedElapsedMs -= errorMs * slewFraction;
-      }
+          audioHasStarted = true;
+          displayedElapsedMs = 0;
+        }
 
-      if (displayedElapsedMs < 0) {
-        displayedElapsedMs = 0;
-      }
+        // Advance continuously with wall clock, then soft-pull toward audio.
+        displayedElapsedMs += deltaMs;
+
+        const errorMs = displayedElapsedMs - Math.max(0, rawAudioElapsedMs);
+        if (deltaMs > 0 && Math.abs(errorMs) > 0.05) {
+          const slewFraction = Math.min(1, deltaMs / AUDIO_SLEW_TIME_MS);
+          displayedElapsedMs -= errorMs * slewFraction;
+        }
+
+        if (displayedElapsedMs < 0) {
+          displayedElapsedMs = 0;
+        }
+
+        applyTransformForElapsedMs(displayedElapsedMs);
+        scheduleNextFrame();
+      };
 
       applyTransformForElapsedMs(displayedElapsedMs);
       scheduleNextFrame();
+
+      watchdogIntervalId = window.setInterval(() => {
+        const nowPerfMs = performance.now();
+        const currentAudioTime = ctx.currentTime;
+        const currentInlineTransform = animatedElement.style.transform;
+        const audioAdvanceSinceWatchdogMs =
+          (currentAudioTime - watchdogPreviousAudioTime) * 1000;
+        const writerAgeMs = nowPerfMs - lastWriterPerfMs;
+        const motionAgeMs = nowPerfMs - lastMovedTransformPerfMs;
+        const audioIsAdvancing =
+          audioAdvanceSinceWatchdogMs >= WATCHDOG_AUDIO_ADVANCE_THRESHOLD_MS;
+        const writerMissedDeadline =
+          writerAgeMs >= WRITER_STALL_THRESHOLD_MS;
+        const transformDidNotAdvance =
+          currentInlineTransform === watchdogPreviousTransform;
+        // Audio moved past the start hold but the strip transform never left
+        // the seeded start value — classic Safari cold-layer / dead-writer case.
+        const stuckAtStart =
+          audioIsAdvancing &&
+          currentAudioTime >= playbackStartAudioTime + 0.12 &&
+          (currentInlineTransform === startTransform ||
+            motionAgeMs >= WRITER_STALL_THRESHOLD_MS);
+        const recoveryEligible =
+          writerActive &&
+          writerGenerationRef.current === writerGeneration &&
+          playingRef.current &&
+          ctx.state === "running" &&
+          currentAudioTime >= playbackStartAudioTime &&
+          document.visibilityState === "visible" &&
+          animatedElement.isConnected &&
+          stripRef.current === animatedElement;
+        const shouldRecover =
+          recoveryEligible &&
+          audioIsAdvancing &&
+          (writerMissedDeadline || transformDidNotAdvance || stuckAtStart);
+
+        if (shouldRecover) {
+          const directAudioElapsedMs = Math.max(
+            0,
+            (currentAudioTime - playbackStartAudioTime) * 1000,
+          );
+          audioHasStarted = true;
+          displayedElapsedMs = directAudioElapsedMs;
+          lastPerfMs = nowPerfMs;
+          applyTransformForElapsedMs(directAudioElapsedMs);
+
+          // Always rebuild the compositor layer on recovery — including when
+          // still at the start transform. The previous "only if moved" gate
+          // skipped the exact Safari cold-layer failure mode.
+          if (isTouchWebKit()) {
+            refreshWebKitTransformLayer(
+              animatedElement,
+              animatedElement.style.transform,
+            );
+          }
+
+          if (scheduledRafId !== null) {
+            cancelAnimationFrame(scheduledRafId);
+            if (rafIdRef.current === scheduledRafId) {
+              rafIdRef.current = null;
+            }
+            scheduledRafId = null;
+          }
+          scheduleNextFrame();
+        }
+
+        watchdogPreviousAudioTime = currentAudioTime;
+        watchdogPreviousTransform = animatedElement.style.transform;
+      }, WRITER_WATCHDOG_INTERVAL_MS);
     };
 
-    applyTransformForElapsedMs(displayedElapsedMs);
-    scheduleNextFrame();
+    const tryStart = () => {
+      if (!writerActive || startedWriter) return;
+      if (writerGenerationRef.current !== writerGeneration) return;
 
-    const watchdogIntervalId = window.setInterval(() => {
-      const nowPerfMs = performance.now();
-      const currentAudioTime = audioContext.currentTime;
-      const currentInlineTransform = animatedElement.style.transform;
-      const audioAdvanceSinceWatchdogMs =
-        (currentAudioTime - watchdogPreviousAudioTime) * 1000;
-      const writerAgeMs = nowPerfMs - lastWriterPerfMs;
-      const audioIsAdvancing =
-        audioAdvanceSinceWatchdogMs >= WATCHDOG_AUDIO_ADVANCE_THRESHOLD_MS;
-      const writerMissedDeadline =
-        writerAgeMs >= WRITER_STALL_THRESHOLD_MS;
-      const transformDidNotAdvance =
-        currentInlineTransform === watchdogPreviousTransform;
-      const recoveryEligible =
-        writerActive &&
-        writerGenerationRef.current === writerGeneration &&
-        playingRef.current &&
-        audioContext.state === "running" &&
-        currentAudioTime >= playbackStartAudioTime &&
-        document.visibilityState === "visible" &&
-        animatedElement.isConnected &&
-        stripRef.current === animatedElement;
-      const shouldRecover =
-        recoveryEligible &&
-        audioIsAdvancing &&
-        (writerMissedDeadline || transformDidNotAdvance);
-
-      if (shouldRecover) {
-        const directAudioElapsedMs = Math.max(
-          0,
-          (currentAudioTime - playbackStartAudioTime) * 1000,
-        );
-        audioHasStarted = true;
-        displayedElapsedMs = directAudioElapsedMs;
-        lastPerfMs = nowPerfMs;
-        applyTransformForElapsedMs(directAudioElapsedMs);
-
-        if (scheduledRafId !== null) {
-          cancelAnimationFrame(scheduledRafId);
-          if (rafIdRef.current === scheduledRafId) {
-            rafIdRef.current = null;
-          }
-          scheduledRafId = null;
-        }
-        scheduleNextFrame();
+      const animatedElement = stripRef.current;
+      if (
+        !animatedElement ||
+        !chordLayoutData ||
+        !animationData ||
+        animationData.totalDurationMs <= 0 ||
+        !audioContext ||
+        playbackStartedAtAudioTime === null
+      ) {
+        pollRafId = requestAnimationFrame(tryStart);
+        return;
       }
 
-      const shouldRefreshLayer =
-        recoveryEligible &&
-        !firstWebKitPlaybackLayerRefreshed &&
-        isTouchWebKit() &&
-        isFirstWatchdogCheck &&
-        audioIsAdvancing &&
-        animatedElement.style.transform !== animationStartTransform;
+      startWriter(
+        animatedElement,
+        chordLayoutData,
+        animationData,
+        audioContext,
+        playbackStartedAtAudioTime,
+      );
+    };
 
-      if (shouldRefreshLayer) {
-        refreshWebKitTransformLayer(
-          animatedElement,
-          animatedElement.style.transform,
-        );
-        firstWebKitPlaybackLayerRefreshed = true;
-      }
-
-      isFirstWatchdogCheck = false;
-      watchdogPreviousAudioTime = currentAudioTime;
-      watchdogPreviousTransform = animatedElement.style.transform;
-    }, WRITER_WATCHDOG_INTERVAL_MS);
+    tryStart();
 
     return () => {
       writerActive = false;
-      window.clearInterval(watchdogIntervalId);
+      clearPolling();
+      clearWatchdog();
       if (scheduledRafId !== null) {
         cancelAnimationFrame(scheduledRafId);
         if (rafIdRef.current === scheduledRafId) {
