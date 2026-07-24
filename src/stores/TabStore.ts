@@ -645,6 +645,11 @@ interface TabState {
    * stale playbackStartedAtAudioTime.
    */
   reanchorPlaybackStripAnimation: () => void;
+  /**
+   * Fully stops playback and clears strip-clock state so the next PlaybackModal
+   * open always mounts paused at a clean translateX (no ghost rAF scroll).
+   */
+  resetPlaybackModalSession: () => void;
 
   isLoadingARoute: boolean;
   setIsLoadingARoute: (isLoadingARoute: boolean) => void;
@@ -971,6 +976,19 @@ const useTabStoreBase = create<TabState>()(
 
         const { currentInstrument, audioContext, masterVolumeGainNode } =
           audioSystem;
+
+        // iOS: never mark playing / seed the strip clock while AudioContext is
+        // still suspended — rAF would sit at the chord boundary with no motion.
+        if (audioContext.state !== "running") {
+          try {
+            await audioContext.resume();
+          } catch {
+            return;
+          }
+        }
+        if (audioContext.state !== "running") {
+          return;
+        }
 
         const currentlyPlayingStrings: (
           Soundfont.Player | AudioBufferSourceNode | undefined
@@ -1326,6 +1344,30 @@ const useTabStoreBase = create<TabState>()(
         set({
           playbackStartedAtAudioTime:
             audioContext.currentTime + PLAYBACK_START_EPSILON_SECONDS,
+        });
+      },
+
+      resetPlaybackModalSession: () => {
+        get().pauseAudio();
+
+        const latest = get();
+        set({
+          showPlaybackModal: false,
+          playbackStartedAtAudioTime: null,
+          currentChordIndex: 0,
+          playbackModalViewingState: "Practice",
+          visiblePlaybackContainerWidth: 0,
+          countInTimer: {
+            ...latest.countInTimer,
+            showing: false,
+          },
+          audioMetadata: {
+            ...latest.audioMetadata,
+            playing: false,
+            editingLoopRange: false,
+            startLoopIndex: 0,
+            endLoopIndex: -1,
+          },
         });
       },
 

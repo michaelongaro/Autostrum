@@ -296,13 +296,18 @@ function usePlaybackStripAnimation({
       );
       lastPerfMs = nowPerfMs;
 
-      // Suspended / interrupted AudioContext (common after iOS app switch)
-      // freezes currentTime. Hold the strip until audio is running again so we
-      // do not drift ahead on wall-clock alone.
+      // Suspended AudioContext freezes currentTime. After a real mid-playback
+      // suspend (app switch race), hold position. On a cold start that somehow
+      // began while suspended, keep polling — do not permanently freeze the
+      // strip; resume() here can complete once iOS unlocks audio.
       if (audioContext.state !== "running") {
-        applyTransformForElapsedMs(displayedElapsedMs);
-        rafIdRef.current = requestAnimationFrame(tick);
-        return;
+        if (audioHasStarted) {
+          applyTransformForElapsedMs(displayedElapsedMs);
+          rafIdRef.current = requestAnimationFrame(tick);
+          return;
+        }
+
+        void audioContext.resume().catch(() => undefined);
       }
 
       const rawAudioElapsedMs =

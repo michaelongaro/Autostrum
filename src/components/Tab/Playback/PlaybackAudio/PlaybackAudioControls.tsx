@@ -203,7 +203,7 @@ function PlaybackAudioControls({
 
       if (previewMetadata.playing) pauseAudio();
 
-      setTimeout(() => {
+      const startPlayback = () => {
         if (playRequestIdRef.current !== playRequestId) return;
 
         void playTab({
@@ -216,7 +216,16 @@ function PlaybackAudioControls({
             showing: false,
           });
         }
-      }, delayPlayStart);
+      };
+
+      // Avoid setTimeout(0) when there is no count-in — it breaks the iOS user
+      // gesture chain and leaves AudioContext suspended on the first Play after
+      // a cold reload (strip then never advances).
+      if (delayPlayStart === 0) {
+        startPlayback();
+      } else {
+        setTimeout(startPlayback, delayPlayStart);
+      }
     })();
   }
 

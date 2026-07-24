@@ -71,18 +71,16 @@ function PlaybackModal() {
     playbackMetadata,
     audioMetadata,
     showPlaybackModal,
-    setShowPlaybackModal,
     visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth,
     playbackModalViewingState,
     viewportLabel,
     loopDelay,
     currentlyPlayingMetadata,
-    setAudioMetadata,
-    setPlaybackModalViewingState,
     pauseAudio,
     setCurrentChordIndex,
     reanchorPlaybackStripAnimation,
+    resetPlaybackModalSession,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -90,18 +88,16 @@ function PlaybackModal() {
     playbackMetadata: state.playbackMetadata,
     audioMetadata: state.audioMetadata,
     showPlaybackModal: state.showPlaybackModal,
-    setShowPlaybackModal: state.setShowPlaybackModal,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     playbackModalViewingState: state.playbackModalViewingState,
     viewportLabel: state.viewportLabel,
     loopDelay: state.loopDelay,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-    setAudioMetadata: state.setAudioMetadata,
-    setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     pauseAudio: state.pauseAudio,
     setCurrentChordIndex: state.setCurrentChordIndex,
     reanchorPlaybackStripAnimation: state.reanchorPlaybackStripAnimation,
+    resetPlaybackModalSession: state.resetPlaybackModalSession,
   }));
 
   // Always track the latest strip container — a one-shot ref goes stale when
@@ -197,28 +193,23 @@ function PlaybackModal() {
       prevChordIndexRef.current = clampedIndex;
     }
 
-    if (audioMetadata.playing) {
+    if (audioMetadata.playing && showPlaybackModal) {
       reanchorPlaybackStripAnimation();
     }
   }, [
     expandedTabData,
     currentChordIndex,
     audioMetadata.playing,
+    showPlaybackModal,
     setCurrentChordIndex,
     reanchorPlaybackStripAnimation,
   ]);
 
   function closePlaybackModal() {
-    setShowPlaybackModal(false);
-
-    pauseAudio();
-
-    setAudioMetadata({
-      ...audioMetadata,
-      editingLoopRange: false,
-      startLoopIndex: 0,
-      endLoopIndex: -1,
-    });
+    // Must not spread a stale audioMetadata.playing:true after pauseAudio —
+    // that resurrected playing without a scheduler and made the strip scroll
+    // on the next open with no audio.
+    resetPlaybackModalSession();
   }
 
   // React Compiler escape hatch: stable identity so PlaybackAnimatedStrip's
@@ -519,19 +510,14 @@ function PlaybackModal() {
     setVisiblePlaybackContainerWidth,
   ]);
 
-  // Reset playback-modal-owned defaults on close so the next open remeasures
-  // and recompiles from a clean width instead of a stale orientation/tab size.
+  // Reset all playback-modal / strip-clock state on unmount so any close path
+  // (X button, route change, exercise switch) cannot leave playing=true or a
+  // live playbackStartedAtAudioTime for the next open.
   useEffect(() => {
     return () => {
-      setPlaybackModalViewingState("Practice");
-      setCurrentChordIndex(0);
-      setVisiblePlaybackContainerWidth(0);
+      resetPlaybackModalSession();
     };
-  }, [
-    setPlaybackModalViewingState,
-    setCurrentChordIndex,
-    setVisiblePlaybackContainerWidth,
-  ]);
+  }, [resetPlaybackModalSession]);
 
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 
