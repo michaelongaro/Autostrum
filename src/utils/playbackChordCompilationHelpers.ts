@@ -103,41 +103,32 @@ function expandFullTab({
     metadata.elapsedSeconds -= secondsToSubtract;
   }
 
-  // these need to be set before spacer chords are added
+  // these need to be set before loop delay spacer chords are added
   compiledChordsMappedToLoopRange.at(0)!.isFirstChordInTab = true;
   compiledChordsMappedToLoopRange.at(-1)!.isLastChordInTab = true;
 
-  // appending loop-delay spacers,
-  // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
-  if (loopDelay > 0) {
-    const lastChordBpm = `${compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm}`;
-    const numSpacerChordsToAdd = Math.floor(
-      loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
-    );
+  // appending loop-delay spacers:
+  // using quarter-note duration so it's simply addings loopDelay-number
+  // of spacer chords, also to keep visual width added at a minimum.
+  for (let i = 0; i < loopDelay; i++) {
+    compiledChordsMappedToLoopRange.push({
+      type: "loopDelaySpacer",
+      data: {
+        bpm: 60,
+      },
+    });
 
-    for (let i = 0; i < numSpacerChordsToAdd; i++) {
-      compiledChordsMappedToLoopRange.push({
-        type: "loopDelaySpacer",
-        data: {
-          bpm: Number(lastChordBpm),
-        },
-      });
-
-      metadataMappedToLoopRange.push({
-        location: {
-          ...metadataMappedToLoopRange.at(-1)!.location,
-          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-        },
-        bpm: getBpmForChord(
-          compiledChordsMappedToLoopRange.at(-1)?.data.bpm ?? baselineBpm,
-          baselineBpm,
-        ),
-        noteLengthMultiplier: 1,
-        noteLength: "quarter",
-        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-        type: "ornamental",
-      });
-    }
+    metadataMappedToLoopRange.push({
+      location: {
+        ...metadataMappedToLoopRange.at(-1)!.location,
+        chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+      },
+      bpm: 60,
+      noteLengthMultiplier: 1,
+      noteLength: "quarter",
+      elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+      type: "ornamental",
+    });
   }
 
   let artificialLoopsNecessary = 1;

@@ -106,40 +106,33 @@ function compileFullTab({
 
   // for playback compilation
   if (forPlayback) {
-    // appending loop-delay spacers,
-    // using quarter-note duration so spacer count * duration ≈ loopDelay seconds.
-    if (forPlayback.loopDelay > 0) {
-      const lastChordBpm = `${metadataMappedToLoopRange.at(-1)?.bpm ?? baselineBpm}`;
-      const numSpacerChordsToAdd = Math.floor(
-        forPlayback.loopDelay / ((60 / Number(lastChordBpm)) * playbackSpeed),
-      );
+    // appending loop-delay spacers:
+    // using quarter-note duration so it's simply addings loopDelay-number
+    // of spacer chords, also to keep visual width added at a minimum.
+    for (let i = 0; i < forPlayback.loopDelay; i++) {
+      compiledChordsMappedToLoopRange.push([
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "quarter",
+        "60",
+      ]);
 
-      for (let i = 0; i < numSpacerChordsToAdd; i++) {
-        compiledChordsMappedToLoopRange.push([
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "quarter",
-          lastChordBpm,
-        ]);
-
-        metadataMappedToLoopRange.push({
-          location: {
-            ...metadataMappedToLoopRange.at(-1)!.location,
-            chordIndex:
-              metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
-          },
-          bpm: Number(lastChordBpm),
-          noteLengthMultiplier: 1,
-          elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
-          type: "ornamental",
-        });
-      }
+      metadataMappedToLoopRange.push({
+        location: {
+          ...metadataMappedToLoopRange.at(-1)!.location,
+          chordIndex: metadataMappedToLoopRange.at(-1)!.location.chordIndex + 1,
+        },
+        bpm: 60,
+        noteLengthMultiplier: 1,
+        elapsedSeconds: metadataMappedToLoopRange.at(-1)!.elapsedSeconds,
+        type: "ornamental",
+      });
     }
   }
   // for editing compilation
