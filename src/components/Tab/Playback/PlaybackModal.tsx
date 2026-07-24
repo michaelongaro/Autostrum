@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
@@ -152,43 +147,6 @@ function PlaybackModal() {
     };
   }, []);
 
-  function measurePlaybackContainer() {
-    const modalElement = modalContentRef.current;
-
-    if (
-      modalElement === null ||
-      modalElement.clientWidth === 0 ||
-      modalElement.clientHeight === 0
-    ) {
-      return false;
-    }
-
-    const width = modalElement.clientWidth;
-    setInitialPlaceholderWidth(width / 2 - 5);
-    setVisiblePlaybackContainerWidth(width);
-    return true;
-  }
-
-  function scheduleMeasureRetry() {
-    if (measureRetryRafRef.current !== null) {
-      cancelAnimationFrame(measureRetryRafRef.current);
-    }
-
-    // Orientation / app-switch can report 0x0 for a frame or two. Retry on the
-    // next couple of animation frames before giving up on this pulse.
-    let attempts = 0;
-    const retry = () => {
-      attempts += 1;
-      if (measurePlaybackContainer() || attempts >= 8) {
-        measureRetryRafRef.current = null;
-        return;
-      }
-      measureRetryRafRef.current = requestAnimationFrame(retry);
-    };
-
-    measureRetryRafRef.current = requestAnimationFrame(retry);
-  }
-
   // Initialize / resync chordRepetitions when expanded tab data changes.
   // If playback is still active (e.g. loop-range recompile), re-anchor the
   // strip clock so completedLoops does not stay tied to a stale start time.
@@ -332,6 +290,43 @@ function PlaybackModal() {
   // frames (common mid-orientation on mobile) schedule rAF retries.
   // Portrait↔landscape while playing pauses playback for a stable re-layout.
   useEffect(() => {
+    function measurePlaybackContainer() {
+      const modalElement = modalContentRef.current;
+
+      if (
+        modalElement === null ||
+        modalElement.clientWidth === 0 ||
+        modalElement.clientHeight === 0
+      ) {
+        return false;
+      }
+
+      const width = modalElement.clientWidth;
+      setInitialPlaceholderWidth(width / 2 - 5);
+      setVisiblePlaybackContainerWidth(width);
+      return true;
+    }
+
+    function scheduleMeasureRetry() {
+      if (measureRetryRafRef.current !== null) {
+        cancelAnimationFrame(measureRetryRafRef.current);
+      }
+
+      // Orientation / app-switch can report 0x0 for a frame or two. Retry on the
+      // next couple of animation frames before giving up on this pulse.
+      let attempts = 0;
+      const retry = () => {
+        attempts += 1;
+        if (measurePlaybackContainer() || attempts >= 8) {
+          measureRetryRafRef.current = null;
+          return;
+        }
+        measureRetryRafRef.current = requestAnimationFrame(retry);
+      };
+
+      measureRetryRafRef.current = requestAnimationFrame(retry);
+    }
+
     function getOrientationBucket(): "portrait" | "landscape" {
       return window.innerWidth > window.innerHeight ? "landscape" : "portrait";
     }
