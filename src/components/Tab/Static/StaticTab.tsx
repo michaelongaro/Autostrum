@@ -86,9 +86,7 @@ function StaticTab() {
     // Read-only state
     id,
     bpm,
-    sectionProgression,
     chords,
-    strummingPatterns,
     tabData,
     audioMetadata,
     viewportLabel,
@@ -103,9 +101,7 @@ function StaticTab() {
     // Read-only state
     id: state.id,
     bpm: state.bpm,
-    sectionProgression: state.sectionProgression,
     chords: state.chords,
-    strummingPatterns: state.strummingPatterns,
     tabData: state.tabData,
     audioMetadata: state.audioMetadata,
     viewportLabel: state.viewportLabel,
@@ -132,21 +128,6 @@ function StaticTab() {
         className="baseVertFlex relative w-full border-y bg-background shadow-lg md:rounded-xl md:border"
       >
         <StaticTabMetadata />
-
-        {sectionProgression.length === 0 &&
-          chords.length === 0 &&
-          strummingPatterns.length === 0 && (
-            <div className="baseFlex relative h-10 w-full">
-              <Button
-                variant={"secondary"}
-                className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
-                onClick={() => setShowGlossaryDialog(true)}
-              >
-                <FaBook className="h-4 w-4" />
-                Glossary
-              </Button>
-            </div>
-          )}
 
         <Separator className="mt-2 w-full bg-border tablet:mb-4 tablet:w-[96%]" />
 

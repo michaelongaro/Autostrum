@@ -35,7 +35,7 @@ import StrummingPatterns from "./StrummingPatterns";
 import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
-import ExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
+import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
 import AudioControls from "~/components/AudioControls/AudioControls";
@@ -97,9 +97,7 @@ function Tab() {
     chordBeingEdited,
     strummingPatternBeingEdited,
     showCustomTuningModal,
-    sectionProgression,
     chords,
-    strummingPatterns,
     showPlaybackModal,
     viewportLabel,
     color,
@@ -115,9 +113,7 @@ function Tab() {
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     showCustomTuningModal: state.showCustomTuningModal,
-    sectionProgression: state.sectionProgression,
     chords: state.chords,
-    strummingPatterns: state.strummingPatterns,
     showPlaybackModal: state.showPlaybackModal,
     viewportLabel: state.viewportLabel,
     color: state.color,
@@ -175,22 +171,6 @@ function Tab() {
       >
         <TabMetadata setIsPublishingOrUpdating={setIsPublishingOrUpdating} />
 
-        {!editing &&
-          sectionProgression.length === 0 &&
-          chords.length === 0 &&
-          strummingPatterns.length === 0 && (
-            <div className="baseFlex relative h-10 w-full">
-              <Button
-                variant={"secondary"}
-                className="baseFlex gap-2 lg:absolute lg:right-7 lg:top-0"
-                onClick={() => setShowGlossaryDialog(true)}
-              >
-                <FaBook className="h-4 w-4" />
-                Glossary
-              </Button>
-            </div>
-          )}
-
         <Separator
           className={`mt-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
         />
@@ -246,7 +226,7 @@ function Tab() {
             {viewportLabel.includes("mobile") ? (
               <MobileExtraTabMetadata />
             ) : (
-              <ExtraTabMetadata />
+              <DesktopExtraTabMetadata />
             )}
           </>
         )}

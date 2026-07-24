@@ -51,7 +51,7 @@ function DesktopExtraTabMetadata() {
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
   return (
-    <div className="baseVertFlex w-3/4 gap-4">
+    <div className="baseVertFlex mt-4 w-3/4 gap-4">
       {/* tab selector */}
       <div className="baseFlex !items-start gap-16 rounded-lg bg-accent px-8 py-1">
         <Button
