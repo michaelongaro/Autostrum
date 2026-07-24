@@ -18,6 +18,7 @@ import {
   type PlaybackTabChord as PlaybackTabChordType,
   type PlaybackStrummedChord as PlaybackStrummedChordType,
   type PlaybackLoopDelaySpacerChord,
+  getTabStore,
   useTabStore,
   type FullNoteLengths,
 } from "~/stores/TabStore";
@@ -82,7 +83,6 @@ function PlaybackModal() {
     pauseAudio,
     setCurrentChordIndex,
     reanchorPlaybackStripAnimation,
-    playTab,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
@@ -102,7 +102,6 @@ function PlaybackModal() {
     pauseAudio: state.pauseAudio,
     setCurrentChordIndex: state.setCurrentChordIndex,
     reanchorPlaybackStripAnimation: state.reanchorPlaybackStripAnimation,
-    playTab: state.playTab,
   }));
 
   // Always track the latest strip container — a one-shot ref goes stale when
@@ -113,6 +112,11 @@ function PlaybackModal() {
   const modalContentRef = useRef<HTMLDivElement | null>(null);
   const measureRetryRafRef = useRef<number | null>(null);
   const wasDocumentHiddenRef = useRef(false);
+  // Refs so background/foreground handlers never read a stale playing flag
+  // from an effect closure (iOS can fire pagehide during a playing session
+  // without re-running the listener effect first).
+  const playingRef = useRef(audioMetadata.playing);
+  const showPlaybackModalRef = useRef(showPlaybackModal);
   const orientationBucketRef = useRef<"portrait" | "landscape">(
     typeof window !== "undefined" && window.innerWidth > window.innerHeight
       ? "landscape"
@@ -144,6 +148,14 @@ function PlaybackModal() {
   const [tabProgressValue, setTabProgressValue] = useState(0);
 
   useModalScrollbarHandling(true);
+
+  useEffect(() => {
+    playingRef.current = audioMetadata.playing;
+  }, [audioMetadata.playing]);
+
+  useEffect(() => {
+    showPlaybackModalRef.current = showPlaybackModal;
+  }, [showPlaybackModal]);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -349,7 +361,7 @@ function PlaybackModal() {
     }
 
     function pauseForOrientationChange() {
-      if (!audioMetadata.playing || !showPlaybackModal) {
+      if (!playingRef.current || !showPlaybackModalRef.current) {
         return;
       }
 
@@ -359,6 +371,37 @@ function PlaybackModal() {
       setChordRepetitions((prev) =>
         prev.length > 0 ? Array.from({ length: prev.length }, () => 0) : prev,
       );
+    }
+
+    function pauseForBackgrounding() {
+      if (!showPlaybackModalRef.current) {
+        return;
+      }
+
+      // iOS Safari suspends AudioContext and throttles rAF while backgrounded.
+      // Pause immediately on hide (not on return) so the scheduler cannot burst
+      // ahead and leave playbackStartedAtAudioTime / chordRepetitions desynced.
+      // Do not auto-resume: unlocking audio on iOS needs a user gesture (Play).
+      if (playingRef.current) {
+        pauseAudio();
+      }
+
+      setChordRepetitions((prev) =>
+        prev.length > 0 ? Array.from({ length: prev.length }, () => 0) : prev,
+      );
+
+      // Drop any in-flight count-in UI; pending play timeouts are invalidated
+      // separately in PlaybackAudioControls via playRequestIdRef.
+      const {
+        countInTimer: latestCountInTimer,
+        setCountInTimer: setLatestCountInTimer,
+      } = getTabStore();
+      if (latestCountInTimer.showing) {
+        setLatestCountInTimer({
+          ...latestCountInTimer,
+          showing: false,
+        });
+      }
     }
 
     function handleMeasurePulse() {
@@ -386,30 +429,47 @@ function PlaybackModal() {
       handleOrientationBucketChange();
     }
 
-    function handleVisibilityResume() {
-      handleMeasurePulse();
+    function handleDocumentHidden() {
+      wasDocumentHiddenRef.current = true;
+      pauseForBackgrounding();
+    }
 
-      if (document.visibilityState === "hidden") {
-        wasDocumentHiddenRef.current = true;
-        return;
-      }
-
+    function handleDocumentVisible() {
       if (!wasDocumentHiddenRef.current) {
         return;
       }
       wasDocumentHiddenRef.current = false;
 
-      // App-switching can advance the scheduler through multiple loop wraps in
-      // one JS turn, so React only sees the final chord index (no wrap signal).
-      // Soft pause+resume from the current chord fully rebuilds strip state.
-      if (audioMetadata.playing && showPlaybackModal) {
-        const location = audioMetadata.location;
+      // Remeasure after app-switch / bfcache restore, and reset strip loop
+      // offsets so the next Play handoff starts from a clean React-owned
+      // translateX at currentChordIndex.
+      handleMeasurePulse();
+      setChordRepetitions((prev) =>
+        prev.length > 0 ? Array.from({ length: prev.length }, () => 0) : prev,
+      );
+
+      // Belt-and-suspenders: if hide was missed and we are still "playing"
+      // with a suspended AudioContext, stop cleanly before the user hits Play.
+      if (playingRef.current && showPlaybackModalRef.current) {
         pauseAudio();
-        setChordRepetitions((prev) =>
-          prev.length > 0 ? Array.from({ length: prev.length }, () => 0) : prev,
-        );
-        void playTab({ location });
       }
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "hidden") {
+        handleDocumentHidden();
+        return;
+      }
+      handleDocumentVisible();
+    }
+
+    function handlePageHide() {
+      // pagehide is more reliable than visibilitychange alone on iOS app switch.
+      handleDocumentHidden();
+    }
+
+    function handlePageShow() {
+      handleDocumentVisible();
     }
 
     orientationBucketRef.current = getOrientationBucket();
@@ -430,8 +490,9 @@ function PlaybackModal() {
 
     window.addEventListener("resize", handleOrientationBucketChange);
     window.addEventListener("orientationchange", handleOrientationChangeEvent);
-    document.addEventListener("visibilitychange", handleVisibilityResume);
-    window.addEventListener("pageshow", handleVisibilityResume);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("pageshow", handlePageShow);
 
     return () => {
       resizeObserver?.disconnect();
@@ -440,8 +501,9 @@ function PlaybackModal() {
         "orientationchange",
         handleOrientationChangeEvent,
       );
-      document.removeEventListener("visibilitychange", handleVisibilityResume);
-      window.removeEventListener("pageshow", handleVisibilityResume);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("pageshow", handlePageShow);
 
       if (measureRetryRafRef.current !== null) {
         cancelAnimationFrame(measureRetryRafRef.current);
@@ -453,10 +515,7 @@ function PlaybackModal() {
     showPlaybackModal,
     containerElement,
     playbackModalViewingState,
-    audioMetadata.playing,
-    audioMetadata.location,
     pauseAudio,
-    playTab,
     setVisiblePlaybackContainerWidth,
   ]);
 
