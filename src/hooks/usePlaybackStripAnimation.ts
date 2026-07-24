@@ -233,7 +233,17 @@ function usePlaybackStripAnimation({
     const startPositionPx =
       (chordLayoutData.scrollPositions[normalizedAnchorChordIndex] ?? 0) +
       baseRepetition * chordLayoutData.totalWidth;
+
+    // Kill any in-flight CSS scrub transitions before reseeding translateX.
+    // Rapid Range / finger scrub leaves interrupted transitions that can keep
+    // owning transform after React flips transition to none on play.
     animatedElement.style.transition = "none";
+    if (typeof animatedElement.getAnimations === "function") {
+      for (const animation of animatedElement.getAnimations()) {
+        animation.cancel();
+      }
+    }
+
     animatedElement.style.transform = `translateX(${startPositionPx * -1}px)`;
     if (scrollPositionRef) {
       scrollPositionRef.current = startPositionPx;

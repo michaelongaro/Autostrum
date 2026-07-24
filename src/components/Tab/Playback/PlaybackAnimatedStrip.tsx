@@ -83,14 +83,29 @@ const PlaybackAnimatedStrip = memo(
       scrollPositionRef,
     });
 
-    // While paused, React owns transform for scrubbing. While playing, the
-    // animation hook owns it via rAF — do not write transform from React or it
-    // will fight the continuous scroll and hitch on re-render.
+    // While paused, React owns transform for scrubbing. On the paused→playing
+    // edge, pin the current transform so React does not clear it to identity
+    // for a frame before rAF takes ownership. While playing, do not write
+    // transform from React or it will fight the continuous scroll.
     useLayoutEffect(() => {
       const stripElement = scrollStripRef.current;
-      if (!stripElement || playing) return;
+      if (!stripElement) return;
 
-      stripElement.style.transform = scrollContainerTransform;
+      if (!playing) {
+        stripElement.style.transform = scrollContainerTransform;
+        return;
+      }
+
+      // Pin whatever is currently painted (inline or mid-CSS-transition scrub)
+      // so the play handoff never flashes identity before rAF reseeds.
+      if (!stripElement.style.transform) {
+        const computedTransform = window.getComputedStyle(stripElement).transform;
+        stripElement.style.transition = "none";
+        stripElement.style.transform =
+          computedTransform === "none"
+            ? scrollContainerTransform
+            : computedTransform;
+      }
     }, [playing, scrollContainerTransform]);
 
     return (
@@ -98,9 +113,10 @@ const PlaybackAnimatedStrip = memo(
         ref={scrollStripRef}
         style={{
           width: `${chordLayoutData.totalWidth}px`,
-          // While playing, leave transform undefined so React does not manage it
-          // (rAF owns the property). While paused, React drives scrubbing.
-          transform: playing ? undefined : scrollContainerTransform,
+          // Omit transform while playing so React cannot clear rAF's inline
+          // value (`undefined` would set style.transform = ""). While paused,
+          // React drives scrubbing.
+          ...(playing ? {} : { transform: scrollContainerTransform }),
           transition: playing ? "none" : "transform 0.2s linear",
         }}
         className="relative flex items-center will-change-transform"
