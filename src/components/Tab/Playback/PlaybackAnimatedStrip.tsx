@@ -92,6 +92,11 @@ const PlaybackAnimatedStrip = memo(
       if (!stripElement) return;
 
       if (!playing) {
+        // Avoid retaining a speculative compositor layer between sessions.
+        // The animation hook promotes and synchronously primes a fresh 3D
+        // transform layer on the next paused→playing edge.
+        stripElement.style.backfaceVisibility = "";
+        stripElement.style.webkitBackfaceVisibility = "";
         stripElement.style.transform = scrollContainerTransform;
         return;
       }
@@ -119,7 +124,7 @@ const PlaybackAnimatedStrip = memo(
           ...(playing ? {} : { transform: scrollContainerTransform }),
           transition: playing ? "none" : "transform 0.2s linear",
         }}
-        className="relative flex items-center will-change-transform"
+        className="relative flex items-center"
       >
         <div
           style={{
