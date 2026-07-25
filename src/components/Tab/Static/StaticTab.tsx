@@ -1,4 +1,4 @@
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef } from "react";
 import { FaBook } from "react-icons/fa";
 import { useTabStore, type COLORS, type Section } from "~/stores/TabStore";
@@ -75,7 +75,7 @@ function StaticTab() {
   }
 
   const { ref: tabContentRef } = useInView({
-    rootMargin: "-300px 0px -300px 0px",
+    rootMargin: "-30% 0px -30% 0px",
     threshold: 0,
     onChange: (inView) => {
       setTabContentIsInView(inView);
@@ -173,122 +173,131 @@ function StaticTab() {
             ),
           )}
 
-          <div
-            id="stickyBottomControls"
-            style={{
-              opacity:
-                audioMetadata.fullTabMetadataLength > 0 && tabContentIsInView
-                  ? 1
-                  : 0,
-              transition: "opacity 0.2s ease-in-out",
-            }}
-            className="baseFlex sticky bottom-4 mb-4 gap-4 tablet:bottom-6"
-          >
-            <TooltipProvider delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={"secondary"}
-                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
-                    onClick={() => setShowGlossaryDialog(true)}
-                  >
-                    <FaBook className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side={"top"}>
-                  <span>Glossary</span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <Button
-              variant="audio"
-              className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
-              onClick={() => {
-                // Unlock AudioContext + preload the modal chunk inside this
-                // gesture so the first Play is not blocked on Safari resume/lazy JS.
-                primePlaybackUserGesture();
-                setShowPlaybackModal(true);
-              }}
-            >
-              <Logo className="size-[18px] tablet:size-5" />
-              Practice
-            </Button>
-
-            {viewportLabel.includes("mobile") ? (
-              <Drawer
-                open={drawerOpen}
-                onOpenChange={(open) => {
-                  setDrawerOpen(open);
+          <AnimatePresence>
+            {audioMetadata.fullTabMetadataLength > 0 && tabContentIsInView && (
+              <motion.div
+                id="stickyBottomControls"
+                initial={{ y: 100 }}
+                animate={{ y: 0 }}
+                exit={{ y: 100 }}
+                transition={{
+                  duration: 0.3,
+                  ease: "easeOut",
                 }}
-                dismissible={!pressingOnZoomSlider}
+                className="baseFlex sticky bottom-4 top-4 mb-4 gap-4 tablet:bottom-6"
               >
-                <DrawerTrigger asChild>
-                  <Button
-                    variant={"secondary"}
-                    className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
-                  >
-                    <IoMdSettings className="size-5" />
-                  </Button>
-                </DrawerTrigger>
-                <DrawerPortal>
-                  <DrawerContent className="baseVertFlex z-50 !items-start gap-2 p-4 pb-6">
-                    <VisuallyHidden>
-                      <DrawerTitle>Tab settings</DrawerTitle>
-                      <DrawerDescription>
-                        Change the tab zoom, whether chords are pinned, and
-                        whether left-hand chord diagrams are shown.
-                      </DrawerDescription>
-                    </VisuallyHidden>
-
-                    <div className="baseFlex gap-2 font-medium">
-                      <IoMdSettings className="size-4" />
-                      Tab settings
-                    </div>
-                    <Separator className="mb-2 w-full bg-primary" />
-
-                    <TabSettings
-                      showPinnedChords={showPinnedChords}
-                      setShowPinnedChords={setShowPinnedChords}
-                      setPressingOnZoomSlider={setPressingOnZoomSlider}
-                    />
-                  </DrawerContent>
-                </DrawerPortal>
-              </Drawer>
-            ) : (
-              <TooltipProvider delayDuration={150}>
-                <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
-                  <TooltipTrigger asChild>
-                    <div className="baseFlex">
-                      <Popover
-                        open={settingsPopoverIsOpen}
-                        onOpenChange={setSettingsPopoverIsOpen}
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={"secondary"}
+                        className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                        onClick={() => setShowGlossaryDialog(true)}
                       >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"secondary"}
-                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                        <FaBook className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side={"top"}>
+                      <span>Glossary</span>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <Button
+                  variant="audio"
+                  className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
+                  onClick={() => {
+                    // Unlock AudioContext + preload the modal chunk inside this
+                    // gesture so the first Play is not blocked on Safari resume/lazy JS.
+                    primePlaybackUserGesture();
+                    setShowPlaybackModal(true);
+                  }}
+                >
+                  <Logo className="size-[18px] tablet:size-5" />
+                  Practice
+                </Button>
+
+                {viewportLabel.includes("mobile") ? (
+                  <Drawer
+                    open={drawerOpen}
+                    onOpenChange={(open) => {
+                      setDrawerOpen(open);
+                    }}
+                    dismissible={!pressingOnZoomSlider}
+                  >
+                    <DrawerTrigger asChild>
+                      <Button
+                        variant={"secondary"}
+                        className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                      >
+                        <IoMdSettings className="size-5" />
+                      </Button>
+                    </DrawerTrigger>
+                    <DrawerPortal>
+                      <DrawerContent className="baseVertFlex z-50 !items-start gap-2 p-4 pb-6">
+                        <VisuallyHidden>
+                          <DrawerTitle>Tab settings</DrawerTitle>
+                          <DrawerDescription>
+                            Change the tab zoom, whether chords are pinned, and
+                            whether left-hand chord diagrams are shown.
+                          </DrawerDescription>
+                        </VisuallyHidden>
+
+                        <div className="baseFlex gap-2 font-medium">
+                          <IoMdSettings className="size-4" />
+                          Tab settings
+                        </div>
+                        <Separator className="mb-2 w-full bg-primary" />
+
+                        <TabSettings
+                          showPinnedChords={showPinnedChords}
+                          setShowPinnedChords={setShowPinnedChords}
+                          setPressingOnZoomSlider={setPressingOnZoomSlider}
+                        />
+                      </DrawerContent>
+                    </DrawerPortal>
+                  </Drawer>
+                ) : (
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
+                      <TooltipTrigger asChild>
+                        <div className="baseFlex">
+                          <Popover
+                            open={settingsPopoverIsOpen}
+                            onOpenChange={setSettingsPopoverIsOpen}
                           >
-                            <IoMdSettings className="size-5" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="baseVertFlex p-3" side="top">
-                          <TabSettings
-                            showPinnedChords={showPinnedChords}
-                            setShowPinnedChords={setShowPinnedChords}
-                            setPressingOnZoomSlider={setPressingOnZoomSlider}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side={"top"}>
-                    <span>Settings</span>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={"secondary"}
+                                className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                              >
+                                <IoMdSettings className="size-5" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="baseVertFlex p-3"
+                              side="top"
+                            >
+                              <TabSettings
+                                showPinnedChords={showPinnedChords}
+                                setShowPinnedChords={setShowPinnedChords}
+                                setPressingOnZoomSlider={
+                                  setPressingOnZoomSlider
+                                }
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side={"top"}>
+                        <span>Settings</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
 
         {minifiedTabData && (
