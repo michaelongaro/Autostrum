@@ -41,6 +41,7 @@ const staticPages: StaticPage[] = [
   { path: "/tools/warmups", priority: "0.6", changefreq: "monthly" },
   { path: "/tools/scales", priority: "0.6", changefreq: "monthly" },
   { path: "/tools/note-trainer", priority: "0.6", changefreq: "monthly" },
+  { path: "/tools/chord-trainer", priority: "0.6", changefreq: "monthly" },
 ];
 
 function buildUrlEntry(
@@ -106,7 +107,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
       .filter((artist) => artist.name)
       .map((artist) =>
         buildUrlEntry(
-          `${SITE_URL}/artist/${encodeURIComponent(artist.name)}`,
+          `${SITE_URL}/artist/${encodeURIComponent(artist.name)}/${artist.id}/filters`,
           today,
           "0.7",
           "weekly",
