@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import {
   type Dispatch,
   type SetStateAction,
@@ -283,44 +282,27 @@ function PlaybackAudioControls({
           </Button>
 
           {/* speed selector (rotates through 0.25x, 0.5x, 0.75x, 1x, 1.25x, 1.5x speeds) */}
-          <AnimatePresence mode={"popLayout"} initial={false}>
-            <motion.div
-              key={playbackSpeed}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="w-[36px]"
-            >
-              <Button
-                variant="link"
-                onClick={() => {
-                  pauseAudio();
+          <Button
+            variant="link"
+            onClick={() => {
+              const newPlaybackSpeed =
+                playbackSpeed === 1.5
+                  ? 0.25
+                  : ((playbackSpeed + 0.25) as
+                      0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5);
 
-                  let newPlaybackSpeed = playbackSpeed;
+              setPlaybackSpeed(newPlaybackSpeed);
 
-                  if (newPlaybackSpeed === 1.5) newPlaybackSpeed = 0.25;
-                  else
-                    newPlaybackSpeed = (playbackSpeed + 0.25) as
-                      0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+              const normalizedProgress = tabProgressValue * playbackSpeed;
+              setTabProgressValue(normalizedProgress / newPlaybackSpeed);
 
-                  // Normalize the progress value to 1x speed
-                  const normalizedProgress = tabProgressValue * playbackSpeed;
+              pauseAudio();
+            }}
 
-                  // Adjust the progress value to the new playback speed
-                  const adjustedProgress =
-                    normalizedProgress / newPlaybackSpeed;
-
-                  // Set the new progress value
-                  setTabProgressValue(adjustedProgress);
-                  setPlaybackSpeed(newPlaybackSpeed);
-                }}
-                className="w-[36px] !px-0"
-              >
-                {playbackSpeed}x
-              </Button>
-            </motion.div>
-          </AnimatePresence>
+            className="w-[36px] min-w-[36px] !px-0"
+          >
+            {playbackSpeed}x
+          </Button>
 
           <div className="baseFlex w-full gap-4">
             <div className="baseFlex w-9 !justify-start self-start">
