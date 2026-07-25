@@ -13,7 +13,6 @@ import {
 } from "~/utils/noteLengthIcons";
 import { Separator } from "~/components/ui/separator";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useSectionData } from "~/hooks/useTabDataSelectors";
@@ -68,8 +67,8 @@ function StaticSectionContainer({
           <div className="baseFlex w-full !justify-start gap-4">
             <div
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-accent"]})`,
-                color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-primary-foreground"]})`,
+                backgroundColor: "hsl(var(--screenshot-accent))",
+                color: "hsl(var(--screenshot-primary-foreground))",
               }}
               className="baseFlex gap-4 rounded-md px-4 py-2"
               onClick={(e) => e.stopPropagation()}
@@ -106,9 +105,10 @@ function StaticSectionContainer({
                     subSection.repetitions > 1) && (
                     <div
                       style={{
-                        borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-                        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
-                        color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                        borderColor: "hsl(var(--screenshot-border))",
+                        backgroundColor:
+                          "hsl(var(--screenshot-secondary) / 0.25)",
+                        color: "hsl(var(--screenshot-foreground))",
                       }}
                       className="baseFlex ml-4 gap-3 rounded-t-md border border-b-0 px-2 py-1 text-sm !shadow-sm"
                     >

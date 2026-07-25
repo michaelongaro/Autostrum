@@ -1,6 +1,5 @@
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import type { COLORS, THEME } from "~/stores/TabStore";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 interface StaticTabNote {
   note: string;
@@ -24,7 +23,7 @@ function StaticTabNote({
       {/* pre-note string visual */}
       <div
         style={{
-          backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
+          backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
         }}
         className="h-[1px] w-full"
       ></div>
@@ -35,7 +34,7 @@ function StaticTabNote({
         style={{
           marginTop: note === "x" ? "-2px" : "0px",
           marginBottom: note === "x" ? "2px" : "0px",
-          color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+          color: "hsl(var(--screenshot-foreground))",
         }}
         className={`baseFlex relative ${isAccented ? "font-bold" : ""}`}
       >
@@ -51,7 +50,7 @@ function StaticTabNote({
       {/* post-note string visual */}
       <div
         style={{
-          backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
+          backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
         }}
         className="h-[1px] w-full"
       ></div>

@@ -1,7 +1,6 @@
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type {
   COLORS,
   THEME,
@@ -115,7 +114,7 @@ function StaticTabNotesColumn({
               key={stringIndex}
               style={{
                 width: STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
-                backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
+                backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
               }}
               className="baseFlex relative shrink-0"
             >
@@ -124,7 +123,7 @@ function StaticTabNotesColumn({
                 <div className="baseVertFlex h-[8px] w-full !justify-start">
                   <div
                     style={{
-                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                      backgroundColor: "hsl(var(--screenshot-foreground))",
                     }}
                     className="h-[2px] w-full"
                   ></div>
@@ -135,7 +134,7 @@ function StaticTabNotesColumn({
                 <>
                   <div
                     style={{
-                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
+                      backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
                     }}
                     className="h-[1px] w-full"
                   ></div>
@@ -165,7 +164,7 @@ function StaticTabNotesColumn({
 
                   <div
                     style={{
-                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]} / 0.5)`,
+                      backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
                     }}
                     className="h-[1px] w-full"
                   ></div>
@@ -177,7 +176,7 @@ function StaticTabNotesColumn({
                 <div className="baseVertFlex h-[8px] w-full !justify-end">
                   <div
                     style={{
-                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                      backgroundColor: "hsl(var(--screenshot-foreground))",
                     }}
                     className="h-[2px] w-full"
                   ></div>
@@ -213,7 +212,7 @@ function StaticTabNotesColumn({
           <div
             style={{
               lineHeight: "16px",
-              color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              color: "hsl(var(--screenshot-foreground))",
             }}
             className="baseVertFlex relative mt-2 h-[19px] w-[1.5rem]"
           >
@@ -287,9 +286,9 @@ function StaticTabNotesColumn({
           <div
             style={{
               height: STATIC_TAB_TUNING_BOX_HEIGHT_PX,
-              borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-              color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-              backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
+              borderColor: "hsl(var(--screenshot-foreground))",
+              color: "hsl(var(--screenshot-foreground))",
+              backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
             }}
             className="rounded-r-2xl border-2 p-1"
           ></div>

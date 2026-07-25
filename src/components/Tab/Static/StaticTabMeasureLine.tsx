@@ -1,5 +1,4 @@
 import { QuarterNote } from "~/utils/noteLengthIcons";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type {
   COLORS,
   THEME,
@@ -34,7 +33,7 @@ function StaticTabMeasureLine({
       {columnData.bpmAfterLine !== null ? (
         <div
           style={{
-            color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+            color: "hsl(var(--screenshot-foreground))",
           }}
           className="baseFlex h-4 shrink-0 gap-[2px]"
         >
@@ -52,7 +51,7 @@ function StaticTabMeasureLine({
         {columnData.isInPalmMuteSection && (
           <div
             style={{
-              backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
             className="relative mt-[-16px] h-[1px] w-full"
           ></div>
@@ -64,7 +63,7 @@ function StaticTabMeasureLine({
         <div
           key={stringIndex}
           style={{
-            backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+            backgroundColor: "hsl(var(--screenshot-foreground))",
           }}
           className="baseFlex w-full shrink-0"
         >
@@ -72,7 +71,7 @@ function StaticTabMeasureLine({
             <div className="baseVertFlex h-[8px] w-full !justify-start">
               <div
                 style={{
-                  backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                  backgroundColor: "hsl(var(--screenshot-foreground))",
                 }}
                 className="h-[2px] w-full"
               ></div>
@@ -87,7 +86,7 @@ function StaticTabMeasureLine({
             <div className="baseVertFlex h-[8px] w-full !justify-end">
               <div
                 style={{
-                  backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                  backgroundColor: "hsl(var(--screenshot-foreground))",
                 }}
                 className="h-[2px] w-full"
               ></div>

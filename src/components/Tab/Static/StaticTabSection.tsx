@@ -15,7 +15,6 @@ import {
   type TabNote,
   type TabSection,
 } from "~/stores/TabStore";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
@@ -341,8 +340,8 @@ function SectionCard({
   return (
     <div
       style={{
-        borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
+        borderColor: "hsl(var(--screenshot-border))",
+        backgroundColor: "hsl(var(--screenshot-secondary) / 0.25)",
       }}
       className={`baseVertFlex relative h-full !justify-start rounded-md border px-4 py-4 shadow-md md:px-8 ${fullWidth ? "w-full" : ""}`}
     >
@@ -377,9 +376,9 @@ function TuningGutter({
         style={{
           height: STATIC_TAB_TUNING_BOX_HEIGHT_PX,
           width: STATIC_TAB_TUNING_GUTTER_WIDTH_PX,
-          borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-          color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-          backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
+          borderColor: "hsl(var(--screenshot-foreground))",
+          color: "hsl(var(--screenshot-foreground))",
+          backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
         }}
         className="baseVertFlex relative rounded-l-2xl border-2 p-2"
       >
