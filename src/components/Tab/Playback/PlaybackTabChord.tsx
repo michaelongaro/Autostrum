@@ -49,7 +49,7 @@ function PlaybackTabChord({
       }}
       className="baseVertFlex relative w-[34px]"
     >
-      <div className="baseVertFlex mb-[52px]">
+      <div className="baseVertFlex mb-[14px]">
         {/* show new current bpm */}
         {showBpm && (
           <div
