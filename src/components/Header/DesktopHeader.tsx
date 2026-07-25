@@ -59,6 +59,7 @@ function DesktopHeader() {
           className={`${classes.logo} shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70`}
         >
           <Image
+            data-header-logo
             src={LOGO_PATHS_WITH_TITLE[color]}
             alt="Autostrum header logo"
             style={{

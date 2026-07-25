@@ -4,7 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Smooth color/theme swaps via document.startViewTransition (Chromium/Safari). */
+/* Smooth color/theme swaps via document.startViewTransition.
+   Disabled on iOS (see canUseViewTransitions) because root VTs drop
+   backdrop-filter on the mobile nav overlay. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 0.25s;
