@@ -1,12 +1,7 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
-import {
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import { FaBook, FaListUl } from "react-icons/fa";
 import {
@@ -104,11 +99,24 @@ function PlaybackBottomMetadata({
     title: section.title,
   }));
 
-  // const index = realChordsToFullChordsMap[currentChordIndex];
+  // Close settings popover on device orientation change
+  useEffect(() => {
+    const closePopover = () => {
+      setShowBackgroundBlur(false);
+    };
+
+    window.addEventListener("orientationchange", closePopover);
+    screen.orientation?.addEventListener("change", closePopover);
+
+    return () => {
+      window.removeEventListener("orientationchange", closePopover);
+      screen.orientation?.removeEventListener("change", closePopover);
+      setShowBackgroundBlur(false);
+    };
+  }, [setShowBackgroundBlur]);
 
   if (playbackMetadata === null) return;
 
-  // TODO: decide later how you want to conditionally render landscape mobile vs the rest
   return (
     <>
       {viewportLabel.includes("Landscape") ? (
@@ -300,6 +308,7 @@ function MobileSettingsPopover({
     setChordDisplayMode,
     countInTimerEnabled,
     setCountInTimerEnabled,
+    viewportLabel,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -312,6 +321,7 @@ function MobileSettingsPopover({
     setChordDisplayMode: state.setChordDisplayMode,
     countInTimerEnabled: state.countInTimerEnabled,
     setCountInTimerEnabled: state.setCountInTimerEnabled,
+    viewportLabel: state.viewportLabel,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -349,7 +359,10 @@ function MobileSettingsPopover({
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="baseVertFlex size-full w-[450px] gap-4 mobilePortrait:w-[300px]">
+      <PopoverContent
+        side={viewportLabel.includes("Landscape") ? "left" : "top"}
+        className="baseVertFlex size-full w-[450px] gap-4 mobilePortrait:w-[300px]"
+      >
         <div className="baseVertFlex w-full !items-start gap-2">
           <span className="text-sm font-medium">Instrument</span>
 
@@ -408,8 +421,10 @@ function MobileSettingsPopover({
           </div>
         </div>
 
-        <div className="baseVertFlex w-full !items-start gap-2">
-          <span className="text-sm font-medium">Loop delay</span>
+        <div
+          className={`${viewportLabel.includes("Landscape") ? "baseFlex gap-8" : "baseVertFlex !items-start gap-2"} w-full`}
+        >
+          <span className="shrink-0 text-sm font-medium">Loop delay</span>
 
           <div className="baseFlex w-full !justify-start gap-2">
             <Button
@@ -591,7 +606,6 @@ function MobileSettingsPopover({
 function MobileMenuDialog() {
   const {
     sectionProgression,
-    id,
     currentInstrument,
     chords,
     strummingPatterns,
@@ -601,7 +615,6 @@ function MobileMenuDialog() {
     pauseAudio,
   } = useTabStore((state) => ({
     sectionProgression: state.sectionProgression,
-    id: state.id,
     currentInstrument: state.currentInstrument,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
