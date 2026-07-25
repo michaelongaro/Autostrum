@@ -15,6 +15,17 @@ const STORAGE_KEYS = {
   FOLLOWS_DEVICE_THEME: "autostrum-follows-device-theme",
 } as const;
 
+/** Compact header HSL map for theme-color — not the full token set. */
+const HEADER_COLORS = Object.fromEntries(
+  Object.entries(COLOR_VALUES).map(([color, themes]) => [
+    color,
+    {
+      light: themes.light.header,
+      dark: themes.dark.header,
+    },
+  ]),
+);
+
 const serializeForInlineScript = (value: unknown) =>
   JSON.stringify(value)
     .replace(/</g, "\\u003c")
@@ -23,35 +34,30 @@ const serializeForInlineScript = (value: unknown) =>
 
 const themeInitializerScript = `
 (() => {
-  const colorValues = ${serializeForInlineScript(COLOR_VALUES)};
   const faviconPaths = ${serializeForInlineScript(LOGO_PATHS_WITHOUT_TITLE)};
+  const headerColors = ${serializeForInlineScript(HEADER_COLORS)};
   const storageKeys = ${serializeForInlineScript(STORAGE_KEYS)};
   const defaultColor = ${serializeForInlineScript(DEFAULT_COLOR)};
+  const validColors = new Set(Object.keys(faviconPaths));
 
   try {
     const storedColor = window.localStorage.getItem(storageKeys.COLOR);
     const storedTheme = window.localStorage.getItem(storageKeys.THEME);
-    const storedFollowsDeviceTheme = window.localStorage.getItem(
-      storageKeys.FOLLOWS_DEVICE_THEME,
-    );
+    const followsDevice =
+      window.localStorage.getItem(storageKeys.FOLLOWS_DEVICE_THEME) !== "false";
 
-    const isValidColor = (color) => Boolean(color && colorValues[color]);
-    const resolvedColor = isValidColor(storedColor) ? storedColor : defaultColor;
+    const color = validColors.has(storedColor) ? storedColor : defaultColor;
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
       : "light";
-    const followsDeviceTheme = storedFollowsDeviceTheme !== "false";
-    const resolvedTheme =
-      followsDeviceTheme || !storedTheme || !colorValues[resolvedColor]?.[storedTheme]
+    const theme =
+      followsDevice || (storedTheme !== "light" && storedTheme !== "dark")
         ? systemTheme
         : storedTheme;
-    const resolvedColors = colorValues[resolvedColor]?.[resolvedTheme];
 
-    if (!resolvedColors) return;
-
-    Object.entries(resolvedColors).forEach(([key, value]) => {
-      document.documentElement.style.setProperty(\`--\${key}\`, String(value));
-    });
+    const root = document.documentElement;
+    root.setAttribute("data-color", color);
+    root.setAttribute("data-theme", theme);
 
     let faviconLink = document.querySelector("link[rel~='icon']");
     if (!faviconLink) {
@@ -60,7 +66,7 @@ const themeInitializerScript = `
       document.head.appendChild(faviconLink);
     }
 
-    const faviconPath = faviconPaths[resolvedColor];
+    const faviconPath = faviconPaths[color];
     if (faviconPath) {
       faviconLink.setAttribute("href", faviconPath);
     }
@@ -72,7 +78,7 @@ const themeInitializerScript = `
       document.head.appendChild(metaThemeColor);
     }
 
-    const headerColor = resolvedColors.header;
+    const headerColor = headerColors[color]?.[theme];
     if (headerColor) {
       metaThemeColor.setAttribute("content", \`hsl(\${headerColor})\`);
     }
@@ -84,7 +90,7 @@ const themeInitializerScript = `
 
 function Document(_props: DocumentProps) {
   return (
-    <Html lang="en">
+    <Html lang="en" data-color={DEFAULT_COLOR} data-theme="light">
       <Head>
         <script
           dangerouslySetInnerHTML={{

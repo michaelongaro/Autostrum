@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "prisma generate && prisma migrate deploy && next build",
-    "dev": "next dev",
+    "build": "npm run generate:theme-tokens && prisma generate && prisma migrate deploy && next build",
+    "dev": "npm run generate:theme-tokens && next dev",
+    "generate:theme-tokens": "node scripts/generateThemeTokensCSS.mjs",
     "postinstall": "prisma generate",
     "lint": "eslint .",
     "start": "next start"
