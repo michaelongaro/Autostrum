@@ -17,7 +17,7 @@ import {
 import { BsPlus } from "react-icons/bs";
 import { IoMdSettings } from "react-icons/io";
 import { IoBookmark, IoStatsChart } from "react-icons/io5";
-import { stringifyFullTabState, useTabStore } from "~/stores/TabStore";
+import { stringifyFullTabState } from "~/stores/TabStore";
 import { PiMetronome } from "react-icons/pi";
 import { IoColorPalette } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
@@ -26,19 +26,15 @@ import classes from "./DesktopHeader.module.css";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
 import ThemePicker from "~/components/Header/ThemePicker";
+import HeaderLogo from "~/components/Header/HeaderLogo";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import Binoculars from "~/components/ui/icons/Binoculars";
-import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
 import Logo from "~/components/ui/icons/Logo";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
   const { asPath } = useRouter();
-
-  const { color } = useTabStore((state) => ({
-    color: state.color,
-  }));
 
   const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
     api.user.getById.useQuery(userId!, {
@@ -58,17 +54,7 @@ function DesktopHeader() {
           href={"/"}
           className={`${classes.logo} shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70`}
         >
-          <Image
-            data-header-logo
-            src={LOGO_PATHS_WITH_TITLE[color]}
-            alt="Autostrum header logo"
-            style={{
-              filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
-            }}
-            width={175}
-            height={28}
-            priority
-          />
+          <HeaderLogo width={175} height={28} />
         </Link>
 
         <TooltipProvider delayDuration={150}>
