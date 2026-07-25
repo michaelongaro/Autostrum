@@ -323,6 +323,8 @@ export const SCREENSHOT_COLORS = {
   },
 } as const satisfies ScreenshotColorValues;
 
+/** Design-token source of truth. Runtime paint uses src/styles/theme-tokens.css
+ *  (generated via `npm run generate:theme-tokens`); do not inline this object in _document. */
 export const COLOR_VALUES = {
   peony: {
     light: {
@@ -869,20 +871,33 @@ function removeGlobalTransition() {
 }
 
 function updateCSSThemeVars(color: COLORS, theme: THEME) {
-  const colors = COLOR_VALUES[color][theme];
+  if (!(color in LOGO_PATHS_WITHOUT_TITLE)) {
+    throw new Error(`Color "${color}" not found.`);
+  }
 
-  if (!colors) {
-    throw new Error(`Color "${color}" or theme "${theme}" not found.`);
+  if (theme !== "light" && theme !== "dark") {
+    throw new Error(`Theme "${theme}" not found.`);
   }
 
   addGlobalTransition();
 
-  Object.entries(colors).forEach(([key, value]) => {
-    document.documentElement.style.setProperty(`--${key}`, `${value}`);
-  });
+  const root = document.documentElement;
+  root.setAttribute("data-color", color);
+  root.setAttribute("data-theme", theme);
+
+  // Clear any legacy inline token overrides so attribute-based CSS wins.
+  for (const property of Array.from(root.style)) {
+    if (property.startsWith("--")) {
+      root.style.removeProperty(property);
+    }
+  }
 
   changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
-  updateThemeColorMetaTag(colors.header);
+
+  const headerColor = getComputedStyle(root).getPropertyValue("--header").trim();
+  if (headerColor) {
+    updateThemeColorMetaTag(headerColor);
+  }
 
   setTimeout(() => {
     removeGlobalTransition();
