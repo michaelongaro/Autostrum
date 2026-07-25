@@ -74,7 +74,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
               onTouchEnd={() => setHoveredColor(null)}
               onTouchCancel={() => setHoveredColor(null)}
               onClick={() => {
-                updateCSSThemeVars(colorString, theme);
+                updateCSSThemeVars(colorString, theme, { animate: true });
                 setColor(colorString);
                 window.localStorage.setItem("autostrum-color", colorString);
 
@@ -126,7 +126,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
             onTouchEnd={() => setHoveredTheme(null)}
             onTouchCancel={() => setHoveredTheme(null)}
             onClick={() => {
-              updateCSSThemeVars(color, "light");
+              updateCSSThemeVars(color, "light", { animate: true });
               setTheme("light");
               setFollowsDeviceTheme(false);
               window.localStorage.setItem("autostrum-theme", "light");
@@ -168,7 +168,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
             onTouchEnd={() => setHoveredTheme(null)}
             onTouchCancel={() => setHoveredTheme(null)}
             onClick={() => {
-              updateCSSThemeVars(color, "dark");
+              updateCSSThemeVars(color, "dark", { animate: true });
               setTheme("dark");
               setFollowsDeviceTheme(false);
               window.localStorage.setItem("autostrum-theme", "dark");
@@ -215,7 +215,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
               ).matches
                 ? "dark"
                 : "light";
-              updateCSSThemeVars(color, systemTheme);
+              updateCSSThemeVars(color, systemTheme, { animate: true });
               setTheme(systemTheme);
               setFollowsDeviceTheme(true);
               window.localStorage.setItem("autostrum-theme", systemTheme);

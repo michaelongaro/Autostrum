@@ -823,6 +823,11 @@ export const COLOR_VALUES = {
   },
 } as const satisfies ColorValues;
 
+type UpdateCSSThemeVarsOptions = {
+  /** Cross-fade via the View Transitions API. Default: false (instant snap). */
+  animate?: boolean;
+};
+
 function addGlobalTransition() {
   const style = document.createElement("style");
   style.id = "global-transition-style";
@@ -870,15 +875,19 @@ function removeGlobalTransition() {
   }
 }
 
-function updateCSSThemeVars(color: COLORS, theme: THEME) {
-  if (!(color in LOGO_PATHS_WITHOUT_TITLE)) {
-    throw new Error(`Color "${color}" not found.`);
-  }
+function prefersReducedMotion(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
-  if (theme !== "light" && theme !== "dark") {
-    throw new Error("Theme was not found.");
-  }
+function canUseViewTransitions(): boolean {
+  return (
+    typeof document.startViewTransition === "function" &&
+    !prefersReducedMotion()
+  );
+}
 
+function applyThemeToDocument(color: COLORS, theme: THEME) {
+  // Suppress per-element color transitions so snapshots/snaps stay solid.
   addGlobalTransition();
 
   const root = document.documentElement;
@@ -906,4 +915,47 @@ function updateCSSThemeVars(color: COLORS, theme: THEME) {
   }, 0); // wait for the next event loop tick before removing the transition
 }
 
+function updateCSSThemeVars(
+  color: COLORS,
+  theme: THEME,
+  options: UpdateCSSThemeVarsOptions = {},
+) {
+  if (!(color in LOGO_PATHS_WITHOUT_TITLE)) {
+    throw new Error(`Color "${color}" not found.`);
+  }
+
+  if (theme !== "light" && theme !== "dark") {
+    throw new Error(`Theme "${theme}" not found.`);
+  }
+
+  const root = document.documentElement;
+  const alreadyApplied =
+    root.getAttribute("data-color") === color &&
+    root.getAttribute("data-theme") === theme;
+
+  if (alreadyApplied) {
+    // Still refresh favicon / theme-color in case bootstrap skipped them.
+    changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
+    const headerColor = getComputedStyle(root)
+      .getPropertyValue("--header")
+      .trim();
+    if (headerColor) {
+      updateThemeColorMetaTag(headerColor);
+    }
+    return;
+  }
+
+  const { animate = false } = options;
+
+  if (animate && canUseViewTransitions()) {
+    document.startViewTransition(() => {
+      applyThemeToDocument(color, theme);
+    });
+    return;
+  }
+
+  applyThemeToDocument(color, theme);
+}
+
 export { updateCSSThemeVars };
+export type { UpdateCSSThemeVarsOptions };

@@ -700,7 +700,9 @@ function UserSettings() {
                       onTouchEnd={() => setHoveredColor(null)}
                       onTouchCancel={() => setHoveredColor(null)}
                       onClick={() => {
-                        updateCSSThemeVars(colorString, theme);
+                        updateCSSThemeVars(colorString, theme, {
+                          animate: true,
+                        });
                         setColor(colorString);
                         window.localStorage.setItem(
                           "autostrum-color",
@@ -781,7 +783,7 @@ function UserSettings() {
                     onTouchEnd={() => setHoveredTheme(null)}
                     onTouchCancel={() => setHoveredTheme(null)}
                     onClick={() => {
-                      updateCSSThemeVars(color, "light");
+                      updateCSSThemeVars(color, "light", { animate: true });
                       setTheme("light");
                       setFollowsDeviceTheme(false);
                       window.localStorage.setItem("autostrum-theme", "light");
@@ -823,7 +825,7 @@ function UserSettings() {
                     onTouchEnd={() => setHoveredTheme(null)}
                     onTouchCancel={() => setHoveredTheme(null)}
                     onClick={() => {
-                      updateCSSThemeVars(color, "dark");
+                      updateCSSThemeVars(color, "dark", { animate: true });
                       setTheme("dark");
                       setFollowsDeviceTheme(false);
                       window.localStorage.setItem("autostrum-theme", "dark");
@@ -870,7 +872,9 @@ function UserSettings() {
                       ).matches
                         ? "dark"
                         : "light";
-                      updateCSSThemeVars(color, systemTheme);
+                      updateCSSThemeVars(color, systemTheme, {
+                        animate: true,
+                      });
                       setTheme(systemTheme);
                       setFollowsDeviceTheme(true);
                       window.localStorage.setItem(
