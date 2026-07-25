@@ -1,6 +1,5 @@
 import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
 import { getContrastTextColor } from "~/utils/chordColors";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 function dynamicFontSize(chordNameLength: number): number {
   const inMin = 1;
@@ -46,7 +45,7 @@ function ChordName({
     textColor = isHighlighted
       ? "hsl(var(--primary))"
       : screenshotColor && screenshotTheme
-        ? `hsl(${SCREENSHOT_COLORS[screenshotColor][screenshotTheme]["screenshot-foreground"]})`
+        ? "hsl(var(--screenshot-foreground))"
         : "hsl(var(--foreground))";
   }
 

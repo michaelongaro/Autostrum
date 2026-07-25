@@ -323,8 +323,9 @@ export const SCREENSHOT_COLORS = {
   },
 } as const satisfies ScreenshotColorValues;
 
-/** Design-token source of truth. Runtime paint uses src/styles/theme-tokens.css
- *  (generated via `npm run generate:theme-tokens`); do not inline this object in _document. */
+/** Design-token source of truth (with SCREENSHOT_COLORS). Runtime paint uses
+ *  src/styles/theme-tokens.css (generated via `npm run generate:theme-tokens`);
+ *  do not inline these objects in _document or component style props. */
 export const COLOR_VALUES = {
   peony: {
     light: {

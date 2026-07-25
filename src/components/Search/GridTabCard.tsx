@@ -21,7 +21,6 @@ import { MdModeEditOutline } from "react-icons/md";
 import { TbPinned } from "react-icons/tb";
 import Verified from "~/components/ui/icons/Verified";
 import type { COLORS, THEME } from "~/stores/TabStore";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 const loadedTabScreenshotKeys = new Set<string>();
 
@@ -180,7 +179,8 @@ function GridTabCard({
 
                 <div
                   style={{
-                    backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / ${theme === "light" ? 0.7 : 0.35})`,
+                    backgroundColor:
+                      "hsl(var(--screenshot-secondary) / var(--screenshot-color-overlay-alpha))",
                   }}
                   className="absolute inset-0 z-10 size-full mix-blend-color"
                 ></div>

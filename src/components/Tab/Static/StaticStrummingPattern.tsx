@@ -12,7 +12,6 @@ import {
 } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
@@ -155,8 +154,8 @@ function StaticStrummingPattern({
                     chordDisplayMode === "color"
                       ? strumColors[strumIndex]
                         ? strumColors[strumIndex]
-                        : `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`
-                      : `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                        : "hsl(var(--screenshot-foreground))"
+                      : "hsl(var(--screenshot-foreground))",
                 }}
                 className="baseVertFlex relative mb-2 h-[20px] text-lg"
               >
@@ -244,7 +243,7 @@ function StaticStrummingPattern({
             {/* beat indicator */}
             <span
               style={{
-                color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                color: "hsl(var(--screenshot-foreground))",
               }}
               className="text-sm"
             >

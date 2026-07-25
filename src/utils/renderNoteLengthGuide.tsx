@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import type { COLORS, FullNoteLengths } from "~/stores/TabStore";
 import { WholeNote, getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 
 type NoteBase = "whole" | "half" | "quarter" | "eighth" | "sixteenth";
 
@@ -112,11 +111,8 @@ function renderNoteLengthGuide({
     return null;
   }
 
-  const themeKey = theme ?? "light";
   const noteColor =
-    color && theme
-      ? `hsl(${SCREENSHOT_COLORS[color][themeKey]["screenshot-foreground"]})`
-      : "currentColor";
+    color && theme ? "hsl(var(--screenshot-foreground))" : "currentColor";
 
   if (currentIsRestStrum) {
     const restIcon = getDynamicNoteLengthIcon({

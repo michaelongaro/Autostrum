@@ -1,6 +1,5 @@
 import StaticStrummingPattern from "~/components/Tab/Static/StaticStrummingPattern";
 import { type ChordSequence } from "~/stores/TabStore";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
 
 export interface StaticChordSequence {
@@ -18,8 +17,8 @@ function StaticChordSequence({
     <div className="baseFlex">
       <div
         style={{
-          borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
-          backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-background"]} / 0.75)`,
+          borderColor: "hsl(var(--screenshot-foreground))",
+          backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
         }}
         className="baseVertFlex relative !justify-start gap-4 rounded-md border-2 p-1 shadow-sm"
       >

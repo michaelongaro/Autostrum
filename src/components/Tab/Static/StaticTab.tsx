@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef } from "react";
 import { FaBook } from "react-icons/fa";
-import { useTabStore, type COLORS, type Section } from "~/stores/TabStore";
+import { useTabStore, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import {
   Tooltip,
@@ -37,7 +37,6 @@ import TabSettings from "~/components/Tab/TabSettings";
 import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import { useRouter } from "next/router";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
@@ -304,8 +303,10 @@ function StaticTab() {
           <div className="size-full overflow-hidden">
             <div
               id="tabPreviewScreenshotLight"
+              data-color="maple"
+              data-theme="light"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["maple" as COLORS]["light" as "light" | "dark"]["screenshot-background"]})`,
+                backgroundColor: "hsl(var(--screenshot-background))",
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >
@@ -319,8 +320,10 @@ function StaticTab() {
 
             <div
               id="tabPreviewScreenshotDark"
+              data-color="maple"
+              data-theme="dark"
               style={{
-                backgroundColor: `hsl(${SCREENSHOT_COLORS["maple" as COLORS]["dark" as "light" | "dark"]["screenshot-background"]})`,
+                backgroundColor: "hsl(var(--screenshot-background))",
               }}
               className="baseFlex h-[615px] w-[1318px] grayscale"
             >

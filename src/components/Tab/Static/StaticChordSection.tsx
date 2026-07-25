@@ -10,7 +10,6 @@ import {
   getDynamicNoteLengthIcon,
 } from "~/utils/noteLengthIcons";
 import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
 
 export interface StaticChordSection {
@@ -37,8 +36,8 @@ function StaticChordSection({
   return (
     <div
       style={{
-        borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-        backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.25)`,
+        borderColor: "hsl(var(--screenshot-border))",
+        backgroundColor: "hsl(var(--screenshot-secondary) / 0.25)",
       }}
       className="baseVertFlex relative h-full !justify-start rounded-md border p-4 shadow-md md:p-8"
     >
@@ -50,9 +49,10 @@ function StaticChordSection({
                 {(showBpm(chordSequence) || chordSequence.repetitions > 1) && (
                   <div
                     style={{
-                      borderColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-border"]})`,
-                      backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-secondary"]} / 0.15)`,
-                      color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+                      borderColor: "hsl(var(--screenshot-border))",
+                      backgroundColor:
+                        "hsl(var(--screenshot-secondary) / 0.15)",
+                      color: "hsl(var(--screenshot-foreground))",
                     }}
                     className="baseFlex ml-4 gap-3 rounded-t-md border px-2 py-1 text-sm !shadow-sm"
                   >

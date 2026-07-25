@@ -1,4 +1,3 @@
-import { SCREENSHOT_COLORS } from "~/utils/updateCSSThemeVars";
 import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticPalmMuteNode {
@@ -14,21 +13,21 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
         <div className="baseFlex w-full">
           <div
             style={{
-              backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
             className="h-[14px] w-[1px]"
           ></div>
 
           <div
             style={{
-              backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
             className="h-[1px] w-1"
           ></div>
 
           <i
             style={{
-              color: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              color: "hsl(var(--screenshot-foreground))",
             }}
             className="mx-[2px]"
           >
@@ -37,7 +36,7 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
 
           <div
             style={{
-              backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
             className="h-[1px] w-[8px]"
           ></div>
@@ -48,14 +47,14 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
         <div className="baseFlex w-full">
           <div
             style={{
-              backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
             className="h-[1px] w-full"
           ></div>
 
           <div
             style={{
-              backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+              backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
             className="h-[14px] w-[1px]"
           ></div>
@@ -65,7 +64,7 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
       {value === "-" && (
         <div
           style={{
-            backgroundColor: `hsl(${SCREENSHOT_COLORS[color][theme]["screenshot-foreground"]})`,
+            backgroundColor: "hsl(var(--screenshot-foreground))",
           }}
           className="h-[1px] w-full"
         ></div>
