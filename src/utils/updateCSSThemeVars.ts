@@ -876,7 +876,7 @@ function updateCSSThemeVars(color: COLORS, theme: THEME) {
   }
 
   if (theme !== "light" && theme !== "dark") {
-    throw new Error(`Theme "${theme}" not found.`);
+    throw new Error("Theme was not found.");
   }
 
   addGlobalTransition();
@@ -894,7 +894,9 @@ function updateCSSThemeVars(color: COLORS, theme: THEME) {
 
   changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
 
-  const headerColor = getComputedStyle(root).getPropertyValue("--header").trim();
+  const headerColor = getComputedStyle(root)
+    .getPropertyValue("--header")
+    .trim();
   if (headerColor) {
     updateThemeColorMetaTag(headerColor);
   }

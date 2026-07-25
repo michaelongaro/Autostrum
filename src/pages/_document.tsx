@@ -15,7 +15,6 @@ const STORAGE_KEYS = {
   FOLLOWS_DEVICE_THEME: "autostrum-follows-device-theme",
 } as const;
 
-/** Compact header HSL map for theme-color — not the full token set. */
 const HEADER_COLORS = Object.fromEntries(
   Object.entries(COLOR_VALUES).map(([color, themes]) => [
     color,
