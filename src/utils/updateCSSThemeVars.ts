@@ -1,5 +1,8 @@
 import type { COLORS, THEME } from "~/stores/TabStore";
-import { LOGO_PATHS_WITHOUT_TITLE } from "~/utils/logoPaths";
+import {
+  LOGO_PATHS_WITH_TITLE,
+  LOGO_PATHS_WITHOUT_TITLE,
+} from "~/utils/logoPaths";
 
 export type ScreenshotColorKey =
   | "screenshot-background"
@@ -855,6 +858,24 @@ function changeFavicon(url: string): void {
   link.href = url;
 }
 
+/** Swap header logos inside the VT update callback so cached images don't
+ *  appear in the live DOM ahead of the cross-fade (React setColor runs after). */
+function changeHeaderLogos(color: COLORS): void {
+  const path = LOGO_PATHS_WITH_TITLE[color];
+
+  document
+    .querySelectorAll<HTMLImageElement>("[data-header-logo]")
+    .forEach((img) => {
+      if (img.getAttribute("src") !== path) {
+        img.setAttribute("src", path);
+      }
+      // Drop any stale srcset so the explicit SVG path wins immediately.
+      if (img.hasAttribute("srcset")) {
+        img.removeAttribute("srcset");
+      }
+    });
+}
+
 function updateThemeColorMetaTag(color: string): void {
   let metaThemeColor = document.querySelector<HTMLMetaElement>(
     'meta[name="theme-color"]',
@@ -880,10 +901,23 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/** iOS WebKit drops backdrop-filter during root View Transitions (mobile nav blur). */
+function isIOSWebKit(): boolean {
+  if (typeof navigator === "undefined") return false;
+
+  const ua = navigator.userAgent;
+  const isIOSDevice =
+    /iP(hone|od|ad)/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  return isIOSDevice;
+}
+
 function canUseViewTransitions(): boolean {
   return (
     typeof document.startViewTransition === "function" &&
-    !prefersReducedMotion()
+    !prefersReducedMotion() &&
+    !isIOSWebKit()
   );
 }
 
@@ -902,6 +936,7 @@ function applyThemeToDocument(color: COLORS, theme: THEME) {
     }
   }
 
+  changeHeaderLogos(color);
   changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
 
   const headerColor = getComputedStyle(root)
@@ -935,7 +970,8 @@ function updateCSSThemeVars(
     root.getAttribute("data-theme") === theme;
 
   if (alreadyApplied) {
-    // Still refresh favicon / theme-color in case bootstrap skipped them.
+    // Still refresh logo / favicon / theme-color in case bootstrap skipped them.
+    changeHeaderLogos(color);
     changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
     const headerColor = getComputedStyle(root)
       .getPropertyValue("--header")

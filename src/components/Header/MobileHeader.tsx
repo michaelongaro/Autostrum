@@ -81,6 +81,7 @@ function MobileHeader() {
           className="baseFlex h-12 pl-2 transition-[filter] hover:brightness-[1.05] active:brightness-[0.95]"
         >
           <Image
+            data-header-logo
             src={LOGO_PATHS_WITH_TITLE[color]}
             alt="Autostrum header logo"
             style={{
