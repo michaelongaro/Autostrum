@@ -35,7 +35,7 @@ import SearchInput from "~/components/Search/SearchInput";
 import { api } from "~/utils/api";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
-import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
+import HeaderLogo from "~/components/Header/HeaderLogo";
 import Spinner from "~/components/ui/Spinner";
 
 function MobileHeader() {
@@ -80,17 +80,7 @@ function MobileHeader() {
           href={"/"}
           className="baseFlex h-12 pl-2 transition-[filter] hover:brightness-[1.05] active:brightness-[0.95]"
         >
-          <Image
-            data-header-logo
-            src={LOGO_PATHS_WITH_TITLE[color]}
-            alt="Autostrum header logo"
-            style={{
-              filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
-            }}
-            width={150}
-            height={50}
-            priority
-          />
+          <HeaderLogo width={150} height={50} />
         </Link>
 
         <div className="baseFlex gap-3">

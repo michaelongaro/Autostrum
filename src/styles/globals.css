@@ -4,9 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Smooth color/theme swaps via document.startViewTransition.
-   Disabled on iOS (see canUseViewTransitions) because root VTs drop
-   backdrop-filter on the mobile nav overlay. */
+/* Smooth color/theme swaps via document.startViewTransition. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 0.25s;
@@ -19,6 +17,39 @@
   ::view-transition-new(*) {
     animation: none !important;
   }
+}
+
+/* Header logos: all variants are mounted; html[data-color] reveals the active
+   one so View Transitions capture logo swaps with the rest of the theme. */
+.headerLogo {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.headerLogoLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25));
+}
+
+html[data-color="peony"] .headerLogoLayer[data-logo-color="peony"],
+html[data-color="coral"] .headerLogoLayer[data-logo-color="coral"],
+html[data-color="saffron"] .headerLogoLayer[data-logo-color="saffron"],
+html[data-color="maple"] .headerLogoLayer[data-logo-color="maple"],
+html[data-color="pistachio"] .headerLogoLayer[data-logo-color="pistachio"],
+html[data-color="verdant"] .headerLogoLayer[data-logo-color="verdant"],
+html[data-color="aqua"] .headerLogoLayer[data-logo-color="aqua"],
+html[data-color="sapphire"] .headerLogoLayer[data-logo-color="sapphire"],
+html[data-color="amethyst"] .headerLogoLayer[data-logo-color="amethyst"],
+html:not([data-color]) .headerLogoLayer[data-logo-color="maple"] {
+  opacity: 1;
 }
 
 @layer base {
