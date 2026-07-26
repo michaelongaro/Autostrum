@@ -84,6 +84,13 @@ const KEYS_BY_LETTER = {
 };
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
+const difficultyDescriptions = [
+  "Open chords and single-note melodies with slow, steady downstrums.",
+  "Common progressions and power chords, light barre shapes, simple up-down strumming patterns.",
+  "Alternate picking and position shifts, varied chord voicings, syncopated strumming with muting.",
+  "Fast passages, complex rhythms, advanced voicings, and expressive techniques.",
+  "Virtuoso techniques, intricate arrangements, extended chords, and nuanced interpretation.",
+];
 
 type TabMetadata = {
   setIsPublishingOrUpdating: Dispatch<SetStateAction<boolean>>;
@@ -868,7 +875,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                         <span className="font-medium">Beginner</span>
                       </div>
                       <p className="text-sm opacity-75">
-                        Open chords, basic melodies, simple strumming.
+                        {difficultyDescriptions[0]}
                       </p>
                     </div>
                   </SelectItem>
@@ -879,8 +886,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                         <span className="font-medium">Easy</span>
                       </div>
                       <p className="text-sm opacity-75">
-                        Common progressions, basic barre chords, straightforward
-                        rhythms.
+                        {difficultyDescriptions[1]}
                       </p>
                     </div>
                   </SelectItem>
@@ -891,31 +897,29 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                         <span className="font-medium">Intermediate</span>
                       </div>
                       <p className="text-sm opacity-75">
-                        Alternate picking, varied voicings, position shifts.
+                        {difficultyDescriptions[2]}
                       </p>
                     </div>
                   </SelectItem>
-                  <SelectItem value={"4"}>
+                  <SelectItem value="4">
                     <div className="baseVertFlex !items-start gap-1">
                       <div className="baseFlex gap-2">
                         <DifficultyBars difficulty={4} />
                         <span className="font-medium">Advanced</span>
                       </div>
                       <p className="text-sm opacity-75">
-                        Fast playing, bends, slides, tapping, expressive
-                        control.
+                        {difficultyDescriptions[3]}
                       </p>
                     </div>
                   </SelectItem>
-                  <SelectItem value={"5"}>
+                  <SelectItem value="5">
                     <div className="baseVertFlex !items-start gap-1">
                       <div className="baseFlex gap-2">
                         <DifficultyBars difficulty={5} />
                         <span className="font-medium">Expert</span>
                       </div>
                       <p className="text-sm opacity-75">
-                        Virtuoso speed, sweep picking, extended voicings,
-                        interpretation.
+                        {difficultyDescriptions[4]}
                       </p>
                     </div>
                   </SelectItem>

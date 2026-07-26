@@ -6,13 +6,7 @@ import {
   OverlayScrollbarsComponent,
   type OverlayScrollbarsComponentRef,
 } from "overlayscrollbars-react";
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  Fragment,
-} from "react";
+import { useEffect, useLayoutEffect, useRef, useState, Fragment } from "react";
 import { BsGridFill, BsPlus } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { GoChevronRight } from "react-icons/go";
@@ -98,11 +92,11 @@ const individualDrawerVariants = {
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 const difficultyDescriptions = [
-  "Open chords, basic melodies, simple strumming.",
-  "Common progressions, basic barre chords, straightforward rhythms.",
-  "Alternate picking, varied voicings, position shifts.",
-  "Fast playing, bends, slides, tapping, expressive control.",
-  "Virtuoso speed, sweep picking, extended voicings, interpretation.",
+  "Open chords and single-note melodies with slow, steady downstrums.",
+  "Common progressions and power chords, light barre shapes, simple up-down strumming patterns.",
+  "Alternate picking and position shifts, varied chord voicings, syncopated strumming with muting.",
+  "Fast passages, complex rhythms, advanced voicings, and expressive techniques.",
+  "Virtuoso techniques, intricate arrangements, extended chords, and nuanced interpretation.",
 ];
 
 interface SearchResults {
