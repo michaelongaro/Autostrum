@@ -49,11 +49,11 @@ function PlaybackTabChord({
       }}
       className="baseVertFlex relative w-[34px]"
     >
-      <div className="baseVertFlex mb-[14px]">
+      <div className="baseVertFlex mb-[-18px]">
         {/* show new current bpm */}
         {showBpm && (
           <div
-            className={`baseFlex absolute left-[0px] top-[4px] gap-[2px] text-xs text-foreground`}
+            className={`baseFlex absolute left-[4px] gap-[2px] text-xs text-foreground ${columnData[0] === "start" ? "top-[-20px]" : "top-[4px]"}`}
           >
             <QuarterNote />
             <span>{columnData[9]}</span>
@@ -235,7 +235,7 @@ function PlaybackTabNote({
         className={`baseFlex relative h-[20px] ${isAccented ? "font-bold" : ""}`}
       >
         {isRest ? (
-          <PauseIcon className="absolute bottom-[17px] size-3" />
+          <PauseIcon className="absolute bottom-[15px] size-3" />
         ) : (
           <div>{note}</div>
         )}

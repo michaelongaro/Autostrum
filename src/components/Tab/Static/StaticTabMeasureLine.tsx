@@ -30,12 +30,13 @@ function StaticTabMeasureLine({
       className="baseVertFlex relative"
     >
       {/* BPM indicator */}
+
       {columnData.bpmAfterLine !== null ? (
         <div
           style={{
             color: "hsl(var(--screenshot-foreground))",
           }}
-          className="baseFlex h-4 shrink-0 gap-[2px]"
+          className={`baseFlex shrink-0 gap-[2px] ${columnData.isInPalmMuteSection ? "h-4" : "h-8"}`}
         >
           <QuarterNote />
           <p className="text-center text-xs">
@@ -47,16 +48,22 @@ function StaticTabMeasureLine({
       )}
 
       {/* Palm mute connecting line */}
-      <div className="baseFlex h-[16px] w-full shrink-0">
-        {columnData.isInPalmMuteSection && (
+      {columnData.isInPalmMuteSection ? (
+        <div className="baseFlex h-4 w-full shrink-0">
           <div
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
             className="relative mt-[-16px] h-[1px] w-full"
           ></div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <>
+          {columnData.bpmAfterLine === null && (
+            <div className="h-4 w-full shrink-0"></div>
+          )}
+        </>
+      )}
 
       {/* Vertical measure line segments for each string (1-6) */}
       {([0, 1, 2, 3, 4, 5, 6, 7] as const).map((stringIndex) => (

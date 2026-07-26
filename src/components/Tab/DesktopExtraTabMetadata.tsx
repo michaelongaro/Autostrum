@@ -187,6 +187,7 @@ function DesktopExtraTabMetadata() {
                             name={chord.name}
                             color={chord.color}
                             truncate={false}
+                            showFullName={true}
                             isHighlighted={
                               chordDisplayMode === "color"
                                 ? false

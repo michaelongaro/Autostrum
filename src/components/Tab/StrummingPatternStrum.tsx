@@ -70,10 +70,7 @@ interface StrummingPatternStrumProps {
     beatIndex: number,
   ) => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement>, beatIndex: number) => void;
-  onNoteLengthChange: (
-    strumIndex: number,
-    noteLength: FullNoteLengths,
-  ) => void;
+  onNoteLengthChange: (strumIndex: number, noteLength: FullNoteLengths) => void;
   onAddStrum: (after: boolean, atIndex: number) => void;
   onDeleteStrum: (beatIndex: number) => void;
   onChordChange: (value: string, beatIndex: number) => void;
@@ -188,7 +185,7 @@ function StrummingPatternStrum({
             {strum.strum.includes("s") ||
             strum.strum === "r" ||
             strum.strum === "" ? (
-              <div className="h-[40px] w-[42px]"></div>
+              <div className="mt-2 h-[40px] w-[42px]"></div>
             ) : (
               <Select
                 onValueChange={(value) => onChordChange(value, strumIndex)}
@@ -198,7 +195,7 @@ function StrummingPatternStrum({
                     : chordSequence?.[strumIndex]
                 }
               >
-                <SelectTrigger className="mx-1 w-fit">
+                <SelectTrigger className="mx-1 mt-2 w-fit">
                   <SelectValue>{chordSequence?.[strumIndex]}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -284,9 +281,7 @@ function StrummingPatternStrum({
                     fontSize: "20px",
                   }}
                   className={`baseFlex mb-1 h-5 leading-[0] ${
-                    strum.strum.includes(">")
-                      ? "font-semibold"
-                      : "font-normal"
+                    strum.strum.includes(">") ? "font-semibold" : "font-normal"
                   }`}
                 >
                   {strum.strum[0]}

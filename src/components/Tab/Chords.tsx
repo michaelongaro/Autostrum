@@ -126,6 +126,7 @@ function Chords() {
                         name={chord.name}
                         color={chord.color}
                         truncate={false}
+                        showFullName={true}
                       />
                     </div>
 

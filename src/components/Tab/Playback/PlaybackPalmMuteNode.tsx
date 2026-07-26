@@ -7,17 +7,17 @@ function PlaybackPalmMuteNode({ value }: PlaybackPalmMuteNode) {
     <>
       {value === "start" && (
         <div className="baseFlex w-full">
-          <div className="h-[14px] w-[1px] bg-foreground"></div>
-          <div className="h-[1px] w-full bg-foreground"></div>
+          <div className="ml-2 h-[14px] w-[1px] bg-foreground"></div>
+          <div className="h-[1px] w-[5px] bg-foreground"></div>
           <i className="mx-[2px]">PM</i>
-          <div className="h-[1px] w-full bg-foreground"></div>
+          <div className="h-[1px] w-auto grow bg-foreground"></div>
         </div>
       )}
 
       {value === "end" && (
         <div className="baseFlex w-full">
-          <div className="h-[1px] w-full bg-foreground"></div>
-          <div className="h-[14px] w-[1px] bg-foreground"></div>
+          <div className="h-[1px] w-auto grow bg-foreground"></div>
+          <div className="mr-2 h-[14px] w-[1px] bg-foreground"></div>
         </div>
       )}
 

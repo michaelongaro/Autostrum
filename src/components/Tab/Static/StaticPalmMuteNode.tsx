@@ -15,14 +15,14 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="h-[14px] w-[1px]"
+            className="ml-2 h-[14px] w-[1px]"
           ></div>
 
           <div
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="h-[1px] w-1"
+            className="h-[1px] w-[5px]"
           ></div>
 
           <i
@@ -38,7 +38,7 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="h-[1px] w-[8px]"
+            className="h-[1px] w-auto grow"
           ></div>
         </div>
       )}
@@ -49,14 +49,14 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="h-[1px] w-full"
+            className="h-[1px] w-auto grow"
           ></div>
 
           <div
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="h-[14px] w-[1px]"
+            className="mr-2 h-[14px] w-[1px]"
           ></div>
         </div>
       )}

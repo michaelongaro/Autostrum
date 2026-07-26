@@ -650,14 +650,14 @@ function PlaybackModal() {
                   >
                     <div
                       ref={containerRef}
-                      className="relative flex h-[255px] w-full overflow-hidden mobilePortrait:h-[280px]"
+                      className="relative flex h-[255px] w-full overflow-hidden mobilePortrait:h-[268px]"
                     >
                       <div className="baseFlex absolute left-0 top-0 size-full">
-                        <div className="mb-[30px] h-[140px] w-full mobilePortrait:h-[165px]"></div>
+                        <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
                         {/* currently this fixes the highlight line extending past rounded borders of
                         sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                        <div className="z-0 mb-[34px] ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[164px]"></div>
-                        <div className="mb-[34px] h-[140px] w-full mobilePortrait:h-[165px]"></div>
+                        <div className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[165px]"></div>
+                        <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
                       </div>
 
                       {chordLayoutData && expandedTabData && (

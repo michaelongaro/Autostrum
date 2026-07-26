@@ -66,6 +66,9 @@ function ChordName({
             : "16px",
         lineHeight: "1.25rem",
         zIndex: showFullName ? 9 : undefined, // still want hover to take priority over chord popover being open
+        rotate:
+          modifiedChordName.length > 4 && !showFullName ? "-30deg" : "0deg",
+        transition: "rotate 0.15s ease-out",
       }}
       // FYI: I am still unsure why adding "isolate" fixes the issue where the chord name
       // would sometimes not change color when highlighted on iOS

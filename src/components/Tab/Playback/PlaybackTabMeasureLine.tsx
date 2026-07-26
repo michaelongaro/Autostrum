@@ -16,7 +16,7 @@ function PlaybackTabMeasureLine({
         opacity: isDimmed ? 0.5 : 1,
         transition: "opacity 0.5s",
       }}
-      className="baseVertFlex mb-[34px] h-[220px] w-[2px] mobilePortrait:h-[240px]"
+      className="baseVertFlex mb-[2px] h-[220px] w-[2px] mobilePortrait:h-[240px]"
     >
       {columnData.map((note, index) => (
         <Fragment key={index}>

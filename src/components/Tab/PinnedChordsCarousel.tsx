@@ -57,6 +57,7 @@ function PinnedChordsCarousel({
                     name={chord.name}
                     color={chord.color}
                     truncate={false}
+                    showFullName={true}
                   />
 
                   <div className="h-[80px] tablet:h-[118px]">

@@ -93,7 +93,7 @@ function PlaybackScrollingContainer({
   return (
     <div
       ref={containerRef}
-      className={`relative h-[230px] w-full touch-none overflow-hidden mobilePortrait:h-[255px] ${countInTimer.showing ? "pointer-events-none" : "cursor-grab active:cursor-grabbing"}`}
+      className={`baseFlex relative h-[255px] w-full touch-none overflow-hidden mobilePortrait:h-[268px] ${countInTimer.showing ? "pointer-events-none" : "cursor-grab active:cursor-grabbing"}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}

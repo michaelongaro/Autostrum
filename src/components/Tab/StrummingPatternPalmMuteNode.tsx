@@ -196,7 +196,7 @@ function StrummingPatternPalmMuteNode({
               }}
               className="baseFlex relative w-full"
             >
-              <div className="h-4 w-[1px] flex-shrink-0 bg-current"></div>
+              <div className="ml-1 h-4 w-[1px] flex-shrink-0 bg-current"></div>
               <div className="h-[1px] w-1 flex-shrink-0 bg-current"></div>
               <i className="mx-[2px] flex-shrink-0">PM</i>
               <div className="h-[1px] w-full bg-current"></div>
@@ -206,7 +206,7 @@ function StrummingPatternPalmMuteNode({
           {value === "end" && (
             <div className="baseFlex relative my-1 w-full">
               <div className="h-[1px] w-full bg-current"></div>
-              <div className="h-4 w-[1px] bg-current"></div>
+              <div className="mr-1 h-4 w-[1px] bg-current"></div>
             </div>
           )}
         </>
