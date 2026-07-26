@@ -18,11 +18,8 @@ interface HeaderLogo {
   className?: string;
 }
 
-/**
- * Renders every color variant and reveals the active one via
- * html[data-color] CSS. That keeps logo swaps inside View Transitions
- * (unlike swapping a single <img> src from React after the VT callback).
- */
+// FYI: not sure if this approach is required, however the view transition didn't work
+// when just swapping to an image that was cached
 function HeaderLogo({ width, height, className }: HeaderLogo) {
   return (
     <span

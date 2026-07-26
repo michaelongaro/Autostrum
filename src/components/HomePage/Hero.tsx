@@ -1,6 +1,5 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import { BsBarChartLine } from "react-icons/bs";
 import { GiMusicalScore } from "react-icons/gi";
 import { HiOutlineLightBulb } from "react-icons/hi";
@@ -9,7 +8,7 @@ import { api } from "~/utils/api";
 import GridTabCard from "../Search/GridTabCard";
 import TabCardSkeleton from "../Search/TabCardSkeleton";
 import { useTabStore } from "~/stores/TabStore";
-import { LOGO_PATHS_WITH_TITLE } from "~/utils/logoPaths";
+import HeaderLogo from "~/components/Header/HeaderLogo";
 
 function Hero() {
   const { userId } = useAuth();
@@ -34,15 +33,9 @@ function Hero() {
         <div className="baseVertFlex gap-4">
           <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
             Welcome to
-            <Image
-              src={LOGO_PATHS_WITH_TITLE[color]}
-              alt="Autostrum logo"
-              style={{
-                filter: "drop-shadow(0px 1px 0.5px hsla(336, 84%, 17%, 0.25))",
-              }}
+            <HeaderLogo
               width={isAboveMediumViewportWidth ? 300 : 200}
-              height={isAboveMediumViewportWidth ? 100 : 75}
-              priority
+              height={isAboveMediumViewportWidth ? 52 : 32}
             />
           </h1>
 
