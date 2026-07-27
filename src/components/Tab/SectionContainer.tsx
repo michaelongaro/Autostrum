@@ -25,6 +25,7 @@ import {
   type BaseNoteLengths,
 } from "~/stores/TabStore";
 import { Separator } from "~/components/ui/separator";
+import AnimatedListItem from "./AnimatedListItem";
 import ChordSection from "./ChordSection";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabSection from "./TabSection";
@@ -264,21 +265,24 @@ function SectionContainer({
               className="baseVertFlex w-full !justify-start"
             >
               <AnimatePresence initial={false}>
-                {subSectionIds.map((subSectionId, index) =>
-                  subSectionTypes[index] === "chord" ? (
-                    <ChordSection
-                      key={subSectionId}
-                      sectionIndex={sectionIndex}
-                      subSectionIndex={index}
-                    />
-                  ) : (
-                    <TabSection
-                      key={subSectionId}
-                      sectionIndex={sectionIndex}
-                      subSectionIndex={index}
-                    />
-                  ),
-                )}
+                {subSectionIds.map((subSectionId, index) => (
+                  <AnimatedListItem
+                    key={subSectionId}
+                    contentClassName="mb-4 w-full"
+                  >
+                    {subSectionTypes[index] === "chord" ? (
+                      <ChordSection
+                        sectionIndex={sectionIndex}
+                        subSectionIndex={index}
+                      />
+                    ) : (
+                      <TabSection
+                        sectionIndex={sectionIndex}
+                        subSectionIndex={index}
+                      />
+                    )}
+                  </AnimatedListItem>
+                ))}
               </AnimatePresence>
             </div>
 

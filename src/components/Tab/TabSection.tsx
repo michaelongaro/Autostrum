@@ -64,12 +64,6 @@ import {
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
-import {
-  heightVariants,
-  opacityAndScaleVariants,
-  sectionListLayoutTransition,
-  sectionListOverflowStyle,
-} from "~/utils/sectionListAnimation";
 
 // Stable dnd-kit config: inline `{ coordinateGetter }` / `[modifier]` identities
 // change every render and force DndContext to publish new context, re-rendering
@@ -801,24 +795,12 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   }
 
   return (
-    <motion.div
-      key={subSection.id}
-      layout="position"
-      variants={heightVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
-      transition={sectionListLayoutTransition}
-      style={sectionListOverflowStyle}
-      className="w-full"
-    >
-    <motion.div
+    <div
       ref={containerRef}
-      variants={opacityAndScaleVariants}
       style={{
         padding: aboveMediumViewportWidth ? "2rem" : "1rem 0.5rem 1rem 0.5rem",
       }}
-      className="baseVertFlex relative mb-4 w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 shadow-md"
+      className="baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 shadow-md"
     >
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-4 xl:!flex-row xl:!justify-start">
@@ -1188,8 +1170,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       >
         Extend tab
       </Button>
-    </motion.div>
-    </motion.div>
+    </div>
   );
 }
 

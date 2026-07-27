@@ -46,8 +46,14 @@ import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 import {
-  heightOpacityScaleVariants,
-  sectionListLayoutTransition,
+  heightAnimate,
+  heightExit,
+  heightInitial,
+  heightTransition,
+  scaleAnimate,
+  scaleExit,
+  scaleInitial,
+  scaleTransition,
   sectionListOverflowStyle,
 } from "~/utils/sectionListAnimation";
 
@@ -255,25 +261,34 @@ function Tab() {
                 key={sectionId}
                 ref={(el) => measureSectionHeight(sectionId, el)}
                 layout={editing ? "position" : undefined}
-                variants={editing ? heightOpacityScaleVariants : undefined}
-                initial={editing ? "closed" : false}
-                animate={editing ? "expanded" : undefined}
-                exit={editing ? "closed" : undefined}
-                transition={editing ? sectionListLayoutTransition : undefined}
+                initial={editing ? heightInitial : false}
+                animate={editing ? heightAnimate : undefined}
+                exit={editing ? heightExit : undefined}
+                transition={editing ? heightTransition : undefined}
                 style={editing ? sectionListOverflowStyle : undefined}
-                className="baseFlex w-full"
+                className="w-full"
               >
                 {editing ? (
-                  <SectionContainer
-                    sectionIndex={index}
-                    forceCloseSectionAccordions={
-                      forceCloseSectionAccordions && index !== tabDataLength - 1
-                    }
-                    setForceCloseSectionAccordions={
-                      setForceCloseSectionAccordions
-                    }
-                    tabDataLength={tabDataLength}
-                  />
+                  <motion.div
+                    initial={scaleInitial}
+                    animate={scaleAnimate}
+                    exit={scaleExit}
+                    transition={scaleTransition}
+                    style={{ transformOrigin: "center top" }}
+                    className="baseFlex w-full"
+                  >
+                    <SectionContainer
+                      sectionIndex={index}
+                      forceCloseSectionAccordions={
+                        forceCloseSectionAccordions &&
+                        index !== tabDataLength - 1
+                      }
+                      setForceCloseSectionAccordions={
+                        setForceCloseSectionAccordions
+                      }
+                      tabDataLength={tabDataLength}
+                    />
+                  </motion.div>
                 ) : showPlaybackModal ? (
                   <div
                     key={sectionId}

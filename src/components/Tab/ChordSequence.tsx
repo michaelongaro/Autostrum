@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
@@ -23,12 +22,7 @@ import {
   useChordSequenceData,
   useChordSequenceParentBpm,
 } from "~/hooks/useTabDataSelectors";
-import {
-  heightVariants,
-  opacityAndScaleVariants,
-  sectionListLayoutTransition,
-  sectionListOverflowStyle,
-} from "~/utils/sectionListAnimation";
+
 export interface ChordSequence {
   sectionIndex: number;
   subSectionIndex: number;
@@ -171,21 +165,7 @@ function ChordSequence({
   }
 
   return (
-    <motion.div
-      key={chordSequence.id}
-      layout="position"
-      variants={heightVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
-      transition={sectionListLayoutTransition}
-      style={sectionListOverflowStyle}
-      className="w-full"
-    >
-      <motion.div
-        variants={opacityAndScaleVariants}
-        className="baseFlex mb-6 w-full"
-      >
+    <div className="baseFlex w-full">
       {Object.keys(chordSequence.strummingPattern).length === 0 ? (
         <div className="baseVertFlex relative h-full w-full gap-4 rounded-md border bg-background px-4 py-8 shadow-sm">
           <p className="mt-8 font-semibold sm:mt-0 sm:text-lg">
@@ -376,8 +356,7 @@ function ChordSequence({
           />
         </div>
       )}
-      </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
