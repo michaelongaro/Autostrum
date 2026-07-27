@@ -1,5 +1,4 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -11,25 +10,12 @@ import {
   useChordSequenceIds,
   useChordSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
-
-const opacityAndScaleVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      ease: "easeInOut" as const,
-      duration: 0.35,
-    },
-  },
-  closed: {
-    opacity: 0,
-    scale: 0.75,
-    transition: {
-      ease: "easeInOut" as const,
-      duration: 0.35,
-    },
-  },
-};
+import {
+  heightVariants,
+  opacityAndScaleVariants,
+  sectionListLayoutTransition,
+  sectionListOverflowStyle,
+} from "~/utils/sectionListAnimation";
 export interface ChordSection {
   sectionIndex: number;
   subSectionIndex: number;
@@ -89,121 +75,103 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
   return (
     <motion.div
       key={subSection.id}
-      layout={"position"}
-      variants={opacityAndScaleVariants}
-      initial={"closed"}
-      animate={"expanded"}
-      exit={"closed"}
-      transition={{
-        layout: {
-          type: "spring",
-          bounce: 0.15,
-          duration: 1,
-        },
-      }}
-      className="baseVertFlex relative h-full w-full !justify-start gap-4 rounded-md border bg-secondary-active/25 p-4 shadow-md md:p-8"
+      layout="position"
+      variants={heightVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={sectionListLayoutTransition}
+      style={sectionListOverflowStyle}
+      className="w-full"
     >
-      <div className="baseFlex w-full !items-start">
-        <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
-          <div className="baseFlex gap-2">
+      <motion.div
+        variants={opacityAndScaleVariants}
+        className="baseVertFlex relative mb-4 w-full !justify-start gap-4 rounded-md border bg-secondary-active/25 p-4 shadow-md md:p-8"
+      >
+        <div className="baseFlex w-full !items-start">
+          <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
             <div className="baseFlex gap-2">
-              <Label
-                htmlFor={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}bpm`}
-              >
-                BPM
-              </Label>
+              <div className="baseFlex gap-2">
+                <Label
+                  htmlFor={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}bpm`}
+                >
+                  BPM
+                </Label>
 
-              <div className="baseFlex">
-                <QuarterNote className="-ml-1 size-5" />
+                <div className="baseFlex">
+                  <QuarterNote className="-ml-1 size-5" />
 
-                <Input
-                  id={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}bpm`}
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="w-[52px] px-2.5"
-                  placeholder={
-                    subSection.bpm === -1
-                      ? bpm === -1
-                        ? ""
-                        : bpm.toString()
-                      : subSection.bpm.toString()
-                  }
-                  value={subSection.bpm === -1 ? "" : subSection.bpm.toString()}
-                  onChange={handleBpmChange}
-                />
+                  <Input
+                    id={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}bpm`}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-[52px] px-2.5"
+                    placeholder={
+                      subSection.bpm === -1
+                        ? bpm === -1
+                          ? ""
+                          : bpm.toString()
+                        : subSection.bpm.toString()
+                    }
+                    value={
+                      subSection.bpm === -1 ? "" : subSection.bpm.toString()
+                    }
+                    onChange={handleBpmChange}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="baseFlex gap-2">
-              <Label
-                htmlFor={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}repetitions`}
-              >
-                Repetitions
-              </Label>
-              <div className="relative w-12">
-                <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
-                  x
-                </span>
-                <Input
-                  id={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}repetitions`}
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="1"
-                  className="w-[45px] px-2 pl-4"
-                  value={
-                    subSection.repetitions === -1
-                      ? ""
-                      : subSection.repetitions.toString()
-                  }
-                  onChange={handleRepetitionsChange}
-                />
+              <div className="baseFlex gap-2">
+                <Label
+                  htmlFor={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}repetitions`}
+                >
+                  Repetitions
+                </Label>
+                <div className="relative w-12">
+                  <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
+                    x
+                  </span>
+                  <Input
+                    id={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}repetitions`}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="1"
+                    className="w-[45px] px-2 pl-4"
+                    value={
+                      subSection.repetitions === -1
+                        ? ""
+                        : subSection.repetitions.toString()
+                    }
+                    onChange={handleRepetitionsChange}
+                  />
+                </div>
               </div>
             </div>
           </div>
+          <MiscellaneousControls
+            type={"chord"}
+            sectionIndex={sectionIndex}
+            subSectionIndex={subSectionIndex}
+          />
         </div>
-        <MiscellaneousControls
-          type={"chord"}
-          sectionIndex={sectionIndex}
-          subSectionIndex={subSectionIndex}
-        />
-      </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={`${subSection.id}ChordSectionWrapper`}
-          layout={"position"}
-          variants={opacityAndScaleVariants}
-          initial={"closed"}
-          animate={"expanded"}
-          exit={"closed"}
-          transition={{
-            layout: {
-              type: "spring",
-              bounce: 0.15,
-              duration: 1,
-            },
-          }}
-          className="baseVertFlex w-full !items-end !justify-start gap-6"
-        >
-          {chordSequenceIds.map((chordSequenceId, index) => (
-            <Fragment key={`${chordSequenceId}wrapper`}>
-              <div className="baseVertFlex w-full !items-start">
-                <AnimatePresence mode="wait">
-                  <ChordSequence
-                    sectionIndex={sectionIndex}
-                    subSectionIndex={subSectionIndex}
-                    chordSequenceIndex={index}
-                  />
-                </AnimatePresence>
-              </div>
-            </Fragment>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+        <div className="baseVertFlex w-full !items-end !justify-start">
+          <AnimatePresence initial={false}>
+            {chordSequenceIds.map((chordSequenceId, index) => (
+              <ChordSequence
+                key={chordSequenceId}
+                sectionIndex={sectionIndex}
+                subSectionIndex={subSectionIndex}
+                chordSequenceIndex={index}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
 
-      <Button onClick={addAnotherChordSequence}>Add chord progression</Button>
+        <Button onClick={addAnotherChordSequence}>Add chord progression</Button>
+      </motion.div>
     </motion.div>
   );
 }
