@@ -45,6 +45,11 @@ import { useInView } from "react-intersection-observer";
 import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
+import {
+  heightOpacityScaleVariants,
+  sectionListLayoutTransition,
+  sectionListOverflowStyle,
+} from "~/utils/sectionListAnimation";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -244,46 +249,48 @@ function Tab() {
             showPinnedChords={showPinnedChords}
           />
 
-          {sectionIds.map((sectionId, index) => (
-            <motion.div
-              key={sectionId}
-              ref={(el) => measureSectionHeight(sectionId, el)}
-              transition={{
-                layout: {
-                  type: "spring",
-                  bounce: 0.15,
-                  duration: 1,
-                },
-              }}
-              className="baseFlex w-full"
-            >
-              {editing ? (
-                <SectionContainer
-                  sectionIndex={index}
-                  forceCloseSectionAccordions={
-                    forceCloseSectionAccordions && index !== tabDataLength - 1
-                  }
-                  setForceCloseSectionAccordions={
-                    setForceCloseSectionAccordions
-                  }
-                  tabDataLength={tabDataLength}
-                />
-              ) : showPlaybackModal ? (
-                <div
-                  key={sectionId}
-                  style={{ height: sectionHeights[sectionId] ?? 0 }}
-                  className="w-full"
-                />
-              ) : (
-                <StaticSectionContainer
-                  sectionIndex={index}
-                  color={color}
-                  theme={theme}
-                  tabDataLength={tabDataLength}
-                />
-              )}
-            </motion.div>
-          ))}
+          <AnimatePresence initial={false}>
+            {sectionIds.map((sectionId, index) => (
+              <motion.div
+                key={sectionId}
+                ref={(el) => measureSectionHeight(sectionId, el)}
+                layout={editing ? "position" : undefined}
+                variants={editing ? heightOpacityScaleVariants : undefined}
+                initial={editing ? "closed" : false}
+                animate={editing ? "expanded" : undefined}
+                exit={editing ? "closed" : undefined}
+                transition={editing ? sectionListLayoutTransition : undefined}
+                style={editing ? sectionListOverflowStyle : undefined}
+                className="baseFlex w-full"
+              >
+                {editing ? (
+                  <SectionContainer
+                    sectionIndex={index}
+                    forceCloseSectionAccordions={
+                      forceCloseSectionAccordions && index !== tabDataLength - 1
+                    }
+                    setForceCloseSectionAccordions={
+                      setForceCloseSectionAccordions
+                    }
+                    tabDataLength={tabDataLength}
+                  />
+                ) : showPlaybackModal ? (
+                  <div
+                    key={sectionId}
+                    style={{ height: sectionHeights[sectionId] ?? 0 }}
+                    className="w-full"
+                  />
+                ) : (
+                  <StaticSectionContainer
+                    sectionIndex={index}
+                    color={color}
+                    theme={theme}
+                    tabDataLength={tabDataLength}
+                  />
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {editing && (
             <Button onClick={addNewSection} className="mb-8 px-8">

@@ -23,25 +23,12 @@ import {
   useChordSequenceData,
   useChordSequenceParentBpm,
 } from "~/hooks/useTabDataSelectors";
-
-const opacityAndScaleVariants = {
-  expanded: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      ease: "easeInOut" as const,
-      duration: 0.35,
-    },
-  },
-  closed: {
-    opacity: 0,
-    scale: 0.75,
-    transition: {
-      ease: "easeInOut" as const,
-      duration: 0.35,
-    },
-  },
-};
+import {
+  heightVariants,
+  opacityAndScaleVariants,
+  sectionListLayoutTransition,
+  sectionListOverflowStyle,
+} from "~/utils/sectionListAnimation";
 export interface ChordSequence {
   sectionIndex: number;
   subSectionIndex: number;
@@ -186,20 +173,19 @@ function ChordSequence({
   return (
     <motion.div
       key={chordSequence.id}
-      layout={"position"}
-      variants={opacityAndScaleVariants}
-      initial={"closed"}
-      animate={"expanded"}
-      exit={"closed"}
-      transition={{
-        layout: {
-          type: "spring",
-          bounce: 0.15,
-          duration: 1,
-        },
-      }}
-      className="baseFlex w-full"
+      layout="position"
+      variants={heightVariants}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={sectionListLayoutTransition}
+      style={sectionListOverflowStyle}
+      className="w-full"
     >
+      <motion.div
+        variants={opacityAndScaleVariants}
+        className="baseFlex mb-6 w-full"
+      >
       {Object.keys(chordSequence.strummingPattern).length === 0 ? (
         <div className="baseVertFlex relative h-full w-full gap-4 rounded-md border bg-background px-4 py-8 shadow-sm">
           <p className="mt-8 font-semibold sm:mt-0 sm:text-lg">
@@ -390,6 +376,7 @@ function ChordSequence({
           />
         </div>
       )}
+      </motion.div>
     </motion.div>
   );
 }

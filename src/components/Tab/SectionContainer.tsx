@@ -261,28 +261,25 @@ function SectionContainer({
             {/* map over tab/chord subSections */}
             <div
               id={`sectionIndex${sectionIndex}`}
-              className="baseVertFlex w-full gap-4"
+              className="baseVertFlex w-full !justify-start"
             >
-              {subSectionIds.map((subSectionId, index) => (
-                <div
-                  key={subSectionId}
-                  className="baseVertFlex w-full !items-start pb-2"
-                >
-                  <AnimatePresence mode="wait">
-                    {subSectionTypes[index] === "chord" ? (
-                      <ChordSection
-                        sectionIndex={sectionIndex}
-                        subSectionIndex={index}
-                      />
-                    ) : (
-                      <TabSection
-                        sectionIndex={sectionIndex}
-                        subSectionIndex={index}
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
+              <AnimatePresence initial={false}>
+                {subSectionIds.map((subSectionId, index) =>
+                  subSectionTypes[index] === "chord" ? (
+                    <ChordSection
+                      key={subSectionId}
+                      sectionIndex={sectionIndex}
+                      subSectionIndex={index}
+                    />
+                  ) : (
+                    <TabSection
+                      key={subSectionId}
+                      sectionIndex={sectionIndex}
+                      subSectionIndex={index}
+                    />
+                  ),
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="baseFlex mb-4 mt-8 gap-4">
