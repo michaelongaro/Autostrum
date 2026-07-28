@@ -935,7 +935,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
           <div className="baseVertFlex !flex-start w-full !items-start gap-2 border-b bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-xl tablet:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between gap-4">
-                <div className="baseFlex !justify-start gap-2">
+                <div className="baseFlex !items-baseline !justify-start gap-2">
                   <div
                     style={{
                       fontSize: getDynamicFontSize(title, 20, 24, 50),
@@ -955,9 +955,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           className="!h-6 !p-0"
                         >
                           <div className="baseFlex gap-1 text-lg font-medium">
-                            {artistIsVerified && (
-                              <Verified className="size-5 shrink-0" />
-                            )}
+                            {true && <Verified className="size-5 shrink-0" />}
                             <span className="max-w-[300px] truncate">
                               {artistName}
                             </span>
@@ -1096,7 +1094,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                     </div>
 
                     {artistName && (
-                      <div className="baseFlex w-full max-w-[100%] !justify-start gap-1.5 text-lg">
+                      <div className="baseFlex w-full max-w-[100%] !justify-start gap-2 text-lg">
                         by
                         <Button variant={"link"} asChild>
                           <Link
