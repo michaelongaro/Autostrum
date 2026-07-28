@@ -1,8 +1,6 @@
 import { motion } from "framer-motion";
 import { forwardRef, type ReactNode } from "react";
 
-const enterExitDuration = 0.35;
-
 // Height-only on the outer node (overflow hidden clips content during grow/shrink).
 // Opacity on the inner node via variant propagation.
 const heightVariants = {
@@ -10,14 +8,14 @@ const heightVariants = {
     height: "auto" as const,
     transition: {
       ease: "easeInOut" as const,
-      duration: enterExitDuration,
+      duration: 0.35,
     },
   },
   hidden: {
     height: 0,
     transition: {
       ease: "easeInOut" as const,
-      duration: enterExitDuration,
+      duration: 0.35,
     },
   },
 };
@@ -27,14 +25,14 @@ const opacityVariants = {
     opacity: 1,
     transition: {
       ease: "easeInOut" as const,
-      duration: enterExitDuration,
+      duration: 0,
     },
   },
   hidden: {
-    opacity: 0.75,
+    opacity: 0,
     transition: {
       ease: "easeInOut" as const,
-      duration: enterExitDuration,
+      duration: 0,
     },
   },
 };

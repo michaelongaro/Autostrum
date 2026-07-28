@@ -282,8 +282,7 @@ function Tab() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{
-                      ease: "easeInOut",
-                      duration: 0.35,
+                      duration: 0,
                     }}
                     style={{ transformOrigin: "center top" }}
                     className="baseFlex w-full"
