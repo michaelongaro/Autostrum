@@ -45,17 +45,6 @@ import { useInView } from "react-intersection-observer";
 import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
-import {
-  heightAnimate,
-  heightExit,
-  heightInitial,
-  heightTransition,
-  scaleAnimate,
-  scaleExit,
-  scaleInitial,
-  scaleTransition,
-  sectionListOverflowStyle,
-} from "~/utils/sectionListAnimation";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -255,25 +244,47 @@ function Tab() {
             showPinnedChords={showPinnedChords}
           />
 
-          <AnimatePresence initial={false}>
-            {sectionIds.map((sectionId, index) => (
-              <motion.div
-                key={sectionId}
-                ref={(el) => measureSectionHeight(sectionId, el)}
-                layout={editing ? "position" : undefined}
-                initial={editing ? heightInitial : false}
-                animate={editing ? heightAnimate : undefined}
-                exit={editing ? heightExit : undefined}
-                transition={editing ? heightTransition : undefined}
-                style={editing ? sectionListOverflowStyle : undefined}
-                className="w-full"
-              >
-                {editing ? (
+          {editing ? (
+            <AnimatePresence initial={false}>
+              {sectionIds.map((sectionId, index) => (
+                <motion.div
+                  key={sectionId}
+                  layout={"position"}
+                  initial={{ height: 0 }}
+                  animate={{ height: "auto" }}
+                  exit={{ height: 0 }}
+                  transition={
+                    editing
+                      ? {
+                          height: {
+                            ease: "easeInOut",
+                            duration: 0.35,
+                          },
+                          layout: {
+                            type: "spring",
+                            bounce: 0.15,
+                            duration: 1,
+                          },
+                        }
+                      : undefined
+                  }
+                  style={
+                    editing
+                      ? {
+                          overflow: "hidden",
+                        }
+                      : undefined
+                  }
+                  className="w-full"
+                >
                   <motion.div
-                    initial={scaleInitial}
-                    animate={scaleAnimate}
-                    exit={scaleExit}
-                    transition={scaleTransition}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      ease: "easeInOut",
+                      duration: 0.35,
+                    }}
                     style={{ transformOrigin: "center top" }}
                     className="baseFlex w-full"
                   >
@@ -289,23 +300,35 @@ function Tab() {
                       tabDataLength={tabDataLength}
                     />
                   </motion.div>
-                ) : showPlaybackModal ? (
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          ) : (
+            <>
+              {sectionIds.map((sectionId, index) =>
+                showPlaybackModal ? (
                   <div
-                    key={sectionId}
+                    key={`staticSectionWrapperFiller-${sectionId}`}
                     style={{ height: sectionHeights[sectionId] ?? 0 }}
                     className="w-full"
                   />
                 ) : (
-                  <StaticSectionContainer
-                    sectionIndex={index}
-                    color={color}
-                    theme={theme}
-                    tabDataLength={tabDataLength}
-                  />
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                  <div
+                    key={`staticSectionWrapper-${sectionId}`}
+                    ref={(el) => measureSectionHeight(sectionId, el)}
+                    className="w-full"
+                  >
+                    <StaticSectionContainer
+                      sectionIndex={index}
+                      color={color}
+                      theme={theme}
+                      tabDataLength={tabDataLength}
+                    />
+                  </div>
+                ),
+              )}
+            </>
+          )}
 
           {editing && (
             <Button onClick={addNewSection} className="mb-8 px-8">
