@@ -310,15 +310,15 @@ function MiscellaneousControls({
 
         subSectionData.splice(subSectionIndex, 1);
       } else {
-        if (sectionIndex === 0) {
-          draft.length = 0; // Clearing the entire array
+        draft.splice(sectionIndex, 1);
+
+        // never want tabData to be totally empty
+        if (draft.length === 0) {
           draft.push({
             id: crypto.randomUUID(),
             title: "Section 1",
             data: [],
           });
-        } else {
-          draft.splice(sectionIndex, 1);
         }
       }
     });

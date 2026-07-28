@@ -39,9 +39,7 @@ const opacityVariants = {
 
 const layoutTransition = {
   layout: {
-    type: "spring" as const,
-    bounce: 0.15,
-    duration: 1,
+    duration: 0.35,
   },
 };
 

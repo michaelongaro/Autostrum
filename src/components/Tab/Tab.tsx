@@ -253,28 +253,18 @@ function Tab() {
                   initial={{ height: 0 }}
                   animate={{ height: "auto" }}
                   exit={{ height: 0 }}
-                  transition={
-                    editing
-                      ? {
-                          height: {
-                            ease: "easeInOut",
-                            duration: 0.35,
-                          },
-                          layout: {
-                            type: "spring",
-                            bounce: 0.15,
-                            duration: 1,
-                          },
-                        }
-                      : undefined
-                  }
-                  style={
-                    editing
-                      ? {
-                          overflow: "hidden",
-                        }
-                      : undefined
-                  }
+                  transition={{
+                    height: {
+                      ease: "easeInOut",
+                      duration: 0.35,
+                    },
+                    layout: {
+                      duration: 0.35,
+                    },
+                  }}
+                  style={{
+                    overflow: "hidden",
+                  }}
                   className="w-full"
                 >
                   <motion.div
