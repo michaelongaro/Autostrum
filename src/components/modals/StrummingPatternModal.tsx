@@ -106,7 +106,6 @@ function StrummingPatternModal({
     setStrummingPatterns,
     setStrummingPatternBeingEdited,
     previewMetadata,
-    audioMetadata,
     playPreview,
     pauseAudio,
     setTabData,
@@ -115,7 +114,6 @@ function StrummingPatternModal({
     setStrummingPatterns: state.setStrummingPatterns,
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
     previewMetadata: state.previewMetadata,
-    audioMetadata: state.audioMetadata,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
     setTabData: state.setTabData,
@@ -239,7 +237,7 @@ function StrummingPatternModal({
       ...strummingPatternBeingEdited.value,
     });
 
-    if (audioMetadata.playing) pauseAudio();
+    if (previewMetadata.playing) pauseAudio();
 
     setStrummingPatterns(newStrummingPatterns);
     setStrummingPatternBeingEdited(null);
