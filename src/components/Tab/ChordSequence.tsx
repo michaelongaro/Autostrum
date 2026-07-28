@@ -66,13 +66,20 @@ function ChordSequence({
 
   // sets sequence's strumming pattern to first existing pattern if the current pattern is empty
   useEffect(() => {
+    // Skip while AnimatePresence is exiting a deleted sequence/subsection.
+    if (!chordSequence) return;
+
     if (
       Object.keys(chordSequence.strummingPattern).length === 0 &&
       strummingPatterns[0]
     ) {
       setTabData((draft) => {
+        const subSection = draft[sectionIndex]?.data[subSectionIndex];
+        if (subSection?.type !== "chord") return;
+        if (!subSection.data[chordSequenceIndex]) return;
+
         // fill in the chord sequence with empty strings the size of the strumming pattern
-        draft[sectionIndex]!.data[subSectionIndex]!.data[chordSequenceIndex] = {
+        subSection.data[chordSequenceIndex] = {
           id: chordSequence.id,
           repetitions: chordSequence.repetitions,
           bpm: -1,
@@ -94,6 +101,9 @@ function ChordSequence({
     chordSequenceIndex,
     setTabData,
   ]);
+
+  // Still mounted by AnimatePresence after delete — render nothing until unmount.
+  if (!chordSequence) return null;
 
   const placeholderBpm =
     chordSequence.bpm !== -1
