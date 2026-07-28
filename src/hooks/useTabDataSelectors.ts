@@ -72,22 +72,18 @@ export const useSubSectionData = (
   subSectionIndex: number,
 ) => {
   return useTabStore((state) => {
-    const section = state.tabData[sectionIndex];
-
-    // @ts-expect-error TODO come back later
-    return section.data[subSectionIndex]!;
+    // May be undefined while AnimatePresence keeps an exiting child mounted.
+    return state.tabData[sectionIndex]?.data[subSectionIndex];
   });
 };
 
 export const useTabSubSectionData = (
   sectionIndex: number,
   subSectionIndex: number,
-) => {
+): TabSection | undefined => {
   return useTabStore((state) => {
-    const section = state.tabData[sectionIndex];
-
-    // @ts-expect-error TODO come back later
-    return section.data[subSectionIndex] as TabSection;
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    return sub?.type === "tab" ? sub : undefined;
   });
 };
 
@@ -247,12 +243,10 @@ export const useTabColumnNeighborMeta = (
 export const useChordSubSectionData = (
   sectionIndex: number,
   subSectionIndex: number,
-) => {
+): ChordSection | undefined => {
   return useTabStore((state) => {
-    const section = state.tabData[sectionIndex];
-
-    // @ts-expect-error TODO come back later
-    return section.data[subSectionIndex] as ChordSection;
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    return sub?.type === "chord" ? sub : undefined;
   });
 };
 
@@ -294,14 +288,13 @@ export const useChordSequenceData = (
   sectionIndex: number,
   subSectionIndex: number,
   chordSequenceIndex: number,
-) => {
+): ChordSequence | undefined => {
   return useTabStore((state) => {
-    const section = state.tabData[sectionIndex];
-
-    // @ts-expect-error TODO come back later
-    return section.data[subSectionIndex].data[
-      chordSequenceIndex
-    ] as ChordSequence;
+    // May be undefined while AnimatePresence keeps an exiting child mounted
+    // after the chord subsection / sequence was deleted from the store.
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    if (sub?.type !== "chord") return undefined;
+    return sub.data[chordSequenceIndex];
   });
 };
 
@@ -319,18 +312,18 @@ export const useColumnData = (
   sectionIndex: number,
   subSectionIndex: number,
   columnIndex: number,
-) => {
+): string[] | undefined => {
   return useTabStore((state) => {
-    const subSection = state.tabData[sectionIndex]?.data[subSectionIndex];
-
-    // @ts-expect-error TODO come back later
-    return subSection.data[columnIndex] as string[];
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    if (sub?.type !== "chord") return undefined;
+    return sub.data[columnIndex]?.data;
   });
 };
 
 export const useTabDataSubSectionLength = (sectionIndex: number) => {
-  // @ts-expect-error TODO come back later
-  return useTabStore((state) => state.tabData[sectionIndex].data.length);
+  return useTabStore(
+    (state) => state.tabData[sectionIndex]?.data.length ?? 0,
+  );
 };
 
 export const useTabDataLength = () => {
