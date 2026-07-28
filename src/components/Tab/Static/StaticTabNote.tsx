@@ -1,13 +1,10 @@
 import PauseIcon from "~/components/ui/icons/PauseIcon";
-import type { COLORS, THEME } from "~/stores/TabStore";
 
 interface StaticTabNote {
   note: string;
   isAccented?: boolean;
   isStaccato?: boolean;
   isRest?: boolean;
-  color: COLORS;
-  theme: THEME;
 }
 
 function StaticTabNote({
@@ -15,8 +12,6 @@ function StaticTabNote({
   isAccented,
   isStaccato,
   isRest,
-  color,
-  theme,
 }: StaticTabNote) {
   return (
     <div className="baseFlex h-[24px] w-full">

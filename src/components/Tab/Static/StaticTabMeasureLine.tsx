@@ -1,9 +1,5 @@
 import { QuarterNote } from "~/utils/noteLengthIcons";
-import type {
-  COLORS,
-  THEME,
-  TabMeasureLine as TabMeasureLineType,
-} from "~/stores/TabStore";
+import type { TabMeasureLine as TabMeasureLineType } from "~/stores/TabStore";
 import {
   STATIC_TAB_MEASURE_LINE_WIDTH_PX,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
@@ -12,15 +8,9 @@ import {
 
 interface StaticTabMeasureLineProps {
   columnData: TabMeasureLineType;
-  color: COLORS;
-  theme: THEME;
 }
 
-function StaticTabMeasureLine({
-  columnData,
-  color,
-  theme,
-}: StaticTabMeasureLineProps) {
+function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
   return (
     <div
       style={{

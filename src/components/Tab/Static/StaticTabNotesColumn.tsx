@@ -134,7 +134,8 @@ function StaticTabNotesColumn({
                 <>
                   <div
                     style={{
-                      backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+                      backgroundColor:
+                        "hsl(var(--screenshot-foreground) / 0.5)",
                     }}
                     className="h-[1px] w-full"
                   ></div>
@@ -158,13 +159,12 @@ function StaticTabNotesColumn({
                     isRest={
                       stringIndex === 4 && columnData.chordEffects === "r"
                     }
-                    color={color}
-                    theme={theme}
                   />
 
                   <div
                     style={{
-                      backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+                      backgroundColor:
+                        "hsl(var(--screenshot-foreground) / 0.5)",
                     }}
                     className="h-[1px] w-full"
                   ></div>

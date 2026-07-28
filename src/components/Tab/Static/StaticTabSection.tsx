@@ -74,11 +74,11 @@ function FullStaticTabSection({
   }));
 
   return (
-    <SectionCard color={color} theme={theme}>
+    <SectionCard>
       <div
         className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto" : "flex-wrap"}`}
       >
-        <TuningGutter tuning={tuning} color={color} theme={theme} />
+        <TuningGutter tuning={tuning} />
         {renderColumnRange(
           subSectionData.data,
           0,
@@ -244,7 +244,7 @@ function VirtualizedStaticTabSection({
     // pre-measurement + below-threshold: identical to the full-render path
     bodyContent = (
       <>
-        <TuningGutter tuning={tuning} color={color} theme={theme} />
+        <TuningGutter tuning={tuning} />
         {renderColumnRange(
           subSectionData.data,
           0,
@@ -282,9 +282,7 @@ function VirtualizedStaticTabSection({
               style={{ height: STATIC_TAB_ROW_HEIGHT_PX }}
               className="baseFlex w-full !justify-start"
             >
-              {row.rowIndex === 0 && (
-                <TuningGutter tuning={tuning} color={color} theme={theme} />
-              )}
+              {row.rowIndex === 0 && <TuningGutter tuning={tuning} />}
               {renderColumnRange(
                 subSectionData.data,
                 row.startIndex,
@@ -306,7 +304,7 @@ function VirtualizedStaticTabSection({
     // that virtualizes always packs more than one row, meaning its wrapped
     // content already spanned the full container width, so pinning the card
     // to w-full is visually identical and keeps the measured width stable.
-    <SectionCard color={color} theme={theme} fullWidth={isVirtualized}>
+    <SectionCard fullWidth={isVirtualized}>
       <div
         ref={bodyRef}
         style={
@@ -327,13 +325,9 @@ function VirtualizedStaticTabSection({
 }
 
 function SectionCard({
-  color,
-  theme,
   fullWidth = false,
   children,
 }: {
-  color: COLORS;
-  theme: THEME;
   fullWidth?: boolean;
   children: ReactNode;
 }) {
@@ -351,15 +345,7 @@ function SectionCard({
 }
 
 // rendered at the start of the first row only
-function TuningGutter({
-  tuning,
-  color,
-  theme,
-}: {
-  tuning: string;
-  color: COLORS;
-  theme: THEME;
-}) {
+function TuningGutter({ tuning }: { tuning: string }) {
   return (
     <div
       style={{
@@ -412,12 +398,7 @@ function renderColumnRange(
 
     if (isTabMeasureLine(column)) {
       renderedColumns.push(
-        <StaticTabMeasureLine
-          key={column.id}
-          columnData={column}
-          color={color}
-          theme={theme}
-        />,
+        <StaticTabMeasureLine key={column.id} columnData={column} />,
       );
     } else {
       renderedColumns.push(
