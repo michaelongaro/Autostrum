@@ -3,14 +3,8 @@ import { forwardRef, type ReactNode } from "react";
 
 const enterExitDuration = 0.35;
 
-/**
- * Height-only on the outer node (overflow hidden clips content during grow/shrink).
- * Scale on the inner node via variant propagation.
- *
- * Opacity is intentionally omitted: Framer Motion 12 often fails to interpolate
- * opacity on the same timeline as height:"auto", leaving content invisible until
- * the animation ends (a sudden pop). Height clipping + scale reads clearly.
- */
+// Height-only on the outer node (overflow hidden clips content during grow/shrink).
+// Opacity on the inner node via variant propagation.
 const heightVariants = {
   visible: {
     height: "auto" as const,
@@ -28,16 +22,16 @@ const heightVariants = {
   },
 };
 
-const scaleVariants = {
+const opacityVariants = {
   visible: {
-    scale: 1,
+    opacity: 1,
     transition: {
       ease: "easeInOut" as const,
       duration: enterExitDuration,
     },
   },
   hidden: {
-    scale: 0.75,
+    opacity: 0.75,
     transition: {
       ease: "easeInOut" as const,
       duration: enterExitDuration,
@@ -85,7 +79,7 @@ const AnimatedListItem = forwardRef<HTMLDivElement, AnimatedListItemProps>(
         className={className}
       >
         <motion.div
-          variants={scaleVariants}
+          variants={opacityVariants}
           style={{ transformOrigin: "center top" }}
           className={contentClassName}
         >
