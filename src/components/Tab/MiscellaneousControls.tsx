@@ -203,16 +203,18 @@ function MiscellaneousControls({
       subSection?.type === "chord"
     ) {
       const newChordSequence = structuredClone(
-        subSection.data[chordSequenceIndex] as ChordSequence,
+        subSection.data[chordSequenceIndex],
       );
 
-      setCurrentlyCopiedData({
-        type: "chordSequence",
-        data: newChordSequence,
-      });
+      if (newChordSequence) {
+        setCurrentlyCopiedData({
+          type: "chordSequence",
+          data: newChordSequence,
+        });
+      }
     } else if (subSectionIndex !== undefined && sectionIndex !== undefined) {
       if (type === "chord" && subSection?.type === "chord") {
-        const newSubSection = structuredClone(subSection as ChordSection);
+        const newSubSection = structuredClone(subSection);
 
         setCurrentlyCopiedData({
           type: "chord",
@@ -220,7 +222,7 @@ function MiscellaneousControls({
         });
       } else if (type === "tab" && subSection?.type === "tab") {
         const newSubSection = replaceIdInTabSection(
-          structuredClone(subSection as TabSection),
+          structuredClone(subSection),
         );
 
         setCurrentlyCopiedData({
