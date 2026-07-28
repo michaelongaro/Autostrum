@@ -606,6 +606,17 @@ function AudioControls() {
 
                 setCurrentChordIndex(values[0] ?? 0);
               }}
+              onFinalChange={() => {
+                if (
+                  currentlyPlayingMetadata?.[currentChordIndex] &&
+                  autoscrollEnabled
+                ) {
+                  scrollChordIntoView({
+                    location:
+                      currentlyPlayingMetadata[currentChordIndex].location,
+                  });
+                }
+              }}
               renderTrack={({ props, children, disabled }) => (
                 <div
                   onMouseDown={props.onMouseDown}

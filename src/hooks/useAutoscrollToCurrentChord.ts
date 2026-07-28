@@ -68,17 +68,16 @@ function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
 
   useEffect(() => {
     if (
-      // potential complications w/ short (aka repeated) tab data while in playback dialog
       !editing ||
       // don't want to scroll to first chord when initially loading tab in
       (previousChordYScrollValueRef.current === -1 &&
         currentChordIndex === 0) ||
-      !currentlyPlayingMetadata ||
-      (!audioMetadata.playing && !interactingWithAudioProgressSlider) ||
+      !audioMetadata.playing ||
       !autoscrollEnabled ||
-      !currentlyPlayingMetadata[currentChordIndex] // Safety check
-    )
+      !currentlyPlayingMetadata?.[currentChordIndex] // Safety check
+    ) {
       return;
+    }
 
     const currentChordLocation =
       currentlyPlayingMetadata[currentChordIndex].location;
