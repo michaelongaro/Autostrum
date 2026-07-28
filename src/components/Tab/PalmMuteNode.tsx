@@ -232,7 +232,11 @@ function PalmMuteNode({
 
     for (let i = startIdx; i <= endIdx; i++) {
       const column = currentSubSection.data[i];
-      if (column && isTabNote(column)) {
+      if (!column) continue;
+
+      // Measure lines must be cleared too, otherwise isInPalmMuteSection sticks
+      // after a section is deleted or shortened across a bar line.
+      if (isTabNote(column) || isTabMeasureLine(column)) {
         setPalmMuteValue(column, "");
       }
     }
@@ -255,14 +259,19 @@ function PalmMuteNode({
 
     for (let i = startIdx; i <= endIdx; i++) {
       const column = currentSubSection.data[i];
-      if (column) {
-        if (i === startIdx) {
-          setPalmMuteValue(column, "start");
-        } else if (i === endIdx) {
-          setPalmMuteValue(column, "end");
-        } else {
-          setPalmMuteValue(column, "-");
-        }
+      if (!column) continue;
+
+      if (isTabMeasureLine(column)) {
+        column.isInPalmMuteSection = true;
+        continue;
+      }
+
+      if (i === startIdx) {
+        setPalmMuteValue(column, "start");
+      } else if (i === endIdx) {
+        setPalmMuteValue(column, "end");
+      } else {
+        setPalmMuteValue(column, "-");
       }
     }
   }
@@ -330,22 +339,17 @@ function PalmMuteNode({
     // Case 3: Cancel removal - clicked same start/end node again
     if (wasNode && isClickingSameCell) {
       const prevValue = lastModifiedPalmMuteNode.prevValue as "start" | "end";
-      setTabData((draft) => {
-        setPalmMuteAtColumn(
-          draft,
-          sectionIndex,
-          subSectionIndex,
-          columnIndex,
-          prevValue,
-        );
-      });
+      // pairNodeValue puts the helper in add mode so dashes (and this node) are
+      // restored toward the remaining pair instead of cleared again.
       addOrRemovePalmMuteDashes({
         setTabData,
         sectionIndex,
         subSectionIndex,
         startColumnIndex: columnIndex,
         prevValue: lastModifiedPalmMuteNode.prevValue,
+        pairNodeValue: prevValue,
       });
+      setLastModifiedPalmMuteNode(null);
       return;
     }
 

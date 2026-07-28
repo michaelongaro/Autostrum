@@ -1,8 +1,6 @@
 import type {
   Section,
   StrummingPattern,
-  TabNote,
-  TabMeasureLine,
 } from "~/stores/TabStore";
 import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
 
@@ -107,8 +105,8 @@ interface AddOrRemoveStrummingPatternPalmMuteDashes {
   pairNodeValue?: string;
 }
 
-// no errors... yet, but isn't removing hanging node properly on strumming pattern
-
+// Adds dashes between a new pair node, or clears dashes toward the remaining pair
+// after one endpoint was removed.
 function addOrRemoveStrummingPatternPalmMuteDashes({
   strummingPatternBeingEdited,
   setStrummingPatternBeingEdited,
@@ -116,46 +114,62 @@ function addOrRemoveStrummingPatternPalmMuteDashes({
   prevValue,
   pairNodeValue,
 }: AddOrRemoveStrummingPatternPalmMuteDashes) {
-  let finishedModification = false;
-  const newStrummingPattern = { ...strummingPatternBeingEdited };
+  const strums = strummingPatternBeingEdited.value.strums.map((strum) => ({
+    ...strum,
+  }));
+  const isAdding = pairNodeValue !== undefined;
+  const direction = isAdding
+    ? pairNodeValue === "start"
+      ? 1
+      : -1
+    : prevValue === "start"
+      ? 1
+      : -1;
+  const stopAtNodeType = isAdding
+    ? pairNodeValue === "" || pairNodeValue === "end"
+      ? "start"
+      : "end"
+    : prevValue === "start"
+      ? "end"
+      : "start";
+
   let currentColumnIndex = startColumnIndex;
 
-  while (!finishedModification) {
-    // start/end node already defined, meaning we just clicked on an empty node to be the other pair node
-    if (pairNodeValue !== undefined) {
+  while (
+    currentColumnIndex >= 0 &&
+    currentColumnIndex < strums.length
+  ) {
+    const currentStrum = strums[currentColumnIndex];
+    if (!currentStrum) break;
+
+    if (isAdding) {
       if (currentColumnIndex === startColumnIndex) {
-        newStrummingPattern.value.strums[startColumnIndex]!.palmMute =
+        currentStrum.palmMute =
           pairNodeValue === ""
             ? "end"
-            : (pairNodeValue as "start" | "end" | "-" | "");
+            : (pairNodeValue as "" | "-" | "start" | "end");
+      } else if (currentStrum.palmMute === stopAtNodeType) {
+        break;
+      } else {
+        currentStrum.palmMute = "-";
+      }
+    } else {
+      if (currentStrum.palmMute === stopAtNodeType) {
+        break;
+      }
+      currentStrum.palmMute = "";
+    }
 
-        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      } else if (
-        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
-        (pairNodeValue === "" || pairNodeValue === "end" ? "start" : "end")
-      ) {
-        finishedModification = true;
-      } else {
-        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "-";
-        pairNodeValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      }
-    }
-    // pair already defined, meaning we just removed either the start/end node and need to remove dashes
-    // in between until we hit the other node
-    else {
-      if (
-        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute ===
-        (prevValue === "start" ? "end" : "start")
-      ) {
-        finishedModification = true;
-      } else {
-        newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "";
-        prevValue === "start" ? currentColumnIndex++ : currentColumnIndex--;
-      }
-    }
+    currentColumnIndex += direction;
   }
 
-  setStrummingPatternBeingEdited(newStrummingPattern);
+  setStrummingPatternBeingEdited({
+    ...strummingPatternBeingEdited,
+    value: {
+      ...strummingPatternBeingEdited.value,
+      strums,
+    },
+  });
 }
 
 interface TraverseToRemoveHangingPairNode {
@@ -184,9 +198,21 @@ function traverseToRemoveHangingPairNode({
 
     while (!pairNodeRemoved) {
       const currentColumn = subSectionData[currentColumnIndex];
-      if (!currentColumn || !isTabNote(currentColumn)) {
-        pairNodeRemoved = true;
+      if (currentColumn === undefined) {
+        break;
+      }
+
+      // Skip measure lines instead of aborting — the pair node may be past a bar.
+      if (isTabMeasureLine(currentColumn)) {
+        currentColumn.isInPalmMuteSection = false;
+        pairNodeToRemove === "start"
+          ? currentColumnIndex--
+          : currentColumnIndex++;
         continue;
+      }
+
+      if (!isTabNote(currentColumn)) {
+        break;
       }
 
       if (pairNodeToRemove === "start" && currentColumn.palmMute === "start") {
@@ -228,31 +254,34 @@ function traverseToRemoveHangingStrummingPatternPairNode({
   startColumnIndex,
   pairNodeToRemove,
 }: TraverseToRemoveHangingStrummingPatternPairNode) {
-  let pairNodeRemoved = false;
-  const newStrummingPattern = { ...strummingPatternBeingEdited };
+  const strums = strummingPatternBeingEdited.value.strums.map((strum) => ({
+    ...strum,
+  }));
   let currentColumnIndex = startColumnIndex;
+  const direction = pairNodeToRemove === "start" ? -1 : 1;
 
-  while (!pairNodeRemoved) {
-    if (
-      pairNodeToRemove === "start" &&
-      newStrummingPattern.value.strums[currentColumnIndex]?.palmMute === "start"
-    ) {
-      newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "";
-      pairNodeRemoved = true;
-    } else if (
-      pairNodeToRemove === "end" &&
-      newStrummingPattern.value.strums[currentColumnIndex]?.palmMute === "end"
-    ) {
-      newStrummingPattern.value.strums[currentColumnIndex]!.palmMute = "";
-      pairNodeRemoved = true;
-    } else {
-      pairNodeToRemove === "start"
-        ? currentColumnIndex--
-        : currentColumnIndex++;
+  while (
+    currentColumnIndex >= 0 &&
+    currentColumnIndex < strums.length
+  ) {
+    const currentStrum = strums[currentColumnIndex];
+    if (!currentStrum) break;
+
+    if (currentStrum.palmMute === pairNodeToRemove) {
+      currentStrum.palmMute = "";
+      break;
     }
+
+    currentColumnIndex += direction;
   }
 
-  setStrummingPatternBeingEdited(newStrummingPattern);
+  setStrummingPatternBeingEdited({
+    ...strummingPatternBeingEdited,
+    value: {
+      ...strummingPatternBeingEdited.value,
+      strums,
+    },
+  });
 }
 
 export {
