@@ -1,14 +1,18 @@
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
+import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
+import { usePlaybackLoopRangeEdit } from "~/components/Tab/Playback/PlaybackLoopRangeEditContext";
 import { getDynamicNoteLengthIcon, QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import type { FullNoteLengths } from "~/stores/TabStore";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useTabStore } from "~/stores/TabStore";
 import ChordName from "~/components/ui/ChordName";
+import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 
 interface PlaybackStrummedChord {
   strum: string;
+  chordIndex?: number;
   palmMute?: string;
   chordName?: string;
   chordColor?: string;
@@ -31,6 +35,7 @@ interface PlaybackStrummedChord {
 
 function PlaybackStrummedChord({
   strum,
+  chordIndex,
   palmMute,
   chordName = "",
   chordColor = "",
@@ -53,6 +58,19 @@ function PlaybackStrummedChord({
   const { chordDisplayMode } = useTabStore((state) => ({
     chordDisplayMode: state.chordDisplayMode,
   }));
+  const loopRangeEdit = usePlaybackLoopRangeEdit();
+  const showLoopNode =
+    loopRangeEdit?.enabled === true && typeof chordIndex === "number";
+  const loopNodePresentation =
+    showLoopNode && loopRangeEdit
+      ? getLoopRangeNodePresentation({
+          index: chordIndex,
+          isSelectableChord: true,
+          loopRange: loopRangeEdit.loopRange,
+          pendingStartIndex: loopRangeEdit.pendingStartIndex,
+          selectionStep: loopRangeEdit.selectionStep,
+        })
+      : null;
 
   return (
     <div
@@ -222,6 +240,17 @@ function PlaybackStrummedChord({
           })}
         </div>
       </div>
+
+      {loopNodePresentation && typeof chordIndex === "number" && (
+        <div className="baseFlex mt-1 h-6 w-full">
+          <PlaybackLoopRangeNode
+            role={loopNodePresentation.role}
+            opacity={loopNodePresentation.opacity}
+            disabled={loopNodePresentation.disabled}
+            onSelect={() => loopRangeEdit?.onSelectChord(chordIndex)}
+          />
+        </div>
+      )}
     </div>
   );
 }

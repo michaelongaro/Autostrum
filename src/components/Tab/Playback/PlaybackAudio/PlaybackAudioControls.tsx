@@ -8,7 +8,6 @@ import {
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import PlaybackProgressRange from "~/components/AudioControls/PlaybackProgressRange";
-import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 import { Button } from "~/components/ui/button";
 import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
@@ -16,12 +15,14 @@ import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import { getConcreteLoopEndIndex } from "~/utils/loopRangeHelpers";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 interface PlaybackAudioControls {
   chordDurations: number[];
   loopRange: [number, number];
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
+  setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
@@ -32,6 +33,7 @@ function PlaybackAudioControls({
   chordDurations,
   loopRange,
   setLoopRange,
+  setPendingStartIndex,
   tabProgressValue,
   setTabProgressValue,
   setChordRepetitions,
@@ -320,6 +322,7 @@ function PlaybackAudioControls({
               chordDurations={chordDurations}
               loopRange={loopRange}
               setLoopRange={setLoopRange}
+              setPendingStartIndex={setPendingStartIndex}
               setChordRepetitions={setChordRepetitions}
               scrollPositionsLength={scrollPositionsLength}
             />
@@ -335,25 +338,35 @@ function PlaybackAudioControls({
             </div>
           </div>
 
-          <Toggle
-            variant={"outline"}
-            aria-label="Edit loop range"
-            disabled={audioMetadata.playing || countInTimer.showing}
-            pressed={audioMetadata.editingLoopRange}
-            className="h-8 w-8 p-1"
-            onPressedChange={(value) => {
-              // set to beginning of loop if moving to editing loop range, otherwise
-              // reset to beginning of tab
-              setCurrentChordIndex(value ? audioMetadata.startLoopIndex : 0);
+          {!audioMetadata.editingLoopRange && (
+            <Toggle
+              variant={"outline"}
+              aria-label="Edit loop range"
+              disabled={audioMetadata.playing || countInTimer.showing}
+              pressed={audioMetadata.editingLoopRange}
+              className="h-8 w-8 p-1"
+              onPressedChange={(value) => {
+                setPendingStartIndex(null);
+                setLoopRange([
+                  audioMetadata.startLoopIndex,
+                  getConcreteLoopEndIndex(
+                    audioMetadata.endLoopIndex,
+                    audioMetadata.fullTabMetadataLength,
+                  ),
+                ]);
+                setCurrentChordIndex(
+                  value ? audioMetadata.startLoopIndex : 0,
+                );
 
-              setAudioMetadata({
-                ...audioMetadata,
-                editingLoopRange: value,
-              });
-            }}
-          >
-            <CgArrowsShrinkH className="h-6 w-6" />
-          </Toggle>
+                setAudioMetadata({
+                  ...audioMetadata,
+                  editingLoopRange: value,
+                });
+              }}
+            >
+              <CgArrowsShrinkH className="h-6 w-6" />
+            </Toggle>
+          )}
         </div>
       )}
 
@@ -364,6 +377,7 @@ function PlaybackAudioControls({
             chordDurations={chordDurations}
             loopRange={loopRange}
             setLoopRange={setLoopRange}
+            setPendingStartIndex={setPendingStartIndex}
             setChordRepetitions={setChordRepetitions}
             scrollPositionsLength={scrollPositionsLength}
           />
@@ -379,125 +393,115 @@ function PlaybackAudioControls({
               )}
             </div>
 
-            {/* editing loop range - granular loop range component
-                not editing loop range - regular audio controls based on viewport */}
+            <div className="baseFlex gap-6">
+              <Button
+                variant="text"
+                size={aboveLargeViewportWidth ? "default" : "sm"}
+                disabled={disablePlayButton}
+                onClick={() => {
+                  pauseAudio();
 
-            {audioMetadata.editingLoopRange ? (
-              <PlaybackGranularLoopRangeEditor
-                loopRange={loopRange}
-                setLoopRange={setLoopRange}
-              />
-            ) : (
-              <div className="baseFlex gap-6">
-                <Button
-                  variant="text"
-                  size={aboveLargeViewportWidth ? "default" : "sm"}
-                  disabled={disablePlayButton}
-                  onClick={() => {
-                    pauseAudio();
+                  let i = currentChordIndex;
 
-                    let i = currentChordIndex;
+                  const currentTime =
+                    currentlyPlayingMetadata?.[currentChordIndex]
+                      ?.elapsedSeconds;
 
-                    const currentTime =
-                      currentlyPlayingMetadata?.[currentChordIndex]
-                        ?.elapsedSeconds;
+                  if (currentTime === undefined) return;
 
-                    if (currentTime === undefined) return;
+                  const targetTime = currentTime - 5;
 
-                    const targetTime = currentTime - 5;
-
-                    // Loop to find the first chord that matches the -5 seconds condition
-                    while (i > 0) {
-                      if (
-                        currentlyPlayingMetadata?.[i]?.elapsedSeconds &&
-                        currentlyPlayingMetadata[i]!.elapsedSeconds <=
-                          targetTime
-                      ) {
-                        break;
-                      }
-                      i--;
-                    }
-
-                    // Continue looping backward to ensure it is the _very first_ chord at that time
-                    while (
-                      i > 0 &&
-                      currentlyPlayingMetadata?.[i - 1]?.elapsedSeconds ===
+                  // Loop to find the first chord that matches the -5 seconds condition
+                  while (i > 0) {
+                    if (
+                      currentlyPlayingMetadata?.[i]?.elapsedSeconds &&
+                      currentlyPlayingMetadata[i]!.elapsedSeconds <=
                         targetTime
                     ) {
-                      i--;
+                      break;
                     }
+                    i--;
+                  }
 
-                    setCurrentChordIndex(i);
-                  }}
-                  className="size-4 shrink-0 rounded-full bg-transparent p-0"
-                >
-                  -5s
-                </Button>
+                  // Continue looping backward to ensure it is the _very first_ chord at that time
+                  while (
+                    i > 0 &&
+                    currentlyPlayingMetadata?.[i - 1]?.elapsedSeconds ===
+                      targetTime
+                  ) {
+                    i--;
+                  }
 
-                <Button
-                  variant="audio"
-                  size={aboveLargeViewportWidth ? "default" : "sm"}
-                  disabled={disablePlayButton}
-                  onPointerDown={handlePlayPointerDown}
-                  onClick={handlePlayButtonClick}
-                  className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
-                >
-                  <PlayButtonIcon
-                    uniqueLocationKey="audioControls"
-                    currentInstrument={currentInstrument}
-                    audioMetadata={audioMetadata}
-                    forceShowLoadingSpinner={fetchingFullTabData}
-                    showCountInTimer={countInTimer.showing}
-                    size={"1rem"}
-                  />
-                </Button>
+                  setCurrentChordIndex(i);
+                }}
+                className="size-4 shrink-0 rounded-full bg-transparent p-0"
+              >
+                -5s
+              </Button>
 
-                <Button
-                  variant="text"
-                  size={aboveLargeViewportWidth ? "default" : "sm"}
-                  disabled={disablePlayButton}
-                  onClick={() => {
-                    if (currentlyPlayingMetadata === null) return;
+              <Button
+                variant="audio"
+                size={aboveLargeViewportWidth ? "default" : "sm"}
+                disabled={disablePlayButton}
+                onPointerDown={handlePlayPointerDown}
+                onClick={handlePlayButtonClick}
+                className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
+              >
+                <PlayButtonIcon
+                  uniqueLocationKey="audioControls"
+                  currentInstrument={currentInstrument}
+                  audioMetadata={audioMetadata}
+                  forceShowLoadingSpinner={fetchingFullTabData}
+                  showCountInTimer={countInTimer.showing}
+                  size={"1rem"}
+                />
+              </Button>
 
-                    pauseAudio();
+              <Button
+                variant="text"
+                size={aboveLargeViewportWidth ? "default" : "sm"}
+                disabled={disablePlayButton}
+                onClick={() => {
+                  if (currentlyPlayingMetadata === null) return;
 
-                    let i = currentChordIndex;
+                  pauseAudio();
 
-                    const currentTime =
-                      currentlyPlayingMetadata?.[currentChordIndex]
-                        ?.elapsedSeconds;
+                  let i = currentChordIndex;
 
-                    if (currentTime === undefined) return;
+                  const currentTime =
+                    currentlyPlayingMetadata?.[currentChordIndex]
+                      ?.elapsedSeconds;
 
-                    const targetTime = currentTime + 5;
+                  if (currentTime === undefined) return;
 
-                    // Loop to find the first chord that matches the +5 seconds condition
-                    while (
-                      i < currentlyPlayingMetadata?.length - 1 &&
-                      currentlyPlayingMetadata?.[i]?.elapsedSeconds !==
-                        undefined &&
-                      currentlyPlayingMetadata[i]!.elapsedSeconds <= targetTime
-                    ) {
-                      i++;
-                    }
+                  const targetTime = currentTime + 5;
 
-                    // Continue looping forward to ensure it is the _very first_ chord at that time
-                    while (
-                      i < currentlyPlayingMetadata?.length - 1 &&
-                      currentlyPlayingMetadata?.[i + 1]?.elapsedSeconds ===
-                        targetTime
-                    ) {
-                      i++;
-                    }
+                  // Loop to find the first chord that matches the +5 seconds condition
+                  while (
+                    i < currentlyPlayingMetadata?.length - 1 &&
+                    currentlyPlayingMetadata?.[i]?.elapsedSeconds !==
+                      undefined &&
+                    currentlyPlayingMetadata[i]!.elapsedSeconds <= targetTime
+                  ) {
+                    i++;
+                  }
 
-                    setCurrentChordIndex(i);
-                  }}
-                  className="size-4 shrink-0 rounded-full bg-transparent p-0"
-                >
-                  +5s
-                </Button>
-              </div>
-            )}
+                  // Continue looping forward to ensure it is the _very first_ chord at that time
+                  while (
+                    i < currentlyPlayingMetadata?.length - 1 &&
+                    currentlyPlayingMetadata?.[i + 1]?.elapsedSeconds ===
+                      targetTime
+                  ) {
+                    i++;
+                  }
+
+                  setCurrentChordIndex(i);
+                }}
+                className="size-4 shrink-0 rounded-full bg-transparent p-0"
+              >
+                +5s
+              </Button>
+            </div>
 
             <div className="baseFlex w-9 !justify-end self-start">
               {formatSecondsToMinutes(

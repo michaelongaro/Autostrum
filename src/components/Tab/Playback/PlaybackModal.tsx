@@ -8,6 +8,8 @@ import {
 } from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
+import PlaybackLoopRangeActions from "~/components/Tab/Playback/PlaybackLoopRangeActions";
+import { PlaybackLoopRangeEditProvider } from "~/components/Tab/Playback/PlaybackLoopRangeEditContext";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
 import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
@@ -33,6 +35,11 @@ import {
   resyncChordRepetitionsAfterIndexJump,
   type PlaybackChordLayoutData,
 } from "~/utils/playbackModalLayout";
+import {
+  getConcreteLoopEndIndex,
+  getLoopRangePrompt,
+  getLoopRangeSelectionStep,
+} from "~/utils/loopRangeHelpers";
 
 const backdropVariants = {
   expanded: {
@@ -137,11 +144,87 @@ function PlaybackModal() {
   // v avoids polluting the store with these extra semi-local values
   const [loopRange, setLoopRange] = useState<[number, number]>([
     audioMetadata.startLoopIndex,
-    audioMetadata.endLoopIndex === -1
-      ? audioMetadata.fullTabMetadataLength - 1
-      : audioMetadata.endLoopIndex,
+    getConcreteLoopEndIndex(
+      audioMetadata.endLoopIndex,
+      audioMetadata.fullTabMetadataLength,
+    ),
   ]);
+  const [pendingStartIndex, setPendingStartIndex] = useState<number | null>(
+    null,
+  );
   const [tabProgressValue, setTabProgressValue] = useState(0);
+
+  const loopRangeSelectionStep = getLoopRangeSelectionStep({
+    loopRange,
+    pendingStartIndex,
+    fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
+  });
+  const loopRangePrompt = audioMetadata.editingLoopRange
+    ? getLoopRangePrompt(loopRangeSelectionStep)
+    : null;
+
+  const handleSelectLoopChord = useCallback(
+    (index: number) => {
+      const metadataType = playbackMetadata?.[index]?.type;
+      // Measure lines / spacers are ornamental — not valid loop endpoints.
+      if (metadataType === "ornamental" || metadataType === "loopDelaySpacer") {
+        return;
+      }
+
+      const fullLength = audioMetadata.fullTabMetadataLength;
+      const lastIndex = Math.max(0, fullLength - 1);
+
+      if (pendingStartIndex !== null) {
+        // Re-clicking the pending start cancels the in-progress selection.
+        if (index === pendingStartIndex) {
+          setPendingStartIndex(null);
+          setLoopRange([0, lastIndex]);
+          setCurrentChordIndex(0);
+          return;
+        }
+
+        if (index <= pendingStartIndex) return;
+        if (Math.abs(index - pendingStartIndex) < 2) return;
+
+        setLoopRange([pendingStartIndex, index]);
+        setPendingStartIndex(null);
+        setCurrentChordIndex(index);
+        return;
+      }
+
+      // Starting a new range (from [0,-1] or by replacing a completed range).
+      if (index === lastIndex) return;
+
+      setPendingStartIndex(index);
+      setLoopRange([index, lastIndex]);
+      setCurrentChordIndex(index);
+    },
+    [
+      audioMetadata.fullTabMetadataLength,
+      pendingStartIndex,
+      playbackMetadata,
+      setCurrentChordIndex,
+    ],
+  );
+
+  const loopRangeEditContextValue = useMemo(
+    () => ({
+      enabled: audioMetadata.editingLoopRange,
+      loopRange,
+      setLoopRange,
+      pendingStartIndex,
+      setPendingStartIndex,
+      selectionStep: loopRangeSelectionStep,
+      onSelectChord: handleSelectLoopChord,
+    }),
+    [
+      audioMetadata.editingLoopRange,
+      handleSelectLoopChord,
+      loopRange,
+      loopRangeSelectionStep,
+      pendingStartIndex,
+    ],
+  );
 
   useModalScrollbarHandling(true);
 
@@ -551,6 +634,7 @@ function PlaybackModal() {
   const renderVisibleChord = useCallback(
     ({
       chord,
+      index,
       prevChord,
       nextChord,
       isFirstChordInTab,
@@ -569,6 +653,7 @@ function PlaybackModal() {
                 : "tab"
               : "loopDelaySpacer"
         }
+        chordIndex={index}
         prevChord={prevChord}
         chord={chord}
         nextChord={nextChord}
@@ -641,42 +726,58 @@ function PlaybackModal() {
                 transition={{ duration: 0.2 }}
                 className="baseVertFlex relative size-full select-none"
               >
-                <div className="w-full overflow-hidden">
-                  <PlaybackScrollingContainer
-                    setChordRepetitions={setChordRepetitions}
-                    scrollPositionsLength={
-                      chordLayoutData?.scrollPositions.length ?? 0
-                    }
-                  >
-                    <div
-                      ref={containerRef}
-                      className="relative flex h-[255px] w-full overflow-hidden mobilePortrait:h-[268px]"
-                    >
-                      <div className="baseFlex absolute left-0 top-0 size-full">
-                        <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
-                        {/* currently this fixes the highlight line extending past rounded borders of
-                        sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                        <div className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[165px]"></div>
-                        <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
-                      </div>
+                {loopRangePrompt && (
+                  <p className="px-4 pb-1 text-center text-sm text-gray">
+                    {loopRangePrompt}
+                  </p>
+                )}
 
-                      {chordLayoutData && expandedTabData && (
-                        <PlaybackAnimatedStrip
-                          chordLayoutData={chordLayoutData}
-                          playing={audioMetadata.playing}
-                          currentChordIndex={currentChordIndex}
-                          scrollContainerTransform={scrollContainerTransform}
-                          currentRepetition={currentChordRepetition}
-                          initialPlaceholderWidth={initialPlaceholderWidth}
-                          expandedTabData={expandedTabData}
-                          chordRepetitions={chordRepetitions}
-                          loopDelay={loopDelay}
-                          playbackSpeed={playbackSpeed}
-                          renderChord={renderVisibleChord}
-                        />
-                      )}
-                    </div>
-                  </PlaybackScrollingContainer>
+                <div className="w-full overflow-hidden">
+                  <PlaybackLoopRangeEditProvider value={loopRangeEditContextValue}>
+                    <PlaybackScrollingContainer
+                      setChordRepetitions={setChordRepetitions}
+                      scrollPositionsLength={
+                        chordLayoutData?.scrollPositions.length ?? 0
+                      }
+                    >
+                      <div
+                        ref={containerRef}
+                        className={`relative flex w-full overflow-hidden ${
+                          audioMetadata.editingLoopRange
+                            ? "h-[283px] mobilePortrait:h-[296px]"
+                            : "h-[255px] mobilePortrait:h-[268px]"
+                        }`}
+                      >
+                        {!audioMetadata.editingLoopRange && (
+                          <div className="baseFlex absolute left-0 top-0 size-full">
+                            <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
+                            {/* currently this fixes the highlight line extending past rounded borders of
+                            sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
+                            <div className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[165px]"></div>
+                            <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
+                          </div>
+                        )}
+
+                        {chordLayoutData && expandedTabData && (
+                          <PlaybackAnimatedStrip
+                            chordLayoutData={chordLayoutData}
+                            playing={audioMetadata.playing}
+                            currentChordIndex={currentChordIndex}
+                            scrollContainerTransform={scrollContainerTransform}
+                            currentRepetition={currentChordRepetition}
+                            initialPlaceholderWidth={initialPlaceholderWidth}
+                            expandedTabData={expandedTabData}
+                            chordRepetitions={chordRepetitions}
+                            loopDelay={loopDelay}
+                            playbackSpeed={playbackSpeed}
+                            renderChord={renderVisibleChord}
+                            loopRange={loopRange}
+                            pendingStartIndex={pendingStartIndex}
+                          />
+                        )}
+                      </div>
+                    </PlaybackScrollingContainer>
+                  </PlaybackLoopRangeEditProvider>
                 </div>
               </motion.div>
             )}
@@ -690,6 +791,7 @@ function PlaybackModal() {
                 chordDurations={chordLayoutData?.durations ?? []}
                 loopRange={loopRange}
                 setLoopRange={setLoopRange}
+                setPendingStartIndex={setPendingStartIndex}
                 tabProgressValue={tabProgressValue}
                 setTabProgressValue={setTabProgressValue}
                 setChordRepetitions={setChordRepetitions}
@@ -698,14 +800,24 @@ function PlaybackModal() {
                 }
               />
 
-              <PlaybackBottomMetadata
-                loopRange={loopRange}
-                setLoopRange={setLoopRange}
-                tabProgressValue={tabProgressValue}
-                setTabProgressValue={setTabProgressValue}
-                showBackgroundBlur={showBackgroundBlur}
-                setShowBackgroundBlur={setShowBackgroundBlur}
-              />
+              {audioMetadata.editingLoopRange ? (
+                <PlaybackLoopRangeActions
+                  loopRange={loopRange}
+                  setLoopRange={setLoopRange}
+                  pendingStartIndex={pendingStartIndex}
+                  setPendingStartIndex={setPendingStartIndex}
+                />
+              ) : (
+                <PlaybackBottomMetadata
+                  loopRange={loopRange}
+                  setLoopRange={setLoopRange}
+                  setPendingStartIndex={setPendingStartIndex}
+                  tabProgressValue={tabProgressValue}
+                  setTabProgressValue={setTabProgressValue}
+                  showBackgroundBlur={showBackgroundBlur}
+                  setShowBackgroundBlur={setShowBackgroundBlur}
+                />
+              )}
             </div>
           )}
 
@@ -723,6 +835,7 @@ export default PlaybackModal;
 
 interface RenderChordByTypeProps {
   type: "tab" | "measureLine" | "strum" | "loopDelaySpacer";
+  chordIndex: number;
   prevChord?:
     | PlaybackTabChordType
     | PlaybackStrummedChordType
@@ -743,6 +856,7 @@ interface RenderChordByTypeProps {
 
 function RenderChordByType({
   type,
+  chordIndex,
   prevChord,
   chord,
   nextChord,
@@ -795,6 +909,7 @@ function RenderChordByType({
     return (
       <PlaybackTabChord
         columnData={chord?.data.chordData}
+        chordIndex={chordIndex}
         isFirstChord={chord?.isFirstChord}
         isLastChord={chord?.isLastChord}
         isFirstChordInTab={isFirstChordInTab}
@@ -825,6 +940,7 @@ function RenderChordByType({
     return (
       <PlaybackStrummedChord
         strum={chord?.data.strum || ""}
+        chordIndex={chordIndex}
         palmMute={chord?.data.palmMute || ""}
         isFirstChord={chord?.isFirstChord}
         isLastChord={chord?.isLastChord}

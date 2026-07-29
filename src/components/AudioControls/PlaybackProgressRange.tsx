@@ -7,6 +7,7 @@ interface PlaybackProgressSlider {
   chordDurations: number[];
   loopRange: [number, number];
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
+  setPendingStartIndex?: Dispatch<SetStateAction<number | null>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
 }
@@ -16,6 +17,7 @@ function PlaybackProgressSlider({
   chordDurations,
   loopRange,
   setLoopRange,
+  setPendingStartIndex,
   setChordRepetitions,
   scrollPositionsLength,
 }: PlaybackProgressSlider) {
@@ -24,17 +26,13 @@ function PlaybackProgressSlider({
     setCurrentChordIndex,
     currentlyPlayingMetadata,
     audioMetadata,
-    setAudioMetadata,
     pauseAudio,
-    playbackMetadata,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
-    setAudioMetadata: state.setAudioMetadata,
     pauseAudio: state.pauseAudio,
-    playbackMetadata: state.playbackMetadata,
   }));
 
   const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
@@ -54,59 +52,28 @@ function PlaybackProgressSlider({
     setLoopRange,
   ]);
 
+  // Draft loopRange stays local while editing; Save commits to audioMetadata.
+  // Scrub the strip to the endpoint that changed so Range edits stay visible.
+  const prevLoopRangeRef = useRef(loopRange);
   useEffect(() => {
-    if (
-      !audioMetadata.editingLoopRange ||
-      playbackMetadata?.[loopRange[0] || 0]?.type === "ornamental" ||
-      playbackMetadata?.[loopRange[1] || 0]?.type === "ornamental"
-    ) {
+    if (!audioMetadata.editingLoopRange) {
+      prevLoopRangeRef.current = loopRange;
       return;
     }
 
-    // don't think this works, just want to only enter this block if the loop range is actually
-    // different from the start/end loop indices, handling the case where the end loop index is
-    // the last chord in the tab
-    if (
-      loopRange[0] !== audioMetadata.startLoopIndex ||
-      loopRange[1] !== audioMetadata.endLoopIndex
-    ) {
-      if (
-        loopRange[0] === audioMetadata.startLoopIndex &&
-        loopRange[1] === audioMetadata.fullTabMetadataLength - 1 &&
-        audioMetadata.endLoopIndex === -1
-      ) {
-        return;
-      }
+    const [prevStart, prevEnd] = prevLoopRangeRef.current;
+    const [nextStart, nextEnd] = loopRange;
+    prevLoopRangeRef.current = loopRange;
 
-      const adjustedStartIndex = loopRange[0] || 0;
-      const adjustedEndIndex =
-        loopRange[1] === audioMetadata.fullTabMetadataLength - 1
-          ? -1
-          : loopRange[1] || 0;
+    if (prevStart === nextStart && prevEnd === nextEnd) return;
 
-      const newCurrentChordIndex =
-        adjustedStartIndex !== audioMetadata.startLoopIndex
-          ? adjustedStartIndex
-          : adjustedEndIndex;
-
-      setCurrentChordIndex(
-        newCurrentChordIndex === -1
-          ? audioMetadata.fullTabMetadataLength - 1
-          : (newCurrentChordIndex ?? 0),
-      );
-
-      setAudioMetadata({
-        ...audioMetadata,
-        startLoopIndex: adjustedStartIndex,
-        endLoopIndex: adjustedEndIndex,
-      });
-    }
+    setCurrentChordIndex(
+      nextStart !== prevStart ? nextStart : nextEnd,
+    );
   }, [
+    audioMetadata.editingLoopRange,
     loopRange,
-    audioMetadata,
-    setAudioMetadata,
     setCurrentChordIndex,
-    playbackMetadata,
   ]);
 
   useEffect(() => {
@@ -159,6 +126,8 @@ function PlaybackProgressSlider({
             if (Math.abs((newLoopRange[0] ?? 0) - (newLoopRange[1] ?? 0)) === 0)
               return;
 
+            // Dragging the thumbs completes any in-progress start→end pick.
+            setPendingStartIndex?.(null);
             setLoopRange(newLoopRange as [number, number]);
           }}
           renderTrack={({ props, children, disabled }) => (
