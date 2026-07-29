@@ -702,10 +702,16 @@ function PlaybackModal() {
 
           {playbackModalViewingState === "Practice" && (
             <div className="baseVertFlex w-full gap-1 lg:gap-2">
-              {loopRangePrompt && (
-                <p className="px-4 text-center text-sm text-gray">
-                  {loopRangePrompt}
-                </p>
+              {audioMetadata.editingLoopRange && (
+                <>
+                  {loopRangePrompt ? (
+                    <p className="pb-2 text-center text-sm text-gray mobileLandscape:pb-0">
+                      {loopRangePrompt}
+                    </p>
+                  ) : (
+                    <div className="h-5 w-full"></div>
+                  )}
+                </>
               )}
 
               <PlaybackAudioControls
