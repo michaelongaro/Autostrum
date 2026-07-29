@@ -30,11 +30,14 @@ function PlaybackLoopRangeNode({
     );
   }
 
+  // Invariant: any lowered-opacity interactive node must be disabled.
+  const isDisabled = disabled || opacity < 1;
+
   return (
     <Button
       type="button"
       size="sm"
-      disabled={disabled}
+      disabled={isDisabled}
       data-loop-range-node="true"
       onPointerDown={(e) => {
         // Keep strip scrubbing from stealing the chord-selection tap.
@@ -46,11 +49,17 @@ function PlaybackLoopRangeNode({
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
-        if (disabled) return;
+        if (isDisabled) return;
         onSelect();
       }}
-      style={{ opacity }}
-      className="relative z-20 h-7 min-w-[1.75rem] rounded-full px-1 py-0 transition-opacity"
+      style={
+        {
+          opacity,
+          ["--loop-node-opacity" as string]: opacity,
+        } as React.CSSProperties
+      }
+      // Inline opacity must win over the shared Button `disabled:opacity-50`.
+      className="relative z-20 h-7 min-w-[1.75rem] rounded-full px-1 py-0 transition-opacity disabled:!opacity-[var(--loop-node-opacity)]"
     >
       {role === "start" && (
         <div className="baseVertFlex text-[9px] leading-[1.1]">

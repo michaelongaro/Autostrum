@@ -80,13 +80,16 @@ function PlaybackStrummedChord({
     : null;
 
   return (
-    <div
-      style={{
-        opacity: isDimmed ? 0.5 : 1,
-        transition: "opacity 0.5s",
-      }}
-      className="baseVertFlex relative w-[40px]"
-    >
+    // Keep loop-range nodes outside the dimmed wrapper so chord dimming
+    // cannot make an enabled + look disabled (or vice versa).
+    <div className="baseVertFlex relative w-[40px]">
+      <div
+        style={{
+          opacity: isDimmed ? 0.5 : 1,
+          transition: "opacity 0.5s",
+        }}
+        className="baseVertFlex w-full"
+      >
       {bpmToShow && (
         <div
           className={`baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground ${palmMute === "start" ? "top-[-20px]" : "top-[4px]"}`}
@@ -246,6 +249,7 @@ function PlaybackStrummedChord({
             isLastInGroup: isLastChord,
           })}
         </div>
+      </div>
       </div>
 
       {loopNodePresentation && typeof chordIndex === "number" && (

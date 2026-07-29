@@ -68,14 +68,17 @@ function PlaybackTabChord({
     : null;
 
   return (
-    <div
-      style={{
-        opacity: isDimmed ? 0.5 : 1,
-        transition: "opacity 0.5s",
-      }}
-      className="baseVertFlex relative w-[34px]"
-    >
-      <div className="baseVertFlex mb-[-18px]">
+    // Keep loop-range nodes outside the dimmed wrapper so chord dimming
+    // cannot make an enabled + look disabled (or vice versa).
+    <div className="baseVertFlex relative w-[34px]">
+      <div
+        style={{
+          opacity: isDimmed ? 0.5 : 1,
+          transition: "opacity 0.5s",
+        }}
+        className="baseVertFlex w-full"
+      >
+        <div className="baseVertFlex mb-[-18px]">
         {/* show new current bpm */}
         {showBpm && (
           <div
@@ -219,6 +222,7 @@ function PlaybackTabChord({
             )}
           </Fragment>
         ))}
+        </div>
       </div>
 
       {loopNodePresentation && typeof chordIndex === "number" && (

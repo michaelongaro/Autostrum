@@ -1,7 +1,51 @@
-import type { AudioMetadata } from "~/stores/TabStore";
+import type { AudioMetadata, PlaybackMetadata } from "~/stores/TabStore";
 import type { LoopRangeNodeRole } from "~/components/Tab/Playback/PlaybackLoopRangeNode";
 
 export type LoopRangeSelectionStep = "selectStart" | "selectEnd" | "complete";
+
+function isNonSelectableLoopIndex(
+  index: number,
+  playbackMetadata: PlaybackMetadata[] | null,
+): boolean {
+  const type = playbackMetadata?.[index]?.type;
+  return type === "ornamental" || type === "loopDelaySpacer";
+}
+
+/**
+ * Snap a Range thumb index off measure lines / ornamental columns.
+ * Prefers continuing in `moveDirection`, then searches the opposite way.
+ */
+export function snapLoopRangeIndexOffOrnamental({
+  index,
+  moveDirection,
+  playbackMetadata,
+  minIndex,
+  maxIndex,
+}: {
+  index: number;
+  moveDirection: -1 | 1;
+  playbackMetadata: PlaybackMetadata[] | null;
+  minIndex: number;
+  maxIndex: number;
+}): number | null {
+  if (index < minIndex || index > maxIndex) return null;
+
+  if (!isNonSelectableLoopIndex(index, playbackMetadata)) {
+    return index;
+  }
+
+  for (const direction of [moveDirection, -moveDirection] as const) {
+    let cursor = index + direction;
+    while (cursor >= minIndex && cursor <= maxIndex) {
+      if (!isNonSelectableLoopIndex(cursor, playbackMetadata)) {
+        return cursor;
+      }
+      cursor += direction;
+    }
+  }
+
+  return null;
+}
 
 /** Store/UI sentinel: endLoopIndex -1 means "through the last chord". */
 export function getConcreteLoopEndIndex(
@@ -174,6 +218,7 @@ export function getLoopRangeNodePresentation({
     }
 
     const canBeStart = index < fullTabMetadataLength - 1;
+    // Keep opacity/disabled coupled: lowered opacity always means disabled.
     return {
       role: "plus",
       opacity: canBeStart ? 1 : 0.25,

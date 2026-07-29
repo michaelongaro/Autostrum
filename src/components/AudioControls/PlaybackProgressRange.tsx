@@ -1,7 +1,10 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
 import { useTabStore } from "~/stores/TabStore";
-import { getConcreteDraftLoopRange } from "~/utils/loopRangeHelpers";
+import {
+  getConcreteDraftLoopRange,
+  snapLoopRangeIndexOffOrnamental,
+} from "~/utils/loopRangeHelpers";
 
 interface PlaybackProgressSlider {
   disabled: boolean;
@@ -25,6 +28,7 @@ function PlaybackProgressSlider({
     draftLoopStartIndex,
     draftLoopEndIndex,
     setDraftLoopRange,
+    playbackMetadata,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
@@ -34,6 +38,7 @@ function PlaybackProgressSlider({
     draftLoopStartIndex: state.draftLoopStartIndex,
     draftLoopEndIndex: state.draftLoopEndIndex,
     setDraftLoopRange: state.setDraftLoopRange,
+    playbackMetadata: state.playbackMetadata,
   }));
 
   const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
@@ -106,16 +111,46 @@ function PlaybackProgressSlider({
           draggableTrack
           values={loopRange}
           onChange={(newLoopRange) => {
-            const nextStart = newLoopRange[0] ?? 0;
-            const nextEnd = newLoopRange[1] ?? 0;
+            let nextStart = newLoopRange[0] ?? 0;
+            let nextEnd = newLoopRange[1] ?? 0;
 
             // react-range doesn't allow for a range of 0
             if (Math.abs(nextStart - nextEnd) === 0) return;
 
             const prevStart = loopRange[0];
             const prevEnd = loopRange[1];
+            const maxIndex = audioMetadata.fullTabMetadataLength - 1;
+
+            // Never let either thumb rest on a measure line / ornamental column.
+            if (nextStart !== prevStart) {
+              const snappedStart = snapLoopRangeIndexOffOrnamental({
+                index: nextStart,
+                moveDirection: nextStart > prevStart ? 1 : -1,
+                playbackMetadata,
+                minIndex: 0,
+                maxIndex,
+              });
+              if (snappedStart === null) return;
+              nextStart = snappedStart;
+            }
+
+            if (nextEnd !== prevEnd) {
+              const snappedEnd = snapLoopRangeIndexOffOrnamental({
+                index: nextEnd,
+                moveDirection: nextEnd > prevEnd ? 1 : -1,
+                playbackMetadata,
+                minIndex: 0,
+                maxIndex,
+              });
+              if (snappedEnd === null) return;
+              nextEnd = snappedEnd;
+            }
+
+            if (nextStart >= nextEnd) return;
+
             const startChanged = nextStart !== prevStart;
             const endChanged = nextEnd !== prevEnd;
+            if (!startChanged && !endChanged) return;
 
             // Window shift (both thumbs moved): scroll to the start node.
             // Otherwise scroll to whichever boundary changed.
@@ -123,7 +158,7 @@ function PlaybackProgressSlider({
               setCurrentChordIndex(nextStart);
             } else if (startChanged) {
               setCurrentChordIndex(nextStart);
-            } else if (endChanged) {
+            } else {
               setCurrentChordIndex(nextEnd);
             }
 
