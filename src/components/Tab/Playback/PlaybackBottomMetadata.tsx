@@ -12,7 +12,6 @@ import {
 import { isMobileOnly } from "react-device-detect";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
-import PlaybackGranularLoopRangeEditor from "~/components/Tab/Playback/PlaybackGranularLoopRangeEditor";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
@@ -49,10 +48,12 @@ import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
 import { IoMdSettings } from "react-icons/io";
 import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
+import { getConcreteLoopEndIndex } from "~/utils/loopRangeHelpers";
 
 interface PlaybackBottomMetadata {
   loopRange: [number, number];
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
+  setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   showBackgroundBlur: boolean;
@@ -60,8 +61,8 @@ interface PlaybackBottomMetadata {
 }
 
 function PlaybackBottomMetadata({
-  loopRange,
   setLoopRange,
+  setPendingStartIndex,
   tabProgressValue,
   setTabProgressValue,
   showBackgroundBlur,
@@ -120,113 +121,104 @@ function PlaybackBottomMetadata({
   return (
     <>
       {viewportLabel.includes("Landscape") ? (
-        <>
-          {audioMetadata.editingLoopRange ? (
-            <PlaybackGranularLoopRangeEditor
-              loopRange={loopRange}
-              setLoopRange={setLoopRange}
-            />
-          ) : (
-            <div className="baseFlex w-full !justify-between gap-4 px-4 pb-2">
-              <div className="baseFlex gap-4">
-                <div className="baseVertFlex !items-start">
-                  <p className="text-sm font-medium">Tuning</p>
-                  <div>
-                    {tuningNotesToName[
-                      tuning.toLowerCase() as keyof typeof tuningNotesToName
-                    ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
-                  </div>
-                </div>
-
-                <div className="baseVertFlex !items-start">
-                  <p className="text-sm font-medium">Capo</p>
-                  {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
-                </div>
-
-                <PlaybackTunerDialog />
-              </div>
-
-              <div className="baseFlex gap-4">
-                {sectionProgression.length > 1 && (
-                  <div className="baseFlex gap-2">
-                    <p className="text-sm font-medium">Section</p>
-                    <Select
-                      value={
-                        audioMetadata.location === null
-                          ? "fullTab"
-                          : sectionProgression[
-                              audioMetadata.location?.sectionIndex ?? 0
-                            ]?.id
-                      }
-                      onValueChange={(value) => {
-                        setAudioMetadata({
-                          ...audioMetadata,
-                          location:
-                            value === "fullTab"
-                              ? null
-                              : {
-                                  sectionIndex: sections.findIndex((elem) => {
-                                    return elem.id === value;
-                                  }),
-                                },
-                        });
-                      }}
-                    >
-                      <SelectTrigger className="!h-9 max-w-28 sm:max-w-none md:!h-10">
-                        <SelectValue placeholder="Select a section">
-                          {audioMetadata.location === null
-                            ? "Full tab"
-                            : sectionProgression[
-                                sections.findIndex((elem) => {
-                                  return (
-                                    elem.id ===
-                                    sectionProgression[
-                                      audioMetadata.location?.sectionIndex ?? 0
-                                    ]?.id
-                                  );
-                                })
-                              ]?.title}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        {sections.map((section) => {
-                          return (
-                            <SelectItem key={section.id} value={section.id}>
-                              {section.title}
-                            </SelectItem>
-                          );
-                        })}
-
-                        <div className="my-1 h-[1px] w-full bg-primary"></div>
-                        <SelectItem key={"fullTab"} value={`fullTab`}>
-                          Full tab
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                <MobileSettingsPopover
-                  showBackgroundBlur={showBackgroundBlur}
-                  setShowBackgroundBlur={setShowBackgroundBlur}
-                />
-
-                <MobileMenuDialog />
-
-                <Button
-                  variant={"outline"}
-                  className="size-9 !p-0"
-                  onClick={() => {
-                    pauseAudio();
-                    setShowGlossaryDialog(true);
-                  }}
-                >
-                  <FaBook className="h-4 w-4" />
-                </Button>
+        <div className="baseFlex w-full !justify-between gap-4 px-4 pb-2">
+          <div className="baseFlex gap-4">
+            <div className="baseVertFlex !items-start">
+              <p className="text-sm font-medium">Tuning</p>
+              <div>
+                {tuningNotesToName[
+                  tuning.toLowerCase() as keyof typeof tuningNotesToName
+                ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
               </div>
             </div>
-          )}
-        </>
+
+            <div className="baseVertFlex !items-start">
+              <p className="text-sm font-medium">Capo</p>
+              {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
+            </div>
+
+            <PlaybackTunerDialog />
+          </div>
+
+          <div className="baseFlex gap-4">
+            {sectionProgression.length > 1 && (
+              <div className="baseFlex gap-2">
+                <p className="text-sm font-medium">Section</p>
+                <Select
+                  value={
+                    audioMetadata.location === null
+                      ? "fullTab"
+                      : sectionProgression[
+                          audioMetadata.location?.sectionIndex ?? 0
+                        ]?.id
+                  }
+                  onValueChange={(value) => {
+                    setAudioMetadata({
+                      ...audioMetadata,
+                      location:
+                        value === "fullTab"
+                          ? null
+                          : {
+                              sectionIndex: sections.findIndex((elem) => {
+                                return elem.id === value;
+                              }),
+                            },
+                    });
+                  }}
+                >
+                  <SelectTrigger className="!h-9 max-w-28 sm:max-w-none md:!h-10">
+                    <SelectValue placeholder="Select a section">
+                      {audioMetadata.location === null
+                        ? "Full tab"
+                        : sectionProgression[
+                            sections.findIndex((elem) => {
+                              return (
+                                elem.id ===
+                                sectionProgression[
+                                  audioMetadata.location?.sectionIndex ?? 0
+                                ]?.id
+                              );
+                            })
+                          ]?.title}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {sections.map((section) => {
+                      return (
+                        <SelectItem key={section.id} value={section.id}>
+                          {section.title}
+                        </SelectItem>
+                      );
+                    })}
+
+                    <div className="my-1 h-[1px] w-full bg-primary"></div>
+                    <SelectItem key={"fullTab"} value={`fullTab`}>
+                      Full tab
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <MobileSettingsPopover
+              showBackgroundBlur={showBackgroundBlur}
+              setShowBackgroundBlur={setShowBackgroundBlur}
+            />
+
+            <MobileMenuDialog />
+
+            <Button
+              variant={"outline"}
+              className="size-9 !p-0"
+              onClick={() => {
+                pauseAudio();
+                setShowGlossaryDialog(true);
+              }}
+            >
+              <FaBook className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       ) : (
         <div className="baseFlex w-full px-4 py-4">
           {viewportLabel.includes("mobile") ? (
@@ -245,8 +237,14 @@ function PlaybackBottomMetadata({
                 pressed={audioMetadata.editingLoopRange}
                 className="size-9 p-1"
                 onPressedChange={(value) => {
-                  // set to beginning of loop if moving to editing loop range, otherwise
-                  // reset to beginning of tab
+                  setPendingStartIndex(null);
+                  setLoopRange([
+                    audioMetadata.startLoopIndex,
+                    getConcreteLoopEndIndex(
+                      audioMetadata.endLoopIndex,
+                      audioMetadata.fullTabMetadataLength,
+                    ),
+                  ]);
                   setCurrentChordIndex(
                     value ? audioMetadata.startLoopIndex : 0,
                   );
@@ -276,6 +274,8 @@ function PlaybackBottomMetadata({
               <DesktopSettings
                 tabProgressValue={tabProgressValue}
                 setTabProgressValue={setTabProgressValue}
+                setLoopRange={setLoopRange}
+                setPendingStartIndex={setPendingStartIndex}
               />
             </div>
           )}
@@ -918,11 +918,15 @@ function MobileMenuDialog() {
 interface DesktopSettings {
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
+  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
+  setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
 }
 
 function DesktopSettings({
   tabProgressValue,
   setTabProgressValue,
+  setLoopRange,
+  setPendingStartIndex,
 }: DesktopSettings) {
   const { asPath } = useRouter();
 
@@ -1089,8 +1093,14 @@ function DesktopSettings({
         pressed={audioMetadata.editingLoopRange}
         className="baseFlex gap-2"
         onPressedChange={(value) => {
-          // set to beginning of loop if moving to editing loop range, otherwise
-          // reset to beginning of tab
+          setPendingStartIndex(null);
+          setLoopRange([
+            audioMetadata.startLoopIndex,
+            getConcreteLoopEndIndex(
+              audioMetadata.endLoopIndex,
+              audioMetadata.fullTabMetadataLength,
+            ),
+          ]);
           setCurrentChordIndex(value ? audioMetadata.startLoopIndex : 0);
 
           setAudioMetadata({

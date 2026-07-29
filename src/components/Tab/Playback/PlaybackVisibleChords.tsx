@@ -5,6 +5,10 @@ import {
   type PlaybackTabChord,
   useTabStore,
 } from "~/stores/TabStore";
+import {
+  getLoopRangeSelectionStep,
+  isLoopRangeChordDimmed,
+} from "~/utils/loopRangeHelpers";
 
 /** Extra pixels beyond the viewport for chord mount/unmount hysteresis. */
 const VIRTUALIZATION_BUFFER = 100;
@@ -45,6 +49,8 @@ interface PlaybackVisibleChords {
     isDimmed: boolean;
     isHighlighted: boolean;
   }) => React.ReactNode;
+  loopRange?: [number, number];
+  pendingStartIndex?: number | null;
 }
 
 function PlaybackVisibleChords({
@@ -55,6 +61,8 @@ function PlaybackVisibleChords({
   loopDelay,
   scrollPositionRef,
   renderChord,
+  loopRange,
+  pendingStartIndex = null,
 }: PlaybackVisibleChords) {
   const {
     currentChordIndex,
@@ -209,11 +217,24 @@ function PlaybackVisibleChords({
           isFirstChordInTab,
           isLastChordInTab,
         }) => {
+          const selectionStep =
+            audioMetadata.editingLoopRange && loopRange
+              ? getLoopRangeSelectionStep({
+                  loopRange,
+                  pendingStartIndex,
+                  fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
+                })
+              : "complete";
+
           const isDimmed =
-            audioMetadata.editingLoopRange &&
-            (index < audioMetadata.startLoopIndex ||
-              (audioMetadata.endLoopIndex !== -1 &&
-                index > audioMetadata.endLoopIndex));
+            audioMetadata.editingLoopRange && loopRange
+              ? isLoopRangeChordDimmed({
+                  index,
+                  loopRange,
+                  pendingStartIndex,
+                  selectionStep,
+                })
+              : false;
 
           return (
             <div

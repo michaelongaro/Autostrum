@@ -1,13 +1,17 @@
 import { Fragment } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
+import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
+import { usePlaybackLoopRangeEdit } from "~/components/Tab/Playback/PlaybackLoopRangeEditContext";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import type { FullNoteLengths } from "~/stores/TabStore";
+import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 
 interface PlaybackTabChord {
   columnData: string[];
+  chordIndex?: number;
   isFirstChord: boolean;
   isLastChord: boolean;
   isFirstChordInTab: boolean;
@@ -25,6 +29,7 @@ interface PlaybackTabChord {
 
 function PlaybackTabChord({
   columnData,
+  chordIndex,
   isFirstChord,
   isLastChord,
   isFirstChordInTab,
@@ -40,6 +45,19 @@ function PlaybackTabChord({
   showBpm,
 }: PlaybackTabChord) {
   const chordEffect = columnData[7] || "";
+  const loopRangeEdit = usePlaybackLoopRangeEdit();
+  const showLoopNode =
+    loopRangeEdit?.enabled === true && typeof chordIndex === "number";
+  const loopNodePresentation =
+    showLoopNode && loopRangeEdit
+      ? getLoopRangeNodePresentation({
+          index: chordIndex,
+          isSelectableChord: true,
+          loopRange: loopRangeEdit.loopRange,
+          pendingStartIndex: loopRangeEdit.pendingStartIndex,
+          selectionStep: loopRangeEdit.selectionStep,
+        })
+      : null;
 
   return (
     <div
@@ -194,6 +212,17 @@ function PlaybackTabChord({
           </Fragment>
         ))}
       </div>
+
+      {loopNodePresentation && typeof chordIndex === "number" && (
+        <div className="baseFlex mt-1 h-6 w-full">
+          <PlaybackLoopRangeNode
+            role={loopNodePresentation.role}
+            opacity={loopNodePresentation.opacity}
+            disabled={loopNodePresentation.disabled}
+            onSelect={() => loopRangeEdit?.onSelectChord(chordIndex)}
+          />
+        </div>
+      )}
     </div>
   );
 }
