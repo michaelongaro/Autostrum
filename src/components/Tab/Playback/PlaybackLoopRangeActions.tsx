@@ -7,6 +7,14 @@ import {
   isDraftLoopRangeEmpty,
   isDraftLoopRangeUnchanged,
 } from "~/utils/loopRangeHelpers";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { Label } from "~/components/ui/label";
 
 function PlaybackLoopRangeActions() {
   const {
@@ -16,6 +24,8 @@ function PlaybackLoopRangeActions() {
     draftLoopStartIndex,
     draftLoopEndIndex,
     setDraftLoopRange,
+    sectionProgression,
+    viewportLabel,
   } = useTabStore((state) => ({
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
@@ -23,6 +33,8 @@ function PlaybackLoopRangeActions() {
     draftLoopStartIndex: state.draftLoopStartIndex,
     draftLoopEndIndex: state.draftLoopEndIndex,
     setDraftLoopRange: state.setDraftLoopRange,
+    sectionProgression: state.sectionProgression,
+    viewportLabel: state.viewportLabel,
   }));
 
   const isAlreadyEmpty = isDraftLoopRangeEmpty(
@@ -39,10 +51,40 @@ function PlaybackLoopRangeActions() {
     audioMetadata,
   );
 
+  const sectionsById: Record<string, { sectionId: string; title: string }> = {};
+
+  for (const section of sectionProgression) {
+    if (!sectionsById[section.sectionId]) {
+      sectionsById[section.sectionId] = {
+        sectionId: section.sectionId,
+        title: section.title,
+      };
+    }
+  }
+
+  const uniqueSections = Object.values(sectionsById);
+
+  function handleChangeSection(value: string) {
+    setAudioMetadata({
+      ...audioMetadata,
+      location:
+        value === "fullTab"
+          ? null
+          : {
+              sectionIndex: uniqueSections.findIndex((elem) => {
+                return elem.sectionId === value;
+              }),
+            },
+      startLoopIndex: 0,
+      endLoopIndex: -1,
+    });
+
+    setCurrentChordIndex(0);
+  }
+
   // Empty draft means "full tab" ([0, -1]) and is a valid Save target when the
   // committed store range is narrowed. Incomplete mid-pick drafts are not.
-  const canSave =
-    !isUnchanged && (isAlreadyEmpty || isComplete);
+  const canSave = !isUnchanged && (isAlreadyEmpty || isComplete);
 
   function exitEditMode() {
     setCurrentChordIndex(0);
@@ -92,31 +134,91 @@ function PlaybackLoopRangeActions() {
   }
 
   return (
-    <div className="baseFlex w-full gap-3 px-4 pb-2">
-      <Button
-        variant="outline"
-        onClick={handleReturn}
-        className="baseFlex min-w-20"
-      >
-        <BsArrowLeftShort className="h-6 w-8" />
-        Return
-      </Button>
-      <Button
-        variant="outline"
-        disabled={isAlreadyEmpty}
-        onClick={handleReset}
-        className="baseFlex min-w-20 gap-2"
-      >
-        <VscDebugRestart />
-        Reset
-      </Button>
-      <Button
-        disabled={!canSave}
-        onClick={handleSave}
-        className="min-w-20"
-      >
-        Save
-      </Button>
+    <div className="baseFlex w-full !justify-between gap-3 px-4 pb-2">
+      {viewportLabel.includes("Landscape") && sectionProgression.length > 1 && (
+        <div className="baseFlex gap-2">
+          <Label htmlFor="sectionPicker" className="text-sm font-medium">
+            Section
+          </Label>
+          <Select
+            value={
+              audioMetadata.location === null
+                ? "fullTab"
+                : sectionProgression[audioMetadata.location?.sectionIndex ?? 0]
+                    ?.sectionId
+            }
+            onValueChange={(value) => {
+              handleChangeSection(value);
+            }}
+          >
+            <SelectTrigger
+              id="sectionPicker"
+              className="!h-9 max-w-32 sm:max-w-none"
+            >
+              <SelectValue placeholder="Select a section" asChild>
+                <p className="truncate">
+                  {audioMetadata.location === null
+                    ? "Full tab"
+                    : `${
+                        sectionProgression[
+                          uniqueSections.findIndex((elem) => {
+                            return (
+                              elem.sectionId ===
+                              sectionProgression[
+                                audioMetadata.location?.sectionIndex ?? 0
+                              ]?.sectionId
+                            );
+                          })
+                        ]?.title
+                      }`}
+                </p>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <>
+                {uniqueSections.map((section) => {
+                  return (
+                    <SelectItem
+                      key={section.sectionId}
+                      value={section.sectionId}
+                    >
+                      {section.title}
+                    </SelectItem>
+                  );
+                })}
+
+                <div className="my-1 h-[1px] w-full bg-primary"></div>
+                <SelectItem key={"fullTab"} value={`fullTab`}>
+                  Full tab
+                </SelectItem>
+              </>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      <div className="baseFlex gap-3">
+        <Button
+          variant="outline"
+          onClick={handleReturn}
+          className="baseFlex min-w-20"
+        >
+          <BsArrowLeftShort className="h-6 w-8" />
+          Return
+        </Button>
+        <Button
+          variant="outline"
+          disabled={isAlreadyEmpty}
+          onClick={handleReset}
+          className="baseFlex min-w-20 gap-2"
+        >
+          <VscDebugRestart />
+          Reset
+        </Button>
+        <Button disabled={!canSave} onClick={handleSave} className="min-w-20">
+          Save
+        </Button>
+      </div>
     </div>
   );
 }
