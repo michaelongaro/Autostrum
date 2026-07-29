@@ -85,7 +85,7 @@ function PlaybackTabMeasureLine({
       {editingLoopRange && (
         <div className="baseFlex mt-1 h-7 w-full">
           {loopNodePresentation?.role === "middle" ? (
-            <div className="h-px w-full bg-foreground" />
+            <div className="mb-5 h-px w-full bg-foreground mobilePortrait:mb-4" />
           ) : null}
         </div>
       )}
