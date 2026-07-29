@@ -1,42 +1,43 @@
-import { type Dispatch, type SetStateAction } from "react";
 import { Button } from "~/components/ui/button";
 import { useTabStore } from "~/stores/TabStore";
 import {
-  getConcreteLoopEndIndex,
+  isDraftLoopRangeComplete,
+  isDraftLoopRangeEmpty,
   isDraftLoopRangeUnchanged,
-  isFullLoopRange,
 } from "~/utils/loopRangeHelpers";
 
-interface PlaybackLoopRangeActions {
-  loopRange: [number, number];
-  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
-  pendingStartIndex: number | null;
-  setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
-}
-
-function PlaybackLoopRangeActions({
-  loopRange,
-  setLoopRange,
-  pendingStartIndex,
-  setPendingStartIndex,
-}: PlaybackLoopRangeActions) {
+function PlaybackLoopRangeActions() {
   const {
     audioMetadata,
     setAudioMetadata,
     setCurrentChordIndex,
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+    setDraftLoopRange,
   } = useTabStore((state) => ({
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
+    draftLoopStartIndex: state.draftLoopStartIndex,
+    draftLoopEndIndex: state.draftLoopEndIndex,
+    setDraftLoopRange: state.setDraftLoopRange,
   }));
 
-  const fullLength = audioMetadata.fullTabMetadataLength;
-  const isAlreadyFullRange =
-    pendingStartIndex === null && isFullLoopRange(loopRange, fullLength);
-  const isUnchanged = isDraftLoopRangeUnchanged(loopRange, audioMetadata);
+  const isAlreadyEmpty = isDraftLoopRangeEmpty(
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+  );
+  const isComplete = isDraftLoopRangeComplete(
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+  );
+  const isUnchanged = isDraftLoopRangeUnchanged(
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+    audioMetadata,
+  );
 
   function exitEditMode() {
-    setPendingStartIndex(null);
     setCurrentChordIndex(0);
     setAudioMetadata({
       ...audioMetadata,
@@ -45,38 +46,31 @@ function PlaybackLoopRangeActions({
   }
 
   function handleReturn() {
-    // Discard draft edits and restore the committed store range.
-    setLoopRange([
-      audioMetadata.startLoopIndex,
-      getConcreteLoopEndIndex(
-        audioMetadata.endLoopIndex,
-        fullLength,
-      ),
-    ]);
+    // Discard draft edits — store still holds the committed range.
+    setDraftLoopRange({ startIndex: null, endIndex: null });
     exitEditMode();
   }
 
   function handleReset() {
-    if (isAlreadyFullRange) return;
-
-    setPendingStartIndex(null);
-    setLoopRange([0, Math.max(0, fullLength - 1)]);
+    if (isAlreadyEmpty) return;
+    setDraftLoopRange({ startIndex: null, endIndex: null });
   }
 
   function handleSave() {
-    if (isUnchanged || pendingStartIndex !== null) return;
+    if (!isComplete || isUnchanged) return;
 
+    const fullLength = audioMetadata.fullTabMetadataLength;
     const adjustedEndIndex =
-      loopRange[1] === fullLength - 1 ? -1 : loopRange[1];
+      draftLoopEndIndex === fullLength - 1 ? -1 : draftLoopEndIndex!;
 
-    setPendingStartIndex(null);
     setCurrentChordIndex(0);
     setAudioMetadata({
       ...audioMetadata,
-      startLoopIndex: loopRange[0],
+      startLoopIndex: draftLoopStartIndex!,
       endLoopIndex: adjustedEndIndex,
       editingLoopRange: false,
     });
+    setDraftLoopRange({ startIndex: null, endIndex: null });
   }
 
   return (
@@ -86,14 +80,14 @@ function PlaybackLoopRangeActions({
       </Button>
       <Button
         variant="outline"
-        disabled={isAlreadyFullRange}
+        disabled={isAlreadyEmpty}
         onClick={handleReset}
         className="min-w-20"
       >
         Reset
       </Button>
       <Button
-        disabled={isUnchanged || pendingStartIndex !== null}
+        disabled={!isComplete || isUnchanged}
         onClick={handleSave}
         className="min-w-20"
       >

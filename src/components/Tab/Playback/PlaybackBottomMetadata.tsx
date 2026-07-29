@@ -48,11 +48,8 @@ import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
 import { IoMdSettings } from "react-icons/io";
 import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
-import { getConcreteLoopEndIndex } from "~/utils/loopRangeHelpers";
 
 interface PlaybackBottomMetadata {
-  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
-  setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   showBackgroundBlur: boolean;
@@ -60,8 +57,6 @@ interface PlaybackBottomMetadata {
 }
 
 function PlaybackBottomMetadata({
-  setLoopRange,
-  setPendingStartIndex,
   tabProgressValue,
   setTabProgressValue,
   showBackgroundBlur,
@@ -79,6 +74,7 @@ function PlaybackBottomMetadata({
     countInTimer,
     setCurrentChordIndex,
     pauseAudio,
+    initDraftLoopRangeFromAudioMetadata,
   } = useTabStore((state) => ({
     capo: state.capo,
     tuning: state.tuning,
@@ -91,6 +87,8 @@ function PlaybackBottomMetadata({
     countInTimer: state.countInTimer,
     setCurrentChordIndex: state.setCurrentChordIndex,
     pauseAudio: state.pauseAudio,
+    initDraftLoopRangeFromAudioMetadata:
+      state.initDraftLoopRangeFromAudioMetadata,
   }));
 
   // idk if best approach, but need unique section titles, not the whole progression
@@ -236,17 +234,12 @@ function PlaybackBottomMetadata({
                 pressed={audioMetadata.editingLoopRange}
                 className="size-9 p-1"
                 onPressedChange={(value) => {
-                  setPendingStartIndex(null);
-                  setLoopRange([
-                    audioMetadata.startLoopIndex,
-                    getConcreteLoopEndIndex(
-                      audioMetadata.endLoopIndex,
-                      audioMetadata.fullTabMetadataLength,
-                    ),
-                  ]);
-                  setCurrentChordIndex(
-                    value ? audioMetadata.startLoopIndex : 0,
-                  );
+                  if (value) {
+                    initDraftLoopRangeFromAudioMetadata();
+                    setCurrentChordIndex(audioMetadata.startLoopIndex);
+                  } else {
+                    setCurrentChordIndex(0);
+                  }
 
                   setAudioMetadata({
                     ...audioMetadata,
@@ -273,8 +266,6 @@ function PlaybackBottomMetadata({
               <DesktopSettings
                 tabProgressValue={tabProgressValue}
                 setTabProgressValue={setTabProgressValue}
-                setLoopRange={setLoopRange}
-                setPendingStartIndex={setPendingStartIndex}
               />
             </div>
           )}
@@ -917,15 +908,11 @@ function MobileMenuDialog() {
 interface DesktopSettings {
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
-  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
-  setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
 }
 
 function DesktopSettings({
   tabProgressValue,
   setTabProgressValue,
-  setLoopRange,
-  setPendingStartIndex,
 }: DesktopSettings) {
   const { asPath } = useRouter();
 
@@ -945,6 +932,7 @@ function DesktopSettings({
     setChordDisplayMode,
     countInTimerEnabled,
     setCountInTimerEnabled,
+    initDraftLoopRangeFromAudioMetadata,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -961,6 +949,8 @@ function DesktopSettings({
     setChordDisplayMode: state.setChordDisplayMode,
     countInTimerEnabled: state.countInTimerEnabled,
     setCountInTimerEnabled: state.setCountInTimerEnabled,
+    initDraftLoopRangeFromAudioMetadata:
+      state.initDraftLoopRangeFromAudioMetadata,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -1092,15 +1082,12 @@ function DesktopSettings({
         pressed={audioMetadata.editingLoopRange}
         className="baseFlex gap-2"
         onPressedChange={(value) => {
-          setPendingStartIndex(null);
-          setLoopRange([
-            audioMetadata.startLoopIndex,
-            getConcreteLoopEndIndex(
-              audioMetadata.endLoopIndex,
-              audioMetadata.fullTabMetadataLength,
-            ),
-          ]);
-          setCurrentChordIndex(value ? audioMetadata.startLoopIndex : 0);
+          if (value) {
+            initDraftLoopRangeFromAudioMetadata();
+            setCurrentChordIndex(audioMetadata.startLoopIndex);
+          } else {
+            setCurrentChordIndex(0);
+          }
 
           setAudioMetadata({
             ...audioMetadata,

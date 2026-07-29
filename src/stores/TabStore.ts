@@ -389,6 +389,8 @@ const initialStoreState = {
     editingLoopRange: false,
     fullTabMetadataLength: -1,
   },
+  draftLoopStartIndex: null,
+  draftLoopEndIndex: null,
   previewMetadata: {
     indexOfPattern: -1,
     currentChordIndex: 0,
@@ -610,6 +612,21 @@ interface TabState {
     (Soundfont.Player | AudioBufferSourceNode | undefined)[] | null;
   audioMetadata: AudioMetadata;
   setAudioMetadata: (audioMetadata: AudioMetadata) => void;
+  /**
+   * Draft loop endpoints while `audioMetadata.editingLoopRange` is true.
+   * `null` means that endpoint is not selected yet (full-tab / in-progress pick).
+   * Committed on Save; discarded on Return.
+   */
+  draftLoopStartIndex: number | null;
+  draftLoopEndIndex: number | null;
+  setDraftLoopStartIndex: (draftLoopStartIndex: number | null) => void;
+  setDraftLoopEndIndex: (draftLoopEndIndex: number | null) => void;
+  setDraftLoopRange: (range: {
+    startIndex: number | null;
+    endIndex: number | null;
+  }) => void;
+  initDraftLoopRangeFromAudioMetadata: () => void;
+  selectPlaybackLoopRangeChord: (index: number) => void;
   instruments: Record<InstrumentNames, Soundfont.Player>;
   setInstruments: (
     instruments: Record<InstrumentNames, Soundfont.Player>,
@@ -828,6 +845,116 @@ const useTabStoreBase = create<TabState>()(
         fullTabMetadataLength: -1,
       },
       setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
+      draftLoopStartIndex: null,
+      draftLoopEndIndex: null,
+      setDraftLoopStartIndex: (draftLoopStartIndex) =>
+        set({ draftLoopStartIndex }),
+      setDraftLoopEndIndex: (draftLoopEndIndex) => set({ draftLoopEndIndex }),
+      setDraftLoopRange: ({ startIndex, endIndex }) =>
+        set({
+          draftLoopStartIndex: startIndex,
+          draftLoopEndIndex: endIndex,
+        }),
+      initDraftLoopRangeFromAudioMetadata: () => {
+        const { audioMetadata } = get();
+        if (
+          audioMetadata.startLoopIndex === 0 &&
+          audioMetadata.endLoopIndex === -1
+        ) {
+          set({
+            draftLoopStartIndex: null,
+            draftLoopEndIndex: null,
+          });
+          return;
+        }
+
+        const concreteEnd =
+          audioMetadata.endLoopIndex === -1
+            ? Math.max(0, audioMetadata.fullTabMetadataLength - 1)
+            : audioMetadata.endLoopIndex;
+
+        set({
+          draftLoopStartIndex: audioMetadata.startLoopIndex,
+          draftLoopEndIndex: concreteEnd,
+        });
+      },
+      selectPlaybackLoopRangeChord: (index) => {
+        const {
+          audioMetadata,
+          playbackMetadata,
+          draftLoopStartIndex,
+          draftLoopEndIndex,
+          setCurrentChordIndex,
+        } = get();
+
+        const fullLength = audioMetadata.fullTabMetadataLength;
+        if (fullLength <= 1 || index < 0 || index >= fullLength) return;
+
+        const metadataType = playbackMetadata?.[index]?.type;
+        if (
+          metadataType === "ornamental" ||
+          metadataType === "loopDelaySpacer"
+        ) {
+          return;
+        }
+
+        const lastIndex = fullLength - 1;
+        const start = draftLoopStartIndex;
+        const end = draftLoopEndIndex;
+
+        // Completed range: clicking an endpoint deselects only that endpoint.
+        if (start !== null && end !== null) {
+          if (index === start) {
+            set({ draftLoopStartIndex: null });
+            return;
+          }
+          if (index === end) {
+            set({ draftLoopEndIndex: null });
+            return;
+          }
+
+          // Clicking + elsewhere starts a new range from that chord.
+          if (index === lastIndex) return;
+          set({
+            draftLoopStartIndex: index,
+            draftLoopEndIndex: null,
+          });
+          setCurrentChordIndex(index);
+          return;
+        }
+
+        // Start selected, awaiting end.
+        if (start !== null && end === null) {
+          if (index === start) {
+            set({ draftLoopStartIndex: null });
+            return;
+          }
+          if (index <= start || Math.abs(index - start) < 2) return;
+
+          set({ draftLoopEndIndex: index });
+          setCurrentChordIndex(index);
+          return;
+        }
+
+        // End selected (or neither), awaiting start.
+        if (start === null) {
+          if (end !== null && index === end) {
+            set({ draftLoopEndIndex: null });
+            return;
+          }
+
+          if (end !== null) {
+            if (index >= end || Math.abs(end - index) < 2) return;
+            set({ draftLoopStartIndex: index });
+            setCurrentChordIndex(index);
+            return;
+          }
+
+          if (index === lastIndex) return;
+          set({ draftLoopStartIndex: index });
+          setCurrentChordIndex(index);
+        }
+      },
       instruments: {} as Record<InstrumentNames, Soundfont.Player>,
       setInstruments: (instruments) => set({ instruments }),
       currentInstrument: null,
@@ -1368,6 +1495,8 @@ const useTabStoreBase = create<TabState>()(
             startLoopIndex: 0,
             endLoopIndex: -1,
           },
+          draftLoopStartIndex: null,
+          draftLoopEndIndex: null,
         });
       },
 

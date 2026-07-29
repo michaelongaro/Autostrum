@@ -15,14 +15,11 @@ import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import { getConcreteLoopEndIndex } from "~/utils/loopRangeHelpers";
+import { getConcreteDraftLoopRange } from "~/utils/loopRangeHelpers";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 interface PlaybackAudioControls {
   chordDurations: number[];
-  loopRange: [number, number];
-  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
-  setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
   tabProgressValue: number;
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
@@ -31,9 +28,6 @@ interface PlaybackAudioControls {
 
 function PlaybackAudioControls({
   chordDurations,
-  loopRange,
-  setLoopRange,
-  setPendingStartIndex,
   tabProgressValue,
   setTabProgressValue,
   setChordRepetitions,
@@ -61,6 +55,9 @@ function PlaybackAudioControls({
     playbackMetadata,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+    initDraftLoopRangeFromAudioMetadata,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
@@ -83,7 +80,17 @@ function PlaybackAudioControls({
     playbackMetadata: state.playbackMetadata,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
+    draftLoopStartIndex: state.draftLoopStartIndex,
+    draftLoopEndIndex: state.draftLoopEndIndex,
+    initDraftLoopRangeFromAudioMetadata:
+      state.initDraftLoopRangeFromAudioMetadata,
   }));
+
+  const loopRange = getConcreteDraftLoopRange(
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+    audioMetadata.fullTabMetadataLength,
+  );
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
@@ -320,9 +327,6 @@ function PlaybackAudioControls({
             <PlaybackProgressRange
               disabled={disablePlayButton}
               chordDurations={chordDurations}
-              loopRange={loopRange}
-              setLoopRange={setLoopRange}
-              setPendingStartIndex={setPendingStartIndex}
               setChordRepetitions={setChordRepetitions}
               scrollPositionsLength={scrollPositionsLength}
             />
@@ -346,17 +350,12 @@ function PlaybackAudioControls({
               pressed={audioMetadata.editingLoopRange}
               className="h-8 w-8 p-1"
               onPressedChange={(value) => {
-                setPendingStartIndex(null);
-                setLoopRange([
-                  audioMetadata.startLoopIndex,
-                  getConcreteLoopEndIndex(
-                    audioMetadata.endLoopIndex,
-                    audioMetadata.fullTabMetadataLength,
-                  ),
-                ]);
-                setCurrentChordIndex(
-                  value ? audioMetadata.startLoopIndex : 0,
-                );
+                if (value) {
+                  initDraftLoopRangeFromAudioMetadata();
+                  setCurrentChordIndex(audioMetadata.startLoopIndex);
+                } else {
+                  setCurrentChordIndex(0);
+                }
 
                 setAudioMetadata({
                   ...audioMetadata,
@@ -375,9 +374,6 @@ function PlaybackAudioControls({
           <PlaybackProgressRange
             disabled={disablePlayButton}
             chordDurations={chordDurations}
-            loopRange={loopRange}
-            setLoopRange={setLoopRange}
-            setPendingStartIndex={setPendingStartIndex}
             setChordRepetitions={setChordRepetitions}
             scrollPositionsLength={scrollPositionsLength}
           />

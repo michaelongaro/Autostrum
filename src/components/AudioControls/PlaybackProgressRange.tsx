@@ -1,13 +1,11 @@
 import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { getTrackBackground, Range } from "react-range";
 import { useTabStore } from "~/stores/TabStore";
+import { getConcreteDraftLoopRange } from "~/utils/loopRangeHelpers";
 
 interface PlaybackProgressSlider {
   disabled: boolean;
   chordDurations: number[];
-  loopRange: [number, number];
-  setLoopRange: Dispatch<SetStateAction<[number, number]>>;
-  setPendingStartIndex?: Dispatch<SetStateAction<number | null>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
 }
@@ -15,9 +13,6 @@ interface PlaybackProgressSlider {
 function PlaybackProgressSlider({
   disabled,
   chordDurations,
-  loopRange,
-  setLoopRange,
-  setPendingStartIndex,
   setChordRepetitions,
   scrollPositionsLength,
 }: PlaybackProgressSlider) {
@@ -27,53 +22,42 @@ function PlaybackProgressSlider({
     currentlyPlayingMetadata,
     audioMetadata,
     pauseAudio,
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+    setDraftLoopRange,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
     pauseAudio: state.pauseAudio,
+    draftLoopStartIndex: state.draftLoopStartIndex,
+    draftLoopEndIndex: state.draftLoopEndIndex,
+    setDraftLoopRange: state.setDraftLoopRange,
   }));
 
   const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
 
-  // keeps loopRange in sync when changing selected section
+  const loopRange = getConcreteDraftLoopRange(
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+    audioMetadata.fullTabMetadataLength,
+  );
+
+  // keeps draft loop range in sync when changing selected section back to full
   useEffect(() => {
     if (
       audioMetadata.startLoopIndex === 0 &&
-      audioMetadata.endLoopIndex === -1
+      audioMetadata.endLoopIndex === -1 &&
+      !audioMetadata.editingLoopRange
     ) {
-      setLoopRange([0, audioMetadata.fullTabMetadataLength - 1]);
+      setDraftLoopRange({ startIndex: null, endIndex: null });
     }
   }, [
     audioMetadata.startLoopIndex,
     audioMetadata.endLoopIndex,
-    audioMetadata.fullTabMetadataLength,
-    setLoopRange,
-  ]);
-
-  // Draft loopRange stays local while editing; Save commits to audioMetadata.
-  // Scrub the strip to the endpoint that changed so Range edits stay visible.
-  const prevLoopRangeRef = useRef(loopRange);
-  useEffect(() => {
-    if (!audioMetadata.editingLoopRange) {
-      prevLoopRangeRef.current = loopRange;
-      return;
-    }
-
-    const [prevStart, prevEnd] = prevLoopRangeRef.current;
-    const [nextStart, nextEnd] = loopRange;
-    prevLoopRangeRef.current = loopRange;
-
-    if (prevStart === nextStart && prevEnd === nextEnd) return;
-
-    setCurrentChordIndex(
-      nextStart !== prevStart ? nextStart : nextEnd,
-    );
-  }, [
     audioMetadata.editingLoopRange,
-    loopRange,
-    setCurrentChordIndex,
+    setDraftLoopRange,
   ]);
 
   useEffect(() => {
@@ -122,13 +106,31 @@ function PlaybackProgressSlider({
           draggableTrack
           values={loopRange}
           onChange={(newLoopRange) => {
-            // react-range doesn't allow for a range of 0
-            if (Math.abs((newLoopRange[0] ?? 0) - (newLoopRange[1] ?? 0)) === 0)
-              return;
+            const nextStart = newLoopRange[0] ?? 0;
+            const nextEnd = newLoopRange[1] ?? 0;
 
-            // Dragging the thumbs completes any in-progress start→end pick.
-            setPendingStartIndex?.(null);
-            setLoopRange(newLoopRange as [number, number]);
+            // react-range doesn't allow for a range of 0
+            if (Math.abs(nextStart - nextEnd) === 0) return;
+
+            const prevStart = loopRange[0];
+            const prevEnd = loopRange[1];
+            const startChanged = nextStart !== prevStart;
+            const endChanged = nextEnd !== prevEnd;
+
+            // Window shift (both thumbs moved): scroll to the start node.
+            // Otherwise scroll to whichever boundary changed.
+            if (startChanged && endChanged) {
+              setCurrentChordIndex(nextStart);
+            } else if (startChanged) {
+              setCurrentChordIndex(nextStart);
+            } else if (endChanged) {
+              setCurrentChordIndex(nextEnd);
+            }
+
+            setDraftLoopRange({
+              startIndex: nextStart,
+              endIndex: nextEnd,
+            });
           }}
           renderTrack={({ props, children, disabled }) => (
             <div
