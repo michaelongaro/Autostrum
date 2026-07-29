@@ -14,43 +14,79 @@ export function getConcreteLoopEndIndex(
   return endLoopIndex;
 }
 
-export function isFullLoopRange(
-  loopRange: [number, number],
+/**
+ * Concrete [start, end] for the two-thumb Range while editing.
+ * Missing endpoints expand toward the tab bounds so the Range always has values.
+ */
+export function getConcreteDraftLoopRange(
+  draftStartIndex: number | null,
+  draftEndIndex: number | null,
   fullTabMetadataLength: number,
+): [number, number] {
+  const lastIndex = Math.max(0, fullTabMetadataLength - 1);
+
+  if (draftStartIndex === null && draftEndIndex === null) {
+    return [0, lastIndex];
+  }
+  if (draftStartIndex !== null && draftEndIndex === null) {
+    return [draftStartIndex, lastIndex];
+  }
+  if (draftStartIndex === null && draftEndIndex !== null) {
+    return [0, draftEndIndex];
+  }
+
+  return [draftStartIndex!, draftEndIndex!];
+}
+
+export function isDraftLoopRangeEmpty(
+  draftStartIndex: number | null,
+  draftEndIndex: number | null,
 ): boolean {
-  return (
-    loopRange[0] === 0 &&
-    loopRange[1] === Math.max(0, fullTabMetadataLength - 1)
-  );
+  return draftStartIndex === null && draftEndIndex === null;
+}
+
+export function isDraftLoopRangeComplete(
+  draftStartIndex: number | null,
+  draftEndIndex: number | null,
+): boolean {
+  return draftStartIndex !== null && draftEndIndex !== null;
 }
 
 export function isDraftLoopRangeUnchanged(
-  loopRange: [number, number],
+  draftStartIndex: number | null,
+  draftEndIndex: number | null,
   audioMetadata: AudioMetadata,
 ): boolean {
+  const storeIsFullRange =
+    audioMetadata.startLoopIndex === 0 && audioMetadata.endLoopIndex === -1;
+
+  if (isDraftLoopRangeEmpty(draftStartIndex, draftEndIndex)) {
+    return storeIsFullRange;
+  }
+
+  if (!isDraftLoopRangeComplete(draftStartIndex, draftEndIndex)) {
+    return false;
+  }
+
   const concreteStoreEnd = getConcreteLoopEndIndex(
     audioMetadata.endLoopIndex,
     audioMetadata.fullTabMetadataLength,
   );
 
   return (
-    loopRange[0] === audioMetadata.startLoopIndex &&
-    loopRange[1] === concreteStoreEnd
+    draftStartIndex === audioMetadata.startLoopIndex &&
+    draftEndIndex === concreteStoreEnd
   );
 }
 
-export function getLoopRangeSelectionStep({
-  loopRange,
-  pendingStartIndex,
-  fullTabMetadataLength,
-}: {
-  loopRange: [number, number];
-  pendingStartIndex: number | null;
-  fullTabMetadataLength: number;
-}): LoopRangeSelectionStep {
-  if (pendingStartIndex !== null) return "selectEnd";
-  if (isFullLoopRange(loopRange, fullTabMetadataLength)) return "selectStart";
-  return "complete";
+export function getLoopRangeSelectionStep(
+  draftStartIndex: number | null,
+  draftEndIndex: number | null,
+): LoopRangeSelectionStep {
+  if (draftStartIndex !== null && draftEndIndex !== null) return "complete";
+  if (draftStartIndex !== null && draftEndIndex === null) return "selectEnd";
+  // start null (end may or may not be set) → picking a start
+  return "selectStart";
 }
 
 export function getLoopRangePrompt(
@@ -67,55 +103,76 @@ export function getLoopRangePrompt(
 
 /**
  * Chord is dimmed outside the in-progress / completed draft range.
- * While awaiting an end after a start pick, only chords before the start dim.
+ * - start only: dim before start
+ * - end only: dim after end
+ * - both: dim outside [start, end]
  */
 export function isLoopRangeChordDimmed({
   index,
-  loopRange,
-  pendingStartIndex,
-  selectionStep,
+  draftStartIndex,
+  draftEndIndex,
 }: {
   index: number;
-  loopRange: [number, number];
-  pendingStartIndex: number | null;
-  selectionStep: LoopRangeSelectionStep;
+  draftStartIndex: number | null;
+  draftEndIndex: number | null;
 }): boolean {
-  if (selectionStep === "selectStart") return false;
+  if (draftStartIndex === null && draftEndIndex === null) return false;
 
-  if (selectionStep === "selectEnd" && pendingStartIndex !== null) {
-    return index < pendingStartIndex;
+  if (draftStartIndex !== null && draftEndIndex === null) {
+    return index < draftStartIndex;
   }
 
-  return index < loopRange[0] || index > loopRange[1];
+  if (draftStartIndex === null && draftEndIndex !== null) {
+    return index > draftEndIndex;
+  }
+
+  return index < draftStartIndex! || index > draftEndIndex!;
 }
 
 export function getLoopRangeNodePresentation({
   index,
   isSelectableChord,
-  loopRange,
-  pendingStartIndex,
-  selectionStep,
+  draftStartIndex,
+  draftEndIndex,
   fullTabMetadataLength,
 }: {
   index: number;
   isSelectableChord: boolean;
-  loopRange: [number, number];
-  pendingStartIndex: number | null;
-  selectionStep: LoopRangeSelectionStep;
+  draftStartIndex: number | null;
+  draftEndIndex: number | null;
   fullTabMetadataLength: number;
 }): { role: LoopRangeNodeRole; opacity: number; disabled: boolean } {
-  // Hide nodes on artificially repeated strip copies used for virtualization.
-  if (
-    !isSelectableChord ||
-    fullTabMetadataLength <= 1 ||
-    index < 0 ||
-    index >= fullTabMetadataLength
-  ) {
+  // Hide interactive nodes on artificially repeated strip copies.
+  if (fullTabMetadataLength <= 1 || index < 0 || index >= fullTabMetadataLength) {
     return { role: "none", opacity: 0, disabled: true };
   }
 
-  if (selectionStep === "selectStart") {
-    // Can't start a range on the final chord (need room for an end).
+  const selectionStep = getLoopRangeSelectionStep(
+    draftStartIndex,
+    draftEndIndex,
+  );
+
+  // Completed range: endpoints labeled, interior is a connecting line.
+  if (selectionStep === "complete") {
+    if (index === draftStartIndex) {
+      return { role: "start", opacity: 1, disabled: false };
+    }
+    if (index === draftEndIndex) {
+      return { role: "end", opacity: 1, disabled: false };
+    }
+    if (
+      draftStartIndex !== null &&
+      draftEndIndex !== null &&
+      index > draftStartIndex &&
+      index < draftEndIndex
+    ) {
+      return { role: "middle", opacity: 1, disabled: true };
+    }
+
+    if (!isSelectableChord) {
+      return { role: "none", opacity: 0, disabled: true };
+    }
+
     const canBeStart = index < fullTabMetadataLength - 1;
     return {
       role: "plus",
@@ -124,16 +181,18 @@ export function getLoopRangeNodePresentation({
     };
   }
 
-  if (selectionStep === "selectEnd" && pendingStartIndex !== null) {
-    if (index === pendingStartIndex) {
+  // Interior connector lines only apply once both endpoints exist.
+  if (!isSelectableChord) {
+    return { role: "none", opacity: 0, disabled: true };
+  }
+
+  if (selectionStep === "selectEnd" && draftStartIndex !== null) {
+    if (index === draftStartIndex) {
       return { role: "start", opacity: 1, disabled: false };
     }
 
-    // Mirror palm-mute validity: only allow ends after the pending start, and
-    // keep the existing min span of 2 indices used by the granular editor.
     const isValidEnd =
-      index > pendingStartIndex &&
-      Math.abs(index - pendingStartIndex) >= 2;
+      index > draftStartIndex && Math.abs(index - draftStartIndex) >= 2;
 
     return {
       role: "plus",
@@ -142,18 +201,19 @@ export function getLoopRangeNodePresentation({
     };
   }
 
-  // Complete range: label endpoints, offer + elsewhere to start a new range.
-  if (index === loopRange[0]) {
-    return { role: "start", opacity: 1, disabled: false };
-  }
-  if (index === loopRange[1]) {
+  // selectStart — optionally with a fixed end already chosen
+  if (draftEndIndex !== null && index === draftEndIndex) {
     return { role: "end", opacity: 1, disabled: false };
   }
 
-  const canBeStart = index < fullTabMetadataLength - 1;
+  const isValidStart =
+    draftEndIndex === null
+      ? index < fullTabMetadataLength - 1
+      : index < draftEndIndex && Math.abs(draftEndIndex - index) >= 2;
+
   return {
     role: "plus",
-    opacity: canBeStart ? 1 : 0.25,
-    disabled: !canBeStart,
+    opacity: isValidStart ? 1 : 0.25,
+    disabled: !isValidStart,
   };
 }

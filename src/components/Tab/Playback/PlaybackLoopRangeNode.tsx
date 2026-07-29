@@ -1,7 +1,7 @@
 import { BsPlus } from "react-icons/bs";
 import { Button } from "~/components/ui/button";
 
-export type LoopRangeNodeRole = "start" | "end" | "plus" | "none";
+export type LoopRangeNodeRole = "start" | "end" | "plus" | "middle" | "none";
 
 interface PlaybackLoopRangeNode {
   role: LoopRangeNodeRole;
@@ -17,6 +17,18 @@ function PlaybackLoopRangeNode({
   onSelect,
 }: PlaybackLoopRangeNode) {
   if (role === "none") return null;
+
+  if (role === "middle") {
+    return (
+      <div
+        style={{ opacity }}
+        className="baseFlex h-7 w-full"
+        aria-hidden="true"
+      >
+        <div className="h-px w-full bg-foreground" />
+      </div>
+    );
+  }
 
   return (
     <Button

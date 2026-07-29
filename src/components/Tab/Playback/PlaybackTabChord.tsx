@@ -2,9 +2,8 @@ import { Fragment } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
-import { usePlaybackLoopRangeEdit } from "~/components/Tab/Playback/PlaybackLoopRangeEditContext";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
-import type { FullNoteLengths } from "~/stores/TabStore";
+import { type FullNoteLengths, useTabStore } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
@@ -45,20 +44,28 @@ function PlaybackTabChord({
   showBpm,
 }: PlaybackTabChord) {
   const chordEffect = columnData[7] || "";
-  const loopRangeEdit = usePlaybackLoopRangeEdit();
+  const {
+    audioMetadata,
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+    selectPlaybackLoopRangeChord,
+  } = useTabStore((state) => ({
+    audioMetadata: state.audioMetadata,
+    draftLoopStartIndex: state.draftLoopStartIndex,
+    draftLoopEndIndex: state.draftLoopEndIndex,
+    selectPlaybackLoopRangeChord: state.selectPlaybackLoopRangeChord,
+  }));
   const showLoopNode =
-    loopRangeEdit?.enabled === true && typeof chordIndex === "number";
-  const loopNodePresentation =
-    showLoopNode && loopRangeEdit
-      ? getLoopRangeNodePresentation({
-          index: chordIndex,
-          isSelectableChord: true,
-          loopRange: loopRangeEdit.loopRange,
-          pendingStartIndex: loopRangeEdit.pendingStartIndex,
-          selectionStep: loopRangeEdit.selectionStep,
-          fullTabMetadataLength: loopRangeEdit.fullTabMetadataLength,
-        })
-      : null;
+    audioMetadata.editingLoopRange && typeof chordIndex === "number";
+  const loopNodePresentation = showLoopNode
+    ? getLoopRangeNodePresentation({
+        index: chordIndex,
+        isSelectableChord: true,
+        draftStartIndex: draftLoopStartIndex,
+        draftEndIndex: draftLoopEndIndex,
+        fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
+      })
+    : null;
 
   return (
     <div
@@ -215,12 +222,12 @@ function PlaybackTabChord({
       </div>
 
       {loopNodePresentation && typeof chordIndex === "number" && (
-        <div className="baseFlex mt-1 h-6 w-full">
+        <div className="baseFlex mt-1 h-7 w-full">
           <PlaybackLoopRangeNode
             role={loopNodePresentation.role}
             opacity={loopNodePresentation.opacity}
             disabled={loopNodePresentation.disabled}
-            onSelect={() => loopRangeEdit?.onSelectChord(chordIndex)}
+            onSelect={() => selectPlaybackLoopRangeChord(chordIndex)}
           />
         </div>
       )}

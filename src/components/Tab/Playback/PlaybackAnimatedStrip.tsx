@@ -44,8 +44,6 @@ interface PlaybackAnimatedStrip {
     isDimmed: boolean;
     isHighlighted: boolean;
   }) => React.ReactNode;
-  loopRange?: [number, number];
-  pendingStartIndex?: number | null;
 }
 
 // React Compiler escape hatch: custom compare intentionally ignores
@@ -65,8 +63,6 @@ const PlaybackAnimatedStrip = memo(
     // v still used in memo comparison
     playbackSpeed, // eslint-disable-line @typescript-eslint/no-unused-vars
     renderChord,
-    loopRange,
-    pendingStartIndex = null,
   }: PlaybackAnimatedStrip) {
     const scrollStripRef = useRef<HTMLDivElement | null>(null);
     const scrollPositionRef = useRef(0);
@@ -147,8 +143,6 @@ const PlaybackAnimatedStrip = memo(
           loopDelay={loopDelay}
           renderChord={renderChord}
           scrollPositionRef={scrollPositionRef}
-          loopRange={loopRange}
-          pendingStartIndex={pendingStartIndex}
         />
       </div>
     );
@@ -173,11 +167,6 @@ const PlaybackAnimatedStrip = memo(
     if (previousProps.renderChord !== nextProps.renderChord) return false;
     if (previousProps.loopDelay !== nextProps.loopDelay) return false;
     if (previousProps.playbackSpeed !== nextProps.playbackSpeed) return false;
-    if (previousProps.loopRange?.[0] !== nextProps.loopRange?.[0]) return false;
-    if (previousProps.loopRange?.[1] !== nextProps.loopRange?.[1]) return false;
-    if (previousProps.pendingStartIndex !== nextProps.pendingStartIndex) {
-      return false;
-    }
 
     // During playback the strip should stay mounted without per-chord re-renders.
     if (nextProps.playing) {

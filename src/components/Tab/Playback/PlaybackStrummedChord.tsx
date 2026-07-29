@@ -1,7 +1,6 @@
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
-import { usePlaybackLoopRangeEdit } from "~/components/Tab/Playback/PlaybackLoopRangeEditContext";
 import { getDynamicNoteLengthIcon, QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import type { FullNoteLengths } from "~/stores/TabStore";
@@ -55,23 +54,30 @@ function PlaybackStrummedChord({
   currentChordIsRest,
   nextChordIsRest,
 }: PlaybackStrummedChord) {
-  const { chordDisplayMode } = useTabStore((state) => ({
+  const {
+    chordDisplayMode,
+    audioMetadata,
+    draftLoopStartIndex,
+    draftLoopEndIndex,
+    selectPlaybackLoopRangeChord,
+  } = useTabStore((state) => ({
     chordDisplayMode: state.chordDisplayMode,
+    audioMetadata: state.audioMetadata,
+    draftLoopStartIndex: state.draftLoopStartIndex,
+    draftLoopEndIndex: state.draftLoopEndIndex,
+    selectPlaybackLoopRangeChord: state.selectPlaybackLoopRangeChord,
   }));
-  const loopRangeEdit = usePlaybackLoopRangeEdit();
   const showLoopNode =
-    loopRangeEdit?.enabled === true && typeof chordIndex === "number";
-  const loopNodePresentation =
-    showLoopNode && loopRangeEdit
-      ? getLoopRangeNodePresentation({
-          index: chordIndex,
-          isSelectableChord: true,
-          loopRange: loopRangeEdit.loopRange,
-          pendingStartIndex: loopRangeEdit.pendingStartIndex,
-          selectionStep: loopRangeEdit.selectionStep,
-          fullTabMetadataLength: loopRangeEdit.fullTabMetadataLength,
-        })
-      : null;
+    audioMetadata.editingLoopRange && typeof chordIndex === "number";
+  const loopNodePresentation = showLoopNode
+    ? getLoopRangeNodePresentation({
+        index: chordIndex,
+        isSelectableChord: true,
+        draftStartIndex: draftLoopStartIndex,
+        draftEndIndex: draftLoopEndIndex,
+        fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
+      })
+    : null;
 
   return (
     <div
@@ -243,12 +249,12 @@ function PlaybackStrummedChord({
       </div>
 
       {loopNodePresentation && typeof chordIndex === "number" && (
-        <div className="baseFlex mt-1 h-6 w-full">
+        <div className="baseFlex mt-1 h-7 w-full">
           <PlaybackLoopRangeNode
             role={loopNodePresentation.role}
             opacity={loopNodePresentation.opacity}
             disabled={loopNodePresentation.disabled}
-            onSelect={() => loopRangeEdit?.onSelectChord(chordIndex)}
+            onSelect={() => selectPlaybackLoopRangeChord(chordIndex)}
           />
         </div>
       )}
