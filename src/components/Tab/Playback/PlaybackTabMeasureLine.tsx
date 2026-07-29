@@ -14,15 +14,13 @@ function PlaybackTabMeasureLine({
   chordIndex,
   isDimmed,
 }: PlaybackTabMeasureLine) {
-  const {
-    audioMetadata,
-    draftLoopStartIndex,
-    draftLoopEndIndex,
-  } = useTabStore((state) => ({
-    audioMetadata: state.audioMetadata,
-    draftLoopStartIndex: state.draftLoopStartIndex,
-    draftLoopEndIndex: state.draftLoopEndIndex,
-  }));
+  const { audioMetadata, draftLoopStartIndex, draftLoopEndIndex } = useTabStore(
+    (state) => ({
+      audioMetadata: state.audioMetadata,
+      draftLoopStartIndex: state.draftLoopStartIndex,
+      draftLoopEndIndex: state.draftLoopEndIndex,
+    }),
+  );
 
   const editingLoopRange = audioMetadata.editingLoopRange;
   const loopNodePresentation =
@@ -87,7 +85,7 @@ function PlaybackTabMeasureLine({
       {editingLoopRange && (
         <div className="baseFlex mt-1 h-7 w-full">
           {loopNodePresentation?.role === "middle" ? (
-            <div className="h-px w-full bg-foreground" />
+            <div className="mb-5 h-px w-full bg-foreground mobilePortrait:mb-4" />
           ) : null}
         </div>
       )}
