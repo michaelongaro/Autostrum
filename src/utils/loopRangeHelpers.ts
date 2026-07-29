@@ -187,7 +187,11 @@ export function getLoopRangeNodePresentation({
   fullTabMetadataLength: number;
 }): { role: LoopRangeNodeRole; opacity: number; disabled: boolean } {
   // Hide interactive nodes on artificially repeated strip copies.
-  if (fullTabMetadataLength <= 1 || index < 0 || index >= fullTabMetadataLength) {
+  if (
+    fullTabMetadataLength <= 1 ||
+    index < 0 ||
+    index >= fullTabMetadataLength
+  ) {
     return { role: "none", opacity: 0, disabled: true };
   }
 
@@ -217,12 +221,11 @@ export function getLoopRangeNodePresentation({
       return { role: "none", opacity: 0, disabled: true };
     }
 
-    const canBeStart = index < fullTabMetadataLength - 1;
     // Keep opacity/disabled coupled: lowered opacity always means disabled.
     return {
       role: "plus",
-      opacity: canBeStart ? 1 : 0.25,
-      disabled: !canBeStart,
+      opacity: 0.25,
+      disabled: true,
     };
   }
 
