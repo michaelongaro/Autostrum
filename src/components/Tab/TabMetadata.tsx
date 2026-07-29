@@ -1344,7 +1344,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
 
             <div className={`${classes.metadataGrid}`}>
               <div
-                className={`${classes.genre} baseVertFlex !items-start gap-2`}
+                className={`${classes.genre} baseVertFlex !items-start gap-1`}
               >
                 <div className="font-semibold">Genre</div>
                 <Badge
@@ -1362,7 +1362,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               </div>
 
               <div
-                className={`${classes.tuning} baseVertFlex !items-start gap-2`}
+                className={`${classes.tuning} baseVertFlex !items-start gap-1`}
               >
                 <div className="font-semibold">Tuning</div>
                 {tuningNotesToName[
@@ -1371,7 +1371,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               </div>
 
               <div
-                className={`${classes.capo} baseVertFlex !items-start gap-2`}
+                className={`${classes.capo} baseVertFlex !items-start gap-1`}
               >
                 <p className="font-semibold">Capo</p>
                 <p className="whitespace-nowrap text-nowrap">
@@ -1380,7 +1380,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               </div>
 
               <div
-                className={`${classes.tempo} baseVertFlex !items-start gap-2`}
+                className={`${classes.tempo} baseVertFlex !items-start gap-1`}
               >
                 <div className="font-semibold">Tempo</div>
                 <div className="baseFlex">
@@ -1391,7 +1391,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               </div>
 
               <div
-                className={`${classes.difficulty} baseVertFlex !items-start gap-2`}
+                className={`${classes.difficulty} baseVertFlex !items-start gap-1`}
               >
                 <div className="font-semibold">Difficulty</div>
                 <div className="baseFlex gap-2">
@@ -1400,7 +1400,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 </div>
               </div>
 
-              <div className={`${classes.key} baseVertFlex !items-start gap-2`}>
+              <div className={`${classes.key} baseVertFlex !items-start gap-1`}>
                 <div className="font-semibold">Key</div>
                 <p>{key ?? "Not specified"}</p>
               </div>

@@ -105,16 +105,20 @@
   width: 100%;
 }
 
+
 .metadataGrid {
   grid-area: metadataContainer;
   display: grid;
   grid-template-rows: auto auto auto;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: auto auto;
   grid-template-areas:
-    "genre genre tempo tempo"
-    "tuning tuning capo capo"
-    "difficulty difficulty key key";
-  gap: 1rem;
+    "genre tempo"
+    "tuning capo"
+    "difficulty key";
+  row-gap: 1rem;
+  column-gap: 0;
+  justify-content: space-around;
+  margin: 0 auto;
   width: 100%;
   max-width: 25rem;
 }
