@@ -1,5 +1,7 @@
+import { BsArrowLeftShort } from "react-icons/bs";
 import { Button } from "~/components/ui/button";
 import { useTabStore } from "~/stores/TabStore";
+import { VscDebugRestart } from "react-icons/vsc";
 import {
   isDraftLoopRangeComplete,
   isDraftLoopRangeEmpty,
@@ -75,15 +77,21 @@ function PlaybackLoopRangeActions() {
 
   return (
     <div className="baseFlex w-full gap-3 px-4 pb-2">
-      <Button variant="outline" onClick={handleReturn} className="min-w-20">
+      <Button
+        variant="outline"
+        onClick={handleReturn}
+        className="baseFlex min-w-20"
+      >
+        <BsArrowLeftShort className="h-6 w-8" />
         Return
       </Button>
       <Button
         variant="outline"
         disabled={isAlreadyEmpty}
         onClick={handleReset}
-        className="min-w-20"
+        className="baseFlex min-w-20 gap-2"
       >
+        <VscDebugRestart />
         Reset
       </Button>
       <Button
