@@ -51,7 +51,6 @@ import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
 import { getConcreteLoopEndIndex } from "~/utils/loopRangeHelpers";
 
 interface PlaybackBottomMetadata {
-  loopRange: [number, number];
   setLoopRange: Dispatch<SetStateAction<[number, number]>>;
   setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
   tabProgressValue: number;

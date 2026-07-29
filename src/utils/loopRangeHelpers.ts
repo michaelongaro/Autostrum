@@ -95,19 +95,33 @@ export function getLoopRangeNodePresentation({
   loopRange,
   pendingStartIndex,
   selectionStep,
+  fullTabMetadataLength,
 }: {
   index: number;
   isSelectableChord: boolean;
   loopRange: [number, number];
   pendingStartIndex: number | null;
   selectionStep: LoopRangeSelectionStep;
+  fullTabMetadataLength: number;
 }): { role: LoopRangeNodeRole; opacity: number; disabled: boolean } {
-  if (!isSelectableChord) {
+  // Hide nodes on artificially repeated strip copies used for virtualization.
+  if (
+    !isSelectableChord ||
+    fullTabMetadataLength <= 1 ||
+    index < 0 ||
+    index >= fullTabMetadataLength
+  ) {
     return { role: "none", opacity: 0, disabled: true };
   }
 
   if (selectionStep === "selectStart") {
-    return { role: "plus", opacity: 1, disabled: false };
+    // Can't start a range on the final chord (need room for an end).
+    const canBeStart = index < fullTabMetadataLength - 1;
+    return {
+      role: "plus",
+      opacity: canBeStart ? 1 : 0.25,
+      disabled: !canBeStart,
+    };
   }
 
   if (selectionStep === "selectEnd" && pendingStartIndex !== null) {
@@ -136,5 +150,10 @@ export function getLoopRangeNodePresentation({
     return { role: "end", opacity: 1, disabled: false };
   }
 
-  return { role: "plus", opacity: 1, disabled: false };
+  const canBeStart = index < fullTabMetadataLength - 1;
+  return {
+    role: "plus",
+    opacity: canBeStart ? 1 : 0.25,
+    disabled: !canBeStart,
+  };
 }

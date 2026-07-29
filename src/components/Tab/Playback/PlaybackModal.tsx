@@ -165,14 +165,16 @@ function PlaybackModal() {
 
   const handleSelectLoopChord = useCallback(
     (index: number) => {
+      const fullLength = audioMetadata.fullTabMetadataLength;
+      if (fullLength <= 1 || index < 0 || index >= fullLength) return;
+
       const metadataType = playbackMetadata?.[index]?.type;
       // Measure lines / spacers are ornamental — not valid loop endpoints.
       if (metadataType === "ornamental" || metadataType === "loopDelaySpacer") {
         return;
       }
 
-      const fullLength = audioMetadata.fullTabMetadataLength;
-      const lastIndex = Math.max(0, fullLength - 1);
+      const lastIndex = fullLength - 1;
 
       if (pendingStartIndex !== null) {
         // Re-clicking the pending start cancels the in-progress selection.
@@ -215,10 +217,12 @@ function PlaybackModal() {
       pendingStartIndex,
       setPendingStartIndex,
       selectionStep: loopRangeSelectionStep,
+      fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
       onSelectChord: handleSelectLoopChord,
     }),
     [
       audioMetadata.editingLoopRange,
+      audioMetadata.fullTabMetadataLength,
       handleSelectLoopChord,
       loopRange,
       loopRangeSelectionStep,
@@ -809,7 +813,6 @@ function PlaybackModal() {
                 />
               ) : (
                 <PlaybackBottomMetadata
-                  loopRange={loopRange}
                   setLoopRange={setLoopRange}
                   setPendingStartIndex={setPendingStartIndex}
                   tabProgressValue={tabProgressValue}

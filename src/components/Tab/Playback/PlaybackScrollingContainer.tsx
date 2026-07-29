@@ -58,6 +58,13 @@ function PlaybackScrollingContainer({
   }
 
   function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
+    if (
+      e.target instanceof Element &&
+      e.target.closest("[data-loop-range-node]")
+    ) {
+      return;
+    }
+
     if (playing) pauseAudio();
 
     isTouchingRef.current = true;
