@@ -69,6 +69,7 @@ function PlaybackStrummedChord({
           loopRange: loopRangeEdit.loopRange,
           pendingStartIndex: loopRangeEdit.pendingStartIndex,
           selectionStep: loopRangeEdit.selectionStep,
+          fullTabMetadataLength: loopRangeEdit.fullTabMetadataLength,
         })
       : null;
 

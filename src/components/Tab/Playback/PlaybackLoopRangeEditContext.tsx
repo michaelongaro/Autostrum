@@ -13,6 +13,7 @@ export interface PlaybackLoopRangeEditContextValue {
   pendingStartIndex: number | null;
   setPendingStartIndex: Dispatch<SetStateAction<number | null>>;
   selectionStep: LoopRangeSelectionStep;
+  fullTabMetadataLength: number;
   onSelectChord: (index: number) => void;
 }
 
