@@ -208,7 +208,8 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       onError: (e) => {
         console.error("Error publishing tab:", e);
         setPublishErrorOccurred(true);
-        setShowPublishPopover(true);
+        setPopoverContentIsForSave(true);
+        setPublishPopoverStatus("showPublish");
       },
     });
 
@@ -233,7 +234,8 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       onError: (e) => {
         console.error("Error saving tab:", e);
         setPublishErrorOccurred(true);
-        setShowPublishPopover(true);
+        setPopoverContentIsForSave(true);
+        setPublishPopoverStatus("showPublish");
       },
     });
 
@@ -274,7 +276,12 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
   // is open on mobile
   const [disableCreatedAtLayout, setDisableCreatedAtLayout] = useState(false);
 
-  const [showPublishPopover, setShowPublishPopover] = useState(false);
+  const [publishPopoverStatus, setPublishPopoverStatus] = useState<
+    "showPublish" | "showPreview" | "hidden"
+  >("hidden");
+  // below is needed so that on close of popover there isn't a flash of
+  // no content as popover is closing
+  const [popoverContentIsForSave, setPopoverContentIsForSave] = useState(true);
 
   const [publishErrorOccurred, setPublishErrorOccurred] = useState(false);
   const [showInvalidTitle, setShowInvalidTitle] = useState(false);
@@ -323,17 +330,11 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
   }
 
   function handlePreview() {
-    if (
-      !userId ||
-      !title ||
-      !tuning ||
-      !genre ||
-      bpm === -1 ||
-      tabIsEffectivelyEmpty
-    ) {
+    if (!title || !tuning || !genre || bpm === -1 || tabIsEffectivelyEmpty) {
       setShowInvalidTitle(!title);
       setShowInvalidGenre(!genre);
-      setShowPublishPopover(true);
+      setPopoverContentIsForSave(false);
+      setPublishPopoverStatus("showPreview");
 
       return;
     }
@@ -361,7 +362,8 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
     ) {
       setShowInvalidTitle(!title);
       setShowInvalidGenre(!genre);
-      setShowPublishPopover(true);
+      setPopoverContentIsForSave(true);
+      setPublishPopoverStatus("showPublish");
 
       return;
     }
@@ -454,7 +456,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
     return isEqual(originalData, sanitizedCurrentTabData);
   }
 
-  function renderSavePopoverContent() {
+  function renderSavePopoverContent(forSave?: boolean) {
     if (publishErrorOccurred) {
       return (
         <div className="baseVertFlex w-full !items-start gap-2 p-2 text-sm md:text-base">
@@ -466,7 +468,11 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       );
     }
 
-    if (userId) {
+    // Preview always shows field errors.
+    // Publish shows field errors only when logged in; otherwise prompt to sign in.
+    const showValidationErrors = !forSave || !!userId;
+
+    if (showValidationErrors) {
       return (
         <div className="baseVertFlex w-full !items-start gap-2 p-2 pr-4 text-sm md:text-base">
           {title === "" && (
@@ -566,10 +572,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
             </Button>
 
             <Popover
-              open={showPublishPopover}
+              open={publishPopoverStatus.includes("show")}
               onOpenChange={(open) => {
                 if (open === false) {
-                  setShowPublishPopover(false);
+                  setPublishPopoverStatus("hidden");
 
                   if (publishErrorOccurred) {
                     setPublishErrorOccurred(false);
@@ -638,7 +644,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
-                {renderSavePopoverContent()}
+                {renderSavePopoverContent(popoverContentIsForSave)}
               </PopoverContent>
             </Popover>
           </div>
