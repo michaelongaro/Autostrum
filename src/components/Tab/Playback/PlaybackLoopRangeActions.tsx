@@ -39,6 +39,11 @@ function PlaybackLoopRangeActions() {
     audioMetadata,
   );
 
+  // Empty draft means "full tab" ([0, -1]) and is a valid Save target when the
+  // committed store range is narrowed. Incomplete mid-pick drafts are not.
+  const canSave =
+    !isUnchanged && (isAlreadyEmpty || isComplete);
+
   function exitEditMode() {
     setCurrentChordIndex(0);
     setAudioMetadata({
@@ -59,7 +64,18 @@ function PlaybackLoopRangeActions() {
   }
 
   function handleSave() {
-    if (!isComplete || isUnchanged) return;
+    if (!canSave) return;
+
+    if (isAlreadyEmpty) {
+      setCurrentChordIndex(0);
+      setAudioMetadata({
+        ...audioMetadata,
+        startLoopIndex: 0,
+        endLoopIndex: -1,
+        editingLoopRange: false,
+      });
+      return;
+    }
 
     const fullLength = audioMetadata.fullTabMetadataLength;
     const adjustedEndIndex =
@@ -95,7 +111,7 @@ function PlaybackLoopRangeActions() {
         Reset
       </Button>
       <Button
-        disabled={!isComplete || isUnchanged}
+        disabled={!canSave}
         onClick={handleSave}
         className="min-w-20"
       >
