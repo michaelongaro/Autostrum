@@ -709,7 +709,7 @@ function PlaybackModal() {
                       {loopRangePrompt}
                     </p>
                   ) : (
-                    <div className="h-5 w-full"></div>
+                    <div className="h-[28px] w-full pb-2 mobileLandscape:h-5"></div>
                   )}
                 </>
               )}
