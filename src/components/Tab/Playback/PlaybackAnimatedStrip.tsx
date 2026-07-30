@@ -104,7 +104,8 @@ const PlaybackAnimatedStrip = memo(
       // Pin whatever is currently painted (inline or mid-CSS-transition scrub)
       // so the play handoff never flashes identity before rAF reseeds.
       if (!stripElement.style.transform) {
-        const computedTransform = window.getComputedStyle(stripElement).transform;
+        const computedTransform =
+          window.getComputedStyle(stripElement).transform;
         stripElement.style.transition = "none";
         stripElement.style.transform =
           computedTransform === "none"
@@ -122,7 +123,7 @@ const PlaybackAnimatedStrip = memo(
           // value (`undefined` would set style.transform = ""). While paused,
           // React drives scrubbing.
           ...(playing ? {} : { transform: scrollContainerTransform }),
-          transition: playing ? "none" : "transform 0.2s linear",
+          transition: playing ? "none" : "transform 0.1s linear",
         }}
         className="relative flex items-center"
       >

@@ -83,173 +83,167 @@ function PlaybackStrummedChord({
     // Keep loop-range nodes outside the dimmed wrapper so chord dimming
     // cannot make an enabled + look disabled (or vice versa).
     <div className="baseVertFlex relative w-[40px]">
-      <div
-        style={{
-          opacity: isDimmed ? 0.5 : 1,
-          transition: "opacity 0.5s",
-        }}
-        className="baseVertFlex w-full"
-      >
-      {bpmToShow && (
-        <div
-          className={`baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground ${palmMute === "start" ? "top-[-20px]" : "top-[4px]"}`}
-        >
-          <QuarterNote />
-          <span>{bpmToShow}</span>
-        </div>
-      )}
-
-      {/* palm mute icon */}
-      <div className="baseFlex h-7 w-full">
-        {palmMute && palmMute !== "" && (
-          <PlaybackPalmMuteNode value={palmMute} />
+      <div className={`baseVertFlex w-full ${isDimmed ? "opacity-50" : ""}`}>
+        {bpmToShow && (
+          <div
+            className={`baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground ${palmMute === "start" ? "top-[-20px]" : "top-[4px]"}`}
+          >
+            <QuarterNote />
+            <span>{bpmToShow}</span>
+          </div>
         )}
-      </div>
 
-      <div
-        // key is just used here to force a re-render, borderRadius was glitchy
-        key={
-          isFirstChordInTab
-            ? "firstRounded"
-            : isLastChordInTab
-              ? "lastRounded"
-              : "regular"
-        }
-        style={{
-          borderLeft: isFirstChordInTab ? "2px solid" : "none",
-          borderRight: isLastChordInTab ? "2px solid" : "none",
-          borderRadius: isFirstChordInTab
-            ? "10px 0 0 10px"
-            : isLastChordInTab
-              ? "0 10px 10px 0"
-              : "none",
-          borderTop: "2px solid",
-          borderBottom: "2px solid",
-        }}
-        className="baseVertFlex relative mb-[30px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
-      >
-        <div className="baseFlex h-8">
-          {chordName && (
-            <ChordName
-              color={chordColor}
-              name={chordName}
-              truncate={true}
-              isHighlighted={isHighlighted}
-            />
+        {/* palm mute icon */}
+        <div className="baseFlex h-7 w-full">
+          {palmMute && palmMute !== "" && (
+            <PlaybackPalmMuteNode value={palmMute} />
           )}
         </div>
 
-        {/* strum icon */}
-        <div className="baseFlex">
-          {/* spacer so that PM nodes can be connected seamlessly above */}
-          <div className="w-1"></div>
-
-          <div
-            style={{
-              color:
-                chordDisplayMode === "color" && chordColor
-                  ? chordColor
-                  : isHighlighted
-                    ? "hsl(var(--primary))"
-                    : "hsl(var(--foreground))",
-            }}
-            className="baseVertFlex relative mb-2 h-[20px] text-lg"
-          >
-            <div className="baseFlex">
-              {strum.includes("v") && (
-                <BsArrowDown
-                  style={{
-                    fill:
-                      chordDisplayMode === "color" && chordColor
-                        ? chordColor
-                        : "currentColor",
-                    width: strum.includes(">") ? "18.5px" : "20px",
-                    height: strum.includes(">") ? "18.5px" : "20px",
-                  }}
-                  strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
-                />
-              )}
-              {strum.includes("^") && (
-                <BsArrowUp
-                  style={{
-                    fill:
-                      chordDisplayMode === "color" && chordColor
-                        ? chordColor
-                        : "currentColor",
-                    width: strum.includes(">") ? "18.5px" : "20px",
-                    height: strum.includes(">") ? "18.5px" : "20px",
-                  }}
-                  strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
-                />
-              )}
-
-              {strum.includes("s") && (
-                <div
-                  style={{
-                    fontSize: "20px",
-                    color:
-                      chordDisplayMode === "color" && chordColor
-                        ? chordColor
-                        : "currentColor",
-                  }}
-                  className={`baseFlex mb-1 h-5 leading-[0] ${strum.includes(">") ? "font-semibold" : "font-normal"}`}
-                >
-                  {strum[0]}
-                </div>
-              )}
-
-              {strum.includes(".") && (
-                <div
-                  style={{
-                    fontSize: "30px",
-                    color:
-                      chordDisplayMode === "color" && chordColor
-                        ? chordColor
-                        : "currentColor",
-                  }}
-                  // className="absolute bottom-[-9px]"
-                  className="relative bottom-0 right-1 w-0"
-                >
-                  .
-                </div>
-              )}
-            </div>
-
-            {strum === "r" && (
-              <PauseIcon
-                className="size-3"
-                style={{
-                  color:
-                    chordDisplayMode === "color" && chordColor
-                      ? chordColor
-                      : "currentColor",
-                }}
+        <div
+          // key is just used here to force a re-render, borderRadius was glitchy
+          key={
+            isFirstChordInTab
+              ? "firstRounded"
+              : isLastChordInTab
+                ? "lastRounded"
+                : "regular"
+          }
+          style={{
+            borderLeft: isFirstChordInTab ? "2px solid" : "none",
+            borderRight: isLastChordInTab ? "2px solid" : "none",
+            borderRadius: isFirstChordInTab
+              ? "10px 0 0 10px"
+              : isLastChordInTab
+                ? "0 10px 10px 0"
+                : "none",
+            borderTop: "2px solid",
+            borderBottom: "2px solid",
+          }}
+          className="baseVertFlex relative mb-[30px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
+        >
+          <div className="baseFlex h-8">
+            {chordName && (
+              <ChordName
+                color={chordColor}
+                name={chordName}
+                truncate={true}
+                isHighlighted={isHighlighted}
               />
             )}
-
-            {strum === "" && <div className="h-5 w-4"></div>}
           </div>
 
-          {/* spacer so that PM nodes can be connected seamlessly above */}
-          <div className="w-1"></div>
-        </div>
+          {/* strum icon */}
+          <div className="baseFlex">
+            {/* spacer so that PM nodes can be connected seamlessly above */}
+            <div className="w-1"></div>
 
-        {/* beat indicator */}
-        <span className="text-sm">{beatIndicator}</span>
+            <div
+              style={{
+                color:
+                  chordDisplayMode === "color" && chordColor
+                    ? chordColor
+                    : isHighlighted
+                      ? "hsl(var(--primary))"
+                      : "hsl(var(--foreground))",
+              }}
+              className="baseVertFlex relative mb-2 h-[20px] text-lg"
+            >
+              <div className="baseFlex">
+                {strum.includes("v") && (
+                  <BsArrowDown
+                    style={{
+                      fill:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
+                      width: strum.includes(">") ? "18.5px" : "20px",
+                      height: strum.includes(">") ? "18.5px" : "20px",
+                    }}
+                    strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
+                  />
+                )}
+                {strum.includes("^") && (
+                  <BsArrowUp
+                    style={{
+                      fill:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
+                      width: strum.includes(">") ? "18.5px" : "20px",
+                      height: strum.includes(">") ? "18.5px" : "20px",
+                    }}
+                    strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
+                  />
+                )}
 
-        <div className="h-4 w-full">
-          {renderNoteLengthGuide({
-            previousNoteLength: prevChordNoteLength,
-            currentNoteLength: currentChordNoteLength,
-            nextNoteLength: nextChordNoteLength,
-            previousIsRestStrum: prevChordIsRest,
-            currentIsRestStrum: currentChordIsRest,
-            nextIsRestStrum: nextChordIsRest,
-            isFirstInGroup: isFirstChord,
-            isLastInGroup: isLastChord,
-          })}
+                {strum.includes("s") && (
+                  <div
+                    style={{
+                      fontSize: "20px",
+                      color:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
+                    }}
+                    className={`baseFlex mb-1 h-5 leading-[0] ${strum.includes(">") ? "font-semibold" : "font-normal"}`}
+                  >
+                    {strum[0]}
+                  </div>
+                )}
+
+                {strum.includes(".") && (
+                  <div
+                    style={{
+                      fontSize: "30px",
+                      color:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
+                    }}
+                    // className="absolute bottom-[-9px]"
+                    className="relative bottom-0 right-1 w-0"
+                  >
+                    .
+                  </div>
+                )}
+              </div>
+
+              {strum === "r" && (
+                <PauseIcon
+                  className="size-3"
+                  style={{
+                    color:
+                      chordDisplayMode === "color" && chordColor
+                        ? chordColor
+                        : "currentColor",
+                  }}
+                />
+              )}
+
+              {strum === "" && <div className="h-5 w-4"></div>}
+            </div>
+
+            {/* spacer so that PM nodes can be connected seamlessly above */}
+            <div className="w-1"></div>
+          </div>
+
+          {/* beat indicator */}
+          <span className="text-sm">{beatIndicator}</span>
+
+          <div className="h-4 w-full">
+            {renderNoteLengthGuide({
+              previousNoteLength: prevChordNoteLength,
+              currentNoteLength: currentChordNoteLength,
+              nextNoteLength: nextChordNoteLength,
+              previousIsRestStrum: prevChordIsRest,
+              currentIsRestStrum: currentChordIsRest,
+              nextIsRestStrum: nextChordIsRest,
+              isFirstInGroup: isFirstChord,
+              isLastInGroup: isLastChord,
+            })}
+          </div>
         </div>
-      </div>
       </div>
 
       {loopNodePresentation && typeof chordIndex === "number" && (

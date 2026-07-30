@@ -57,7 +57,7 @@ function PlaybackLoopRangeNode({
         ["--loop-node-opacity" as string]: opacity,
       }}
       // Inline opacity must win over the shared Button `disabled:opacity-50`.
-      className="relative z-20 h-7 min-w-[1.75rem] rounded-full px-1 py-0 transition-opacity disabled:!opacity-[var(--loop-node-opacity)]"
+      className="relative z-20 h-7 min-w-[1.75rem] rounded-full px-1 py-0 !transition-none disabled:!opacity-[var(--loop-node-opacity)]"
     >
       {role === "start" && (
         <div className="baseVertFlex text-[9px] leading-[1.1]">
