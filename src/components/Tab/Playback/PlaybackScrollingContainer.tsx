@@ -91,6 +91,7 @@ function PlaybackScrollingContainer({
     setIsGlideScrubbing,
     pauseAudio,
     playing,
+    containerWidthPx: visiblePlaybackContainerWidth,
   });
 
   // Keep scrubPositionRef seeded while not glide-scrubbing so a grab starts

@@ -63,13 +63,19 @@ export function getAbsoluteChordPositionBounds(
   const firstRep = chordRepetitions[0] ?? 0;
   const lastRep = chordRepetitions[chordCount - 1] ?? 0;
 
-  // Uniform reps: next-loop chord 0 is not placed yet. Extend max so the user
-  // can scrub past the final chord into the following loop continuously.
+  // Uniform reps: neighboring loops are not placed yet. Extend both edges so
+  // forward/backward scrubbing can cross loop seams at the same pixel rate.
   if (firstRep === lastRep && totalWidth > 0) {
-    const nextLoopFirst =
-      getAbsoluteChordPosition(0, scrollPositions, chordRepetitions, totalWidth) +
-      totalWidth;
-    max = Math.max(max, nextLoopFirst);
+    const loopFirst = getAbsoluteChordPosition(
+      0,
+      scrollPositions,
+      chordRepetitions,
+      totalWidth,
+    );
+    max = Math.max(max, loopFirst + totalWidth);
+    if (firstRep > 0) {
+      min = Math.min(min, loopFirst - totalWidth);
+    }
   }
 
   if (!Number.isFinite(min) || !Number.isFinite(max)) {
@@ -226,8 +232,107 @@ export function getStripTransform(positionPx: number) {
 }
 
 /**
+ * UIScrollView.DecelerationRate.normal — velocity retained per millisecond.
+ * See: https://medium.com/@esskeetit/scrolling-mechanics-of-uiscrollview-142adee1142c
+ */
+export const IOS_DECELERATION_RATE = 0.998;
+
+/** Stop coasting once |velocity| falls below this (px/ms). */
+export const IOS_REST_VELOCITY_PX_PER_MS = 0.02;
+
+/**
+ * Undo PlaybackModal's primary half-shift (first half on next loop → uniform).
+ */
+export function undoHalfShiftRepetitions(chordRepetitions: number[]) {
+  const length = chordRepetitions.length;
+  if (length === 0) return chordRepetitions;
+
+  const lastRep = chordRepetitions[length - 1] ?? 0;
+  return new Array(length).fill(lastRep) as number[];
+}
+
+/**
+ * iOS coast end position: x∞ = x0 + v0 / -ln(d), with v0 in px/ms.
+ */
+export function projectIosCoastPosition(
+  positionPx: number,
+  velocityPxPerMs: number,
+  decelerationRate = IOS_DECELERATION_RATE,
+) {
+  if (Math.abs(velocityPxPerMs) < IOS_REST_VELOCITY_PX_PER_MS) {
+    return positionPx;
+  }
+
+  const lnRate = Math.log(decelerationRate);
+  if (lnRate >= 0) return positionPx;
+
+  return positionPx + velocityPxPerMs / -lnRate;
+}
+
+/**
+ * Exact position delta over dtMs under iOS exponential deceleration.
+ * Also returns the decayed velocity at the end of the frame.
+ */
+export function integrateIosCoastStep(
+  velocityPxPerMs: number,
+  deltaMs: number,
+  decelerationRate = IOS_DECELERATION_RATE,
+) {
+  if (deltaMs <= 0) {
+    return { positionDelta: 0, velocity: velocityPxPerMs };
+  }
+
+  const lnRate = Math.log(decelerationRate);
+  const velocityEnd = velocityPxPerMs * Math.pow(decelerationRate, deltaMs);
+  // Integral of v0 * d^t from 0..dt = v0 / ln(d) * (d^dt - 1)
+  const positionDelta =
+    lnRate === 0
+      ? velocityPxPerMs * deltaMs
+      : (velocityPxPerMs / lnRate) * (Math.pow(decelerationRate, deltaMs) - 1);
+
+  return { positionDelta, velocity: velocityEnd };
+}
+
+/**
+ * UIScrollView rubber-band when pulling past an edge.
+ * coefficient 0.55 matches UIScrollView's default feel.
+ */
+export function iosRubberBandOffset(
+  offsetPx: number,
+  dimensionPx: number,
+  coefficient = 0.55,
+) {
+  if (offsetPx === 0 || dimensionPx <= 0) return 0;
+
+  const sign = offsetPx < 0 ? -1 : 1;
+  const x = Math.abs(offsetPx);
+  return (
+    sign * (1 - 1 / ((x * coefficient) / dimensionPx + 1)) * dimensionPx
+  );
+}
+
+/**
+ * Map an unconstrained position into bounds with iOS rubber-banding outside.
+ */
+export function applyIosRubberBandPosition(
+  positionPx: number,
+  min: number,
+  max: number,
+  dimensionPx: number,
+) {
+  if (positionPx < min) {
+    return min - iosRubberBandOffset(min - positionPx, dimensionPx);
+  }
+  if (positionPx > max) {
+    return max + iosRubberBandOffset(positionPx - max, dimensionPx);
+  }
+  return positionPx;
+}
+
+/**
  * Exponential coast projection: integral of v0 * e^(-k t) = v0 / k.
  * velocityPxPerMs is in strip-position space (positive = forward through tab).
+ * @deprecated Prefer projectIosCoastPosition for Glide mode.
  */
 export function projectCoastPosition(
   positionPx: number,
