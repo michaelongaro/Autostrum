@@ -96,7 +96,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <span>
-                  Enter
+                  Press
                   <kbd className="ml-1.5">A</kbd> -{" "}
                   <kbd className="mr-1">G</kbd> or
                   <kbd className="ml-1.5">a</kbd> -{" "}
@@ -108,7 +108,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <span>
-                  Enter
+                  Press
                   <kbd className="ml-1.5">q</kbd> /{" "}
                   <kbd className="mr-1.5">w</kbd>
                   to add a new chord before / after the current chord.
@@ -117,7 +117,7 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <span>
-                  Enter
+                  Press
                   <kbd className="ml-1.5">Shift</kbd> <kbd>↑</kbd> /{" "}
                   <kbd>Shift</kbd> <kbd className="mr-1.5">↓</kbd>
                   to change the current chord&apos;s note length. Add{" "}
@@ -128,10 +128,19 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <span>
-                  Enter
+                  Press
                   <kbd className="ml-1.5">Ctrl</kbd> <kbd>Backspace</kbd> or
                   <kbd className="ml-1.5">Ctrl</kbd> <kbd>Shift</kbd>{" "}
                   <kbd>Backspace</kbd> to clear / delete the current chord.
+                </span>
+              </div>
+              <div className="baseFlex !items-start gap-2">
+                <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
+                <span>
+                  Press the
+                  <kbd className="ml-1.5">Spacebar</kbd> to play/pause the tab.
+                  If you hover over a chord, the tab will start playing from
+                  there.
                 </span>
               </div>
             </div>
