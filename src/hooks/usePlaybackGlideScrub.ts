@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   type PointerEvent,
   type RefObject,
@@ -7,9 +8,12 @@ import {
 import {
   clamp,
   getAbsoluteChordPosition,
+  getAbsoluteChordPositionBounds,
   getChordIndexAtPlayhead,
   getNearestChordIndex,
   getStripTransform,
+  halfShiftRepetitionsForNextLoop,
+  isVisuallyForwardIndexChange,
   projectCoastPosition,
 } from "~/utils/playbackScrubMath";
 
@@ -40,6 +44,9 @@ interface UsePlaybackGlideScrubArgs {
   scrollPositions: number[] | null;
   chordRepetitions: number[];
   totalWidth: number;
+  /** Same threshold PlaybackModal uses for primary virtualization half-shift. */
+  virtualizationStartIndex: number;
+  canVirtualize: boolean;
   currentChordIndex: number;
   setCurrentChordIndex: (index: number) => void;
   setChordRepetitions: (repetitions: number[]) => void;
@@ -61,6 +68,8 @@ function usePlaybackGlideScrub({
   scrollPositions,
   chordRepetitions,
   totalWidth,
+  virtualizationStartIndex,
+  canVirtualize,
   currentChordIndex,
   setCurrentChordIndex,
   setChordRepetitions,
@@ -74,6 +83,8 @@ function usePlaybackGlideScrub({
   const scrollPositionsRef = useRef(scrollPositions);
   const chordRepetitionsRef = useRef(chordRepetitions);
   const totalWidthRef = useRef(totalWidth);
+  const virtualizationStartIndexRef = useRef(virtualizationStartIndex);
+  const canVirtualizeRef = useRef(canVirtualize);
 
   const isTouchingRef = useRef(false);
   const isCoastingRef = useRef(false);
@@ -104,13 +115,23 @@ function usePlaybackGlideScrub({
     scrollPositionsRef.current = scrollPositions;
   }, [scrollPositions]);
 
-  useEffect(() => {
+  // Layout so half-shifts from PlaybackModal are visible to the next pointer
+  // sample in the same frame (useEffect would lag one paint).
+  useLayoutEffect(() => {
     chordRepetitionsRef.current = chordRepetitions;
   }, [chordRepetitions]);
 
   useEffect(() => {
     totalWidthRef.current = totalWidth;
   }, [totalWidth]);
+
+  useEffect(() => {
+    virtualizationStartIndexRef.current = virtualizationStartIndex;
+  }, [virtualizationStartIndex]);
+
+  useEffect(() => {
+    canVirtualizeRef.current = canVirtualize;
+  }, [canVirtualize]);
 
   useEffect(() => {
     return () => {
@@ -130,15 +151,50 @@ function usePlaybackGlideScrub({
       return { min: 0, max: 0 };
     }
 
-    const lastIndex = positions.length - 1;
-    return {
-      min: getAbsoluteChordPosition(0, positions, repetitions, width),
-      max: getAbsoluteChordPosition(lastIndex, positions, repetitions, width),
-    };
+    return getAbsoluteChordPositionBounds(positions, repetitions, width);
+  }
+
+  /**
+   * When reps are still uniform and the playhead crosses into the next loop,
+   * half-shift early chords forward so scrubbing can continue continuously
+   * (same shape PlaybackModal's primary virtualization uses).
+   */
+  function ensureNextLoopRepetitions(positionPx: number) {
+    const positions = scrollPositionsRef.current;
+    const repetitions = chordRepetitionsRef.current;
+    const width = totalWidthRef.current;
+
+    if (!positions || positions.length === 0 || width <= 0) return;
+
+    const firstRep = repetitions[0] ?? 0;
+    const lastRep = repetitions[positions.length - 1] ?? 0;
+    if (firstRep !== lastRep) return;
+
+    const nextLoopStart = firstRep * width + width;
+    if (positionPx < nextLoopStart - 0.5) return;
+
+    // Short tabs skip half-shift virtualization; bump every chord into the
+    // next loop so scrubbing past the end stays continuous.
+    const shifted = canVirtualizeRef.current
+      ? halfShiftRepetitionsForNextLoop(
+          repetitions,
+          virtualizationStartIndexRef.current,
+        )
+      : (new Array(positions.length).fill(firstRep + 1) as number[]);
+
+    const changed = shifted.some(
+      (rep, index) => rep !== (repetitions[index] ?? 0),
+    );
+    if (!changed) return;
+
+    chordRepetitionsRef.current = shifted;
+    setChordRepetitions(shifted);
   }
 
   function applyTransform(positionPx: number) {
     const strip = stripRef.current;
+    ensureNextLoopRepetitions(positionPx);
+
     const { min, max } = getPositionBounds();
     const clamped = clamp(positionPx, min, max);
     positionRef.current = clamped;
@@ -167,11 +223,37 @@ function usePlaybackGlideScrub({
 
     if (nextIndex === previousIndex) return;
 
-    if (nextIndex < previousIndex) {
-      // Virtualization only handles forward movement; reset on scrub-back.
+    const visuallyForward = isVisuallyForwardIndexChange(
+      previousIndex,
+      nextIndex,
+      positions,
+      repetitions,
+      width,
+    );
+
+    // Only reset virtualization on a true scrub-back. Forward loop wraps
+    // (last → first of next loop) also decrease the index but must keep reps.
+    if (nextIndex < previousIndex && !visuallyForward) {
       const resetRepetitions = new Array(positions.length).fill(0) as number[];
+      const remappedPosition = getAbsoluteChordPosition(
+        nextIndex,
+        positions,
+        resetRepetitions,
+        width,
+      );
+
       chordRepetitionsRef.current = resetRepetitions;
       setChordRepetitions(resetRepetitions);
+
+      // Rep reset moves chords in absolute space; keep the playhead on the
+      // target chord so we don't snap back to the end of the base loop.
+      positionRef.current = remappedPosition;
+      scrubPositionRef.current = remappedPosition;
+      const strip = stripRef.current;
+      if (strip) {
+        strip.style.transition = "none";
+        strip.style.transform = getStripTransform(remappedPosition);
+      }
     }
 
     currentChordIndexRef.current = nextIndex;
@@ -220,8 +302,16 @@ function usePlaybackGlideScrub({
 
     if (positions && positions.length > 0) {
       let repetitions = chordRepetitionsRef.current;
+      const previousIndex = currentChordIndexRef.current;
+      const visuallyForward = isVisuallyForwardIndexChange(
+        previousIndex,
+        finalIndex,
+        positions,
+        repetitions,
+        width,
+      );
 
-      if (finalIndex < currentChordIndexRef.current) {
+      if (finalIndex < previousIndex && !visuallyForward) {
         repetitions = new Array(positions.length).fill(0) as number[];
         chordRepetitionsRef.current = repetitions;
         setChordRepetitions(repetitions);
@@ -233,7 +323,14 @@ function usePlaybackGlideScrub({
         repetitions,
         width,
       );
-      applyTransform(finalPosition);
+      // Bypass loop-advance side effects; we are committing a settled chord.
+      const strip = stripRef.current;
+      positionRef.current = finalPosition;
+      scrubPositionRef.current = finalPosition;
+      if (strip) {
+        strip.style.transition = "none";
+        strip.style.transform = getStripTransform(finalPosition);
+      }
 
       currentChordIndexRef.current = finalIndex;
       setCurrentChordIndex(finalIndex);
@@ -270,11 +367,39 @@ function usePlaybackGlideScrub({
       velocity = 0;
     }
 
+    const repsBefore = chordRepetitionsRef.current;
     applyTransform(nextPosition);
-    syncChordIndexFromPosition(nextPosition);
+    syncChordIndexFromPosition(positionRef.current);
     velocityPxPerMsRef.current = velocity;
 
-    const distanceToSnap = Math.abs(nextPosition - coastSnapTargetRef.current);
+    // If we half-shifted into the next loop mid-coast, retarget the snap onto
+    // the newly placed next-loop chords so we don't stick on the old final chord.
+    const positions = scrollPositionsRef.current;
+    const repetitions = chordRepetitionsRef.current;
+    const width = totalWidthRef.current;
+    if (
+      positions &&
+      positions.length > 0 &&
+      repetitions !== repsBefore
+    ) {
+      const liveSnapIndex = getNearestChordIndex(
+        positionRef.current,
+        positions,
+        repetitions,
+        width,
+      );
+      coastSnapIndexRef.current = liveSnapIndex;
+      coastSnapTargetRef.current = getAbsoluteChordPosition(
+        liveSnapIndex,
+        positions,
+        repetitions,
+        width,
+      );
+    }
+
+    const distanceToSnap = Math.abs(
+      positionRef.current - coastSnapTargetRef.current,
+    );
     const settled =
       Math.abs(velocity) < REST_VELOCITY_PX_PER_MS || distanceToSnap < 0.5;
 
@@ -299,6 +424,17 @@ function usePlaybackGlideScrub({
     const velocity = estimateVelocityPxPerMs();
     velocityPxPerMsRef.current = velocity;
 
+    // Advance loop layout before projecting so next-loop chords exist as
+    // snap targets when flinging past the final chord.
+    ensureNextLoopRepetitions(
+      projectCoastPosition(
+        positionRef.current,
+        velocity,
+        COAST_FRICTION_PER_MS,
+      ),
+    );
+
+    const liveRepetitions = chordRepetitionsRef.current;
     const { min, max } = getPositionBounds();
     const projected = clamp(
       projectCoastPosition(
@@ -313,13 +449,13 @@ function usePlaybackGlideScrub({
     const snapIndex = getNearestChordIndex(
       projected,
       positions,
-      repetitions,
+      liveRepetitions,
       width,
     );
     const snapTarget = getAbsoluteChordPosition(
       snapIndex,
       positions,
-      repetitions,
+      liveRepetitions,
       width,
     );
 
@@ -335,14 +471,14 @@ function usePlaybackGlideScrub({
       const immediateIndex = getNearestChordIndex(
         positionRef.current,
         positions,
-        repetitions,
+        liveRepetitions,
         width,
       );
       coastSnapIndexRef.current = immediateIndex;
       coastSnapTargetRef.current = getAbsoluteChordPosition(
         immediateIndex,
         positions,
-        repetitions,
+        liveRepetitions,
         width,
       );
     }

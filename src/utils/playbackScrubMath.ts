@@ -30,6 +30,111 @@ export function getAbsoluteChordPosition(
 }
 
 /**
+ * Min/max absolute chord positions for the current repetition layout.
+ *
+ * IMPORTANT: after primary virtualization half-shifts early chords onto the
+ * next loop, index 0 can sit *ahead* of the last index. Never assume
+ * index 0 = min / last index = max or bounds invert and scrubbing sticks.
+ */
+export function getAbsoluteChordPositionBounds(
+  scrollPositions: number[],
+  chordRepetitions: number[],
+  totalWidth: number,
+) {
+  const chordCount = scrollPositions.length;
+  if (chordCount === 0) {
+    return { min: 0, max: 0 };
+  }
+
+  let min = Number.POSITIVE_INFINITY;
+  let max = Number.NEGATIVE_INFINITY;
+
+  for (let index = 0; index < chordCount; index++) {
+    const absPos = getAbsoluteChordPosition(
+      index,
+      scrollPositions,
+      chordRepetitions,
+      totalWidth,
+    );
+    min = Math.min(min, absPos);
+    max = Math.max(max, absPos);
+  }
+
+  const firstRep = chordRepetitions[0] ?? 0;
+  const lastRep = chordRepetitions[chordCount - 1] ?? 0;
+
+  // Uniform reps: next-loop chord 0 is not placed yet. Extend max so the user
+  // can scrub past the final chord into the following loop continuously.
+  if (firstRep === lastRep && totalWidth > 0) {
+    const nextLoopFirst =
+      getAbsoluteChordPosition(0, scrollPositions, chordRepetitions, totalWidth) +
+      totalWidth;
+    max = Math.max(max, nextLoopFirst);
+  }
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    return { min: 0, max: 0 };
+  }
+
+  return { min, max };
+}
+
+/**
+ * True when an index decrease is still visually forward (loop wrap), e.g.
+ * last chord → first chord of the next artificial loop after half-shift.
+ */
+export function isVisuallyForwardIndexChange(
+  previousIndex: number,
+  nextIndex: number,
+  scrollPositions: number[],
+  chordRepetitions: number[],
+  totalWidth: number,
+) {
+  if (nextIndex >= previousIndex) return nextIndex > previousIndex;
+
+  const previousAbs = getAbsoluteChordPosition(
+    previousIndex,
+    scrollPositions,
+    chordRepetitions,
+    totalWidth,
+  );
+  const nextAbs = getAbsoluteChordPosition(
+    nextIndex,
+    scrollPositions,
+    chordRepetitions,
+    totalWidth,
+  );
+
+  return nextAbs > previousAbs;
+}
+
+/**
+ * Half-shift repetitions the same way PlaybackModal's primary virtualization
+ * does, so scrubbing past the strip end can enter the next loop continuously.
+ */
+export function halfShiftRepetitionsForNextLoop(
+  chordRepetitions: number[],
+  virtualizationStartIndex: number,
+) {
+  const length = chordRepetitions.length;
+  if (length === 0) return chordRepetitions;
+
+  const firstRep = chordRepetitions[0] ?? 0;
+  const lastRep = chordRepetitions[length - 1] ?? 0;
+  if (firstRep !== lastRep) {
+    return chordRepetitions;
+  }
+
+  const startIndex = Math.min(Math.max(0, virtualizationStartIndex), length);
+  const nextRep = firstRep + 1;
+
+  return [
+    ...(new Array(startIndex).fill(nextRep) as number[]),
+    ...(new Array(length - startIndex).fill(firstRep) as number[]),
+  ];
+}
+
+/**
  * Chord whose start is at or just before the playhead (highlight line).
  * Prefer this over "nearest" while dragging so highlighting matches playback.
  */
