@@ -240,7 +240,7 @@ export function getLoopRangeNodePresentation({
     }
 
     const isValidEnd =
-      index > draftStartIndex && Math.abs(index - draftStartIndex) >= 2;
+      index > draftStartIndex && Math.abs(index - draftStartIndex) >= 1;
 
     return {
       role: "plus",
@@ -257,7 +257,7 @@ export function getLoopRangeNodePresentation({
   const isValidStart =
     draftEndIndex === null
       ? index < fullTabMetadataLength - 1
-      : index < draftEndIndex && Math.abs(draftEndIndex - index) >= 2;
+      : index < draftEndIndex && Math.abs(draftEndIndex - index) >= 1;
 
   return {
     role: "plus",

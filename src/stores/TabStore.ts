@@ -929,7 +929,7 @@ const useTabStoreBase = create<TabState>()(
             set({ draftLoopStartIndex: null });
             return;
           }
-          if (index <= start || Math.abs(index - start) < 2) return;
+          if (index <= start || Math.abs(index - start) < 1) return;
 
           set({ draftLoopEndIndex: index });
           setCurrentChordIndex(index);
@@ -944,7 +944,7 @@ const useTabStoreBase = create<TabState>()(
           }
 
           if (end !== null) {
-            if (index >= end || Math.abs(end - index) < 2) return;
+            if (index >= end || Math.abs(end - index) < 1) return;
             set({ draftLoopStartIndex: index });
             setCurrentChordIndex(index);
             return;
