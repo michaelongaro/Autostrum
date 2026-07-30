@@ -83,6 +83,8 @@ function PlaybackScrollingContainer({
     scrollPositions: chordLayoutData?.scrollPositions ?? null,
     chordRepetitions,
     totalWidth: chordLayoutData?.totalWidth ?? 0,
+    virtualizationStartIndex: chordLayoutData?.virtualizationStartIndex ?? 0,
+    canVirtualize: chordLayoutData?.canVirtualize ?? false,
     currentChordIndex,
     setCurrentChordIndex,
     setChordRepetitions: (repetitions) => setChordRepetitions(repetitions),
