@@ -53,6 +53,7 @@ function PlaybackTopMetadata({
     setShowGlossaryDialog,
     setAudioMetadata,
     setCurrentChordIndex,
+    setDraftLoopRange,
   } = useTabStore((state) => ({
     title: state.title,
     tuning: state.tuning,
@@ -68,6 +69,7 @@ function PlaybackTopMetadata({
     setShowGlossaryDialog: state.setShowGlossaryDialog,
     setAudioMetadata: state.setAudioMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
+    setDraftLoopRange: state.setDraftLoopRange,
   }));
 
   const useDifficultyLabels = asPath.includes("/tools");
@@ -80,8 +82,7 @@ function PlaybackTopMetadata({
     useDifficultyLabels,
   });
 
-  const sectionsById: Record<string, { sectionId: string; title: string }> =
-    {};
+  const sectionsById: Record<string, { sectionId: string; title: string }> = {};
 
   for (const section of sectionProgression) {
     if (!sectionsById[section.sectionId]) {
@@ -107,6 +108,11 @@ function PlaybackTopMetadata({
             },
       startLoopIndex: 0,
       endLoopIndex: -1,
+    });
+
+    setDraftLoopRange({
+      startIndex: null,
+      endIndex: null,
     });
 
     setCurrentChordIndex(0);
