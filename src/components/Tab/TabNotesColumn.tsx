@@ -104,10 +104,13 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { pauseAudio, setTabData } = useTabStore((state) => ({
-    pauseAudio: state.pauseAudio,
-    setTabData: state.setTabData,
-  }));
+  const { pauseAudio, setTabData, setHoveredChordLocation } = useTabStore(
+    (state) => ({
+      pauseAudio: state.pauseAudio,
+      setTabData: state.setTabData,
+      setHoveredChordLocation: state.setHoveredChordLocation,
+    }),
+  );
 
   // ideally don't need this and can just use prop values passed in, but need to have a
   // [0] index special case, since when looping it would keep the [0] index at 100% width
@@ -266,8 +269,18 @@ function TabNotesColumn({
         transition,
         zIndex: isDragging ? 20 : "auto",
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        setHoveredChordLocation({
+          sectionIndex,
+          subSectionIndex,
+          chordIndex: columnIndex,
+        });
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setHoveredChordLocation(null);
+      }}
       className="baseVertFlex h-[380px] cursor-default"
     >
       <Element

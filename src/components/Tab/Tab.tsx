@@ -45,6 +45,7 @@ import { useInView } from "react-intersection-observer";
 import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
+import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -130,6 +131,7 @@ function Tab() {
   const tabDataLength = sectionIds.length;
 
   useAutoCompileChords();
+  useSpacebarAudioControl({ useHoveredChordLocation: true });
 
   const { ref: tabContentRef } = useInView({
     rootMargin: "-300px 0px -300px 0px",
