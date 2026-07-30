@@ -31,6 +31,10 @@ interface PlaybackAnimatedStrip {
   chordRepetitions: number[];
   loopDelay: number;
   playbackSpeed: number;
+  /** When true, glide scrub owns transform; React must not overwrite it. */
+  isGlideScrubbing?: boolean;
+  scrubPositionRef?: React.RefObject<number>;
+  stripRef?: React.RefObject<HTMLDivElement | null>;
   renderChord: (props: {
     chord:
       PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
@@ -62,10 +66,16 @@ const PlaybackAnimatedStrip = memo(
     loopDelay,
     // v still used in memo comparison
     playbackSpeed, // eslint-disable-line @typescript-eslint/no-unused-vars
+    isGlideScrubbing = false,
+    scrubPositionRef: externalScrubPositionRef,
+    stripRef: externalStripRef,
     renderChord,
   }: PlaybackAnimatedStrip) {
-    const scrollStripRef = useRef<HTMLDivElement | null>(null);
-    const scrollPositionRef = useRef(0);
+    const internalStripRef = useRef<HTMLDivElement | null>(null);
+    const internalScrollPositionRef = useRef(0);
+    const scrollStripRef = externalStripRef ?? internalStripRef;
+    const scrollPositionRef =
+      externalScrubPositionRef ?? internalScrollPositionRef;
 
     const audioContext = useTabStore((state) => state.audioContext);
     const playbackStartedAtAudioTime = useTabStore(
@@ -87,9 +97,17 @@ const PlaybackAnimatedStrip = memo(
     // edge, pin the current transform so React does not clear it to identity
     // for a frame before rAF takes ownership. While playing, do not write
     // transform from React or it will fight the continuous scroll.
+    // While glide-scrubbing, re-apply the scrub position after React commits
+    // so highlight-driven re-renders cannot clear the inline transform.
     useLayoutEffect(() => {
       const stripElement = scrollStripRef.current;
       if (!stripElement) return;
+
+      if (isGlideScrubbing) {
+        stripElement.style.transition = "none";
+        stripElement.style.transform = `translate3d(${scrollPositionRef.current * -1}px, 0, 0)`;
+        return;
+      }
 
       if (!playing) {
         // Avoid retaining a speculative compositor layer between sessions.
@@ -112,18 +130,28 @@ const PlaybackAnimatedStrip = memo(
             ? scrollContainerTransform
             : computedTransform;
       }
-    }, [playing, scrollContainerTransform]);
+    }, [
+      isGlideScrubbing,
+      playing,
+      scrollContainerTransform,
+      scrollPositionRef,
+      scrollStripRef,
+    ]);
+
+    const reactOwnsTransform = !playing && !isGlideScrubbing;
 
     return (
       <div
         ref={scrollStripRef}
         style={{
           width: `${chordLayoutData.totalWidth}px`,
-          // Omit transform while playing so React cannot clear rAF's inline
-          // value (`undefined` would set style.transform = ""). While paused,
-          // React drives scrubbing.
-          ...(playing ? {} : { transform: scrollContainerTransform }),
-          transition: playing ? "none" : "transform 0.1s linear",
+          // Omit transform while playing/glide-scrubbing so React cannot clear
+          // the imperative inline value. While paused (discrete scrub), React
+          // drives scrubbing via currentChordIndex.
+          ...(reactOwnsTransform
+            ? { transform: scrollContainerTransform }
+            : {}),
+          transition: reactOwnsTransform ? "transform 0.1s linear" : "none",
         }}
         className="relative flex items-center"
       >
@@ -150,6 +178,9 @@ const PlaybackAnimatedStrip = memo(
   },
   (previousProps, nextProps) => {
     if (previousProps.playing !== nextProps.playing) return false;
+    if (previousProps.isGlideScrubbing !== nextProps.isGlideScrubbing) {
+      return false;
+    }
     if (previousProps.chordLayoutData !== nextProps.chordLayoutData) {
       return false;
     }
@@ -174,6 +205,8 @@ const PlaybackAnimatedStrip = memo(
       return true;
     }
 
+    // During glide scrubbing, still re-render on chord index so highlights
+    // track the playhead, but transform stays imperative.
     return (
       previousProps.currentChordIndex === nextProps.currentChordIndex &&
       previousProps.scrollContainerTransform ===
