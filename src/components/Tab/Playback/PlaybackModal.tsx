@@ -702,17 +702,18 @@ function PlaybackModal() {
 
           {playbackModalViewingState === "Practice" && (
             <div className="baseVertFlex w-full gap-1 lg:gap-2">
-              {audioMetadata.editingLoopRange && (
-                <>
-                  {loopRangePrompt ? (
-                    <p className="pb-2 text-center text-sm text-gray mobileLandscape:pb-0">
-                      {loopRangePrompt}
-                    </p>
-                  ) : (
-                    <div className="h-[28px] w-full pb-2 mobileLandscape:h-5"></div>
-                  )}
-                </>
-              )}
+              {audioMetadata.editingLoopRange &&
+                !viewportLabel.includes("Landscape") && (
+                  <>
+                    {loopRangePrompt ? (
+                      <p className="pb-2 text-center text-sm text-gray mobileLandscape:pb-0">
+                        {loopRangePrompt}
+                      </p>
+                    ) : (
+                      <div className="h-[28px] w-full pb-2 mobileLandscape:h-5"></div>
+                    )}
+                  </>
+                )}
 
               <PlaybackAudioControls
                 chordDurations={chordLayoutData?.durations ?? []}
