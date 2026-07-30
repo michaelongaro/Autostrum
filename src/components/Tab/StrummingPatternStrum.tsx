@@ -110,6 +110,10 @@ function StrummingPatternStrum({
   const [isHovered, setIsHovered] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  const setHoveredChordLocation = useTabStore(
+    (state) => state.setHoveredChordLocation,
+  );
+
   const forPreview =
     mode === "editingStrummingPattern" || patternIndex !== undefined;
 
@@ -152,8 +156,31 @@ function StrummingPatternStrum({
           marginTop: mode === "editingStrummingPattern" ? "1rem" : "0",
         }}
         className="baseVertFlex relative"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          if (
+            sectionIndex !== undefined &&
+            subSectionIndex !== undefined &&
+            chordSequenceIndex !== undefined
+          ) {
+            setHoveredChordLocation({
+              sectionIndex,
+              subSectionIndex,
+              chordSequenceIndex,
+              chordIndex: strumIndex,
+            });
+          }
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          if (
+            sectionIndex !== undefined &&
+            subSectionIndex !== undefined &&
+            chordSequenceIndex !== undefined
+          ) {
+            setHoveredChordLocation(null);
+          }
+        }}
       >
         {strum.palmMute !== "" || editingPalmMuteNodes ? (
           <StrummingPatternPalmMuteNode

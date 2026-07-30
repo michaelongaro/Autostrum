@@ -236,13 +236,28 @@ export interface PreviewMetadata {
   playing: boolean;
 }
 
+export type PlayTabLocation = {
+  sectionIndex: number;
+  subSectionIndex?: number;
+  chordSequenceIndex?: number;
+  /** Column/strum index within the subsection; used to seek start position only. */
+  chordIndex?: number;
+};
+
 interface PlayTab {
-  location: {
-    sectionIndex: number;
-    subSectionIndex?: number;
-    chordSequenceIndex?: number;
-  } | null;
+  /**
+   * Omit to keep the current `audioMetadata.location` and resume from there.
+   * Pass `null` to play the whole tab. Include `chordIndex` to start at that chord.
+   */
+  location?: PlayTabLocation | null;
 }
+
+export type HoveredChordLocation = {
+  sectionIndex: number;
+  subSectionIndex: number;
+  chordSequenceIndex?: number;
+  chordIndex: number;
+};
 interface PlayPreview {
   data: string[] | StrummingPattern;
   index: number; // technically only necessary for strumming pattern, not chord preview
@@ -391,6 +406,7 @@ const initialStoreState = {
   },
   draftLoopStartIndex: null,
   draftLoopEndIndex: null,
+  hoveredChordLocation: null,
   previewMetadata: {
     indexOfPattern: -1,
     currentChordIndex: 0,
@@ -504,6 +520,12 @@ interface TabState {
   setCountInBuffer: (countInBuffer: AudioBuffer | null) => void;
   countInTimerEnabled: boolean;
   setCountInTimerEnabled: (countInTimerEnabled: boolean) => void;
+
+  /** Chord column currently under the mouse while editing (for spacebar play). */
+  hoveredChordLocation: HoveredChordLocation | null;
+  setHoveredChordLocation: (
+    hoveredChordLocation: HoveredChordLocation | null,
+  ) => void;
 
   expandedTabData:
     | (
@@ -976,6 +998,9 @@ const useTabStoreBase = create<TabState>()(
       countInTimerEnabled: true,
       setCountInTimerEnabled: (countInTimerEnabled) =>
         set({ countInTimerEnabled }),
+      hoveredChordLocation: null,
+      setHoveredChordLocation: (hoveredChordLocation) =>
+        set({ hoveredChordLocation }),
 
       // playing/pausing sound functions
       ensureAudioSystemReady: async () => {
@@ -1077,7 +1102,7 @@ const useTabStoreBase = create<TabState>()(
         };
       },
 
-      playTab: async ({ location }: PlayTab) => {
+      playTab: async ({ location }: PlayTab = {}) => {
         const {
           tabData,
           audioMetadata,
@@ -1128,14 +1153,32 @@ const useTabStoreBase = create<TabState>()(
           undefined,
         ];
 
+        // Omit `location` to resume the current scope; pass null for the whole tab.
+        const locationWasProvided = location !== undefined;
+        const requestedLocation: PlayTabLocation | null = locationWasProvided
+          ? location
+          : audioMetadata.location;
+
+        const locationForAudioMetadata = requestedLocation
+          ? {
+              sectionIndex: requestedLocation.sectionIndex,
+              ...(requestedLocation.subSectionIndex !== undefined && {
+                subSectionIndex: requestedLocation.subSectionIndex,
+              }),
+              ...(requestedLocation.chordSequenceIndex !== undefined && {
+                chordSequenceIndex: requestedLocation.chordSequenceIndex,
+              }),
+            }
+          : null;
+
         const sectionProgression =
-          !editing && audioMetadata.location?.sectionIndex !== undefined
+          !editing && locationForAudioMetadata?.sectionIndex !== undefined
             ? // just for when playing back specific section within PlaybackModal
               [
                 {
                   id: "",
                   sectionId:
-                    tabData[audioMetadata.location.sectionIndex]?.id ?? "",
+                    tabData[locationForAudioMetadata.sectionIndex]?.id ?? "",
                   title: "",
                   repetitions: 1,
                   startSeconds: 0,
@@ -1159,10 +1202,10 @@ const useTabStoreBase = create<TabState>()(
           : audioMetadata.endLoopIndex;
 
         const compiledChords =
-          editing && location
+          editing && locationForAudioMetadata
             ? compileSpecificChordGrouping({
                 tabData,
-                location,
+                location: locationForAudioMetadata,
                 chords,
                 strummingPatterns,
                 baselineBpm,
@@ -1192,7 +1235,7 @@ const useTabStoreBase = create<TabState>()(
           ? null
           : expandFullTab({
               tabData,
-              location: audioMetadata.location,
+              location: locationForAudioMetadata,
               sectionProgression,
               chords,
               baselineBpm,
@@ -1213,6 +1256,29 @@ const useTabStoreBase = create<TabState>()(
             ? 1
             : expandedTabData.artificialLoopsNecessary);
 
+        const latestMetadata = get().currentlyPlayingMetadata;
+        let startChordIndex = currentChordIndex;
+
+        if (
+          locationWasProvided &&
+          requestedLocation?.chordIndex !== undefined &&
+          latestMetadata
+        ) {
+          const hoveredChordIndex = requestedLocation.chordIndex;
+          const matchedIndex = latestMetadata.findIndex(
+            (entry) =>
+              entry.location.sectionIndex === requestedLocation.sectionIndex &&
+              entry.location.subSectionIndex ===
+                requestedLocation.subSectionIndex &&
+              entry.location.chordSequenceIndex ===
+                requestedLocation.chordSequenceIndex &&
+              entry.location.chordIndex === hoveredChordIndex,
+          );
+          startChordIndex = matchedIndex >= 0 ? matchedIndex : 0;
+        } else if (startChordIndex >= adjChordCount) {
+          startChordIndex = 0;
+        }
+
         // Web Audio is most reliable when you schedule sounds slightly ahead of audioContext.currentTime
         const nextPlaybackSessionId = get().playbackSessionId + 1;
         const scheduledPlaybackNodes: { stop(when?: number): void }[] = [];
@@ -1223,9 +1289,12 @@ const useTabStoreBase = create<TabState>()(
         set({
           audioMetadata: {
             ...audioMetadata,
-            location,
+            location: locationWasProvided
+              ? locationForAudioMetadata
+              : audioMetadata.location,
             playing: true,
           },
+          currentChordIndex: startChordIndex,
           playbackStartedAtAudioTime: nextChordStartTime,
           playbackSessionId: nextPlaybackSessionId,
           scheduledPlaybackNodes,
@@ -1238,8 +1307,7 @@ const useTabStoreBase = create<TabState>()(
         await runPlaybackScheduler({
           compiledChords,
           adjChordCount,
-          startChordIndex:
-            currentChordIndex >= adjChordCount ? 0 : currentChordIndex,
+          startChordIndex,
           playbackStartTime: nextChordStartTime,
           playbackSpeed,
           tuning,
