@@ -79,6 +79,11 @@ function PlaybackLoopRangeActions() {
       endLoopIndex: -1,
     });
 
+    setDraftLoopRange({
+      startIndex: null,
+      endIndex: null,
+    });
+
     setCurrentChordIndex(0);
   }
 
@@ -134,7 +139,9 @@ function PlaybackLoopRangeActions() {
   }
 
   return (
-    <div className="baseFlex w-full !justify-between gap-3 px-4 pb-2">
+    <div
+      className={`baseFlex w-full gap-3 px-4 pb-2 ${viewportLabel.includes("Landscape") && sectionProgression.length > 1 ? "!justify-between" : ""}`}
+    >
       {viewportLabel.includes("Landscape") && sectionProgression.length > 1 && (
         <div className="baseFlex gap-2">
           <Label htmlFor="sectionPicker" className="text-sm font-medium">
