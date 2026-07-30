@@ -47,7 +47,7 @@ function DesktopHeader() {
   return (
     <nav
       id={"desktopHeader"}
-      className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full bg-header shadow-md shadow-primary/20"
+      className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full bg-header shadow-sm shadow-primary/20"
     >
       <div className={classes.desktopHeader}>
         <Link
