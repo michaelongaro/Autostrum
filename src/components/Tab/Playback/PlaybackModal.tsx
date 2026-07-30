@@ -115,6 +115,8 @@ function PlaybackModal() {
     setContainerElement(element);
   };
   const modalContentRef = useRef<HTMLDivElement | null>(null);
+  const playbackStripRef = useRef<HTMLDivElement | null>(null);
+  const scrubPositionRef = useRef(0);
   const measureRetryRafRef = useRef<number | null>(null);
   const wasDocumentHiddenRef = useRef(false);
   // Refs so background/foreground handlers never read a stale playing flag
@@ -142,6 +144,9 @@ function PlaybackModal() {
   // Per-chord repetition tracking for smooth infinite scroll without visual snapping
   // Each chord tracks how many times it has "looped" for positioning purposes
   const [chordRepetitions, setChordRepetitions] = useState<number[]>([]);
+
+  // Temporary: glide scrub mode takes imperative ownership of strip translateX.
+  const [isGlideScrubbing, setIsGlideScrubbing] = useState(false);
 
   const [tabProgressValue, setTabProgressValue] = useState(0);
 
@@ -657,6 +662,12 @@ function PlaybackModal() {
                     scrollPositionsLength={
                       chordLayoutData?.scrollPositions.length ?? 0
                     }
+                    chordLayoutData={chordLayoutData}
+                    chordRepetitions={chordRepetitions}
+                    stripRef={playbackStripRef}
+                    scrubPositionRef={scrubPositionRef}
+                    isGlideScrubbing={isGlideScrubbing}
+                    setIsGlideScrubbing={setIsGlideScrubbing}
                   >
                     <div
                       ref={containerRef}
@@ -688,6 +699,9 @@ function PlaybackModal() {
                           chordRepetitions={chordRepetitions}
                           loopDelay={loopDelay}
                           playbackSpeed={playbackSpeed}
+                          isGlideScrubbing={isGlideScrubbing}
+                          scrubPositionRef={scrubPositionRef}
+                          stripRef={playbackStripRef}
                           renderChord={renderVisibleChord}
                         />
                       )}
