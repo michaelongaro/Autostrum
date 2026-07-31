@@ -659,9 +659,6 @@ function PlaybackModal() {
                 <div className="w-full overflow-hidden">
                   <PlaybackScrollingContainer
                     setChordRepetitions={setChordRepetitions}
-                    scrollPositionsLength={
-                      chordLayoutData?.scrollPositions.length ?? 0
-                    }
                     chordLayoutData={chordLayoutData}
                     chordRepetitions={chordRepetitions}
                     stripRef={playbackStripRef}
