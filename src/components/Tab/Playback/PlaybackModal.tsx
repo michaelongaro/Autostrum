@@ -116,6 +116,7 @@ function PlaybackModal() {
   };
   const modalContentRef = useRef<HTMLDivElement | null>(null);
   const playbackStripRef = useRef<HTMLDivElement | null>(null);
+  const playbackPlayheadRef = useRef<HTMLDivElement | null>(null);
   const scrubPositionRef = useRef(0);
   const measureRetryRafRef = useRef<number | null>(null);
   const wasDocumentHiddenRef = useRef(false);
@@ -663,6 +664,7 @@ function PlaybackModal() {
                     chordRepetitions={chordRepetitions}
                     stripRef={playbackStripRef}
                     scrubPositionRef={scrubPositionRef}
+                    playheadRef={playbackPlayheadRef}
                     isGlideScrubbing={isGlideScrubbing}
                     setIsGlideScrubbing={setIsGlideScrubbing}
                   >
@@ -678,8 +680,13 @@ function PlaybackModal() {
                         <div className="baseFlex absolute left-0 top-0 size-full">
                           <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
                           {/* currently this fixes the highlight line extending past rounded borders of
-                          sections, but puts it behind measure lines. maybe this is a fine tradeoff? */}
-                          <div className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[165px]"></div>
+                          sections, but puts it behind measure lines. maybe this is a fine tradeoff?
+                          translateX is written imperatively during rubber-band overscroll so the
+                          playhead stays attached to the strip. */}
+                          <div
+                            ref={playbackPlayheadRef}
+                            className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[165px]"
+                          ></div>
                           <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
                         </div>
                       )}
