@@ -208,7 +208,7 @@ function PlaybackLoopRangeActions() {
         <Button
           variant="outline"
           onClick={handleReturn}
-          className="baseFlex min-w-20"
+          className="baseFlex min-w-20 pl-2"
         >
           <BsArrowLeftShort className="h-6 w-8" />
           Return
