@@ -19,18 +19,18 @@ function toString(
     pad: number;
   },
 ) {
-  // parse("") returns [36] which is a C, and we instead just want to return "     "
-  // so that the tab has empty notes instead of C's.
+  // parse("") returns [36], which is a C. Return spaces so that the tab
+  // contains empty notes instead.
   if (tuning.length === 1 && tuning[0] === 36) return "     ";
 
   let equidistantTuning = "";
 
   const baseTunings = tuning
     .map((midi) =>
-      midiToNoteName(midi, { pitchClass: true, sharps: true }).padEnd(
-        options?.pad ?? 0,
-        " ",
-      ),
+      midiToNoteName(midi, {
+        pitchClass: true,
+        sharps: true,
+      }).padEnd(options?.pad ?? 0, " "),
     )
     .reverse();
 
@@ -48,8 +48,11 @@ function parse(notes: string) {
     .reverse();
 }
 
-const NOTE_ONLY_TOKEN_REGEX = /^(?<note>[A-G](?:#)?)(?<octave>[0-8])?$/i;
+const NOTE_ONLY_TOKEN_REGEX =
+  /^(?<note>A#?|B|C#?|D#?|E|F#?|G#?)(?<octave>[0-8])?$/i;
+
 const STANDARD_TUNING_MIDI = DEFAULT_TUNING_MIDI;
+
 const STRING_MIDI_RANGES: [number, number][] = [
   [28, 52],
   [33, 57],
@@ -71,7 +74,8 @@ function getMidiCandidatesForString({
 
   for (let octave = 0; octave <= 8; octave++) {
     const midi = get(`${note}${octave}`).midi;
-    if (midi === null) continue;
+
+    if (midi == null) continue;
 
     if (midi >= minMidi && midi <= maxMidi) {
       candidates.push(midi);
@@ -86,10 +90,16 @@ function normalizeCustomTuningInput(input: string) {
 
   if (tokens.length !== 6) return null;
 
-  const parsed: { note: string; octave: number | undefined }[] = [];
+  const parsed: {
+    note: string;
+    octave: number | undefined;
+  }[] = [];
+
   for (const token of tokens) {
     const match = NOTE_ONLY_TOKEN_REGEX.exec(token);
+
     if (!match?.groups?.note) return null;
+
     parsed.push({
       note: match.groups.note.toUpperCase(),
       octave:
@@ -99,28 +109,30 @@ function normalizeCustomTuningInput(input: string) {
     });
   }
 
-  // Collect valid MIDI candidates for each string position
   const candidatesPerString: number[][] = [];
-  for (let i = 0; i < 6; i++) {
-    const { note, octave } = parsed[i]!;
+
+  for (let stringIndex = 0; stringIndex < 6; stringIndex++) {
+    const { note, octave } = parsed[stringIndex]!;
+
     if (octave !== undefined) {
-      // User provided an explicit octave — trust it without range-checking.
       const midi = get(`${note}${octave}`).midi;
-      if (midi === null) return null;
+
+      if (midi == null) return null;
+
       candidatesPerString.push([midi]);
-    } else {
-      const candidates = getMidiCandidatesForString({ note, stringIndex: i });
-      if (candidates.length === 0) return null;
-      candidatesPerString.push(candidates);
+      continue;
     }
+
+    const candidates = getMidiCandidatesForString({
+      note,
+      stringIndex,
+    });
+
+    if (candidates.length === 0) return null;
+
+    candidatesPerString.push(candidates);
   }
 
-  // DP to find the best non-descending combination.
-  // Cost = shift-consistency penalty: (shift_i - shift_{i-1})^2, where
-  // shift_i = candidateMidi - standardMidi for that string position.
-  // This keeps all strings in the same register rather than greedily
-  // snapping each string to the nearest standard-tuning value.
-  // Tie-break: prefer lower register (more typical for guitar).
   type DPEntry = {
     cost: number;
     sumMidi: number;
@@ -128,22 +140,38 @@ function normalizeCustomTuningInput(input: string) {
     prevIdx: number;
   };
 
-  const SHIFT_WEIGHT = 1000;
+  /*
+   * Balance two goals when inferring octaves:
+   *
+   * 1. Keep each string near the register of standard guitar tuning.
+   * 2. Keep the shifts of adjacent strings reasonably consistent.
+   *
+   * The register cost prevents an octave-lower tuning from winning merely
+   * because it has the same shift consistency and a lower MIDI sum.
+   */
+  const REGISTER_WEIGHT = 1;
+  const INTERVAL_WEIGHT = 2;
+
   const dp: DPEntry[][] = [];
 
-  dp[0] = candidatesPerString[0]!.map((midi) => ({
-    cost: 0,
-    sumMidi: midi,
-    shift: midi - (STANDARD_TUNING_MIDI[0] ?? 0),
-    prevIdx: -1,
-  }));
+  dp[0] = candidatesPerString[0]!.map((midi) => {
+    const shift = midi - (STANDARD_TUNING_MIDI[0] ?? 0);
 
-  for (let s = 1; s < 6; s++) {
-    const candidates = candidatesPerString[s]!;
-    const prevCandidates = candidatesPerString[s - 1]!;
+    return {
+      cost: shift * shift * REGISTER_WEIGHT,
+      sumMidi: midi,
+      shift,
+      prevIdx: -1,
+    };
+  });
 
-    dp[s] = candidates.map((midi) => {
-      const currentShift = midi - (STANDARD_TUNING_MIDI[s] ?? 0);
+  for (let stringIndex = 1; stringIndex < 6; stringIndex++) {
+    const candidates = candidatesPerString[stringIndex]!;
+    const previousCandidates = candidatesPerString[stringIndex - 1]!;
+
+    dp[stringIndex] = candidates.map((midi) => {
+      const currentShift = midi - (STANDARD_TUNING_MIDI[stringIndex] ?? 0);
+
       let best: DPEntry = {
         cost: Infinity,
         sumMidi: Infinity,
@@ -151,14 +179,26 @@ function normalizeCustomTuningInput(input: string) {
         prevIdx: -1,
       };
 
-      for (let pi = 0; pi < prevCandidates.length; pi++) {
-        if (midi < prevCandidates[pi]!) continue;
-        const prev = dp[s - 1]![pi]!;
-        if (prev.cost === Infinity) continue;
+      for (
+        let previousIndex = 0;
+        previousIndex < previousCandidates.length;
+        previousIndex++
+      ) {
+        const previousMidi = previousCandidates[previousIndex]!;
 
-        const shiftDiff = currentShift - prev.shift;
-        const newCost = prev.cost + shiftDiff * shiftDiff * SHIFT_WEIGHT;
-        const newSumMidi = prev.sumMidi + midi;
+        // Guitar strings may be tuned in unison, but should not descend.
+        if (midi < previousMidi) continue;
+
+        const previous = dp[stringIndex - 1]![previousIndex]!;
+
+        if (!Number.isFinite(previous.cost)) continue;
+
+        const shiftDifference = currentShift - previous.shift;
+        const registerCost = currentShift * currentShift * REGISTER_WEIGHT;
+        const intervalCost =
+          shiftDifference * shiftDifference * INTERVAL_WEIGHT;
+        const newCost = previous.cost + registerCost + intervalCost;
+        const newSumMidi = previous.sumMidi + midi;
 
         if (
           newCost < best.cost ||
@@ -168,7 +208,7 @@ function normalizeCustomTuningInput(input: string) {
             cost: newCost,
             sumMidi: newSumMidi,
             shift: currentShift,
-            prevIdx: pi,
+            prevIdx: previousIndex,
           };
         }
       }
@@ -177,35 +217,42 @@ function normalizeCustomTuningInput(input: string) {
     });
   }
 
-  let bestIdx = -1;
+  let bestIndex = -1;
   let bestCost = Infinity;
-  let bestSum = Infinity;
+  let bestSumMidi = Infinity;
 
-  for (let i = 0; i < dp[5]!.length; i++) {
-    const entry = dp[5]![i]!;
+  for (let index = 0; index < dp[5]!.length; index++) {
+    const entry = dp[5]![index]!;
+
     if (
       entry.cost < bestCost ||
-      (entry.cost === bestCost && entry.sumMidi < bestSum)
+      (entry.cost === bestCost && entry.sumMidi < bestSumMidi)
     ) {
       bestCost = entry.cost;
-      bestSum = entry.sumMidi;
-      bestIdx = i;
+      bestSumMidi = entry.sumMidi;
+      bestIndex = index;
     }
   }
 
-  if (bestIdx === -1 || bestCost === Infinity) return null;
-
-  // Backtrack to recover chosen candidate indices
-  const chosen = Array.from({ length: 6 }, () => -1);
-  chosen[5] = bestIdx;
-  for (let s = 5; s > 0; s--) {
-    chosen[s - 1] = dp[s]![chosen[s]!]!.prevIdx;
+  if (bestIndex === -1 || !Number.isFinite(bestCost)) {
+    return null;
   }
 
-  if (chosen.some((idx, s) => s > 0 && idx === -1)) return null;
+  const chosenCandidateIndices = Array.from({ length: 6 }, () => -1);
 
-  return chosen.map((ci, s) =>
-    midiToNoteName(candidatesPerString[s]![ci]!, {
+  chosenCandidateIndices[5] = bestIndex;
+
+  for (let stringIndex = 5; stringIndex > 0; stringIndex--) {
+    chosenCandidateIndices[stringIndex - 1] =
+      dp[stringIndex]![chosenCandidateIndices[stringIndex]!]!.prevIdx;
+  }
+
+  if (chosenCandidateIndices.some((index) => index === -1)) {
+    return null;
+  }
+
+  return chosenCandidateIndices.map((candidateIndex, stringIndex) =>
+    midiToNoteName(candidatesPerString[stringIndex]![candidateIndex]!, {
       sharps: true,
     }).toLowerCase(),
   );
