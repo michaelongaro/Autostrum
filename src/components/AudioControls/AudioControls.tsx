@@ -1,6 +1,6 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isMobileOnly } from "react-device-detect";
 import {
   BsFillVolumeDownFill,
@@ -58,7 +58,6 @@ const opacityAndScaleVariants = {
 };
 
 function AudioControls() {
-  const [chordDurations, setChordDurations] = useState<number[]>([]);
   const [visibility, setVisibility] = useState<"expanded" | "minimized">(
     "expanded",
   );
@@ -123,16 +122,12 @@ function AudioControls() {
     masterVolumeGainNode.gain.value = volume;
   }, [volume, masterVolumeGainNode]);
 
-  // initializes the chord durations array
-  useEffect(() => {
-    if (!currentlyPlayingMetadata) return;
-
-    const durations = currentlyPlayingMetadata.map((metadata) => {
+  const chordDurations = useMemo(() => {
+    if (!currentlyPlayingMetadata) return [];
+    return currentlyPlayingMetadata.map((metadata) => {
       const { bpm, noteLengthMultiplier } = metadata;
       return 60 / ((bpm / Number(noteLengthMultiplier)) * playbackSpeed);
     });
-
-    setChordDurations(durations);
   }, [currentlyPlayingMetadata, playbackSpeed]);
 
   function handlePlayButtonClick() {
