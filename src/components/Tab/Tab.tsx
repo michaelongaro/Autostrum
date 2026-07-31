@@ -46,6 +46,7 @@ import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
+import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
 
 const SectionProgressionModal = dynamic(
   () => import("~/components/modals/SectionProgressionModal"),
@@ -53,9 +54,6 @@ const SectionProgressionModal = dynamic(
 const ChordModal = dynamic(() => import("~/components/modals/ChordModal"));
 const StrummingPatternModal = dynamic(
   () => import("~/components/modals/StrummingPatternModal"),
-);
-const CustomTuningModal = dynamic(
-  () => import("~/components/modals/CustomTuningModal"),
 );
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -97,7 +95,6 @@ function Tab() {
     setShowGlossaryDialog,
     chordBeingEdited,
     strummingPatternBeingEdited,
-    showCustomTuningModal,
     chords,
     showPlaybackModal,
     viewportLabel,
@@ -113,7 +110,6 @@ function Tab() {
     setShowGlossaryDialog: state.setShowGlossaryDialog,
     chordBeingEdited: state.chordBeingEdited,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
-    showCustomTuningModal: state.showCustomTuningModal,
     chords: state.chords,
     showPlaybackModal: state.showPlaybackModal,
     viewportLabel: state.viewportLabel,
@@ -454,20 +450,18 @@ function Tab() {
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {showCustomTuningModal && <CustomTuningModal />}
-      </AnimatePresence>
+      <CustomTuningDialog />
 
-      <AnimatePresence mode="wait">
-        {showSectionProgressionModal && <SectionProgressionModal />}
-      </AnimatePresence>
+      <GlossaryDialog />
 
       <TipsDialog
         showTipsDialog={showTipsModal}
         setShowTipsDialog={setShowTipsModal}
       />
 
-      <GlossaryDialog />
+      <AnimatePresence mode="wait">
+        {showSectionProgressionModal && <SectionProgressionModal />}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {chordBeingEdited && (

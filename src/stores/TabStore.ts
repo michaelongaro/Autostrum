@@ -382,7 +382,7 @@ const initialStoreState = {
   strummingPatternBeingEdited: null,
   showingGlossary: false,
   showDeleteAccountModal: false,
-  showCustomTuningModal: false,
+  showCustomTuningDialog: false,
   showMobileHeaderModal: false,
 
   // playback
@@ -559,8 +559,8 @@ interface TabState {
   setShowGlossaryDialog: (showGlossaryDialog: boolean) => void;
   showDeleteAccountModal: boolean;
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
-  showCustomTuningModal: boolean;
-  setShowCustomTuningModal: (showCustomTuningModal: boolean) => void;
+  showCustomTuningDialog: boolean;
+  setShowCustomTuningDialog: (showCustomTuningDialog: boolean) => void;
   showMobileHeaderModal: boolean;
   setShowMobileHeaderModal: (showMobileHeaderModal: boolean) => void;
 
@@ -1597,9 +1597,9 @@ const useTabStoreBase = create<TabState>()(
       showDeleteAccountModal: false,
       setShowDeleteAccountModal: (showDeleteAccountModal) =>
         set({ showDeleteAccountModal }),
-      showCustomTuningModal: false,
-      setShowCustomTuningModal: (showCustomTuningModal) =>
-        set({ showCustomTuningModal }),
+      showCustomTuningDialog: false,
+      setShowCustomTuningDialog: (showCustomTuningDialog) =>
+        set({ showCustomTuningDialog }),
       showMobileHeaderModal: false,
       setShowMobileHeaderModal: (showMobileHeaderModal) =>
         set({ showMobileHeaderModal }),
