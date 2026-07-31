@@ -1150,25 +1150,7 @@ function SearchResults({
                                     }));
                                   }}
                                 >
-                                  {localFilters.genre &&
-                                  localFilters.genre !== "allGenres" ? (
-                                    <div className="baseFlex gap-2">
-                                      <div
-                                        style={{
-                                          backgroundColor:
-                                            genreColors.get(
-                                              localFilters.genre,
-                                            ) || "",
-                                          boxShadow:
-                                            "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                        }}
-                                        className="h-3 w-3 rounded-full"
-                                      ></div>
-                                      {localFilters.genre}
-                                    </div>
-                                  ) : (
-                                    <span>All genres</span>
-                                  )}
+                                  <span>All genres</span>
 
                                   {localFilters.genre === undefined && (
                                     <Check className="size-4" />
