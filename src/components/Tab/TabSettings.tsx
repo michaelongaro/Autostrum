@@ -4,7 +4,6 @@ import { getTrackBackground, Range } from "react-range";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { useTabStore } from "~/stores/TabStore";
 
 interface TabSettingsProps {
   showPinnedChords: boolean;
@@ -21,15 +20,14 @@ function TabSettings({
   const localStorageLeftHandChordDiagrams = useLocalStorageValue(
     "autostrum-left-hand-chord-diagrams",
   );
-
-  const { chordDisplayMode, setChordDisplayMode } = useTabStore((state) => ({
-    chordDisplayMode: state.chordDisplayMode,
-    setChordDisplayMode: state.setChordDisplayMode,
-  }));
+  const localStorageColorCodedChords = useLocalStorageValue(
+    "autostrum-color-coded-chords",
+  );
 
   const zoom = useGetLocalStorageValues().zoom;
   const leftHandChordDiagrams =
     useGetLocalStorageValues().leftHandChordDiagrams;
+  const colorCodedChords = useGetLocalStorageValues().colorCodedChords;
 
   // used for range marking conditional background color
   const indexToZoom = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
@@ -157,9 +155,9 @@ function TabSettings({
 
         <Switch
           id="chordDisplayMode"
-          checked={chordDisplayMode === "color"}
+          checked={colorCodedChords}
           onCheckedChange={(checked) =>
-            setChordDisplayMode(checked ? "color" : "text")
+            localStorageColorCodedChords.set(String(checked))
           }
         />
       </div>

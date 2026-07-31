@@ -23,6 +23,8 @@ function GeneralLayoutStatefulShell() {
   const { asPath } = useRouter();
 
   const looping = useGetLocalStorageValues().looping;
+  const countIn = useGetLocalStorageValues().countIn;
+  const colorCodedChords = useGetLocalStorageValues().colorCodedChords;
 
   useColorAndThemeController();
   useInitializeAudioContext();
@@ -33,6 +35,8 @@ function GeneralLayoutStatefulShell() {
 
   const {
     setLooping,
+    setCountInTimerEnabled,
+    setChordDisplayMode,
     setShowingAudioControls,
     resetStoreToInitValues,
     setEditing,
@@ -43,6 +47,8 @@ function GeneralLayoutStatefulShell() {
     pauseAudio,
   } = useTabStore((state) => ({
     setLooping: state.setLooping,
+    setCountInTimerEnabled: state.setCountInTimerEnabled,
+    setChordDisplayMode: state.setChordDisplayMode,
     setShowingAudioControls: state.setShowingAudioControls,
     resetStoreToInitValues: state.resetStoreToInitValues,
     setEditing: state.setEditing,
@@ -59,6 +65,16 @@ function GeneralLayoutStatefulShell() {
   useEffect(() => {
     setLooping(looping);
   }, [looping, setLooping]);
+
+  // keeps count-in local storage state in sync with store
+  useEffect(() => {
+    setCountInTimerEnabled(countIn);
+  }, [countIn, setCountInTimerEnabled]);
+
+  // keeps color-coded chords local storage state in sync with store
+  useEffect(() => {
+    setChordDisplayMode(colorCodedChords ? "color" : "text");
+  }, [colorCodedChords, setChordDisplayMode]);
 
   // route change state reset handling
   useEffect(() => {

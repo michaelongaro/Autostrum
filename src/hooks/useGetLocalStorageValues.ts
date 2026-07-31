@@ -24,12 +24,25 @@ function useGetLocalStorageValues() {
     },
   );
 
+  const localStorageCountIn = useLocalStorageValue("autostrum-count-in", {
+    defaultValue: "true",
+  });
+
+  const localStorageColorCodedChords = useLocalStorageValue(
+    "autostrum-color-coded-chords",
+    {
+      defaultValue: "false",
+    },
+  );
+
   return {
     volume: localStorageVolume.value ? Number(localStorageVolume.value) : 1,
     autoscroll: localStorageAutoscroll.value === "true",
     looping: localStorageLooping.value === "true",
     zoom: localStorageZoom.value ? Number(localStorageZoom.value) : 1,
     leftHandChordDiagrams: localStorageLeftHandChordDiagrams.value === "true",
+    countIn: localStorageCountIn.value === "true",
+    colorCodedChords: localStorageColorCodedChords.value === "true",
   };
 }
 
