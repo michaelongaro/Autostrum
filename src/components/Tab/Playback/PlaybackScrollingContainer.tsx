@@ -16,6 +16,8 @@ interface PlaybackScrollingContainerProps {
   chordRepetitions: number[];
   stripRef: RefObject<HTMLDivElement | null>;
   scrubPositionRef: RefObject<number>;
+  /** Center tracking line; shifted with rubber-band overscroll. */
+  playheadRef: RefObject<HTMLDivElement | null>;
   isGlideScrubbing: boolean;
   setIsGlideScrubbing: Dispatch<SetStateAction<boolean>>;
 }
@@ -27,6 +29,7 @@ function PlaybackScrollingContainer({
   chordRepetitions,
   stripRef,
   scrubPositionRef,
+  playheadRef,
   isGlideScrubbing,
   setIsGlideScrubbing,
 }: PlaybackScrollingContainerProps) {
@@ -51,6 +54,7 @@ function PlaybackScrollingContainer({
   const glideScrub = usePlaybackGlideScrub({
     stripRef,
     scrubPositionRef,
+    playheadRef,
     scrollPositions: chordLayoutData?.scrollPositions ?? null,
     chordRepetitions,
     totalWidth: chordLayoutData?.totalWidth ?? 0,

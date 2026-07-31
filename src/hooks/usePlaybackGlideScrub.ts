@@ -38,6 +38,15 @@ const SNAP_BLEND_DURATION_MS = 240;
 const OVERSCROLL_SPRING_BACK_MS = 320;
 
 /**
+ * When coast velocity dies (or release has no fling), ease the remaining
+ * distance to the nearest chord instead of hard-jumping via finishScrub.
+ */
+const SNAP_SETTLE_MS = 280;
+
+/** Treat as already on-target below this distance (px). */
+const SNAP_SETTLED_DISTANCE_PX = 0.5;
+
+/**
  * Coast velocity must be at least this negative (px/ms) before we treat a
  * position decrease as an intentional backward scrub for rep resets.
  */
@@ -51,6 +60,8 @@ interface VelocitySample {
 interface UsePlaybackGlideScrubArgs {
   stripRef: RefObject<HTMLDivElement | null>;
   scrubPositionRef: RefObject<number>;
+  /** Center playhead; translated with rubber-band overscroll so it stays attached. */
+  playheadRef?: RefObject<HTMLDivElement | null>;
   scrollPositions: number[] | null;
   chordRepetitions: number[];
   totalWidth: number;
@@ -79,6 +90,7 @@ interface UsePlaybackGlideScrubArgs {
 function usePlaybackGlideScrub({
   stripRef,
   scrubPositionRef,
+  playheadRef,
   scrollPositions,
   chordRepetitions,
   totalWidth,
@@ -104,6 +116,8 @@ function usePlaybackGlideScrub({
   const isTouchingRef = useRef(false);
   const isCoastingRef = useRef(false);
   const isSpringBackRef = useRef(false);
+  /** Ease-to-chord after coast velocity dies (shares tickSpringBack). */
+  const isSnapSettlingRef = useRef(false);
   const pointerIdRef = useRef<number | null>(null);
   const lastPointerXRef = useRef(0);
   /** Unconstrained playhead position (before rubber-band display mapping). */
@@ -121,6 +135,7 @@ function usePlaybackGlideScrub({
   const coastSnapTargetRef = useRef(0);
   const coastSnapIndexRef = useRef(0);
   const springBackStartRef = useRef(0);
+  const springBackDurationMsRef = useRef(OVERSCROLL_SPRING_BACK_MS);
   const lastFrameTimeRef = useRef(0);
 
   useEffect(() => {
@@ -196,7 +211,9 @@ function usePlaybackGlideScrub({
    * during a forward coast, and not forward loop wraps (last → 0).
    */
   function isIntentionalBackwardScrub() {
-    if (isSpringBackRef.current) return false;
+    // Snap-settle / overscroll spring-back can move position backward toward a
+    // nearby chord without being an intentional backward scrub.
+    if (isSpringBackRef.current || isSnapSettlingRef.current) return false;
 
     if (isTouchingRef.current) {
       return scrubDirectionRef.current === -1;
@@ -306,6 +323,24 @@ function usePlaybackGlideScrub({
     return remappedPosition;
   }
 
+  /**
+   * Keep the centered playhead visually attached during rubber-band overscroll
+   * by shifting it the same delta the strip moves past the edge chord.
+   */
+  function writePlayheadOverscrollOffset(displayPositionPx: number) {
+    const playhead = playheadRef?.current;
+    if (!playhead) return;
+
+    const { min, max } = getPositionBounds();
+    const overscrollOffsetPx =
+      clamp(displayPositionPx, min, max) - displayPositionPx;
+
+    playhead.style.transform =
+      Math.abs(overscrollOffsetPx) < 0.05
+        ? ""
+        : `translate3d(${overscrollOffsetPx}px, 0, 0)`;
+  }
+
   function writeTransform(displayPositionPx: number) {
     const strip = stripRef.current;
     scrubPositionRef.current = displayPositionPx;
@@ -313,6 +348,7 @@ function usePlaybackGlideScrub({
       strip.style.transition = "none";
       strip.style.transform = getStripTransform(displayPositionPx);
     }
+    writePlayheadOverscrollOffset(displayPositionPx);
   }
 
   /**
@@ -439,6 +475,7 @@ function usePlaybackGlideScrub({
     isTouchingRef.current = false;
     isCoastingRef.current = false;
     isSpringBackRef.current = false;
+    isSnapSettlingRef.current = false;
     pointerIdRef.current = null;
     velocityPxPerMsRef.current = 0;
     samplesRef.current = [];
@@ -495,11 +532,12 @@ function usePlaybackGlideScrub({
   }
 
   function tickSpringBack(nowMs: number) {
-    if (!isSpringBackRef.current) return;
+    if (!isSpringBackRef.current && !isSnapSettlingRef.current) return;
 
+    const durationMs = springBackDurationMsRef.current;
     const elapsedMs = nowMs - coastStartedAtRef.current;
-    const t = clamp(elapsedMs / OVERSCROLL_SPRING_BACK_MS, 0, 1);
-    // Ease-out cubic — matches the familiar iOS rubber-band settle.
+    const t = clamp(elapsedMs / durationMs, 0, 1);
+    // Ease-out cubic — matches the familiar iOS rubber-band / settle feel.
     const ease = 1 - Math.pow(1 - t, 3);
     const nextPosition =
       springBackStartRef.current +
@@ -517,10 +555,38 @@ function usePlaybackGlideScrub({
     rafIdRef.current = requestAnimationFrame(tickSpringBack);
   }
 
+  /**
+   * Smoothly ease from the current strip position onto the destination-locked
+   * chord. Used when coast velocity dies with remaining snap distance, and
+   * when releasing with no fling.
+   */
+  function beginSnapSettle() {
+    const distanceToSnap = Math.abs(
+      positionRef.current - coastSnapTargetRef.current,
+    );
+    if (distanceToSnap < SNAP_SETTLED_DISTANCE_PX) {
+      finishScrub(coastSnapIndexRef.current);
+      return;
+    }
+
+    springBackStartRef.current = positionRef.current;
+    springBackDurationMsRef.current = SNAP_SETTLE_MS;
+    velocityPxPerMsRef.current = 0;
+    isSnapSettlingRef.current = true;
+    isSpringBackRef.current = false;
+    isCoastingRef.current = true;
+    isTouchingRef.current = false;
+    coastStartedAtRef.current = performance.now();
+    lastFrameTimeRef.current = coastStartedAtRef.current;
+
+    stopRaf();
+    rafIdRef.current = requestAnimationFrame(tickSpringBack);
+  }
+
   function tickCoast(nowMs: number) {
     if (!isCoastingRef.current) return;
 
-    if (isSpringBackRef.current) {
+    if (isSpringBackRef.current || isSnapSettlingRef.current) {
       tickSpringBack(nowMs);
       return;
     }
@@ -574,12 +640,16 @@ function usePlaybackGlideScrub({
     const distanceToSnap = Math.abs(
       positionRef.current - coastSnapTargetRef.current,
     );
-    const settled =
-      Math.abs(velocityPxPerMsRef.current) < IOS_REST_VELOCITY_PX_PER_MS ||
-      distanceToSnap < 0.5;
 
-    if (settled) {
+    if (distanceToSnap < SNAP_SETTLED_DISTANCE_PX) {
       finishScrub(coastSnapIndexRef.current);
+      return;
+    }
+
+    // Velocity died with snap distance remaining — ease the rest of the way
+    // instead of hard-jumping to the chord start.
+    if (Math.abs(velocityPxPerMsRef.current) < IOS_REST_VELOCITY_PX_PER_MS) {
+      beginSnapSettle();
       return;
     }
 
@@ -619,6 +689,7 @@ function usePlaybackGlideScrub({
     // Animate from the rubber-banded pixels the user currently sees, not from
     // the unconstrained logical position (which would look like a teleport).
     springBackStartRef.current = displayPosition;
+    springBackDurationMsRef.current = OVERSCROLL_SPRING_BACK_MS;
     positionRef.current = displayPosition;
     writeTransform(displayPosition);
 
@@ -627,6 +698,7 @@ function usePlaybackGlideScrub({
     velocityPxPerMsRef.current = 0;
     scrubDirectionRef.current = 0;
     isSpringBackRef.current = true;
+    isSnapSettlingRef.current = false;
     isCoastingRef.current = true;
     isTouchingRef.current = false;
     coastStartedAtRef.current = performance.now();
@@ -652,7 +724,7 @@ function usePlaybackGlideScrub({
       return;
     }
 
-    let velocity = estimateVelocityPxPerMs();
+    const velocity = estimateVelocityPxPerMs();
     velocityPxPerMsRef.current = velocity;
 
     if (Math.abs(velocity) >= IOS_REST_VELOCITY_PX_PER_MS) {
@@ -665,6 +737,7 @@ function usePlaybackGlideScrub({
 
     retargetSnapFromCurrentPosition();
 
+    // No fling: ease directly onto the nearest chord start.
     if (Math.abs(velocity) < IOS_REST_VELOCITY_PX_PER_MS) {
       const liveRepetitions = chordRepetitionsRef.current;
       const immediateIndex = getNearestChordIndex(
@@ -680,9 +753,12 @@ function usePlaybackGlideScrub({
         liveRepetitions,
         width,
       );
+      beginSnapSettle();
+      return;
     }
 
     isSpringBackRef.current = false;
+    isSnapSettlingRef.current = false;
     coastStartedAtRef.current = performance.now();
     lastFrameTimeRef.current = coastStartedAtRef.current;
     isCoastingRef.current = true;
@@ -707,6 +783,7 @@ function usePlaybackGlideScrub({
     stopRaf();
     isCoastingRef.current = false;
     isSpringBackRef.current = false;
+    isSnapSettlingRef.current = false;
 
     const positions = scrollPositionsRef.current;
     const repetitions = chordRepetitionsRef.current;
