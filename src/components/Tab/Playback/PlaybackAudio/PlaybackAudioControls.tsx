@@ -11,7 +11,6 @@ import PlaybackProgressRange from "~/components/AudioControls/PlaybackProgressRa
 import { Button } from "~/components/ui/button";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { Toggle } from "~/components/ui/toggle";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
@@ -38,7 +37,6 @@ function PlaybackAudioControls({
     bpm,
     playbackSpeed,
     setPlaybackSpeed,
-    masterVolumeGainNode,
     currentChordIndex,
     setCurrentChordIndex,
     currentlyPlayingMetadata,
@@ -63,7 +61,6 @@ function PlaybackAudioControls({
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
-    masterVolumeGainNode: state.masterVolumeGainNode,
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
@@ -99,17 +96,9 @@ function PlaybackAudioControls({
   // iOS cannot start playback without a fresh user gesture.
   const playRequestIdRef = useRef(0);
 
-  const volume = useGetLocalStorageValues().volume;
-
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
   useSpacebarAudioControl();
-
-  useEffect(() => {
-    if (!masterVolumeGainNode) return;
-
-    masterVolumeGainNode.gain.value = volume;
-  }, [volume, masterVolumeGainNode]);
 
   useEffect(() => {
     if (currentChordIndex === 0) {

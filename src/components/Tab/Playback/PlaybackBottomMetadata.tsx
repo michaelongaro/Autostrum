@@ -296,6 +296,7 @@ function MobileSettingsPopover({
     loopDelay,
     setLoopDelay,
     viewportLabel,
+    updateMasterVolumeGainNode,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -305,6 +306,7 @@ function MobileSettingsPopover({
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
     viewportLabel: state.viewportLabel,
+    updateMasterVolumeGainNode: state.updateMasterVolumeGainNode,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -546,7 +548,9 @@ function MobileSettingsPopover({
                 step={1}
                 values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
                 onChange={(values) => {
-                  localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                  const volume = values[0]! / 50; // 100 felt too quiet/narrow of a volume range
+                  localStorageVolume.set(`${volume}`);
+                  updateMasterVolumeGainNode(volume);
                 }}
                 renderTrack={({ props, children, disabled }) => (
                   <div
@@ -936,6 +940,7 @@ function DesktopSettings({
     loopDelay,
     setLoopDelay,
     initDraftLoopRangeFromAudioMetadata,
+    updateMasterVolumeGainNode,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -950,6 +955,7 @@ function DesktopSettings({
     setLoopDelay: state.setLoopDelay,
     initDraftLoopRangeFromAudioMetadata:
       state.initDraftLoopRangeFromAudioMetadata,
+    updateMasterVolumeGainNode: state.updateMasterVolumeGainNode,
   }));
 
   const [volumePopoverIsOpen, setVolumePopoverIsOpen] = useState(false);
@@ -1191,7 +1197,9 @@ function DesktopSettings({
                     step={1}
                     values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
                     onChange={(values) => {
-                      localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                      const volume = values[0]! / 50; // 100 felt too quiet/narrow of a volume range
+                      localStorageVolume.set(`${volume}`);
+                      updateMasterVolumeGainNode(volume);
                     }}
                     renderTrack={({ props, children }) => (
                       <div

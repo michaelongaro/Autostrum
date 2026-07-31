@@ -524,6 +524,7 @@ interface TabState {
   setCountInBuffer: (countInBuffer: AudioBuffer | null) => void;
   countInTimerEnabled: boolean;
   setCountInTimerEnabled: (countInTimerEnabled: boolean) => void;
+  updateMasterVolumeGainNode: (newVolume: number) => void;
 
   /** Chord column currently under the mouse while editing (for spacebar play). */
   hoveredChordLocation: HoveredChordLocation | null;
@@ -1006,6 +1007,16 @@ const useTabStoreBase = create<TabState>()(
       hoveredChordLocation: null,
       setHoveredChordLocation: (hoveredChordLocation) =>
         set({ hoveredChordLocation }),
+
+      // this function is needed because react doesn't want you to directly
+      // update a property of a value returned from a hook
+      updateMasterVolumeGainNode: (newVolume: number) => {
+        const { masterVolumeGainNode } = get();
+
+        if (!masterVolumeGainNode) return;
+
+        masterVolumeGainNode.gain.value = newVolume;
+      },
 
       // playing/pausing sound functions
       ensureAudioSystemReady: async () => {

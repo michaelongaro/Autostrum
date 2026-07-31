@@ -1,6 +1,6 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { isMobileOnly } from "react-device-detect";
 import {
   BsFillVolumeDownFill,
@@ -84,7 +84,6 @@ function AudioControls() {
     setCurrentInstrumentName,
     playbackSpeed,
     setPlaybackSpeed,
-    masterVolumeGainNode,
     currentChordIndex,
     setCurrentChordIndex,
     currentlyPlayingMetadata,
@@ -96,13 +95,13 @@ function AudioControls() {
     pauseAudio,
     fetchingFullTabData,
     tabIsEffectivelyEmpty,
+    updateMasterVolumeGainNode,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
-    masterVolumeGainNode: state.masterVolumeGainNode,
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
@@ -115,13 +114,8 @@ function AudioControls() {
     pauseAudio: state.pauseAudio,
     fetchingFullTabData: state.fetchingFullTabData,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
+    updateMasterVolumeGainNode: state.updateMasterVolumeGainNode,
   }));
-
-  useEffect(() => {
-    if (!masterVolumeGainNode) return;
-
-    masterVolumeGainNode.gain.value = volume;
-  }, [volume, masterVolumeGainNode]);
 
   const chordDurations = useMemo(() => {
     if (!currentlyPlayingMetadata) return [];
@@ -333,7 +327,9 @@ function AudioControls() {
                   values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
                   disabled={disablePlayButton}
                   onChange={(values) => {
-                    localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                    const volume = values[0]! / 50; // 100 felt too quiet/narrow of a volume range
+                    localStorageVolume.set(`${volume}`);
+                    updateMasterVolumeGainNode(volume);
                   }}
                   renderTrack={({ props, children, disabled }) => (
                     <div
@@ -502,7 +498,9 @@ function AudioControls() {
                     step={1}
                     values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
                     onChange={(values) => {
-                      localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                      const volume = values[0]! / 50; // 100 felt too quiet/narrow of a volume range
+                      localStorageVolume.set(`${volume}`);
+                      updateMasterVolumeGainNode(volume);
                     }}
                     renderTrack={({ props, children }) => (
                       <div
