@@ -9,6 +9,12 @@ import {
   BsFillVolumeMuteFill,
   BsFillVolumeUpFill,
 } from "react-icons/bs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { isMobileOnly } from "react-device-detect";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
@@ -48,6 +54,8 @@ import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
 import { IoMdSettings } from "react-icons/io";
 import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
+import { IoColorPalette } from "react-icons/io5";
+import CountIn from "~/components/ui/icons/CountIn";
 
 interface PlaybackBottomMetadata {
   tabProgressValue: number;
@@ -464,7 +472,10 @@ function MobileSettingsPopover({
         </div>
 
         <div className="baseFlex w-full !justify-between gap-2">
-          <Label htmlFor="colorCodedChordsMobile">Color-coded chords</Label>
+          <Label htmlFor="colorCodedChordsMobile" className="baseFlex gap-2">
+            <IoColorPalette className="size-4" />
+            Color-coded chords
+          </Label>
 
           <Switch
             id="colorCodedChordsMobile"
@@ -476,7 +487,10 @@ function MobileSettingsPopover({
         </div>
 
         <div className="baseFlex w-full !justify-between gap-2">
-          <Label htmlFor="countInMobile">Count in</Label>
+          <Label htmlFor="countInMobile" className="baseFlex gap-2">
+            <CountIn className="size-4" />
+            Count in
+          </Label>
 
           <Switch
             id="countInMobile"
@@ -953,6 +967,8 @@ function DesktopSettings({
       state.initDraftLoopRangeFromAudioMetadata,
   }));
 
+  const [volumePopoverIsOpen, setVolumePopoverIsOpen] = useState(false);
+
   const volume = useGetLocalStorageValues().volume;
   const localStorageVolume = useLocalStorageValue("autostrum-volume");
   const useDifficultyLabels = asPath.includes("/tools");
@@ -1075,164 +1091,203 @@ function DesktopSettings({
         </Select>
       </div>
 
-      <Toggle
-        variant={"outline"}
-        aria-label="Edit loop range"
-        disabled={audioMetadata.playing || countInTimer.showing}
-        pressed={audioMetadata.editingLoopRange}
-        className="baseFlex gap-2"
-        onPressedChange={(value) => {
-          if (value) {
-            initDraftLoopRangeFromAudioMetadata();
-            setCurrentChordIndex(audioMetadata.startLoopIndex);
-          } else {
-            setCurrentChordIndex(0);
-          }
+      <TooltipProvider delayDuration={100}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={"outline"}
+              size="icon"
+              aria-label="Enter the loop range editor"
+              disabled={audioMetadata.playing || countInTimer.showing}
+              className="baseFlex gap-2"
+              onClick={() => {
+                initDraftLoopRangeFromAudioMetadata();
+                setCurrentChordIndex(audioMetadata.startLoopIndex);
 
-          setAudioMetadata({
-            ...audioMetadata,
-            editingLoopRange: value,
-          });
-        }}
-      >
-        <CgArrowsShrinkH className="h-6 w-6" />
-        Edit loop range
-      </Toggle>
+                setAudioMetadata({
+                  ...audioMetadata,
+                  editingLoopRange: true,
+                });
+              }}
+            >
+              <CgArrowsShrinkH className="h-6 w-6" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side={"bottom"}>
+            <p>Edit loop range</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="size-10 !p-0">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {volume === 0 && (
-                <motion.div
-                  key="muteIcon"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  className="baseFlex"
-                >
-                  <BsFillVolumeMuteFill size={"1.5rem"} className="shrink-0" />
-                </motion.div>
-              )}
-              {volume > 0 && volume < 1 ? (
-                <motion.div
-                  key="lowVolumeIcon"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  className="baseFlex"
-                >
-                  <BsFillVolumeDownFill size={"1.5rem"} className="shrink-0" />
-                </motion.div>
-              ) : null}
-              {volume >= 1 ? (
-                <motion.div
-                  key="highVolumeIcon"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  className="baseFlex"
-                >
-                  <BsFillVolumeUpFill size={"1.5rem"} className="shrink-0" />
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="baseVertFlex h-40 w-[54px] gap-2 pb-2 pt-4"
-          side="top"
-        >
-          <Range
-            label="Slider to control the playback volume"
-            direction={Direction.Up}
-            min={0}
-            max={100}
-            step={1}
-            values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
-            onChange={(values) => {
-              localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
-            }}
-            renderTrack={({ props, children }) => (
-              <div
-                onMouseDown={props.onMouseDown}
-                onTouchStart={props.onTouchStart}
-                style={{
-                  ...props.style,
-                  display: "flex",
-                  width: "100%",
-                  height: "100%",
-                  justifyContent: "center",
-                  margin: "0.25rem 0",
-                }}
+      <TooltipProvider delayDuration={100}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={"outline"}
+              aria-label="Toggle count-in"
+              disabled={audioMetadata.playing || countInTimer.showing}
+              className={`baseFlex size-10 gap-2 p-0 ${countInTimerEnabled ? "bg-secondary" : ""}`}
+              onClick={() => {
+                setCountInTimerEnabled(!countInTimerEnabled);
+              }}
+            >
+              <CountIn className="size-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side={"bottom"}>
+            <p>Count in</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider delayDuration={100}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={"outline"}
+              aria-label="Toggle color-coded chords"
+              className={`baseFlex size-10 gap-2 p-0 ${chordDisplayMode === "color" ? "bg-secondary" : ""}`}
+              onClick={() => {
+                setChordDisplayMode(
+                  chordDisplayMode === "color" ? "text" : "color",
+                );
+              }}
+            >
+              <IoColorPalette className="size-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side={"bottom"}>
+            <p>Color-coded chords</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider delayDuration={100}>
+        <Tooltip open={volumePopoverIsOpen ? false : undefined}>
+          <TooltipTrigger asChild>
+            {/* for whatever reason, this wrapper <div> is required to get tooltip
+                text to show */}
+            <div className="baseFlex">
+              <Popover
+                open={volumePopoverIsOpen}
+                onOpenChange={setVolumePopoverIsOpen}
               >
-                <div
-                  ref={props.ref}
-                  style={{
-                    width: "8px",
-                    borderRadius: "4px",
-                    alignSelf: "center",
-                    background: getTrackBackground({
-                      values: [volume * 50],
-                      colors: ["hsl(var(--primary))", "hsl(var(--gray)/0.75)"],
-                      min: 0,
-                      max: 100,
-                      direction: Direction.Up,
-                    }),
-                  }}
-                  className={`relative h-full`}
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="size-10 !p-0">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      {volume === 0 && (
+                        <motion.div
+                          key="muteIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeMuteFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      )}
+                      {volume > 0 && volume < 1 ? (
+                        <motion.div
+                          key="lowVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeDownFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                      {volume >= 1 ? (
+                        <motion.div
+                          key="highVolumeIcon"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          className="baseFlex"
+                        >
+                          <BsFillVolumeUpFill
+                            size={"1.5rem"}
+                            className="shrink-0"
+                          />
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="baseVertFlex h-40 w-[54px] gap-2 pb-2 pt-4"
+                  side="top"
                 >
-                  {children}
-                </div>
-              </div>
-            )}
-            renderThumb={({ props }) => (
-              <div
-                {...props}
-                className="!z-20 size-[18px] rounded-full border bg-primary"
-              />
-            )}
-          />
-          <span>{Math.floor(volume * 50)}%</span>
-        </PopoverContent>
-      </Popover>
-
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size={"icon"}>
-            <IoMdSettings className="size-5" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent side="top" className="baseVertFlex w-64 gap-4">
-          <div className="baseVertFlex w-full gap-4">
-            <div className="baseFlex w-full !justify-between gap-2">
-              <Label htmlFor="colorCodedChordsDesktop">
-                Color-coded chords
-              </Label>
-
-              <Switch
-                id="colorCodedChordsDesktop"
-                checked={chordDisplayMode === "color"}
-                onCheckedChange={(value) => {
-                  setChordDisplayMode(value === true ? "color" : "text");
-                }}
-              />
+                  <Range
+                    label="Slider to control the playback volume"
+                    direction={Direction.Up}
+                    min={0}
+                    max={100}
+                    step={1}
+                    values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                    onChange={(values) => {
+                      localStorageVolume.set(`${values[0]! / 50}`); // 100 felt too quiet/narrow of a volume range
+                    }}
+                    renderTrack={({ props, children }) => (
+                      <div
+                        onMouseDown={props.onMouseDown}
+                        onTouchStart={props.onTouchStart}
+                        style={{
+                          ...props.style,
+                          display: "flex",
+                          width: "100%",
+                          height: "100%",
+                          justifyContent: "center",
+                          margin: "0.25rem 0",
+                        }}
+                      >
+                        <div
+                          ref={props.ref}
+                          style={{
+                            width: "8px",
+                            borderRadius: "4px",
+                            alignSelf: "center",
+                            background: getTrackBackground({
+                              values: [volume * 50],
+                              colors: [
+                                "hsl(var(--primary))",
+                                "hsl(var(--gray)/0.75)",
+                              ],
+                              min: 0,
+                              max: 100,
+                              direction: Direction.Up,
+                            }),
+                          }}
+                          className={`relative h-full`}
+                        >
+                          {children}
+                        </div>
+                      </div>
+                    )}
+                    renderThumb={({ props }) => (
+                      <div
+                        {...props}
+                        className="!z-20 size-[18px] rounded-full border bg-primary"
+                      />
+                    )}
+                  />
+                  <span>{Math.floor(volume * 50)}%</span>
+                </PopoverContent>
+              </Popover>
             </div>
+          </TooltipTrigger>
 
-            <div className="baseFlex w-full !justify-between gap-2">
-              <Label htmlFor="countInDesktop">Count in</Label>
-
-              <Switch
-                id="countInDesktop"
-                checked={countInTimerEnabled}
-                onCheckedChange={(value) => {
-                  setCountInTimerEnabled(value);
-                }}
-              />
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          <TooltipContent side={"bottom"}>
+            <span>Volume</span>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }

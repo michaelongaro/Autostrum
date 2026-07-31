@@ -370,7 +370,7 @@ function PlaybackAudioControls({
       )}
 
       {!viewportLabel.includes("Landscape") && (
-        <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-xl">
+        <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[612px]">
           <PlaybackProgressRange
             disabled={disablePlayButton}
             chordDurations={chordDurations}
@@ -411,8 +411,7 @@ function PlaybackAudioControls({
                   while (i > 0) {
                     if (
                       currentlyPlayingMetadata?.[i]?.elapsedSeconds &&
-                      currentlyPlayingMetadata[i]!.elapsedSeconds <=
-                        targetTime
+                      currentlyPlayingMetadata[i]!.elapsedSeconds <= targetTime
                     ) {
                       break;
                     }

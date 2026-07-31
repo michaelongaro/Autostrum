@@ -416,6 +416,8 @@ function Tab() {
                 <TooltipProvider delayDuration={150}>
                   <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
                     <TooltipTrigger asChild>
+                      {/* for whatever reason, this wrapper <div> is required to get tooltip
+                          text to show */}
                       <div className="baseFlex">
                         <Popover
                           open={settingsPopoverIsOpen}
