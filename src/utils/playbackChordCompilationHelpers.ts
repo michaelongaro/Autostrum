@@ -103,30 +103,9 @@ function expandFullTab({
     metadata.elapsedSeconds -= secondsToSubtract;
   }
 
-  // Mark the first/last chords that actually render section borders.
-  // Measure lines are type "tab" but render as thin bars without rounded
-  // corners — putting the flag on index 0 when it's a leading "|" made the
-  // starting note chord silently lose its rounded left border.
-  // Must run before loop-delay spacers are appended.
-  const firstBorderedChordIndex = compiledChordsMappedToLoopRange.findIndex(
-    (chord) =>
-      chord.type === "strum" ||
-      (chord.type === "tab" && !chord.data.chordData.includes("|")),
-  );
-  const lastBorderedChordIndex = compiledChordsMappedToLoopRange.findLastIndex(
-    (chord) =>
-      chord.type === "strum" ||
-      (chord.type === "tab" && !chord.data.chordData.includes("|")),
-  );
-
-  if (firstBorderedChordIndex >= 0) {
-    compiledChordsMappedToLoopRange[firstBorderedChordIndex]!.isFirstChordInTab =
-      true;
-  }
-  if (lastBorderedChordIndex >= 0) {
-    compiledChordsMappedToLoopRange[lastBorderedChordIndex]!.isLastChordInTab =
-      true;
-  }
+  // these need to be set before loop delay spacer chords are added
+  compiledChordsMappedToLoopRange.at(0)!.isFirstChordInTab = true;
+  compiledChordsMappedToLoopRange.at(-1)!.isLastChordInTab = true;
 
   // appending loop-delay spacers:
   // using quarter-note duration so it's simply addings loopDelay-number
