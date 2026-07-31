@@ -13,8 +13,6 @@ import {
   PLAYBACK_SPEED_MAX,
   PLAYBACK_SPEED_MIN,
   PLAYBACK_SPEED_STEP,
-  playbackSpeedPresets,
-  playbackSpeedsEqual,
   type PlaybackSpeed,
 } from "~/utils/playbackSpeedControls";
 
@@ -85,7 +83,7 @@ function PlaybackSpeedPopover({
         <div className="baseVertFlex w-full gap-3">
           <div className="baseFlex w-full !justify-between text-sm">
             <span className="font-medium">Speed</span>
-            <span className="tabular-nums text-foreground/80">{speedLabel}</span>
+            {speedLabel}
           </div>
 
           <Range
@@ -96,6 +94,29 @@ function PlaybackSpeedPopover({
             values={[clampedSpeed]}
             onChange={(values) => {
               handleSpeedChange(values[0] ?? 1);
+            }}
+            renderMark={({ props, index }) => {
+              const markValue =
+                PLAYBACK_SPEED_MIN + index * PLAYBACK_SPEED_STEP;
+              const isMajorTick = index % 5 === 0; // 0.25, 0.5, 0.75, 1, 1.25, 1.5
+              const isActive = markValue <= clampedSpeed + Number.EPSILON;
+
+              return (
+                <div
+                  {...props}
+                  key={props.key}
+                  style={{
+                    ...props.style,
+                    marginTop: "0px",
+                    height: isMajorTick ? "16px" : "12px",
+                    width: "2px",
+                    borderRadius: "1px",
+                    backgroundColor: isActive
+                      ? "hsl(var(--primary))"
+                      : "#939098",
+                  }}
+                />
+              );
             }}
             renderTrack={({ props, children }) => (
               <div
@@ -112,19 +133,16 @@ function PlaybackSpeedPopover({
                   ref={props.ref}
                   style={{
                     height: "8px",
-                    borderRadius: "4px",
+                    borderRadius: "0px",
                     alignSelf: "center",
                     background: getTrackBackground({
                       values: [clampedSpeed],
-                      colors: [
-                        "hsl(var(--primary))",
-                        "hsl(var(--gray)/0.75)",
-                      ],
+                      colors: ["hsl(var(--primary))", "#939098"],
                       min: PLAYBACK_SPEED_MIN,
                       max: PLAYBACK_SPEED_MAX,
                     }),
                   }}
-                  className="relative w-full"
+                  className="relative mb-2 w-full"
                 >
                   {children}
                 </div>
@@ -141,24 +159,6 @@ function PlaybackSpeedPopover({
               );
             }}
           />
-        </div>
-
-        <div className="baseFlex w-full flex-wrap !justify-start gap-2">
-          {playbackSpeedPresets.map((preset) => {
-            const isActive = playbackSpeedsEqual(clampedSpeed, preset);
-
-            return (
-              <Button
-                key={preset}
-                type="button"
-                variant={isActive ? "default" : "outline"}
-                className="h-8 px-2.5 tabular-nums"
-                onClick={() => handleSpeedChange(preset)}
-              >
-                {formatPlaybackSpeed(preset)}
-              </Button>
-            );
-          })}
         </div>
       </PopoverContent>
     </Popover>

@@ -4,11 +4,7 @@ export type PlaybackSpeedPreset = 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
 export type PlaybackSpeed = number;
 
 export type PlaybackDifficulty =
-  | "beginner"
-  | "easy"
-  | "intermediate"
-  | "advanced"
-  | "expert";
+  "beginner" | "easy" | "intermediate" | "advanced" | "expert";
 
 export const PLAYBACK_SPEED_MIN = 0.25;
 export const PLAYBACK_SPEED_MAX = 1.5;
@@ -67,10 +63,6 @@ export function clampPlaybackSpeed(speed: number): PlaybackSpeed {
 
 export function formatPlaybackSpeed(speed: number): string {
   return `${Number(clampPlaybackSpeed(speed).toFixed(2))}x`;
-}
-
-export function playbackSpeedsEqual(a: number, b: number): boolean {
-  return Math.round(a / PLAYBACK_SPEED_STEP) === Math.round(b / PLAYBACK_SPEED_STEP);
 }
 
 export function getClosestPlaybackSpeedPreset(
