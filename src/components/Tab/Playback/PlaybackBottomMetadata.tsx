@@ -1,6 +1,5 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import { FaBook, FaListUl } from "react-icons/fa";
@@ -29,6 +28,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
@@ -43,13 +43,6 @@ import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import {
-  getPlaybackControlLabel,
-  getPlaybackControlValue,
-  getPlaybackSpeedFromControlValue,
-  playbackDifficultyOptions,
-  playbackSpeedOptions,
-} from "../../../utils/playbackSpeedControls";
 import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
 import { IoMdSettings } from "react-icons/io";
@@ -930,8 +923,6 @@ function DesktopSettings({
   tabProgressValue,
   setTabProgressValue,
 }: DesktopSettings) {
-  const { asPath } = useRouter();
-
   const {
     currentInstrumentName,
     setCurrentInstrumentName,
@@ -971,15 +962,6 @@ function DesktopSettings({
   const localStorageColorCodedChords = useLocalStorageValue(
     "autostrum-color-coded-chords",
   );
-  const useDifficultyLabels = asPath.includes("/tools");
-  const playbackControlValue = getPlaybackControlValue({
-    playbackSpeed,
-    useDifficultyLabels,
-  });
-  const playbackControlLabel = getPlaybackControlLabel({
-    playbackSpeed,
-    useDifficultyLabels,
-  });
 
   return (
     <div className="baseFlex w-full !items-end gap-4">
@@ -1024,19 +1006,13 @@ function DesktopSettings({
       </div>
 
       <div className="baseVertFlex !items-start gap-2">
-        <Label htmlFor="speed">
-          {useDifficultyLabels ? "Difficulty" : "Speed"}
-        </Label>
-        <Select
+        <Label htmlFor="speed">Speed</Label>
+        <PlaybackSpeedPopover
+          id="speed"
           disabled={countInTimer.showing || audioMetadata.editingLoopRange}
-          value={playbackControlValue}
-          onValueChange={(value) => {
+          playbackSpeed={playbackSpeed}
+          onPlaybackSpeedChange={(newPlaybackSpeed) => {
             pauseAudio();
-
-            const newPlaybackSpeed = getPlaybackSpeedFromControlValue({
-              value,
-              useDifficultyLabels,
-            });
 
             // Normalize the progress value to 1x speed
             const normalizedProgress = tabProgressValue * playbackSpeed;
@@ -1048,24 +1024,9 @@ function DesktopSettings({
             setTabProgressValue(adjustedProgress);
             setPlaybackSpeed(newPlaybackSpeed);
           }}
-        >
-          <SelectTrigger
-            id="speed"
-            className={useDifficultyLabels ? "w-36" : "w-20"}
-          >
-            <SelectValue>{playbackControlLabel}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {(useDifficultyLabels
-              ? playbackDifficultyOptions
-              : playbackSpeedOptions
-            ).map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          triggerClassName="w-[85px]"
+          side="top"
+        />
       </div>
 
       <div className="baseVertFlex !items-start gap-2">
