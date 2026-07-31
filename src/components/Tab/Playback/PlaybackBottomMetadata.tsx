@@ -302,10 +302,6 @@ function MobileSettingsPopover({
     countInTimer,
     loopDelay,
     setLoopDelay,
-    chordDisplayMode,
-    setChordDisplayMode,
-    countInTimerEnabled,
-    setCountInTimerEnabled,
     viewportLabel,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
@@ -315,15 +311,17 @@ function MobileSettingsPopover({
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
-    chordDisplayMode: state.chordDisplayMode,
-    setChordDisplayMode: state.setChordDisplayMode,
-    countInTimerEnabled: state.countInTimerEnabled,
-    setCountInTimerEnabled: state.setCountInTimerEnabled,
     viewportLabel: state.viewportLabel,
   }));
 
   const volume = useGetLocalStorageValues().volume;
+  const countIn = useGetLocalStorageValues().countIn;
+  const colorCodedChords = useGetLocalStorageValues().colorCodedChords;
   const localStorageVolume = useLocalStorageValue("autostrum-volume");
+  const localStorageCountIn = useLocalStorageValue("autostrum-count-in");
+  const localStorageColorCodedChords = useLocalStorageValue(
+    "autostrum-color-coded-chords",
+  );
 
   const [open, setOpen] = useState(false);
 
@@ -479,9 +477,9 @@ function MobileSettingsPopover({
 
           <Switch
             id="colorCodedChordsMobile"
-            checked={chordDisplayMode === "color"}
+            checked={colorCodedChords}
             onCheckedChange={(value) => {
-              setChordDisplayMode(value === true ? "color" : "text");
+              localStorageColorCodedChords.set(String(value));
             }}
           />
         </div>
@@ -494,9 +492,9 @@ function MobileSettingsPopover({
 
           <Switch
             id="countInMobile"
-            checked={countInTimerEnabled}
+            checked={countIn}
             onCheckedChange={(value) => {
-              setCountInTimerEnabled(value);
+              localStorageCountIn.set(String(value));
             }}
           />
         </div>
@@ -942,10 +940,6 @@ function DesktopSettings({
     countInTimer,
     loopDelay,
     setLoopDelay,
-    chordDisplayMode,
-    setChordDisplayMode,
-    countInTimerEnabled,
-    setCountInTimerEnabled,
     initDraftLoopRangeFromAudioMetadata,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
@@ -959,10 +953,6 @@ function DesktopSettings({
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
-    chordDisplayMode: state.chordDisplayMode,
-    setChordDisplayMode: state.setChordDisplayMode,
-    countInTimerEnabled: state.countInTimerEnabled,
-    setCountInTimerEnabled: state.setCountInTimerEnabled,
     initDraftLoopRangeFromAudioMetadata:
       state.initDraftLoopRangeFromAudioMetadata,
   }));
@@ -970,7 +960,13 @@ function DesktopSettings({
   const [volumePopoverIsOpen, setVolumePopoverIsOpen] = useState(false);
 
   const volume = useGetLocalStorageValues().volume;
+  const countIn = useGetLocalStorageValues().countIn;
+  const colorCodedChords = useGetLocalStorageValues().colorCodedChords;
   const localStorageVolume = useLocalStorageValue("autostrum-volume");
+  const localStorageCountIn = useLocalStorageValue("autostrum-count-in");
+  const localStorageColorCodedChords = useLocalStorageValue(
+    "autostrum-color-coded-chords",
+  );
   const useDifficultyLabels = asPath.includes("/tools");
   const playbackControlValue = getPlaybackControlValue({
     playbackSpeed,
@@ -1126,9 +1122,9 @@ function DesktopSettings({
               variant={"outline"}
               aria-label="Toggle count-in"
               disabled={audioMetadata.playing || countInTimer.showing}
-              className={`baseFlex size-10 gap-2 p-0 ${countInTimerEnabled ? "bg-secondary" : ""}`}
+              className={`baseFlex size-10 gap-2 p-0 ${countIn ? "bg-secondary" : ""}`}
               onClick={() => {
-                setCountInTimerEnabled(!countInTimerEnabled);
+                localStorageCountIn.set(String(!countIn));
               }}
             >
               <CountIn className="size-5" />
@@ -1146,11 +1142,9 @@ function DesktopSettings({
             <Button
               variant={"outline"}
               aria-label="Toggle color-coded chords"
-              className={`baseFlex size-10 gap-2 p-0 ${chordDisplayMode === "color" ? "bg-secondary" : ""}`}
+              className={`baseFlex size-10 gap-2 p-0 ${colorCodedChords ? "bg-secondary" : ""}`}
               onClick={() => {
-                setChordDisplayMode(
-                  chordDisplayMode === "color" ? "text" : "color",
-                );
+                localStorageColorCodedChords.set(String(!colorCodedChords));
               }}
             >
               <IoColorPalette className="size-5" />
