@@ -1,9 +1,9 @@
 import { type Dispatch, type SetStateAction } from "react";
-import { useRouter } from "next/router";
 import { FaBook } from "react-icons/fa";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
+import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
 import {
@@ -18,13 +18,7 @@ import { Separator } from "~/components/ui/separator";
 import { useTabStore, type PlaybackMetadata } from "~/stores/TabStore";
 import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import {
-  getPlaybackControlLabel,
-  getPlaybackControlValue,
-  getPlaybackSpeedFromControlValue,
-  playbackDifficultyOptions,
-  playbackSpeedOptions,
-} from "../../../utils/playbackSpeedControls";
+import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
 import { tuningNotesToName } from "~/utils/tunings";
 
 interface PlaybackTopMetadata {
@@ -36,8 +30,6 @@ function PlaybackTopMetadata({
   tabProgressValue,
   setTabProgressValue,
 }: PlaybackTopMetadata) {
-  const { asPath } = useRouter();
-
   const {
     title,
     tuning,
@@ -71,16 +63,6 @@ function PlaybackTopMetadata({
     setCurrentChordIndex: state.setCurrentChordIndex,
     setDraftLoopRange: state.setDraftLoopRange,
   }));
-
-  const useDifficultyLabels = asPath.includes("/tools");
-  const playbackControlValue = getPlaybackControlValue({
-    playbackSpeed,
-    useDifficultyLabels,
-  });
-  const playbackControlLabel = getPlaybackControlLabel({
-    playbackSpeed,
-    useDifficultyLabels,
-  });
 
   const sectionsById: Record<string, { sectionId: string; title: string }> = {};
 
@@ -293,23 +275,16 @@ function PlaybackTopMetadata({
                   {viewportLabel.includes("mobile") && (
                     <div className="baseFlex mt-1.5 w-full !justify-start gap-4">
                       <div className="baseFlex gap-2">
-                        <Label htmlFor="speed">
-                          {useDifficultyLabels ? "Difficulty" : "Speed"}
-                        </Label>
-                        <Select
+                        <Label htmlFor="speed">Speed</Label>
+                        <PlaybackSpeedPopover
+                          id="speed"
                           disabled={
                             countInTimer.showing ||
                             audioMetadata.editingLoopRange
                           }
-                          value={playbackControlValue}
-                          onValueChange={(value) => {
+                          playbackSpeed={playbackSpeed}
+                          onPlaybackSpeedChange={(newPlaybackSpeed) => {
                             pauseAudio();
-
-                            const newPlaybackSpeed =
-                              getPlaybackSpeedFromControlValue({
-                                value,
-                                useDifficultyLabels,
-                              });
 
                             // Normalize the progress value to 1x speed
                             const normalizedProgress =
@@ -323,27 +298,8 @@ function PlaybackTopMetadata({
                             setTabProgressValue(adjustedProgress);
                             setPlaybackSpeed(newPlaybackSpeed);
                           }}
-                        >
-                          <SelectTrigger
-                            id="speed"
-                            className={`h-8 ${useDifficultyLabels ? "w-36" : "w-20"}`}
-                          >
-                            <SelectValue>{playbackControlLabel}</SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(useDifficultyLabels
-                              ? playbackDifficultyOptions
-                              : playbackSpeedOptions
-                            ).map((option) => (
-                              <SelectItem
-                                key={option.value}
-                                value={option.value}
-                              >
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          triggerClassName="h-8 w-[85px]"
+                        />
                       </div>
 
                       {sectionProgression.length > 1 && (
@@ -461,7 +417,7 @@ function CurrentTempoDisplay({
   playbackSpeed,
 }: {
   playbackMetadata: PlaybackMetadata[] | null;
-  playbackSpeed: 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
+  playbackSpeed: PlaybackSpeed;
 }) {
   const currentChordIndex = useTabStore((state) => state.currentChordIndex);
   const scaledBPM = Math.round(

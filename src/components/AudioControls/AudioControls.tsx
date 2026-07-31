@@ -25,6 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import {
   Select,
   SelectContent,
@@ -749,7 +750,7 @@ function AudioControls() {
 
                 setDrawerOpen(open);
               }}
-              dismissible={!drawerHandleDisabled} // bad UX to allow drawer to be moved when <Select> is current open
+              dismissible={!drawerHandleDisabled} // bad UX to allow drawer to be moved when a nested select/popover is open
             >
               <DrawerTrigger asChild>
                 <Button
@@ -824,34 +825,17 @@ function AudioControls() {
 
                   <div className="baseFlex w-full !justify-between gap-4">
                     <Label htmlFor="speed">Speed</Label>
-                    <Select
+                    <PlaybackSpeedPopover
+                      id="speed"
+                      playbackSpeed={playbackSpeed}
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-                      value={`${playbackSpeed}x`}
-                      onValueChange={(value) => {
+                      onPlaybackSpeedChange={(newPlaybackSpeed) => {
                         pauseAudio();
-
-                        const newPlaybackSpeed = Number(
-                          value.slice(0, value.length - 1),
-                        ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
-
                         setPlaybackSpeed(newPlaybackSpeed);
                       }}
-                    >
-                      <SelectTrigger
-                        id="speed"
-                        className="w-[85px] border-ring"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={"0.25x"}>0.25x</SelectItem>
-                        <SelectItem value={"0.5x"}>0.5x</SelectItem>
-                        <SelectItem value={"0.75x"}>0.75x</SelectItem>
-                        <SelectItem value={"1x"}>1x</SelectItem>
-                        <SelectItem value={"1.25x"}>1.25x</SelectItem>
-                        <SelectItem value={"1.5x"}>1.5x</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      triggerClassName="w-[85px] border-ring"
+                      side="top"
+                    />
                   </div>
 
                   <div className="baseFlex w-full !justify-between gap-4">
@@ -963,34 +947,17 @@ function DesktopInstrumentAndSpeedSelects() {
         <Label htmlFor="speed" className="shrink-0">
           Speed
         </Label>
-        <Select
+        <PlaybackSpeedPopover
+          id="speed"
           disabled={editingLoopRange}
-          value={`${playbackSpeed}x`}
-          onValueChange={(value) => {
+          playbackSpeed={playbackSpeed}
+          onPlaybackSpeedChange={(newPlaybackSpeed) => {
             pauseAudio();
-
-            const newPlaybackSpeed = Number(
-              value.slice(0, value.length - 1),
-            ) as 0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5;
-
             setPlaybackSpeed(newPlaybackSpeed);
           }}
-        >
-          <SelectTrigger
-            id="speed"
-            className="focus:ring-1 focus:ring-primary-foreground/75"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={"0.25x"}>0.25x</SelectItem>
-            <SelectItem value={"0.5x"}>0.5x</SelectItem>
-            <SelectItem value={"0.75x"}>0.75x</SelectItem>
-            <SelectItem value={"1x"}>1x</SelectItem>
-            <SelectItem value={"1.25x"}>1.25x</SelectItem>
-            <SelectItem value={"1.5x"}>1.5x</SelectItem>
-          </SelectContent>
-        </Select>
+          triggerClassName="w-[85px] focus-visible:ring-primary-foreground/75"
+          side="top"
+        />
       </div>
     </div>
   );

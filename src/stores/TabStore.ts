@@ -22,6 +22,10 @@ import {
   runPlaybackScheduler,
 } from "~/utils/playbackScheduler";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
+import {
+  clampPlaybackSpeed,
+  type PlaybackSpeed,
+} from "~/utils/playbackSpeedControls";
 import { useShallow } from "zustand/shallow";
 import { isMobileOnly } from "react-device-detect";
 
@@ -623,8 +627,8 @@ interface TabState {
   setLooping: (looping: boolean) => void;
   loopDelay: number;
   setLoopDelay: (loopDelay: number) => void;
-  playbackSpeed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5;
-  setPlaybackSpeed: (speed: 1 | 0.25 | 0.5 | 0.75 | 1.25 | 1.5) => void;
+  playbackSpeed: PlaybackSpeed;
+  setPlaybackSpeed: (speed: PlaybackSpeed) => void;
   currentChordIndex: number;
   setCurrentChordIndex: (currentChordIndex: number) => void;
   playbackStartedAtAudioTime: number | null;
@@ -851,7 +855,8 @@ const useTabStoreBase = create<TabState>()(
       loopDelay: 0,
       setLoopDelay: (loopDelay) => set({ loopDelay }),
       playbackSpeed: 1,
-      setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
+      setPlaybackSpeed: (playbackSpeed) =>
+        set({ playbackSpeed: clampPlaybackSpeed(playbackSpeed) }),
       currentChordIndex: 0,
       setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
       playbackStartedAtAudioTime: null,

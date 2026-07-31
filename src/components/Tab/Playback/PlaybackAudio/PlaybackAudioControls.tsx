@@ -9,6 +9,7 @@ import { CgArrowsShrinkH } from "react-icons/cg";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import PlaybackProgressRange from "~/components/AudioControls/PlaybackProgressRange";
 import { Button } from "~/components/ui/button";
+import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
@@ -290,28 +291,18 @@ function PlaybackAudioControls({
             />
           </Button>
 
-          {/* speed selector (rotates through 0.25x, 0.5x, 0.75x, 1x, 1.25x, 1.5x speeds) */}
-          <Button
-            variant="link"
-            onClick={() => {
-              const newPlaybackSpeed =
-                playbackSpeed === 1.5
-                  ? 0.25
-                  : ((playbackSpeed + 0.25) as
-                      0.25 | 0.5 | 0.75 | 1 | 1.25 | 1.5);
-
-              setPlaybackSpeed(newPlaybackSpeed);
-
+          <PlaybackSpeedPopover
+            triggerVariant="link"
+            playbackSpeed={playbackSpeed}
+            disabled={countInTimer.showing || audioMetadata.editingLoopRange}
+            onPlaybackSpeedChange={(newPlaybackSpeed) => {
               const normalizedProgress = tabProgressValue * playbackSpeed;
               setTabProgressValue(normalizedProgress / newPlaybackSpeed);
-
+              setPlaybackSpeed(newPlaybackSpeed);
               pauseAudio();
             }}
-
-            className="w-[36px] min-w-[36px] !px-0"
-          >
-            {playbackSpeed}x
-          </Button>
+            side="top"
+          />
 
           <div className="baseFlex w-full gap-4">
             <div className="baseFlex w-9 !justify-start self-start">
