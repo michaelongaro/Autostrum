@@ -590,12 +590,16 @@ function MobileSettingsPopover({
                     </div>
                   </div>
                 )}
-                renderThumb={({ props }) => (
-                  <div
-                    {...props}
-                    className="!z-20 size-[18px] rounded-full border bg-primary"
-                  />
-                )}
+                renderThumb={({ props }) => {
+                  const { key, ...restOfProps } = props;
+                  return (
+                    <div
+                      key={key}
+                      {...restOfProps}
+                      className="!z-20 size-[18px] rounded-full border bg-primary"
+                    />
+                  );
+                }}
               />
             </div>
           </div>
@@ -1264,12 +1268,16 @@ function DesktopSettings({
                         </div>
                       </div>
                     )}
-                    renderThumb={({ props }) => (
-                      <div
-                        {...props}
-                        className="!z-20 size-[18px] rounded-full border bg-primary"
-                      />
-                    )}
+                    renderThumb={({ props }) => {
+                      const { key, ...restOfProps } = props;
+                      return (
+                        <div
+                          key={key}
+                          {...restOfProps}
+                          className="!z-20 size-[18px] rounded-full border bg-primary"
+                        />
+                      );
+                    }}
                   />
                   <span>{Math.floor(volume * 50)}%</span>
                 </PopoverContent>

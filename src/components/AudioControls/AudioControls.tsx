@@ -374,12 +374,17 @@ function AudioControls() {
                       </div>
                     </div>
                   )}
-                  renderThumb={({ props }) => (
-                    <div
-                      {...props}
-                      className="!z-20 size-[18px] rounded-full border bg-primary"
-                    />
-                  )}
+                  renderThumb={({ props }) => {
+                    const { key, ...restOfProps } = props;
+                    return (
+                      <div
+                        key={key}
+
+                        {...restOfProps}
+                        className="!z-20 size-[18px] rounded-full border bg-primary"
+                      />
+                    );
+                  }}
                 />
               </div>
             )}
@@ -539,12 +544,16 @@ function AudioControls() {
                         </div>
                       </div>
                     )}
-                    renderThumb={({ props }) => (
-                      <div
-                        {...props}
-                        className="!z-20 size-[18px] rounded-full border bg-primary"
-                      />
-                    )}
+                    renderThumb={({ props }) => {
+                      const { key, ...restOfProps } = props;
+                      return (
+                        <div
+                          key={key}
+                          {...restOfProps}
+                          className="!z-20 size-[18px] rounded-full border bg-primary"
+                        />
+                      );
+                    }}
                   />
                   <span>{Math.floor(volume * 50)}%</span>
                 </PopoverContent>
@@ -675,23 +684,27 @@ function AudioControls() {
                   </div>
                 </div>
               )}
-              renderThumb={({ props }) => (
-                <div
-                  {...props}
-                  id="editingSliderThumb"
-                  style={{
-                    ...props.style,
-                    transitionProperty: "transform",
-                    transitionTimingFunction: "linear",
-                    transitionDuration: `${
-                      audioMetadata.playing
-                        ? `${chordDurations[currentChordIndex] ?? 0}s`
-                        : "0s"
-                    }`,
-                  }}
-                  className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
-                />
-              )}
+              renderThumb={({ props }) => {
+                const { key, ...restOfProps } = props;
+                return (
+                  <div
+                    key={key}
+                    {...restOfProps}
+                    id="editingSliderThumb"
+                    style={{
+                      ...props.style,
+                      transitionProperty: "transform",
+                      transitionTimingFunction: "linear",
+                      transitionDuration: `${
+                        audioMetadata.playing
+                          ? `${chordDurations[currentChordIndex] ?? 0}s`
+                          : "0s"
+                      }`,
+                    }}
+                    className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
+                  />
+                );
+              }}
             />
 
             <span className="ml-2">
