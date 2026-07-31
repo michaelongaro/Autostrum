@@ -16,7 +16,7 @@ import Binoculars from "~/components/ui/icons/Binoculars";
 import { Button } from "~/components/ui/button";
 import { formatNumber } from "~/utils/formatNumber";
 import formatDate from "~/utils/formatDate";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import Spinner from "~/components/ui/Spinner";
 
 interface PinnedTabList {
@@ -115,7 +115,7 @@ function PinnedTabList({
           </motion.div>
         )}
 
-        {!isFetchingUserTabs && userTabs && userTabs.length === 0 && (
+        {!isFetchingUserTabs && userTabs?.length === 0 && (
           <motion.div
             key="noResultsFound"
             initial={{ opacity: 0 }}
@@ -140,7 +140,7 @@ function PinnedTabList({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="baseVertFlex h-[336px] !justify-start gap-2 overflow-hidden lg:h-auto lg:pb-0"
+            className="baseVertFlex h-full !justify-start gap-2 overflow-hidden pb-6 lg:h-auto lg:pb-0"
           >
             <OverlayScrollbarsComponent
               options={{
@@ -162,7 +162,7 @@ function PinnedTabList({
 
                   <AnimatePresence mode="popLayout">
                     <TableBody className="w-full @container">
-                      {userTabs.map((tab) => (
+                      {userTabs.map((tab, index) => (
                         // if tab.id === localPinnedTabId, make background slightly highlighted
                         <TableRow key={tab.id} className="w-full">
                           <TableCell>
@@ -174,12 +174,24 @@ function PinnedTabList({
                               className="baseFlex !size-5 w-full !shrink-0 rounded-full outline outline-1"
                             >
                               <Button
-                                variant={"text"}
-                                className={`!size-4 !shrink-0 rounded-full border-none !p-0 hover:bg-primary ${tab.id === localPinnedTabId ? "bg-primary" : ""} `}
+                                variant="text"
+                                className={`group !size-5 !shrink-0 rounded-full border-none !p-0 hover:bg-primary ${
+                                  tab.id === localPinnedTabId
+                                    ? "bg-primary"
+                                    : ""
+                                }`}
                                 onClick={() => {
                                   setLocalPinnedTabId(tab.id);
                                 }}
-                              />
+                              >
+                                <Check
+                                  className={`size-[14px] text-primary-foreground transition-opacity ${
+                                    tab.id === localPinnedTabId
+                                      ? "opacity-100"
+                                      : "opacity-0 group-hover:opacity-100"
+                                  }`}
+                                />
+                              </Button>
                             </motion.div>
                           </TableCell>
 
