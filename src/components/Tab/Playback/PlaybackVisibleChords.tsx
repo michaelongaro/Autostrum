@@ -130,27 +130,6 @@ function PlaybackVisibleChords({
 
   const { scrollPositions, chordWidths, totalWidth } = chordLayoutData;
 
-  // Earliest compiled start in the strip. Artificial loop copies also carry
-  // isFirstChordInTab; for seamless (loopDelay === 0) scroll we only round the
-  // first occurrence while its own repetition is still 0.
-  const firstTabStartIndex = expandedTabData.findIndex(
-    (chord) => chord.isFirstChordInTab === true,
-  );
-
-  function resolveTabEdgeFlags(
-    index: number,
-    chord: (typeof expandedTabData)[number],
-  ) {
-    const repetition = chordRepetitions[index] ?? 0;
-    return {
-      isFirstChordInTab:
-        chord.isFirstChordInTab === true &&
-        repetition === 0 &&
-        (loopDelay !== 0 || index === firstTabStartIndex),
-      isLastChordInTab: chord.isLastChordInTab === true && loopDelay !== 0,
-    };
-  }
-
   // v TODO: verify if this is a path that can ever be hit v
   // Until the modal has a measured width, mount a small window around the
   // current chord so we never paint an empty strip during remeasure/orientation.
@@ -166,17 +145,16 @@ function PlaybackVisibleChords({
       .slice(fallbackStart, fallbackEnd)
       .map((chord, offset) => {
         const index = fallbackStart + offset;
-        const { isFirstChordInTab, isLastChordInTab } = resolveTabEdgeFlags(
-          index,
-          chord,
-        );
         return {
           chord,
           index,
           prevChord: expandedTabData[index - 1],
           nextChord: expandedTabData[index + 1],
-          isFirstChordInTab,
-          isLastChordInTab,
+          isFirstChordInTab:
+            index === 0 &&
+            (loopDelay !== 0 || (chordRepetitions[0] ?? 0) === 0),
+          isLastChordInTab:
+            index === expandedTabData.length - 1 && loopDelay !== 0,
         };
       });
   } else {
@@ -207,10 +185,8 @@ function PlaybackVisibleChords({
         return [];
       }
 
-      const { isFirstChordInTab, isLastChordInTab } = resolveTabEdgeFlags(
-        index,
-        chord,
-      );
+      const isFirstChordInFirstLoop =
+        index === 0 && (chordRepetitions[0] ?? 0) === 0;
 
       return [
         {
@@ -218,8 +194,10 @@ function PlaybackVisibleChords({
           index,
           prevChord: expandedTabData[index - 1],
           nextChord: expandedTabData[index + 1],
-          isFirstChordInTab,
-          isLastChordInTab,
+          isFirstChordInTab:
+            chord.isFirstChordInTab === true &&
+            (loopDelay !== 0 || isFirstChordInFirstLoop),
+          isLastChordInTab: chord.isLastChordInTab === true && loopDelay !== 0,
         },
       ];
     });
