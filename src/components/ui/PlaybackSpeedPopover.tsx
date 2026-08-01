@@ -77,10 +77,10 @@ function PlaybackSpeedPopover({
       <PopoverContent
         side={side}
         align={align}
-        className="baseVertFlex w-64 gap-4 p-4"
+        className="baseVertFlex w-80 gap-4 p-4"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
-        <div className="baseVertFlex w-full gap-3">
+        <div className="baseVertFlex w-full">
           <div className="baseFlex w-full !justify-between text-sm">
             <span className="font-medium">Speed</span>
             {speedLabel}
@@ -128,6 +128,7 @@ function PlaybackSpeedPopover({
                   width: "100%",
                   justifyContent: "center",
                 }}
+                className="mb-1 mt-3"
               >
                 <div
                   ref={props.ref}
@@ -159,6 +160,15 @@ function PlaybackSpeedPopover({
               );
             }}
           />
+
+          <div className="baseFlex relative mt-4 w-full !justify-between gap-4 text-xs font-medium">
+            <span className="absolute bottom-0 left-0">0.25x</span>
+            <span className="absolute bottom-0 left-12">0.5x</span>
+            <span className="absolute bottom-0 left-[100px]">0.75x</span>
+            <span className="absolute bottom-0 right-[108px]">1x</span>
+            <span className="absolute bottom-0 right-11">1.25x</span>
+            <span className="absolute bottom-0 right-0">1.5x</span>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
