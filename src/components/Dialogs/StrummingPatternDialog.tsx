@@ -267,7 +267,7 @@ function StrummingPatternDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90vh] min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[800px]">
+      <DialogContent className="baseVertFlex max-h-[90vh] min-w-[370px] w-auto max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[800px] md:w-auto">
         {strummingPattern && (
           <>
             <Button

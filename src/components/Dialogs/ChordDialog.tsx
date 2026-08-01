@@ -175,7 +175,7 @@ function ChordDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8">
+      <DialogContent className="baseVertFlex min-w-[350px] w-auto max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[380px]">
         {chord && (
           <>
             {/* chord title */}
