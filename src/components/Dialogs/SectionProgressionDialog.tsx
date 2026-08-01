@@ -1,4 +1,3 @@
-import { FocusTrap } from "focus-trap-react";
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { useEffect, useRef, useState } from "react";
@@ -17,21 +16,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { X } from "lucide-react";
 import { Label } from "~/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
-function SectionProgressionModal() {
+function SectionProgressionDialog() {
   const {
     sectionProgression,
     setSectionProgression,
-    setShowSectionProgressionModal,
+    showSectionProgressionDialog,
+    setShowSectionProgressionDialog,
     tabData,
   } = useTabStore((state) => ({
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
-    setShowSectionProgressionModal: state.setShowSectionProgressionModal,
+    showSectionProgressionDialog: state.showSectionProgressionDialog,
+    setShowSectionProgressionDialog: state.setShowSectionProgressionDialog,
     tabData: state.tabData,
   }));
 
@@ -44,9 +51,9 @@ function SectionProgressionModal() {
   const lastAddedIdRef = useRef<string | null>(null);
   const pendingScrollRef = useRef(false);
 
-  useModalScrollbarHandling();
-
   useEffect(() => {
+    if (!showSectionProgressionDialog) return;
+
     const baseSectionProgression =
       sectionProgression.length === 0
         ? [
@@ -62,7 +69,7 @@ function SectionProgressionModal() {
         : structuredClone(sectionProgression);
 
     setLocalSectionProgression(baseSectionProgression);
-  }, [sectionProgression]);
+  }, [sectionProgression, showSectionProgressionDialog]);
 
   const sections = tabData.map((section) => ({
     id: section.id,
@@ -112,9 +119,9 @@ function SectionProgressionModal() {
     pendingScrollRef.current = false;
   }
 
-  function closeModal() {
+  function closeDialog() {
     pruneAndSanitizeSectionProgression();
-    setShowSectionProgressionModal(false);
+    setShowSectionProgressionDialog(false);
   }
 
   function pruneAndSanitizeSectionProgression() {
@@ -133,121 +140,99 @@ function SectionProgressionModal() {
   }
 
   return (
-    <motion.div
-      key={"sectionProgressionModalBackdrop"}
-      className="baseFlex fixed left-0 top-0 z-50 h-[100dvh] w-[100vw] bg-black/60 backdrop-blur-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          setShowSectionProgressionModal(false);
-        }
+    <Dialog
+      onOpenChange={(open) => {
+        setShowSectionProgressionDialog(open);
       }}
+      open={showSectionProgressionDialog}
     >
-      <FocusTrap
-        focusTrapOptions={{
-          allowOutsideClick: true, // to click on the effect dialog "x"
-          initialFocus: false,
-        }}
-      >
-        <motion.div
-          tabIndex={-1}
-          className="modalGradient relative min-h-[20rem] min-w-[70vw] rounded-lg border p-4 shadow-sm md:min-w-[25rem]"
-          layout
-          transition={{ layout: { duration: 0.25 } }}
-        >
-          <motion.div
-            className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between"
-            layout
-            transition={{ layout: { duration: 0.25 } }}
+      <VisuallyHidden>
+        <DialogTitle>Section progression dialog</DialogTitle>
+        <DialogDescription>
+          Arrange the order and repetitions of sections in this tab.
+        </DialogDescription>
+      </VisuallyHidden>
+
+      <DialogContent className="baseVertFlex max-h-[90dvh] min-h-[20rem] min-w-[70vw] max-w-[90vw] !justify-between gap-0 rounded-lg border p-4 shadow-sm md:min-w-[25rem]">
+        <div className="baseFlex w-full !justify-between">
+          <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
+            <BsMusicNoteList />
+            Section progression
+          </span>
+
+          <Button
+            variant={"modalClose"}
+            onClick={() => setShowSectionProgressionDialog(false)}
           >
-            <div className="baseFlex w-full !justify-between">
-              <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
-                <BsMusicNoteList />
-                Section progression
-              </span>
+            <X className="size-5" />
+          </Button>
+        </div>
 
-              <Button
-                variant={"modalClose"}
-                onClick={() => setShowSectionProgressionModal(false)}
-              >
-                <X className="size-5" />
-              </Button>
-            </div>
-
-            <div
-              ref={scrollableSectionsRef}
-              className="baseVertFlex mt-4 max-h-[60vh] w-full !justify-start px-4 md:max-h-[65vh]"
-            >
-              <OverlayScrollbarsComponent
-                options={{
-                  scrollbars: {
-                    autoHide: "leave",
-                    autoHideDelay: 150,
-                  },
-                }}
-                defer
-                className="w-full"
-              >
-                <AnimatePresence initial={false} mode="popLayout">
-                  {localSectionProgression.map((section, index) => (
-                    <Section
-                      key={section.id}
-                      index={index}
-                      id={section.id}
-                      sectionId={section.sectionId}
-                      title={section.title}
-                      repetitions={section.repetitions}
-                      sections={sections}
-                      localSectionProgression={localSectionProgression}
-                      setLocalSectionProgression={setLocalSectionProgression}
-                      isNew={section.id === lastAddedIdRef.current}
-                      onEnterComplete={handleNewSectionEnterComplete}
-                    />
-                  ))}
-                </AnimatePresence>
-
-                {/* Sentinel to scroll into view so we always hit the true bottom */}
-                <div
-                  ref={bottomSentinelRef}
-                  className="h-0 w-full"
-                  aria-hidden
+        <div
+          ref={scrollableSectionsRef}
+          className="baseVertFlex mt-4 max-h-[60vh] w-full !justify-start px-4 md:max-h-[65vh]"
+        >
+          <OverlayScrollbarsComponent
+            options={{
+              scrollbars: {
+                autoHide: "leave",
+                autoHideDelay: 150,
+              },
+            }}
+            defer
+            className="w-full"
+          >
+            <AnimatePresence initial={false} mode="popLayout">
+              {localSectionProgression.map((section, index) => (
+                <Section
+                  key={section.id}
+                  index={index}
+                  id={section.id}
+                  sectionId={section.sectionId}
+                  title={section.title}
+                  repetitions={section.repetitions}
+                  sections={sections}
+                  localSectionProgression={localSectionProgression}
+                  setLocalSectionProgression={setLocalSectionProgression}
+                  isNew={section.id === lastAddedIdRef.current}
+                  onEnterComplete={handleNewSectionEnterComplete}
                 />
-              </OverlayScrollbarsComponent>
-            </div>
+              ))}
+            </AnimatePresence>
 
-            <div className="baseFlex mt-8 w-full !justify-between gap-4">
-              <Button
-                variant={"outline"}
-                className="baseFlex gap-2 py-4 pl-2.5"
-                onClick={addNewSectionToProgression}
-              >
-                <BsPlus className="size-6" />
-                <span>Add section</span>
-              </Button>
+            {/* Sentinel to scroll into view so we always hit the true bottom */}
+            <div ref={bottomSentinelRef} className="h-0 w-full" aria-hidden />
+          </OverlayScrollbarsComponent>
+        </div>
 
-              <Button
-                disabled={
-                  localSectionProgression.some(
-                    (section) => section.title === "",
-                  ) || isEqual(localSectionProgression, sectionProgression)
-                }
-                onClick={closeModal}
-                className="px-8"
-              >
-                Save
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      </FocusTrap>
-    </motion.div>
+        <div className="baseFlex mt-8 w-full !justify-between gap-4">
+          <Button
+            variant={"outline"}
+            className="baseFlex gap-2 py-4 pl-2.5"
+            onClick={addNewSectionToProgression}
+          >
+            <BsPlus className="size-6" />
+            <span>Add section</span>
+          </Button>
+
+          <Button
+            disabled={
+              localSectionProgression.some(
+                (section) => section.title === "",
+              ) || isEqual(localSectionProgression, sectionProgression)
+            }
+            onClick={closeDialog}
+            className="px-8"
+          >
+            Save
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-export default SectionProgressionModal;
+export default SectionProgressionDialog;
 
 interface Section {
   id: string;

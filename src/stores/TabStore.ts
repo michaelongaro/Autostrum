@@ -376,7 +376,7 @@ const initialStoreState = {
   },
 
   // modals
-  showSectionProgressionModal: false,
+  showSectionProgressionDialog: false,
   showGlossaryDialog: false,
   chordBeingEdited: null,
   strummingPatternBeingEdited: null,
@@ -551,9 +551,9 @@ interface TabState {
   setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
 
   // modals
-  showSectionProgressionModal: boolean;
-  setShowSectionProgressionModal: (
-    showSectionProgressionModal: boolean,
+  showSectionProgressionDialog: boolean;
+  setShowSectionProgressionDialog: (
+    showSectionProgressionDialog: boolean,
   ) => void;
   showGlossaryDialog: boolean;
   setShowGlossaryDialog: (showGlossaryDialog: boolean) => void;
@@ -1588,9 +1588,9 @@ const useTabStoreBase = create<TabState>()(
       setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
 
       // modals
-      showSectionProgressionModal: false,
-      setShowSectionProgressionModal: (showSectionProgressionModal) =>
-        set({ showSectionProgressionModal }),
+      showSectionProgressionDialog: false,
+      setShowSectionProgressionDialog: (showSectionProgressionDialog) =>
+        set({ showSectionProgressionDialog }),
       showGlossaryDialog: false,
       setShowGlossaryDialog: (showGlossaryDialog) =>
         set({ showGlossaryDialog }),
