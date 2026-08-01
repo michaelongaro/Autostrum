@@ -153,7 +153,7 @@ function SectionProgressionDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex relative min-h-[20rem] min-w-[70vw] w-max max-w-[90vw] gap-0 rounded-lg border p-4 shadow-sm md:min-w-[25rem] md:w-max">
+      <DialogContent className="baseVertFlex w-auto min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[608px]">
         <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full !justify-between">
           <div className="baseFlex w-full !justify-between">
             <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
@@ -202,11 +202,7 @@ function SectionProgressionDialog() {
               </AnimatePresence>
 
               {/* Sentinel to scroll into view so we always hit the true bottom */}
-              <div
-                ref={bottomSentinelRef}
-                className="h-0 w-full"
-                aria-hidden
-              />
+              <div ref={bottomSentinelRef} className="h-0 w-full" aria-hidden />
             </OverlayScrollbarsComponent>
           </div>
 
