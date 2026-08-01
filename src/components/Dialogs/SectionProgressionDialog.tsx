@@ -153,79 +153,85 @@ function SectionProgressionDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90dvh] min-h-[20rem] min-w-[70vw] max-w-[90vw] !justify-between gap-0 rounded-lg border p-4 shadow-sm md:min-w-[25rem]">
-        <div className="baseFlex w-full !justify-between">
-          <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
-            <BsMusicNoteList />
-            Section progression
-          </span>
+      <DialogContent className="baseVertFlex relative min-h-[20rem] min-w-[70vw] w-max max-w-[90vw] gap-0 rounded-lg border p-4 shadow-sm md:min-w-[25rem] md:w-max">
+        <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full !justify-between">
+          <div className="baseFlex w-full !justify-between">
+            <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
+              <BsMusicNoteList />
+              Section progression
+            </span>
 
-          <Button
-            variant={"modalClose"}
-            onClick={() => setShowSectionProgressionDialog(false)}
+            <Button
+              variant={"modalClose"}
+              onClick={() => setShowSectionProgressionDialog(false)}
+            >
+              <X className="size-5" />
+            </Button>
+          </div>
+
+          <div
+            ref={scrollableSectionsRef}
+            className="baseVertFlex mt-4 max-h-[60vh] w-full !justify-start px-4 md:max-h-[65vh]"
           >
-            <X className="size-5" />
-          </Button>
-        </div>
+            <OverlayScrollbarsComponent
+              options={{
+                scrollbars: {
+                  autoHide: "leave",
+                  autoHideDelay: 150,
+                },
+              }}
+              defer
+              className="w-full"
+            >
+              <AnimatePresence initial={false} mode="popLayout">
+                {localSectionProgression.map((section, index) => (
+                  <Section
+                    key={section.id}
+                    index={index}
+                    id={section.id}
+                    sectionId={section.sectionId}
+                    title={section.title}
+                    repetitions={section.repetitions}
+                    sections={sections}
+                    localSectionProgression={localSectionProgression}
+                    setLocalSectionProgression={setLocalSectionProgression}
+                    isNew={section.id === lastAddedIdRef.current}
+                    onEnterComplete={handleNewSectionEnterComplete}
+                  />
+                ))}
+              </AnimatePresence>
 
-        <div
-          ref={scrollableSectionsRef}
-          className="baseVertFlex mt-4 max-h-[60vh] w-full !justify-start px-4 md:max-h-[65vh]"
-        >
-          <OverlayScrollbarsComponent
-            options={{
-              scrollbars: {
-                autoHide: "leave",
-                autoHideDelay: 150,
-              },
-            }}
-            defer
-            className="w-full"
-          >
-            <AnimatePresence initial={false} mode="popLayout">
-              {localSectionProgression.map((section, index) => (
-                <Section
-                  key={section.id}
-                  index={index}
-                  id={section.id}
-                  sectionId={section.sectionId}
-                  title={section.title}
-                  repetitions={section.repetitions}
-                  sections={sections}
-                  localSectionProgression={localSectionProgression}
-                  setLocalSectionProgression={setLocalSectionProgression}
-                  isNew={section.id === lastAddedIdRef.current}
-                  onEnterComplete={handleNewSectionEnterComplete}
-                />
-              ))}
-            </AnimatePresence>
+              {/* Sentinel to scroll into view so we always hit the true bottom */}
+              <div
+                ref={bottomSentinelRef}
+                className="h-0 w-full"
+                aria-hidden
+              />
+            </OverlayScrollbarsComponent>
+          </div>
 
-            {/* Sentinel to scroll into view so we always hit the true bottom */}
-            <div ref={bottomSentinelRef} className="h-0 w-full" aria-hidden />
-          </OverlayScrollbarsComponent>
-        </div>
+          <div className="baseFlex mt-8 w-full !justify-between gap-4">
+            <Button
+              variant={"outline"}
+              className="baseFlex gap-2 py-4 pl-2.5"
+              onClick={addNewSectionToProgression}
+            >
+              <BsPlus className="size-6" />
+              <span>Add section</span>
+            </Button>
 
-        <div className="baseFlex mt-8 w-full !justify-between gap-4">
-          <Button
-            variant={"outline"}
-            className="baseFlex gap-2 py-4 pl-2.5"
-            onClick={addNewSectionToProgression}
-          >
-            <BsPlus className="size-6" />
-            <span>Add section</span>
-          </Button>
-
-          <Button
-            disabled={
-              localSectionProgression.some(
-                (section) => section.title === "",
-              ) || isEqual(localSectionProgression, sectionProgression)
-            }
-            onClick={closeDialog}
-            className="px-8"
-          >
-            Save
-          </Button>
+            <Button
+              disabled={
+                localSectionProgression.some(
+                  (section) => section.title === "",
+                ) || isEqual(localSectionProgression, sectionProgression)
+              }
+              onClick={closeDialog}
+              className="px-8"
+            >
+              Save
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
