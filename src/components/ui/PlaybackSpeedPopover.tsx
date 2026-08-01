@@ -79,6 +79,13 @@ function PlaybackSpeedPopover({
         align={align}
         className="baseVertFlex w-64 gap-4 p-4"
         onOpenAutoFocus={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => event.preventDefault()}
+        // PlaybackModal's FocusTrap does not contain this portaled content.
+        // react-range focuses its thumb on touch; the trap then reclaims focus
+        // onto the modal, which Radix treats as focus-outside and closes the
+        // popover (iOS). Pointer-outside / Escape still dismiss normally.
+        // The Drawer host has no FocusTrap, which is why it was unaffected.
+        onFocusOutside={(event) => event.preventDefault()}
       >
         <div className="baseVertFlex w-full gap-3">
           <div className="baseFlex w-full !justify-between text-sm">
