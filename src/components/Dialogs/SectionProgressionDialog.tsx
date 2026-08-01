@@ -153,8 +153,8 @@ function SectionProgressionDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="relative min-h-[20rem] min-w-[70vw] w-auto max-w-none gap-0 rounded-lg border p-4 shadow-sm md:min-w-[25rem] md:w-auto">
-        <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full max-w-[90vw] !justify-between">
+      <DialogContent className="baseVertFlex relative min-h-[20rem] min-w-[70vw] w-max max-w-[90vw] gap-0 rounded-lg border p-4 shadow-sm md:min-w-[25rem] md:w-max">
+        <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full !justify-between">
           <div className="baseFlex w-full !justify-between">
             <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
               <BsMusicNoteList />
