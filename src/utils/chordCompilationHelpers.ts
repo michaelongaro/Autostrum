@@ -152,7 +152,9 @@ function compileFullTab({
         },
         bpm: lastMetadataLocation.bpm,
         noteLengthMultiplier: 1,
-        elapsedSeconds: lastMetadataLocation.elapsedSeconds,
+        // directly using elapsedSeconds.value since it already has the final chord's
+        // duration added to it
+        elapsedSeconds: Math.floor(elapsedSeconds.value),
         type: "ornamental",
       });
     }
@@ -696,7 +698,9 @@ function compileSpecificChordGrouping({
       },
       bpm: lastMetadataLocation.bpm,
       noteLengthMultiplier: 1,
-      elapsedSeconds: lastMetadataLocation.elapsedSeconds,
+      // directly using elapsedSeconds.value since it already has the final chord's
+      // duration added to it
+      elapsedSeconds: Math.floor(elapsedSeconds.value),
       type: "ornamental",
     });
   }
