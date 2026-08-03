@@ -225,14 +225,10 @@ kbd {
   background-position: center;
 }
 
-/* Preferred modal scroll lock: hide overflow without position:fixed so
-   Framer Motion layout="position" components don't remeasure/shift. */
-html.modalScrollLock,
-html.modalScrollLock body {
-  overflow: hidden;
-}
-
-/* iOS fallback (force=true): pin the body like a native <dialog> */
+/* iOS fallback (force=true): pin the body like a native <dialog>.
+   Non-iOS modals lock scroll via event prevention in
+   useModalScrollbarHandling so sticky header/AudioControls stay visible
+   and Framer layout="position" is not disturbed. */
 .noScroll {
   position: fixed;
   overflow-y: scroll;
