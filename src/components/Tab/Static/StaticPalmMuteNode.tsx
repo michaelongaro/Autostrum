@@ -15,14 +15,14 @@ function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="ml-2 h-[14px] w-[1px]"
+            className="ml-2 h-[14px] w-[1px] shrink-0"
           ></div>
 
           <div
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="h-[1px] w-[5px]"
+            className="h-[1px] w-[5px] shrink-0"
           ></div>
 
           <i
