@@ -75,6 +75,12 @@ html:not([data-color]) .headerLogoLayer[data-logo-color="maple"] {
   }
 }
 
+html {
+  /* Reserve scrollbar space so overflow locks don't change layout width
+     (avoids Framer Motion layout="position" shifts when modals open). */
+  scrollbar-gutter: stable;
+}
+
 html.disablePullToRefresh {
   overscroll-behavior: none;
 }
@@ -219,7 +225,14 @@ kbd {
   background-position: center;
 }
 
-/* used to emulate <dialog> behavior */
+/* Preferred modal scroll lock: hide overflow without position:fixed so
+   Framer Motion layout="position" components don't remeasure/shift. */
+html.modalScrollLock,
+html.modalScrollLock body {
+  overflow: hidden;
+}
+
+/* iOS fallback (force=true): pin the body like a native <dialog> */
 .noScroll {
   position: fixed;
   overflow-y: scroll;

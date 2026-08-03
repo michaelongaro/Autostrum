@@ -23,10 +23,10 @@ const opacityVariants = {
 function SectionProgression() {
   const [accordionValue, setAccordionValue] = useState("closed");
 
-  const { sectionProgression, setShowSectionProgressionDialog } = useTabStore(
+  const { sectionProgression, setShowSectionProgressionModal } = useTabStore(
     (state) => ({
       sectionProgression: state.sectionProgression,
-      setShowSectionProgressionDialog: state.setShowSectionProgressionDialog,
+      setShowSectionProgressionModal: state.setShowSectionProgressionModal,
     }),
   );
 
@@ -84,7 +84,7 @@ function SectionProgression() {
 
               <Button
                 className="mb-1"
-                onClick={() => setShowSectionProgressionDialog(true)}
+                onClick={() => setShowSectionProgressionModal(true)}
               >
                 {sectionProgression.length === 0 ? "Add section" : "Edit"}
               </Button>
