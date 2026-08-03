@@ -6,19 +6,19 @@ import {
   snapLoopRangeIndexOffOrnamental,
 } from "~/utils/loopRangeHelpers";
 
-interface PlaybackProgressSlider {
+interface PlaybackAudioRange {
   disabled: boolean;
   chordDurations: number[];
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
 }
 
-function PlaybackProgressSlider({
+function PlaybackAudioRange({
   disabled,
   chordDurations,
   setChordRepetitions,
   scrollPositionsLength,
-}: PlaybackProgressSlider) {
+}: PlaybackAudioRange) {
   const {
     currentChordIndex,
     setCurrentChordIndex,
@@ -328,4 +328,4 @@ function PlaybackProgressSlider({
   );
 }
 
-export default PlaybackProgressSlider;
+export default PlaybackAudioRange;
