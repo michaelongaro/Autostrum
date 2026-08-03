@@ -33,7 +33,7 @@ const VELOCITY_SAMPLE_WINDOW_MS = 80;
  * Critically-damped spring ω (rad/ms) for short chord settles and no-fling
  * releases. ~300ms to rest feels close to UIScrollView paging settle.
  */
-const SNAP_SETTLE_OMEGA_PER_MS = 0.014;
+const SNAP_SETTLE_OMEGA_PER_MS = 0.016;
 
 /** Softer spring for rubber-band overscroll release. */
 const OVERSCROLL_SPRING_OMEGA_PER_MS = 0.01;
