@@ -14,43 +14,49 @@ import {
   getNearestChordIndex,
   getStripTransform,
   halfShiftRepetitionsForNextLoop,
+  integrateCriticallyDampedSpringStep,
   integrateIosCoastStep,
   isVisuallyForwardIndexChange,
   IOS_DECELERATION_RATE,
   IOS_REST_VELOCITY_PX_PER_MS,
   projectIosCoastPosition,
+  velocityToReachIosCoastDestination,
 } from "~/utils/playbackScrubMath";
 
 /** Cap a single frame so backgrounding cannot fling the strip. */
 const MAX_FRAME_DELTA_MS = 32;
 
 /** How many recent pointer samples to keep for velocity estimation. */
-const VELOCITY_SAMPLE_WINDOW_MS = 100;
+const VELOCITY_SAMPLE_WINDOW_MS = 80;
 
 /**
- * After projecting the natural iOS coast end, destination-lock onto the nearest
- * chord. Snap correction eases in so tracking→coast→snap reads as one motion.
+ * Critically-damped spring ω (rad/ms) for short chord settles and no-fling
+ * releases. ~300ms to rest feels close to UIScrollView paging settle.
  */
-const SNAP_BLEND_START_MS = 80;
-const SNAP_BLEND_DURATION_MS = 240;
+const SNAP_SETTLE_OMEGA_PER_MS = 0.014;
 
-/** Ease-out duration when releasing from a rubber-banded overscroll. */
-const OVERSCROLL_SPRING_BACK_MS = 320;
-
-/**
- * When coast velocity dies (or release has no fling), ease the remaining
- * distance to the nearest chord instead of hard-jumping via finishScrub.
- */
-const SNAP_SETTLE_MS = 280;
+/** Softer spring for rubber-band overscroll release. */
+const OVERSCROLL_SPRING_OMEGA_PER_MS = 0.01;
 
 /** Treat as already on-target below this distance (px). */
-const SNAP_SETTLED_DISTANCE_PX = 0.5;
+const SNAP_SETTLED_DISTANCE_PX = 0.35;
+
+/**
+ * Short releases (no big fling) skip exponential coast and spring directly
+ * onto the nearest chord — more controlled and avoids the asymptotic tail.
+ */
+const SHORT_TRAVEL_SPRING_PX = 56;
 
 /**
  * Coast velocity must be at least this negative (px/ms) before we treat a
  * position decrease as an intentional backward scrub for rep resets.
  */
 const BACKWARD_RESET_VELOCITY_PX_PER_MS = -0.05;
+
+/**
+ * Safety cap so a pathological spring cannot run forever if floats drift.
+ */
+const MAX_SPRING_MS = 1200;
 
 interface VelocitySample {
   timeMs: number;
@@ -80,8 +86,8 @@ interface UsePlaybackGlideScrubArgs {
 
 /**
  * Native-like glide scrubbing for the playback strip:
- * 1:1 finger tracking (UIScrollView-style) → iOS deceleration coast →
- * destination-locked snap to nearest chord start.
+ * rAF-coalesced 1:1 finger tracking → iOS exponential deceleration with a
+ * soft velocity-space destination pull → critically-damped spring settle.
  *
  * Forward scrubbing can enter the next artificial loop via half-shift.
  * Backward scrubbing resets chordRepetitions to all zeros (virtualization only
@@ -116,7 +122,7 @@ function usePlaybackGlideScrub({
   const isTouchingRef = useRef(false);
   const isCoastingRef = useRef(false);
   const isSpringBackRef = useRef(false);
-  /** Ease-to-chord after coast velocity dies (shares tickSpringBack). */
+  /** Spring-to-chord after coast / no-fling release (shares tickSpring). */
   const isSnapSettlingRef = useRef(false);
   const pointerIdRef = useRef<number | null>(null);
   const lastPointerXRef = useRef(0);
@@ -125,18 +131,23 @@ function usePlaybackGlideScrub({
   const velocityPxPerMsRef = useRef(0);
   /**
    * Finger/coast intent: -1 = backward through the tab (position decreasing),
-   * +1 = forward. Used so snap-blend micro-corrections cannot trigger the
+   * +1 = forward. Used so spring micro-corrections cannot trigger the
    * backward chordRepetitions reset.
    */
   const scrubDirectionRef = useRef<-1 | 0 | 1>(0);
   const samplesRef = useRef<VelocitySample[]>([]);
   const rafIdRef = useRef<number | null>(null);
-  const coastStartedAtRef = useRef(0);
+  const trackingRafIdRef = useRef<number | null>(null);
   const coastSnapTargetRef = useRef(0);
   const coastSnapIndexRef = useRef(0);
-  const springBackStartRef = useRef(0);
-  const springBackDurationMsRef = useRef(OVERSCROLL_SPRING_BACK_MS);
+  /** |velocity| at coast start; used to ramp destination-lock pull as we slow. */
+  const coastInitialSpeedRef = useRef(0);
+  const springOmegaRef = useRef(SNAP_SETTLE_OMEGA_PER_MS);
+  const springStartedAtRef = useRef(0);
   const lastFrameTimeRef = useRef(0);
+  /** Latest rubber-banded display position waiting for the tracking rAF write. */
+  const pendingDisplayPositionRef = useRef(0);
+  const trackingFrameScheduledRef = useRef(false);
 
   useEffect(() => {
     playingRef.current = playing;
@@ -178,6 +189,10 @@ function usePlaybackGlideScrub({
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
+      if (trackingRafIdRef.current !== null) {
+        cancelAnimationFrame(trackingRafIdRef.current);
+        trackingRafIdRef.current = null;
+      }
     };
   }, []);
 
@@ -207,7 +222,7 @@ function usePlaybackGlideScrub({
   }
 
   /**
-   * True only for intentional backward scrubbing — not snap-blend pullback
+   * True only for intentional backward scrubbing — not spring pullback
    * during a forward coast, and not forward loop wraps (last → 0).
    */
   function isIntentionalBackwardScrub() {
@@ -346,6 +361,7 @@ function usePlaybackGlideScrub({
     scrubPositionRef.current = displayPositionPx;
     if (strip) {
       strip.style.transition = "none";
+      strip.style.willChange = "transform";
       strip.style.transform = getStripTransform(displayPositionPx);
     }
     writePlayheadOverscrollOffset(displayPositionPx);
@@ -354,8 +370,14 @@ function usePlaybackGlideScrub({
   /**
    * Apply a new unconstrained position: update loop layout, rubber-band the
    * displayed transform, keep positionRef as the logical playhead.
+   * When `deferDisplayWrite` is set, only update refs — the tracking rAF
+   * paints once per frame for steadier translateX pacing.
    */
-  function applyPosition(unconstrainedPositionPx: number, rubberBand: boolean) {
+  function applyPosition(
+    unconstrainedPositionPx: number,
+    rubberBand: boolean,
+    deferDisplayWrite = false,
+  ) {
     const nextUnconstrained = maybeResetRepetitionsOnBackwardScrub(
       positionRef.current,
       unconstrainedPositionPx,
@@ -375,15 +397,25 @@ function usePlaybackGlideScrub({
 
     if (rubberBand) {
       positionRef.current = nextUnconstrained;
-      writeTransform(
-        applyIosRubberBandPosition(nextUnconstrained, min, max, dimension),
+      const display = applyIosRubberBandPosition(
+        nextUnconstrained,
+        min,
+        max,
+        dimension,
       );
+      pendingDisplayPositionRef.current = display;
+      if (!deferDisplayWrite) {
+        writeTransform(display);
+      }
       return;
     }
 
     const clamped = clamp(nextUnconstrained, min, max);
     positionRef.current = clamped;
-    writeTransform(clamped);
+    pendingDisplayPositionRef.current = clamped;
+    if (!deferDisplayWrite) {
+      writeTransform(clamped);
+    }
   }
 
   function syncChordIndexFromPosition(positionPx: number) {
@@ -412,7 +444,7 @@ function usePlaybackGlideScrub({
     );
 
     // Only reset on intentional backward scrub — never on forward loop wraps
-    // (last → 0) or snap-blend pullback during a forward coast.
+    // (last → 0) or spring pullback during a forward coast.
     if (
       nextIndex < previousIndex &&
       !visuallyForward &&
@@ -445,22 +477,57 @@ function usePlaybackGlideScrub({
     const latest = samples[samples.length - 1]!;
     const windowStart = latest.timeMs - VELOCITY_SAMPLE_WINDOW_MS;
 
-    let earliest = samples[0]!;
-    for (let i = 0; i < samples.length - 1; i++) {
+    // Prefer the oldest sample still inside the window for a stable average.
+    // If the finger paused before lift, fall back to the last moving pair so
+    // a brief stop does not fully kill an otherwise intentional fling.
+    let earliestInWindow: VelocitySample | null = null;
+    let lastMoving: VelocitySample | null = null;
+
+    for (let i = 0; i < samples.length; i++) {
       const sample = samples[i]!;
-      if (sample.timeMs >= windowStart) {
-        earliest = sample;
-        break;
+      if (sample.timeMs >= windowStart && earliestInWindow === null) {
+        earliestInWindow = sample;
       }
-      earliest = sample;
+      if (i > 0) {
+        const previous = samples[i - 1]!;
+        if (Math.abs(sample.x - previous.x) > 0.5) {
+          lastMoving = sample;
+        }
+      }
     }
 
-    const dt = latest.timeMs - earliest.timeMs;
+    const earliest = earliestInWindow ?? samples[0]!;
+    let end = latest;
+
+    // If the last ~32ms are essentially still, measure against the last move.
+    if (
+      lastMoving &&
+      latest.timeMs - lastMoving.timeMs > 32 &&
+      Math.abs(latest.x - lastMoving.x) < 0.5
+    ) {
+      end = lastMoving;
+      // Walk back for a window ending at the last move.
+      let earliestBeforeStop = samples[0]!;
+      const stopWindowStart = end.timeMs - VELOCITY_SAMPLE_WINDOW_MS;
+      for (let i = 0; i < samples.length; i++) {
+        const sample = samples[i]!;
+        if (sample.timeMs > end.timeMs) break;
+        if (sample.timeMs >= stopWindowStart) {
+          earliestBeforeStop = sample;
+          break;
+        }
+        earliestBeforeStop = sample;
+      }
+      const dt = end.timeMs - earliestBeforeStop.timeMs;
+      if (dt <= 0) return 0;
+      return -(end.x - earliestBeforeStop.x) / dt;
+    }
+
+    const dt = end.timeMs - earliest.timeMs;
     if (dt <= 0) return 0;
 
     // Finger right (+) => strip position decreases.
-    const fingerDeltaX = latest.x - earliest.x;
-    return -fingerDeltaX / dt;
+    return -(end.x - earliest.x) / dt;
   }
 
   function stopRaf() {
@@ -470,8 +537,33 @@ function usePlaybackGlideScrub({
     }
   }
 
+  function stopTrackingRaf() {
+    if (trackingRafIdRef.current !== null) {
+      cancelAnimationFrame(trackingRafIdRef.current);
+      trackingRafIdRef.current = null;
+    }
+    trackingFrameScheduledRef.current = false;
+  }
+
+  function flushTrackingFrame() {
+    trackingRafIdRef.current = null;
+    trackingFrameScheduledRef.current = false;
+    if (!isTouchingRef.current) return;
+
+    writeTransform(pendingDisplayPositionRef.current);
+    const { min, max } = getPositionBounds();
+    syncChordIndexFromPosition(clamp(positionRef.current, min, max));
+  }
+
+  function scheduleTrackingFrame() {
+    if (trackingFrameScheduledRef.current) return;
+    trackingFrameScheduledRef.current = true;
+    trackingRafIdRef.current = requestAnimationFrame(flushTrackingFrame);
+  }
+
   function finishScrub(finalIndex: number) {
     stopRaf();
+    stopTrackingRaf();
     isTouchingRef.current = false;
     isCoastingRef.current = false;
     isSpringBackRef.current = false;
@@ -486,7 +578,7 @@ function usePlaybackGlideScrub({
 
     if (positions && positions.length > 0) {
       // Do not reset repetitions here. Forward loop wraps (last → 0) and
-      // snap corrections can also lower the index; resets are handled only by
+      // spring corrections can also lower the index; resets are handled only by
       // intentional-backward paths during the gesture/coast.
       const finalPosition = getAbsoluteChordPosition(
         finalIndex,
@@ -498,6 +590,11 @@ function usePlaybackGlideScrub({
       writeTransform(finalPosition);
       currentChordIndexRef.current = finalIndex;
       setCurrentChordIndex(finalIndex);
+    }
+
+    const strip = stripRef.current;
+    if (strip) {
+      strip.style.willChange = "auto";
     }
 
     scrubDirectionRef.current = 0;
@@ -531,63 +628,86 @@ function usePlaybackGlideScrub({
     );
   }
 
-  function tickSpringBack(nowMs: number) {
+  function tickSpring(nowMs: number) {
     if (!isSpringBackRef.current && !isSnapSettlingRef.current) return;
 
-    const durationMs = springBackDurationMsRef.current;
-    const elapsedMs = nowMs - coastStartedAtRef.current;
-    const t = clamp(elapsedMs / durationMs, 0, 1);
-    // Ease-out cubic — matches the familiar iOS rubber-band / settle feel.
-    const ease = 1 - Math.pow(1 - t, 3);
-    const nextPosition =
-      springBackStartRef.current +
-      (coastSnapTargetRef.current - springBackStartRef.current) * ease;
+    const lastTime = lastFrameTimeRef.current || nowMs;
+    const deltaMs = clamp(nowMs - lastTime, 0, MAX_FRAME_DELTA_MS);
+    lastFrameTimeRef.current = nowMs;
 
-    positionRef.current = nextPosition;
-    writeTransform(nextPosition);
-    syncChordIndexFromPosition(nextPosition);
+    const { position, velocity } = integrateCriticallyDampedSpringStep(
+      positionRef.current,
+      velocityPxPerMsRef.current,
+      coastSnapTargetRef.current,
+      deltaMs,
+      springOmegaRef.current,
+    );
 
-    if (t >= 1) {
+    // Overscroll spring paints the rubber-banded pixels directly; settle stays
+    // inside bounds so applyPosition clamping is safe.
+    if (isSpringBackRef.current) {
+      positionRef.current = position;
+      velocityPxPerMsRef.current = velocity;
+      writeTransform(position);
+      const { min, max } = getPositionBounds();
+      syncChordIndexFromPosition(clamp(position, min, max));
+    } else {
+      velocityPxPerMsRef.current = velocity;
+      applyPosition(position, false);
+      syncChordIndexFromPosition(positionRef.current);
+    }
+
+    const distanceToSnap = Math.abs(
+      positionRef.current - coastSnapTargetRef.current,
+    );
+    const springAgeMs = nowMs - springStartedAtRef.current;
+    const settled =
+      (distanceToSnap < SNAP_SETTLED_DISTANCE_PX &&
+        Math.abs(velocityPxPerMsRef.current) < IOS_REST_VELOCITY_PX_PER_MS) ||
+      springAgeMs >= MAX_SPRING_MS;
+
+    if (settled) {
       finishScrub(coastSnapIndexRef.current);
       return;
     }
 
-    rafIdRef.current = requestAnimationFrame(tickSpringBack);
+    rafIdRef.current = requestAnimationFrame(tickSpring);
   }
 
   /**
-   * Smoothly ease from the current strip position onto the destination-locked
-   * chord. Used when coast velocity dies with remaining snap distance, and
-   * when releasing with no fling.
+   * Spring from the current strip position/velocity onto the destination-locked
+   * chord. Used for no-fling releases, tiny remaining coast error, and as a
+   * continuous handoff when coast velocity dies.
    */
   function beginSnapSettle() {
     const distanceToSnap = Math.abs(
       positionRef.current - coastSnapTargetRef.current,
     );
-    if (distanceToSnap < SNAP_SETTLED_DISTANCE_PX) {
+    if (
+      distanceToSnap < SNAP_SETTLED_DISTANCE_PX &&
+      Math.abs(velocityPxPerMsRef.current) < IOS_REST_VELOCITY_PX_PER_MS
+    ) {
       finishScrub(coastSnapIndexRef.current);
       return;
     }
 
-    springBackStartRef.current = positionRef.current;
-    springBackDurationMsRef.current = SNAP_SETTLE_MS;
-    velocityPxPerMsRef.current = 0;
+    springOmegaRef.current = SNAP_SETTLE_OMEGA_PER_MS;
     isSnapSettlingRef.current = true;
     isSpringBackRef.current = false;
     isCoastingRef.current = true;
     isTouchingRef.current = false;
-    coastStartedAtRef.current = performance.now();
-    lastFrameTimeRef.current = coastStartedAtRef.current;
+    springStartedAtRef.current = performance.now();
+    lastFrameTimeRef.current = springStartedAtRef.current;
 
     stopRaf();
-    rafIdRef.current = requestAnimationFrame(tickSpringBack);
+    rafIdRef.current = requestAnimationFrame(tickSpring);
   }
 
   function tickCoast(nowMs: number) {
     if (!isCoastingRef.current) return;
 
     if (isSpringBackRef.current || isSnapSettlingRef.current) {
-      tickSpringBack(nowMs);
+      tickSpring(nowMs);
       return;
     }
 
@@ -602,38 +722,55 @@ function usePlaybackGlideScrub({
       IOS_DECELERATION_RATE,
     );
 
+    let nextPosition = positionRef.current + positionDelta;
+    let nextVelocity = velocity;
+
+    // Soft destination-lock in velocity space: keep natural iOS deceleration
+    // at speed, then gradually steer the asymptote onto the chord as we slow.
+    // This replaces the old time-based position blend that could yank translateX.
+    const idealVelocity = velocityToReachIosCoastDestination(
+      nextPosition,
+      coastSnapTargetRef.current,
+      IOS_DECELERATION_RATE,
+    );
+    const initialSpeed = Math.max(
+      coastInitialSpeedRef.current,
+      IOS_REST_VELOCITY_PX_PER_MS,
+    );
+    const speedRatio = clamp(Math.abs(nextVelocity) / initialSpeed, 0, 1);
+    const pull = 0.06 + 0.4 * (1 - speedRatio) * (1 - speedRatio);
+    nextVelocity += (idealVelocity - nextVelocity) * pull;
+
     // Keep scrub direction aligned with live coast velocity so intentional
     // backward flings can still reset reps, while forward coasts cannot.
-    if (Math.abs(velocity) >= IOS_REST_VELOCITY_PX_PER_MS) {
-      scrubDirectionRef.current = velocity < 0 ? -1 : 1;
-    }
-
-    let nextPosition = positionRef.current + positionDelta;
-
-    const coastAgeMs = nowMs - coastStartedAtRef.current;
-    if (coastAgeMs >= SNAP_BLEND_START_MS) {
-      const blend = clamp(
-        (coastAgeMs - SNAP_BLEND_START_MS) / SNAP_BLEND_DURATION_MS,
-        0,
-        1,
-      );
-      const smooth = blend * blend * (3 - 2 * blend);
-      nextPosition =
-        nextPosition + (coastSnapTargetRef.current - nextPosition) * smooth;
+    if (Math.abs(nextVelocity) >= IOS_REST_VELOCITY_PX_PER_MS) {
+      scrubDirectionRef.current = nextVelocity < 0 ? -1 : 1;
     }
 
     const { min, max } = getPositionBounds();
     if (nextPosition <= min || nextPosition >= max) {
       nextPosition = clamp(nextPosition, min, max);
       velocityPxPerMsRef.current = 0;
-    } else {
-      velocityPxPerMsRef.current = velocity;
+      applyPosition(nextPosition, false);
+      syncChordIndexFromPosition(positionRef.current);
+
+      const distanceToSnap = Math.abs(
+        positionRef.current - coastSnapTargetRef.current,
+      );
+      if (distanceToSnap < SNAP_SETTLED_DISTANCE_PX) {
+        finishScrub(coastSnapIndexRef.current);
+      } else {
+        beginSnapSettle();
+      }
+      return;
     }
 
+    velocityPxPerMsRef.current = nextVelocity;
     applyPosition(nextPosition, false);
     syncChordIndexFromPosition(positionRef.current);
 
     if (chordRepetitionsRef.current !== repsBefore) {
+      // Half-shift changed the absolute layout — retarget without hard-stopping.
       retargetSnapFromCurrentPosition();
     }
 
@@ -646,8 +783,8 @@ function usePlaybackGlideScrub({
       return;
     }
 
-    // Velocity died with snap distance remaining — ease the rest of the way
-    // instead of hard-jumping to the chord start.
+    // Velocity spent: spring the remainder with continuous velocity handoff
+    // (do not zero velocity — that caused an ease-out "kick").
     if (Math.abs(velocityPxPerMsRef.current) < IOS_REST_VELOCITY_PX_PER_MS) {
       beginSnapSettle();
       return;
@@ -688,24 +825,32 @@ function usePlaybackGlideScrub({
 
     // Animate from the rubber-banded pixels the user currently sees, not from
     // the unconstrained logical position (which would look like a teleport).
-    springBackStartRef.current = displayPosition;
-    springBackDurationMsRef.current = OVERSCROLL_SPRING_BACK_MS;
     positionRef.current = displayPosition;
     writeTransform(displayPosition);
 
     coastSnapIndexRef.current = edgeIndex;
     coastSnapTargetRef.current = edgePosition;
-    velocityPxPerMsRef.current = 0;
+    // Carry a little release velocity toward the edge when the finger was
+    // still moving; otherwise start from rest.
+    const measured = estimateVelocityPxPerMs();
+    const towardEdge = edgePosition - displayPosition;
+    velocityPxPerMsRef.current =
+      towardEdge === 0
+        ? 0
+        : Math.sign(towardEdge) === Math.sign(measured)
+          ? measured
+          : 0;
     scrubDirectionRef.current = 0;
+    springOmegaRef.current = OVERSCROLL_SPRING_OMEGA_PER_MS;
     isSpringBackRef.current = true;
     isSnapSettlingRef.current = false;
     isCoastingRef.current = true;
     isTouchingRef.current = false;
-    coastStartedAtRef.current = performance.now();
-    lastFrameTimeRef.current = coastStartedAtRef.current;
+    springStartedAtRef.current = performance.now();
+    lastFrameTimeRef.current = springStartedAtRef.current;
 
     stopRaf();
-    rafIdRef.current = requestAnimationFrame(tickSpringBack);
+    rafIdRef.current = requestAnimationFrame(tickSpring);
   }
 
   function beginCoast() {
@@ -717,6 +862,10 @@ function usePlaybackGlideScrub({
       return;
     }
 
+    stopTrackingRaf();
+    // Paint the latest deferred tracking sample before physics takes over.
+    writeTransform(pendingDisplayPositionRef.current);
+
     const { min, max } = getPositionBounds();
 
     if (positionRef.current < min || positionRef.current > max) {
@@ -724,28 +873,40 @@ function usePlaybackGlideScrub({
       return;
     }
 
-    const velocity = estimateVelocityPxPerMs();
-    velocityPxPerMsRef.current = velocity;
+    const measuredVelocity = estimateVelocityPxPerMs();
+    velocityPxPerMsRef.current = measuredVelocity;
+    coastInitialSpeedRef.current = Math.abs(measuredVelocity);
 
-    if (Math.abs(velocity) >= IOS_REST_VELOCITY_PX_PER_MS) {
-      scrubDirectionRef.current = velocity < 0 ? -1 : 1;
+    if (Math.abs(measuredVelocity) >= IOS_REST_VELOCITY_PX_PER_MS) {
+      scrubDirectionRef.current = measuredVelocity < 0 ? -1 : 1;
     }
 
     ensureNextLoopRepetitions(
-      projectIosCoastPosition(positionRef.current, velocity),
+      projectIosCoastPosition(positionRef.current, measuredVelocity),
     );
 
     retargetSnapFromCurrentPosition();
 
-    // No fling: ease directly onto the nearest chord start.
-    if (Math.abs(velocity) < IOS_REST_VELOCITY_PX_PER_MS) {
+    const travelPx = Math.abs(
+      coastSnapTargetRef.current - positionRef.current,
+    );
+
+    // No fling / short travel: spring directly onto the chord. Seeded with the
+    // measured velocity so release → settle is one continuous motion.
+    if (
+      Math.abs(measuredVelocity) < IOS_REST_VELOCITY_PX_PER_MS ||
+      travelPx <= SHORT_TRAVEL_SPRING_PX
+    ) {
       const liveRepetitions = chordRepetitionsRef.current;
-      const immediateIndex = getNearestChordIndex(
-        positionRef.current,
-        positions,
-        liveRepetitions,
-        width,
-      );
+      const immediateIndex =
+        Math.abs(measuredVelocity) < IOS_REST_VELOCITY_PX_PER_MS
+          ? getNearestChordIndex(
+              positionRef.current,
+              positions,
+              liveRepetitions,
+              width,
+            )
+          : coastSnapIndexRef.current;
       coastSnapIndexRef.current = immediateIndex;
       coastSnapTargetRef.current = getAbsoluteChordPosition(
         immediateIndex,
@@ -759,8 +920,7 @@ function usePlaybackGlideScrub({
 
     isSpringBackRef.current = false;
     isSnapSettlingRef.current = false;
-    coastStartedAtRef.current = performance.now();
-    lastFrameTimeRef.current = coastStartedAtRef.current;
+    lastFrameTimeRef.current = performance.now();
     isCoastingRef.current = true;
     isTouchingRef.current = false;
 
@@ -780,24 +940,22 @@ function usePlaybackGlideScrub({
       pauseAudio();
     }
 
+    // Resume from the live strip position when interrupting a coast/spring or
+    // grabbing during playback — never snap translateX back to a chord edge.
+    const wasInertiaActive =
+      isCoastingRef.current ||
+      isSpringBackRef.current ||
+      isSnapSettlingRef.current;
+
     stopRaf();
+    stopTrackingRaf();
     isCoastingRef.current = false;
     isSpringBackRef.current = false;
     isSnapSettlingRef.current = false;
 
-    const positions = scrollPositionsRef.current;
-    const repetitions = chordRepetitionsRef.current;
-    const width = totalWidthRef.current;
-
-    const startPosition =
-      positions && positions.length > 0
-        ? getAbsoluteChordPosition(
-            currentChordIndexRef.current,
-            positions,
-            repetitions,
-            width,
-          )
-        : scrubPositionRef.current;
+    const startPosition = wasInertiaActive
+      ? positionRef.current
+      : scrubPositionRef.current;
 
     isTouchingRef.current = true;
     pointerIdRef.current = event.pointerId;
@@ -806,6 +964,7 @@ function usePlaybackGlideScrub({
     velocityPxPerMsRef.current = 0;
     scrubDirectionRef.current = 0;
     positionRef.current = startPosition;
+    pendingDisplayPositionRef.current = startPosition;
 
     setIsGlideScrubbing(true);
     writeTransform(startPosition);
@@ -846,11 +1005,11 @@ function usePlaybackGlideScrub({
       scrubDirectionRef.current = deltaX > 0 ? -1 : 1;
     }
 
-    applyPosition(positionRef.current - deltaX, true);
-
-    const { min, max } = getPositionBounds();
-    syncChordIndexFromPosition(clamp(positionRef.current, min, max));
+    // Update logical/rubber-band position every pointer sample for control
+    // fidelity, but paint translateX once per animation frame.
+    applyPosition(positionRef.current - deltaX, true, true);
     velocityPxPerMsRef.current = estimateVelocityPxPerMs();
+    scheduleTrackingFrame();
   }
 
   function handlePointerEnd(event: PointerEvent<HTMLDivElement>) {
