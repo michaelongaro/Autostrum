@@ -31,6 +31,7 @@ interface AccordionTriggerProps extends React.ComponentPropsWithoutRef<
   showUnderline?: boolean;
   editingSectionContainer?: boolean;
   viewingSectionContainer?: boolean;
+  extraTabMetadata?: boolean;
 }
 
 const AccordionTrigger = React.forwardRef<
@@ -43,6 +44,7 @@ const AccordionTrigger = React.forwardRef<
       showUnderline = true,
       editingSectionContainer,
       viewingSectionContainer,
+      extraTabMetadata,
       className,
       children,
       ...props
@@ -73,8 +75,10 @@ const AccordionTrigger = React.forwardRef<
               ? "bottom-4 right-1"
               : editingSectionContainer
                 ? "bottom-3 right-1"
-                : "right-4"
-          } size-4 shrink-0 rounded-md transition-all duration-200 group-data-[state=open]:rotate-180 md:size-5`}
+                : extraTabMetadata
+                  ? "right-4"
+                  : "right-0"
+          } size-[18px] shrink-0 rounded-md transition-all duration-200 group-data-[state=open]:rotate-180 md:size-5`}
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>

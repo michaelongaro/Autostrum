@@ -123,7 +123,10 @@ function StrummingPatterns() {
         className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 sm:px-0"
       >
         <AccordionItem value="opened" className="w-full">
-          <AccordionTrigger className="w-full p-2 sm:p-4">
+          <AccordionTrigger
+            extraTabMetadata={true}
+            className="w-full p-2 sm:p-4"
+          >
             <div className="baseFlex gap-2">
               <Logo className="z-0 size-4" />
               <span className="my-1 text-base font-bold xs:my-0 xs:text-lg">
