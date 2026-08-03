@@ -20,11 +20,11 @@ type TuningSelectProps = {
 function TuningSelect({
   showScientificPitchNotationInTrigger = false,
 }: TuningSelectProps) {
-  const { tuning, setTuning, setShowCustomTuningDialog } = useTabStore(
+  const { tuning, setTuning, setShowCustomTuningModal } = useTabStore(
     (state) => ({
       tuning: state.tuning,
       setTuning: state.setTuning,
-      setShowCustomTuningDialog: state.setShowCustomTuningDialog,
+      setShowCustomTuningModal: state.setShowCustomTuningModal,
     }),
   );
 
@@ -92,13 +92,13 @@ function TuningSelect({
             size="sm"
             className="baseFlex w-full gap-2 p-2"
             onClick={() => {
-              setShowCustomTuningDialog(true);
+              setShowCustomTuningModal(true);
               setSelectIsOpen(false);
             }}
             // FYI: I have no idea why onClick doesn't work on mobile, however onTouchEnd
             // does, and achieves the same effect.
             onTouchEnd={() => {
-              setShowCustomTuningDialog(true);
+              setShowCustomTuningModal(true);
               setSelectIsOpen(false);
             }}
           >

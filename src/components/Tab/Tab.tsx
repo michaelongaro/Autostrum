@@ -46,11 +46,16 @@ import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
-import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
-import SectionProgressionDialog from "~/components/Dialogs/SectionProgressionDialog";
-import ChordDialog from "~/components/Dialogs/ChordDialog";
-import StrummingPatternDialog from "~/components/Dialogs/StrummingPatternDialog";
-
+const SectionProgressionModal = dynamic(
+  () => import("~/components/modals/SectionProgressionModal"),
+);
+const ChordModal = dynamic(() => import("~/components/modals/ChordModal"));
+const StrummingPatternModal = dynamic(
+  () => import("~/components/modals/StrummingPatternModal"),
+);
+const CustomTuningModal = dynamic(
+  () => import("~/components/modals/CustomTuningModal"),
+);
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
 );
@@ -87,7 +92,11 @@ function Tab() {
   }
 
   const {
+    showSectionProgressionModal,
     setShowGlossaryDialog,
+    chordBeingEdited,
+    strummingPatternBeingEdited,
+    showCustomTuningModal,
     chords,
     showPlaybackModal,
     viewportLabel,
@@ -99,7 +108,11 @@ function Tab() {
     setShowPlaybackModal,
     editing,
   } = useTabStore((state) => ({
+    showSectionProgressionModal: state.showSectionProgressionModal,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
+    chordBeingEdited: state.chordBeingEdited,
+    strummingPatternBeingEdited: state.strummingPatternBeingEdited,
+    showCustomTuningModal: state.showCustomTuningModal,
     chords: state.chords,
     showPlaybackModal: state.showPlaybackModal,
     viewportLabel: state.viewportLabel,
@@ -440,20 +453,36 @@ function Tab() {
         </div>
       </div>
 
-      <CustomTuningDialog />
+      <AnimatePresence mode="wait">
+        {showCustomTuningModal && <CustomTuningModal />}
+      </AnimatePresence>
 
-      <GlossaryDialog />
-
-      <SectionProgressionDialog />
-
-      <ChordDialog />
-
-      <StrummingPatternDialog />
+      <AnimatePresence mode="wait">
+        {showSectionProgressionModal && <SectionProgressionModal />}
+      </AnimatePresence>
 
       <TipsDialog
         showTipsDialog={showTipsModal}
         setShowTipsDialog={setShowTipsModal}
       />
+
+      <GlossaryDialog />
+
+      <AnimatePresence mode="wait">
+        {chordBeingEdited && (
+          <ChordModal chordBeingEdited={structuredClone(chordBeingEdited)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {strummingPatternBeingEdited && (
+          <StrummingPatternModal
+            strummingPatternBeingEdited={structuredClone(
+              strummingPatternBeingEdited,
+            )}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {showPlaybackModal && <PlaybackModal />}

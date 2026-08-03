@@ -376,13 +376,13 @@ const initialStoreState = {
   },
 
   // modals
-  showSectionProgressionDialog: false,
+  showSectionProgressionModal: false,
   showGlossaryDialog: false,
   chordBeingEdited: null,
   strummingPatternBeingEdited: null,
   showingGlossary: false,
   showDeleteAccountModal: false,
-  showCustomTuningDialog: false,
+  showCustomTuningModal: false,
   showMobileHeaderModal: false,
 
   // playback
@@ -551,16 +551,16 @@ interface TabState {
   setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
 
   // modals
-  showSectionProgressionDialog: boolean;
-  setShowSectionProgressionDialog: (
-    showSectionProgressionDialog: boolean,
+  showSectionProgressionModal: boolean;
+  setShowSectionProgressionModal: (
+    showSectionProgressionModal: boolean,
   ) => void;
   showGlossaryDialog: boolean;
   setShowGlossaryDialog: (showGlossaryDialog: boolean) => void;
   showDeleteAccountModal: boolean;
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
-  showCustomTuningDialog: boolean;
-  setShowCustomTuningDialog: (showCustomTuningDialog: boolean) => void;
+  showCustomTuningModal: boolean;
+  setShowCustomTuningModal: (showCustomTuningModal: boolean) => void;
   showMobileHeaderModal: boolean;
   setShowMobileHeaderModal: (showMobileHeaderModal: boolean) => void;
 
@@ -1588,18 +1588,18 @@ const useTabStoreBase = create<TabState>()(
       setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
 
       // modals
-      showSectionProgressionDialog: false,
-      setShowSectionProgressionDialog: (showSectionProgressionDialog) =>
-        set({ showSectionProgressionDialog }),
+      showSectionProgressionModal: false,
+      setShowSectionProgressionModal: (showSectionProgressionModal) =>
+        set({ showSectionProgressionModal }),
       showGlossaryDialog: false,
       setShowGlossaryDialog: (showGlossaryDialog) =>
         set({ showGlossaryDialog }),
       showDeleteAccountModal: false,
       setShowDeleteAccountModal: (showDeleteAccountModal) =>
         set({ showDeleteAccountModal }),
-      showCustomTuningDialog: false,
-      setShowCustomTuningDialog: (showCustomTuningDialog) =>
-        set({ showCustomTuningDialog }),
+      showCustomTuningModal: false,
+      setShowCustomTuningModal: (showCustomTuningModal) =>
+        set({ showCustomTuningModal }),
       showMobileHeaderModal: false,
       setShowMobileHeaderModal: (showMobileHeaderModal) =>
         set({ showMobileHeaderModal }),
