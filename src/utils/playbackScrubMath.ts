@@ -254,6 +254,50 @@ export function integrateIosCoastStep(
 }
 
 /**
+ * Initial velocity (px/ms) that lands exactly on `destinationPx` under iOS
+ * exponential deceleration: v0 = (x∞ - x0) * -ln(d).
+ *
+ * Used for destination-locked paging so coast→snap is one continuous curve
+ * instead of a separate blend/settle phase.
+ */
+export function velocityToReachIosCoastDestination(
+  positionPx: number,
+  destinationPx: number,
+  decelerationRate = IOS_DECELERATION_RATE,
+) {
+  const lnRate = Math.log(decelerationRate);
+  if (lnRate >= 0) return 0;
+  return (destinationPx - positionPx) * -lnRate;
+}
+
+/**
+ * Integrate one frame of a critically damped spring toward a target.
+ * Preserves velocity continuity when handing off from a decelerating coast.
+ *
+ * x'' + 2ωx' + ω²x = 0, with x = position - target.
+ */
+export function integrateCriticallyDampedSpringStep(
+  positionPx: number,
+  velocityPxPerMs: number,
+  targetPx: number,
+  deltaMs: number,
+  omegaPerMs: number,
+) {
+  if (deltaMs <= 0 || omegaPerMs <= 0) {
+    return { position: positionPx, velocity: velocityPxPerMs };
+  }
+
+  const x = positionPx - targetPx;
+  const v = velocityPxPerMs;
+  // Semi-implicit Euler is stable enough at rAF timesteps for this ω range.
+  const accel = -omegaPerMs * omegaPerMs * x - 2 * omegaPerMs * v;
+  const velocity = v + accel * deltaMs;
+  const position = positionPx + velocity * deltaMs;
+
+  return { position, velocity };
+}
+
+/**
  * UIScrollView rubber-band when pulling past an edge.
  * coefficient 0.55 matches UIScrollView's default feel.
  */
