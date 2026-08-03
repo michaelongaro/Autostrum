@@ -204,7 +204,7 @@ function PlaybackTabChord({
                           position: "absolute",
                           top: "-28px",
                           right: "6px",
-                          width: chordEffect === "." ? "10px" : "0px",
+                          width: chordEffect === "." ? "8px" : "0px",
                         }}
                       >
                         .
