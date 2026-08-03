@@ -1,12 +1,8 @@
-import type { COLORS, THEME } from "~/stores/TabStore";
-
 interface StaticPalmMuteNode {
   value: string;
-  color: COLORS;
-  theme: THEME;
 }
 
-function StaticPalmMuteNode({ value, color, theme }: StaticPalmMuteNode) {
+function StaticPalmMuteNode({ value }: StaticPalmMuteNode) {
   return (
     <>
       {value === "start" && (

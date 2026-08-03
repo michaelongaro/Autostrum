@@ -95,11 +95,7 @@ function StaticTabNotesColumn({
           style={{ height: STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX }}
           className="baseVertFlex w-full"
         >
-          <StaticPalmMuteNode
-            value={columnData.palmMute}
-            color={color}
-            theme={theme}
-          />
+          <StaticPalmMuteNode value={columnData.palmMute} />
         </div>
 
         {/* String Notes (1-6) w/ top and bottom borders */}

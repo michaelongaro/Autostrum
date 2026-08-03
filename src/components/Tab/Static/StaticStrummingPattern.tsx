@@ -87,11 +87,7 @@ function StaticStrummingPattern({
               className="baseFlex w-full"
             >
               {strum.palmMute !== "" && (
-                <StaticPalmMuteNode
-                  value={strum.palmMute}
-                  color={color}
-                  theme={theme}
-                />
+                <StaticPalmMuteNode value={strum.palmMute} />
               )}
             </div>
 
