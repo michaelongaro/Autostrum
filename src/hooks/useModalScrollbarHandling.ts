@@ -12,21 +12,68 @@ function isIOS() {
   return iOS || macTouch;
 }
 
-function getNearestScrollable(el: Element | null): Element | null {
+function eventElement(target: EventTarget | null): Element | null {
+  if (!target) return null;
+  if (target instanceof Element) return target;
+  if (target instanceof Node) return target.parentElement;
+  return null;
+}
+
+function isScrollableOverflow(overflow: string) {
+  return overflow === "auto" || overflow === "scroll" || overflow === "overlay";
+}
+
+function getNearestScrollable(
+  el: Element | null,
+  axis: "x" | "y",
+): Element | null {
   while (el && el !== document.body && el !== document.documentElement) {
     const style = window.getComputedStyle(el);
-    const overflowY = style.overflowY;
-    const canScrollY =
-      (overflowY === "auto" ||
-        overflowY === "scroll" ||
-        overflowY === "overlay") &&
-      el.scrollHeight > el.clientHeight;
 
-    if (canScrollY) return el;
+    if (axis === "y") {
+      const canScrollY =
+        isScrollableOverflow(style.overflowY) &&
+        el.scrollHeight > el.clientHeight + 1;
+      if (canScrollY) return el;
+    } else {
+      const canScrollX =
+        isScrollableOverflow(style.overflowX) &&
+        el.scrollWidth > el.clientWidth + 1;
+      if (canScrollX) return el;
+    }
+
     el = el.parentElement;
   }
 
   return null;
+}
+
+function normalizeWheelDelta(delta: number, deltaMode: number) {
+  // DOM_DELTA_LINE = 1, DOM_DELTA_PAGE = 2
+  if (deltaMode === 1) return delta * 16;
+  if (deltaMode === 2) return delta * window.innerHeight;
+  return delta;
+}
+
+function canScrollInDirection(
+  scrollable: Element,
+  axis: "x" | "y",
+  delta: number,
+) {
+  if (delta === 0) return false;
+
+  if (axis === "y") {
+    if (delta < 0) return scrollable.scrollTop > 0;
+    return (
+      scrollable.scrollTop + scrollable.clientHeight <
+      scrollable.scrollHeight - 1
+    );
+  }
+
+  if (delta < 0) return scrollable.scrollLeft > 0;
+  return (
+    scrollable.scrollLeft + scrollable.clientWidth < scrollable.scrollWidth - 1
+  );
 }
 
 function useModalScrollbarHandling(force = false) {
@@ -63,29 +110,59 @@ function useModalScrollbarHandling(force = false) {
       " ",
     ]);
 
+    let lastTouchY: number | null = null;
+
     function onWheel(e: WheelEvent) {
-      const scrollable = getNearestScrollable(e.target as Element | null);
-      if (!scrollable) {
+      // Always preventDefault so the document cannot scroll. Letting the
+      // browser handle wheel over fixed-overlay descendants (especially
+      // OverlayScrollbars viewports) can still move the page; apply the
+      // delta to the nearest inner scroller ourselves instead.
+      e.preventDefault();
+
+      const target = eventElement(e.target);
+      const deltaY = normalizeWheelDelta(e.deltaY, e.deltaMode);
+      const deltaX = normalizeWheelDelta(e.deltaX, e.deltaMode);
+
+      if (deltaY !== 0) {
+        // Shift+wheel commonly maps to horizontal scrolling.
+        if (e.shiftKey) {
+          const scrollableX = getNearestScrollable(target, "x");
+          if (scrollableX) scrollableX.scrollLeft += deltaY;
+        } else {
+          const scrollableY = getNearestScrollable(target, "y");
+          if (scrollableY) scrollableY.scrollTop += deltaY;
+        }
+      }
+
+      if (deltaX !== 0) {
+        const scrollableX = getNearestScrollable(target, "x");
+        if (scrollableX) scrollableX.scrollLeft += deltaX;
+      }
+    }
+
+    function onTouchStart(e: TouchEvent) {
+      lastTouchY = e.touches[0]?.clientY ?? null;
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      const currentY = e.touches[0]?.clientY;
+      if (currentY == null || lastTouchY == null) {
         e.preventDefault();
         return;
       }
 
-      // Block scroll-chaining to the document when the inner scroller is at an edge.
-      const delta = e.deltaY;
-      const atTop = scrollable.scrollTop <= 0 && delta < 0;
-      const atBottom =
-        scrollable.scrollTop + scrollable.clientHeight >=
-          scrollable.scrollHeight - 1 && delta > 0;
+      // positive delta = finger moved up = content scrolls down
+      const deltaY = lastTouchY - currentY;
+      lastTouchY = currentY;
 
-      if (atTop || atBottom) {
+      const scrollable = getNearestScrollable(eventElement(e.target), "y");
+      if (!scrollable || !canScrollInDirection(scrollable, "y", deltaY)) {
         e.preventDefault();
       }
     }
 
-    function onTouchMove(e: TouchEvent) {
-      if (!getNearestScrollable(e.target as Element | null)) {
-        e.preventDefault();
-      }
+    function onTouchEnd() {
+      lastTouchY = null;
     }
 
     function onKeyDown(e: KeyboardEvent) {
@@ -107,18 +184,49 @@ function useModalScrollbarHandling(force = false) {
         return;
       }
 
-      if (getNearestScrollable(target)) return;
-
+      // Always block document scrolling from keys while the modal is open.
       e.preventDefault();
+
+      const scrollable = getNearestScrollable(target, "y");
+      if (!scrollable) return;
+
+      const page = Math.max(scrollable.clientHeight * 0.9, 1);
+      switch (e.key) {
+        case "ArrowUp":
+          scrollable.scrollTop -= 40;
+          break;
+        case "ArrowDown":
+        case " ":
+          scrollable.scrollTop += 40;
+          break;
+        case "PageUp":
+          scrollable.scrollTop -= page;
+          break;
+        case "PageDown":
+          scrollable.scrollTop += page;
+          break;
+        case "Home":
+          scrollable.scrollTop = 0;
+          break;
+        case "End":
+          scrollable.scrollTop = scrollable.scrollHeight;
+          break;
+      }
     }
 
     document.addEventListener("wheel", onWheel, { passive: false });
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("touchmove", onTouchMove, { passive: false });
+    document.addEventListener("touchend", onTouchEnd);
+    document.addEventListener("touchcancel", onTouchEnd);
     document.addEventListener("keydown", onKeyDown);
 
     return () => {
       document.removeEventListener("wheel", onWheel);
+      document.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("touchcancel", onTouchEnd);
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [force]);

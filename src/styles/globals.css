@@ -226,9 +226,11 @@ kbd {
 }
 
 /* iOS fallback (force=true): pin the body like a native <dialog>.
-   Non-iOS modals lock scroll via event prevention in
-   useModalScrollbarHandling so sticky header/AudioControls stay visible
-   and Framer layout="position" is not disturbed. */
+   Non-iOS modals lock scroll via wheel/touch/key prevention in
+   useModalScrollbarHandling (always preventDefault + manual inner
+   scroll) so sticky header/AudioControls stay visible, Framer
+   layout="position" is not disturbed, and gestures inside the modal
+   cannot scroll the page. */
 .noScroll {
   position: fixed;
   overflow-y: scroll;
