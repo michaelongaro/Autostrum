@@ -225,12 +225,33 @@ kbd {
   background-position: center;
 }
 
-/* iOS fallback (force=true): pin the body like a native <dialog>.
-   Non-iOS modals lock scroll via wheel/touch/key prevention in
-   useModalScrollbarHandling (always preventDefault + manual inner
-   scroll) so sticky header/AudioControls stay visible, Framer
-   layout="position" is not disturbed, and gestures inside the modal
-   cannot scroll the page. */
+/* Non-iOS modal scroll lock. Paired with scrollbar-gutter:stable above so
+   toggling overflow does not change layout width (Framer layout="position"). */
+html.modalScrollLock,
+html.modalScrollLock body {
+  overflow: hidden;
+}
+
+/* overflow:hidden on the root creates a scrollport that breaks position:sticky.
+   Keep header / audio chrome pinned to the viewport for the lock duration. */
+html.modalScrollLock #desktopHeader,
+html.modalScrollLock #mobileHeader {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+html.modalScrollLock #audioControls {
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* iOS fallback (force=true): pin the body like a native <dialog>. */
 .noScroll {
   position: fixed;
   overflow-y: scroll;

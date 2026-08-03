@@ -73,7 +73,10 @@ function MobileHeader() {
   }, [events]);
 
   return (
-    <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">
+    <nav
+      id={"mobileHeader"}
+      className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full"
+    >
       <div className="absolute z-[49] flex h-16 w-full items-start justify-between overflow-clip border-b border-b-primary/50 bg-header p-2 shadow-sm shadow-primary/10 lg:hidden">
         <Link
           prefetch={false}

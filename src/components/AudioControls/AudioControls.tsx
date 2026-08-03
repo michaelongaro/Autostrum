@@ -176,6 +176,7 @@ function AudioControls() {
 
   return (
     <motion.div
+      id={"audioControls"}
       key={"audioControls"}
       variants={mainAudioControlsVariants}
       initial="closed"
