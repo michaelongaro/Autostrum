@@ -99,11 +99,27 @@ export function getStaticTabLayoutWidthPx(element: HTMLElement): number {
 }
 
 /**
+ * Collapse near-1.0 ratios to exactly 1 so tiny sub-pixel noise doesn't
+ * nudge row windows around at the default zoom.
+ */
+function normalizeCssZoomRatio(measured: number): number {
+  if (Math.abs(measured - 1) < CSS_ZOOM_RATIO_EPSILON) return 1;
+  return measured;
+}
+
+/**
  * Effective scale that converts this element's `getBoundingClientRect`
  * coordinates into its layout (unzoomed) coordinate space.
  *
- * Computed as `getBoundingClientRect().width / offsetWidth` so the ratio
- * matches whatever the current engine actually does with CSS `zoom`:
+ * Prefer a known layout height (the virtualized body's `style.height` /
+ * `layout.totalHeight`) when available: `rect.height / layoutHeight` measures
+ * how THIS engine scaled the same axis we use for row tops. Width-based
+ * `rect.width / offsetWidth` is the fallback, but on some mobile WebKit
+ * builds under CSS `zoom` the width ratio can collapse to ~1 while `top` /
+ * `height` remain visually scaled — which makes the visible-row window drift
+ * off-screen and leave in-viewport subsections empty.
+ *
+ * Either path matches whatever the engine actually does with CSS `zoom`:
  * - Chromium / modern Safari: ratio ≈ applied zoom → divide visual rects
  * - Older WebKit that ignores zoom in rects: ratio ≈ 1 → leave rects as-is
  *
@@ -114,23 +130,58 @@ export function getStaticTabLayoutWidthPx(element: HTMLElement): number {
 export function getElementCssZoomForRect(
   element: HTMLElement,
   fallbackZoom: number = 1,
+  layoutHeightPx?: number,
 ): number {
-  const layoutWidth = element.offsetWidth;
   const safeFallback = fallbackZoom > 0 ? fallbackZoom : 1;
+  const rect = element.getBoundingClientRect();
 
+  if (
+    layoutHeightPx !== undefined &&
+    layoutHeightPx > 0 &&
+    Number.isFinite(layoutHeightPx)
+  ) {
+    const visualHeight = rect.height;
+    if (visualHeight > 0 && Number.isFinite(visualHeight)) {
+      const measured = visualHeight / layoutHeightPx;
+      if (Number.isFinite(measured) && measured > 0) {
+        return normalizeCssZoomRatio(measured);
+      }
+    }
+  }
+
+  const layoutWidth = element.offsetWidth;
   if (layoutWidth <= 0) return safeFallback;
 
-  const visualWidth = element.getBoundingClientRect().width;
+  const visualWidth = rect.width;
   if (visualWidth <= 0 || !Number.isFinite(visualWidth)) return safeFallback;
 
   const measured = visualWidth / layoutWidth;
   if (!Number.isFinite(measured) || measured <= 0) return safeFallback;
 
-  // Collapse near-1.0 ratios to exactly 1 so tiny sub-pixel noise doesn't
-  // nudge row windows around at the default zoom.
-  if (Math.abs(measured - 1) < CSS_ZOOM_RATIO_EPSILON) return 1;
+  return normalizeCssZoomRatio(measured);
+}
 
-  return measured;
+/**
+ * Visible viewport window in the same coordinate space as
+ * `getBoundingClientRect()` (layout viewport CSS pixels).
+ *
+ * On iOS Safari the visual viewport can pan/resize independently of
+ * `window.innerHeight` (URL bar, pinch-zoom). Prefer VisualViewport when
+ * present so row windows track what is actually on screen.
+ */
+export function getVisibleViewportWindow(): {
+  top: number;
+  height: number;
+} {
+  const visualViewport = window.visualViewport;
+  if (visualViewport) {
+    return {
+      top: visualViewport.offsetTop,
+      height: visualViewport.height,
+    };
+  }
+
+  return { top: 0, height: window.innerHeight };
 }
 
 export function getStaticTabColumnWidthPx(
@@ -227,11 +278,16 @@ export interface VisibleRowRange {
  * Computes which rows fall inside the overscan-expanded viewport.
  *
  * @param bodyTopPx        subsection body's `getBoundingClientRect().top`
- * @param viewportHeightPx window.innerHeight
- * @param zoom             scale that converts `bodyTopPx` into the body's
- *                         layout coordinate space — pass
- *                         `getElementCssZoomForRect(body)`, not the raw app
- *                         zoom setting (see that helper's docs for why)
+ * @param viewportHeightPx visible viewport height (prefer
+ *                         `visualViewport.height`, else `window.innerHeight`)
+ * @param zoom             scale that converts viewport/`bodyTopPx` coords
+ *                         into the body's layout coordinate space — pass
+ *                         `getElementCssZoomForRect(body, fallback, totalHeight)`,
+ *                         not the raw app zoom setting (see that helper's docs)
+ * @param overscanPx       extra buffer above/below the viewport in the same
+ *                         coordinate space as `bodyTopPx` / viewport height
+ * @param viewportTopPx    top edge of the visible viewport in that same space
+ *                         (visualViewport.offsetTop on iOS; 0 otherwise)
  * @returns the visible row range, or null when no row is within range
  */
 export function getVisibleRowRange(
@@ -240,23 +296,36 @@ export function getVisibleRowRange(
   viewportHeightPx: number,
   zoom: number,
   overscanPx: number = STATIC_TAB_OVERSCAN_PX,
+  viewportTopPx: number = 0,
 ): VisibleRowRange | null {
   const rowCount = layout.rows.length;
   if (rowCount === 0) return null;
 
   const safeZoom = zoom > 0 ? zoom : 1;
+  const safeViewportHeight =
+    Number.isFinite(viewportHeightPx) && viewportHeightPx > 0
+      ? viewportHeightPx
+      : 0;
+  const safeViewportTop = Number.isFinite(viewportTopPx) ? viewportTopPx : 0;
 
   // convert the overscan-expanded viewport window into the body's
   // unzoomed (layout px) coordinate space
-  const windowStart = (-overscanPx - bodyTopPx) / safeZoom;
-  const windowEnd = (viewportHeightPx + overscanPx - bodyTopPx) / safeZoom;
+  const windowStart =
+    (safeViewportTop - overscanPx - bodyTopPx) / safeZoom;
+  const windowEnd =
+    (safeViewportTop + safeViewportHeight + overscanPx - bodyTopPx) /
+    safeZoom;
 
   if (windowEnd <= 0 || windowStart >= layout.totalHeight) return null;
 
   const clamp = (value: number) => Math.min(Math.max(value, 0), rowCount - 1);
 
-  return {
-    startRow: clamp(Math.floor(windowStart / STATIC_TAB_ROW_HEIGHT_PX)),
-    endRow: clamp(Math.ceil(windowEnd / STATIC_TAB_ROW_HEIGHT_PX) - 1),
-  };
+  const startRow = clamp(Math.floor(windowStart / STATIC_TAB_ROW_HEIGHT_PX));
+  const endRow = clamp(Math.ceil(windowEnd / STATIC_TAB_ROW_HEIGHT_PX) - 1);
+
+  // Defensive: floating-point edge cases can yield an inverted range even
+  // when the window overlaps the body; treat that as "nothing visible".
+  if (endRow < startRow) return null;
+
+  return { startRow, endRow };
 }

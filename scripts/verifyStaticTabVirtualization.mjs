@@ -16,10 +16,15 @@
 //   - the same packing / scroll invariants hold at non-default tab zoom
 //     levels (CSS zoom on the section tree), including that measured layout
 //     width is not incorrectly divided by zoom
-import { chromium } from "playwright";
+//   - Chromium and WebKit both keep in-viewport subsections non-empty while
+//     scrolling (catches iOS/Safari-style empty-section regressions)
+//
+// Optional engine arg: chromium | webkit | both (default: both)
+import { chromium, webkit } from "playwright";
 
-const BASE = process.argv[2] ?? "http://localhost:3000";
+const BASE = process.argv[2] ?? "http://127.0.0.1:3000";
 const HARNESS = `${BASE}/dev-virtualization-harness`;
+const ENGINE = (process.argv[3] ?? "both").toLowerCase();
 
 const failures = [];
 let checks = 0;
@@ -322,56 +327,218 @@ async function testStaticTabIntegration(browser, viewportName, viewport) {
   return series[0].nodes;
 }
 
-const browser = await chromium.launch();
+async function testNoEmptyInViewportSections(browser, engineName, viewport) {
+  console.log(
+    `\n--- no empty in-viewport sections engine=${engineName} ` +
+      `viewport=${viewport.width}x${viewport.height} ---`,
+  );
 
-try {
-  const desktop = { width: 1280, height: 800 };
-  const mobile = { width: 390, height: 844 };
-
-  const results = {};
-  for (const fixture of ["realistic", "huge"]) {
-    results[`${fixture}-desktop`] = await testFixtureOnViewport(
+  for (const zoom of [1, 1.5]) {
+    const page = await openPage(
       browser,
-      fixture,
+      `${HARNESS}?bare=1&fixture=huge&virtualized=true&zoom=${zoom}`,
+      viewport,
+    );
+
+    const docHeight = await page.evaluate(
+      () => document.documentElement.scrollHeight,
+    );
+    const steps = 10;
+    let emptyHits = 0;
+
+    for (let i = 0; i <= steps; i++) {
+      await page.evaluate(
+        (y) => window.scrollTo(0, y),
+        (docHeight * i) / steps,
+      );
+      await page.waitForTimeout(250);
+
+      const empties = await page.evaluate(() => {
+        const bodies = [
+          ...document.querySelectorAll(
+            ".rounded-md.border.px-4 > div.relative.w-full, .rounded-md.border.px-4 > div.baseFlex.relative.w-full",
+          ),
+        ];
+        return bodies.filter((body) => {
+          const rect = body.getBoundingClientRect();
+          const styleHeight = parseFloat(body.style.height) || 0;
+          if (styleHeight <= 0) return false;
+          const visuallyIn =
+            rect.bottom > 0 && rect.top < window.innerHeight;
+          if (!visuallyIn) return false;
+          const rows = [...body.children].filter(
+            (el) => el.getAttribute("aria-hidden") !== "true",
+          );
+          return rows.length === 0;
+        }).length;
+      });
+
+      emptyHits += empties;
+    }
+
+    assert(
+      emptyHits === 0,
+      `zoom=${zoom}: no in-viewport subsection is empty while scrolling ` +
+        `(emptyHits=${emptyHits})`,
+    );
+
+    await page.context().close();
+  }
+}
+
+async function testHeightBasedZoomSurvivesWidthCollapse(
+  browser,
+  engineName,
+  viewport,
+) {
+  console.log(
+    `\n--- height-based zoom vs collapsed width ratio engine=${engineName} ---`,
+  );
+
+  const page = await openPage(
+    browser,
+    `${HARNESS}?bare=1&fixture=huge&virtualized=true&zoom=1.5`,
+    viewport,
+  );
+
+  // Scroll into the middle of the tall zoomed subsection where a collapsed
+  // width-ratio (measuredZoom=1 with scaled bodyTop) would empty the body.
+  await page.evaluate(() => {
+    window.scrollTo(0, document.documentElement.scrollHeight * 0.45);
+  });
+  await page.waitForTimeout(400);
+
+  const probe = await page.evaluate(() => {
+    const body = document.querySelector(
+      ".rounded-md.border.px-4 > div.relative.w-full, .rounded-md.border.px-4 > div.baseFlex.relative.w-full",
+    );
+    if (!body) return { error: "no body" };
+    const rect = body.getBoundingClientRect();
+    const styleHeight = parseFloat(body.style.height) || 0;
+    const widthRatio =
+      body.offsetWidth > 0 ? rect.width / body.offsetWidth : NaN;
+    const heightRatio = styleHeight > 0 ? rect.height / styleHeight : NaN;
+    const rows = [...body.children].filter(
+      (el) => el.getAttribute("aria-hidden") !== "true",
+    );
+    const visuallyIn = rect.bottom > 0 && rect.top < window.innerHeight;
+
+    // Pure-math check of the regression: scaled top + zoom=1 → null mid-body.
+    const OVERSCAN = 300;
+    const ROW = 248;
+    const buggyStart = (-OVERSCAN - rect.top) / 1;
+    const buggyEnd = (window.innerHeight + OVERSCAN - rect.top) / 1;
+    const buggyNull = buggyEnd <= 0 || buggyStart >= styleHeight;
+    const fixedZoom = heightRatio > 0 ? heightRatio : widthRatio;
+    const fixedStart = (-OVERSCAN - rect.top) / fixedZoom;
+    const fixedEnd = (window.innerHeight + OVERSCAN - rect.top) / fixedZoom;
+    const fixedNull = fixedEnd <= 0 || fixedStart >= styleHeight;
+
+    return {
+      visuallyIn,
+      renderedRows: rows.length,
+      widthRatio,
+      heightRatio,
+      styleHeight,
+      rectTop: rect.top,
+      buggyNull,
+      fixedNull,
+    };
+  });
+
+  assert(!probe.error, `found subsection body (${probe.error ?? "ok"})`);
+  assert(probe.visuallyIn, `mid-scroll body is visually in the viewport`);
+  assert(
+    probe.renderedRows > 0,
+    `mid-scroll body renders rows (got ${probe.renderedRows})`,
+  );
+  assert(
+    Math.abs(probe.heightRatio - 1.5) < 0.05,
+    `height ratio tracks CSS zoom (~1.5, got ${probe.heightRatio})`,
+  );
+  // At zoom=1.5 on engines that scale rects, a width-collapse simulation
+  // (forced zoom=1) must be the failing path — document that the height
+  // path is what keeps rows mounted.
+  if (Math.abs(probe.widthRatio - 1.5) < 0.05) {
+    assert(
+      probe.buggyNull === true || probe.fixedNull === false,
+      `height-based conversion keeps a non-null window ` +
+        `(buggyNull=${probe.buggyNull}, fixedNull=${probe.fixedNull})`,
+    );
+    assert(
+      probe.fixedNull === false,
+      `height-based zoom must not null the mid-section window`,
+    );
+  }
+
+  await page.context().close();
+}
+
+async function runEngine(browserType, engineName) {
+  console.log(`\n#################### engine=${engineName} ####################`);
+  const browser = await browserType.launch();
+
+  try {
+    const desktop = { width: 1280, height: 800 };
+    const mobile = { width: 390, height: 844 };
+
+    for (const fixture of ["realistic", "huge"]) {
+      await testFixtureOnViewport(browser, fixture, "desktop", desktop);
+      await testFixtureOnViewport(browser, fixture, "mobile", mobile);
+    }
+
+    console.log(`\n--- geometry parity across widths ---`);
+    for (const fixture of ["realistic", "huge"]) {
+      for (const width of [1280, 1024, 768, 390]) {
+        await testParity(browser, fixture, width);
+      }
+    }
+
+    await testZoomAwareness(browser, desktop);
+    await testZoomAwareness(browser, mobile);
+
+    const desktopTabNodes = await testStaticTabIntegration(
+      browser,
       "desktop",
       desktop,
     );
-    results[`${fixture}-mobile`] = await testFixtureOnViewport(
+    const mobileTabNodes = await testStaticTabIntegration(
       browser,
-      fixture,
       "mobile",
       mobile,
     );
+    console.log(
+      `\nStaticTab top-of-page node counts: desktop=${desktopTabNodes}, mobile=${mobileTabNodes}`,
+    );
+
+    await testNoEmptyInViewportSections(browser, engineName, mobile);
+    await testHeightBasedZoomSurvivesWidthCollapse(
+      browser,
+      engineName,
+      mobile,
+    );
+  } finally {
+    await browser.close();
   }
-
-  console.log(`\n--- geometry parity across widths ---`);
-  for (const fixture of ["realistic", "huge"]) {
-    for (const width of [1280, 1024, 768, 390]) {
-      await testParity(browser, fixture, width);
-    }
-  }
-
-  await testZoomAwareness(browser, desktop);
-  await testZoomAwareness(browser, mobile);
-
-  const desktopTabNodes = await testStaticTabIntegration(
-    browser,
-    "desktop",
-    desktop,
-  );
-  const mobileTabNodes = await testStaticTabIntegration(
-    browser,
-    "mobile",
-    mobile,
-  );
-  console.log(
-    `\nStaticTab top-of-page node counts: desktop=${desktopTabNodes}, mobile=${mobileTabNodes}`,
-  );
-
-  console.log(`\n${checks - failures.length}/${checks} checks passed`);
-} finally {
-  await browser.close();
 }
+
+const engines = [];
+if (ENGINE === "both" || ENGINE === "chromium") {
+  engines.push([chromium, "chromium"]);
+}
+if (ENGINE === "both" || ENGINE === "webkit") {
+  engines.push([webkit, "webkit"]);
+}
+if (engines.length === 0) {
+  console.error(`Unknown engine "${ENGINE}". Use chromium, webkit, or both.`);
+  process.exit(2);
+}
+
+for (const [browserType, name] of engines) {
+  await runEngine(browserType, name);
+}
+
+console.log(`\n${checks - failures.length}/${checks} checks passed`);
 
 if (failures.length > 0) {
   console.error(`\nFAILED:\n- ${failures.join("\n- ")}`);

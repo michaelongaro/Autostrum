@@ -23,6 +23,7 @@ import {
   getElementCssZoomForRect,
   getStaticTabLayoutWidthPx,
   getVisibleRowRange,
+  getVisibleViewportWindow,
   STATIC_TAB_MIN_VIRTUALIZATION_ROWS,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
   STATIC_TAB_OVERSCAN_PX,
@@ -117,7 +118,6 @@ function VirtualizedStaticTabSection({
   const [visibleRange, setVisibleRange] = useState<VisibleRowRange | null>(
     null,
   );
-  const [isNearViewport, setIsNearViewport] = useState(false);
 
   const layout: StaticTabRowLayout | null =
     innerWidth === null
@@ -156,17 +156,25 @@ function VirtualizedStaticTabSection({
     const currentLayout = layoutRef.current;
     if (!body || !currentLayout) return;
 
-    // Scale factor that matches how THIS engine scaled the body's rect, so
-    // we convert bodyTop into layout space without double-dividing on
-    // browsers where getBoundingClientRect ignores CSS zoom.
-    const rectZoom = getElementCssZoomForRect(body, zoomFallbackRef.current);
+    // Prefer height-based zoom: the virtualized body pins style.height to
+    // layout.totalHeight, so rect.height / totalHeight matches how this
+    // engine scaled the same axis as row tops. Width-only ratios can read
+    // ~1 on some mobile WebKit+CSS zoom builds while top/height stay scaled,
+    // which empties in-viewport subsections.
+    const rectZoom = getElementCssZoomForRect(
+      body,
+      zoomFallbackRef.current,
+      currentLayout.totalHeight,
+    );
+    const viewport = getVisibleViewportWindow();
 
     const range = getVisibleRowRange(
       currentLayout,
       body.getBoundingClientRect().top,
-      window.innerHeight,
+      viewport.height,
       rectZoom,
       STATIC_TAB_OVERSCAN_PX,
+      viewport.top,
     );
 
     setVisibleRange((prev) =>
@@ -203,29 +211,14 @@ function VirtualizedStaticTabSection({
     return () => resizeObserver.disconnect();
   }, [measureWidth]);
 
-  // activate/deactivate this subsection as it nears the viewport
+  // Always track scroll/resize while virtualized. Gating listeners on
+  // IntersectionObserver left subsections stuck empty on iOS Safari when IO
+  // under CSS zoom / overflow ancestors missed an intersecting update (no
+  // scroll handler → stale null visible range while the card was on screen).
+  // getBoundingClientRect + row math is cheap enough to run for every
+  // virtualized subsection on a coalesced rAF.
   useEffect(() => {
-    const body = bodyRef.current;
-    if (!body || typeof IntersectionObserver === "undefined") return;
-
-    const intersectionObserver = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[entries.length - 1];
-        if (!entry) return;
-
-        setIsNearViewport(entry.isIntersecting);
-        recomputeVisibleRange();
-      },
-      { rootMargin: `${STATIC_TAB_OVERSCAN_PX}px 0px` },
-    );
-    intersectionObserver.observe(body);
-
-    return () => intersectionObserver.disconnect();
-  }, [recomputeVisibleRange]);
-
-  // while near the viewport, track scroll/resize to slide the visible window
-  useEffect(() => {
-    if (!isNearViewport || !isVirtualized) return;
+    if (!isVirtualized) return;
 
     let rafId = 0;
     const scheduleRecompute = () => {
@@ -236,20 +229,31 @@ function VirtualizedStaticTabSection({
       });
     };
 
+    // Immediate recompute on activate so the first paint after becoming
+    // virtualized doesn't wait for a scroll event.
+    scheduleRecompute();
+
     window.addEventListener("scroll", scheduleRecompute, {
       passive: true,
       capture: true,
     });
     window.addEventListener("resize", scheduleRecompute, { passive: true });
+    // iOS Safari: URL bar show/hide and pinch-zoom pan move the visual
+    // viewport without always emitting window scroll/resize.
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener("scroll", scheduleRecompute);
+    visualViewport?.addEventListener("resize", scheduleRecompute);
 
     return () => {
       window.removeEventListener("scroll", scheduleRecompute, {
         capture: true,
       });
       window.removeEventListener("resize", scheduleRecompute);
+      visualViewport?.removeEventListener("scroll", scheduleRecompute);
+      visualViewport?.removeEventListener("resize", scheduleRecompute);
       if (rafId !== 0) cancelAnimationFrame(rafId);
     };
-  }, [isNearViewport, isVirtualized, recomputeVisibleRange]);
+  }, [isVirtualized, recomputeVisibleRange]);
 
   let bodyContent: ReactNode;
 
