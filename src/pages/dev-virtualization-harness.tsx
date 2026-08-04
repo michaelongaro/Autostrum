@@ -9,6 +9,8 @@
 // - virtualized=false         disables virtualization (baseline full render)
 // - bare=1                    renders StaticSectionContainers directly
 //                             (no StaticTab chrome) for 1:1 geometry parity
+// - zoom=0.5..1.5             writes autostrum-zoom before render so the
+//                             section CSS zoom matches (default: 1)
 import ErrorPage from "next/error";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -109,6 +111,9 @@ export default function DevVirtualizationHarness() {
     typeof query.fixture === "string" ? query.fixture : "realistic";
   const tabData = buildFixture(fixture);
 
+  const zoomParam =
+    typeof query.zoom === "string" ? Number(query.zoom) : undefined;
+
   // ready once the fixture has landed in the store (mirrors how the real
   // tab page hydrates the store from a client-side effect)
   const ready = storeTabData[0]?.id === tabData[0]?.id;
@@ -116,11 +121,25 @@ export default function DevVirtualizationHarness() {
   useEffect(() => {
     if (!isReady) return;
 
+    // Apply zoom before hydrating tab data so StaticSectionContainer's first
+    // mount reads the requested autostrum-zoom from localStorage.
+    if (
+      typeof zoomParam === "number" &&
+      Number.isFinite(zoomParam) &&
+      zoomParam > 0
+    ) {
+      try {
+        window.localStorage.setItem("autostrum-zoom", String(zoomParam));
+      } catch {
+        // ignore quota / private-mode failures; harness still runs at default zoom
+      }
+    }
+
     setId(1);
     setTabData((draft) => {
       draft.splice(0, draft.length, ...tabData);
     });
-  }, [isReady, tabData, setId, setTabData]);
+  }, [isReady, tabData, setId, setTabData, zoomParam]);
 
   // NODE_ENV is inlined at build time; this page only exists in dev
   if (process.env.NODE_ENV === "production") {

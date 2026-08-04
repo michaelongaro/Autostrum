@@ -73,10 +73,65 @@ export const STATIC_TAB_MIN_VIRTUALIZATION_ROWS = 2;
 
 /**
  * Tolerance used when packing integer-width columns against a fractional
- * measured width (guards against float error from dividing the measured
- * width by the current zoom).
+ * measured width (guards against sub-pixel layout widths).
  */
 const ROW_PACKING_EPSILON_PX = 0.1;
+
+/**
+ * Minimum relative difference before a visual/layout width ratio is treated
+ * as a real CSS zoom (guards against sub-pixel rounding noise at zoom=1).
+ */
+const CSS_ZOOM_RATIO_EPSILON = 0.001;
+
+/**
+ * Layout-space width of a subsection body for row packing.
+ *
+ * Prefer `offsetWidth` over `getBoundingClientRect().width / zoom`:
+ * `offsetWidth` is always in the element's unzoomed CSS layout pixels (what
+ * flex-wrap packs against), while `getBoundingClientRect` may or may not
+ * already include CSS `zoom` depending on the browser (Chromium scales it;
+ * older WebKit/iOS Safari historically returned unscaled values). Dividing
+ * an already-unscaled rect by zoom under-measures the width on those
+ * engines and packs too few columns per row.
+ */
+export function getStaticTabLayoutWidthPx(element: HTMLElement): number {
+  return element.offsetWidth;
+}
+
+/**
+ * Effective scale that converts this element's `getBoundingClientRect`
+ * coordinates into its layout (unzoomed) coordinate space.
+ *
+ * Computed as `getBoundingClientRect().width / offsetWidth` so the ratio
+ * matches whatever the current engine actually does with CSS `zoom`:
+ * - Chromium / modern Safari: ratio ≈ applied zoom → divide visual rects
+ * - Older WebKit that ignores zoom in rects: ratio ≈ 1 → leave rects as-is
+ *
+ * Do **not** substitute `element.currentCSSZoom` or the app zoom setting
+ * here: those describe the intended CSS zoom, not how the rect was scaled,
+ * and using them on engines with unscaled rects would double-correct.
+ */
+export function getElementCssZoomForRect(
+  element: HTMLElement,
+  fallbackZoom: number = 1,
+): number {
+  const layoutWidth = element.offsetWidth;
+  const safeFallback = fallbackZoom > 0 ? fallbackZoom : 1;
+
+  if (layoutWidth <= 0) return safeFallback;
+
+  const visualWidth = element.getBoundingClientRect().width;
+  if (visualWidth <= 0 || !Number.isFinite(visualWidth)) return safeFallback;
+
+  const measured = visualWidth / layoutWidth;
+  if (!Number.isFinite(measured) || measured <= 0) return safeFallback;
+
+  // Collapse near-1.0 ratios to exactly 1 so tiny sub-pixel noise doesn't
+  // nudge row windows around at the default zoom.
+  if (Math.abs(measured - 1) < CSS_ZOOM_RATIO_EPSILON) return 1;
+
+  return measured;
+}
 
 export function getStaticTabColumnWidthPx(
   column: TabNote | TabMeasureLine,
@@ -110,7 +165,8 @@ export interface StaticTabRowLayout {
  * Deterministically packs tab columns into rows, replicating what the
  * browser's flex-wrap layout produces: row 0 starts with the 32px tuning
  * gutter, later rows use the full inner width. `innerWidthPx` must be the
- * subsection body's layout width (measured width divided by current zoom).
+ * subsection body's layout width (`offsetWidth` / `getStaticTabLayoutWidthPx`),
+ * not a zoom-scaled `getBoundingClientRect` width.
  */
 export function buildStaticTabRowLayout(
   columns: (TabNote | TabMeasureLine)[],
@@ -170,10 +226,12 @@ export interface VisibleRowRange {
 /**
  * Computes which rows fall inside the overscan-expanded viewport.
  *
- * @param bodyTopPx        subsection body's bounding rect top (visual px,
- *                         i.e. already scaled by zoom)
+ * @param bodyTopPx        subsection body's `getBoundingClientRect().top`
  * @param viewportHeightPx window.innerHeight
- * @param zoom             current tab zoom (CSS zoom applied by an ancestor)
+ * @param zoom             scale that converts `bodyTopPx` into the body's
+ *                         layout coordinate space — pass
+ *                         `getElementCssZoomForRect(body)`, not the raw app
+ *                         zoom setting (see that helper's docs for why)
  * @returns the visible row range, or null when no row is within range
  */
 export function getVisibleRowRange(

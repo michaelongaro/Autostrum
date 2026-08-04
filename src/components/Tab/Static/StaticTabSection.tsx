@@ -20,6 +20,8 @@ import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import {
   buildStaticTabRowLayout,
+  getElementCssZoomForRect,
+  getStaticTabLayoutWidthPx,
   getVisibleRowRange,
   STATIC_TAB_MIN_VIRTUALIZATION_ROWS,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
@@ -100,14 +102,17 @@ function VirtualizedStaticTabSection({
     tuning: state.tuning,
   }));
 
+  // App zoom setting — kept as a fallback for getElementCssZoomForRect when
+  // the body has no measurable layout width yet. Visible-range conversion
+  // uses the measured rect/offsetWidth ratio, not this value directly.
   const zoom = useGetLocalStorageValues().zoom;
   const safeZoom = zoom > 0 ? zoom : 1;
 
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
-  // subsection body width in layout px (measured width divided by zoom);
-  // null until first measurement, during which the full-render markup is
-  // kept so SSR output and StaticTab's section-height measurement stay intact
+  // subsection body width in layout px (offsetWidth); null until first
+  // measurement, during which the full-render markup is kept so SSR output
+  // and StaticTab's section-height measurement stay intact
   const [innerWidth, setInnerWidth] = useState<number | null>(null);
   const [visibleRange, setVisibleRange] = useState<VisibleRowRange | null>(
     null,
@@ -126,7 +131,7 @@ function VirtualizedStaticTabSection({
       : null;
   const isVirtualized = virtualizedLayout !== null;
 
-  const zoomRef = useRef(safeZoom);
+  const zoomFallbackRef = useRef(safeZoom);
   const layoutRef = useRef<StaticTabRowLayout | null>(null);
 
   // React Compiler escape hatch: identity is a layout/resize effect dependency.
@@ -134,9 +139,9 @@ function VirtualizedStaticTabSection({
     const body = bodyRef.current;
     if (!body) return;
 
-    // getBoundingClientRect() is in visual (zoomed) px; row packing happens
-    // in the body's own layout px, so divide the zoom back out
-    const width = body.getBoundingClientRect().width / zoomRef.current;
+    // Layout px from offsetWidth — independent of whether getBoundingClientRect
+    // includes CSS zoom (Chromium) or not (older WebKit/iOS Safari).
+    const width = getStaticTabLayoutWidthPx(body);
 
     // ignore degenerate measurements (e.g. while the element is hidden) so a
     // transient 0 width can never knock the subsection back to a full render
@@ -151,11 +156,16 @@ function VirtualizedStaticTabSection({
     const currentLayout = layoutRef.current;
     if (!body || !currentLayout) return;
 
+    // Scale factor that matches how THIS engine scaled the body's rect, so
+    // we convert bodyTop into layout space without double-dividing on
+    // browsers where getBoundingClientRect ignores CSS zoom.
+    const rectZoom = getElementCssZoomForRect(body, zoomFallbackRef.current);
+
     const range = getVisibleRowRange(
       currentLayout,
       body.getBoundingClientRect().top,
       window.innerHeight,
-      zoomRef.current,
+      rectZoom,
       STATIC_TAB_OVERSCAN_PX,
     );
 
@@ -166,11 +176,14 @@ function VirtualizedStaticTabSection({
     );
   }, []);
 
-  // measure synchronously before paint (and re-measure whenever zoom changes)
+  // measure + re-slide the visible window whenever zoom changes. Width in
+  // layout px is usually unchanged by CSS zoom, so measureWidth alone would
+  // no-op and leave a stale visible range computed under the previous zoom.
   useIsomorphicLayoutEffect(() => {
-    zoomRef.current = safeZoom;
+    zoomFallbackRef.current = safeZoom;
     measureWidth();
-  }, [safeZoom, measureWidth]);
+    recomputeVisibleRange();
+  }, [safeZoom, measureWidth, recomputeVisibleRange]);
 
   // recompute the visible rows pre-paint whenever the row layout changes so
   // the swap from full render to virtualized rows never flashes blank rows
