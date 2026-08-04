@@ -829,6 +829,8 @@ type UpdateCSSThemeVarsOptions = {
   animate?: boolean;
 };
 
+const DYNAMIC_FAVICON_ID = "dynamic-favicon";
+
 function addGlobalTransition() {
   const style = document.createElement("style");
   style.id = "global-transition-style";
@@ -841,14 +843,15 @@ function addGlobalTransition() {
 }
 
 function changeFavicon(url: string): void {
-  // Try to find an existing favicon link element
-  let link: HTMLLinkElement | null =
-    document.querySelector("link[rel~='icon']");
+  let link = document.querySelector<HTMLLinkElement>(
+    "link#" + DYNAMIC_FAVICON_ID,
+  );
 
   if (!link) {
-    // If not found, create a new link element
     link = document.createElement("link");
+    link.id = DYNAMIC_FAVICON_ID;
     link.rel = "icon";
+    link.type = "image/svg+xml";
     document.head.appendChild(link);
   }
 
@@ -922,11 +925,11 @@ function updateCSSThemeVars(
   options: UpdateCSSThemeVarsOptions = {},
 ) {
   if (!(color in LOGO_PATHS_WITHOUT_TITLE)) {
-    throw new Error(`Color "${color}" not found.`);
+    throw new Error("Color not found.");
   }
 
   if (theme !== "light" && theme !== "dark") {
-    throw new Error(`Theme "${theme}" not found.`);
+    throw new Error("Theme not found.");
   }
 
   const root = document.documentElement;

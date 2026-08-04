@@ -31,12 +31,15 @@ const serializeForInlineScript = (value: unknown) =>
     .replace(/>/g, "\\u003e")
     .replace(/&/g, "\\u0026");
 
+const DYNAMIC_FAVICON_ID = "dynamic-favicon";
+
 const themeInitializerScript = `
 (() => {
   const faviconPaths = ${serializeForInlineScript(LOGO_PATHS_WITHOUT_TITLE)};
   const headerColors = ${serializeForInlineScript(HEADER_COLORS)};
   const storageKeys = ${serializeForInlineScript(STORAGE_KEYS)};
   const defaultColor = ${serializeForInlineScript(DEFAULT_COLOR)};
+  const dynamicFaviconId = ${serializeForInlineScript(DYNAMIC_FAVICON_ID)};
   const validColors = new Set(Object.keys(faviconPaths));
 
   try {
@@ -58,10 +61,14 @@ const themeInitializerScript = `
     root.setAttribute("data-color", color);
     root.setAttribute("data-theme", theme);
 
-    let faviconLink = document.querySelector("link[rel~='icon']");
+    let faviconLink = document.querySelector(
+      "link#" + dynamicFaviconId,
+    );
     if (!faviconLink) {
       faviconLink = document.createElement("link");
+      faviconLink.setAttribute("id", dynamicFaviconId);
       faviconLink.setAttribute("rel", "icon");
+      faviconLink.setAttribute("type", "image/svg+xml");
       document.head.appendChild(faviconLink);
     }
 
@@ -91,6 +98,14 @@ function Document(_props: DocumentProps) {
   return (
     <Html lang="en" data-color={DEFAULT_COLOR} data-theme="light">
       <Head>
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <link
+          id={DYNAMIC_FAVICON_ID}
+          rel="icon"
+          href="/favicon.svg"
+          type="image/svg+xml"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: themeInitializerScript,
