@@ -20,9 +20,8 @@ import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import {
   buildStaticTabRowLayout,
-  getElementCssZoomForRect,
   getStaticTabLayoutWidthPx,
-  getVisibleRowRange,
+  getVisibleRowRangeFromBodyRect,
   getVisibleViewportWindow,
   STATIC_TAB_MIN_VIRTUALIZATION_ROWS,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
@@ -103,17 +102,16 @@ function VirtualizedStaticTabSection({
     tuning: state.tuning,
   }));
 
-  // App zoom setting — kept as a fallback for getElementCssZoomForRect when
-  // the body has no measurable layout width yet. Visible-range conversion
-  // uses the measured rect/offsetWidth ratio, not this value directly.
+  // App zoom — triggers a remasure when the setting changes. Visible-range
+  // math no longer divides by this value; it maps the body's own rect.
   const zoom = useGetLocalStorageValues().zoom;
   const safeZoom = zoom > 0 ? zoom : 1;
 
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
-  // subsection body width in layout px (offsetWidth); null until first
-  // measurement, during which the full-render markup is kept so SSR output
-  // and StaticTab's section-height measurement stay intact
+  // subsection body width in layout px; null until first measurement, during
+  // which the full-render markup is kept so SSR output and StaticTab's
+  // section-height measurement stay intact
   const [innerWidth, setInnerWidth] = useState<number | null>(null);
   const [visibleRange, setVisibleRange] = useState<VisibleRowRange | null>(
     null,
@@ -131,7 +129,6 @@ function VirtualizedStaticTabSection({
       : null;
   const isVirtualized = virtualizedLayout !== null;
 
-  const zoomFallbackRef = useRef(safeZoom);
   const layoutRef = useRef<StaticTabRowLayout | null>(null);
 
   // React Compiler escape hatch: identity is a layout/resize effect dependency.
@@ -139,15 +136,15 @@ function VirtualizedStaticTabSection({
     const body = bodyRef.current;
     if (!body) return;
 
-    // Layout px from offsetWidth — independent of whether getBoundingClientRect
-    // includes CSS zoom (Chromium) or not (older WebKit/iOS Safari).
     const width = getStaticTabLayoutWidthPx(body);
 
     // ignore degenerate measurements (e.g. while the element is hidden) so a
     // transient 0 width can never knock the subsection back to a full render
     if (width <= 0) return;
 
-    setInnerWidth((prev) => (prev === width ? prev : width));
+    setInnerWidth((prev) =>
+      prev !== null && Math.abs(prev - width) < 0.5 ? prev : width,
+    );
   }, []);
 
   // React Compiler escape hatch: identity is a layout/scroll effect dependency.
@@ -156,23 +153,16 @@ function VirtualizedStaticTabSection({
     const currentLayout = layoutRef.current;
     if (!body || !currentLayout) return;
 
-    // Prefer height-based zoom: the virtualized body pins style.height to
-    // layout.totalHeight, so rect.height / totalHeight matches how this
-    // engine scaled the same axis as row tops. Width-only ratios can read
-    // ~1 on some mobile WebKit+CSS zoom builds while top/height stay scaled,
-    // which empties in-viewport subsections.
-    const rectZoom = getElementCssZoomForRect(
-      body,
-      zoomFallbackRef.current,
-      currentLayout.totalHeight,
-    );
+    // Map the body's getBoundingClientRect onto layout.totalHeight. Do not
+    // divide by a separately measured CSS zoom or shift by
+    // visualViewport.offsetTop — both desync on iOS Safari and were behind
+    // "empty while in viewport" cards that only recovered when the settings
+    // Drawer pinned body { position: fixed }.
     const viewport = getVisibleViewportWindow();
-
-    const range = getVisibleRowRange(
+    const range = getVisibleRowRangeFromBodyRect(
       currentLayout,
-      body.getBoundingClientRect().top,
+      body.getBoundingClientRect(),
       viewport.height,
-      rectZoom,
       STATIC_TAB_OVERSCAN_PX,
       viewport.top,
     );
@@ -185,10 +175,9 @@ function VirtualizedStaticTabSection({
   }, []);
 
   // measure + re-slide the visible window whenever zoom changes. Width in
-  // layout px is usually unchanged by CSS zoom, so measureWidth alone would
-  // no-op and leave a stale visible range computed under the previous zoom.
+  // layout px can change with CSS zoom on Safari used-value builds, and even
+  // when it doesn't the visible window must be recomputed.
   useIsomorphicLayoutEffect(() => {
-    zoomFallbackRef.current = safeZoom;
     measureWidth();
     recomputeVisibleRange();
   }, [safeZoom, measureWidth, recomputeVisibleRange]);
@@ -211,15 +200,14 @@ function VirtualizedStaticTabSection({
     return () => resizeObserver.disconnect();
   }, [measureWidth]);
 
-  // Always track scroll/resize while virtualized. Gating listeners on
-  // IntersectionObserver left subsections stuck empty on iOS Safari when IO
-  // under CSS zoom / overflow ancestors missed an intersecting update (no
-  // scroll handler → stale null visible range while the card was on screen).
-  // getBoundingClientRect + row math is cheap enough to run for every
-  // virtualized subsection on a coalesced rAF.
+  // Always track scroll/resize while virtualized, and also recompute on
+  // IntersectionObserver updates. IO is NOT a gate (that left subsections
+  // stuck empty); it is an extra signal for iOS when programmatic scroll
+  // restore after the settings Drawer closes does not emit a scroll event.
   useEffect(() => {
     if (!isVirtualized) return;
 
+    const body = bodyRef.current;
     let rafId = 0;
     const scheduleRecompute = () => {
       if (rafId !== 0) return;
@@ -229,8 +217,6 @@ function VirtualizedStaticTabSection({
       });
     };
 
-    // Immediate recompute on activate so the first paint after becoming
-    // virtualized doesn't wait for a scroll event.
     scheduleRecompute();
 
     window.addEventListener("scroll", scheduleRecompute, {
@@ -238,11 +224,18 @@ function VirtualizedStaticTabSection({
       capture: true,
     });
     window.addEventListener("resize", scheduleRecompute, { passive: true });
-    // iOS Safari: URL bar show/hide and pinch-zoom pan move the visual
-    // viewport without always emitting window scroll/resize.
     const visualViewport = window.visualViewport;
     visualViewport?.addEventListener("scroll", scheduleRecompute);
     visualViewport?.addEventListener("resize", scheduleRecompute);
+
+    let intersectionObserver: IntersectionObserver | null = null;
+    if (body && typeof IntersectionObserver !== "undefined") {
+      intersectionObserver = new IntersectionObserver(
+        () => scheduleRecompute(),
+        { rootMargin: `${STATIC_TAB_OVERSCAN_PX}px 0px` },
+      );
+      intersectionObserver.observe(body);
+    }
 
     return () => {
       window.removeEventListener("scroll", scheduleRecompute, {
@@ -251,6 +244,7 @@ function VirtualizedStaticTabSection({
       window.removeEventListener("resize", scheduleRecompute);
       visualViewport?.removeEventListener("scroll", scheduleRecompute);
       visualViewport?.removeEventListener("resize", scheduleRecompute);
+      intersectionObserver?.disconnect();
       if (rafId !== 0) cancelAnimationFrame(rafId);
     };
   }, [isVirtualized, recomputeVisibleRange]);
