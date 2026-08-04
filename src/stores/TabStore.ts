@@ -376,13 +376,13 @@ const initialStoreState = {
   },
 
   // modals
-  showSectionProgressionModal: false,
+  showSectionProgressionDialog: false,
   showGlossaryDialog: false,
   chordBeingEdited: null,
   strummingPatternBeingEdited: null,
   showingGlossary: false,
   showDeleteAccountModal: false,
-  showCustomTuningModal: false,
+  showCustomTuningDialog: false,
   showMobileHeaderModal: false,
 
   // playback
@@ -551,20 +551,20 @@ interface TabState {
   setPlaybackMetadata: (playbackMetadata: PlaybackMetadata[] | null) => void;
 
   // modals
-  showSectionProgressionModal: boolean;
-  setShowSectionProgressionModal: (
-    showSectionProgressionModal: boolean,
+  showSectionProgressionDialog: boolean;
+  setShowSectionProgressionDialog: (
+    showSectionProgressionDialog: boolean,
   ) => void;
   showGlossaryDialog: boolean;
   setShowGlossaryDialog: (showGlossaryDialog: boolean) => void;
   showDeleteAccountModal: boolean;
   setShowDeleteAccountModal: (showDeleteAccountModal: boolean) => void;
-  showCustomTuningModal: boolean;
-  setShowCustomTuningModal: (showCustomTuningModal: boolean) => void;
+  showCustomTuningDialog: boolean;
+  setShowCustomTuningDialog: (showCustomTuningDialog: boolean) => void;
   showMobileHeaderModal: boolean;
   setShowMobileHeaderModal: (showMobileHeaderModal: boolean) => void;
 
-  // below are also used to determine if respective modal should be showing
+  // below are also used to determine if respective dialog should be showing
   chordBeingEdited: {
     index: number;
     value: Chord;
@@ -1588,23 +1588,23 @@ const useTabStoreBase = create<TabState>()(
       setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
 
       // modals
-      showSectionProgressionModal: false,
-      setShowSectionProgressionModal: (showSectionProgressionModal) =>
-        set({ showSectionProgressionModal }),
+      showSectionProgressionDialog: false,
+      setShowSectionProgressionDialog: (showSectionProgressionDialog) =>
+        set({ showSectionProgressionDialog }),
       showGlossaryDialog: false,
       setShowGlossaryDialog: (showGlossaryDialog) =>
         set({ showGlossaryDialog }),
       showDeleteAccountModal: false,
       setShowDeleteAccountModal: (showDeleteAccountModal) =>
         set({ showDeleteAccountModal }),
-      showCustomTuningModal: false,
-      setShowCustomTuningModal: (showCustomTuningModal) =>
-        set({ showCustomTuningModal }),
+      showCustomTuningDialog: false,
+      setShowCustomTuningDialog: (showCustomTuningDialog) =>
+        set({ showCustomTuningDialog }),
       showMobileHeaderModal: false,
       setShowMobileHeaderModal: (showMobileHeaderModal) =>
         set({ showMobileHeaderModal }),
 
-      // below are also used to determine if respective modal should be showing
+      // below are also used to determine if respective dialog should be showing
       chordBeingEdited: null,
       setChordBeingEdited: (chordBeingEdited) => set({ chordBeingEdited }),
       strummingPatternBeingEdited: null,

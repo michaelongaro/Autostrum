@@ -1,17 +1,16 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import Head from "next/head";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import TunerPanel from "~/components/tuner/TunerPanel";
 import { useTabStore } from "~/stores/TabStore";
-import CustomTuningModal from "~/components/modals/CustomTuningModal";
+import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
 import { useTuner } from "~/hooks/useTuner";
 import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 
 function Tuner() {
-  const { tuning, capo, showCustomTuningModal } = useTabStore((state) => ({
+  const { tuning, capo } = useTabStore((state) => ({
     tuning: state.tuning,
     capo: state.capo,
-    showCustomTuningModal: state.showCustomTuningModal,
   }));
 
   const {
@@ -99,9 +98,7 @@ function Tuner() {
         />
       </div>
 
-      <AnimatePresence>
-        {showCustomTuningModal && <CustomTuningModal />}
-      </AnimatePresence>
+      <CustomTuningDialog />
     </motion.div>
   );
 }
