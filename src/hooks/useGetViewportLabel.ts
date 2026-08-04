@@ -19,11 +19,11 @@ function useGetViewportLabel() {
         | "tablet"
         | "desktop" = "mobile";
 
-      if (window.innerHeight < 370) {
+      if (window.innerHeight < 400) {
         viewportLabel = "mobileNarrowLandscape";
       }
 
-      if (window.innerHeight >= 370 && window.innerHeight < 500) {
+      if (window.innerHeight >= 400 && window.innerHeight < 500) {
         viewportLabel = "mobileLandscape";
       }
 
