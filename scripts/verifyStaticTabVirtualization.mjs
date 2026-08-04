@@ -333,7 +333,7 @@ async function testNoEmptyInViewportSections(browser, engineName, viewport) {
       `viewport=${viewport.width}x${viewport.height} ---`,
   );
 
-  for (const zoom of [1, 1.5]) {
+  for (const zoom of [0.5, 1, 1.5]) {
     const page = await openPage(
       browser,
       `${HARNESS}?bare=1&fixture=huge&virtualized=true&zoom=${zoom}`,
