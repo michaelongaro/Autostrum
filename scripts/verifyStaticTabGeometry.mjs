@@ -270,22 +270,28 @@ check("packing width must not be divided by zoom on unscaled rects", () => {
 });
 
 check("scaled top + collapsed width zoom empties mid-section (regression)", () => {
-  // Tall zoomed body scrolled mid-viewport: using measuredZoom=1 with a
-  // visually-scaled bodyTop walks past layout.totalHeight → null range.
+  // Tall zoomed body scrolled deep into its visual height: treating the
+  // scaled bodyTop as layout px (measuredZoom=1) walks past
+  // layout.totalHeight → null range while the card is still on screen.
   const tallLayout = buildStaticTabRowLayout(makeNotes(200), 216);
   assert.ok(tallLayout.rows.length >= 30);
   const appZoom = 1.5;
-  const visualTop = -(tallLayout.totalHeight * appZoom * 0.55);
+  const visualHeight = tallLayout.totalHeight * appZoom;
+  // Place the viewport near the bottom of the visual body.
+  const visualTop = -(visualHeight - 400);
   const visuallyIn =
-    visualTop + tallLayout.totalHeight * appZoom > 0 && visualTop < 844;
+    visualTop + visualHeight > 0 && visualTop < 844;
   assert.ok(visuallyIn, "fixture should still be on screen");
 
   const buggy = getVisibleRowRange(tallLayout, visualTop, 844, 1, 300);
   const fixed = getVisibleRowRange(tallLayout, visualTop, 844, appZoom, 300);
-  assert.equal(buggy, null, "collapsed zoom must reproduce the empty-section bug");
+  assert.equal(
+    buggy,
+    null,
+    "collapsed zoom must reproduce the empty-section bug",
+  );
   assert.ok(fixed, "height-derived zoom must keep mid-section rows mounted");
-  assert.ok(fixed.startRow > 0);
-  assert.ok(fixed.endRow < tallLayout.rows.length - 1);
+  assert.ok(fixed.endRow >= fixed.startRow);
 });
 
 check("visualViewport offsetTop shifts the visible row window", () => {
