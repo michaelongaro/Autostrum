@@ -204,7 +204,7 @@ function PlaybackLoopRangeActions() {
         </div>
       )}
 
-      <div className="baseFlex gap-3">
+      <div className="baseFlex mb-2 mt-2 gap-3 mobilePortrait:mt-8">
         <Button
           variant="outline"
           onClick={handleReturn}
@@ -222,7 +222,7 @@ function PlaybackLoopRangeActions() {
           <VscDebugRestart />
           Reset
         </Button>
-        <Button disabled={!canSave} onClick={handleSave} className="min-w-20">
+        <Button disabled={!canSave} onClick={handleSave} className="min-w-24">
           Save
         </Button>
       </div>

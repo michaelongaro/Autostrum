@@ -247,7 +247,7 @@ function PlaybackStrummedChord({
       </div>
 
       {loopNodePresentation && typeof chordIndex === "number" && (
-        <div className="baseFlex mt-1 h-7 w-full">
+        <div className="baseFlex mt-6 h-7 w-full">
           <PlaybackLoopRangeNode
             role={loopNodePresentation.role}
             opacity={loopNodePresentation.opacity}

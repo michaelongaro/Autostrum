@@ -26,6 +26,7 @@ interface PlaybackAudioControls {
   scrollPositionsLength: number;
   /** True while the strip is being glide-scrubbed or still coasting after release. */
   isGlideScrubbing?: boolean;
+  loopRangePrompt: string | null;
 }
 
 function PlaybackAudioControls({
@@ -35,6 +36,7 @@ function PlaybackAudioControls({
   setChordRepetitions,
   scrollPositionsLength,
   isGlideScrubbing = false,
+  loopRangePrompt,
 }: PlaybackAudioControls) {
   const {
     bpm,
@@ -266,36 +268,40 @@ function PlaybackAudioControls({
           {/* audio source, instrument, speed selects*/}
 
           {/* play/pause button*/}
-          <Button
-            variant="audio"
-            size={aboveLargeViewportWidth ? "default" : "sm"}
-            disabled={disablePlayButton}
-            onPointerDown={handlePlayPointerDown}
-            onClick={handlePlayButtonClick}
-            className="size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
-          >
-            <PlayButtonIcon
-              uniqueLocationKey="audioControls"
-              currentInstrument={currentInstrument}
-              audioMetadata={audioMetadata}
-              forceShowLoadingSpinner={fetchingFullTabData}
-              showCountInTimer={countInTimerEnabled && countInTimer.showing}
-              size="0.75rem"
-            />
-          </Button>
+          {!audioMetadata.editingLoopRange && (
+            <>
+              <Button
+                variant="audio"
+                size={aboveLargeViewportWidth ? "default" : "sm"}
+                disabled={disablePlayButton}
+                onPointerDown={handlePlayPointerDown}
+                onClick={handlePlayButtonClick}
+                className="size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
+              >
+                <PlayButtonIcon
+                  uniqueLocationKey="audioControls"
+                  currentInstrument={currentInstrument}
+                  audioMetadata={audioMetadata}
+                  forceShowLoadingSpinner={fetchingFullTabData}
+                  showCountInTimer={countInTimerEnabled && countInTimer.showing}
+                  size="0.75rem"
+                />
+              </Button>
 
-          <PlaybackSpeedPopover
-            triggerVariant="link"
-            playbackSpeed={playbackSpeed}
-            disabled={countInTimer.showing || audioMetadata.editingLoopRange}
-            onPlaybackSpeedChange={(newPlaybackSpeed) => {
-              const normalizedProgress = tabProgressValue * playbackSpeed;
-              setTabProgressValue(normalizedProgress / newPlaybackSpeed);
-              setPlaybackSpeed(newPlaybackSpeed);
-              pauseAudio();
-            }}
-            side="top"
-          />
+              <PlaybackSpeedPopover
+                triggerVariant="link"
+                playbackSpeed={playbackSpeed}
+                disabled={countInTimer.showing}
+                onPlaybackSpeedChange={(newPlaybackSpeed) => {
+                  const normalizedProgress = tabProgressValue * playbackSpeed;
+                  setTabProgressValue(normalizedProgress / newPlaybackSpeed);
+                  setPlaybackSpeed(newPlaybackSpeed);
+                  pauseAudio();
+                }}
+                side="top"
+              />
+            </>
+          )}
 
           <div className="baseFlex w-full gap-4">
             <div className="baseFlex w-9 !justify-start self-start">
@@ -373,114 +379,121 @@ function PlaybackAudioControls({
               )}
             </div>
 
-            <div className="baseFlex gap-6">
-              <Button
-                variant="text"
-                size={aboveLargeViewportWidth ? "default" : "sm"}
-                disabled={disablePlayButton}
-                onClick={() => {
-                  pauseAudio();
+            {audioMetadata.editingLoopRange ? (
+              <p className="pb-1 pt-[3px] text-xs text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
+                {loopRangePrompt}
+              </p>
+            ) : (
+              <div className="baseFlex gap-6">
+                <Button
+                  variant="text"
+                  size={aboveLargeViewportWidth ? "default" : "sm"}
+                  disabled={disablePlayButton}
+                  onClick={() => {
+                    pauseAudio();
 
-                  let i = currentChordIndex;
+                    let i = currentChordIndex;
 
-                  const currentTime =
-                    currentlyPlayingMetadata?.[currentChordIndex]
-                      ?.elapsedSeconds;
+                    const currentTime =
+                      currentlyPlayingMetadata?.[currentChordIndex]
+                        ?.elapsedSeconds;
 
-                  if (currentTime === undefined) return;
+                    if (currentTime === undefined) return;
 
-                  const targetTime = currentTime - 5;
+                    const targetTime = currentTime - 5;
 
-                  // Loop to find the first chord that matches the -5 seconds condition
-                  while (i > 0) {
-                    if (
-                      currentlyPlayingMetadata?.[i]?.elapsedSeconds &&
+                    // Loop to find the first chord that matches the -5 seconds condition
+                    while (i > 0) {
+                      if (
+                        currentlyPlayingMetadata?.[i]?.elapsedSeconds &&
+                        currentlyPlayingMetadata[i]!.elapsedSeconds <=
+                          targetTime
+                      ) {
+                        break;
+                      }
+                      i--;
+                    }
+
+                    // Continue looping backward to ensure it is the _very first_ chord at that time
+                    while (
+                      i > 0 &&
+                      currentlyPlayingMetadata?.[i - 1]?.elapsedSeconds ===
+                        targetTime
+                    ) {
+                      i--;
+                    }
+
+                    setCurrentChordIndex(i);
+                  }}
+                  className="size-4 shrink-0 rounded-full bg-transparent p-0"
+                >
+                  -5s
+                </Button>
+
+                <Button
+                  variant="audio"
+                  size={aboveLargeViewportWidth ? "default" : "sm"}
+                  disabled={disablePlayButton}
+                  onPointerDown={handlePlayPointerDown}
+                  onClick={handlePlayButtonClick}
+                  className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:brightness-75"
+                >
+                  <PlayButtonIcon
+                    uniqueLocationKey="audioControls"
+                    currentInstrument={currentInstrument}
+                    audioMetadata={audioMetadata}
+                    forceShowLoadingSpinner={fetchingFullTabData}
+                    showCountInTimer={countInTimer.showing}
+                    size={"1rem"}
+                  />
+                </Button>
+
+                <Button
+                  variant="text"
+                  size={aboveLargeViewportWidth ? "default" : "sm"}
+                  disabled={disablePlayButton}
+                  onClick={() => {
+                    if (currentlyPlayingMetadata === null) return;
+
+                    pauseAudio();
+
+                    let i = currentChordIndex;
+
+                    const currentTime =
+                      currentlyPlayingMetadata?.[currentChordIndex]
+                        ?.elapsedSeconds;
+
+                    if (currentTime === undefined) return;
+
+                    const targetTime = currentTime + 5;
+
+                    // Loop to find the first chord that matches the +5 seconds condition
+                    while (
+                      i < currentlyPlayingMetadata?.length - 1 &&
+                      currentlyPlayingMetadata?.[i]?.elapsedSeconds !==
+                        undefined &&
                       currentlyPlayingMetadata[i]!.elapsedSeconds <= targetTime
                     ) {
-                      break;
+                      i++;
                     }
-                    i--;
-                  }
 
-                  // Continue looping backward to ensure it is the _very first_ chord at that time
-                  while (
-                    i > 0 &&
-                    currentlyPlayingMetadata?.[i - 1]?.elapsedSeconds ===
-                      targetTime
-                  ) {
-                    i--;
-                  }
+                    // Continue looping forward to ensure it is the _very first_ chord at that time
+                    while (
+                      i < currentlyPlayingMetadata?.length - 1 &&
+                      currentlyPlayingMetadata?.[i + 1]?.elapsedSeconds ===
+                        targetTime
+                    ) {
+                      i++;
+                    }
 
-                  setCurrentChordIndex(i);
-                }}
-                className="size-4 shrink-0 rounded-full bg-transparent p-0"
-              >
-                -5s
-              </Button>
-
-              <Button
-                variant="audio"
-                size={aboveLargeViewportWidth ? "default" : "sm"}
-                disabled={disablePlayButton}
-                onPointerDown={handlePlayPointerDown}
-                onClick={handlePlayButtonClick}
-                className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:brightness-75"
-              >
-                <PlayButtonIcon
-                  uniqueLocationKey="audioControls"
-                  currentInstrument={currentInstrument}
-                  audioMetadata={audioMetadata}
-                  forceShowLoadingSpinner={fetchingFullTabData}
-                  showCountInTimer={countInTimer.showing}
-                  size={"1rem"}
-                />
-              </Button>
-
-              <Button
-                variant="text"
-                size={aboveLargeViewportWidth ? "default" : "sm"}
-                disabled={disablePlayButton}
-                onClick={() => {
-                  if (currentlyPlayingMetadata === null) return;
-
-                  pauseAudio();
-
-                  let i = currentChordIndex;
-
-                  const currentTime =
-                    currentlyPlayingMetadata?.[currentChordIndex]
-                      ?.elapsedSeconds;
-
-                  if (currentTime === undefined) return;
-
-                  const targetTime = currentTime + 5;
-
-                  // Loop to find the first chord that matches the +5 seconds condition
-                  while (
-                    i < currentlyPlayingMetadata?.length - 1 &&
-                    currentlyPlayingMetadata?.[i]?.elapsedSeconds !==
-                      undefined &&
-                    currentlyPlayingMetadata[i]!.elapsedSeconds <= targetTime
-                  ) {
-                    i++;
-                  }
-
-                  // Continue looping forward to ensure it is the _very first_ chord at that time
-                  while (
-                    i < currentlyPlayingMetadata?.length - 1 &&
-                    currentlyPlayingMetadata?.[i + 1]?.elapsedSeconds ===
-                      targetTime
-                  ) {
-                    i++;
-                  }
-
-                  setCurrentChordIndex(i);
-                }}
-                className="size-4 shrink-0 rounded-full bg-transparent p-0"
-              >
-                +5s
-              </Button>
-            </div>
+                    setCurrentChordIndex(i);
+                  }}
+                  className="size-4 shrink-0 rounded-full bg-transparent p-0"
+                >
+                  +5s
+                </Button>
+              </div>
+            )}
 
             <div className="baseFlex w-9 !justify-end self-start">
               {formatSecondsToMinutes(

@@ -407,9 +407,7 @@ function usePlaybackGlideScrub({
 
     // Allow one loop-width of forward slack so next-loop half-shift can run
     // without letting rubber-band overscroll invent unbounded loops.
-    ensureNextLoopRepetitions(
-      clamp(nextUnconstrained, min, max + loopWidth),
-    );
+    ensureNextLoopRepetitions(clamp(nextUnconstrained, min, max + loopWidth));
     ({ min, max } = getPositionBounds());
 
     const dimension = getRubberBandDimension(min, max);
@@ -471,7 +469,9 @@ function usePlaybackGlideScrub({
     ) {
       const hasNonZeroRep = repetitions.some((rep) => rep !== 0);
       if (hasNonZeroRep) {
-        const resetRepetitions = new Array(positions.length).fill(0) as number[];
+        const resetRepetitions = new Array(positions.length).fill(
+          0,
+        ) as number[];
         commitRepetitions(resetRepetitions);
 
         const remappedPosition = getAbsoluteChordPosition(
@@ -906,12 +906,7 @@ function usePlaybackGlideScrub({
       dimension,
     );
     const edge = positionRef.current < min ? min : max;
-    const edgeIndex = getNearestChordIndex(
-      edge,
-      positions,
-      repetitions,
-      width,
-    );
+    const edgeIndex = getNearestChordIndex(edge, positions, repetitions, width);
     const edgePosition = getAbsoluteChordPosition(
       edgeIndex,
       positions,
@@ -1014,9 +1009,7 @@ function usePlaybackGlideScrub({
       coastSnapTargetRef.current,
       SCRUB_COAST_DECELERATION_RATE,
     );
-    const travelPx = Math.abs(
-      coastSnapTargetRef.current - positionRef.current,
-    );
+    const travelPx = Math.abs(coastSnapTargetRef.current - positionRef.current);
     const cappedLocked = clampScrubVelocity(
       Math.sign(lockedVelocity || releaseVelocity) *
         Math.min(

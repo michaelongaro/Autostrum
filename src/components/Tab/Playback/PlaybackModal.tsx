@@ -672,8 +672,8 @@ function PlaybackModal() {
                       ref={containerRef}
                       className={`relative flex w-full overflow-hidden ${
                         audioMetadata.editingLoopRange
-                          ? "h-[283px] mobilePortrait:h-[296px]"
-                          : "h-[255px] mobilePortrait:h-[268px]"
+                          ? "h-[290px] mobilePortrait:h-[315px]"
+                          : "h-[255px] mobilePortrait:h-[315px]"
                       }`}
                     >
                       {!audioMetadata.editingLoopRange && (
@@ -719,20 +719,7 @@ function PlaybackModal() {
           </AnimatePresence>
 
           {playbackModalViewingState === "Practice" && (
-            <div className="baseVertFlex w-full gap-1 lg:gap-2">
-              {audioMetadata.editingLoopRange &&
-                !viewportLabel.includes("Landscape") && (
-                  <>
-                    {loopRangePrompt ? (
-                      <p className="pb-2 text-center text-sm text-gray mobileLandscape:pb-0">
-                        {loopRangePrompt}
-                      </p>
-                    ) : (
-                      <div className="h-[28px] w-full pb-2 mobileLandscape:h-5"></div>
-                    )}
-                  </>
-                )}
-
+            <div className="baseVertFlex w-full lg:gap-2 mobilePortrait:gap-1">
               <PlaybackAudioControls
                 chordDurations={chordLayoutData?.durations ?? []}
                 tabProgressValue={tabProgressValue}
@@ -742,6 +729,7 @@ function PlaybackModal() {
                   chordLayoutData?.scrollPositions.length ?? 0
                 }
                 isGlideScrubbing={isGlideScrubbing}
+                loopRangePrompt={loopRangePrompt}
               />
 
               {audioMetadata.editingLoopRange ? (

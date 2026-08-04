@@ -89,8 +89,8 @@ function PlaybackScrollingContainer({
     <div
       className={`baseFlex relative w-full touch-none overflow-hidden ${
         editingLoopRange
-          ? "h-[283px] mobilePortrait:h-[296px]"
-          : "h-[255px] mobilePortrait:h-[268px]"
+          ? "h-[290px] mobilePortrait:h-[315px]"
+          : "h-[255px] mobilePortrait:h-[315px]"
       } ${countInTimer.showing ? "pointer-events-none" : "cursor-grab active:cursor-grabbing"}`}
       onPointerDown={glideScrub.handlePointerDown}
       onPointerMove={glideScrub.handlePointerMove}
