@@ -214,8 +214,11 @@ export const IOS_REST_VELOCITY_PX_PER_MS = 0.02;
 /**
  * Hard cap on scrub/coast velocity (px/ms). Uncapped finger samples can exceed
  * 1px/ms and make flings feel uncontrollably fast.
+ *
+ * At SCRUB_COAST_DECELERATION_RATE this yields ~54px of natural coast travel
+ * before rest — enough for a native-feeling flick without a long runaway glide.
  */
-export const MAX_SCRUB_VELOCITY_PX_PER_MS = 0.32;
+export const MAX_SCRUB_VELOCITY_PX_PER_MS = 0.38;
 
 /**
  * Release speeds below this are treated as a precise stop — no inertial glide.
@@ -242,19 +245,30 @@ export const RELEASE_STILLNESS_MOVEMENT_PX = 1.25;
 export const SCRUB_COAST_DECELERATION_RATE = 0.993;
 
 /**
- * Coast travel budget at the weakest fling (just above FLING_START).
+ * Coast travel budget at the weakest fling (at FLING_START).
  * Aggressive releases scale up toward MAX_COAST_DISTANCE_PX.
  */
 export const MIN_COAST_DISTANCE_PX = 18;
 
 /**
- * Max inertial travel after release. Kept short so after-release glides do not
- * delay returning to Play.
+ * Max inertial travel after release. Sized just above the natural asymptote at
+ * MAX_SCRUB_VELOCITY so aggressive flings are not artificially shortened, while
+ * still keeping coasts short enough that Play stays reachable quickly.
  */
-export const MAX_COAST_DISTANCE_PX = 120;
+export const MAX_COAST_DISTANCE_PX = 72;
 
-/** Hard cap on coast+settle duration after release (ms). */
-export const MAX_COAST_DURATION_MS = 280;
+/**
+ * Coast+settle time budget at the weakest fling (at FLING_START).
+ * Aggressive releases scale up toward MAX_COAST_DURATION_MS.
+ */
+export const MIN_COAST_DURATION_MS = 280;
+
+/**
+ * Hard ceiling on coast+settle duration after release (ms). Matched to the
+ * natural rest time near MAX_SCRUB_VELOCITY so strong flings can finish their
+ * curve instead of being hard-stopped mid-glide.
+ */
+export const MAX_COAST_DURATION_MS = 450;
 
 /** Clamp a scrub/coast velocity to the configured max speed. */
 export function clampScrubVelocity(
@@ -266,8 +280,32 @@ export function clampScrubVelocity(
 }
 
 /**
+ * Shared 0..1 aggressiveness factor for release velocity.
+ * 0 at/below FLING_START (precise stop); 1 at MAX_SCRUB_VELOCITY.
+ * Ease-in (t²) so calm flicks stay short and only hard flings open the budget.
+ */
+export function scrubReleaseAggressiveness(
+  velocityPxPerMs: number,
+  {
+    flingStartVelocityPxPerMs = FLING_START_VELOCITY_PX_PER_MS,
+    maxVelocityPxPerMs = MAX_SCRUB_VELOCITY_PX_PER_MS,
+  }: {
+    flingStartVelocityPxPerMs?: number;
+    maxVelocityPxPerMs?: number;
+  } = {},
+) {
+  const speed = Math.abs(velocityPxPerMs);
+  if (speed < flingStartVelocityPxPerMs) return 0;
+
+  const span = Math.max(1e-6, maxVelocityPxPerMs - flingStartVelocityPxPerMs);
+  const t = clamp((speed - flingStartVelocityPxPerMs) / span, 0, 1);
+  return t * t;
+}
+
+/**
  * How far inertia may continue after release, based on release aggressiveness.
  * Returns 0 when the release is below the fling threshold (precise stop).
+ * At exactly FLING_START, returns MIN_COAST_DISTANCE_PX.
  */
 export function coastDistanceBudgetForVelocity(
   velocityPxPerMs: number,
@@ -283,15 +321,47 @@ export function coastDistanceBudgetForVelocity(
     maxCoastDistancePx?: number;
   } = {},
 ) {
-  const speed = Math.abs(velocityPxPerMs);
-  if (speed < flingStartVelocityPxPerMs) return 0;
+  if (Math.abs(velocityPxPerMs) < flingStartVelocityPxPerMs) return 0;
 
-  const span = Math.max(1e-6, maxVelocityPxPerMs - flingStartVelocityPxPerMs);
-  const t = clamp((speed - flingStartVelocityPxPerMs) / span, 0, 1);
-  // Ease-in so calm scrubs stay short; aggressive flings open the budget.
-  const shaped = t * t;
+  const shaped = scrubReleaseAggressiveness(velocityPxPerMs, {
+    flingStartVelocityPxPerMs,
+    maxVelocityPxPerMs,
+  });
   return (
     minCoastDistancePx + shaped * (maxCoastDistancePx - minCoastDistancePx)
+  );
+}
+
+/**
+ * How long coast+settle may run after release, based on release aggressiveness.
+ * Returns 0 when the release is below the fling threshold (precise stop).
+ * At exactly FLING_START, returns MIN_COAST_DURATION_MS.
+ *
+ * Weak flings keep the shorter MIN budget; hard flings open toward MAX so the
+ * exponential deceleration curve can finish instead of hard-stopping mid-glide.
+ */
+export function coastDurationBudgetForVelocity(
+  velocityPxPerMs: number,
+  {
+    flingStartVelocityPxPerMs = FLING_START_VELOCITY_PX_PER_MS,
+    maxVelocityPxPerMs = MAX_SCRUB_VELOCITY_PX_PER_MS,
+    minCoastDurationMs = MIN_COAST_DURATION_MS,
+    maxCoastDurationMs = MAX_COAST_DURATION_MS,
+  }: {
+    flingStartVelocityPxPerMs?: number;
+    maxVelocityPxPerMs?: number;
+    minCoastDurationMs?: number;
+    maxCoastDurationMs?: number;
+  } = {},
+) {
+  if (Math.abs(velocityPxPerMs) < flingStartVelocityPxPerMs) return 0;
+
+  const shaped = scrubReleaseAggressiveness(velocityPxPerMs, {
+    flingStartVelocityPxPerMs,
+    maxVelocityPxPerMs,
+  });
+  return (
+    minCoastDurationMs + shaped * (maxCoastDurationMs - minCoastDurationMs)
   );
 }
 

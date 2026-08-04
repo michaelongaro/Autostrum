@@ -10,6 +10,7 @@ import {
   clamp,
   clampScrubVelocity,
   coastDistanceBudgetForVelocity,
+  coastDurationBudgetForVelocity,
   FLING_START_VELOCITY_PX_PER_MS,
   getAbsoluteChordPosition,
   getAbsoluteChordPositionBounds,
@@ -49,6 +50,13 @@ const OVERSCROLL_SPRING_OMEGA_PER_MS = 0.014;
 const SNAP_SETTLED_DISTANCE_PX = 0.35;
 
 /**
+ * Minimum time window reserved for the post-coast snap spring so a coast that
+ * exhausts its duration budget (or dies near the deadline) can still ease onto
+ * the chord instead of teleporting.
+ */
+const SNAP_SETTLE_MIN_MS = 120;
+
+/**
  * Coast velocity must be at least this negative (px/ms) before we treat a
  * position decrease as an intentional backward scrub for rep resets.
  */
@@ -56,7 +64,8 @@ const BACKWARD_RESET_VELOCITY_PX_PER_MS = -0.05;
 
 /**
  * Safety cap so a pathological spring cannot run forever if floats drift.
- * Kept in line with MAX_COAST_DURATION_MS so scrubbing frees Play quickly.
+ * Ceiling matches the most aggressive coast budget so Play is never blocked
+ * longer than a max-velocity fling would already allow.
  */
 const MAX_SPRING_MS = MAX_COAST_DURATION_MS;
 
@@ -144,6 +153,11 @@ function usePlaybackGlideScrub({
   const coastSnapIndexRef = useRef(0);
   /** |velocity| at coast start; used to ramp destination-lock pull as we slow. */
   const coastInitialSpeedRef = useRef(0);
+  /**
+   * Coast+settle time budget locked at release from fling aggressiveness.
+   * Weak flicks keep the short MIN; hard flings open toward MAX.
+   */
+  const coastDurationBudgetMsRef = useRef(MAX_COAST_DURATION_MS);
   /** Wall-clock time of the last significant pointer movement (for stop→release). */
   const lastSignificantMoveAtRef = useRef(0);
   const springOmegaRef = useRef(SNAP_SETTLE_OMEGA_PER_MS);
@@ -710,11 +724,12 @@ function usePlaybackGlideScrub({
       coastStartedAtRef.current > 0
         ? nowMs - coastStartedAtRef.current
         : springAgeMs;
+    const durationBudgetMs = coastDurationBudgetMsRef.current;
     const settled =
       (distanceToSnap < SNAP_SETTLED_DISTANCE_PX &&
         Math.abs(velocityPxPerMsRef.current) < IOS_REST_VELOCITY_PX_PER_MS) ||
       springAgeMs >= MAX_SPRING_MS ||
-      inertiaAgeMs >= MAX_COAST_DURATION_MS;
+      inertiaAgeMs >= durationBudgetMs;
 
     if (settled) {
       finishScrub(coastSnapIndexRef.current);
@@ -726,8 +741,8 @@ function usePlaybackGlideScrub({
 
   /**
    * Spring from the current strip position/velocity onto the destination-locked
-   * chord. Used for no-fling releases, tiny remaining coast error, and as a
-   * continuous handoff when coast velocity dies.
+   * chord. Used for tiny remaining coast error and as a continuous handoff when
+   * coast velocity dies or the coast time budget is exhausted off-target.
    */
   function beginSnapSettle() {
     const distanceToSnap = Math.abs(
@@ -746,8 +761,20 @@ function usePlaybackGlideScrub({
     isSpringBackRef.current = false;
     isCoastingRef.current = true;
     isTouchingRef.current = false;
-    springStartedAtRef.current = performance.now();
-    lastFrameTimeRef.current = springStartedAtRef.current;
+    const nowMs = performance.now();
+    springStartedAtRef.current = nowMs;
+    lastFrameTimeRef.current = nowMs;
+
+    // Keep a short spring window even if the coast budget is already spent.
+    const coastElapsedMs =
+      coastStartedAtRef.current > 0 ? nowMs - coastStartedAtRef.current : 0;
+    coastDurationBudgetMsRef.current = Math.min(
+      MAX_COAST_DURATION_MS + SNAP_SETTLE_MIN_MS,
+      Math.max(
+        coastDurationBudgetMsRef.current,
+        coastElapsedMs + SNAP_SETTLE_MIN_MS,
+      ),
+    );
 
     stopRaf();
     rafIdRef.current = requestAnimationFrame(tickSpring);
@@ -765,9 +792,21 @@ function usePlaybackGlideScrub({
     const deltaMs = clamp(nowMs - lastTime, 0, MAX_FRAME_DELTA_MS);
     lastFrameTimeRef.current = nowMs;
 
-    // Hard time budget so after-release glides cannot block Play for long.
-    if (nowMs - coastStartedAtRef.current >= MAX_COAST_DURATION_MS) {
-      finishScrub(coastSnapIndexRef.current);
+    // Aggression-scaled time budget locked at release — hard flings get longer.
+    // If we still have snap error when time is up, hand off to the spring
+    // instead of teleporting to the chord.
+    if (nowMs - coastStartedAtRef.current >= coastDurationBudgetMsRef.current) {
+      const distanceToSnap = Math.abs(
+        positionRef.current - coastSnapTargetRef.current,
+      );
+      if (
+        distanceToSnap < SNAP_SETTLED_DISTANCE_PX &&
+        Math.abs(velocityPxPerMsRef.current) < IOS_REST_VELOCITY_PX_PER_MS
+      ) {
+        finishScrub(coastSnapIndexRef.current);
+      } else {
+        beginSnapSettle();
+      }
       return;
     }
 
@@ -903,6 +942,8 @@ function usePlaybackGlideScrub({
     isSnapSettlingRef.current = false;
     isCoastingRef.current = true;
     isTouchingRef.current = false;
+    // Overscroll spring-back is not a fling coast; use the max settle ceiling.
+    coastDurationBudgetMsRef.current = MAX_COAST_DURATION_MS;
     const nowMs = performance.now();
     coastStartedAtRef.current = nowMs;
     springStartedAtRef.current = nowMs;
@@ -931,7 +972,8 @@ function usePlaybackGlideScrub({
       return;
     }
 
-    // Cap peak release speed, then decide coast distance from aggressiveness.
+    // Cap peak release speed, then decide coast distance/duration from
+    // aggressiveness. Precise / still releases stay at zero and never coast.
     let releaseVelocity = clampScrubVelocity(estimateVelocityPxPerMs());
     if (Math.abs(releaseVelocity) < FLING_START_VELOCITY_PX_PER_MS) {
       releaseVelocity = 0;
@@ -941,9 +983,14 @@ function usePlaybackGlideScrub({
     coastInitialSpeedRef.current = Math.abs(releaseVelocity);
 
     const distanceBudgetPx = coastDistanceBudgetForVelocity(releaseVelocity);
+    const durationBudgetMs = coastDurationBudgetForVelocity(releaseVelocity);
 
     // Precise / stopped release: no inertial glide and no settle animation.
-    if (distanceBudgetPx <= 0 || releaseVelocity === 0) {
+    if (
+      distanceBudgetPx <= 0 ||
+      durationBudgetMs <= 0 ||
+      releaseVelocity === 0
+    ) {
       finishAtPlayheadChord();
       return;
     }
@@ -989,6 +1036,10 @@ function usePlaybackGlideScrub({
       finishAtPlayheadChord();
       return;
     }
+
+    // Lock duration from the measured release fling — not the destination-locked
+    // velocity — so aggressiveness at lift owns how long inertia may run.
+    coastDurationBudgetMsRef.current = durationBudgetMs;
 
     isSpringBackRef.current = false;
     isSnapSettlingRef.current = false;
