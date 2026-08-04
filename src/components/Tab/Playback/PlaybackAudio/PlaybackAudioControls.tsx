@@ -424,7 +424,7 @@ function PlaybackAudioControls({
                 disabled={disablePlayButton}
                 onPointerDown={handlePlayPointerDown}
                 onClick={handlePlayButtonClick}
-                className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
+                className="size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:brightness-75"
               >
                 <PlayButtonIcon
                   uniqueLocationKey="audioControls"

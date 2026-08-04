@@ -269,10 +269,10 @@ function PlaybackAudioRange({
                 style={{
                   height: "8px",
                   borderRadius: "4px",
-                  filter: disabled ? "brightness(0.75)" : "none",
                   alignSelf: "center",
+                  filter: disabled ? "brightness(0.75)" : "none",
                 }}
-                className={`relative w-full bg-[hsl(var(--gray)/0.5)]`}
+                className={`relative w-full bg-[hsl(var(--gray)/0.5)] transition`}
               >
                 <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
                   <div
