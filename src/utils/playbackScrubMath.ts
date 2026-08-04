@@ -215,34 +215,46 @@ export const IOS_REST_VELOCITY_PX_PER_MS = 0.02;
  * Hard cap on scrub/coast velocity (px/ms). Uncapped finger samples can exceed
  * 1px/ms and make flings feel uncontrollably fast.
  */
-export const MAX_SCRUB_VELOCITY_PX_PER_MS = 0.42;
+export const MAX_SCRUB_VELOCITY_PX_PER_MS = 0.28;
 
 /**
- * Release speeds below this are treated as a precise stop — no inertial glide,
- * only a tiny settle onto the nearest chord if needed.
+ * Release speeds below this are treated as a precise stop — no inertial glide.
+ * Kept relatively high so only intentional flicks coast.
  */
-export const FLING_START_VELOCITY_PX_PER_MS = 0.07;
+export const FLING_START_VELOCITY_PX_PER_MS = 0.16;
 
 /**
- * If the pointer is essentially still for this long before lift, fling
- * velocity is zeroed (precise scrub → stop → release).
+ * If no significant pointer movement has occurred for this long before lift,
+ * fling velocity is zeroed (precise scrub → stop → release).
+ *
+ * Measured from wall-clock time, not sample timestamps — pointermove stops
+ * firing while the finger is still, so sample-only stillness checks miss pauses.
  */
-export const RELEASE_STILLNESS_MS = 48;
+export const RELEASE_STILLNESS_MS = 70;
 
-/** Movement (px) within the stillness window that still counts as "stopped". */
-export const RELEASE_STILLNESS_MOVEMENT_PX = 0.75;
+/** Movement (px) that counts as "significant" for stillness / fling intent. */
+export const RELEASE_STILLNESS_MOVEMENT_PX = 1.25;
+
+/**
+ * Faster than UIScrollView.normal so post-release coasts end quickly and the
+ * user can press Play again sooner.
+ */
+export const SCRUB_COAST_DECELERATION_RATE = 0.993;
 
 /**
  * Coast travel budget at the weakest fling (just above FLING_START).
  * Aggressive releases scale up toward MAX_COAST_DISTANCE_PX.
  */
-export const MIN_COAST_DISTANCE_PX = 32;
+export const MIN_COAST_DISTANCE_PX = 18;
 
 /**
- * Max inertial travel after release. Matches ~natural coast distance at
- * MAX_SCRUB_VELOCITY with IOS_DECELERATION_RATE (~0.42 / -ln(0.998) ≈ 210px).
+ * Max inertial travel after release. Kept short so after-release glides do not
+ * delay returning to Play.
  */
-export const MAX_COAST_DISTANCE_PX = 210;
+export const MAX_COAST_DISTANCE_PX = 96;
+
+/** Hard cap on coast+settle duration after release (ms). */
+export const MAX_COAST_DURATION_MS = 280;
 
 /** Clamp a scrub/coast velocity to the configured max speed. */
 export function clampScrubVelocity(
@@ -305,14 +317,14 @@ export function projectIosCoastPosition(
 }
 
 /**
- * Project an iOS coast end, then clamp travel to an aggressiveness budget.
+ * Project a scrub coast end, then clamp travel to an aggressiveness budget.
  * Direction follows velocity; zero velocity returns the current position.
  */
 export function projectCoastPositionWithDistanceBudget(
   positionPx: number,
   velocityPxPerMs: number,
   distanceBudgetPx: number,
-  decelerationRate = IOS_DECELERATION_RATE,
+  decelerationRate = SCRUB_COAST_DECELERATION_RATE,
 ) {
   if (
     distanceBudgetPx <= 0 ||

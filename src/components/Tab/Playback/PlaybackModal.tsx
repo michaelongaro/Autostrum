@@ -741,6 +741,7 @@ function PlaybackModal() {
                 scrollPositionsLength={
                   chordLayoutData?.scrollPositions.length ?? 0
                 }
+                isGlideScrubbing={isGlideScrubbing}
               />
 
               {audioMetadata.editingLoopRange ? (
