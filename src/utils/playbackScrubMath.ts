@@ -215,7 +215,7 @@ export const IOS_REST_VELOCITY_PX_PER_MS = 0.02;
  * Hard cap on scrub/coast velocity (px/ms). Uncapped finger samples can exceed
  * 1px/ms and make flings feel uncontrollably fast.
  */
-export const MAX_SCRUB_VELOCITY_PX_PER_MS = 0.28;
+export const MAX_SCRUB_VELOCITY_PX_PER_MS = 0.32;
 
 /**
  * Release speeds below this are treated as a precise stop — no inertial glide.
@@ -251,7 +251,7 @@ export const MIN_COAST_DISTANCE_PX = 18;
  * Max inertial travel after release. Kept short so after-release glides do not
  * delay returning to Play.
  */
-export const MAX_COAST_DISTANCE_PX = 96;
+export const MAX_COAST_DISTANCE_PX = 120;
 
 /** Hard cap on coast+settle duration after release (ms). */
 export const MAX_COAST_DURATION_MS = 280;
@@ -286,10 +286,7 @@ export function coastDistanceBudgetForVelocity(
   const speed = Math.abs(velocityPxPerMs);
   if (speed < flingStartVelocityPxPerMs) return 0;
 
-  const span = Math.max(
-    1e-6,
-    maxVelocityPxPerMs - flingStartVelocityPxPerMs,
-  );
+  const span = Math.max(1e-6, maxVelocityPxPerMs - flingStartVelocityPxPerMs);
   const t = clamp((speed - flingStartVelocityPxPerMs) / span, 0, 1);
   // Ease-in so calm scrubs stay short; aggressive flings open the budget.
   const shaped = t * t;
@@ -428,9 +425,7 @@ export function iosRubberBandOffset(
 
   const sign = offsetPx < 0 ? -1 : 1;
   const x = Math.abs(offsetPx);
-  return (
-    sign * (1 - 1 / ((x * coefficient) / dimensionPx + 1)) * dimensionPx
-  );
+  return sign * (1 - 1 / ((x * coefficient) / dimensionPx + 1)) * dimensionPx;
 }
 
 /**
