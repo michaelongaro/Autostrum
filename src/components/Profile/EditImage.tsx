@@ -12,6 +12,7 @@ import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { X } from "lucide-react";
 import Spinner from "~/components/ui/Spinner";
+import { VscDebugRestart } from "react-icons/vsc";
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -342,7 +343,7 @@ function EditImage({
             </div>
           </div>
 
-          <div className="baseFlex mt-8 w-full !justify-between gap-4 px-8 lg:mt-0 lg:px-0">
+          <div className="baseFlex mt-8 w-full !justify-between gap-4 px-8 lg:mt-2 lg:px-0">
             <Button
               variant={"outline"}
               disabled={
@@ -351,9 +352,10 @@ function EditImage({
                 localRotation === 0 &&
                 localZoom === 1
               }
-              className="w-32 lg:w-auto"
+              className="baseFlex w-32 gap-2 lg:w-auto"
               onClick={resetCrop}
             >
+              <VscDebugRestart />
               Reset
             </Button>
 
