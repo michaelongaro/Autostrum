@@ -13,7 +13,9 @@
 //   - aggregate spacers are present and slide while scrolling
 //   - full vs virtualized geometry parity (document height + every section
 //     card's width/height) across viewport widths
-
+//   - the same packing / scroll invariants hold at non-default tab zoom
+//     levels (CSS zoom on the section tree), including that measured layout
+//     width is not incorrectly divided by zoom
 import { chromium } from "playwright";
 
 const BASE = process.argv[2] ?? "http://localhost:3000";
@@ -179,6 +181,100 @@ async function testParity(browser, fixture, width) {
   );
 }
 
+async function testZoomAwareness(browser, viewport) {
+  console.log(`\n--- zoom awareness viewport=${viewport.width}x${viewport.height} ---`);
+
+  // At zoom=2, layout width (offsetWidth) must still drive packing. If the
+  // old getBoundingClientRect()/zoom path double-divides on engines where
+  // the rect is already unscaled — or even on Chromium when measurements
+  // drift — row counts / spacer geometry diverge from the full renderer.
+  for (const zoom of [0.5, 1, 1.5]) {
+    const fullPage = await openPage(
+      browser,
+      `${HARNESS}?bare=1&fixture=huge&virtualized=false&zoom=${zoom}`,
+      viewport,
+    );
+    const full = await snapshot(fullPage);
+    await fullPage.context().close();
+
+    const virtPage = await openPage(
+      browser,
+      `${HARNESS}?bare=1&fixture=huge&virtualized=true&zoom=${zoom}`,
+      viewport,
+    );
+    const virtTop = await snapshot(virtPage);
+
+    assert(
+      full.docHeight === virtTop.docHeight,
+      `zoom=${zoom}: identical scroll height (${virtTop.docHeight} === ${full.docHeight})`,
+    );
+    assert(
+      virtTop.nodes < full.nodes * 0.6,
+      `zoom=${zoom}: appreciable DOM reduction (${virtTop.nodes} < 60% of ${full.nodes})`,
+    );
+    assert(
+      JSON.stringify(full.cards) === JSON.stringify(virtTop.cards),
+      `zoom=${zoom}: card geometry parity (${full.cards.length} cards)`,
+    );
+
+    const series = await scrollSeries(virtPage);
+    assert(
+      new Set(series.map((s) => s.docHeight)).size === 1 &&
+        series[0].docHeight === full.docHeight,
+      `zoom=${zoom}: scroll height stable while scrolling`,
+    );
+    assert(
+      new Set(series.map((s) => s.nodes)).size > 1,
+      `zoom=${zoom}: DOM nodes change while scrolling`,
+    );
+
+    // Probe measured layout width vs visual width: layout width should equal
+    // offsetWidth, and visual/layout ratio should be ~zoom on Chromium.
+    const measurement = await virtPage.evaluate(() => {
+      const body = document.querySelector(
+        ".rounded-md.border.px-4 > div.relative.w-full, .rounded-md.border.px-4 > div.baseFlex.relative.w-full",
+      );
+      if (!body) return null;
+      const rect = body.getBoundingClientRect();
+      return {
+        offsetWidth: body.offsetWidth,
+        rectWidth: rect.width,
+        zoomStyle:
+          Number(
+            getComputedStyle(
+              body.closest("[style*='zoom']") ?? body,
+            ).zoom,
+          ) || 1,
+      };
+    });
+
+    assert(measurement !== null, `zoom=${zoom}: found a subsection body to measure`);
+    if (measurement) {
+      // Packing must use offsetWidth; rect/zoom should be ~offsetWidth on
+      // engines that scale rects, and rect itself on engines that don't.
+      const scaledGuess = measurement.rectWidth / zoom;
+      const unscaledGuess = measurement.rectWidth;
+      const layout = measurement.offsetWidth;
+      const scaledErr = Math.abs(scaledGuess - layout);
+      const unscaledErr = Math.abs(unscaledGuess - layout);
+      // Whichever interpretation matches offsetWidth is fine — the bug is
+      // using the WRONG one. Confirm offsetWidth is what packing should use
+      // by checking it is positive and matches the closer of the two guesses.
+      assert(
+        layout > 0,
+        `zoom=${zoom}: layout offsetWidth is positive (${layout})`,
+      );
+      assert(
+        Math.min(scaledErr, unscaledErr) < 2,
+        `zoom=${zoom}: offsetWidth (${layout}) matches rect interpretation ` +
+          `(scaledErr=${scaledErr.toFixed(2)}, unscaledErr=${unscaledErr.toFixed(2)})`,
+      );
+    }
+
+    await virtPage.context().close();
+  }
+}
+
 async function testStaticTabIntegration(browser, viewportName, viewport) {
   console.log(`\n--- StaticTab integration viewport=${viewportName} ---`);
 
@@ -231,6 +327,9 @@ try {
       await testParity(browser, fixture, width);
     }
   }
+
+  await testZoomAwareness(browser, desktop);
+  await testZoomAwareness(browser, mobile);
 
   const desktopTabNodes = await testStaticTabIntegration(
     browser,
