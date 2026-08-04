@@ -8,10 +8,13 @@ interface UseSpacebarAudioControlOptions {
    * own spacebar handler.
    */
   useHoveredChordLocation?: boolean;
+  /** When true, spacebar play/pause is ignored (e.g. during glide scrub/coast). */
+  disabled?: boolean;
 }
 
 function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
   const useHoveredChordLocation = options?.useHoveredChordLocation ?? false;
+  const disabled = options?.disabled ?? false;
 
   const {
     audioMetadata,
@@ -86,6 +89,8 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      if (disabled) return;
+
       if (useHoveredChordLocation) {
         // Only while editing, and never alongside the PlaybackModal handler.
         if (!editing || showPlaybackModal) return;
@@ -134,6 +139,7 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     useHoveredChordLocation,
     editing,
     showPlaybackModal,
+    disabled,
   ]);
 }
 

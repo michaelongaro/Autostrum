@@ -24,6 +24,8 @@ interface PlaybackAudioControls {
   setTabProgressValue: Dispatch<SetStateAction<number>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
+  /** True while the strip is being glide-scrubbed or still coasting after release. */
+  isGlideScrubbing?: boolean;
 }
 
 function PlaybackAudioControls({
@@ -32,6 +34,7 @@ function PlaybackAudioControls({
   setTabProgressValue,
   setChordRepetitions,
   scrollPositionsLength,
+  isGlideScrubbing = false,
 }: PlaybackAudioControls) {
   const {
     bpm,
@@ -98,7 +101,7 @@ function PlaybackAudioControls({
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
-  useSpacebarAudioControl();
+  useSpacebarAudioControl({ disabled: isGlideScrubbing });
 
   useEffect(() => {
     if (currentChordIndex === 0) {
@@ -242,6 +245,7 @@ function PlaybackAudioControls({
   }
 
   const disablePlayButton =
+    isGlideScrubbing ||
     countInTimer.showing ||
     artificalPlayButtonTimeout ||
     fetchingFullTabData ||
