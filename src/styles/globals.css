@@ -12,6 +12,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
@@ -73,12 +74,6 @@ html:not([data-color]) .headerLogoLayer[data-logo-color="maple"] {
       "rlig" 1,
       "calt" 1;
   }
-}
-
-html {
-  /* Reserve scrollbar space so overflow locks don't change layout width
-     (avoids Framer Motion layout="position" shifts when modals open). */
-  scrollbar-gutter: stable;
 }
 
 html.disablePullToRefresh {
@@ -235,13 +230,6 @@ kbd {
   inline-size: 100%;
 }
 
-/* used to override radix-ui's "feature"/bug of auto-removing scrollbar
-   on opening of a <Select>, especially visible when opening a <Select>
-   in a modal */
-html body[data-scroll-locked] {
-  overflow: visible !important;
-  margin-right: 0 !important;
-}
 
 @keyframes countInAnimation {
   0% {
