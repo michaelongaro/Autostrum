@@ -212,6 +212,81 @@ export const IOS_DECELERATION_RATE = 0.998;
 export const IOS_REST_VELOCITY_PX_PER_MS = 0.02;
 
 /**
+ * Hard cap on scrub/coast velocity (px/ms). Uncapped finger samples can exceed
+ * 1px/ms and make flings feel uncontrollably fast.
+ */
+export const MAX_SCRUB_VELOCITY_PX_PER_MS = 0.42;
+
+/**
+ * Release speeds below this are treated as a precise stop — no inertial glide,
+ * only a tiny settle onto the nearest chord if needed.
+ */
+export const FLING_START_VELOCITY_PX_PER_MS = 0.07;
+
+/**
+ * If the pointer is essentially still for this long before lift, fling
+ * velocity is zeroed (precise scrub → stop → release).
+ */
+export const RELEASE_STILLNESS_MS = 48;
+
+/** Movement (px) within the stillness window that still counts as "stopped". */
+export const RELEASE_STILLNESS_MOVEMENT_PX = 0.75;
+
+/**
+ * Coast travel budget at the weakest fling (just above FLING_START).
+ * Aggressive releases scale up toward MAX_COAST_DISTANCE_PX.
+ */
+export const MIN_COAST_DISTANCE_PX = 32;
+
+/**
+ * Max inertial travel after release. Matches ~natural coast distance at
+ * MAX_SCRUB_VELOCITY with IOS_DECELERATION_RATE (~0.42 / -ln(0.998) ≈ 210px).
+ */
+export const MAX_COAST_DISTANCE_PX = 210;
+
+/** Clamp a scrub/coast velocity to the configured max speed. */
+export function clampScrubVelocity(
+  velocityPxPerMs: number,
+  maxVelocityPxPerMs = MAX_SCRUB_VELOCITY_PX_PER_MS,
+) {
+  if (!Number.isFinite(velocityPxPerMs)) return 0;
+  return clamp(velocityPxPerMs, -maxVelocityPxPerMs, maxVelocityPxPerMs);
+}
+
+/**
+ * How far inertia may continue after release, based on release aggressiveness.
+ * Returns 0 when the release is below the fling threshold (precise stop).
+ */
+export function coastDistanceBudgetForVelocity(
+  velocityPxPerMs: number,
+  {
+    flingStartVelocityPxPerMs = FLING_START_VELOCITY_PX_PER_MS,
+    maxVelocityPxPerMs = MAX_SCRUB_VELOCITY_PX_PER_MS,
+    minCoastDistancePx = MIN_COAST_DISTANCE_PX,
+    maxCoastDistancePx = MAX_COAST_DISTANCE_PX,
+  }: {
+    flingStartVelocityPxPerMs?: number;
+    maxVelocityPxPerMs?: number;
+    minCoastDistancePx?: number;
+    maxCoastDistancePx?: number;
+  } = {},
+) {
+  const speed = Math.abs(velocityPxPerMs);
+  if (speed < flingStartVelocityPxPerMs) return 0;
+
+  const span = Math.max(
+    1e-6,
+    maxVelocityPxPerMs - flingStartVelocityPxPerMs,
+  );
+  const t = clamp((speed - flingStartVelocityPxPerMs) / span, 0, 1);
+  // Ease-in so calm scrubs stay short; aggressive flings open the budget.
+  const shaped = t * t;
+  return (
+    minCoastDistancePx + shaped * (maxCoastDistancePx - minCoastDistancePx)
+  );
+}
+
+/**
  * iOS coast end position: x∞ = x0 + v0 / -ln(d), with v0 in px/ms.
  */
 export function projectIosCoastPosition(
@@ -227,6 +302,37 @@ export function projectIosCoastPosition(
   if (lnRate >= 0) return positionPx;
 
   return positionPx + velocityPxPerMs / -lnRate;
+}
+
+/**
+ * Project an iOS coast end, then clamp travel to an aggressiveness budget.
+ * Direction follows velocity; zero velocity returns the current position.
+ */
+export function projectCoastPositionWithDistanceBudget(
+  positionPx: number,
+  velocityPxPerMs: number,
+  distanceBudgetPx: number,
+  decelerationRate = IOS_DECELERATION_RATE,
+) {
+  if (
+    distanceBudgetPx <= 0 ||
+    Math.abs(velocityPxPerMs) < IOS_REST_VELOCITY_PX_PER_MS
+  ) {
+    return positionPx;
+  }
+
+  const naturalProjected = projectIosCoastPosition(
+    positionPx,
+    velocityPxPerMs,
+    decelerationRate,
+  );
+  const naturalTravel = naturalProjected - positionPx;
+  if (naturalTravel === 0) return positionPx;
+
+  const cappedTravel =
+    Math.min(Math.abs(naturalTravel), distanceBudgetPx) *
+    Math.sign(naturalTravel);
+  return positionPx + cappedTravel;
 }
 
 /**

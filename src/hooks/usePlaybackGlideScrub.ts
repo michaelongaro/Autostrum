@@ -8,6 +8,9 @@ import {
 import {
   applyIosRubberBandPosition,
   clamp,
+  clampScrubVelocity,
+  coastDistanceBudgetForVelocity,
+  FLING_START_VELOCITY_PX_PER_MS,
   getAbsoluteChordPosition,
   getAbsoluteChordPositionBounds,
   getChordIndexAtPlayhead,
@@ -19,7 +22,10 @@ import {
   isVisuallyForwardIndexChange,
   IOS_DECELERATION_RATE,
   IOS_REST_VELOCITY_PX_PER_MS,
-  projectIosCoastPosition,
+  MAX_SCRUB_VELOCITY_PX_PER_MS,
+  projectCoastPositionWithDistanceBudget,
+  RELEASE_STILLNESS_MOVEMENT_PX,
+  RELEASE_STILLNESS_MS,
   velocityToReachIosCoastDestination,
 } from "~/utils/playbackScrubMath";
 
@@ -40,12 +46,6 @@ const OVERSCROLL_SPRING_OMEGA_PER_MS = 0.01;
 
 /** Treat as already on-target below this distance (px). */
 const SNAP_SETTLED_DISTANCE_PX = 0.35;
-
-/**
- * Short releases (no big fling) skip exponential coast and spring directly
- * onto the nearest chord — more controlled and avoids the asymptotic tail.
- */
-const SHORT_TRAVEL_SPRING_PX = 56;
 
 /**
  * Coast velocity must be at least this negative (px/ms) before we treat a
@@ -475,59 +475,43 @@ function usePlaybackGlideScrub({
     if (samples.length < 2) return 0;
 
     const latest = samples[samples.length - 1]!;
-    const windowStart = latest.timeMs - VELOCITY_SAMPLE_WINDOW_MS;
 
-    // Prefer the oldest sample still inside the window for a stable average.
-    // If the finger paused before lift, fall back to the last moving pair so
-    // a brief stop does not fully kill an otherwise intentional fling.
-    let earliestInWindow: VelocitySample | null = null;
-    let lastMoving: VelocitySample | null = null;
-
+    // Precise scrub → stop → release: recent stillness kills fling entirely.
+    // (Do not resurrect earlier motion from before the pause.)
+    const stillnessStart = latest.timeMs - RELEASE_STILLNESS_MS;
+    let stillnessMinX = latest.x;
+    let stillnessMaxX = latest.x;
+    let stillnessSampleCount = 0;
     for (let i = 0; i < samples.length; i++) {
       const sample = samples[i]!;
-      if (sample.timeMs >= windowStart && earliestInWindow === null) {
+      if (sample.timeMs < stillnessStart) continue;
+      stillnessSampleCount += 1;
+      stillnessMinX = Math.min(stillnessMinX, sample.x);
+      stillnessMaxX = Math.max(stillnessMaxX, sample.x);
+    }
+    if (
+      stillnessSampleCount > 0 &&
+      stillnessMaxX - stillnessMinX <= RELEASE_STILLNESS_MOVEMENT_PX
+    ) {
+      return 0;
+    }
+
+    const windowStart = latest.timeMs - VELOCITY_SAMPLE_WINDOW_MS;
+    let earliestInWindow: VelocitySample | null = null;
+    for (let i = 0; i < samples.length; i++) {
+      const sample = samples[i]!;
+      if (sample.timeMs >= windowStart) {
         earliestInWindow = sample;
-      }
-      if (i > 0) {
-        const previous = samples[i - 1]!;
-        if (Math.abs(sample.x - previous.x) > 0.5) {
-          lastMoving = sample;
-        }
+        break;
       }
     }
 
     const earliest = earliestInWindow ?? samples[0]!;
-    let end = latest;
-
-    // If the last ~32ms are essentially still, measure against the last move.
-    if (
-      lastMoving &&
-      latest.timeMs - lastMoving.timeMs > 32 &&
-      Math.abs(latest.x - lastMoving.x) < 0.5
-    ) {
-      end = lastMoving;
-      // Walk back for a window ending at the last move.
-      let earliestBeforeStop = samples[0]!;
-      const stopWindowStart = end.timeMs - VELOCITY_SAMPLE_WINDOW_MS;
-      for (let i = 0; i < samples.length; i++) {
-        const sample = samples[i]!;
-        if (sample.timeMs > end.timeMs) break;
-        if (sample.timeMs >= stopWindowStart) {
-          earliestBeforeStop = sample;
-          break;
-        }
-        earliestBeforeStop = sample;
-      }
-      const dt = end.timeMs - earliestBeforeStop.timeMs;
-      if (dt <= 0) return 0;
-      return -(end.x - earliestBeforeStop.x) / dt;
-    }
-
-    const dt = end.timeMs - earliest.timeMs;
+    const dt = latest.timeMs - earliest.timeMs;
     if (dt <= 0) return 0;
 
     // Finger right (+) => strip position decreases.
-    return -(end.x - earliest.x) / dt;
+    return clampScrubVelocity(-(latest.x - earliest.x) / dt);
   }
 
   function stopRaf() {
@@ -601,18 +585,14 @@ function usePlaybackGlideScrub({
     setIsGlideScrubbing(false);
   }
 
-  function retargetSnapFromCurrentPosition() {
+  function retargetSnapFromProjectedPosition(projectedPx: number) {
     const positions = scrollPositionsRef.current;
     const repetitions = chordRepetitionsRef.current;
     const width = totalWidthRef.current;
     if (!positions || positions.length === 0) return;
 
-    const projected = projectIosCoastPosition(
-      positionRef.current,
-      velocityPxPerMsRef.current,
-    );
     const { min, max } = getPositionBounds();
-    const clampedProjected = clamp(projected, min, max);
+    const clampedProjected = clamp(projectedPx, min, max);
     const snapIndex = getNearestChordIndex(
       clampedProjected,
       positions,
@@ -626,6 +606,49 @@ function usePlaybackGlideScrub({
       repetitions,
       width,
     );
+  }
+
+  function retargetSnapFromCurrentPosition() {
+    const budget = coastDistanceBudgetForVelocity(velocityPxPerMsRef.current);
+    const projected = projectCoastPositionWithDistanceBudget(
+      positionRef.current,
+      velocityPxPerMsRef.current,
+      budget,
+    );
+    retargetSnapFromProjectedPosition(projected);
+  }
+
+  /**
+   * No inertial glide: clear velocity and spring/settle onto the nearest chord
+   * at the current playhead (precise stop or below fling threshold).
+   */
+  function beginNearestChordSettle() {
+    const positions = scrollPositionsRef.current;
+    const repetitions = chordRepetitionsRef.current;
+    const width = totalWidthRef.current;
+    if (!positions || positions.length === 0) {
+      finishScrub(currentChordIndexRef.current);
+      return;
+    }
+
+    velocityPxPerMsRef.current = 0;
+    coastInitialSpeedRef.current = 0;
+    scrubDirectionRef.current = 0;
+
+    const nearestIndex = getNearestChordIndex(
+      positionRef.current,
+      positions,
+      repetitions,
+      width,
+    );
+    coastSnapIndexRef.current = nearestIndex;
+    coastSnapTargetRef.current = getAbsoluteChordPosition(
+      nearestIndex,
+      positions,
+      repetitions,
+      width,
+    );
+    beginSnapSettle();
   }
 
   function tickSpring(nowMs: number) {
@@ -739,7 +762,9 @@ function usePlaybackGlideScrub({
     );
     const speedRatio = clamp(Math.abs(nextVelocity) / initialSpeed, 0, 1);
     const pull = 0.06 + 0.4 * (1 - speedRatio) * (1 - speedRatio);
-    nextVelocity += (idealVelocity - nextVelocity) * pull;
+    nextVelocity = clampScrubVelocity(
+      nextVelocity + (idealVelocity - nextVelocity) * pull,
+    );
 
     // Keep scrub direction aligned with live coast velocity so intentional
     // backward flings can still reset reps, while forward coasts cannot.
@@ -855,7 +880,6 @@ function usePlaybackGlideScrub({
 
   function beginCoast() {
     const positions = scrollPositionsRef.current;
-    const width = totalWidthRef.current;
 
     if (!positions || positions.length === 0) {
       finishScrub(currentChordIndexRef.current);
@@ -873,48 +897,61 @@ function usePlaybackGlideScrub({
       return;
     }
 
-    const measuredVelocity = estimateVelocityPxPerMs();
-    velocityPxPerMsRef.current = measuredVelocity;
-    coastInitialSpeedRef.current = Math.abs(measuredVelocity);
-
-    if (Math.abs(measuredVelocity) >= IOS_REST_VELOCITY_PX_PER_MS) {
-      scrubDirectionRef.current = measuredVelocity < 0 ? -1 : 1;
+    // Cap peak release speed, then decide coast distance from aggressiveness.
+    let releaseVelocity = clampScrubVelocity(estimateVelocityPxPerMs());
+    if (Math.abs(releaseVelocity) < FLING_START_VELOCITY_PX_PER_MS) {
+      releaseVelocity = 0;
     }
 
-    ensureNextLoopRepetitions(
-      projectIosCoastPosition(positionRef.current, measuredVelocity),
+    velocityPxPerMsRef.current = releaseVelocity;
+    coastInitialSpeedRef.current = Math.abs(releaseVelocity);
+
+    const distanceBudgetPx = coastDistanceBudgetForVelocity(releaseVelocity);
+
+    // Precise / calm-enough-to-stop release: no inertial glide.
+    if (distanceBudgetPx <= 0 || releaseVelocity === 0) {
+      beginNearestChordSettle();
+      return;
+    }
+
+    scrubDirectionRef.current = releaseVelocity < 0 ? -1 : 1;
+
+    const budgetedProjected = projectCoastPositionWithDistanceBudget(
+      positionRef.current,
+      releaseVelocity,
+      distanceBudgetPx,
     );
 
-    retargetSnapFromCurrentPosition();
+    ensureNextLoopRepetitions(budgetedProjected);
+    retargetSnapFromProjectedPosition(budgetedProjected);
 
+    // Destination-lock onto the budgeted chord, never exceeding the capped
+    // release speed so aggressiveness still owns both speed and distance.
+    const lockedVelocity = velocityToReachIosCoastDestination(
+      positionRef.current,
+      coastSnapTargetRef.current,
+      IOS_DECELERATION_RATE,
+    );
     const travelPx = Math.abs(
       coastSnapTargetRef.current - positionRef.current,
     );
+    const cappedLocked = clampScrubVelocity(
+      Math.sign(lockedVelocity || releaseVelocity) *
+        Math.min(
+          Math.abs(lockedVelocity),
+          Math.abs(releaseVelocity),
+          MAX_SCRUB_VELOCITY_PX_PER_MS,
+        ),
+    );
+    velocityPxPerMsRef.current = cappedLocked;
+    coastInitialSpeedRef.current = Math.abs(cappedLocked);
 
-    // No fling / short travel: spring directly onto the chord. Seeded with the
-    // measured velocity so release → settle is one continuous motion.
+    // Snap target is already under the playhead (or locking produced no fling).
     if (
-      Math.abs(measuredVelocity) < IOS_REST_VELOCITY_PX_PER_MS ||
-      travelPx <= SHORT_TRAVEL_SPRING_PX
+      travelPx < SNAP_SETTLED_DISTANCE_PX ||
+      Math.abs(cappedLocked) < FLING_START_VELOCITY_PX_PER_MS
     ) {
-      const liveRepetitions = chordRepetitionsRef.current;
-      const immediateIndex =
-        Math.abs(measuredVelocity) < IOS_REST_VELOCITY_PX_PER_MS
-          ? getNearestChordIndex(
-              positionRef.current,
-              positions,
-              liveRepetitions,
-              width,
-            )
-          : coastSnapIndexRef.current;
-      coastSnapIndexRef.current = immediateIndex;
-      coastSnapTargetRef.current = getAbsoluteChordPosition(
-        immediateIndex,
-        positions,
-        liveRepetitions,
-        width,
-      );
-      beginSnapSettle();
+      beginNearestChordSettle();
       return;
     }
 
@@ -1008,7 +1045,7 @@ function usePlaybackGlideScrub({
     // Update logical/rubber-band position every pointer sample for control
     // fidelity, but paint translateX once per animation frame.
     applyPosition(positionRef.current - deltaX, true, true);
-    velocityPxPerMsRef.current = estimateVelocityPxPerMs();
+    velocityPxPerMsRef.current = clampScrubVelocity(estimateVelocityPxPerMs());
     scheduleTrackingFrame();
   }
 
