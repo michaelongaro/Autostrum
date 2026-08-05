@@ -50,7 +50,10 @@ function useGetLocalStorageValues() {
     leftHandChordDiagrams: localStorageLeftHandChordDiagrams.value === "true",
     countIn: localStorageCountIn.value === "true",
     colorCodedChords: localStorageColorCodedChords.value === "true",
-    pinSectionNavigation: localStoragePinSectionNavigation.value === "true",
+    // Accept both JSON-stringified "true" and a legacy raw boolean parse.
+    pinSectionNavigation:
+      localStoragePinSectionNavigation.value === "true" ||
+      localStoragePinSectionNavigation.value === true,
   };
 }
 
