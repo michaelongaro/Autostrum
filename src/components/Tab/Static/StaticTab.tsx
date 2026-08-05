@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { cn } from "~/utils/cn";
 import { FaBook } from "react-icons/fa";
 import { useTabStore, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
@@ -148,26 +149,18 @@ function StaticTab() {
     };
   }, [tabData.length, zoom, showPinnedChords, pinSectionNavigation]);
 
-  const getPinnedChordsStickyOffset = useCallback(() => {
-    if (!showPinnedChords || chords.length === 0) return 0;
-    const pinnedChords = document.getElementById("stickyPinnedChords");
-    if (!pinnedChords) return 0;
+  const showPinnedChordsBar = showPinnedChords && chords.length > 0;
 
-    const rect = pinnedChords.getBoundingClientRect();
-    // top-28 (7rem) when sitting below the section nav
-    const expectedStickyTop = 112;
-    if (rect.top <= expectedStickyTop + 2) {
-      return rect.height;
-    }
-    return 0;
-  }, [showPinnedChords, chords.length]);
+  const getPinnedChordsStickyOffset = useCallback(() => {
+    if (!showPinnedChordsBar) return 0;
+    const pinnedChords = document.getElementById("stickyPinnedChords");
+    return pinnedChords?.getBoundingClientRect().height ?? 0;
+  }, [showPinnedChordsBar]);
 
   const sectionScrollMarginTop =
     STICKY_HEADER_HEIGHT_PX +
     (showSectionNavigation ? SECTION_NAV_HEIGHT_PX : 0) +
-    (showSectionNavigation && showPinnedChords && chords.length > 0
-      ? 140
-      : 0) +
+    (showSectionNavigation && showPinnedChordsBar ? 140 : 0) +
     8;
 
   const minifiedTabData: Section[] | undefined =
@@ -197,17 +190,30 @@ function StaticTab() {
           ref={tabContentRef}
           className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
         >
-          <PinnedSectionNavigation
-            sections={tabData}
-            show={showSectionNavigation}
-            getAdditionalStickyOffset={getPinnedChordsStickyOffset}
-          />
+          {showSectionNavigation ? (
+            <div
+              className={cn(
+                "baseVertFlex sticky top-16 z-20 w-full !justify-start bg-background shadow-sm",
+                showPinnedChordsBar && "pb-2",
+              )}
+            >
+              <PinnedSectionNavigation
+                sections={tabData}
+                getAdditionalStickyOffset={getPinnedChordsStickyOffset}
+              />
 
-          <PinnedChordsCarousel
-            chords={chords}
-            showPinnedChords={showPinnedChords}
-            belowSectionNavigation={showSectionNavigation}
-          />
+              <PinnedChordsCarousel
+                chords={chords}
+                showPinnedChords={showPinnedChords}
+                nestedInStickyStack
+              />
+            </div>
+          ) : (
+            <PinnedChordsCarousel
+              chords={chords}
+              showPinnedChords={showPinnedChords}
+            />
+          )}
 
           {tabData.map((section, index) =>
             showPlaybackModal ? (
