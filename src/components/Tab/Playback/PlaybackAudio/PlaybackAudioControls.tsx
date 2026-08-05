@@ -388,7 +388,7 @@ function PlaybackAudioControls({
                 <Button
                   variant="text"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
-                  disabled={disablePlayButton}
+                  disabled={disablePlayButton || currentChordIndex === 0}
                   onClick={() => {
                     if (currentlyPlayingMetadata === null) return;
 
@@ -461,11 +461,18 @@ function PlaybackAudioControls({
 
                     pauseAudio();
 
-                    let i = currentChordIndex;
+                    // allows the user to wrap back to the start of the tab
+                    let i =
+                      currentChordIndex === currentlyPlayingMetadata.length - 1
+                        ? 0
+                        : currentChordIndex;
 
+                    // allows the user to wrap back to the start of the tab
                     const currentTime =
-                      currentlyPlayingMetadata[currentChordIndex]
-                        ?.elapsedSeconds;
+                      currentChordIndex === currentlyPlayingMetadata.length - 1
+                        ? 0
+                        : currentlyPlayingMetadata[currentChordIndex]
+                            ?.elapsedSeconds;
 
                     if (currentTime === undefined) return;
 
