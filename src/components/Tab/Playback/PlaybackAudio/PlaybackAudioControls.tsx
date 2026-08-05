@@ -390,12 +390,14 @@ function PlaybackAudioControls({
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onClick={() => {
+                    if (currentlyPlayingMetadata === null) return;
+
                     pauseAudio();
 
                     let i = currentChordIndex;
 
                     const currentTime =
-                      currentlyPlayingMetadata?.[currentChordIndex]
+                      currentlyPlayingMetadata[currentChordIndex]
                         ?.elapsedSeconds;
 
                     if (currentTime === undefined) return;
@@ -405,19 +407,21 @@ function PlaybackAudioControls({
                     // Loop to find the first chord that matches the -5 seconds condition
                     while (i > 0) {
                       if (
-                        currentlyPlayingMetadata?.[i]?.elapsedSeconds &&
+                        currentlyPlayingMetadata[i]?.elapsedSeconds &&
                         currentlyPlayingMetadata[i]!.elapsedSeconds <=
                           targetTime
                       ) {
                         break;
                       }
+
                       i--;
                     }
 
-                    // Continue looping backward to ensure it is the _very first_ chord at that time
+                    // Continue looping backward to ensure it is the _very first_ chord
+                    // at targetTime
                     while (
                       i > 0 &&
-                      currentlyPlayingMetadata?.[i - 1]?.elapsedSeconds ===
+                      currentlyPlayingMetadata[i - 1]?.elapsedSeconds ===
                         targetTime
                     ) {
                       i--;
@@ -460,7 +464,7 @@ function PlaybackAudioControls({
                     let i = currentChordIndex;
 
                     const currentTime =
-                      currentlyPlayingMetadata?.[currentChordIndex]
+                      currentlyPlayingMetadata[currentChordIndex]
                         ?.elapsedSeconds;
 
                     if (currentTime === undefined) return;
@@ -468,23 +472,20 @@ function PlaybackAudioControls({
                     const targetTime = currentTime + 5;
 
                     // Loop to find the first chord that matches the +5 seconds condition
-                    while (
-                      i < currentlyPlayingMetadata?.length - 1 &&
-                      currentlyPlayingMetadata?.[i]?.elapsedSeconds !==
-                        undefined &&
-                      currentlyPlayingMetadata[i]!.elapsedSeconds <= targetTime
-                    ) {
+                    while (i < currentlyPlayingMetadata.length - 1) {
+                      if (
+                        currentlyPlayingMetadata[i]?.elapsedSeconds &&
+                        currentlyPlayingMetadata[i]!.elapsedSeconds >=
+                          targetTime
+                      ) {
+                        break;
+                      }
+
                       i++;
                     }
 
-                    // Continue looping forward to ensure it is the _very first_ chord at that time
-                    while (
-                      i < currentlyPlayingMetadata?.length - 1 &&
-                      currentlyPlayingMetadata?.[i + 1]?.elapsedSeconds ===
-                        targetTime
-                    ) {
-                      i++;
-                    }
+                    // at this point we already have the very first chord at targetTime since
+                    // we are incrementing chord-by-chord
 
                     setCurrentChordIndex(i);
                   }}
