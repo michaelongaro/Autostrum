@@ -35,6 +35,17 @@ export const useSectionIds = () => {
   );
 };
 
+/**
+ * Section titles only — primitive list stays useShallow-stable across nested
+ * note edits (sibling section objects are structurally shared by immer).
+ */
+export const useSectionTitles = () => {
+  return useTabStore(
+    (state) =>
+      state.tabData.map((section) => section.title) ?? EMPTY_STRING_ARRAY,
+  );
+};
+
 export const useSectionTitle = (sectionIndex: number) => {
   return useTabStore((state) => state.tabData[sectionIndex]?.title ?? "");
 };

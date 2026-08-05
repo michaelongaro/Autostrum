@@ -5,6 +5,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { useSectionIds } from "~/hooks/useTabDataSelectors";
 import { Button } from "~/components/ui/button";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
+import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibility";
 import { Separator } from "~/components/ui/separator";
 import SectionProgression from "./SectionProgression";
 import TabMetadata from "./TabMetadata";
@@ -39,7 +40,9 @@ import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
 import AudioControls from "~/components/AudioControls/AudioControls";
-import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
+import PinnedTabChrome, {
+  getSectionScrollMarginTop,
+} from "~/components/Tab/PinnedTabChrome";
 import Logo from "~/components/ui/icons/Logo";
 import { useInView } from "react-intersection-observer";
 import { IoMdSettings } from "react-icons/io";
@@ -87,6 +90,7 @@ function Tab() {
   }
 
   const {
+    id,
     setShowGlossaryDialog,
     chords,
     showPlaybackModal,
@@ -99,6 +103,7 @@ function Tab() {
     setShowPlaybackModal,
     editing,
   } = useTabStore((state) => ({
+    id: state.id,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
     chords: state.chords,
     showPlaybackModal: state.showPlaybackModal,
@@ -115,6 +120,22 @@ function Tab() {
   // IDs only — nested note edits must not re-render the entire tab tree.
   const sectionIds = useSectionIds();
   const tabDataLength = sectionIds.length;
+
+  const showSectionNavigation = useSectionNavigationVisibility({
+    sectionCount: tabDataLength,
+    drawerOpen,
+    showPlaybackModal,
+    resetKey: id,
+    showPinnedChords,
+    // Preview/viewing path only — editing uses a different section tree.
+    enabled: !editing,
+  });
+
+  const showPinnedChordsBar = showPinnedChords && chords.length > 0;
+  const sectionScrollMarginTop = getSectionScrollMarginTop({
+    showSectionNavigation,
+    showPinnedChordsBar,
+  });
 
   useAutoCompileChords();
   useSpacebarAudioControl({ useHoveredChordLocation: true });
@@ -220,14 +241,15 @@ function Tab() {
         )}
 
         <Separator
-          className={`my-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+          className={`bg-border ${editing ? "my-2 w-[96%]" : `w-full tablet:w-[96%] ${showSectionNavigation ? "mt-2" : "my-2"}`}`}
         />
 
         <div
           ref={tabContentRef}
-          className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
+          className={`baseVertFlex relative size-full scroll-m-24 !justify-start gap-4 ${showSectionNavigation ? "" : "mt-2"}`}
         >
-          <PinnedChordsCarousel
+          <PinnedTabChrome
+            showSectionNavigation={showSectionNavigation}
             chords={chords}
             showPinnedChords={showPinnedChords}
           />
@@ -300,6 +322,7 @@ function Tab() {
                       color={color}
                       theme={theme}
                       tabDataLength={tabDataLength}
+                      scrollMarginTop={sectionScrollMarginTop}
                     />
                   </div>
                 ),
@@ -365,6 +388,9 @@ function Tab() {
 
                     if (!open) setPressingOnZoomSlider(false);
                   }}
+                  // Scaling the background breaks position:sticky on the
+                  // section nav; keep the page unscaled so it stays visible.
+                  shouldScaleBackground={false}
                 >
                   <DrawerTrigger asChild>
                     <Button
@@ -379,8 +405,9 @@ function Tab() {
                       <VisuallyHidden>
                         <DrawerTitle>Tab settings</DrawerTitle>
                         <DrawerDescription>
-                          Change the tab zoom, whether chords are pinned, and
-                          whether left-hand chord diagrams are shown.
+                          Change the tab zoom, whether chords and section
+                          navigation are pinned, and whether left-hand chord
+                          diagrams are shown.
                         </DrawerDescription>
                       </VisuallyHidden>
 

@@ -7,24 +7,30 @@ import {
   type CarouselApi,
 } from "~/components/ui/carousel";
 import { Button } from "~/components/ui/button";
-import type { Section } from "~/stores/TabStore";
 import { scroller } from "react-scroll";
 import { cn } from "~/utils/cn";
+import {
+  useSectionIds,
+  useSectionTitles,
+} from "~/hooks/useTabDataSelectors";
 
 export const STICKY_HEADER_HEIGHT_PX = 64;
 /** Approximate nav bar height for scroll-margin fallbacks; live height is measured from the DOM. */
 export const SECTION_NAV_HEIGHT_PX = 36;
 
 interface PinnedSectionNavigationProps {
-  sections: Section[];
   /** Extra sticky offset below this bar (e.g. pinned chords) used for scroll targeting. */
   getAdditionalStickyOffset?: () => number;
 }
 
 function PinnedSectionNavigation({
-  sections,
   getAdditionalStickyOffset,
 }: PinnedSectionNavigationProps) {
+  // Fetch light primitives from the store so parents (esp. Tab) never need tabData.
+  const sectionIds = useSectionIds();
+  const sectionTitles = useSectionTitles();
+  const sectionCount = sectionIds.length;
+
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [carouselOverflows, setCarouselOverflows] = useState(false);
@@ -61,7 +67,7 @@ function PinnedSectionNavigation({
   }, [carouselApi]);
 
   useEffect(() => {
-    if (sections.length < 2) return;
+    if (sectionCount < 2) return;
 
     function updateActiveSection() {
       if (Date.now() < ignoreScrollSpyUntilRef.current) return;
@@ -80,7 +86,7 @@ function PinnedSectionNavigation({
       const focusY = stickyBottom + readingHeight * 0.35;
 
       let nextActiveIndex = 0;
-      for (let i = 0; i < sections.length; i++) {
+      for (let i = 0; i < sectionCount; i++) {
         const element = document.getElementById(`sectionIndex${i}`);
         if (!element) continue;
         if (element.getBoundingClientRect().top <= focusY) {
@@ -101,7 +107,7 @@ function PinnedSectionNavigation({
       window.removeEventListener("scroll", updateActiveSection);
       window.removeEventListener("resize", updateActiveSection);
     };
-  }, [sections.length, getAdditionalStickyOffset]);
+  }, [sectionCount, getAdditionalStickyOffset]);
 
   useEffect(() => {
     if (!carouselApi) {
@@ -141,7 +147,7 @@ function PinnedSectionNavigation({
     });
   }
 
-  if (sections.length < 2) return null;
+  if (sectionCount < 2) return null;
 
   return (
     <div
@@ -159,12 +165,12 @@ function PinnedSectionNavigation({
         className="baseFlex w-full"
       >
         <CarouselContent className="-ml-1 px-2 py-1 md:-ml-2 md:px-4">
-          {sections.map((section, index) => {
+          {sectionIds.map((sectionId, index) => {
             const isActive = index === activeSectionIndex;
 
             return (
               <CarouselItem
-                key={section.id}
+                key={sectionId}
                 className={cn(
                   "basis-auto pl-1 md:pl-2",
                   carouselOverflows
@@ -181,7 +187,7 @@ function PinnedSectionNavigation({
                   )}
                   aria-current={isActive ? "true" : undefined}
                 >
-                  {section.title || `Section ${index + 1}`}
+                  {sectionTitles[index] || `Section ${index + 1}`}
                   {isActive && (
                     <motion.span
                       layoutId="pinnedSectionNavigationUnderline"
