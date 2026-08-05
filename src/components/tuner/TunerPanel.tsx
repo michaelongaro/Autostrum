@@ -10,45 +10,158 @@ import TuningFork from "~/components/ui/icons/TuningFork";
 import { useTabStore } from "~/stores/TabStore";
 import { PrettyNote, PrettyTuning } from "~/components/ui/PrettyTuning";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import { formatNoteLabel, frequencyFromMidi } from "~/utils/tunerMath";
+import { TUNER_DEFAULTS, type TunerReading } from "~/hooks/useTuner";
 
-const centsTicks = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
-const mobileLabelTicks = [-50, -25, 0, 25, 50];
-const regularRangeCents = 25;
-const regularArcMarkerRatios = [-1, -0.4, -0.2, 0, 0.2, 0.4, 1];
-const stringThicknesses = [8, 7, 6, 5, 4, 3];
+const CENTS_TICKS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
+const MOBILE_LABEL_TICKS = [-50, -25, 0, 25, 50];
+const REGULAR_RANGE_CENTS = 25;
+const REGULAR_ARC_MARKER_RATIOS = [-1, -0.4, -0.2, 0, 0.2, 0.4, 1];
+const STRING_THICKNESSES = [8, 7, 6, 5, 4, 3];
 
-function frequencyFromMidi(midi: number) {
-  return 440 * Math.pow(2, (midi - 69) / 12);
-}
+type ArcLayout = {
+  tickRadiusX: number;
+  tickRadiusY: number;
+  labelRadiusX: number;
+  labelRadiusY: number;
+  tickHalfHeight: number;
+  tickClassName: string;
+  labelClassName: string;
+};
 
-function formatNoteLabel(note: string) {
-  const normalized = note.trim();
-  if (!normalized) return "";
+const MOBILE_ARC: ArcLayout = {
+  tickRadiusX: 118,
+  tickRadiusY: 120,
+  labelRadiusX: 130,
+  labelRadiusY: 132,
+  tickHalfHeight: 4,
+  tickClassName: "absolute h-2 w-px bg-foreground/45 lg:hidden",
+  labelClassName: "absolute text-[10px] font-medium tabular-nums lg:hidden",
+};
 
-  return `${normalized[0]?.toUpperCase() ?? ""}${normalized.slice(1)}`;
-}
+const DESKTOP_ARC: ArcLayout = {
+  tickRadiusX: 140,
+  tickRadiusY: 144,
+  labelRadiusX: 160,
+  labelRadiusY: 157,
+  tickHalfHeight: 5,
+  tickClassName: "absolute hidden h-2.5 w-px bg-foreground/45 lg:block",
+  labelClassName:
+    "absolute hidden text-xs font-medium tabular-nums lg:block",
+};
 
 function frequencyFromNote(note: string) {
   const midi = get(note).midi;
   if (midi === null) return 0;
-
   return frequencyFromMidi(midi);
+}
+
+function needleStyle(centsOffset: number | null, toleranceCents: number) {
+  if (centsOffset === null) {
+    return {
+      backgroundColor: "hsl(var(--primary))",
+      boxShadow: "0 0 10px hsl(var(--primary) / 0.45)",
+    };
+  }
+
+  const abs = Math.abs(centsOffset);
+
+  if (abs <= toleranceCents) {
+    return {
+      backgroundColor: "rgb(34 197 94)",
+      boxShadow: "0 0 10px rgba(34, 197, 94, 0.45)",
+    };
+  }
+  if (abs <= 10) {
+    return {
+      backgroundColor: "rgb(250 204 21)",
+      boxShadow: "0 0 10px rgba(250, 204, 21, 0.45)",
+    };
+  }
+  if (abs <= 25) {
+    return {
+      backgroundColor: "rgb(249 115 22)",
+      boxShadow: "0 0 10px rgba(249, 115, 22, 0.45)",
+    };
+  }
+  return {
+    backgroundColor: "rgb(239 68 68)",
+    boxShadow: "0 0 10px rgba(239, 68, 68, 0.45)",
+  };
+}
+
+function semicircleGradient(toleranceCents: number) {
+  const toAngle = (centsOffset: number) =>
+    Math.max(
+      0,
+      Math.min(
+        180,
+        ((centsOffset + REGULAR_RANGE_CENTS) / (REGULAR_RANGE_CENTS * 2)) * 180,
+      ),
+    );
+
+  const leftOrange = toAngle(-25);
+  const leftYellow = toAngle(-10);
+  const leftGreen = toAngle(-toleranceCents);
+  const rightGreen = toAngle(toleranceCents);
+  const rightYellow = toAngle(10);
+  const rightOrange = toAngle(25);
+
+  return `conic-gradient(from 270deg at 50% 100%, rgba(239, 68, 68, 0.2) 0deg ${leftOrange}deg, rgba(249, 115, 22, 0.2) ${leftOrange}deg ${leftYellow}deg, rgba(250, 204, 21, 0.2) ${leftYellow}deg ${leftGreen}deg, rgba(34, 197, 94, 0.18) ${leftGreen}deg ${rightGreen}deg, rgba(250, 204, 21, 0.2) ${rightGreen}deg ${rightYellow}deg, rgba(249, 115, 22, 0.2) ${rightYellow}deg ${rightOrange}deg, rgba(239, 68, 68, 0.2) ${rightOrange}deg 180deg, transparent 180deg 360deg)`;
+}
+
+function RegularArcMarkers({ layout }: { layout: ArcLayout }) {
+  return (
+    <>
+      {REGULAR_ARC_MARKER_RATIOS.map((ratio) => {
+        const angleRadians = ratio * (Math.PI / 2);
+        const angleDegrees = ratio * 90;
+        const tickX = Math.sin(angleRadians) * layout.tickRadiusX;
+        const tickY = Math.cos(angleRadians) * layout.tickRadiusY;
+        const labelX = Math.sin(angleRadians) * layout.labelRadiusX;
+        const labelY = Math.cos(angleRadians) * layout.labelRadiusY;
+        const markerValue = ratio * REGULAR_RANGE_CENTS;
+        const markerLabel =
+          Math.abs(markerValue) < 0.5
+            ? "0"
+            : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
+
+        return (
+          <div key={`${layout.tickClassName}-${ratio}`}>
+            <div
+              className={layout.tickClassName}
+              style={{
+                left: `calc(50% + ${tickX}px)`,
+                bottom: `${tickY - layout.tickHalfHeight}px`,
+                transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
+              }}
+            />
+            <div
+              className={`${layout.labelClassName} ${ratio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
+              style={{
+                left: `calc(50% + ${labelX}px)`,
+                bottom: `${labelY}px`,
+                transform: "translate(-50%, 50%)",
+              }}
+            >
+              {markerLabel}
+            </div>
+          </div>
+        );
+      })}
+    </>
+  );
 }
 
 type TunerPanelProps = {
   targetNotes: string[];
   currentTargetIndex: number;
-  detectedNote: string | null;
-  detectedFrequency: number | null;
-  detectedCents: number | null;
-  targetCentsOffset: number | null;
-  toleranceCents: number;
+  reading: TunerReading;
+  toleranceCents?: number;
   isListening: boolean;
-  signalDetected: boolean;
   completed: boolean;
   error: string | null;
   permissionDenied: boolean;
-  clarity: number;
   onStartListening: () => Promise<void>;
   onStopListening: () => void;
   onResetProgress: () => void;
@@ -56,20 +169,64 @@ type TunerPanelProps = {
   forPlaybackModal?: boolean;
 };
 
+function ListeningControls({
+  isListening,
+  resetDisabled,
+  hideReset,
+  className,
+  onStartListening,
+  onStopListening,
+  onResetProgress,
+}: {
+  isListening: boolean;
+  resetDisabled: boolean;
+  hideReset?: boolean;
+  className?: string;
+  onStartListening: () => Promise<void>;
+  onStopListening: () => void;
+  onResetProgress: () => void;
+}) {
+  return (
+    <div className={className}>
+      {isListening ? (
+        <Button size="sm" variant="outline" className="w-full lg:w-auto" onClick={onStopListening}>
+          Stop
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          className="w-full gap-2 px-8 lg:w-auto"
+          onClick={() => void onStartListening()}
+        >
+          <FaMicrophone />
+          Start
+        </Button>
+      )}
+
+      {!hideReset && (
+        <Button
+          size="sm"
+          disabled={resetDisabled}
+          variant="outline"
+          className="w-full lg:w-auto"
+          onClick={onResetProgress}
+        >
+          Reset
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function TunerPanel({
   targetNotes,
   currentTargetIndex,
-  detectedNote,
-  detectedFrequency,
-  detectedCents,
-  targetCentsOffset,
-  toleranceCents,
+  reading,
+  toleranceCents = TUNER_DEFAULTS.toleranceCents,
   isListening,
-  signalDetected,
   completed,
   error,
   permissionDenied,
-  clarity: _clarity,
   onStartListening,
   onStopListening,
   onResetProgress,
@@ -82,71 +239,41 @@ function TunerPanel({
   }));
 
   const [mode, setMode] = useState<"regular" | "chromatic">("regular");
+
+  const {
+    signalDetected,
+    detectedNote,
+    detectedFrequency,
+    detectedCents,
+    targetCentsOffset,
+  } = reading;
+
   const currentTarget = targetNotes[currentTargetIndex] ?? "e2";
   const currentTargetFrequency = frequencyFromNote(currentTarget);
   const hasDetectedFrequency = signalDetected && detectedFrequency !== null;
   const hasChromaticCents = signalDetected && detectedCents !== null;
   const hasRegularCents = signalDetected && targetCentsOffset !== null;
-  const regularRawCentsOffset = hasRegularCents ? targetCentsOffset : 0;
-  const clampedRegularCentsOffset = Math.max(
-    -regularRangeCents,
-    Math.min(regularRangeCents, regularRawCentsOffset),
+
+  const clampedRegularCents = Math.max(
+    -REGULAR_RANGE_CENTS,
+    Math.min(REGULAR_RANGE_CENTS, hasRegularCents ? targetCentsOffset : 0),
   );
-  const absoluteRegularCentsOffset = Math.abs(clampedRegularCentsOffset);
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
   const regularNeedleDegrees =
-    (clampedRegularCentsOffset / regularRangeCents) * 90;
+    (clampedRegularCents / REGULAR_RANGE_CENTS) * 90;
   const chromaticMarkerLeftPercent = hasChromaticCents
     ? ((clampedDetectedCents + 50) / 100) * 100
     : 50;
-  const currentMicFrequencyLabel = hasDetectedFrequency
+
+  const frequencyLabel = hasDetectedFrequency
     ? `${detectedFrequency.toFixed(1)} Hz`
     : "--";
   const chromaticCentsLabel = hasChromaticCents
     ? `${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`
     : "--";
 
-  const toAngle = (centsOffset: number) =>
-    Math.max(
-      0,
-      Math.min(
-        180,
-        ((centsOffset + regularRangeCents) / (regularRangeCents * 2)) * 180,
-      ),
-    );
-  const leftOrange = toAngle(-25);
-  const leftYellow = toAngle(-10);
-  const leftGreen = toAngle(-toleranceCents);
-  const rightGreen = toAngle(toleranceCents);
-  const rightYellow = toAngle(10);
-  const rightOrange = toAngle(25);
-
-  const regularSemicircleGradient = `conic-gradient(from 270deg at 50% 100%, rgba(239, 68, 68, 0.2) 0deg ${leftOrange}deg, rgba(249, 115, 22, 0.2) ${leftOrange}deg ${leftYellow}deg, rgba(250, 204, 21, 0.2) ${leftYellow}deg ${leftGreen}deg, rgba(34, 197, 94, 0.18) ${leftGreen}deg ${rightGreen}deg, rgba(250, 204, 21, 0.2) ${rightGreen}deg ${rightYellow}deg, rgba(249, 115, 22, 0.2) ${rightYellow}deg ${rightOrange}deg, rgba(239, 68, 68, 0.2) ${rightOrange}deg 180deg, transparent 180deg 360deg)`;
-
-  const regularNeedleStyle = !hasRegularCents
-    ? {
-        backgroundColor: "hsl(var(--primary))",
-        boxShadow: "0 0 10px hsl(var(--primary) / 0.45)",
-      }
-    : absoluteRegularCentsOffset <= toleranceCents
-      ? {
-          backgroundColor: "rgb(34 197 94)",
-          boxShadow: "0 0 10px rgba(34, 197, 94, 0.45)",
-        }
-      : absoluteRegularCentsOffset <= 10
-        ? {
-            backgroundColor: "rgb(250 204 21)",
-            boxShadow: "0 0 10px rgba(250, 204, 21, 0.45)",
-          }
-        : absoluteRegularCentsOffset <= 25
-          ? {
-              backgroundColor: "rgb(249 115 22)",
-              boxShadow: "0 0 10px rgba(249, 115, 22, 0.45)",
-            }
-          : {
-              backgroundColor: "rgb(239 68 68)",
-              boxShadow: "0 0 10px rgba(239, 68, 68, 0.45)",
-            };
+  const resetDisabled =
+    mode === "chromatic" || currentTargetIndex === 0;
 
   return (
     <div
@@ -159,18 +286,14 @@ function TunerPanel({
           <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border p-1 lg:col-span-1 lg:w-[190px]">
             <button
               type="button"
-              onClick={() => {
-                setMode("regular");
-              }}
+              onClick={() => setMode("regular")}
               className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
             >
               Regular
             </button>
             <button
               type="button"
-              onClick={() => {
-                setMode("chromatic");
-              }}
+              onClick={() => setMode("chromatic")}
               className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "chromatic" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
             >
               Chromatic
@@ -211,37 +334,14 @@ function TunerPanel({
           </div>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 lg:flex lg:w-auto lg:gap-4">
-          {isListening ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className="hidden w-full lg:block lg:w-auto"
-              onClick={onStopListening}
-            >
-              Stop
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="hidden w-full gap-2 px-8 lg:flex lg:w-auto"
-              onClick={() => void onStartListening()}
-            >
-              <FaMicrophone />
-              Start
-            </Button>
-          )}
-
-          <Button
-            size="sm"
-            disabled={mode === "chromatic" || currentTargetIndex === 0}
-            variant="outline"
-            className="hidden w-full lg:block lg:w-auto"
-            onClick={onResetProgress}
-          >
-            Reset
-          </Button>
-        </div>
+        <ListeningControls
+          isListening={isListening}
+          resetDisabled={resetDisabled}
+          className="hidden w-full gap-2 lg:flex lg:w-auto lg:gap-4"
+          onStartListening={onStartListening}
+          onStopListening={onStopListening}
+          onResetProgress={onResetProgress}
+        />
       </div>
 
       {mode === "regular" ? (
@@ -258,10 +358,7 @@ function TunerPanel({
                     />
                   </div>
                   <div className="baseFlex gap-2">
-                    <div className="baseFlex w-20">
-                      {currentMicFrequencyLabel}
-                    </div>
-                    /
+                    <div className="baseFlex w-20">{frequencyLabel}</div>/
                     <div className="baseFlex w-20">
                       {`${currentTargetFrequency.toFixed(1)} Hz`}
                     </div>
@@ -271,11 +368,12 @@ function TunerPanel({
                 <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 lg:h-[180px] lg:w-[280px]">
                   <div
                     className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full lg:h-[144px]"
-                    style={{ backgroundImage: regularSemicircleGradient }}
+                    style={{
+                      backgroundImage: semicircleGradient(toleranceCents),
+                    }}
                   />
 
                   <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 lg:h-[144px]" />
-
                   <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 lg:h-[146px]" />
 
                   <motion.div
@@ -286,7 +384,10 @@ function TunerPanel({
                       transformOrigin: "bottom center",
                       transition:
                         "background-color 0.6s ease, box-shadow 0.6s ease",
-                      ...regularNeedleStyle,
+                      ...needleStyle(
+                        hasRegularCents ? clampedRegularCents : null,
+                        toleranceCents,
+                      ),
                     }}
                     animate={{ rotate: regularNeedleDegrees }}
                     transition={{
@@ -301,95 +402,8 @@ function TunerPanel({
                     ¢
                   </div>
 
-                  {regularArcMarkerRatios.map((markerRatio) => {
-                    const angleRadians = markerRatio * (Math.PI / 2);
-                    const angleDegrees = markerRatio * 90;
-                    const xOffset = Math.sin(angleRadians) * 118;
-                    const yOffset = Math.cos(angleRadians) * 120;
-                    const tickHalfHeight = 4;
-
-                    return (
-                      <div
-                        key={`regular-tick-mobile-${markerRatio}`}
-                        className="absolute h-2 w-px bg-foreground/45 lg:hidden"
-                        style={{
-                          left: `calc(50% + ${xOffset}px)`,
-                          bottom: `${yOffset - tickHalfHeight}px`,
-                          transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
-                        }}
-                      />
-                    );
-                  })}
-
-                  {regularArcMarkerRatios.map((markerRatio) => {
-                    const angleRadians = markerRatio * (Math.PI / 2);
-                    const angleDegrees = markerRatio * 90;
-                    const xOffset = Math.sin(angleRadians) * 140;
-                    const yOffset = Math.cos(angleRadians) * 144;
-                    const tickHalfHeight = 5;
-
-                    return (
-                      <div
-                        key={`regular-tick-desktop-${markerRatio}`}
-                        className="absolute hidden h-2.5 w-px bg-foreground/45 lg:block"
-                        style={{
-                          left: `calc(50% + ${xOffset}px)`,
-                          bottom: `${yOffset - tickHalfHeight}px`,
-                          transform: `translateX(-50%) rotate(${angleDegrees}deg)`,
-                        }}
-                      />
-                    );
-                  })}
-
-                  {regularArcMarkerRatios.map((markerRatio) => {
-                    const angleRadians = markerRatio * (Math.PI / 2);
-                    const xOffset = Math.sin(angleRadians) * 130;
-                    const yOffset = Math.cos(angleRadians) * 132;
-                    const markerValue = markerRatio * regularRangeCents;
-                    const markerLabel =
-                      Math.abs(markerValue) < 0.5
-                        ? "0"
-                        : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
-
-                    return (
-                      <div
-                        key={`regular-marker-mobile-${markerRatio}`}
-                        className={`absolute text-[10px] font-medium tabular-nums lg:hidden ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
-                        style={{
-                          left: `calc(50% + ${xOffset}px)`,
-                          bottom: `${yOffset}px`,
-                          transform: "translate(-50%, 50%)",
-                        }}
-                      >
-                        {markerLabel}
-                      </div>
-                    );
-                  })}
-
-                  {regularArcMarkerRatios.map((markerRatio) => {
-                    const angleRadians = markerRatio * (Math.PI / 2);
-                    const xOffset = Math.sin(angleRadians) * 160;
-                    const yOffset = Math.cos(angleRadians) * 157;
-                    const markerValue = markerRatio * regularRangeCents;
-                    const markerLabel =
-                      Math.abs(markerValue) < 0.5
-                        ? "0"
-                        : `${markerValue > 0 ? "+" : ""}${Math.round(markerValue)}`;
-
-                    return (
-                      <div
-                        key={`regular-marker-desktop-${markerRatio}`}
-                        className={`absolute hidden text-xs font-medium tabular-nums lg:block ${markerRatio === 0 ? "text-foreground/80" : "text-foreground/60"}`}
-                        style={{
-                          left: `calc(50% + ${xOffset}px)`,
-                          bottom: `${yOffset}px`,
-                          transform: "translate(-50%, 50%)",
-                        }}
-                      >
-                        {markerLabel}
-                      </div>
-                    );
-                  })}
+                  <RegularArcMarkers layout={MOBILE_ARC} />
+                  <RegularArcMarkers layout={DESKTOP_ARC} />
                 </div>
               </div>
             </div>
@@ -406,9 +420,7 @@ function TunerPanel({
                     type="button"
                     key={`${note}-${index}`}
                     className={`baseVertFlex relative min-h-[74px] gap-1 rounded-md px-1 py-2 text-sm transition-colors ${selected ? "bg-primary/10" : "bg-transparent"}`}
-                    onClick={() => {
-                      onSetCurrentTargetIndex(index);
-                    }}
+                    onClick={() => onSetCurrentTargetIndex(index)}
                     aria-current={selected ? "true" : "false"}
                   >
                     <AnimatePresence mode="popLayout">
@@ -435,7 +447,7 @@ function TunerPanel({
                         }}
                         transition={{ duration: 0.15 }}
                         style={{
-                          width: `${stringThicknesses[index] ?? 3}px`,
+                          width: `${STRING_THICKNESSES[index] ?? 3}px`,
                           height: "30px",
                         }}
                       />
@@ -460,37 +472,14 @@ function TunerPanel({
             </div>
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-2 px-4 lg:hidden">
-            {isListening ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full lg:hidden"
-                onClick={onStopListening}
-              >
-                Stop
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                className="w-full gap-2 px-8 lg:hidden"
-                onClick={() => void onStartListening()}
-              >
-                <FaMicrophone />
-                Start
-              </Button>
-            )}
-
-            <Button
-              size="sm"
-              disabled={currentTargetIndex === 0}
-              variant="outline"
-              className="w-full lg:hidden"
-              onClick={onResetProgress}
-            >
-              Reset
-            </Button>
-          </div>
+          <ListeningControls
+            isListening={isListening}
+            resetDisabled={currentTargetIndex === 0}
+            className="grid w-full grid-cols-2 gap-2 px-4 lg:hidden"
+            onStartListening={onStartListening}
+            onStopListening={onStopListening}
+            onResetProgress={onResetProgress}
+          />
         </>
       ) : (
         <div className="baseVertFlex w-full gap-4 px-3 md:px-6 lg:px-5">
@@ -501,17 +490,17 @@ function TunerPanel({
 
             <div className="relative mt-4 w-full">
               <div className="absolute left-1/2 top-0 z-10 w-[104px] -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-center text-sm font-semibold tabular-nums text-foreground lg:w-[118px] lg:text-base">
-                {currentMicFrequencyLabel}
+                {frequencyLabel}
               </div>
 
               <div className="baseFlex mt-12 w-full !justify-between px-[1px] text-xs text-foreground/70 lg:hidden">
-                {mobileLabelTicks.map((tick) => (
+                {MOBILE_LABEL_TICKS.map((tick) => (
                   <span key={`mobile-label-${tick}`}>{tick}</span>
                 ))}
               </div>
 
               <div className="baseFlex mt-14 !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 lg:!flex">
-                {centsTicks.map((tick) => (
+                {CENTS_TICKS.map((tick) => (
                   <span key={tick}>{tick}</span>
                 ))}
               </div>
@@ -529,17 +518,13 @@ function TunerPanel({
                   }}
                 />
 
-                {centsTicks.map((tick) => {
-                  const tickLeft = ((tick + 50) / 100) * 100;
-
-                  return (
-                    <div
-                      key={`tick-${tick}`}
-                      className="absolute top-[34%] h-[32%] w-px bg-foreground/25"
-                      style={{ left: `${tickLeft}%` }}
-                    />
-                  );
-                })}
+                {CENTS_TICKS.map((tick) => (
+                  <div
+                    key={`tick-${tick}`}
+                    className="absolute top-[34%] h-[32%] w-px bg-foreground/25"
+                    style={{ left: `${((tick + 50) / 100) * 100}%` }}
+                  />
+                ))}
 
                 <motion.div
                   className="absolute inset-y-0"
@@ -582,25 +567,15 @@ function TunerPanel({
             </div>
           </div>
 
-          {isListening ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-36 lg:hidden"
-              onClick={onStopListening}
-            >
-              Stop
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="w-36 gap-2 px-8 lg:hidden"
-              onClick={() => void onStartListening()}
-            >
-              <FaMicrophone />
-              Start
-            </Button>
-          )}
+          <ListeningControls
+            isListening={isListening}
+            resetDisabled
+            hideReset
+            className="baseFlex w-36 lg:hidden [&_button]:w-full"
+            onStartListening={onStartListening}
+            onStopListening={onStopListening}
+            onResetProgress={onResetProgress}
+          />
         </div>
       )}
 
