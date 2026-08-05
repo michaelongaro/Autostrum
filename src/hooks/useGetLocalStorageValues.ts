@@ -38,7 +38,7 @@ function useGetLocalStorageValues() {
   const localStoragePinSectionNavigation = useLocalStorageValue(
     "autostrum-pin-section-navigation",
     {
-      defaultValue: "false",
+      defaultValue: "true",
     },
   );
 
@@ -50,10 +50,7 @@ function useGetLocalStorageValues() {
     leftHandChordDiagrams: localStorageLeftHandChordDiagrams.value === "true",
     countIn: localStorageCountIn.value === "true",
     colorCodedChords: localStorageColorCodedChords.value === "true",
-    // Accept both JSON-stringified "true" and a legacy raw boolean parse.
-    pinSectionNavigation:
-      localStoragePinSectionNavigation.value === "true" ||
-      localStoragePinSectionNavigation.value === true,
+    pinSectionNavigation: localStoragePinSectionNavigation.value === "true",
   };
 }
 

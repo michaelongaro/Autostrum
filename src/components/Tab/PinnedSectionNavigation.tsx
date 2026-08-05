@@ -30,7 +30,7 @@ function PinnedSectionNavigation({
   const [carouselOverflows, setCarouselOverflows] = useState(false);
   const ignoreScrollSpyUntilRef = useRef(0);
   const activeSectionIndexRef = useRef(0);
-  const previousCarouselApiRef = useRef<CarouselApi>();
+  const previousCarouselApiRef = useRef<CarouselApi>(undefined);
 
   useEffect(() => {
     activeSectionIndexRef.current = activeSectionIndex;
@@ -43,7 +43,7 @@ function PinnedSectionNavigation({
       setCarouselOverflows(
         Boolean(
           carouselApi &&
-            (carouselApi.canScrollPrev() || carouselApi.canScrollNext()),
+          (carouselApi.canScrollPrev() || carouselApi.canScrollNext()),
         ),
       );
     }
@@ -146,18 +146,19 @@ function PinnedSectionNavigation({
   return (
     <div
       id="pinnedSectionNavigation"
-      className="w-full border-b bg-background"
+      className="w-full border-b bg-background tablet:border-b-0"
     >
       <Carousel
         setApi={setCarouselApi}
         opts={{
           dragFree: true,
           align: "start",
+
           watchDrag: (api) => api.canScrollPrev() || api.canScrollNext(),
         }}
-        className="w-full"
+        className="baseFlex w-full"
       >
-        <CarouselContent className="-ml-1 px-2 md:-ml-2 md:px-4">
+        <CarouselContent className="-ml-1 px-2 py-1 md:-ml-2 md:px-4">
           {sections.map((section, index) => {
             const isActive = index === activeSectionIndex;
 
