@@ -6,13 +6,6 @@ import { Label } from "~/components/ui/label";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { Separator } from "~/components/ui/separator";
 import { useTabStore, type PlaybackMetadata } from "~/stores/TabStore";
@@ -20,6 +13,7 @@ import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
 import { tuningNotesToName } from "~/utils/tunings";
+import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 
 interface PlaybackTopMetadata {
   tabProgressValue: number;
@@ -34,7 +28,6 @@ function PlaybackTopMetadata({
     title,
     tuning,
     capo,
-    sectionProgression,
     audioMetadata,
     playbackMetadata,
     viewportLabel,
@@ -43,14 +36,10 @@ function PlaybackTopMetadata({
     pauseAudio,
     setPlaybackSpeed,
     setShowGlossaryDialog,
-    setAudioMetadata,
-    setCurrentChordIndex,
-    setDraftLoopRange,
   } = useTabStore((state) => ({
     title: state.title,
     tuning: state.tuning,
     capo: state.capo,
-    sectionProgression: state.sectionProgression,
     audioMetadata: state.audioMetadata,
     playbackMetadata: state.playbackMetadata,
     viewportLabel: state.viewportLabel,
@@ -59,46 +48,7 @@ function PlaybackTopMetadata({
     pauseAudio: state.pauseAudio,
     setPlaybackSpeed: state.setPlaybackSpeed,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
-    setAudioMetadata: state.setAudioMetadata,
-    setCurrentChordIndex: state.setCurrentChordIndex,
-    setDraftLoopRange: state.setDraftLoopRange,
   }));
-
-  const sectionsById: Record<string, { sectionId: string; title: string }> = {};
-
-  for (const section of sectionProgression) {
-    if (!sectionsById[section.sectionId]) {
-      sectionsById[section.sectionId] = {
-        sectionId: section.sectionId,
-        title: section.title,
-      };
-    }
-  }
-
-  const uniqueSections = Object.values(sectionsById);
-
-  function handleChangeSection(value: string) {
-    setAudioMetadata({
-      ...audioMetadata,
-      location:
-        value === "fullTab"
-          ? null
-          : {
-              sectionIndex: uniqueSections.findIndex((elem) => {
-                return elem.sectionId === value;
-              }),
-            },
-      startLoopIndex: 0,
-      endLoopIndex: -1,
-    });
-
-    setDraftLoopRange({
-      startIndex: null,
-      endIndex: null,
-    });
-
-    setCurrentChordIndex(0);
-  }
 
   if (playbackMetadata === null || viewportLabel === "mobileNarrowLandscape") {
     return null;
@@ -161,73 +111,7 @@ function PlaybackTopMetadata({
                   </OverlayScrollbarsComponent>
                 </div>
 
-                {!viewportLabel.includes("mobile") &&
-                  sectionProgression.length > 1 && (
-                    <>
-                      <Separator className="h-6 w-[1px] bg-foreground/50" />
-
-                      <div className="baseFlex gap-2">
-                        <Label
-                          htmlFor="sectionPicker"
-                          className="text-sm font-medium"
-                        >
-                          Section
-                        </Label>
-                        <Select
-                          value={
-                            audioMetadata.location === null
-                              ? "fullTab"
-                              : sectionProgression[
-                                  audioMetadata.location?.sectionIndex ?? 0
-                                ]?.sectionId
-                          }
-                          onValueChange={(value) => {
-                            handleChangeSection(value);
-                          }}
-                        >
-                          <SelectTrigger
-                            id="sectionPicker"
-                            className="!h-8 max-w-28 text-nowrap sm:max-w-none"
-                          >
-                            <SelectValue placeholder="Select a section">
-                              {audioMetadata.location === null
-                                ? "Full tab"
-                                : sectionProgression[
-                                    uniqueSections.findIndex((elem) => {
-                                      return (
-                                        elem.sectionId ===
-                                        sectionProgression[
-                                          audioMetadata.location
-                                            ?.sectionIndex ?? 0
-                                        ]?.sectionId
-                                      );
-                                    })
-                                  ]?.title}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <>
-                              {uniqueSections.map((section) => {
-                                return (
-                                  <SelectItem
-                                    key={section.sectionId}
-                                    value={section.sectionId}
-                                  >
-                                    {section.title}
-                                  </SelectItem>
-                                );
-                              })}
-
-                              <div className="my-1 h-[1px] w-full bg-primary"></div>
-                              <SelectItem key={"fullTab"} value={`fullTab`}>
-                                Full tab
-                              </SelectItem>
-                            </>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </>
-                  )}
+                {!viewportLabel.includes("mobile") && <PlaybackSectionPicker />}
               </div>
 
               <div className="baseFlex w-full !justify-between gap-4">
@@ -302,75 +186,7 @@ function PlaybackTopMetadata({
                         />
                       </div>
 
-                      {sectionProgression.length > 1 && (
-                        <div className="baseFlex gap-2">
-                          <Label
-                            htmlFor="sectionPicker"
-                            className="text-sm font-medium"
-                          >
-                            Section
-                          </Label>
-                          <Select
-                            value={
-                              audioMetadata.location === null
-                                ? "fullTab"
-                                : sectionProgression[
-                                    audioMetadata.location?.sectionIndex ?? 0
-                                  ]?.sectionId
-                            }
-                            onValueChange={(value) => {
-                              handleChangeSection(value);
-                            }}
-                          >
-                            <SelectTrigger
-                              id="sectionPicker"
-                              className="!h-8 max-w-32 sm:max-w-none"
-                            >
-                              <SelectValue
-                                placeholder="Select a section"
-                                asChild
-                              >
-                                <p className="truncate">
-                                  {audioMetadata.location === null
-                                    ? "Full tab"
-                                    : `${
-                                        sectionProgression[
-                                          uniqueSections.findIndex((elem) => {
-                                            return (
-                                              elem.sectionId ===
-                                              sectionProgression[
-                                                audioMetadata.location
-                                                  ?.sectionIndex ?? 0
-                                              ]?.sectionId
-                                            );
-                                          })
-                                        ]?.title
-                                      }`}
-                                </p>
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <>
-                                {uniqueSections.map((section) => {
-                                  return (
-                                    <SelectItem
-                                      key={section.sectionId}
-                                      value={section.sectionId}
-                                    >
-                                      {section.title}
-                                    </SelectItem>
-                                  );
-                                })}
-
-                                <div className="my-1 h-[1px] w-full bg-primary"></div>
-                                <SelectItem key={"fullTab"} value={`fullTab`}>
-                                  Full tab
-                                </SelectItem>
-                              </>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
+                      <PlaybackSectionPicker />
                     </div>
                   )}
                 </div>

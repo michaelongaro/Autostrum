@@ -7,14 +7,7 @@ import {
   isDraftLoopRangeEmpty,
   isDraftLoopRangeUnchanged,
 } from "~/utils/loopRangeHelpers";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { Label } from "~/components/ui/label";
+import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 
 function PlaybackLoopRangeActions() {
   const {
@@ -24,7 +17,7 @@ function PlaybackLoopRangeActions() {
     draftLoopStartIndex,
     draftLoopEndIndex,
     setDraftLoopRange,
-    sectionProgression,
+    sectionProgressionLength,
     viewportLabel,
   } = useTabStore((state) => ({
     audioMetadata: state.audioMetadata,
@@ -33,7 +26,7 @@ function PlaybackLoopRangeActions() {
     draftLoopStartIndex: state.draftLoopStartIndex,
     draftLoopEndIndex: state.draftLoopEndIndex,
     setDraftLoopRange: state.setDraftLoopRange,
-    sectionProgression: state.sectionProgression,
+    sectionProgressionLength: state.sectionProgression.length,
     viewportLabel: state.viewportLabel,
   }));
 
@@ -50,42 +43,6 @@ function PlaybackLoopRangeActions() {
     draftLoopEndIndex,
     audioMetadata,
   );
-
-  const sectionsById: Record<string, { sectionId: string; title: string }> = {};
-
-  for (const section of sectionProgression) {
-    if (!sectionsById[section.sectionId]) {
-      sectionsById[section.sectionId] = {
-        sectionId: section.sectionId,
-        title: section.title,
-      };
-    }
-  }
-
-  const uniqueSections = Object.values(sectionsById);
-
-  function handleChangeSection(value: string) {
-    setAudioMetadata({
-      ...audioMetadata,
-      location:
-        value === "fullTab"
-          ? null
-          : {
-              sectionIndex: uniqueSections.findIndex((elem) => {
-                return elem.sectionId === value;
-              }),
-            },
-      startLoopIndex: 0,
-      endLoopIndex: -1,
-    });
-
-    setDraftLoopRange({
-      startIndex: null,
-      endIndex: null,
-    });
-
-    setCurrentChordIndex(0);
-  }
 
   // Empty draft means "full tab" ([0, -1]) and is a valid Save target when the
   // committed store range is narrowed. Incomplete mid-pick drafts are not.
@@ -140,69 +97,9 @@ function PlaybackLoopRangeActions() {
 
   return (
     <div
-      className={`baseFlex w-full gap-3 px-4 pb-2 ${viewportLabel.includes("Landscape") && sectionProgression.length > 1 ? "!justify-between" : ""}`}
+      className={`baseFlex w-full gap-3 px-4 pb-2 ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`}
     >
-      {viewportLabel.includes("Landscape") && sectionProgression.length > 1 && (
-        <div className="baseFlex gap-2">
-          <Label htmlFor="sectionPicker" className="text-sm font-medium">
-            Section
-          </Label>
-          <Select
-            value={
-              audioMetadata.location === null
-                ? "fullTab"
-                : sectionProgression[audioMetadata.location?.sectionIndex ?? 0]
-                    ?.sectionId
-            }
-            onValueChange={(value) => {
-              handleChangeSection(value);
-            }}
-          >
-            <SelectTrigger
-              id="sectionPicker"
-              className="!h-9 max-w-32 sm:max-w-none"
-            >
-              <SelectValue placeholder="Select a section" asChild>
-                <p className="truncate">
-                  {audioMetadata.location === null
-                    ? "Full tab"
-                    : `${
-                        sectionProgression[
-                          uniqueSections.findIndex((elem) => {
-                            return (
-                              elem.sectionId ===
-                              sectionProgression[
-                                audioMetadata.location?.sectionIndex ?? 0
-                              ]?.sectionId
-                            );
-                          })
-                        ]?.title
-                      }`}
-                </p>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <>
-                {uniqueSections.map((section) => {
-                  return (
-                    <SelectItem
-                      key={section.sectionId}
-                      value={section.sectionId}
-                    >
-                      {section.title}
-                    </SelectItem>
-                  );
-                })}
-
-                <div className="my-1 h-[1px] w-full bg-primary"></div>
-                <SelectItem key={"fullTab"} value={`fullTab`}>
-                  Full tab
-                </SelectItem>
-              </>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      {viewportLabel.includes("Landscape") && <PlaybackSectionPicker />}
 
       <div className="baseFlex mb-2 mt-2 gap-3 mobilePortrait:mt-8">
         <Button

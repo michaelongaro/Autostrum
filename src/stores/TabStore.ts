@@ -1574,6 +1574,7 @@ const useTabStoreBase = create<TabState>()(
           },
           audioMetadata: {
             ...latest.audioMetadata,
+            location: null,
             playing: false,
             editingLoopRange: false,
             startLoopIndex: 0,

@@ -49,6 +49,7 @@ import { IoMdSettings } from "react-icons/io";
 import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
 import { IoColorPalette } from "react-icons/io5";
 import CountIn from "~/components/ui/icons/CountIn";
+import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 
 interface PlaybackBottomMetadata {
   tabProgressValue: number;
@@ -66,7 +67,6 @@ function PlaybackBottomMetadata({
   const {
     capo,
     tuning,
-    sectionProgression,
     audioMetadata,
     playbackMetadata,
     viewportLabel,
@@ -79,7 +79,6 @@ function PlaybackBottomMetadata({
   } = useTabStore((state) => ({
     capo: state.capo,
     tuning: state.tuning,
-    sectionProgression: state.sectionProgression,
     audioMetadata: state.audioMetadata,
     playbackMetadata: state.playbackMetadata,
     viewportLabel: state.viewportLabel,
@@ -90,12 +89,6 @@ function PlaybackBottomMetadata({
     pauseAudio: state.pauseAudio,
     initDraftLoopRangeFromAudioMetadata:
       state.initDraftLoopRangeFromAudioMetadata,
-  }));
-
-  // idk if best approach, but need unique section titles, not the whole progression
-  const sections = sectionProgression.map((section) => ({
-    id: section.id,
-    title: section.title,
   }));
 
   // Close settings popover on device orientation change
@@ -139,64 +132,7 @@ function PlaybackBottomMetadata({
           </div>
 
           <div className="baseFlex gap-4">
-            {sectionProgression.length > 1 && (
-              <div className="baseFlex gap-2">
-                <p className="text-sm font-medium">Section</p>
-                <Select
-                  value={
-                    audioMetadata.location === null
-                      ? "fullTab"
-                      : sectionProgression[
-                          audioMetadata.location?.sectionIndex ?? 0
-                        ]?.id
-                  }
-                  onValueChange={(value) => {
-                    setAudioMetadata({
-                      ...audioMetadata,
-                      location:
-                        value === "fullTab"
-                          ? null
-                          : {
-                              sectionIndex: sections.findIndex((elem) => {
-                                return elem.id === value;
-                              }),
-                            },
-                    });
-                  }}
-                >
-                  <SelectTrigger className="!h-9 max-w-28 sm:max-w-none md:!h-10">
-                    <SelectValue placeholder="Select a section">
-                      {audioMetadata.location === null
-                        ? "Full tab"
-                        : sectionProgression[
-                            sections.findIndex((elem) => {
-                              return (
-                                elem.id ===
-                                sectionProgression[
-                                  audioMetadata.location?.sectionIndex ?? 0
-                                ]?.id
-                              );
-                            })
-                          ]?.title}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    {sections.map((section) => {
-                      return (
-                        <SelectItem key={section.id} value={section.id}>
-                          {section.title}
-                        </SelectItem>
-                      );
-                    })}
-
-                    <div className="my-1 h-[1px] w-full bg-primary"></div>
-                    <SelectItem key={"fullTab"} value={`fullTab`}>
-                      Full tab
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <PlaybackSectionPicker />
 
             <MobileSettingsPopover
               showBackgroundBlur={showBackgroundBlur}
@@ -342,7 +278,7 @@ function MobileSettingsPopover({
           style={{
             backgroundColor: open ? "hsl(var(--background))" : "transparent",
           }}
-          className="z-50"
+          className="z-50 !h-9"
         >
           <IoMdSettings className="size-5" />
           <span className="ml-0 hidden mobilePortrait:ml-2 mobilePortrait:block">
@@ -648,6 +584,7 @@ function MobileMenuDialog() {
           onClick={() => {
             if (audioMetadata.playing) pauseAudio();
           }}
+          className="!h-9"
         >
           <FaListUl className="size-[18px]" />
           <span className="ml-0 hidden mobilePortrait:ml-3 mobilePortrait:block">
