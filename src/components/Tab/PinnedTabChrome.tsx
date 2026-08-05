@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { cn } from "~/utils/cn";
 import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
 import PinnedSectionNavigation, {
   SECTION_NAV_HEIGHT_PX,
@@ -55,14 +54,10 @@ function PinnedTabChrome({
   }
 
   return (
-    <div
-      className={cn(
-        "baseVertFlex sticky top-16 z-20 w-full !justify-start bg-background shadow-sm",
-        showPinnedChordsBar && "pb-2",
-      )}
-    >
+    <div className="baseVertFlex sticky top-16 z-20 w-full !justify-start">
       <PinnedSectionNavigation
         getAdditionalStickyOffset={getPinnedChordsStickyOffset}
+        showPinnedChordsBar={showPinnedChordsBar}
       />
 
       <PinnedChordsCarousel
