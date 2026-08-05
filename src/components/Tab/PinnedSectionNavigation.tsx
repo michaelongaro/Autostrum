@@ -9,9 +9,11 @@ import {
 import { Button } from "~/components/ui/button";
 import type { Section } from "~/stores/TabStore";
 import { scroller } from "react-scroll";
+import { cn } from "~/utils/cn";
 
 export const STICKY_HEADER_HEIGHT_PX = 64;
-export const SECTION_NAV_HEIGHT_PX = 48;
+/** Approximate nav bar height for scroll-margin fallbacks; live height is measured from the DOM. */
+export const SECTION_NAV_HEIGHT_PX = 40;
 
 interface PinnedSectionNavigationProps {
   sections: Section[];
@@ -25,12 +27,38 @@ function PinnedSectionNavigation({
 }: PinnedSectionNavigationProps) {
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
+  const [carouselOverflows, setCarouselOverflows] = useState(false);
   const ignoreScrollSpyUntilRef = useRef(0);
   const activeSectionIndexRef = useRef(0);
+  const previousCarouselApiRef = useRef<CarouselApi>();
 
   useEffect(() => {
     activeSectionIndexRef.current = activeSectionIndex;
   }, [activeSectionIndex]);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    function updateOverflowState() {
+      setCarouselOverflows(
+        Boolean(
+          carouselApi &&
+            (carouselApi.canScrollPrev() || carouselApi.canScrollNext()),
+        ),
+      );
+    }
+
+    updateOverflowState();
+    carouselApi.on("reInit", updateOverflowState);
+    carouselApi.on("select", updateOverflowState);
+    carouselApi.on("resize", updateOverflowState);
+
+    return () => {
+      carouselApi.off("reInit", updateOverflowState);
+      carouselApi.off("select", updateOverflowState);
+      carouselApi.off("resize", updateOverflowState);
+    };
+  }, [carouselApi]);
 
   useEffect(() => {
     if (sections.length < 2) return;
@@ -41,17 +69,21 @@ function PinnedSectionNavigation({
       const sectionNav = document.getElementById("pinnedSectionNavigation");
       const sectionNavHeight =
         sectionNav?.getBoundingClientRect().height ?? SECTION_NAV_HEIGHT_PX;
-      const offset =
+      const stickyBottom =
         STICKY_HEADER_HEIGHT_PX +
         sectionNavHeight +
-        (getAdditionalStickyOffset?.() ?? 0) +
-        8;
+        (getAdditionalStickyOffset?.() ?? 0);
+
+      // Activate a section once its top reaches ~35% into the reading area
+      // below sticky chrome — avoids flipping on a mere sliver at the top.
+      const readingHeight = Math.max(0, window.innerHeight - stickyBottom);
+      const focusY = stickyBottom + readingHeight * 0.35;
 
       let nextActiveIndex = 0;
       for (let i = 0; i < sections.length; i++) {
         const element = document.getElementById(`sectionIndex${i}`);
         if (!element) continue;
-        if (element.getBoundingClientRect().top <= offset) {
+        if (element.getBoundingClientRect().top <= focusY) {
           nextActiveIndex = i;
         }
       }
@@ -72,8 +104,16 @@ function PinnedSectionNavigation({
   }, [sections.length, getAdditionalStickyOffset]);
 
   useEffect(() => {
-    if (!carouselApi) return;
-    carouselApi.scrollTo(activeSectionIndex);
+    if (!carouselApi) {
+      previousCarouselApiRef.current = undefined;
+      return;
+    }
+
+    const isNewApiInstance = previousCarouselApiRef.current !== carouselApi;
+    previousCarouselApiRef.current = carouselApi;
+
+    // Jump instantly on mount/re-init (e.g. after drawer closes); animate otherwise.
+    carouselApi.scrollTo(activeSectionIndex, isNewApiInstance);
   }, [carouselApi, activeSectionIndex]);
 
   function scrollToSection(sectionIndex: number) {
@@ -106,31 +146,38 @@ function PinnedSectionNavigation({
   return (
     <div
       id="pinnedSectionNavigation"
-      className="h-12 w-full overflow-hidden border-b bg-background"
+      className="w-full border-b bg-background"
     >
       <Carousel
         setApi={setCarouselApi}
         opts={{
           dragFree: true,
           align: "start",
+          watchDrag: (api) => api.canScrollPrev() || api.canScrollNext(),
         }}
-        className="h-full w-full"
+        className="w-full"
       >
-        <CarouselContent className="-ml-2 h-full px-2 md:-ml-3 md:px-4">
+        <CarouselContent className="-ml-1 px-2 md:-ml-2 md:px-4">
           {sections.map((section, index) => {
             const isActive = index === activeSectionIndex;
 
             return (
               <CarouselItem
                 key={section.id}
-                className="baseFlex h-full basis-auto pl-2 md:pl-3"
+                className={cn(
+                  "basis-auto pl-1 md:pl-2",
+                  carouselOverflows
+                    ? "cursor-grab active:cursor-grabbing"
+                    : "!cursor-default active:!cursor-default",
+                )}
               >
                 <Button
                   variant="text"
                   onClick={() => scrollToSection(index)}
-                  className={`relative h-full text-nowrap !px-1 font-medium ${
-                    isActive ? "" : "opacity-50 hover:opacity-100"
-                  }`}
+                  className={cn(
+                    "relative !h-auto text-nowrap !px-1.5 !py-2 font-medium",
+                    isActive ? "" : "opacity-50 hover:opacity-100",
+                  )}
                   aria-current={isActive ? "true" : undefined}
                 >
                   {section.title || `Section ${index + 1}`}
@@ -142,7 +189,7 @@ function PinnedSectionNavigation({
                         bounce: 0.2,
                         duration: 0.6,
                       }}
-                      className="absolute bottom-1 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
+                      className="absolute bottom-1 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground"
                     />
                   )}
                 </Button>
