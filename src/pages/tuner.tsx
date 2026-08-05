@@ -13,32 +13,12 @@ function Tuner() {
     capo: state.capo,
   }));
 
-  const {
-    isListening,
-    signalDetected,
-    permissionDenied,
-    error,
-    detectedNote,
-    detectedFrequency,
-    detectedCents,
-    targetCentsOffset,
-    clarity,
-    currentTargetIndex,
-    completed,
-    targetNotes,
-    setCurrentTargetIndex,
-    startListening,
-    stopListening,
-    resetProgress,
-  } = useTuner({
+  const tuner = useTuner({
     targetTuning: tuning,
     capo,
-    toleranceCents: 5,
-    stableHoldDurationMs: 1500,
-    minimumClarity: 0.84,
   });
 
-  useScreenWakeLock(isListening);
+  useScreenWakeLock(tuner.isListening);
 
   return (
     <motion.div
@@ -78,23 +58,17 @@ function Tuner() {
         </div>
 
         <TunerPanel
-          targetNotes={targetNotes}
-          currentTargetIndex={currentTargetIndex}
-          detectedNote={detectedNote}
-          detectedFrequency={detectedFrequency}
-          detectedCents={detectedCents}
-          targetCentsOffset={targetCentsOffset}
-          toleranceCents={5}
-          isListening={isListening}
-          signalDetected={signalDetected}
-          completed={completed}
-          error={error}
-          permissionDenied={permissionDenied}
-          clarity={clarity}
-          onStartListening={startListening}
-          onStopListening={stopListening}
-          onResetProgress={resetProgress}
-          onSetCurrentTargetIndex={setCurrentTargetIndex}
+          targetNotes={tuner.targetNotes}
+          currentTargetIndex={tuner.currentTargetIndex}
+          reading={tuner.reading}
+          isListening={tuner.isListening}
+          completed={tuner.completed}
+          error={tuner.error}
+          permissionDenied={tuner.permissionDenied}
+          onStartListening={tuner.startListening}
+          onStopListening={tuner.stopListening}
+          onResetProgress={tuner.resetProgress}
+          onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
         />
       </div>
 
