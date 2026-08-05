@@ -9,23 +9,22 @@ import {
 import { Button } from "~/components/ui/button";
 import { scroller } from "react-scroll";
 import { cn } from "~/utils/cn";
-import {
-  useSectionIds,
-  useSectionTitles,
-} from "~/hooks/useTabDataSelectors";
+import { useSectionIds, useSectionTitles } from "~/hooks/useTabDataSelectors";
 
 export const STICKY_HEADER_HEIGHT_PX = 64;
 /** Approximate nav bar height for scroll-margin fallbacks; live height is measured from the DOM. */
 export const SECTION_NAV_HEIGHT_PX = 36;
 
-interface PinnedSectionNavigationProps {
+interface PinnedSectionNavigation {
   /** Extra sticky offset below this bar (e.g. pinned chords) used for scroll targeting. */
   getAdditionalStickyOffset?: () => number;
+  showPinnedChordsBar: boolean;
 }
 
 function PinnedSectionNavigation({
   getAdditionalStickyOffset,
-}: PinnedSectionNavigationProps) {
+  showPinnedChordsBar,
+}: PinnedSectionNavigation) {
   // Fetch light primitives from the store so parents (esp. Tab) never need tabData.
   const sectionIds = useSectionIds();
   const sectionTitles = useSectionTitles();
@@ -152,7 +151,7 @@ function PinnedSectionNavigation({
   return (
     <div
       id="pinnedSectionNavigation"
-      className="w-full border-b bg-background tablet:border-b-0"
+      className={`w-full border-b bg-background tablet:border-b-0 ${showPinnedChordsBar ? "mb-1 tablet:mb-0" : ""}`}
     >
       <Carousel
         setApi={setCarouselApi}

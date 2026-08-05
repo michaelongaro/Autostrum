@@ -43,9 +43,7 @@ function PinnedChordsCarousel({
           }}
           transition={{ duration: 0.25 }}
           className={`baseFlex max-w-[calc(100%-1.75rem)] rounded-xl border bg-background px-2 shadow-xl sm:px-8 ${
-            nestedInStickyStack
-              ? "relative z-10"
-              : "sticky left-0 top-20 z-10"
+            nestedInStickyStack ? "relative z-10" : "sticky left-0 top-20 z-10"
           }`}
         >
           <Carousel
