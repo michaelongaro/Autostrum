@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 
 interface UseSpacebarAudioControlOptions {
@@ -39,6 +40,8 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
   const isSpacebarPressed = useRef(false);
   const isPlayingStateLocked = useRef(false); // Prevents concurrent executions
 
+  const countIn = useGetLocalStorageValues().countIn;
+
   // React Compiler escape hatch: identity is a keydown effect dependency.
   const toggleAudioPlayingState = useCallback(() => {
     if (isPlayingStateLocked.current) return; // If already in progress, ignore
@@ -61,21 +64,26 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
       return;
     }
 
-    setCountInTimer({
-      ...countInTimer,
-      showing: true,
-    });
-
-    setTimeout(() => {
-      void playTab({ location: audioMetadata.location });
-
+    if (countIn) {
       setCountInTimer({
         ...countInTimer,
-        showing: false,
+        showing: true,
       });
 
+      setTimeout(() => {
+        void playTab({ location: audioMetadata.location });
+
+        setCountInTimer({
+          ...countInTimer,
+          showing: false,
+        });
+
+        isPlayingStateLocked.current = false; // Unlock after play
+      }, 3000);
+    } else {
+      void playTab({ location: audioMetadata.location });
       isPlayingStateLocked.current = false; // Unlock after play
-    }, 3000);
+    }
   }, [
     audioMetadata.location,
     audioMetadata.playing,
@@ -85,6 +93,7 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     playTab,
     setCountInTimer,
     useHoveredChordLocation,
+    countIn,
   ]);
 
   useEffect(() => {
