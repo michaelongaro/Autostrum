@@ -180,7 +180,7 @@ function PinnedSectionNavigation({
                   )}
                   aria-current={isActive ? "true" : undefined}
                 >
-                  <span className="relative pb-1">
+                  <span className="relative pb-1.5">
                     {section.title || `Section ${index + 1}`}
                     {isActive && (
                       <motion.span
