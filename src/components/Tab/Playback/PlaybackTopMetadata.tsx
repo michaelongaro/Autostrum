@@ -77,7 +77,7 @@ function PlaybackTopMetadata({
               </OverlayScrollbarsComponent>
             </div>
 
-            <Separator className="h-4 w-[1px] bg-foreground/50" />
+            <Separator className="h-5 w-[1px] bg-foreground/50" />
 
             <div className="baseFlex w-[79px] flex-nowrap !justify-start gap-1 text-nowrap">
               <CurrentTempoDisplay
@@ -111,7 +111,12 @@ function PlaybackTopMetadata({
                   </OverlayScrollbarsComponent>
                 </div>
 
-                {!viewportLabel.includes("mobile") && <PlaybackSectionPicker />}
+                {!viewportLabel.includes("mobile") && (
+                  <div className="baseFlex gap-4">
+                    <Separator className="h-6 w-[1px] bg-foreground/50" />
+                    <PlaybackSectionPicker />
+                  </div>
+                )}
               </div>
 
               <div className="baseFlex w-full !justify-between gap-4">
