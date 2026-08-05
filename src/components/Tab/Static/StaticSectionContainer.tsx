@@ -26,6 +26,8 @@ interface StaticSectionContainer {
   tabDataLength: number;
   /** Opt-in row-level virtualization of tab subsections (StaticTab only). */
   virtualized?: boolean;
+  /** Scroll margin so section titles clear sticky header / section nav / chords. */
+  scrollMarginTop?: number;
 }
 
 function StaticSectionContainer({
@@ -35,6 +37,7 @@ function StaticSectionContainer({
   theme,
   tabDataLength,
   virtualized = false,
+  scrollMarginTop,
 }: StaticSectionContainer) {
   const [accordionOpen, setAccordionOpen] = useState("opened");
 
@@ -49,8 +52,10 @@ function StaticSectionContainer({
 
   return (
     <div
+      id={`sectionIndex${sectionIndex}`}
       style={{
         paddingBottom: sectionIndex === tabDataLength - 1 ? "2rem" : 0,
+        scrollMarginTop: scrollMarginTop,
       }}
       className="baseVertFlex w-full gap-4 px-2 md:px-7"
     >
@@ -89,7 +94,6 @@ function StaticSectionContainer({
           <AccordionContent animated={true} className="w-full pt-4">
             {/* map over tab/chord subSections */}
             <div
-              id={`sectionIndex${sectionIndex}`}
               style={{
                 zoom: zoom,
               }}

@@ -35,6 +35,13 @@ function useGetLocalStorageValues() {
     },
   );
 
+  const localStoragePinSectionNavigation = useLocalStorageValue(
+    "autostrum-pin-section-navigation",
+    {
+      defaultValue: "false",
+    },
+  );
+
   return {
     volume: localStorageVolume.value ? Number(localStorageVolume.value) : 1,
     autoscroll: localStorageAutoscroll.value === "true",
@@ -43,6 +50,7 @@ function useGetLocalStorageValues() {
     leftHandChordDiagrams: localStorageLeftHandChordDiagrams.value === "true",
     countIn: localStorageCountIn.value === "true",
     colorCodedChords: localStorageColorCodedChords.value === "true",
+    pinSectionNavigation: localStoragePinSectionNavigation.value === "true",
   };
 }
 

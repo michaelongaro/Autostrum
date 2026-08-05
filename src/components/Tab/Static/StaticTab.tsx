@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { FaBook } from "react-icons/fa";
 import { useTabStore, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
@@ -35,7 +35,12 @@ import { useInView } from "react-intersection-observer";
 import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
 import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
+import PinnedSectionNavigation, {
+  SECTION_NAV_HEIGHT_PX,
+  STICKY_HEADER_HEIGHT_PX,
+} from "~/components/Tab/PinnedSectionNavigation";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useRouter } from "next/router";
 import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
@@ -53,12 +58,15 @@ function StaticTab() {
 
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
   const [showPinnedChords, setShowPinnedChords] = useState(false);
+  const [pageTallEnoughForSectionNav, setPageTallEnoughForSectionNav] =
+    useState(false);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pressingOnZoomSlider, setPressingOnZoomSlider] = useState(false);
   const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const { pinSectionNavigation, zoom } = useGetLocalStorageValues();
 
   function measureSectionHeight(
     sectionId: string,
@@ -115,6 +123,53 @@ function StaticTab() {
 
   useAutoCompileChords();
 
+  const showSectionNavigation =
+    pinSectionNavigation &&
+    tabData.length >= 2 &&
+    pageTallEnoughForSectionNav &&
+    !showPlaybackModal;
+
+  useEffect(() => {
+    function checkPageHeight() {
+      setPageTallEnoughForSectionNav(
+        document.documentElement.scrollHeight >= window.innerHeight * 3,
+      );
+    }
+
+    checkPageHeight();
+    window.addEventListener("resize", checkPageHeight);
+
+    const resizeObserver = new ResizeObserver(checkPageHeight);
+    resizeObserver.observe(document.documentElement);
+
+    return () => {
+      window.removeEventListener("resize", checkPageHeight);
+      resizeObserver.disconnect();
+    };
+  }, [tabData.length, zoom, showPinnedChords, pinSectionNavigation]);
+
+  const getPinnedChordsStickyOffset = useCallback(() => {
+    if (!showPinnedChords || chords.length === 0) return 0;
+    const pinnedChords = document.getElementById("stickyPinnedChords");
+    if (!pinnedChords) return 0;
+
+    const rect = pinnedChords.getBoundingClientRect();
+    // top-28 (7rem) when sitting below the section nav
+    const expectedStickyTop = 112;
+    if (rect.top <= expectedStickyTop + 2) {
+      return rect.height;
+    }
+    return 0;
+  }, [showPinnedChords, chords.length]);
+
+  const sectionScrollMarginTop =
+    STICKY_HEADER_HEIGHT_PX +
+    (showSectionNavigation ? SECTION_NAV_HEIGHT_PX : 0) +
+    (showSectionNavigation && showPinnedChords && chords.length > 0
+      ? 140
+      : 0) +
+    8;
+
   const minifiedTabData: Section[] | undefined =
     id === -1 || !asPath.includes("screenshot")
       ? undefined
@@ -142,9 +197,16 @@ function StaticTab() {
           ref={tabContentRef}
           className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
         >
+          <PinnedSectionNavigation
+            sections={tabData}
+            show={showSectionNavigation}
+            getAdditionalStickyOffset={getPinnedChordsStickyOffset}
+          />
+
           <PinnedChordsCarousel
             chords={chords}
             showPinnedChords={showPinnedChords}
+            belowSectionNavigation={showSectionNavigation}
           />
 
           {tabData.map((section, index) =>
@@ -167,6 +229,7 @@ function StaticTab() {
                   theme={theme}
                   tabDataLength={tabData.length}
                   virtualized={true}
+                  scrollMarginTop={sectionScrollMarginTop}
                 />
               </div>
             ),
@@ -237,8 +300,9 @@ function StaticTab() {
                         <VisuallyHidden>
                           <DrawerTitle>Tab settings</DrawerTitle>
                           <DrawerDescription>
-                            Change the tab zoom, whether chords are pinned, and
-                            whether left-hand chord diagrams are shown.
+                            Change the tab zoom, whether chords and section
+                            navigation are pinned, and whether left-hand chord
+                            diagrams are shown.
                           </DrawerDescription>
                         </VisuallyHidden>
 
