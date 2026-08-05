@@ -132,17 +132,6 @@ function TabSettings({
       </div>
 
       <div className="baseFlex mt-2 w-full !justify-between gap-2">
-        <Label htmlFor="pinChords">Pin chords</Label>
-        <Switch
-          id="pinChords"
-          checked={showPinnedChords}
-          onCheckedChange={(value) => {
-            setShowPinnedChords(value);
-          }}
-        />
-      </div>
-
-      <div className="baseFlex w-full !justify-between gap-2">
         <Label htmlFor="pinSectionNavigation">Pin section navigation</Label>
         <Switch
           id="pinSectionNavigation"
@@ -150,6 +139,17 @@ function TabSettings({
           onCheckedChange={(value) =>
             localStoragePinSectionNavigation.set(String(value))
           }
+        />
+      </div>
+
+      <div className="baseFlex w-full !justify-between gap-2">
+        <Label htmlFor="pinChords">Pin chords</Label>
+        <Switch
+          id="pinChords"
+          checked={showPinnedChords}
+          onCheckedChange={(value) => {
+            setShowPinnedChords(value);
+          }}
         />
       </div>
 

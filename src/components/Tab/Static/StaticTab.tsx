@@ -210,11 +210,13 @@ function StaticTab() {
           <DesktopExtraTabMetadata />
         )}
 
-        <Separator className="my-2 w-full bg-border tablet:w-[96%]" />
+        <Separator
+          className={`w-full bg-border tablet:w-[96%] ${showSectionNavigation ? "mt-2" : "my-2"}`}
+        />
 
         <div
           ref={tabContentRef}
-          className="baseVertFlex relative mt-2 size-full scroll-m-24 !justify-start gap-4"
+          className={`baseVertFlex relative size-full scroll-m-24 !justify-start gap-4 ${showSectionNavigation ? "" : "mt-2"}`}
         >
           {showSectionNavigation ? (
             <div
