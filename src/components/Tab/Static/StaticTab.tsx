@@ -1,6 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { cn } from "~/utils/cn";
+import { useState, useRef } from "react";
 import { FaBook } from "react-icons/fa";
 import { useTabStore, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
@@ -35,13 +34,11 @@ import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
 import { useInView } from "react-intersection-observer";
 import { IoMdSettings } from "react-icons/io";
 import TabSettings from "~/components/Tab/TabSettings";
-import PinnedChordsCarousel from "~/components/Tab/PinnedChordsCarousel";
-import PinnedSectionNavigation, {
-  SECTION_NAV_HEIGHT_PX,
-  STICKY_HEADER_HEIGHT_PX,
-} from "~/components/Tab/PinnedSectionNavigation";
+import PinnedTabChrome, {
+  getSectionScrollMarginTop,
+} from "~/components/Tab/PinnedTabChrome";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibility";
 import { useRouter } from "next/router";
 import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
@@ -59,15 +56,12 @@ function StaticTab() {
 
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
   const [showPinnedChords, setShowPinnedChords] = useState(false);
-  const [pageTallEnoughForSectionNav, setPageTallEnoughForSectionNav] =
-    useState(false);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pressingOnZoomSlider, setPressingOnZoomSlider] = useState(false);
   const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const { pinSectionNavigation, zoom } = useGetLocalStorageValues();
 
   function measureSectionHeight(
     sectionId: string,
@@ -124,70 +118,19 @@ function StaticTab() {
 
   useAutoCompileChords();
 
-  const showSectionNavigation =
-    pinSectionNavigation &&
-    tabData.length >= 2 &&
-    pageTallEnoughForSectionNav &&
-    !showPlaybackModal;
-
-  // Reset when navigating to a different tab.
-  useEffect(() => {
-    setPageTallEnoughForSectionNav(false);
-  }, [id]);
-
-  useEffect(() => {
-    function checkPageHeight() {
-      // Vaul briefly alters layout metrics while open; skip so the section nav
-      // does not unmount from a transient short scrollHeight.
-      if (drawerOpen) return;
-
-      const tallEnough =
-        document.documentElement.scrollHeight >= window.innerHeight * 3;
-
-      // Latch true once content is tall enough. Virtualized sections grow the
-      // page after mount; observing documentElement alone misses scrollHeight
-      // changes, so we also recheck on scroll and body/main resize.
-      if (tallEnough) {
-        setPageTallEnoughForSectionNav(true);
-      }
-    }
-
-    checkPageHeight();
-    window.addEventListener("resize", checkPageHeight);
-    window.addEventListener("scroll", checkPageHeight, { passive: true });
-
-    const resizeObserver = new ResizeObserver(checkPageHeight);
-    resizeObserver.observe(document.body);
-    const mainTab = document.getElementById("mainTabComponent");
-    if (mainTab) resizeObserver.observe(mainTab);
-
-    return () => {
-      window.removeEventListener("resize", checkPageHeight);
-      window.removeEventListener("scroll", checkPageHeight);
-      resizeObserver.disconnect();
-    };
-  }, [
-    tabData.length,
-    zoom,
-    showPinnedChords,
-    pinSectionNavigation,
+  const showSectionNavigation = useSectionNavigationVisibility({
+    sectionCount: tabData.length,
     drawerOpen,
-    id,
-  ]);
+    showPlaybackModal,
+    resetKey: id,
+    showPinnedChords,
+  });
 
   const showPinnedChordsBar = showPinnedChords && chords.length > 0;
-
-  const getPinnedChordsStickyOffset = useCallback(() => {
-    if (!showPinnedChordsBar) return 0;
-    const pinnedChords = document.getElementById("stickyPinnedChords");
-    return pinnedChords?.getBoundingClientRect().height ?? 0;
-  }, [showPinnedChordsBar]);
-
-  const sectionScrollMarginTop =
-    STICKY_HEADER_HEIGHT_PX +
-    (showSectionNavigation ? SECTION_NAV_HEIGHT_PX : 0) +
-    (showSectionNavigation && showPinnedChordsBar ? 140 : 0) +
-    8;
+  const sectionScrollMarginTop = getSectionScrollMarginTop({
+    showSectionNavigation,
+    showPinnedChordsBar,
+  });
 
   const minifiedTabData: Section[] | undefined =
     id === -1 || !asPath.includes("screenshot")
@@ -218,30 +161,11 @@ function StaticTab() {
           ref={tabContentRef}
           className={`baseVertFlex relative size-full scroll-m-24 !justify-start gap-4 ${showSectionNavigation ? "" : "mt-2"}`}
         >
-          {showSectionNavigation ? (
-            <div
-              className={cn(
-                "baseVertFlex sticky top-16 z-20 w-full !justify-start bg-background shadow-sm",
-                showPinnedChordsBar && "pb-2",
-              )}
-            >
-              <PinnedSectionNavigation
-                sections={tabData}
-                getAdditionalStickyOffset={getPinnedChordsStickyOffset}
-              />
-
-              <PinnedChordsCarousel
-                chords={chords}
-                showPinnedChords={showPinnedChords}
-                nestedInStickyStack
-              />
-            </div>
-          ) : (
-            <PinnedChordsCarousel
-              chords={chords}
-              showPinnedChords={showPinnedChords}
-            />
-          )}
+          <PinnedTabChrome
+            showSectionNavigation={showSectionNavigation}
+            chords={chords}
+            showPinnedChords={showPinnedChords}
+          />
 
           {tabData.map((section, index) =>
             showPlaybackModal ? (
