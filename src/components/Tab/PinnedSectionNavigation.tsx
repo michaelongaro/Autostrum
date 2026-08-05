@@ -13,7 +13,7 @@ import { cn } from "~/utils/cn";
 
 export const STICKY_HEADER_HEIGHT_PX = 64;
 /** Approximate nav bar height for scroll-margin fallbacks; live height is measured from the DOM. */
-export const SECTION_NAV_HEIGHT_PX = 40;
+export const SECTION_NAV_HEIGHT_PX = 36;
 
 interface PinnedSectionNavigationProps {
   sections: Section[];
@@ -175,23 +175,25 @@ function PinnedSectionNavigation({
                   variant="text"
                   onClick={() => scrollToSection(index)}
                   className={cn(
-                    "relative !h-auto text-nowrap !px-1.5 !py-2 font-medium",
+                    "!h-auto text-nowrap !px-1.5 !py-1.5 font-medium",
                     isActive ? "" : "opacity-50 hover:opacity-100",
                   )}
                   aria-current={isActive ? "true" : undefined}
                 >
-                  {section.title || `Section ${index + 1}`}
-                  {isActive && (
-                    <motion.span
-                      layoutId="pinnedSectionNavigationUnderline"
-                      transition={{
-                        type: "spring",
-                        bounce: 0.2,
-                        duration: 0.6,
-                      }}
-                      className="absolute bottom-1 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground"
-                    />
-                  )}
+                  <span className="relative pb-1">
+                    {section.title || `Section ${index + 1}`}
+                    {isActive && (
+                      <motion.span
+                        layoutId="pinnedSectionNavigationUnderline"
+                        transition={{
+                          type: "spring",
+                          bounce: 0.2,
+                          duration: 0.6,
+                        }}
+                        className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
+                      />
+                    )}
+                  </span>
                 </Button>
               </CarouselItem>
             );
