@@ -23,11 +23,15 @@ function TabSettings({
   const localStorageColorCodedChords = useLocalStorageValue(
     "autostrum-color-coded-chords",
   );
+  const localStoragePinSectionNavigation = useLocalStorageValue(
+    "autostrum-pin-section-navigation",
+  );
 
   const zoom = useGetLocalStorageValues().zoom;
   const leftHandChordDiagrams =
     useGetLocalStorageValues().leftHandChordDiagrams;
   const colorCodedChords = useGetLocalStorageValues().colorCodedChords;
+  const pinSectionNavigation = useGetLocalStorageValues().pinSectionNavigation;
 
   // used for range marking conditional background color
   const indexToZoom = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5];
@@ -135,6 +139,17 @@ function TabSettings({
           onCheckedChange={(value) => {
             setShowPinnedChords(value);
           }}
+        />
+      </div>
+
+      <div className="baseFlex w-full !justify-between gap-2">
+        <Label htmlFor="pinSectionNavigation">Pin section navigation</Label>
+        <Switch
+          id="pinSectionNavigation"
+          checked={pinSectionNavigation}
+          onCheckedChange={(value) =>
+            localStoragePinSectionNavigation.set(String(value))
+          }
         />
       </div>
 

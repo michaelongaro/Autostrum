@@ -11,16 +11,20 @@ import type { Chord } from "~/stores/TabStore";
 interface PinnedChordsCarouselProps {
   chords: Chord[];
   showPinnedChords: boolean;
+  /** When section navigation is also pinned, sit flush below it (top-16 + nav height). */
+  belowSectionNavigation?: boolean;
 }
 
 function PinnedChordsCarousel({
   chords,
   showPinnedChords,
+  belowSectionNavigation = false,
 }: PinnedChordsCarouselProps) {
   return (
     <AnimatePresence mode="wait">
       {showPinnedChords && chords.length > 0 && (
         <motion.div
+          id="stickyPinnedChords"
           key={"stickyPinnedChords"}
           initial={{
             opacity: 0,
@@ -38,7 +42,9 @@ function PinnedChordsCarousel({
             paddingBottom: 0,
           }}
           transition={{ duration: 0.25 }}
-          className="baseFlex sticky left-0 top-20 z-10 max-w-[calc(100%-1.75rem)] rounded-xl border bg-background px-2 shadow-xl sm:px-8"
+          className={`baseFlex sticky left-0 z-10 max-w-[calc(100%-1.75rem)] rounded-xl border bg-background px-2 shadow-xl sm:px-8 ${
+            belowSectionNavigation ? "top-28" : "top-20"
+          }`}
         >
           <Carousel
             opts={{
