@@ -175,25 +175,23 @@ function PinnedSectionNavigation({
                   variant="text"
                   onClick={() => scrollToSection(index)}
                   className={cn(
-                    "!h-auto text-nowrap !px-1.5 !py-1.5 font-medium",
+                    "relative !h-auto text-nowrap !px-1.5 !pb-2 !pt-1.5 font-medium leading-none",
                     isActive ? "" : "opacity-50 hover:opacity-100",
                   )}
                   aria-current={isActive ? "true" : undefined}
                 >
-                  <span className="relative pb-1.5">
-                    {section.title || `Section ${index + 1}`}
-                    {isActive && (
-                      <motion.span
-                        layoutId="pinnedSectionNavigationUnderline"
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.6,
-                        }}
-                        className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
-                      />
-                    )}
-                  </span>
+                  {section.title || `Section ${index + 1}`}
+                  {isActive && (
+                    <motion.span
+                      layoutId="pinnedSectionNavigationUnderline"
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.6,
+                      }}
+                      className="absolute bottom-0.5 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground"
+                    />
+                  )}
                 </Button>
               </CarouselItem>
             );
