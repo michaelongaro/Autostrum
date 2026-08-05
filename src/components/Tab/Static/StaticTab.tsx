@@ -132,6 +132,10 @@ function StaticTab() {
 
   useEffect(() => {
     function checkPageHeight() {
+      // Vaul briefly alters layout metrics while open; skip so the section nav
+      // does not unmount from a transient short scrollHeight.
+      if (drawerOpen) return;
+
       setPageTallEnoughForSectionNav(
         document.documentElement.scrollHeight >= window.innerHeight * 3,
       );
@@ -147,7 +151,13 @@ function StaticTab() {
       window.removeEventListener("resize", checkPageHeight);
       resizeObserver.disconnect();
     };
-  }, [tabData.length, zoom, showPinnedChords, pinSectionNavigation]);
+  }, [
+    tabData.length,
+    zoom,
+    showPinnedChords,
+    pinSectionNavigation,
+    drawerOpen,
+  ]);
 
   const showPinnedChordsBar = showPinnedChords && chords.length > 0;
 
@@ -292,6 +302,9 @@ function StaticTab() {
                       setDrawerOpen(open);
                     }}
                     dismissible={!pressingOnZoomSlider}
+                    // Scaling the background breaks position:sticky on the
+                    // section nav; keep the page unscaled so it stays visible.
+                    shouldScaleBackground={false}
                   >
                     <DrawerTrigger asChild>
                       <Button
