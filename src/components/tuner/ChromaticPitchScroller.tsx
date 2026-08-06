@@ -41,17 +41,20 @@ function ChromaticPitchScroller({
     return () => observer.disconnect();
   }, []);
 
-  const detectedMidi = detectedNote ? get(formatNoteLabel(detectedNote)).midi : null;
-  const hasPitch =
+  const detectedMidi = detectedNote
+    ? get(formatNoteLabel(detectedNote)).midi
+    : null;
+  const hasLivePitch =
     signalDetected && detectedMidi !== null && detectedCents !== null;
 
-  const continuousMidi = hasPitch
+  const continuousMidi = hasLivePitch
     ? detectedMidi + detectedCents / 100
     : null;
 
   const centerMidi =
     continuousMidi !== null ? Math.round(continuousMidi) : null;
   const slotWidth = viewportWidth / VISIBLE_SLOTS;
+  const showTrack = continuousMidi !== null && slotWidth > 0;
 
   const renderMidis =
     centerMidi === null
@@ -63,15 +66,14 @@ function ChromaticPitchScroller({
 
   // Absolute MIDI coordinate space: each note sits at midi * slotWidth.
   // Translate so continuousMidi is centered in the viewport.
-  const trackX =
-    continuousMidi !== null && slotWidth > 0
-      ? viewportWidth / 2 - continuousMidi * slotWidth - slotWidth / 2
-      : 0;
+  const trackX = showTrack
+    ? viewportWidth / 2 - continuousMidi * slotWidth - slotWidth / 2
+    : 0;
 
   return (
     <div
       ref={viewportRef}
-      className="relative h-[72px] w-full overflow-hidden lg:h-[80px]"
+      className="relative h-[76px] w-full overflow-hidden lg:h-[84px]"
       style={{
         maskImage:
           "linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)",
@@ -84,17 +86,17 @@ function ChromaticPitchScroller({
       {/* Center playhead — detected pitch lands on this axis */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-1 left-1/2 z-10 w-px -translate-x-1/2 bg-primary/35"
+        className="pointer-events-none absolute inset-y-1 left-1/2 z-10 w-px -translate-x-1/2 bg-primary/45"
       />
 
-      {!hasPitch || slotWidth <= 0 ? (
-        <div className="baseVertFlex h-full w-full gap-1">
-          <div className="text-lg font-semibold text-foreground/50">--</div>
-          <div className="text-sm tabular-nums text-foreground/40">--</div>
+      {!showTrack ? (
+        <div className="baseVertFlex relative z-[1] h-full w-full gap-1">
+          <div className="text-lg font-semibold text-foreground/70">--</div>
+          <div className="text-sm tabular-nums text-foreground/55">-- Hz</div>
         </div>
       ) : (
         <motion.div
-          className="absolute inset-y-0 left-0"
+          className="absolute inset-y-0 left-0 z-[1]"
           initial={false}
           animate={{ x: trackX }}
           transition={{
