@@ -27,7 +27,9 @@ function ChromaticPitchScroller({
 }: ChromaticPitchScrollerProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [viewportWidth, setViewportWidth] = useState(0);
-  // Persist the last confident pitch so the strip never falls back to placeholders.
+  // Whole-note MIDI to park on when idle. Continuous position may include cents
+  // while live, but idle must always center a note exactly in the viewport.
+  const lastNoteMidiRef = useRef(DEFAULT_CENTER_MIDI);
   const [continuousMidi, setContinuousMidi] = useState(DEFAULT_CENTER_MIDI);
 
   useEffect(() => {
@@ -52,10 +54,15 @@ function ChromaticPitchScroller({
     signalDetected && detectedMidi !== null && detectedCents !== null;
 
   useEffect(() => {
-    if (!hasLivePitch || detectedMidi === null || detectedCents === null) {
+    if (hasLivePitch && detectedMidi !== null && detectedCents !== null) {
+      lastNoteMidiRef.current = detectedMidi;
+      // Live: slide continuously with cents offset between neighboring notes.
+      setContinuousMidi(detectedMidi + detectedCents / 100);
       return;
     }
-    setContinuousMidi(detectedMidi + detectedCents / 100);
+
+    // Idle / lost signal: snap to the last whole note so it sits dead-center.
+    setContinuousMidi(lastNoteMidiRef.current);
   }, [hasLivePitch, detectedMidi, detectedCents]);
 
   const centerMidi = Math.round(continuousMidi);
