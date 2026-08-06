@@ -14,7 +14,7 @@ function Spinner({ className }: Spinner) {
       viewBox="0 0 24 24"
       className={`${className}`}
     >
-      <span className="sr-only">Loading...</span>
+      <title>Loading...</title>
 
       <style>
         {
