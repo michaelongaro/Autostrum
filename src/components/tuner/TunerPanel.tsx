@@ -47,8 +47,7 @@ const DESKTOP_ARC: ArcLayout = {
   labelRadiusY: 157,
   tickHalfHeight: 5,
   tickClassName: "absolute hidden h-2.5 w-px bg-foreground/45 lg:block",
-  labelClassName:
-    "absolute hidden text-xs font-medium tabular-nums lg:block",
+  labelClassName: "absolute hidden text-xs font-medium tabular-nums lg:block",
 };
 
 function frequencyFromNote(note: string) {
@@ -190,7 +189,12 @@ function ListeningControls({
   return (
     <div className={className}>
       {isListening ? (
-        <Button size="sm" variant="outline" className="w-full lg:w-auto" onClick={onStopListening}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="w-full lg:w-auto"
+          onClick={onStopListening}
+        >
           Stop
         </Button>
       ) : (
@@ -260,8 +264,7 @@ function TunerPanel({
     Math.min(REGULAR_RANGE_CENTS, hasRegularCents ? targetCentsOffset : 0),
   );
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
-  const regularNeedleDegrees =
-    (clampedRegularCents / REGULAR_RANGE_CENTS) * 90;
+  const regularNeedleDegrees = (clampedRegularCents / REGULAR_RANGE_CENTS) * 90;
   const chromaticMarkerLeftPercent = hasChromaticCents
     ? ((clampedDetectedCents + 50) / 100) * 100
     : 50;
@@ -273,8 +276,7 @@ function TunerPanel({
     ? `${clampedDetectedCents > 0 ? "+" : ""}${clampedDetectedCents.toFixed(1)}¢`
     : "--";
 
-  const resetDisabled =
-    mode === "chromatic" || currentTargetIndex === 0;
+  const resetDisabled = mode === "chromatic" || currentTargetIndex === 0;
 
   return (
     <div
@@ -483,8 +485,8 @@ function TunerPanel({
           />
         </>
       ) : (
-        <div className="baseVertFlex w-full gap-4 px-3 md:px-6 lg:px-5">
-          <div className="baseVertFlex w-full rounded-md bg-background p-4 md:px-6 md:py-8">
+        <div className="baseVertFlex w-full gap-4">
+          <div className="baseVertFlex w-full rounded-md bg-background px-0 py-4 md:px-6 md:py-8">
             <ChromaticPitchScroller
               detectedNote={detectedNote}
               detectedCents={detectedCents}
@@ -493,86 +495,90 @@ function TunerPanel({
 
             {/* Shared horizontal track: labels + ticks + marker use the same % axis */}
             <div className="relative mt-4 w-full px-5 sm:px-6">
-              <div className="relative mb-1 h-4 w-full text-xs tabular-nums text-foreground/70">
-                {MOBILE_LABEL_TICKS.map((tick) => (
-                  <span
-                    key={`mobile-label-${tick}`}
-                    className="absolute top-0 -translate-x-1/2 lg:hidden"
-                    style={{ left: `${((tick + 50) / 100) * 100}%` }}
-                  >
-                    {tick}
-                  </span>
-                ))}
-                {CENTS_TICKS.map((tick) => (
-                  <span
-                    key={`desktop-label-${tick}`}
-                    className="absolute top-0 hidden -translate-x-1/2 lg:block"
-                    style={{ left: `${((tick + 50) / 100) * 100}%` }}
-                  >
-                    {tick}
-                  </span>
-                ))}
+              <div className="size-full px-3 md:px-6 lg:px-5">
+                <div className="relative mb-1 h-4 w-full text-xs tabular-nums text-foreground/70">
+                  {MOBILE_LABEL_TICKS.map((tick) => (
+                    <span
+                      key={`mobile-label-${tick}`}
+                      className="absolute top-0 -translate-x-1/2 lg:hidden"
+                      style={{ left: `${((tick + 50) / 100) * 100}%` }}
+                    >
+                      {tick}
+                    </span>
+                  ))}
+                  {CENTS_TICKS.map((tick) => (
+                    <span
+                      key={`desktop-label-${tick}`}
+                      className="absolute top-0 hidden -translate-x-1/2 lg:block"
+                      style={{ left: `${((tick + 50) / 100) * 100}%` }}
+                    >
+                      {tick}
+                    </span>
+                  ))}
+                </div>
               </div>
 
-              <div className="relative h-[180px] w-full rounded-md bg-secondary py-6">
-                <motion.div
-                  className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
-                  animate={{
-                    opacity: signalDetected ? [0.35, 0.8, 0.35] : 0.35,
-                  }}
-                  transition={{
-                    duration: 0.8,
-                    repeat: signalDetected ? Infinity : 0,
-                    ease: "linear",
-                  }}
-                />
-
-                {CENTS_TICKS.map((tick) => (
-                  <div
-                    key={`tick-${tick}`}
-                    className="absolute top-[34%] h-[32%] w-px -translate-x-1/2 bg-foreground/25"
-                    style={{ left: `${((tick + 50) / 100) * 100}%` }}
+              <div className="h-[180px] w-full rounded-md bg-secondary px-3 md:px-6 lg:px-5">
+                <div className="relative size-full py-6">
+                  <motion.div
+                    className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
+                    animate={{
+                      opacity: signalDetected ? [0.35, 0.8, 0.35] : 0.35,
+                    }}
+                    transition={{
+                      duration: 0.8,
+                      repeat: signalDetected ? Infinity : 0,
+                      ease: "linear",
+                    }}
                   />
-                ))}
 
-                <motion.div
-                  className="absolute inset-y-0"
-                  animate={{
-                    // Idle / no-signal: always park exactly on the 0¢ tick (50%).
-                    left: `${chromaticMarkerLeftPercent}%`,
-                    opacity: hasChromaticCents ? 1 : 0.3,
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 320,
-                    damping: 24,
-                    mass: 0.55,
-                  }}
-                >
-                  <div className="relative h-full -translate-x-1/2">
-                    <motion.div
-                      className="absolute top-1/2 h-14 w-[3px] -translate-y-1/2 rounded-full bg-primary"
-                      animate={{
-                        boxShadow: signalDetected
-                          ? [
-                              "0 0 0px hsl(var(--primary) / 0)",
-                              "0 0 12px hsl(var(--primary) / 0.65)",
-                              "0 0 0px hsl(var(--primary) / 0)",
-                            ]
-                          : "0 0 0px hsl(var(--primary) / 0)",
-                      }}
-                      transition={{
-                        duration: 0.7,
-                        repeat: signalDetected ? Infinity : 0,
-                        ease: "linear",
-                      }}
+                  {CENTS_TICKS.map((tick) => (
+                    <div
+                      key={`tick-${tick}`}
+                      className="absolute top-[34%] h-[32%] w-px -translate-x-1/2 bg-foreground/25"
+                      style={{ left: `${((tick + 50) / 100) * 100}%` }}
                     />
+                  ))}
 
-                    <div className="absolute bottom-3 left-1/2 w-[88px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-sm font-semibold tabular-nums text-primary">
-                      {chromaticCentsLabel}
+                  <motion.div
+                    className="absolute inset-y-0"
+                    animate={{
+                      // Idle / no-signal: always park exactly on the 0¢ tick (50%).
+                      left: `${chromaticMarkerLeftPercent}%`,
+                      opacity: hasChromaticCents ? 1 : 0.3,
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 320,
+                      damping: 24,
+                      mass: 0.55,
+                    }}
+                  >
+                    <div className="relative h-full -translate-x-1/2">
+                      <motion.div
+                        className="absolute top-1/2 h-14 w-[3px] -translate-y-1/2 rounded-full bg-primary"
+                        animate={{
+                          boxShadow: signalDetected
+                            ? [
+                                "0 0 0px hsl(var(--primary) / 0)",
+                                "0 0 12px hsl(var(--primary) / 0.65)",
+                                "0 0 0px hsl(var(--primary) / 0)",
+                              ]
+                            : "0 0 0px hsl(var(--primary) / 0)",
+                        }}
+                        transition={{
+                          duration: 0.7,
+                          repeat: signalDetected ? Infinity : 0,
+                          ease: "linear",
+                        }}
+                      />
+
+                      <div className="absolute bottom-3 left-1/2 w-[88px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-sm font-semibold tabular-nums text-primary">
+                        {chromaticCentsLabel}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </div>
               </div>
             </div>
           </div>
