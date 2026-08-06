@@ -7,6 +7,8 @@ import { formatNoteLabel, frequencyFromMidi } from "~/utils/tunerMath";
 
 const VISIBLE_SLOTS = 3;
 const RENDER_RADIUS = 2;
+/** Middle of the standard MIDI note range (0–127). */
+const DEFAULT_CENTER_MIDI = 64; // E4
 
 type ChromaticPitchScrollerProps = {
   detectedNote: string | null;
@@ -25,6 +27,8 @@ function ChromaticPitchScroller({
 }: ChromaticPitchScrollerProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [viewportWidth, setViewportWidth] = useState(0);
+  // Persist the last confident pitch so the strip never falls back to placeholders.
+  const [continuousMidi, setContinuousMidi] = useState(DEFAULT_CENTER_MIDI);
 
   useEffect(() => {
     const el = viewportRef.current;
@@ -47,33 +51,32 @@ function ChromaticPitchScroller({
   const hasLivePitch =
     signalDetected && detectedMidi !== null && detectedCents !== null;
 
-  const continuousMidi = hasLivePitch
-    ? detectedMidi + detectedCents / 100
-    : null;
+  useEffect(() => {
+    if (!hasLivePitch || detectedMidi === null || detectedCents === null) {
+      return;
+    }
+    setContinuousMidi(detectedMidi + detectedCents / 100);
+  }, [hasLivePitch, detectedMidi, detectedCents]);
 
-  const centerMidi =
-    continuousMidi !== null ? Math.round(continuousMidi) : null;
+  const centerMidi = Math.round(continuousMidi);
   const slotWidth = viewportWidth / VISIBLE_SLOTS;
-  const showTrack = continuousMidi !== null && slotWidth > 0;
 
-  const renderMidis =
-    centerMidi === null
-      ? []
-      : Array.from(
-          { length: RENDER_RADIUS * 2 + 1 },
-          (_, index) => centerMidi - RENDER_RADIUS + index,
-        );
+  const renderMidis = Array.from(
+    { length: RENDER_RADIUS * 2 + 1 },
+    (_, index) => centerMidi - RENDER_RADIUS + index,
+  );
 
   // Absolute MIDI coordinate space: each note sits at midi * slotWidth.
   // Translate so continuousMidi is centered in the viewport.
-  const trackX = showTrack
-    ? viewportWidth / 2 - continuousMidi * slotWidth - slotWidth / 2
-    : 0;
+  const trackX =
+    slotWidth > 0
+      ? viewportWidth / 2 - continuousMidi * slotWidth - slotWidth / 2
+      : 0;
 
   return (
     <div
       ref={viewportRef}
-      className="relative h-[76px] w-full overflow-hidden lg:h-[84px]"
+      className="relative mx-auto h-[76px] w-full max-w-sm overflow-hidden lg:h-[84px]"
       style={{
         maskImage:
           "linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)",
@@ -83,20 +86,9 @@ function ChromaticPitchScroller({
       aria-live="polite"
       aria-atomic="true"
     >
-      {/* Center playhead — detected pitch lands on this axis */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-1 left-1/2 z-10 w-px -translate-x-1/2 bg-primary/45"
-      />
-
-      {!showTrack ? (
-        <div className="baseVertFlex relative z-[1] h-full w-full gap-1">
-          <div className="text-lg font-semibold text-foreground/70">--</div>
-          <div className="text-sm tabular-nums text-foreground/55">-- Hz</div>
-        </div>
-      ) : (
+      {slotWidth > 0 && (
         <motion.div
-          className="absolute inset-y-0 left-0 z-[1]"
+          className="absolute inset-y-0 left-0"
           initial={false}
           animate={{ x: trackX }}
           transition={{
