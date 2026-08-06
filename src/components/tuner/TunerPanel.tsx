@@ -491,20 +491,30 @@ function TunerPanel({
               signalDetected={signalDetected}
             />
 
-            <div className="relative mt-4 w-full">
-              <div className="baseFlex w-full !justify-between px-[1px] text-xs text-foreground/70 lg:hidden">
+            {/* Shared horizontal track: labels + ticks + marker use the same % axis */}
+            <div className="relative mt-4 w-full px-5 sm:px-6">
+              <div className="relative mb-1 h-4 w-full text-xs tabular-nums text-foreground/70">
                 {MOBILE_LABEL_TICKS.map((tick) => (
-                  <span key={`mobile-label-${tick}`}>{tick}</span>
+                  <span
+                    key={`mobile-label-${tick}`}
+                    className="absolute top-0 -translate-x-1/2 lg:hidden"
+                    style={{ left: `${((tick + 50) / 100) * 100}%` }}
+                  >
+                    {tick}
+                  </span>
                 ))}
-              </div>
-
-              <div className="baseFlex !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 lg:!flex">
                 {CENTS_TICKS.map((tick) => (
-                  <span key={tick}>{tick}</span>
+                  <span
+                    key={`desktop-label-${tick}`}
+                    className="absolute top-0 hidden -translate-x-1/2 lg:block"
+                    style={{ left: `${((tick + 50) / 100) * 100}%` }}
+                  >
+                    {tick}
+                  </span>
                 ))}
               </div>
 
-              <div className="relative mt-0 h-[180px] w-full rounded-md bg-secondary px-4 py-6">
+              <div className="relative h-[180px] w-full rounded-md bg-secondary py-6">
                 <motion.div
                   className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
                   animate={{
@@ -520,7 +530,7 @@ function TunerPanel({
                 {CENTS_TICKS.map((tick) => (
                   <div
                     key={`tick-${tick}`}
-                    className="absolute top-[34%] h-[32%] w-px bg-foreground/25"
+                    className="absolute top-[34%] h-[32%] w-px -translate-x-1/2 bg-foreground/25"
                     style={{ left: `${((tick + 50) / 100) * 100}%` }}
                   />
                 ))}
@@ -528,6 +538,7 @@ function TunerPanel({
                 <motion.div
                   className="absolute inset-y-0"
                   animate={{
+                    // Idle / no-signal: always park exactly on the 0¢ tick (50%).
                     left: `${chromaticMarkerLeftPercent}%`,
                     opacity: hasChromaticCents ? 1 : 0.3,
                   }}
