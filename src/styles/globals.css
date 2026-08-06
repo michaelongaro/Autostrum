@@ -324,3 +324,67 @@ kbd {
 .progressBar-paused {
   animation-play-state: paused !important;
 }
+
+/* Homepage infinite tab-card marquees */
+@keyframes homepageMarqueeLeft {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes homepageMarqueeRight {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.homepageMarqueeTrack {
+  width: max-content;
+  will-change: transform;
+}
+
+.homepageMarqueeTrack[data-direction="left"] {
+  animation: homepageMarqueeLeft var(--marquee-duration, 55s) linear infinite;
+}
+
+.homepageMarqueeTrack[data-direction="right"] {
+  animation: homepageMarqueeRight var(--marquee-duration, 55s) linear infinite;
+}
+
+.homepageMarqueeRow:hover .homepageMarqueeTrack {
+  animation-play-state: paused;
+}
+
+@keyframes homepageProgressSweep {
+  0% {
+    transform: scaleX(0.08);
+  }
+
+  50% {
+    transform: scaleX(0.72);
+  }
+
+  100% {
+    transform: scaleX(0.08);
+  }
+}
+
+.homepageProgressSweep {
+  transform-origin: left center;
+  animation: homepageProgressSweep 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepageMarqueeTrack,
+  .homepageProgressSweep {
+    animation: none !important;
+  }
+}
