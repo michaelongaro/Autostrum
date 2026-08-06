@@ -123,10 +123,17 @@ function median(values: number[]) {
   const middle = Math.floor(sorted.length / 2);
 
   if (sorted.length % 2 === 0) {
-    return (sorted[middle - 1] + sorted[middle]) / 2;
+    const lower = sorted[middle - 1];
+    const upper = sorted[middle];
+
+    if (lower === undefined || upper === undefined) {
+      return 0;
+    }
+
+    return (lower + upper) / 2;
   }
 
-  return sorted[middle];
+  return sorted[middle] ?? 0;
 }
 
 /**
@@ -144,7 +151,14 @@ function robustSpread(values: number[]) {
   const lowerIndex = Math.floor((sorted.length - 1) * 0.2);
   const upperIndex = Math.ceil((sorted.length - 1) * 0.8);
 
-  return sorted[upperIndex] - sorted[lowerIndex];
+  const lower = sorted[lowerIndex];
+  const upper = sorted[upperIndex];
+
+  if (lower === undefined || upper === undefined) {
+    return 0;
+  }
+
+  return upper - lower;
 }
 
 function resolveTargetNotes(targetTuning: string) {
@@ -364,7 +378,7 @@ export function useTuner({
 
     while (
       samples.length > 0 &&
-      frameTime - samples[0].time > PITCH_ACQUISITION_WINDOW_MS
+      frameTime - (samples[0]?.time ?? frameTime) > PITCH_ACQUISITION_WINDOW_MS
     ) {
       samples.shift();
     }
@@ -373,7 +387,13 @@ export function useTuner({
       return null;
     }
 
-    const duration = frameTime - samples[0].time;
+    const oldestSample = samples[0];
+
+    if (!oldestSample) {
+      return null;
+    }
+
+    const duration = frameTime - oldestSample.time;
     if (duration < requiredDurationMs) {
       return null;
     }
