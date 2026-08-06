@@ -106,6 +106,7 @@
 .hp-atmosphere {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .hp-atmosphere::before {
@@ -119,7 +120,7 @@
     hsl(var(--gradient-secondary) / 0.35),
     transparent 70%
   );
-  z-index: 0;
+  z-index: -1;
 }
 
 .hp-atmosphere::after {
@@ -130,13 +131,8 @@
   opacity: 0.35;
   background-image: url("/ui/noise.svg");
   background-repeat: repeat;
-  z-index: 0;
+  z-index: -1;
   animation: hpGrainDrift 20s linear infinite;
-}
-
-.hp-atmosphere > * {
-  position: relative;
-  z-index: 1;
 }
 
 .hp-dark-session {

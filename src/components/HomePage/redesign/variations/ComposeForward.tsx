@@ -32,9 +32,9 @@ function ComposeForward() {
           </div>
         </div>
 
-        <div className="hp-enter hp-enter-delay-2 grid w-full gap-4 lg:grid-cols-[1fr_280px]">
-          <EditorFrame className="w-full" />
-          <div className="hp-panel baseVertFlex !items-stretch gap-2 rounded-xl border bg-background/90 p-4 shadow-sm">
+        <div className="hp-enter hp-enter-delay-2 grid w-full gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <EditorFrame className="w-full min-w-0" />
+          <div className="hp-panel flex flex-col items-stretch gap-2 rounded-xl border bg-background/90 p-4 shadow-sm">
             <p className="mb-1 text-sm font-semibold">Shortcuts</p>
             {EDITOR_SHORTCUTS.map((s) => (
               <div

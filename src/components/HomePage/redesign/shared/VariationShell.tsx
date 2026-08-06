@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import VariationNav from "./VariationNav";
 import type { VariationMeta } from "../content";
 import { useTabStore } from "~/stores/TabStore";
-import "../redesign.css";
 
 type VariationShellProps = {
   meta: VariationMeta;

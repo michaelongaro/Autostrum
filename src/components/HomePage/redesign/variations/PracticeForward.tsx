@@ -26,8 +26,8 @@ function PracticeForward() {
     <VariationShell meta={meta}>
       <section className="w-full max-w-6xl px-4">
         <div className="hp-atmosphere rounded-xl border px-5 py-10 sm:px-8 sm:py-12">
-          <div className="baseVertFlex gap-8 lg:grid lg:grid-cols-[1fr_1.15fr] lg:items-center lg:gap-10">
-            <div className="baseVertFlex !items-start gap-5 text-left">
+          <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-10">
+            <div className="flex flex-col items-start gap-5 text-left">
               <div className="hp-enter">
                 <BrandMark size="hero" />
               </div>
@@ -42,9 +42,9 @@ function PracticeForward() {
                 {PRACTICE_POINTS.map((point) => (
                   <li
                     key={point}
-                    className="baseFlex !justify-start gap-2 rounded-md border bg-background/70 px-3 py-2"
+                    className="flex items-center justify-start gap-2 rounded-md border bg-background/70 px-3 py-2"
                   >
-                    <span className="size-1.5 rounded-full bg-audio" />
+                    <span className="size-1.5 shrink-0 rounded-full bg-audio" />
                     {point}
                   </li>
                 ))}
@@ -56,7 +56,7 @@ function PracticeForward() {
                 />
               </div>
             </div>
-            <div className="hp-enter hp-enter-delay-2 w-full">
+            <div className="hp-enter hp-enter-delay-2 w-full min-w-0">
               <PlaybackFrame className="w-full shadow-lg" />
             </div>
           </div>

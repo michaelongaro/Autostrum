@@ -41,17 +41,18 @@ function PillarsSection({
       <div
         className={cn(
           "gap-6 md:gap-8",
-          layout === "stack" && "baseVertFlex !items-stretch",
-          layout === "row" && "baseVertFlex md:grid md:grid-cols-3 md:!items-start",
+          layout === "stack" && "flex flex-col items-stretch",
+          layout === "row" &&
+            "flex flex-col items-stretch md:grid md:grid-cols-3 md:items-start",
           layout === "cards" &&
-            "baseVertFlex md:grid md:grid-cols-3 md:!items-stretch",
+            "flex flex-col items-stretch md:grid md:grid-cols-3",
         )}
       >
         {PILLARS.map(({ key, icon: Icon, title, body }) => (
           <div
             key={key}
             className={cn(
-              "baseVertFlex !items-start gap-3",
+              "flex flex-col items-start gap-3",
               layout === "cards" &&
                 "hp-panel hp-card-hover rounded-xl border bg-background/90 p-5 shadow-sm",
             )}

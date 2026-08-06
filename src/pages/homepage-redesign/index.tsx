@@ -3,7 +3,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { VARIATIONS } from "~/components/HomePage/redesign/content";
 import BrandMark from "~/components/HomePage/redesign/shared/BrandMark";
-import "~/components/HomePage/redesign/redesign.css";
 
 function HomepageRedesignGallery() {
   return (

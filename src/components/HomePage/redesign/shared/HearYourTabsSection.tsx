@@ -13,12 +13,12 @@ function HearYourTabsSection({
   return (
     <section
       className={cn(
-        "baseVertFlex w-full max-w-6xl gap-8 px-4 md:grid md:grid-cols-2 md:items-center md:gap-12",
+        "grid w-full max-w-6xl items-center gap-8 px-4 md:grid-cols-2 md:gap-12",
         reverse && "md:[direction:rtl] md:[&>*]:[direction:ltr]",
         className,
       )}
     >
-      <div className="baseVertFlex !items-start gap-3 md:max-w-md">
+      <div className="flex flex-col items-start gap-3 md:max-w-md">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
           Hear your tabs
         </p>

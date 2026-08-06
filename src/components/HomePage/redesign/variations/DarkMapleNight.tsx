@@ -27,8 +27,8 @@ function DarkMapleNight() {
             className="pointer-events-none absolute bottom-0 left-10 size-40 rounded-full bg-audio/10 blur-3xl"
           />
 
-          <div className="relative baseVertFlex gap-8 lg:grid lg:grid-cols-2 lg:items-center lg:gap-12">
-            <div className="baseVertFlex !items-start gap-5 text-left text-[#e8d8cf]">
+          <div className="relative grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
+            <div className="flex flex-col items-start gap-5 text-left text-[#e8d8cf]">
               <div className="hp-enter">
                 <BrandMark size="hero" tone="cream" />
               </div>

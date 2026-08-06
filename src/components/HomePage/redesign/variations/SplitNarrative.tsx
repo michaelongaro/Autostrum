@@ -17,8 +17,8 @@ function SplitNarrative() {
   return (
     <VariationShell meta={meta}>
       <section className="w-full max-w-6xl px-4">
-        <div className="baseVertFlex gap-10 md:grid md:grid-cols-2 md:items-center md:gap-12">
-          <div className="baseVertFlex !items-start gap-5 text-left">
+        <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
+          <div className="flex flex-col items-start gap-5 text-left">
             <div className="hp-enter">
               <BrandMark size="hero" />
             </div>

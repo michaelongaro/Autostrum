@@ -18,8 +18,8 @@ function SocialCreator() {
   return (
     <VariationShell meta={meta}>
       <section className="w-full max-w-6xl px-4">
-        <div className="baseVertFlex gap-10 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12">
-          <div className="baseVertFlex !items-start gap-5 text-left">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
+          <div className="flex flex-col items-start gap-5 text-left">
             <div className="hp-enter">
               <BrandMark size="hero" />
             </div>
@@ -50,7 +50,7 @@ function SocialCreator() {
             </div>
           </div>
 
-          <div className="hp-enter hp-enter-delay-2 baseVertFlex !items-stretch gap-3">
+          <div className="hp-enter hp-enter-delay-2 flex w-full min-w-0 flex-col items-stretch gap-3">
             {FEATURED_CREATORS.map((creator, index) => (
               <Link
                 key={creator.username}
