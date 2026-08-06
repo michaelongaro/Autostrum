@@ -31,7 +31,7 @@ const pillars = [
   },
   {
     title: "Practice",
-    href: "/tools",
+    href: "/explore",
     icon: BsBarChartLine,
     blurb:
       "Play along with realistic guitar audio — at your tempo, on your terms.",
