@@ -1,7 +1,7 @@
 import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
 import { PitchDetector } from "pitchy";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import {
@@ -60,6 +60,11 @@ type GuidePlaybackHandle = {
   source?: AudioBufferSourceNode | null;
 } | null;
 
+type PitchCandidateSample = {
+  cents: number;
+  time: number;
+};
+
 const EMPTY_READING: TunerReading = {
   signalDetected: false,
   detectedNote: null,
@@ -69,18 +74,35 @@ const EMPTY_READING: TunerReading = {
 };
 
 const DEFAULT_TUNING_NOTES = DEFAULT_TUNING.split(" ");
+
 const MIN_CLARITY_FLOOR = 0.66;
 const MIN_INPUT_GATE_RMS = 0.001;
-const INPUT_LOSS_RELEASE_MS = 180;
-const PITCH_LOSS_RELEASE_MS = 350;
+const INPUT_LOSS_RELEASE_MS = 300;
+const PITCH_LOSS_RELEASE_MS = 500;
 const CLARITY_RELEASE_HYSTERESIS = 0.12;
+
+const PITCH_ACQUISITION_DURATION_MS = 120;
+const PITCH_ACQUISITION_WINDOW_MS = 240;
+const PITCH_ACQUISITION_MIN_FRAMES = 6;
+const MAX_ACQUISITION_SPREAD_CENTS = 24;
+
+const NOTE_SWITCH_DURATION_MS = 100;
+const NOTE_SWITCH_MIN_FRAMES = 5;
+
+const TRACKING_CENTS_WINDOW = 7;
+const MAX_TRACKING_SPREAD_CENTS = 30;
+const CENTS_SMOOTHING_ALPHA = 0.4;
+
+const READING_UPDATE_INTERVAL_MS = 80;
+const CONFIDENCE_LOSS_RELEASE_MS = 300;
+
 const GUIDE_INSTRUMENT_NAME = "acoustic_guitar_steel" as const;
 const GUIDE_NOTE_DURATION_SECONDS = 1.2;
 const GUIDE_NOTE_GAIN = 1.65;
 const GUIDE_NOTE_ATTACK_SECONDS = 0.01;
+
 /** How long to ignore the mic after playing a reference note. */
 const GUIDE_SUPPRESSION_MS = (GUIDE_NOTE_DURATION_SECONDS + 0.5) * 1000;
-const CENTS_SMOOTHING_WINDOW = 5;
 
 function readingsEqual(a: TunerReading, b: TunerReading) {
   return (
@@ -92,12 +114,46 @@ function readingsEqual(a: TunerReading, b: TunerReading) {
   );
 }
 
+function median(values: number[]) {
+  if (values.length === 0) {
+    return 0;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    return (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+
+  return sorted[middle];
+}
+
+/**
+ * Returns a spread that ignores the most extreme samples on either side.
+ *
+ * This is less sensitive than a simple min/max range to a single bad pitch
+ * estimate caused by a pluck transient, room noise, or a strong harmonic.
+ */
+function robustSpread(values: number[]) {
+  if (values.length < 2) {
+    return 0;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const lowerIndex = Math.floor((sorted.length - 1) * 0.2);
+  const upperIndex = Math.ceil((sorted.length - 1) * 0.8);
+
+  return sorted[upperIndex] - sorted[lowerIndex];
+}
+
 function resolveTargetNotes(targetTuning: string) {
   return normalizeTuningValue(targetTuning).split(" ");
 }
 
 function resolveTargetMidis(targetTuning: string, capo: number) {
   const notes = resolveTargetNotes(transposeTuningValue(targetTuning, capo));
+
   const midis = notes
     .map((note) => get(note).midi)
     .filter((midi): midi is number => midi !== null);
@@ -110,7 +166,9 @@ function resolveTargetMidis(targetTuning: string, capo: number) {
 }
 
 function stopGuidePlayback(handle: GuidePlaybackHandle) {
-  if (!handle) return;
+  if (!handle) {
+    return;
+  }
 
   try {
     handle.stop?.();
@@ -201,10 +259,18 @@ export function useTuner({
   const rafRef = useRef<number | null>(null);
 
   const stableMatchStartTimeRef = useRef<number | null>(null);
-  const centsHistoryRef = useRef<number[]>([]);
-  const lastDetectedMidiRef = useRef<number | null>(null);
+  const lastRawDetectedMidiRef = useRef<number | null>(null);
   const lastValidPitchTimeRef = useRef<number | null>(null);
+  const lastConfidentPitchTimeRef = useRef<number | null>(null);
   const pendingOctaveJumpMidiRef = useRef<number | null>(null);
+
+  const pitchCandidateMidiRef = useRef<number | null>(null);
+  const pitchCandidateSamplesRef = useRef<PitchCandidateSample[]>([]);
+
+  const lockedMidiRef = useRef<number | null>(null);
+  const trackingCentsHistoryRef = useRef<number[]>([]);
+  const smoothedCentsRef = useRef<number | null>(null);
+  const lastReadingUpdateTimeRef = useRef(0);
 
   const currentTargetIndexRef = useRef(0);
   const completedRef = useRef(false);
@@ -221,8 +287,15 @@ export function useTuner({
   const audioContextRef = useRef(audioContext);
   const masterVolumeGainNodeRef = useRef(masterVolumeGainNode);
 
-  const targetNotes = resolveTargetNotes(targetTuning);
-  const targetMidis = resolveTargetMidis(targetTuning, capo);
+  const targetNotes = useMemo(
+    () => resolveTargetNotes(targetTuning),
+    [targetTuning],
+  );
+
+  const targetMidis = useMemo(
+    () => resolveTargetMidis(targetTuning, capo),
+    [capo, targetTuning],
+  );
 
   const loopConfigRef = useRef({
     targetMidis,
@@ -235,19 +308,111 @@ export function useTuner({
     setReading((current) => (readingsEqual(current, next) ? current : next));
   }
 
+  function resetPitchCandidate() {
+    pitchCandidateMidiRef.current = null;
+    pitchCandidateSamplesRef.current = [];
+  }
+
+  function clearPitchLock({
+    preserveCandidate = false,
+  }: {
+    preserveCandidate?: boolean;
+  } = {}) {
+    lockedMidiRef.current = null;
+    trackingCentsHistoryRef.current = [];
+    smoothedCentsRef.current = null;
+    lastConfidentPitchTimeRef.current = null;
+    lastReadingUpdateTimeRef.current = 0;
+    stableMatchStartTimeRef.current = null;
+
+    if (!preserveCandidate) {
+      resetPitchCandidate();
+    }
+  }
+
   function resetPitchTracking() {
     stableMatchStartTimeRef.current = null;
-    centsHistoryRef.current = [];
-    lastDetectedMidiRef.current = null;
+    lastRawDetectedMidiRef.current = null;
     lastValidPitchTimeRef.current = null;
+    lastConfidentPitchTimeRef.current = null;
     pendingOctaveJumpMidiRef.current = null;
+    lockedMidiRef.current = null;
+    trackingCentsHistoryRef.current = [];
+    smoothedCentsRef.current = null;
+    lastReadingUpdateTimeRef.current = 0;
+    resetPitchCandidate();
+  }
+
+  function collectPitchCandidate(
+    midi: number,
+    cents: number,
+    frameTime: number,
+    requiredDurationMs: number,
+    requiredFrames: number,
+  ) {
+    if (pitchCandidateMidiRef.current !== midi) {
+      pitchCandidateMidiRef.current = midi;
+      pitchCandidateSamplesRef.current = [];
+    }
+
+    const samples = pitchCandidateSamplesRef.current;
+
+    samples.push({
+      cents,
+      time: frameTime,
+    });
+
+    while (
+      samples.length > 0 &&
+      frameTime - samples[0].time > PITCH_ACQUISITION_WINDOW_MS
+    ) {
+      samples.shift();
+    }
+
+    if (samples.length < requiredFrames) {
+      return null;
+    }
+
+    const duration = frameTime - samples[0].time;
+    if (duration < requiredDurationMs) {
+      return null;
+    }
+
+    const centsValues = samples.map((sample) => sample.cents);
+    if (robustSpread(centsValues) > MAX_ACQUISITION_SPREAD_CENTS) {
+      return null;
+    }
+
+    return centsValues;
+  }
+
+  function lockPitch(
+    midi: number,
+    candidateCents: number[],
+    frameTime: number,
+  ) {
+    const initialCents = median(candidateCents);
+
+    lockedMidiRef.current = midi;
+    trackingCentsHistoryRef.current = candidateCents.slice(
+      -TRACKING_CENTS_WINDOW,
+    );
+    smoothedCentsRef.current = initialCents;
+    lastConfidentPitchTimeRef.current = frameTime;
+    stableMatchStartTimeRef.current = null;
+    lastReadingUpdateTimeRef.current = 0;
+    resetPitchCandidate();
   }
 
   function clearGuideSuppression() {
     guideSuppressUntilRef.current = 0;
   }
 
-  function teardownListening({ preserveIntent = false } = {}) {
+  function teardownListening({
+    preserveIntent = false,
+  }: {
+    preserveIntent?: boolean;
+  } = {}) {
     if (!preserveIntent) {
       shouldBeListeningRef.current = false;
     }
@@ -274,6 +439,7 @@ export function useTuner({
       for (const track of streamRef.current.getTracks()) {
         track.stop();
       }
+
       streamRef.current = null;
     }
 
@@ -292,18 +458,23 @@ export function useTuner({
 
   async function playReferenceNote(targetIndex: number) {
     const ctx = audioContextRef.current;
-    const targetMidi = targetMidis[targetIndex] ?? targetMidis[0];
+    const midis = loopConfigRef.current.targetMidis;
+    const targetMidi = midis[targetIndex] ?? midis[0];
 
     if (targetMidi === undefined || !ctx) {
       return;
     }
 
-    const noteName = midiToNoteName(targetMidi, { sharps: true });
+    const noteName = midiToNoteName(targetMidi, {
+      sharps: true,
+    });
+
     if (!noteName) {
       return;
     }
 
     const requestId = ++guidePlaybackRequestIdRef.current;
+
     clearGuideSuppression();
     stopGuidePlayback(guidePlaybackHandleRef.current);
     guidePlaybackHandleRef.current = null;
@@ -312,7 +483,11 @@ export function useTuner({
       play: (
         name: string,
         when: number,
-        options: { duration: number; gain: number; attack: number },
+        options: {
+          duration: number;
+          gain: number;
+          attack: number;
+        },
       ) => GuidePlaybackHandle;
     }) => {
       if (guidePlaybackRequestIdRef.current !== requestId) {
@@ -332,6 +507,7 @@ export function useTuner({
     };
 
     const cached = instrumentsRef.current[GUIDE_INSTRUMENT_NAME];
+
     if (cached) {
       play(cached);
       return;
@@ -356,6 +532,7 @@ export function useTuner({
       if (guidePlaybackRequestIdRef.current === requestId) {
         clearGuideSuppression();
       }
+
       console.error("Failed to play tuner reference note:", caughtError);
     }
   }
@@ -364,7 +541,8 @@ export function useTuner({
     index: number,
     options?: { playReferenceNote?: boolean },
   ) {
-    const maxIndex = Math.max(targetMidis.length - 1, 0);
+    const midis = loopConfigRef.current.targetMidis;
+    const maxIndex = Math.max(midis.length - 1, 0);
     const clamped = Math.max(0, Math.min(index, maxIndex));
 
     if (clamped !== currentTargetIndexRef.current) {
@@ -387,8 +565,10 @@ export function useTuner({
     clearGuideSuppression();
     stopGuidePlayback(guidePlaybackHandleRef.current);
     guidePlaybackHandleRef.current = null;
+
     resetPitchTracking();
     updateReading(EMPTY_READING);
+
     currentTargetIndexRef.current = 0;
     setCurrentTargetIndexState(0);
     completedRef.current = false;
@@ -396,7 +576,7 @@ export function useTuner({
   }
 
   function advanceIfInTune(
-    nearestMidi: number,
+    detectedMidi: number,
     centsFromTarget: number,
     frameTime: number,
   ) {
@@ -406,10 +586,10 @@ export function useTuner({
       stableHoldDurationMs: holdMs,
     } = loopConfigRef.current;
 
-    const targetMidi =
-      midis[currentTargetIndexRef.current] ?? midis[0] ?? 40;
+    const targetMidi = midis[currentTargetIndexRef.current] ?? midis[0] ?? 40;
+
     const inTune =
-      nearestMidi === targetMidi && Math.abs(centsFromTarget) <= tolerance;
+      detectedMidi === targetMidi && Math.abs(centsFromTarget) <= tolerance;
 
     if (!inTune) {
       stableMatchStartTimeRef.current = null;
@@ -432,10 +612,63 @@ export function useTuner({
         completedRef.current = true;
         setCompleted(true);
       }
+
       return;
     }
 
-    setCurrentTargetIndex(currentTargetIndexRef.current + 1);
+    /*
+     * Automatic advancement should not play a reference note. Doing so
+     * suppresses microphone processing and interrupts the player's tuning
+     * flow. Reference playback remains available for explicit selection.
+     */
+    setCurrentTargetIndex(currentTargetIndexRef.current + 1, {
+      playReferenceNote: false,
+    });
+  }
+
+  function publishLockedReading(frameTime: number, force = false) {
+    const lockedMidi = lockedMidiRef.current;
+    const smoothedCents = smoothedCentsRef.current;
+
+    if (lockedMidi === null || smoothedCents === null) {
+      return;
+    }
+
+    if (
+      !force &&
+      frameTime - lastReadingUpdateTimeRef.current < READING_UPDATE_INTERVAL_MS
+    ) {
+      return;
+    }
+
+    const midis = loopConfigRef.current.targetMidis;
+    const targetMidi = midis[currentTargetIndexRef.current] ?? midis[0] ?? 40;
+
+    /*
+     * Reconstruct the filtered frequency from the locked MIDI note and
+     * filtered cents. This prevents raw frame-to-frame frequency jitter from
+     * leaking back into the UI.
+     */
+    const filteredFrequency =
+      frequencyFromMidi(lockedMidi) * 2 ** (smoothedCents / 1200);
+
+    const centsFromTarget = (lockedMidi - targetMidi) * 100 + smoothedCents;
+
+    updateReading({
+      signalDetected: true,
+      detectedFrequency: Math.round(filteredFrequency * 10) / 10,
+      detectedNote: midiToNoteName(lockedMidi, {
+        sharps: true,
+      }).toLowerCase(),
+      detectedCents: Math.round(smoothedCents * 10) / 10,
+      targetCentsOffset: Math.round(centsFromTarget * 10) / 10,
+    });
+
+    lastReadingUpdateTimeRef.current = frameTime;
+  }
+
+  function scheduleNextDetectionFrame() {
+    rafRef.current = window.requestAnimationFrame(runDetectionLoop);
   }
 
   function runDetectionLoop() {
@@ -448,24 +681,27 @@ export function useTuner({
       return;
     }
 
-    const {
-      targetMidis: midis,
-      minimumClarity: clarityThreshold,
-    } = loopConfigRef.current;
+    const { minimumClarity: clarityThreshold } = loopConfigRef.current;
 
     analyser.getFloatTimeDomainData(buffer);
     const frameTime = performance.now();
 
     let meanSquare = 0;
+
     for (const sample of buffer) {
       meanSquare += sample * sample;
     }
+
     const rms = Math.sqrt(meanSquare / buffer.length);
 
-    // Ignore the mic while a reference note is still ringing through speakers.
+    /*
+     * Ignore microphone input while a reference note is likely to be
+     * ringing through the device speakers.
+     */
     if (frameTime < guideSuppressUntilRef.current) {
+      stableMatchStartTimeRef.current = null;
       updateReading(EMPTY_READING);
-      rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+      scheduleNextDetectionFrame();
       return;
     }
 
@@ -473,25 +709,34 @@ export function useTuner({
       stableMatchStartTimeRef.current = null;
 
       const lastValid = lastValidPitchTimeRef.current;
-      if (lastValid === null || frameTime - lastValid >= INPUT_LOSS_RELEASE_MS) {
+
+      if (
+        lastValid === null ||
+        frameTime - lastValid >= INPUT_LOSS_RELEASE_MS
+      ) {
         resetPitchTracking();
         updateReading(EMPTY_READING);
       }
 
-      rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+      scheduleNextDetectionFrame();
       return;
     }
 
     const quietnessWeight = Math.max(0, Math.min(1, (0.02 - rms) / 0.02));
+
     const effectiveMinimumClarity =
       clarityThreshold -
       quietnessWeight * (clarityThreshold - MIN_CLARITY_FLOOR);
 
     const lastValid = lastValidPitchTimeRef.current;
+
     const retainingPitch =
       lastValid !== null && frameTime - lastValid < PITCH_LOSS_RELEASE_MS;
 
-    // Slightly lower clarity once a pitch is held so natural decay doesn't flicker.
+    /*
+     * Slightly lower the required clarity after acquiring a pitch so the
+     * natural decay of a guitar string does not cause visual flicker.
+     */
     const requiredClarity = retainingPitch
       ? Math.max(
           MIN_CLARITY_FLOOR,
@@ -508,32 +753,40 @@ export function useTuner({
     ) {
       stableMatchStartTimeRef.current = null;
 
-      if (lastValid === null || frameTime - lastValid >= PITCH_LOSS_RELEASE_MS) {
+      if (
+        lastValid === null ||
+        frameTime - lastValid >= PITCH_LOSS_RELEASE_MS
+      ) {
         resetPitchTracking();
         updateReading(EMPTY_READING);
       }
 
-      rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+      scheduleNextDetectionFrame();
       return;
     }
 
     const nearestMidi = midiFromFrequency(pitch);
-    const previousMidi = lastDetectedMidiRef.current;
+    const previousRawMidi = lastRawDetectedMidiRef.current;
 
-    // Require two consecutive frames before accepting a sudden octave jump.
+    /*
+     * A strong harmonic can make a guitar pitch detector briefly report an
+     * octave jump. Require at least two frames before allowing the octave
+     * candidate into the normal confidence-acquisition process.
+     */
     if (
-      previousMidi !== null &&
-      isSingleOctaveJump(nearestMidi, previousMidi)
+      previousRawMidi !== null &&
+      isSingleOctaveJump(nearestMidi, previousRawMidi)
     ) {
       if (pendingOctaveJumpMidiRef.current !== nearestMidi) {
         pendingOctaveJumpMidiRef.current = nearestMidi;
         stableMatchStartTimeRef.current = null;
-        rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+        scheduleNextDetectionFrame();
         return;
       }
     }
 
     pendingOctaveJumpMidiRef.current = null;
+    lastRawDetectedMidiRef.current = nearestMidi;
     lastValidPitchTimeRef.current = frameTime;
 
     const centsFromNearest = centsBetweenFrequencies(
@@ -541,38 +794,139 @@ export function useTuner({
       frequencyFromMidi(nearestMidi),
     );
 
-    if (lastDetectedMidiRef.current !== nearestMidi) {
-      centsHistoryRef.current = [];
-      lastDetectedMidiRef.current = nearestMidi;
+    const lockedMidi = lockedMidiRef.current;
+
+    /*
+     * No pitch is currently trusted. Accumulate a short run of consistent
+     * samples before displaying anything.
+     */
+    if (lockedMidi === null) {
+      const candidateCents = collectPitchCandidate(
+        nearestMidi,
+        centsFromNearest,
+        frameTime,
+        PITCH_ACQUISITION_DURATION_MS,
+        PITCH_ACQUISITION_MIN_FRAMES,
+      );
+
+      if (candidateCents) {
+        lockPitch(nearestMidi, candidateCents, frameTime);
+        publishLockedReading(frameTime, true);
+
+        const smoothedCents = smoothedCentsRef.current;
+
+        const targetMidi =
+          loopConfigRef.current.targetMidis[currentTargetIndexRef.current] ??
+          loopConfigRef.current.targetMidis[0] ??
+          40;
+
+        if (smoothedCents !== null) {
+          const centsFromTarget =
+            (nearestMidi - targetMidi) * 100 + smoothedCents;
+
+          advanceIfInTune(nearestMidi, centsFromTarget, frameTime);
+        }
+      }
+
+      scheduleNextDetectionFrame();
+      return;
     }
 
-    centsHistoryRef.current.push(centsFromNearest);
-    if (centsHistoryRef.current.length > CENTS_SMOOTHING_WINDOW) {
-      centsHistoryRef.current.shift();
+    /*
+     * Do not immediately switch the displayed note when a neighboring note
+     * or harmonic appears. Require the new note to remain stable first.
+     */
+    if (nearestMidi !== lockedMidi) {
+      stableMatchStartTimeRef.current = null;
+
+      const candidateCents = collectPitchCandidate(
+        nearestMidi,
+        centsFromNearest,
+        frameTime,
+        NOTE_SWITCH_DURATION_MS,
+        NOTE_SWITCH_MIN_FRAMES,
+      );
+
+      if (candidateCents) {
+        lockPitch(nearestMidi, candidateCents, frameTime);
+        publishLockedReading(frameTime, true);
+      } else {
+        const lastConfident = lastConfidentPitchTimeRef.current;
+
+        if (
+          lastConfident !== null &&
+          frameTime - lastConfident >= CONFIDENCE_LOSS_RELEASE_MS
+        ) {
+          clearPitchLock({
+            preserveCandidate: true,
+          });
+          updateReading(EMPTY_READING);
+        }
+      }
+
+      scheduleNextDetectionFrame();
+      return;
     }
 
-    const smoothedCents =
-      centsHistoryRef.current.reduce((sum, value) => sum + value, 0) /
-      centsHistoryRef.current.length;
+    /*
+     * The detected note still matches the locked note. Use a rolling median
+     * to reject individual outliers and an EMA to keep movement responsive
+     * without making the tuner needle or frequency label jitter.
+     */
+    resetPitchCandidate();
 
-    const targetMidi =
-      midis[currentTargetIndexRef.current] ?? midis[0] ?? 40;
-    const centsFromTarget = centsBetweenFrequencies(
-      pitch,
-      frequencyFromMidi(targetMidi),
-    );
+    trackingCentsHistoryRef.current.push(centsFromNearest);
 
-    updateReading({
-      signalDetected: true,
-      detectedFrequency: Math.round(pitch * 10) / 10,
-      detectedNote: midiToNoteName(nearestMidi, { sharps: true }).toLowerCase(),
-      detectedCents: Math.round(smoothedCents * 10) / 10,
-      targetCentsOffset: Math.round(centsFromTarget * 10) / 10,
-    });
+    if (trackingCentsHistoryRef.current.length > TRACKING_CENTS_WINDOW) {
+      trackingCentsHistoryRef.current.shift();
+    }
 
-    advanceIfInTune(nearestMidi, centsFromTarget, frameTime);
+    const trackingSpread = robustSpread(trackingCentsHistoryRef.current);
 
-    rafRef.current = window.requestAnimationFrame(runDetectionLoop);
+    if (trackingSpread > MAX_TRACKING_SPREAD_CENTS) {
+      stableMatchStartTimeRef.current = null;
+
+      const lastConfident = lastConfidentPitchTimeRef.current;
+
+      if (
+        lastConfident !== null &&
+        frameTime - lastConfident >= CONFIDENCE_LOSS_RELEASE_MS
+      ) {
+        clearPitchLock();
+        updateReading(EMPTY_READING);
+      }
+
+      scheduleNextDetectionFrame();
+      return;
+    }
+
+    const medianCents = median(trackingCentsHistoryRef.current);
+
+    const previousSmoothed = smoothedCentsRef.current;
+
+    smoothedCentsRef.current =
+      previousSmoothed === null
+        ? medianCents
+        : previousSmoothed +
+          CENTS_SMOOTHING_ALPHA * (medianCents - previousSmoothed);
+
+    lastConfidentPitchTimeRef.current = frameTime;
+
+    publishLockedReading(frameTime);
+
+    const smoothedCents = smoothedCentsRef.current;
+
+    if (smoothedCents !== null) {
+      const midis = loopConfigRef.current.targetMidis;
+
+      const targetMidi = midis[currentTargetIndexRef.current] ?? midis[0] ?? 40;
+
+      const centsFromTarget = (lockedMidi - targetMidi) * 100 + smoothedCents;
+
+      advanceIfInTune(lockedMidi, centsFromTarget, frameTime);
+    }
+
+    scheduleNextDetectionFrame();
   }
 
   async function startListening() {
@@ -585,9 +939,11 @@ export function useTuner({
 
     if (isListeningRef.current) {
       const tracks = streamRef.current?.getAudioTracks() ?? [];
+
       const streamAlive = tracks.some(
         (track) => track.readyState === "live" && track.enabled && !track.muted,
       );
+
       if (streamAlive) {
         return;
       }
@@ -601,7 +957,9 @@ export function useTuner({
 
     const startPromise = (async () => {
       if (streamRef.current || isListeningRef.current) {
-        teardownListening({ preserveIntent: true });
+        teardownListening({
+          preserveIntent: true,
+        });
       }
 
       try {
@@ -617,10 +975,12 @@ export function useTuner({
           for (const track of stream.getTracks()) {
             track.stop();
           }
+
           return;
         }
 
         const ctx = audioContextRef.current;
+
         if (!ctx) {
           setError("Could not initialize audio context.");
           teardownListening();
@@ -638,12 +998,15 @@ export function useTuner({
         streamRef.current = stream;
 
         const micSourceNode = ctx.createMediaStreamSource(stream);
+
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 2048;
         micSourceNode.connect(analyser);
 
         const inputBuffer = new Float32Array(analyser.fftSize);
+
         const detector = PitchDetector.forFloat32Array(inputBuffer.length);
+
         const streamGeneration = ++streamGenerationRef.current;
 
         micSourceNodeRef.current = micSourceNode;
@@ -660,7 +1023,10 @@ export function useTuner({
               return;
             }
 
-            teardownListening({ preserveIntent: true });
+            teardownListening({
+              preserveIntent: true,
+            });
+
             void startListening();
           });
         }
@@ -673,6 +1039,7 @@ export function useTuner({
         rafRef.current = window.requestAnimationFrame(runDetectionLoop);
       } catch (caughtError) {
         const resolved = resolveGetUserMediaError(caughtError);
+
         setPermissionDenied(resolved.permissionDenied);
         setError(resolved.message);
         teardownListening();
@@ -686,7 +1053,6 @@ export function useTuner({
     await startPromiseRef.current;
   }
 
-  // Keep refs in sync for the rAF loop / async callbacks.
   useEffect(() => {
     instrumentsRef.current = instruments;
   }, [instruments]);
@@ -708,7 +1074,10 @@ export function useTuner({
     };
   }, [minimumClarity, stableHoldDurationMs, targetMidis, toleranceCents]);
 
-  // Pause the mic when the tab is hidden; resume when it becomes visible again.
+  /*
+   * Pause the microphone when the tab is hidden and resume when it becomes
+   * visible again.
+   */
   useEffect(() => {
     const onVisibilityChange = () => {
       if (!shouldBeListeningRef.current) {
@@ -716,7 +1085,9 @@ export function useTuner({
       }
 
       if (document.visibilityState === "hidden") {
-        teardownListening({ preserveIntent: true });
+        teardownListening({
+          preserveIntent: true,
+        });
         return;
       }
 
@@ -725,7 +1096,9 @@ export function useTuner({
 
     const onPageHide = () => {
       if (shouldBeListeningRef.current) {
-        teardownListening({ preserveIntent: true });
+        teardownListening({
+          preserveIntent: true,
+        });
       }
     };
 
@@ -747,11 +1120,13 @@ export function useTuner({
       window.removeEventListener("pagehide", onPageHide);
       window.removeEventListener("focus", onFocus);
     };
-    // Intentionally empty: handlers read latest state via refs.
+    // Handlers read the latest state through refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reset string progress when the tuning or capo changes.
+  /*
+   * Reset string progress when the tuning or capo changes.
+   */
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
       resetProgress();
