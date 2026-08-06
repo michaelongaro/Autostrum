@@ -46,38 +46,12 @@ function UserStatistics() {
   // first column header is always "Rank" and second column header is always "Title"
   const topFiveStatsHeaders = ["Views", "Bookmarks", "Rating"];
 
-  const topFiveStatsPlaceholder = new Map<
-    string,
-    { id: number; title: string; value: string }
-  >([
-    ["1st", { id: 0, title: "", value: "" }],
-    ["2nd", { id: 0, title: "", value: "" }],
-    ["3rd", { id: 0, title: "", value: "" }],
-    ["4th", { id: 0, title: "", value: "" }],
-    ["5th", { id: 0, title: "", value: "" }],
-  ]);
-
   const [miscStatsCarouselApi, setMiscStatsCarouselApi] =
     useState<CarouselApi>();
   const [miscStatsSlide, setMiscStatsSlide] = useState(0);
 
   // second column header is always "Tabs"
   const miscStatsHeaders = ["Genre", "Tuning", "Difficulty", "Capo", "Artist"];
-
-  const miscStatsPlaceholder = new Map<string, number>([
-    ["Rock", 0],
-    ["Indie", 0],
-    ["Jazz", 0],
-    ["Pop", 0],
-    ["Folk", 0],
-    ["Country", 0],
-    ["Blues", 0],
-    ["Hip-Hop", 0],
-    ["Electronic", 0],
-    ["Classical", 0],
-    ["Metal", 0],
-    ["Misc.", 0],
-  ]);
 
   useEffect(() => {
     if (!topFiveStatsCarouselApi || !miscStatsCarouselApi) return;
@@ -418,7 +392,7 @@ function UserStatistics() {
                   />
                 </div>
 
-                <div className="baseFlex relative w-full">
+                <div className="baseVertFlex relative w-full">
                   <Table>
                     <colgroup>
                       {/* Rank */}
@@ -445,70 +419,66 @@ function UserStatistics() {
                       </TableRow>
                     </TableHeader>
 
-                    <TableBody className="relative w-full">
-                      <>
-                        {(!currentUser ||
-                        isFetchingCurrentUser ||
-                        currentUser.totalTabs === 0
-                          ? [...topFiveStatsPlaceholder.entries()]
-                          : [
+                    {currentUser &&
+                      currentUser.totalTabs !== 0 &&
+                      !isFetchingCurrentUser && (
+                        <TableBody className="relative w-full">
+                          <>
+                            {[
                               ...currentUser.topFiveStats[
                                 topFiveStatsSlide
                               ]!.entries(),
-                            ]
-                        ).map(([rank, tab]) => (
-                          <TableRow key={rank} className="w-full">
-                            <TableCell>
-                              <motion.div
-                                key={`rank-${rank}`}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.25 }}
-                                className="w-full"
-                              >
-                                <span className="font-semibold text-foreground">
-                                  {rank}
-                                </span>
-                              </motion.div>
-                            </TableCell>
+                            ].map(([rank, tab]) => (
+                              <TableRow key={rank} className="w-full">
+                                <TableCell>
+                                  <motion.div
+                                    key={`rank-${rank}`}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="w-full"
+                                  >
+                                    <span className="font-semibold text-foreground">
+                                      {rank}
+                                    </span>
+                                  </motion.div>
+                                </TableCell>
 
-                            <TableCell>
-                              <motion.div
-                                key={`title-${tab.id}`}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.25 }}
-                                className="w-full max-w-[230px] truncate sm:max-w-[300px]"
-                              >
-                                <Link
-                                  href={`/tab/${tab.id}/${encodeURIComponent(tab.title)}`}
-                                  className="!p-0 !text-base !font-semibold hover:underline md:!text-lg"
-                                >
-                                  {tab.title}
-                                </Link>
-                              </motion.div>
-                            </TableCell>
+                                <TableCell>
+                                  <motion.div
+                                    key={`title-${tab.id}`}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="w-full max-w-[230px] truncate sm:max-w-[300px]"
+                                  >
+                                    <Link
+                                      href={`/tab/${tab.id}/${encodeURIComponent(tab.title)}`}
+                                      className="!p-0 !text-base !font-semibold hover:underline md:!text-lg"
+                                    >
+                                      {tab.title}
+                                    </Link>
+                                  </motion.div>
+                                </TableCell>
 
-                            <TableCell>
-                              <motion.div
-                                key={`value-${tab.id}`}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.25 }}
-                                className="w-full"
-                              >
-                                <span className="font-semibold text-foreground">
-                                  {tab.value}
-                                </span>
-                              </motion.div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </>
-                    </TableBody>
+                                <TableCell>
+                                  <motion.div
+                                    key={`value-${tab.id}`}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="w-full"
+                                  >
+                                    <span className="font-semibold text-foreground">
+                                      {tab.value}
+                                    </span>
+                                  </motion.div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </>
+                        </TableBody>
+                      )}
                   </Table>
 
                   <AnimatePresence mode="popLayout">
@@ -521,7 +491,7 @@ function UserStatistics() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
-                        className="baseVertFlex absolute left-0 top-8 h-[calc(100%-2rem)] w-full bg-black/65"
+                        className="baseVertFlex h-[204.5px] w-full md:h-[224.5px]"
                       >
                         {!currentUser && (
                           <motion.div
@@ -531,11 +501,11 @@ function UserStatistics() {
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.25 }}
                           >
-                            <Spinner className="size-4 bg-transparent md:size-6" />
+                            <Spinner className="size-6 bg-transparent md:size-8" />
                           </motion.div>
                         )}
 
-                        {currentUser && currentUser.totalTabs === 0 && (
+                        {currentUser?.totalTabs === 0 && (
                           <motion.div
                             key={"noTabsFound"}
                             initial={{ opacity: 0 }}
@@ -606,7 +576,7 @@ function UserStatistics() {
                 </div>
               </div>
 
-              <div className="baseVertFlex w-full gap-2">
+              <div className="baseVertFlex w-full">
                 <div className="baseVertFlex w-full gap-2">
                   <div className="baseFlex w-full !justify-start gap-3">
                     <GiPerspectiveDiceSixFacesTwo className="size-6 text-foreground lg:size-7" />
@@ -620,7 +590,7 @@ function UserStatistics() {
                   />
                 </div>
 
-                <div className="baseFlex w-full text-sm text-foreground/75">
+                <div className="baseFlex mt-4 w-full border-b pb-[6px] text-sm text-foreground/75">
                   <div className="baseFlex ml-4 w-1/2 !justify-start">
                     {miscStatsHeaders[miscStatsSlide]}
                   </div>
@@ -648,60 +618,57 @@ function UserStatistics() {
                     style={{
                       transform: "translateZ(0)",
                     }}
-                    className="baseFlex relative h-[185.5px] w-full !items-start"
+                    className="baseVertFlex relative h-[185.5px] w-full !items-start !justify-start"
                   >
                     <Table>
-                      <TableBody className="relative w-full">
-                        <>
-                          {(!currentUser ||
-                          isFetchingCurrentUser ||
-                          currentUser.totalTabs === 0
-                            ? [...miscStatsPlaceholder.entries()]
-                            : [
+                      {currentUser &&
+                        currentUser.totalTabs !== 0 &&
+                        !isFetchingCurrentUser && (
+                          <TableBody className="relative w-full">
+                            <>
+                              {[
                                 ...currentUser.miscStats[
                                   miscStatsSlide
                                 ]!.entries(),
-                              ]
-                          ).map(([category, tabCount]) => (
-                            <TableRow key={category} className="w-full">
-                              <TableCell>
-                                <motion.div
-                                  key={`${category}Category`}
-                                  initial={{ opacity: 0 }}
-                                  animate={{ opacity: 1 }}
-                                  exit={{ opacity: 0 }}
-                                  transition={{ duration: 0.25 }}
-                                  className="baseFlex w-full !justify-start gap-1"
-                                >
-                                  {miscStatsSlide === 4 &&
-                                    currentUser?.artistIsVerified.get(
-                                      category,
-                                    ) && (
-                                      <Verified className="size-4 shrink-0" />
-                                    )}
-                                  {category}
-                                  <span className="font-semibold text-foreground"></span>
-                                </motion.div>
-                              </TableCell>
+                              ].map(([category, tabCount]) => (
+                                <TableRow key={category} className="w-full">
+                                  <TableCell>
+                                    <motion.div
+                                      key={`${category}Category`}
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      transition={{ duration: 0.25 }}
+                                      className="baseFlex w-full !justify-start gap-1"
+                                    >
+                                      {miscStatsSlide === 4 &&
+                                        currentUser?.artistIsVerified.get(
+                                          category,
+                                        ) && (
+                                          <Verified className="size-4 shrink-0" />
+                                        )}
+                                      {category}
+                                      <span className="font-semibold text-foreground"></span>
+                                    </motion.div>
+                                  </TableCell>
 
-                              <TableCell>
-                                <motion.div
-                                  key={`${category}tabCount`}
-                                  initial={{ opacity: 0 }}
-                                  animate={{ opacity: 1 }}
-                                  exit={{ opacity: 0 }}
-                                  transition={{ duration: 0.25 }}
-                                  className="w-full"
-                                >
-                                  <span className="font-semibold text-foreground">
-                                    {tabCount}
-                                  </span>
-                                </motion.div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </>
-                      </TableBody>
+                                  <TableCell>
+                                    <motion.div
+                                      key={`${category}tabCount`}
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      transition={{ duration: 0.25 }}
+                                      className="w-full"
+                                    >
+                                      <span className="font-semibold text-foreground">
+                                        {tabCount}
+                                      </span>
+                                    </motion.div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </>
+                          </TableBody>
+                        )}
                     </Table>
 
                     <AnimatePresence mode="popLayout">
@@ -714,7 +681,7 @@ function UserStatistics() {
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.25 }}
-                          className="baseVertFlex absolute left-0 top-0 size-full bg-black/65"
+                          className="baseVertFlex h-[204.5px] w-full md:h-[224.5px]"
                         >
                           {!currentUser && (
                             <motion.div
@@ -724,11 +691,11 @@ function UserStatistics() {
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.25 }}
                             >
-                              <Spinner className="size-4 md:size-6" />
+                              <Spinner className="size-6 bg-transparent md:size-8" />
                             </motion.div>
                           )}
 
-                          {currentUser && currentUser.totalTabs === 0 && (
+                          {currentUser?.totalTabs === 0 && (
                             <motion.div
                               key={"miscStatsNoTabsFound"}
                               initial={{ opacity: 0 }}
@@ -749,7 +716,7 @@ function UserStatistics() {
                   </div>
                 </OverlayScrollbarsComponent>
 
-                <div className="baseFlex w-full gap-2">
+                <div className="baseFlex mt-2 w-full gap-2">
                   <Button
                     variant={"text"}
                     disabled={isFetchingCurrentUser}
