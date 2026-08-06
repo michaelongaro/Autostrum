@@ -27,10 +27,8 @@ function ChromaticPitchScroller({
 }: ChromaticPitchScrollerProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [viewportWidth, setViewportWidth] = useState(0);
-  // Whole-note MIDI to park on when idle. Continuous position may include cents
-  // while live, but idle must always center a note exactly in the viewport.
   const lastNoteMidiRef = useRef(DEFAULT_CENTER_MIDI);
-  const [continuousMidi, setContinuousMidi] = useState(DEFAULT_CENTER_MIDI);
+  const [centeredMidi, setCenteredMidi] = useState(DEFAULT_CENTER_MIDI);
 
   useEffect(() => {
     const el = viewportRef.current;
@@ -44,6 +42,7 @@ function ChromaticPitchScroller({
 
     const observer = new ResizeObserver(updateWidth);
     observer.observe(el);
+
     return () => observer.disconnect();
   }, []);
 
@@ -55,29 +54,33 @@ function ChromaticPitchScroller({
 
   useEffect(() => {
     if (hasLivePitch && detectedMidi !== null && detectedCents !== null) {
-      lastNoteMidiRef.current = detectedMidi;
-      // Live: slide continuously with cents offset between neighboring notes.
-      setContinuousMidi(detectedMidi + detectedCents / 100);
+      /*
+       * Cents are used only to determine which note range contains the
+       * detected pitch. They do not produce fractional track movement.
+       */
+      const noteRangeMidi = Math.round(detectedMidi + detectedCents / 100);
+
+      lastNoteMidiRef.current = noteRangeMidi;
+      setCenteredMidi(noteRangeMidi);
       return;
     }
 
-    // Idle / lost signal: snap to the last whole note so it sits dead-center.
-    setContinuousMidi(lastNoteMidiRef.current);
+    // Keep the last detected whole note centered when the signal is lost.
+    setCenteredMidi(lastNoteMidiRef.current);
   }, [hasLivePitch, detectedMidi, detectedCents]);
 
-  const centerMidi = Math.round(continuousMidi);
   const slotWidth = viewportWidth / VISIBLE_SLOTS;
 
   const renderMidis = Array.from(
     { length: RENDER_RADIUS * 2 + 1 },
-    (_, index) => centerMidi - RENDER_RADIUS + index,
+    (_, index) => centeredMidi - RENDER_RADIUS + index,
   );
 
-  // Absolute MIDI coordinate space: each note sits at midi * slotWidth.
-  // Translate so continuousMidi is centered in the viewport.
+  // Each note occupies one fixed slot. The track moves only when the
+  // centered whole note changes, never in direct response to cents.
   const trackX =
     slotWidth > 0
-      ? viewportWidth / 2 - continuousMidi * slotWidth - slotWidth / 2
+      ? viewportWidth / 2 - centeredMidi * slotWidth - slotWidth / 2
       : 0;
 
   return (
@@ -108,10 +111,9 @@ function ChromaticPitchScroller({
           {renderMidis.map((midi) => {
             const noteName = noteNameFromMidi(midi);
             const frequency = frequencyFromMidi(midi);
-            const distance = Math.abs(midi - continuousMidi);
-            // Emphasize the note nearest the detected pitch; fade neighbors.
+            const distance = Math.abs(midi - centeredMidi);
             const emphasis = Math.max(0.35, 1 - distance * 0.55);
-            const isPrimary = Math.round(continuousMidi) === midi;
+            const isPrimary = centeredMidi === midi;
 
             return (
               <div
@@ -124,7 +126,11 @@ function ChromaticPitchScroller({
                 }}
               >
                 <div
-                  className={`font-semibold text-foreground ${isPrimary ? "text-lg lg:text-xl" : "text-base text-foreground/80 lg:text-lg"}`}
+                  className={`font-semibold text-foreground ${
+                    isPrimary
+                      ? "text-lg lg:text-xl"
+                      : "text-base text-foreground/80 lg:text-lg"
+                  }`}
                 >
                   <PrettyNote
                     note={formatNoteLabel(noteName)}
@@ -133,7 +139,11 @@ function ChromaticPitchScroller({
                   />
                 </div>
                 <div
-                  className={`tabular-nums ${isPrimary ? "text-sm font-semibold text-foreground/75 lg:text-base" : "text-xs text-foreground/55 lg:text-sm"}`}
+                  className={`tabular-nums ${
+                    isPrimary
+                      ? "text-sm font-semibold text-foreground/75 lg:text-base"
+                      : "text-xs text-foreground/55 lg:text-sm"
+                  }`}
                 >
                   {`${frequency.toFixed(1)} Hz`}
                 </div>
