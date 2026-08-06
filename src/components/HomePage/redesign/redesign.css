@@ -1,0 +1,174 @@
+/* Homepage redesign motions — polish, not noise */
+
+@keyframes hpFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hpFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hpPlayPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(151.03 54.72% 41.57% / 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 10px hsl(151.03 54.72% 41.57% / 0);
+  }
+}
+
+@keyframes hpChordScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-40%);
+  }
+}
+
+@keyframes hpGrainDrift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 40px 40px;
+  }
+}
+
+.hp-enter {
+  animation: hpFadeUp 0.7s ease-out both;
+}
+
+.hp-enter-delay-1 {
+  animation-delay: 0.08s;
+}
+
+.hp-enter-delay-2 {
+  animation-delay: 0.16s;
+}
+
+.hp-enter-delay-3 {
+  animation-delay: 0.24s;
+}
+
+.hp-enter-delay-4 {
+  animation-delay: 0.32s;
+}
+
+.hp-fade {
+  animation: hpFadeIn 0.8s ease-out both;
+}
+
+.hp-play-pulse {
+  animation: hpPlayPulse 2.4s ease-out infinite;
+}
+
+.hp-chord-strip {
+  animation: hpChordScroll 18s linear infinite;
+}
+
+.hp-card-hover {
+  transition:
+    transform 0.2s ease-out,
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
+}
+
+.hp-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px hsl(var(--foreground) / 0.08);
+}
+
+.hp-genre-hover {
+  transition:
+    transform 0.2s ease-out,
+    filter 0.2s ease-out;
+}
+
+.hp-genre-hover:hover {
+  transform: scale(1.02);
+  filter: brightness(1.05);
+}
+
+.hp-atmosphere {
+  position: relative;
+  overflow: hidden;
+}
+
+.hp-atmosphere::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    145deg,
+    hsl(var(--gradient-primary) / 0.55),
+    hsl(var(--gradient-secondary) / 0.35),
+    transparent 70%
+  );
+  z-index: 0;
+}
+
+.hp-atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: url("/ui/noise.svg");
+  background-repeat: repeat;
+  z-index: 0;
+  animation: hpGrainDrift 20s linear infinite;
+}
+
+.hp-atmosphere > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hp-dark-session {
+  --background: 24 10% 10%;
+  --foreground: 24 30% 90%;
+  --border: 20 20% 35%;
+  --secondary: 24 12% 14%;
+  --secondary-hover: 24 12% 17%;
+  --secondary-active: 24 12% 20%;
+  --secondary-foreground: 24 30% 88%;
+  --header: 24 10% 10%;
+  color: hsl(var(--foreground));
+  background: #1c1917;
+}
+
+.hp-dark-session .hp-panel {
+  background: hsl(24 10% 12% / 0.92);
+  border-color: hsl(20 22% 42% / 0.55);
+  color: #e8d8cf;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-enter,
+  .hp-fade,
+  .hp-play-pulse,
+  .hp-chord-strip,
+  .hp-atmosphere::after {
+    animation: none !important;
+  }
+
+  .hp-card-hover:hover,
+  .hp-genre-hover:hover {
+    transform: none;
+  }
+}
