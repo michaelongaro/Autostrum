@@ -10,6 +10,7 @@ import TuningFork from "~/components/ui/icons/TuningFork";
 import { useTabStore } from "~/stores/TabStore";
 import { PrettyNote, PrettyTuning } from "~/components/ui/PrettyTuning";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import ChromaticPitchScroller from "~/components/tuner/ChromaticPitchScroller";
 import { formatNoteLabel, frequencyFromMidi } from "~/utils/tunerMath";
 import { TUNER_DEFAULTS, type TunerReading } from "~/hooks/useTuner";
 
@@ -484,22 +485,20 @@ function TunerPanel({
       ) : (
         <div className="baseVertFlex w-full gap-4 px-3 md:px-6 lg:px-5">
           <div className="baseVertFlex w-full rounded-md bg-background p-4 md:px-6 md:py-8">
-            <div className="w-full text-center text-lg font-semibold text-foreground">
-              {detectedNote ? formatNoteLabel(detectedNote) : "--"}
-            </div>
+            <ChromaticPitchScroller
+              detectedNote={detectedNote}
+              detectedCents={detectedCents}
+              signalDetected={signalDetected}
+            />
 
             <div className="relative mt-4 w-full">
-              <div className="absolute left-1/2 top-0 z-10 w-[104px] -translate-x-1/2 rounded-md border bg-background px-3 py-1 text-center text-sm font-semibold tabular-nums text-foreground lg:w-[118px] lg:text-base">
-                {frequencyLabel}
-              </div>
-
-              <div className="baseFlex mt-12 w-full !justify-between px-[1px] text-xs text-foreground/70 lg:hidden">
+              <div className="baseFlex w-full !justify-between px-[1px] text-xs text-foreground/70 lg:hidden">
                 {MOBILE_LABEL_TICKS.map((tick) => (
                   <span key={`mobile-label-${tick}`}>{tick}</span>
                 ))}
               </div>
 
-              <div className="baseFlex mt-14 !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 lg:!flex">
+              <div className="baseFlex !hidden w-full !justify-between px-[1px] text-xs text-foreground/70 lg:!flex">
                 {CENTS_TICKS.map((tick) => (
                   <span key={tick}>{tick}</span>
                 ))}
