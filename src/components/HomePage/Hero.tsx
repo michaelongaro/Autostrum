@@ -1,171 +1,81 @@
-import { useAuth } from "@clerk/nextjs";
-import { AnimatePresence } from "framer-motion";
-import { BsBarChartLine } from "react-icons/bs";
-import { GiMusicalScore } from "react-icons/gi";
-import { HiOutlineLightBulb } from "react-icons/hi";
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
+import HeaderLogo from "~/components/Header/HeaderLogo";
+import HeroPlaybackPreview from "~/components/HomePage/HeroPlaybackPreview";
+import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
-import GridTabCard from "../Search/GridTabCard";
-import TabCardSkeleton from "../Search/TabCardSkeleton";
-import { useTabStore } from "~/stores/TabStore";
-import HeaderLogo from "~/components/Header/HeaderLogo";
+import mobileHero from "public/homepage/hero/goodMobileHero.png";
+import desktopHero from "public/homepage/hero/goodDesktopHero.png";
+
+const PROMOTED_TAB_ID = 83;
 
 function Hero() {
-  const { userId } = useAuth();
-
-  const { color, theme } = useTabStore((state) => ({
-    color: state.color,
-    theme: state.theme,
-  }));
-
-  const { data: currentUser } = api.user.getById.useQuery(userId!, {
-    enabled: !!userId,
-  });
-
-  const { data: fetchedTab } = api.search.getMinimalTabById.useQuery(83);
-
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-  const isAboveExtraLargeViewportWidth = useViewportWidthBreakpoint(1280);
+
+  const { data: promotedTab, isFetched: promotedTabFetched } =
+    api.search.getMinimalTabById.useQuery(PROMOTED_TAB_ID);
+
+  const { data: fallbackTabs } =
+    api.search.getMostRecentAndPopularTabs.useQuery(undefined, {
+      enabled: promotedTabFetched && !promotedTab,
+    });
+
+  const featuredTab = promotedTab ?? fallbackTabs?.mostPopularTabs?.[0] ?? null;
 
   return (
-    <div className="baseVertFlex z-10 my-24 gap-16 md:gap-24">
-      <div className="baseVertFlex w-5/6 items-start gap-2 rounded-xl border bg-background p-4 shadow-md sm:w-auto md:gap-4 md:p-8">
-        <div className="baseVertFlex gap-4">
-          <h1 className="baseVertFlex gap-2 text-3xl font-bold md:text-5xl">
-            Welcome to
+    <section className="baseVertFlex w-full max-w-[1200px] gap-8 px-4 md:gap-10 md:px-6 lg:px-8">
+      <div className="baseVertFlex w-full gap-8 lg:flex-row lg:!items-center lg:!justify-between lg:gap-12">
+        <div className="baseVertFlex w-full max-w-xl !items-start gap-5 md:gap-6">
+          <div className="baseVertFlex !items-start gap-3 md:gap-4">
+            <h1 className="sr-only">Autostrum</h1>
             <HeaderLogo
-              width={isAboveMediumViewportWidth ? 300 : 200}
-              height={isAboveMediumViewportWidth ? 52 : 32}
+              width={isAboveMediumViewportWidth ? 320 : 220}
+              height={isAboveMediumViewportWidth ? 56 : 38}
             />
-          </h1>
+            <p className="max-w-lg text-xl font-semibold tracking-tight md:text-2xl lg:text-[1.75rem]">
+              Create and share your riffs{" "}
+              <span className="italic text-primary underline underline-offset-2">
+                exactly
+              </span>{" "}
+              how you want them to sound
+            </p>
+            <p className="max-w-md text-sm text-foreground/80 md:text-base">
+              Keyboard-first editor, realistic guitar playback, and tools to
+              practice what you write.
+            </p>
+          </div>
 
-          <p className="text-center text-base md:text-lg">
-            Create and share your riffs{" "}
-            <span className="mx-[1px] italic text-primary underline underline-offset-2">
-              exactly
-            </span>{" "}
-            how you want them to sound
-          </p>
+          <div className="baseFlex !justify-start gap-3">
+            <Button asChild className="px-5 md:px-6">
+              <Link prefetch={false} href="/create">
+                Create a tab
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="px-5 md:px-6">
+              <Link prefetch={false} href="/explore">
+                Explore tabs
+              </Link>
+            </Button>
+          </div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1 }}
+          className="w-full max-w-md lg:max-w-4xl"
+        >
+          <Image
+            alt={"practice modal preview"}
+            src={isAboveMediumViewportWidth ? desktopHero : mobileHero}
+            className="rounded-lg border shadow-lg"
+            priority
+          />
+        </motion.div>
       </div>
-
-      <div className="baseVertFlex w-11/12 gap-8 rounded-xl border bg-background p-4 shadow-md sm:w-4/5 md:max-w-[550px] md:gap-4 md:p-8 xl:w-[950px] xl:max-w-[950px]">
-        <div className="baseVertFlex gap-8 xl:flex-row xl:gap-12">
-          {/* ideally would try to be smarter about mobile vs desktop styles/org rather than repeat
-              myself twice here */}
-          {isAboveExtraLargeViewportWidth ? (
-            <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
-              <div className="baseFlex w-full !justify-start gap-2">
-                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
-                  <GiMusicalScore className="h-8 w-8" />
-                </div>
-                <p className="text-lg font-bold md:text-xl">Compose</p>
-              </div>
-              <div className="baseVertFlex !items-start gap-1">
-                <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
-                  Craft intricate guitar tabs with our advanced editor, complete
-                  with strumming patterns, keyboard navigation, and more!
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="baseFlex !items-start gap-4">
-              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
-                <GiMusicalScore className="h-8 w-8" />
-              </div>
-              <div className="baseVertFlex !items-start gap-1">
-                <p className="text-lg font-bold md:text-xl">Compose</p>
-                <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
-                  Craft intricate guitar tabs with our advanced editor, complete
-                  with strumming patterns, keyboard navigation, and more!
-                </p>
-              </div>
-            </div>
-          )}
-
-          {isAboveExtraLargeViewportWidth ? (
-            <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
-              <div className="baseFlex w-full !justify-start gap-2">
-                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
-                  <HiOutlineLightBulb className="h-8 w-8" />
-                </div>
-                <p className="text-lg font-bold md:text-xl">Find inspiration</p>
-              </div>
-              <div className="baseVertFlex !items-start gap-1">
-                <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
-                  Explore an ever growing library of tabs and discover new
-                  talents in our weekly featured artist section.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="baseFlex !items-start gap-4">
-              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
-                <HiOutlineLightBulb className="h-8 w-8" />
-              </div>
-              <div className="baseVertFlex !items-start gap-1">
-                <p className="text-lg font-bold md:text-xl">Find inspiration</p>
-                <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
-                  Explore an ever growing library of tabs and discover new
-                  talents in our weekly featured artist section.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {isAboveExtraLargeViewportWidth ? (
-            <div className="baseFlex gap-3 xl:flex-col xl:!items-start">
-              <div className="baseFlex w-full !justify-start gap-2">
-                <div className="mr-2 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
-                  <BsBarChartLine className="h-8 w-8" />
-                </div>
-                <p className="text-lg font-bold md:text-xl">Practice</p>
-              </div>
-              <div className="baseVertFlex !items-start gap-1">
-                <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
-                  Play along with any tab, varying the playback speed,
-                  instrument, or choose to practice sections of the tab at a
-                  time.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="baseFlex !items-start gap-4">
-              <div className="mt-1 shrink-0 rounded-md border bg-secondary-active/50 p-2 shadow-sm">
-                <BsBarChartLine className="h-8 w-8" />
-              </div>
-              <div className="baseVertFlex !items-start gap-1">
-                <p className="text-lg font-bold md:text-xl">Practice</p>
-                <p className="text-sm md:text-base xl:h-[125px] xl:w-[250px]">
-                  Play along with any tab, varying the playback speed,
-                  instrument, or choose to practice sections of the tab at a
-                  time.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="baseFlex my-4 w-full">
-          <AnimatePresence mode="sync">
-            {fetchedTab ? (
-              <GridTabCard
-                minimalTab={fetchedTab}
-                currentUser={currentUser}
-                largeVariant={isAboveMediumViewportWidth}
-                color={color}
-                theme={theme}
-              />
-            ) : (
-              <TabCardSkeleton
-                uniqueKey={"homepageTabCardSkeleton"}
-                largeVariant={isAboveMediumViewportWidth}
-              />
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 }
 
