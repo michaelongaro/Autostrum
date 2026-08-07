@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import CustomizeLook from "~/components/HomePage/CustomizeLook";
+import FAQ from "~/components/HomePage/FAQ";
 import Hero from "~/components/HomePage/Hero";
 import PillarCards from "~/components/HomePage/PillarCards";
 import SignupCTA from "~/components/HomePage/SignupCTA";
@@ -43,6 +44,7 @@ function Home() {
       <SignupCTA />
       <ToolsShowcase />
       <CustomizeLook />
+      <FAQ />
     </motion.div>
   );
 }
