@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import HeaderLogo from "~/components/Header/HeaderLogo";
 import HeroPlaybackPreview from "~/components/HomePage/HeroPlaybackPreview";
 import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
+import mobileHero from "public/homepage/hero/goodMobileHero.png";
+import desktopHero from "public/homepage/hero/goodDesktopHero.png";
 
 const PROMOTED_TAB_ID = 83;
 
@@ -19,8 +22,7 @@ function Hero() {
       enabled: promotedTabFetched && !promotedTab,
     });
 
-  const featuredTab =
-    promotedTab ?? fallbackTabs?.mostPopularTabs?.[0] ?? null;
+  const featuredTab = promotedTab ?? fallbackTabs?.mostPopularTabs?.[0] ?? null;
 
   return (
     <section className="baseVertFlex w-full max-w-[1200px] gap-8 px-4 md:gap-10 md:px-6 lg:px-8">
@@ -63,21 +65,14 @@ function Hero() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.1 }}
-          className="w-full max-w-md lg:max-w-[440px]"
+          className="w-full max-w-md lg:max-w-4xl"
         >
-          <AnimatePresence mode="wait">
-            {featuredTab ? (
-              <HeroPlaybackPreview
-                key={featuredTab.id}
-                minimalTab={featuredTab}
-              />
-            ) : (
-              <div
-                key="hero-preview-skeleton"
-                className="pulseAnimation h-[320px] w-full rounded-xl border md:h-[340px]"
-              />
-            )}
-          </AnimatePresence>
+          <Image
+            alt={"practice modal preview"}
+            src={isAboveMediumViewportWidth ? desktopHero : mobileHero}
+            className="rounded-lg border shadow-lg"
+            priority
+          />
         </motion.div>
       </div>
     </section>
