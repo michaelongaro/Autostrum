@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState, type ReactNode } from "react";
 import { HiMiniComputerDesktop } from "react-icons/hi2";
 import { IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
-import HeaderLogo from "~/components/Header/HeaderLogo";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -16,15 +15,15 @@ import {
   updateCSSThemeVars,
 } from "~/utils/updateCSSThemeVars";
 
-import amethystImage from "public/genreThumbnails/metal.webp";
-import aquaImage from "public/genreThumbnails/blues.webp";
-import coralImage from "public/genreThumbnails/rock.webp";
-import mapleImage from "public/genreThumbnails/folk.webp";
-import peonyImage from "public/genreThumbnails/pop.webp";
-import pistachioImage from "public/genreThumbnails/indie.webp";
-import saffronImage from "public/genreThumbnails/country.webp";
-import sapphireImage from "public/genreThumbnails/jazz.webp";
-import verdantImage from "public/genreThumbnails/classical.webp";
+import amethystImage from "public/homepage/guitars/amethyst.jpg";
+import aquaImage from "public/homepage/guitars/aqua.jpg";
+import coralImage from "public/homepage/guitars/coral.jpg";
+import mapleImage from "public/homepage/guitars/maple.jpg";
+import peonyImage from "public/homepage/guitars/peony.jpg";
+import pistachioImage from "public/homepage/guitars/pistachio.jpg";
+import saffronImage from "public/homepage/guitars/saffron.jpg";
+import sapphireImage from "public/homepage/guitars/sapphire.jpg";
+import verdantImage from "public/homepage/guitars/verdant.jpg";
 
 const COLORS_LIST = [
   "peony",
@@ -102,38 +101,6 @@ function CustomizeLook() {
       </div>
 
       <div className="baseVertFlex w-full gap-6 rounded-xl border bg-background p-5 shadow-md md:p-8 lg:flex-row lg:!items-start lg:gap-10">
-        <div className="baseVertFlex w-full max-w-sm gap-4 rounded-lg border bg-secondary-active/30 p-5">
-          <HeaderLogo
-            width={isAboveMediumViewportWidth ? 220 : 180}
-            height={isAboveMediumViewportWidth ? 38 : 32}
-          />
-          <div className="baseVertFlex w-full !items-start gap-2 rounded-md border bg-background p-4 shadow-sm">
-            <p className="text-sm font-semibold">Live preview</p>
-            <p className="text-xs text-foreground/70">
-              Accents, buttons, and the logo update with your selection.
-            </p>
-            <div className="baseFlex mt-1 !justify-start gap-2">
-              <Button size="sm">Primary</Button>
-              <Button size="sm" variant="outline">
-                Outline
-              </Button>
-              <Button size="sm" variant="audio" className="!px-3">
-                Audio
-              </Button>
-            </div>
-          </div>
-          <p className="text-xs text-foreground/60">
-            Current:{" "}
-            <span className="font-medium text-foreground">
-              {color.charAt(0).toUpperCase() + color.slice(1)}
-            </span>
-            {" · "}
-            {followsDeviceTheme
-              ? "System"
-              : theme.charAt(0).toUpperCase() + theme.slice(1)}
-          </p>
-        </div>
-
         <div className="baseVertFlex w-full !items-start gap-5">
           <div className="baseVertFlex w-full !items-start gap-2">
             <span className="font-medium sm:text-lg">Color</span>
@@ -141,9 +108,34 @@ function CustomizeLook() {
             <div className="mt-1 grid w-full grid-cols-2 gap-3 sm:grid-cols-3">
               {COLORS_LIST.map((colorString) => {
                 const selected = color === colorString;
-                const showRing =
-                  selected || hoveredColor === colorString;
+                const showRing = selected || hoveredColor === colorString;
 
+                // <div
+                //   key={colorString}
+                //   style={{
+                //     backgroundColor: COLOR_HEX_VALUES[colorString],
+                //   }}
+                //   className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:p-6`}
+                // >
+                //   <div
+                //     style={{
+                //       backgroundColor: COLOR_HEX_VALUES[colorString],
+                //     }}
+                //     className="absolute inset-0 z-10 size-full overflow-hidden opacity-40 lg:hidden"
+                //   ></div>
+
+                //   {/* z-index as fallback just in case for weird safari positioning */}
+                //   <p className="z-10 text-lg font-semibold drop-shadow-xl lg:drop-shadow-none">
+                //     {`${colorString.charAt(0).toUpperCase()}${colorString.slice(1)}`}
+                //   </p>
+
+                //   <Image
+                //     src={COLOR_IMAGES[colorString]}
+                //     alt={`${colorString} `}
+                //     // had to do some magic number positioning/width/clip-path to reduce visible 1px of bg color on right side of desktop card
+                //     className="pointer-events-none absolute bottom-0 right-[-1px] h-full w-[calc(100%+1px)] max-w-none select-none rounded-lg object-cover object-center opacity-75 lg:rounded-none lg:[clip-path:polygon(50%_0%,101%_0%,101%_100%,40%_100%)]"
+                //   />
+                // </div>
                 return (
                   <button
                     key={colorString}
@@ -153,7 +145,7 @@ function CustomizeLook() {
                     onFocus={() => setHoveredColor(colorString)}
                     onBlur={() => setHoveredColor(null)}
                     onClick={() => selectColor(colorString)}
-                    className="group relative h-24 overflow-hidden rounded-lg border text-left shadow-sm transition hover:brightness-105 active:brightness-100"
+                    className="group relative h-24 overflow-hidden rounded-lg border border-gray text-left shadow-sm transition hover:brightness-105 active:brightness-100 sm:h-36"
                     aria-pressed={selected}
                     aria-label={`Select ${colorString} color`}
                   >
@@ -161,7 +153,7 @@ function CustomizeLook() {
                       src={COLOR_IMAGES[colorString]}
                       alt=""
                       fill
-                      sizes="160px"
+                      sizes="500px"
                       className="object-cover transition duration-300 group-hover:scale-[1.04]"
                     />
                     <div
@@ -170,7 +162,7 @@ function CustomizeLook() {
                         background: `linear-gradient(to top, ${COLOR_HEX_VALUES[colorString]}cc, ${COLOR_HEX_VALUES[colorString]}55 45%, transparent)`,
                       }}
                     />
-                    <div className="absolute inset-x-0 bottom-0 baseFlex !justify-between gap-2 p-2.5">
+                    <div className="baseFlex absolute inset-x-0 bottom-0 !justify-between gap-2 p-2.5">
                       <span className="text-sm font-semibold text-white drop-shadow">
                         {colorString.charAt(0).toUpperCase() +
                           colorString.slice(1)}
@@ -323,9 +315,7 @@ function ThemeOption({
           )}
         </AnimatePresence>
       </Button>
-      <span
-        className={`text-sm font-medium ${active ? "" : "opacity-50"}`}
-      >
+      <span className={`text-sm font-medium ${active ? "" : "opacity-50"}`}>
         {label}
       </span>
     </div>
