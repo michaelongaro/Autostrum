@@ -80,18 +80,21 @@ html.disablePullToRefresh {
   overscroll-behavior: none;
 }
 
+/*
+  Viewport-fixed page gradient. Kept out of normal document flow so it never
+  tracks scroll (the prior sticky + negative-margin approach could drift).
+  html/body use solid bg-header so rubber-band overscroll reveals header/footer
+  color instead of the gradient.
+*/
 .pageBackgroundGradient {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  inset: 0;
   z-index: -2;
   width: 100%;
-  height: 100dvh;
-  margin-bottom: -100dvh;
+  height: 100%;
   pointer-events: none;
-  align-self: stretch;
 }
 
-/* Keep the root background solid so Safari overscroll doesn't reveal the page gradient. */
 .pageBackgroundGradient::before,
 .pageBackgroundGradient::after {
   content: "";
@@ -114,6 +117,37 @@ html.disablePullToRefresh {
   background-image: url('/ui/noise.svg');
   background-repeat: repeat;
   /* courtesy of https://www.fffuel.co/nnnoise/ */
+}
+
+/*
+  Touch-only overscroll covers: when iOS/Android rubber-bands the page, fixed
+  layers can still peek the gradient above the sticky header / below the footer.
+  These pads ride with the header/footer and paint bg-header over that gap.
+  Disabled on fine-pointer devices (no mobile-style overscroll).
+*/
+@media (hover: none) and (pointer: coarse) {
+  .overscrollHeaderCover::before,
+  .overscrollFooterCover::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100dvh;
+    background-color: hsl(var(--header));
+    pointer-events: none;
+  }
+
+  .overscrollHeaderCover::before {
+    bottom: 100%;
+  }
+
+  .overscrollFooterCover {
+    position: relative;
+  }
+
+  .overscrollFooterCover::after {
+    top: 100%;
+  }
 }
 
 .modalGradient::after {
