@@ -120,33 +120,38 @@ html.disablePullToRefresh {
 }
 
 /*
-  Touch-only overscroll covers: when iOS/Android rubber-bands the page, fixed
-  layers can still peek the gradient above the sticky header / below the footer.
-  These pads ride with the header/footer and paint bg-header over that gap.
+  Touch-only overscroll pads. Absolute 100dvh blocks were abandoned: they inflate
+  document scrollHeight (footer looked "extremely tall") and still could not
+  cover aggressive rubber-banding. Box-shadow does not affect layout/overflow,
+  and with offset+spread of 100vmax it paints ~200vmax beyond the chrome edge.
   Disabled on fine-pointer devices (no mobile-style overscroll).
 */
+.overscrollHeaderPad,
+.overscrollFooterPad {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.overscrollHeaderPad {
+  top: 0;
+}
+
+.overscrollFooterPad {
+  bottom: 0;
+}
+
 @media (hover: none) and (pointer: coarse) {
-  .overscrollHeaderCover::before,
-  .overscrollFooterCover::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 100dvh;
-    background-color: hsl(var(--header));
-    pointer-events: none;
+  .overscrollHeaderPad {
+    /* shadow bottom edge lands on the pad (header top); extends far above */
+    box-shadow: 0 -100vmax 0 100vmax hsl(var(--header));
   }
 
-  .overscrollHeaderCover::before {
-    bottom: 100%;
-  }
-
-  .overscrollFooterCover {
-    position: relative;
-  }
-
-  .overscrollFooterCover::after {
-    top: 100%;
+  .overscrollFooterPad {
+    /* shadow top edge lands on the pad (footer bottom); extends far below */
+    box-shadow: 0 100vmax 0 100vmax hsl(var(--header));
   }
 }
 

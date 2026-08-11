@@ -47,8 +47,9 @@ function DesktopHeader() {
   return (
     <nav
       id={"desktopHeader"}
-      className="overscrollHeaderCover baseFlex sticky left-0 top-0 z-[49] h-16 w-full bg-header shadow-sm shadow-primary/20"
+      className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full bg-header shadow-sm shadow-primary/20"
     >
+      <div aria-hidden="true" className="overscrollHeaderPad" />
       <div className={classes.desktopHeader}>
         <Link
           href={"/"}
