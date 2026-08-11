@@ -64,12 +64,18 @@ html:not([data-color]) .headerLogoLayer[data-logo-color="maple"] {
     @apply border-border;
   }
 
+  /*
+    Safari (iOS/macOS) paints rubber-band overscroll from body's background-color
+    only — not html, and not background-image/gradients. Keep this a solid color
+    matching header/footer. See: WebKit samples body for overscroll + toolbar tint.
+  */
   html {
-    @apply bg-header;
+    background-color: hsl(var(--header));
   }
 
   body {
-    @apply bg-header text-foreground;
+    @apply text-foreground;
+    background-color: hsl(var(--header));
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
@@ -81,10 +87,11 @@ html.disablePullToRefresh {
 }
 
 /*
-  Viewport-fixed page gradient. Kept out of normal document flow so it never
-  tracks scroll (the prior sticky + negative-margin approach could drift).
-  html/body use solid bg-header so rubber-band overscroll reveals header/footer
-  color instead of the gradient.
+  Viewport-fixed page gradient (static during normal scroll).
+  On Safari/WebKit, position:fixed layers do not rubber-band with the document, so
+  this layer keeps covering the viewport during top overscroll and would hide
+  body's header-colored rubber-band fill — the header pad below compensates.
+  Bottom overscroll reveals body background-color natively (no footer slab).
 */
 .pageBackgroundGradient {
   position: fixed;
@@ -120,38 +127,28 @@ html.disablePullToRefresh {
 }
 
 /*
-  Touch-only overscroll pads. Absolute 100dvh blocks were abandoned: they inflate
-  document scrollHeight (footer looked "extremely tall") and still could not
-  cover aggressive rubber-banding. Box-shadow does not affect layout/overflow,
-  and with offset+spread of 100vmax it paints ~200vmax beyond the chrome edge.
-  Disabled on fine-pointer devices (no mobile-style overscroll).
+  Safari/touch top-overscroll pad only.
+  - Extends ABOVE the sticky header (bottom: 100%), so it does not inflate
+    scrollHeight the way a below-footer abspos slab does.
+  - Rides with the header during rubber-band and paints over the fixed gradient
+    in the vacated top gap (Safari keeps fixed layers viewport-pinned).
+  - Tall enough for aggressive pulls (~50% viewport on Safari, more on Chrome).
+  No footer pad: bottom rubber-band already shows body background-color.
 */
-.overscrollHeaderPad,
-.overscrollFooterPad {
+.overscrollHeaderPad {
   position: absolute;
   left: 0;
   right: 0;
+  bottom: 100%;
   height: 0;
   pointer-events: none;
-}
-
-.overscrollHeaderPad {
-  top: 0;
-}
-
-.overscrollFooterPad {
-  bottom: 0;
+  background-color: transparent;
 }
 
 @media (hover: none) and (pointer: coarse) {
   .overscrollHeaderPad {
-    /* shadow bottom edge lands on the pad (header top); extends far above */
-    box-shadow: 0 -100vmax 0 100vmax hsl(var(--header));
-  }
-
-  .overscrollFooterPad {
-    /* shadow top edge lands on the pad (footer bottom); extends far below */
-    box-shadow: 0 100vmax 0 100vmax hsl(var(--header));
+    height: 200vmax;
+    background-color: hsl(var(--header));
   }
 }
 

@@ -11,9 +11,8 @@ function Footer() {
         boxShadow:
           "0 -2px 6px -1px hsl(var(--primary) / 0.1), 0 -2px 4px -2px hsl(var(--primary) / 0.2)",
       }}
-      className="baseFlex relative z-20 h-16 w-full gap-2 bg-header xs:gap-4"
+      className="baseFlex z-20 h-16 w-full gap-2 bg-header xs:gap-4"
     >
-      <div aria-hidden="true" className="overscrollFooterPad" />
       <Button variant={"link"} asChild>
         <a
           href="mailto:michael.ongaro.dev@gmail.com"

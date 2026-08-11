@@ -1,7 +1,10 @@
 /**
- * Verify page background gradient is viewport-fixed, touch overscroll pads do
- * not inflate document height, and simulated rubber-band gaps are painted with
- * the solid header color (not the page gradient).
+ * Verify Safari-aware page background / overscroll behavior:
+ * - Gradient is position:fixed (static during normal scroll)
+ * - body background-color is solid header (Safari rubber-band source)
+ * - Touch: header-only upward pad covers simulated top rubber-band
+ * - No footer pad / no scrollHeight inflation
+ * - Desktop: no overscroll pad
  *
  * Usage: node scripts/verifyPageBackgroundOverscroll.mjs [baseUrl]
  */
@@ -28,12 +31,15 @@ function assert(condition, message) {
 function parseRgb(input) {
   const match = String(input)
     .trim()
-    .match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
+    .match(
+      /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i,
+    );
   assert(match, `expected rgb/rgba color, got ${input}`);
   return {
     r: Math.round(Number(match[1])),
     g: Math.round(Number(match[2])),
     b: Math.round(Number(match[3])),
+    a: match[4] === undefined ? 1 : Number(match[4]),
   };
 }
 
@@ -69,18 +75,34 @@ async function measureGradient(page) {
   });
 }
 
-async function getHeaderColor(page) {
-  return page.evaluate(() =>
-    getComputedStyle(document.documentElement).backgroundColor,
-  );
+async function getRootColors(page) {
+  return page.evaluate(() => {
+    const html = getComputedStyle(document.documentElement);
+    const body = getComputedStyle(document.body);
+    return {
+      htmlBg: html.backgroundColor,
+      bodyBg: body.backgroundColor,
+      bodyBgImage: body.backgroundImage,
+    };
+  });
 }
 
-async function getPadBoxShadow(page, selector) {
-  return page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-    return getComputedStyle(el).boxShadow;
-  }, selector);
+async function getHeaderPadMetrics(page) {
+  return page.evaluate(() => {
+    const pad = document.querySelector(".overscrollHeaderPad");
+    if (!pad) return null;
+    const style = getComputedStyle(pad);
+    const rect = pad.getBoundingClientRect();
+    return {
+      height: style.height,
+      backgroundColor: style.backgroundColor,
+      bottom: style.bottom,
+      boxShadow: style.boxShadow,
+      rectHeight: Math.round(rect.height),
+      rectBottom: Math.round(rect.bottom),
+      rectTop: Math.round(rect.top),
+    };
+  });
 }
 
 async function getScrollMetrics(page) {
@@ -91,16 +113,15 @@ async function getScrollMetrics(page) {
       (footerRect ? footerRect.bottom + window.scrollY : 0) || 0;
     return {
       scrollHeight: document.documentElement.scrollHeight,
-      clientHeight: document.documentElement.clientHeight,
       footerBottom: Math.round(footerBottom),
-      bodyOverflowY: getComputedStyle(document.body).overflowY,
+      hasFooterPad: Boolean(document.querySelector(".overscrollFooterPad")),
     };
   });
 }
 
 /**
- * Simulate the failure mode where the fixed gradient stays put while page
- * chrome rubber-bands (translate every main child except the gradient).
+ * Simulate Safari's top-overscroll failure mode: fixed gradient stays put while
+ * scrolling chrome rubber-bands down (translate every main child except gradient).
  */
 async function simulateRubberBand(page, translateY) {
   await page.evaluate((y) => {
@@ -139,42 +160,32 @@ async function ensureScrollable(page) {
     spacer.setAttribute("data-test-spacer", "true");
     const main = document.querySelector("main");
     const footer = main?.querySelector("footer");
-    // Keep the footer as the last in-flow child so height-inflation checks remain valid.
     if (main && footer) main.insertBefore(spacer, footer);
     else main?.appendChild(spacer);
   });
 }
 
-/** Pads must not extend document scrollHeight (the old abspos 100dvh footer did). */
-async function assertPadsDoNotInflateScrollHeight(page, label) {
-  const before = await page.evaluate(() => document.documentElement.scrollHeight);
+async function assertHeaderPadDoesNotInflateScrollHeight(page, label) {
+  const before = await page.evaluate(
+    () => document.documentElement.scrollHeight,
+  );
   const after = await page.evaluate(() => {
-    for (const el of document.querySelectorAll(
-      ".overscrollHeaderPad, .overscrollFooterPad",
-    )) {
+    for (const el of document.querySelectorAll(".overscrollHeaderPad")) {
       el.remove();
     }
     return document.documentElement.scrollHeight;
   });
   assert(
     before === after,
-    `[${label}] overscroll pads inflated scrollHeight (${before} -> ${after} without pads)`,
+    `[${label}] header pad inflated scrollHeight (${before} -> ${after} without pad)`,
   );
-  // Restore pads for subsequent assertions by reloading would be heavy; re-add empty hosts.
   await page.evaluate(() => {
-    const header = document.querySelector("nav.sticky, nav#desktopHeader, nav");
-    const footer = document.querySelector("footer");
+    const header = document.querySelector("nav");
     if (header && !header.querySelector(".overscrollHeaderPad")) {
       const pad = document.createElement("div");
       pad.setAttribute("aria-hidden", "true");
       pad.className = "overscrollHeaderPad";
       header.prepend(pad);
-    }
-    if (footer && !footer.querySelector(".overscrollFooterPad")) {
-      const pad = document.createElement("div");
-      pad.setAttribute("aria-hidden", "true");
-      pad.className = "overscrollFooterPad";
-      footer.prepend(pad);
     }
   });
 }
@@ -188,6 +199,14 @@ async function verifyDesktopViewport(browser, viewport) {
   const page = await context.newPage();
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   await ensureScrollable(page);
+
+  const roots = await getRootColors(page);
+  const bodyBg = parseRgb(roots.bodyBg);
+  assert(bodyBg.a === 1, `[${viewport.name}] body background must be opaque`);
+  assert(
+    roots.bodyBgImage === "none",
+    `[${viewport.name}] body must not use background-image (Safari ignores it for overscroll)`,
+  );
 
   const beforeScroll = await measureGradient(page);
   assert(beforeScroll, `[${viewport.name}] missing .pageBackgroundGradient`);
@@ -211,30 +230,25 @@ async function verifyDesktopViewport(browser, viewport) {
   await page.evaluate(() => window.scrollTo(0, 1200));
   await page.waitForTimeout(80);
   const afterScroll = await measureGradient(page);
-  assert(afterScroll, `[${viewport.name}] gradient missing after scroll`);
   assert(
-    afterScroll.y === 0 && afterScroll.x === 0,
-    `[${viewport.name}] gradient moved after scroll to y=${afterScroll.y} x=${afterScroll.x}`,
+    afterScroll?.y === 0 && afterScroll?.x === 0,
+    `[${viewport.name}] gradient moved after scroll to y=${afterScroll?.y}`,
   );
 
-  const headerShadow = await getPadBoxShadow(page, ".overscrollHeaderPad");
-  const footerShadow = await getPadBoxShadow(page, ".overscrollFooterPad");
+  const pad = await getHeaderPadMetrics(page);
+  assert(pad, `[${viewport.name}] missing header pad host`);
   assert(
-    !headerShadow || headerShadow === "none",
-    `[${viewport.name}] desktop must not paint header overscroll pad shadow, got ${headerShadow}`,
-  );
-  assert(
-    !footerShadow || footerShadow === "none",
-    `[${viewport.name}] desktop must not paint footer overscroll pad shadow, got ${footerShadow}`,
+    pad.rectHeight === 0 || pad.height === "0px",
+    `[${viewport.name}] desktop must not paint header overscroll pad, height=${pad.height}`,
   );
 
   const metrics = await getScrollMetrics(page);
-  // Footer should sit at (or extremely near) the document end — no 100dvh phantom tail.
+  assert(!metrics.hasFooterPad, `[${viewport.name}] footer pad must not exist`);
   assert(
     metrics.scrollHeight - metrics.footerBottom <= 4,
     `[${viewport.name}] document taller than footer (scrollHeight=${metrics.scrollHeight}, footerBottom=${metrics.footerBottom})`,
   );
-  await assertPadsDoNotInflateScrollHeight(page, viewport.name);
+  await assertHeaderPadDoesNotInflateScrollHeight(page, viewport.name);
 
   await page.screenshot({
     path: `/opt/cursor/artifacts/screenshots/overscroll-desktop-${viewport.name}.png`,
@@ -242,7 +256,7 @@ async function verifyDesktopViewport(browser, viewport) {
   });
 
   await context.close();
-  return { viewport: viewport.name, ok: true };
+  return { viewport: viewport.name, ok: true, bodyBg: roots.bodyBg };
 }
 
 async function verifyTouchOverscroll(browser) {
@@ -252,124 +266,126 @@ async function verifyTouchOverscroll(browser) {
   await page.goto(baseUrl, { waitUntil: "networkidle" });
   await ensureScrollable(page);
 
-  const gradient = await measureGradient(page);
-  assert(gradient, "[touch] missing .pageBackgroundGradient");
+  const roots = await getRootColors(page);
+  const headerColor = parseRgb(roots.bodyBg);
+  assert(headerColor.a === 1, "[touch] body background must be opaque");
   assert(
-    gradient.position === "fixed",
-    `[touch] expected position:fixed, got ${gradient.position}`,
+    roots.bodyBgImage === "none",
+    "[touch] body must not use background-image for overscroll",
   );
 
-  const headerShadow = await getPadBoxShadow(page, ".overscrollHeaderPad");
-  const footerShadow = await getPadBoxShadow(page, ".overscrollFooterPad");
+  const gradient = await measureGradient(page);
+  assert(gradient?.position === "fixed", "[touch] gradient must be fixed");
+
+  const pad = await getHeaderPadMetrics(page);
+  assert(pad, "[touch] missing header pad");
   assert(
-    headerShadow && headerShadow !== "none" && headerShadow.includes("rgb"),
-    `[touch] header pad shadow missing, got ${headerShadow}`,
+    pad.rectHeight > iPhone.viewport.height,
+    `[touch] header pad too short (${pad.rectHeight}px)`,
   );
   assert(
-    footerShadow && footerShadow !== "none" && footerShadow.includes("rgb"),
-    `[touch] footer pad shadow missing, got ${footerShadow}`,
+    colorDistance(parseRgb(pad.backgroundColor), headerColor) <= 2,
+    `[touch] pad color ${pad.backgroundColor} != body ${roots.bodyBg}`,
   );
 
   const metrics = await getScrollMetrics(page);
+  assert(!metrics.hasFooterPad, "[touch] footer pad must not exist");
   assert(
     metrics.scrollHeight - metrics.footerBottom <= 4,
-    `[touch] footer pad inflated document height (scrollHeight=${metrics.scrollHeight}, footerBottom=${metrics.footerBottom})`,
+    `[touch] document taller than footer (scrollHeight=${metrics.scrollHeight}, footerBottom=${metrics.footerBottom})`,
   );
-  await assertPadsDoNotInflateScrollHeight(page, "touch");
+  await assertHeaderPadDoesNotInflateScrollHeight(page, "touch");
 
-  const headerColor = parseRgb(await getHeaderColor(page));
-
-  // Sample a gradient-ish pixel mid-viewport for contrast sanity (should differ
-  // from solid header, or at least we still assert overscroll samples match header).
-  const midPixel = await sampleScreenshotPixel(
-    page,
-    iPhone.viewport.width / 2,
-    iPhone.viewport.height / 2,
+  // At rest: footer is normal height (flush with content end / viewport when scrolled).
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(80);
+  await page.screenshot({
+    path: "/opt/cursor/artifacts/screenshots/overscroll-touch-at-rest-footer.png",
+    fullPage: false,
+  });
+  const footerAtRest = await page.evaluate(() => {
+    const footer = document.querySelector("footer");
+    const r = footer.getBoundingClientRect();
+    return {
+      top: Math.round(r.top),
+      bottom: Math.round(r.bottom),
+      height: Math.round(r.height),
+      vh: window.innerHeight,
+    };
+  });
+  assert(
+    footerAtRest.height === 64,
+    `[touch] footer should stay h-16 at rest, got ${footerAtRest.height}`,
+  );
+  assert(
+    footerAtRest.bottom <= footerAtRest.vh + 1,
+    "[touch] footer must not extend past viewport with empty pad at rest",
   );
 
-  // Top overscroll: content rubber-bands down, fixed gradient stays.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(50);
+
+  // Top overscroll simulation (Safari: fixed gradient stays, header moves down).
   await simulateRubberBand(page, OVERSCROLL_PX);
   await page.screenshot({
     path: "/opt/cursor/artifacts/screenshots/overscroll-touch-top-simulated.png",
     fullPage: false,
   });
-  const topSamples = [];
   for (const y of [8, 24, 48, 96, 160, 240]) {
     if (y >= OVERSCROLL_PX) continue;
-    topSamples.push({
+    const color = await sampleScreenshotPixel(
+      page,
+      iPhone.viewport.width / 2,
       y,
-      color: await sampleScreenshotPixel(page, iPhone.viewport.width / 2, y),
-    });
-  }
-  for (const sample of topSamples) {
-    const dist = colorDistance(sample.color, headerColor);
+    );
+    const dist = colorDistance(color, headerColor);
     assert(
       dist <= 18,
-      `[touch] top overscroll y=${sample.y} not header color (dist=${dist.toFixed(1)}, got ${JSON.stringify(sample.color)}, expected ${JSON.stringify(headerColor)}, mid=${JSON.stringify(midPixel)})`,
+      `[touch] top overscroll y=${y} not header color (dist=${dist.toFixed(1)}, got ${JSON.stringify(color)}, expected ${JSON.stringify(headerColor)})`,
     );
   }
   await clearRubberBand(page);
 
-  // Bottom overscroll: scroll to end, rubber-band content up.
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page.waitForTimeout(100);
-  await simulateRubberBand(page, -OVERSCROLL_PX);
-  await page.screenshot({
-    path: "/opt/cursor/artifacts/screenshots/overscroll-touch-bottom-simulated.png",
-    fullPage: false,
-  });
-  const vh = iPhone.viewport.height;
-  const bottomSamples = [];
-  for (const y of [vh - 8, vh - 24, vh - 48, vh - 96, vh - 160, vh - 240]) {
-    if (vh - y >= OVERSCROLL_PX) continue;
-    bottomSamples.push({
-      y,
-      color: await sampleScreenshotPixel(page, iPhone.viewport.width / 2, y),
-    });
-  }
-  for (const sample of bottomSamples) {
-    const dist = colorDistance(sample.color, headerColor);
-    assert(
-      dist <= 18,
-      `[touch] bottom overscroll y=${sample.y} not header color (dist=${dist.toFixed(1)}, got ${JSON.stringify(sample.color)}, expected ${JSON.stringify(headerColor)})`,
-    );
-  }
-  await clearRubberBand(page);
-
-  // Extreme overscroll beyond one viewport (prior 100dvh abspos still failed here).
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(50);
+  // Extreme top pull (> one viewport) — prior 100dvh covers failed here.
   await simulateRubberBand(page, Math.round(iPhone.viewport.height * 1.25));
   await page.screenshot({
     path: "/opt/cursor/artifacts/screenshots/overscroll-touch-top-extreme.png",
     fullPage: false,
   });
-  const extremeSamples = [
-    await sampleScreenshotPixel(page, iPhone.viewport.width / 2, 12),
-    await sampleScreenshotPixel(page, iPhone.viewport.width / 2, 120),
-    await sampleScreenshotPixel(
+  for (const y of [
+    12,
+    120,
+    Math.round(iPhone.viewport.height * 0.5),
+    Math.round(iPhone.viewport.height * 0.9),
+  ]) {
+    const color = await sampleScreenshotPixel(
       page,
       iPhone.viewport.width / 2,
-      Math.round(iPhone.viewport.height * 0.5),
-    ),
-  ];
-  for (const [index, color] of extremeSamples.entries()) {
+      y,
+    );
     const dist = colorDistance(color, headerColor);
     assert(
       dist <= 18,
-      `[touch] extreme top overscroll sample[${index}] not header color (dist=${dist.toFixed(1)}, got ${JSON.stringify(color)}, expected ${JSON.stringify(headerColor)})`,
+      `[touch] extreme top overscroll y=${y} not header color (dist=${dist.toFixed(1)}, got ${JSON.stringify(color)}, expected ${JSON.stringify(headerColor)})`,
     );
   }
   await clearRubberBand(page);
+
+  // Bottom overscroll: Safari paints body background-color in the rubber-band
+  // region (no footer slab). Assert the solid body color Safari will sample.
+  assert(
+    colorDistance(headerColor, parseRgb(roots.bodyBg)) === 0,
+    "[touch] body background-color must match header for Safari bottom overscroll",
+  );
 
   await context.close();
   return {
     ok: true,
     headerColor,
-    headerShadow,
-    footerShadow,
+    padHeight: pad.rectHeight,
     scrollHeight: metrics.scrollHeight,
     footerBottom: metrics.footerBottom,
+    bodyBg: roots.bodyBg,
   };
 }
 
@@ -385,7 +401,7 @@ async function main() {
     }
     const touch = await verifyTouchOverscroll(browser);
     results.push({ viewport: "iphone-14", ...touch });
-    console.log("OK touch overscroll pads + simulated rubber-band coverage");
+    console.log("OK touch Safari-aware overscroll + simulated top coverage");
     console.log(JSON.stringify({ ok: true, results }, null, 2));
   } finally {
     await browser.close();
