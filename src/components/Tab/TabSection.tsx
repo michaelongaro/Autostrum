@@ -1140,7 +1140,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             <div
               className="shrink-0 bg-foreground"
               style={{
-                width: 1,
+                width: 2,
                 height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
                 marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
               }}
