@@ -41,7 +41,6 @@ interface TabNotesColumnProps {
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
-  isLastColumn: boolean;
 
   pmNodeOpacity: string;
   editingPalmMuteNodes: boolean;
@@ -58,7 +57,6 @@ function TabNotesColumn({
   sectionIndex,
   subSectionIndex,
   columnIndex,
-  isLastColumn,
 
   pmNodeOpacity,
   editingPalmMuteNodes,
@@ -281,7 +279,7 @@ function TabNotesColumn({
         setIsHovered(false);
         setHoveredChordLocation(null);
       }}
-      className="baseVertFlex h-[380px] cursor-default"
+      className="baseVertFlex h-[380px] shrink-0 cursor-default"
     >
       <Element
         name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
@@ -292,15 +290,13 @@ function TabNotesColumn({
         <div
           style={{
             transform:
-              highlightChord || columnHasBeenPlayed
-                ? `scaleX(${isLastColumn ? "0.8" : "1"})` // makes sure that final column "endcap" doesn't get highlighted as well
-                : "scaleX(0)",
+              highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",
             transformOrigin: "left center",
             transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
             msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="pointer-events-none absolute left-0 z-0 mb-[26px] h-[254px] w-full bg-primary"
+          className="pointer-events-none absolute left-0 top-[48px] z-0 h-[246px] w-full bg-primary"
         ></div>
 
         <div className="baseVertFlex">
@@ -323,17 +319,9 @@ function TabNotesColumn({
           {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
             <div
               key={stringIndex}
-              style={{
-                borderTop: `${stringIndex === 1 ? "2px solid" : "none"}`,
-                paddingTop: `${stringIndex === 1 ? "7px" : stringIndex === 6 ? "3px" : "0px"}`,
-                borderBottom: `${stringIndex === 6 ? "2px solid" : "none"}`,
-                paddingBottom: `${stringIndex === 6 ? "7px" : stringIndex === 1 ? "3px" : "0px"}`,
-                transition: "width 0.15s ease-in-out",
-                // maybe also need "flex-basis: content" here if editing?
-              }}
-              className="baseFlex relative !h-[41px] min-h-[41px] w-12 basis-[content] bg-background/75"
+              className="baseFlex relative !h-[41px] min-h-[41px] w-full min-w-[29px] bg-background/75"
             >
-              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+              <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
 
               <TabNote
                 note={getStringValue(columnData, stringIndex)}
@@ -343,7 +331,7 @@ function TabNotesColumn({
                 noteIndex={stringIndex}
               />
 
-              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+              <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
             </div>
           ))}
 
@@ -408,9 +396,6 @@ function TabNotesColumn({
                 ref={setActivatorNodeRef}
                 {...attributes}
                 {...listeners}
-                style={{
-                  left: isLastColumn ? "40%" : "50%",
-                }}
                 className={`hover:box-shadow-md w-[1.5rem] cursor-grab rounded-md text-foreground ${
                   isDragging ? "cursor-grabbing" : "cursor-grab"
                 }`}
@@ -442,9 +427,6 @@ function TabNotesColumn({
                 variant={"destructive"}
                 size="sm"
                 disabled={deleteColumnButtonDisabled()}
-                style={{
-                  left: isLastColumn ? "40%" : "50%",
-                }}
                 className="h-[1.75rem] w-[1.75rem] p-1"
                 onClick={handleDeleteChord}
               >
@@ -467,10 +449,6 @@ function TabNotesColumn({
             })}
           </div>
         </div>
-
-        {isLastColumn && (
-          <div className="mb-[26px] h-[258px] rounded-r-2xl border-2 border-foreground bg-background/75 p-1"></div>
-        )}
       </Element>
     </motion.div>
   );
