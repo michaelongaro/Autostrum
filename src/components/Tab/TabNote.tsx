@@ -64,13 +64,13 @@ function TabNote({
                 width: hasVisibleNote
                   ? `calc(${Math.max(note.length, 1)}ch + 10px)`
                   : "100%",
-                height: hasVisibleNote ? "35px" : "100%",
+                height: "100%",
               }
         }
         className={
           isChordEffect
             ? "relative rounded-full p-0 text-center shadow-sm"
-            : "rounded-none border-0 bg-transparent p-0 text-center font-normal tabular-nums shadow-none outline-none focus-visible:outline-none focus-visible:ring-0"
+            : "h-full rounded-none border-0 bg-transparent p-0 text-center font-normal leading-none tabular-nums shadow-none outline-none focus-visible:outline-none focus-visible:ring-0"
         }
         onFocus={(e) => {
           setIsFocused(true);
