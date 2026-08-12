@@ -163,168 +163,6 @@ function TabMeasureLine({
     }
   }
 
-  function renderMeasureLine(index: number) {
-    if (index === 1) {
-      return (
-        <div className="baseVertFlex w-full bg-background/75">
-          {/* top border */}
-          <div className="baseVertFlex w-full">
-            <div className="h-[2px] w-full bg-foreground"></div>
-          </div>
-
-          <div className="baseFlex w-full">
-            {/* left dummy string */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="mt-[7px] h-[1px] flex-[1] bg-foreground/50"></div>
-            )}
-
-            {/* measure line */}
-            <div
-              style={{
-                height: getHeightOfMeasureLineSubSection(index),
-              }}
-              className="w-[2px] bg-foreground"
-            ></div>
-
-            {/* right dummy string */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="mt-[7px] h-[1px] flex-[1] bg-foreground/50"></div>
-            )}
-          </div>
-        </div>
-      );
-    } else if (index === 2) {
-      return (
-        <div className="baseFlex w-full bg-background/75">
-          {/* left dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mt-[4px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          {/* measure line */}
-          <div
-            style={{
-              height: getHeightOfMeasureLineSubSection(index),
-            }}
-            className="w-[2px] bg-foreground"
-          ></div>
-          {/* right dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mt-[4px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      );
-    } else if (index === 3) {
-      return (
-        <div className="baseFlex w-full bg-background/75">
-          {/* left dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          {/* measure line */}
-          <div
-            style={{
-              height: getHeightOfMeasureLineSubSection(index),
-            }}
-            className="w-[2px] bg-foreground"
-          ></div>
-          {/* right dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      );
-    } else if (index === 4) {
-      return (
-        <div className="baseFlex w-full bg-background/75">
-          {/* left dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mb-[3px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          {/* measure line */}
-          <div
-            style={{
-              height: getHeightOfMeasureLineSubSection(index),
-            }}
-            className="w-[2px] bg-foreground"
-          ></div>
-          {/* right dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mb-[3px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      );
-    } else if (index === 5) {
-      return (
-        <div className="baseFlex w-full bg-background/75">
-          {/* left dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mb-[5px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          {/* measure line */}
-          <div
-            style={{
-              height: getHeightOfMeasureLineSubSection(index),
-            }}
-            className="w-[2px] bg-foreground"
-          ></div>
-          {/* right dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mb-[5px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      );
-    } else if (index === 6) {
-      return (
-        <div className="baseVertFlex w-full bg-background/75">
-          <div className="baseFlex w-full">
-            {/* left dummy string */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="mb-[7px] h-[1px] flex-[1] bg-foreground/50"></div>
-            )}
-
-            {/* measure line */}
-            <div
-              style={{
-                height: getHeightOfMeasureLineSubSection(index),
-              }}
-              className="w-[2px] bg-foreground"
-            ></div>
-
-            {/* right dummy string */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="mb-[7px] h-[1px] flex-[1] bg-foreground/50"></div>
-            )}
-          </div>
-
-          {/* bottom border */}
-          <div className="baseVertFlex w-full">
-            <div className="h-[2px] w-full bg-foreground"></div>
-          </div>
-        </div>
-      );
-    }
-  }
-
-  function getHeightOfMeasureLineSubSection(index: number) {
-    let height = "0px";
-
-    if (index === 1) {
-      height = "42px";
-    } else if (index === 2) {
-      height = "43px";
-    } else if (index === 3) {
-      height = "43px";
-    } else if (index === 4) {
-      height = "42px";
-    } else if (index === 5) {
-      height = "42px";
-    } else if (index === 6) {
-      height = "42px";
-    }
-
-    return height;
-  }
-
   function inputPlaceholder() {
     if (subSectionBpm === -1) {
       return bpm === -1 ? "" : bpm.toString();
@@ -343,7 +181,7 @@ function TabMeasureLine({
         // need to have same width as chords for the drag and drop algorithm
         // to behave properly without the ui breaking
         width:
-          reorderingColumns || showingDeleteColumnsButtons ? "48px" : "2px",
+          reorderingColumns || showingDeleteColumnsButtons ? "29px" : "2px",
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
         zIndex: isDragging ? 20 : "auto",
       }}
@@ -359,7 +197,7 @@ function TabMeasureLine({
               : "0%",
           transition: "opacity 0.15s ease-in-out",
         }}
-        className="absolute left-0 top-[177px] h-[254px] w-full -translate-y-1/2 bg-primary/25"
+        className="absolute left-0 top-[48px] h-[246px] w-full bg-primary/25"
       ></div>
 
       {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}
@@ -371,8 +209,17 @@ function TabMeasureLine({
 
       {/* Render measure line for each string (indices 1-6) */}
       {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
-        <div key={stringIndex} className="baseFlex w-full">
-          {renderMeasureLine(stringIndex)}
+        <div
+          key={stringIndex}
+          className="baseFlex h-[41px] w-full bg-background/75"
+        >
+          {(reorderingColumns || showingDeleteColumnsButtons) && (
+            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+          )}
+          <div className="h-full w-[2px] bg-foreground"></div>
+          {(reorderingColumns || showingDeleteColumnsButtons) && (
+            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+          )}
         </div>
       ))}
 

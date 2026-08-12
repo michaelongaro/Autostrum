@@ -1113,9 +1113,9 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           <p className="absolute left-[6px] top-[14px] text-sm italic">PM</p>
         )}
 
-        <div className="baseVertFlex">
+        <div className="baseVertFlex shrink-0">
           <div className="h-[48px]"></div>
-          <div className="baseVertFlex relative h-[258px] rounded-l-2xl border-2 border-foreground bg-background/75 p-2">
+          <div className="baseVertFlex relative h-[246px] py-2 pr-2">
             <PrettyVerticalTuning tuning={tuning} height={"230px"} />
           </div>
           <div className="h-[74px]"></div>
@@ -1146,7 +1146,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     sectionIndex={sectionIndex}
                     subSectionIndex={subSectionIndex}
                     columnIndex={index}
-                    isLastColumn={index === columnIds.length - 1}
                     pmNodeOpacity={pmNodeOpacities[index] ?? "1"}
                     editingPalmMuteNodes={editingPalmMuteNodes}
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
