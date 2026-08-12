@@ -21,6 +21,16 @@ import {
 } from "~/hooks/useTabDataSelectors";
 import { useMeasureLineHasBeenPlayed } from "~/hooks/useColumnPlaybackHighlight";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
+import {
+  EDITING_TAB_COLUMN_HEIGHT_PX,
+  EDITING_TAB_COLUMN_WIDTH_PX,
+  EDITING_TAB_FOOTER_HEIGHT_PX,
+  EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_INSET_PX,
+  EDITING_TAB_STRING_ROW_HEIGHT_PX,
+  EDITING_TAB_STRINGS_HEIGHT_PX,
+} from "~/utils/editingTabGeometry";
 
 // FYI: this whole component is such a mess architecture-wise, but I don't really know
 // how to refactor it so we don't have so many magic numbers
@@ -181,11 +191,14 @@ function TabMeasureLine({
         // need to have same width as chords for the drag and drop algorithm
         // to behave properly without the ui breaking
         width:
-          reorderingColumns || showingDeleteColumnsButtons ? "29px" : "2px",
+          reorderingColumns || showingDeleteColumnsButtons
+            ? `${EDITING_TAB_COLUMN_WIDTH_PX}px`
+            : "1px",
+        height: EDITING_TAB_COLUMN_HEIGHT_PX,
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
         zIndex: isDragging ? 20 : "auto",
       }}
-      className="baseVertFlex relative h-[380px]"
+      className="baseVertFlex relative"
     >
       {/* absolutely positioned highlight */}
       <div
@@ -196,36 +209,56 @@ function TabMeasureLine({
               ? "100%"
               : "0%",
           transition: "opacity 0.15s ease-in-out",
+          top: EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+          height: EDITING_TAB_STRINGS_HEIGHT_PX,
         }}
-        className="absolute left-0 top-[48px] h-[246px] w-full bg-primary/25"
+        className="absolute left-0 w-full bg-primary/25"
       ></div>
 
       {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}
-      <div className="baseFlex h-[48px] w-full shrink-0">
+      <div
+        className="baseFlex w-full shrink-0"
+        style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}
+      >
         {columnData.isInPalmMuteSection && (
           <div className="h-[1px] w-full bg-foreground"></div>
         )}
       </div>
 
       {/* Render measure line for each string (indices 1-6) */}
-      {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
+      <div
+        className="relative w-full"
+        style={{ height: EDITING_TAB_STRINGS_HEIGHT_PX }}
+      >
+        {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
+          <div
+            key={stringIndex}
+            className="baseFlex w-full"
+            style={{ height: EDITING_TAB_STRING_ROW_HEIGHT_PX }}
+          >
+            {(reorderingColumns || showingDeleteColumnsButtons) && (
+              <>
+                <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+              </>
+            )}
+          </div>
+        ))}
         <div
-          key={stringIndex}
-          className="baseFlex h-[41px] w-full"
-        >
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          <div className="h-full w-[2px] bg-foreground"></div>
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      ))}
+          className="absolute left-1/2 w-px -translate-x-1/2 bg-foreground"
+          style={{
+            top: EDITING_TAB_STAFF_LINE_INSET_PX,
+            height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+          }}
+        ></div>
+      </div>
 
       {/* BPM popover */}
       {!reorderingColumns && !showingDeleteColumnsButtons && (
-        <div className="relative h-[86px] w-full">
+        <div
+          className="relative w-full"
+          style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}
+        >
           <Popover>
             <PopoverTrigger asChild>
               <Button

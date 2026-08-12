@@ -36,6 +36,13 @@ import {
   getStringValue,
   isTabNote,
 } from "~/utils/tabNoteHelpers";
+import {
+  EDITING_TAB_COLUMN_HEIGHT_PX,
+  EDITING_TAB_COLUMN_WIDTH_PX,
+  EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+  EDITING_TAB_STRING_ROW_HEIGHT_PX,
+  EDITING_TAB_STRINGS_HEIGHT_PX,
+} from "~/utils/editingTabGeometry";
 
 interface TabNotesColumnProps {
   sectionIndex: number;
@@ -266,6 +273,7 @@ function TabNotesColumn({
         ),
         transition,
         zIndex: isDragging ? 20 : "auto",
+        height: EDITING_TAB_COLUMN_HEIGHT_PX,
       }}
       onMouseEnter={() => {
         setIsHovered(true);
@@ -279,7 +287,7 @@ function TabNotesColumn({
         setIsHovered(false);
         setHoveredChordLocation(null);
       }}
-      className="baseVertFlex h-[380px] shrink-0 cursor-default"
+      className="baseVertFlex shrink-0 cursor-default"
     >
       <Element
         name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
@@ -288,7 +296,10 @@ function TabNotesColumn({
       >
         {/* absolutely positioned chord highlight */}
         <div
+          className="pointer-events-none absolute left-0 z-0 w-full bg-primary"
           style={{
+            top: EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+            height: EDITING_TAB_STRINGS_HEIGHT_PX,
             transform:
               highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",
             transformOrigin: "left center",
@@ -296,12 +307,17 @@ function TabNotesColumn({
             msTransitionProperty: "transform",
             transitionTimingFunction: "linear",
           }}
-          className="pointer-events-none absolute left-0 top-[48px] z-0 h-[246px] w-full bg-primary"
         ></div>
 
-        <div className="baseVertFlex">
+        <div
+          className="baseVertFlex"
+          style={{ width: EDITING_TAB_COLUMN_WIDTH_PX }}
+        >
           {/* Palm Mute Node */}
-          <div className="baseFlex h-12 w-full">
+          <div
+            className="baseFlex w-full"
+            style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}
+          >
             <PalmMuteNode
               value={columnData.palmMute}
               columnIndex={columnIndex}
@@ -319,7 +335,12 @@ function TabNotesColumn({
           {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
             <div
               key={stringIndex}
-              className="baseFlex relative !h-[41px] min-h-[41px] w-full min-w-[29px]"
+              style={{
+                height: EDITING_TAB_STRING_ROW_HEIGHT_PX,
+                minHeight: EDITING_TAB_STRING_ROW_HEIGHT_PX,
+                width: EDITING_TAB_COLUMN_WIDTH_PX,
+              }}
+              className="baseFlex relative"
             >
               <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
 

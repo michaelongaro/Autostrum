@@ -62,6 +62,14 @@ import {
   setPalmMuteValue,
 } from "~/utils/tabNoteHelpers";
 import { getDisplayTuningNotes } from "~/utils/tunings";
+import {
+  EDITING_TAB_FOOTER_HEIGHT_PX,
+  EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_INSET_PX,
+  EDITING_TAB_STRING_ROW_HEIGHT_PX,
+  EDITING_TAB_STRINGS_HEIGHT_PX,
+} from "~/utils/editingTabGeometry";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
@@ -1115,20 +1123,38 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         )}
 
         <div className="baseVertFlex shrink-0">
-          <div className="h-[48px]"></div>
-          <div className="baseVertFlex relative pr-2">
-            {getDisplayTuningNotes(tuning)
-              .toReversed()
-              .map((note, index) => (
-                <div
-                  key={`${tuning}-${index}`}
-                  className="baseFlex h-[41px] !justify-start"
-                >
-                  <PrettyNote note={note.toUpperCase()} />
-                </div>
-              ))}
+          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}></div>
+          <div className="baseFlex !items-stretch">
+            <div className="baseVertFlex relative pr-1">
+              {getDisplayTuningNotes(tuning)
+                .toReversed()
+                .map((note, index) => (
+                  <div
+                    key={`${tuning}-${index}`}
+                    style={{ height: EDITING_TAB_STRING_ROW_HEIGHT_PX }}
+                    className="baseFlex !justify-start leading-none"
+                  >
+                    <PrettyNote note={note.toUpperCase()} />
+                  </div>
+                ))}
+            </div>
+            <div
+              className="relative"
+              style={{
+                height: EDITING_TAB_STRINGS_HEIGHT_PX,
+                width: 1,
+              }}
+            >
+              <div
+                className="absolute left-0 w-px bg-foreground"
+                style={{
+                  top: EDITING_TAB_STAFF_LINE_INSET_PX,
+                  height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+                }}
+              ></div>
+            </div>
           </div>
-          <div className="h-[74px]"></div>
+          <div style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}></div>
         </div>
 
         <DndContext
