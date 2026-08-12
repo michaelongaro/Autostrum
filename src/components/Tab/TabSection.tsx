@@ -68,7 +68,6 @@ import {
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_INSET_PX,
   EDITING_TAB_STRING_ROW_HEIGHT_PX,
-  EDITING_TAB_STRINGS_HEIGHT_PX,
 } from "~/utils/editingTabGeometry";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabMeasureLine from "./TabMeasureLine";
@@ -1124,7 +1123,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
         <div className="baseVertFlex shrink-0">
           <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}></div>
-          <div className="baseFlex !items-stretch">
+          <div className="baseFlex !items-start">
             <div className="baseVertFlex relative pr-1">
               {getDisplayTuningNotes(tuning)
                 .toReversed()
@@ -1139,20 +1138,13 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                 ))}
             </div>
             <div
-              className="relative"
+              className="shrink-0 bg-foreground"
               style={{
-                height: EDITING_TAB_STRINGS_HEIGHT_PX,
                 width: 1,
+                height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+                marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
               }}
-            >
-              <div
-                className="absolute left-0 w-px bg-foreground"
-                style={{
-                  top: EDITING_TAB_STAFF_LINE_INSET_PX,
-                  height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
-                }}
-              ></div>
-            </div>
+            ></div>
           </div>
           <div style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}></div>
         </div>
