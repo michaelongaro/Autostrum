@@ -5,6 +5,7 @@ import {
   handleTabNoteChange,
   handleTabNoteKeyDown,
 } from "~/utils/tabNoteHandlers";
+import { cn } from "~/utils/cn";
 
 interface TabNote {
   note: string;
@@ -41,13 +42,12 @@ function TabNote({
 
   return (
     <div
-      className={`relative ${isPulsing ? "copyAndPaste" : ""} ${
-        !isChordEffect && !hasVisibleNote
-          ? "absolute inset-0 z-[1]"
-          : !isChordEffect
-            ? "z-[1] shrink-0"
-            : ""
-      }`}
+      className={cn(
+        isPulsing && "copyAndPaste",
+        isChordEffect && "relative",
+        !isChordEffect && hasVisibleNote && "relative z-[1] shrink-0",
+        !isChordEffect && !hasVisibleNote && "absolute inset-0 z-[1]",
+      )}
       onAnimationEnd={() => setChordPulse(null)}
     >
       <Input
@@ -62,7 +62,7 @@ function TabNote({
               }
             : {
                 width: hasVisibleNote
-                  ? `calc(${Math.max(note.length, 1)}ch + 6px)`
+                  ? `calc(${Math.max(note.length, 1)}ch + 10px)`
                   : "100%",
                 height: hasVisibleNote ? "35px" : "100%",
               }
