@@ -211,7 +211,7 @@ function TabMeasureLine({
       {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
         <div
           key={stringIndex}
-          className="baseFlex h-[41px] w-full bg-background/75"
+          className="baseFlex h-[41px] w-full"
         >
           {(reorderingColumns || showingDeleteColumnsButtons) && (
             <div className="h-[1px] flex-[1] bg-foreground/50"></div>
