@@ -245,7 +245,11 @@ function TabMeasureLine({
           </div>
         ))}
         <div
-          className="absolute left-1/2 w-px -translate-x-1/2 bg-foreground"
+          className={`absolute w-px bg-foreground ${
+            reorderingColumns || showingDeleteColumnsButtons
+              ? "left-1/2 -translate-x-1/2"
+              : "left-0"
+          }`}
           style={{
             top: EDITING_TAB_STAFF_LINE_INSET_PX,
             height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
