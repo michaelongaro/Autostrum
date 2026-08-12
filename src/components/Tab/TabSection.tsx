@@ -20,7 +20,7 @@ import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
+import { PrettyNote } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
@@ -61,6 +61,7 @@ import {
   isTabNote,
   setPalmMuteValue,
 } from "~/utils/tabNoteHelpers";
+import { getDisplayTuningNotes } from "~/utils/tunings";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
@@ -1115,8 +1116,17 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
         <div className="baseVertFlex shrink-0">
           <div className="h-[48px]"></div>
-          <div className="baseVertFlex relative h-[246px] py-2 pr-2">
-            <PrettyVerticalTuning tuning={tuning} height={"230px"} />
+          <div className="baseVertFlex relative pr-2">
+            {getDisplayTuningNotes(tuning)
+              .toReversed()
+              .map((note, index) => (
+                <div
+                  key={`${tuning}-${index}`}
+                  className="baseFlex h-[41px] !justify-start"
+                >
+                  <PrettyNote note={note.toUpperCase()} />
+                </div>
+              ))}
           </div>
           <div className="h-[74px]"></div>
         </div>

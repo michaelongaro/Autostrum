@@ -319,7 +319,7 @@ function TabNotesColumn({
           {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
             <div
               key={stringIndex}
-              className="baseFlex relative !h-[41px] min-h-[41px] w-full min-w-[29px] bg-background/75"
+              className="baseFlex relative !h-[41px] min-h-[41px] w-full min-w-[29px]"
             >
               <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
 
