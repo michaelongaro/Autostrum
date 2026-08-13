@@ -27,19 +27,20 @@ function check(name, fn) {
 // exercises the real module; this catches math regressions fast.
 
 const STATIC_TAB_ROW_HEIGHT_PX = 248;
-const STATIC_TAB_TUNING_GUTTER_WIDTH_PX = 34;
+const STATIC_TAB_TUNING_GUTTER_WIDTH_PX = 25;
 const STATIC_TAB_NOTES_COLUMN_WIDTH_PX = 34;
-const STATIC_TAB_LAST_NOTES_COLUMN_WIDTH_PX = 46;
-const STATIC_TAB_MEASURE_LINE_WIDTH_PX = 2;
+const STATIC_TAB_END_LINE_WIDTH_PX = 1;
+const STATIC_TAB_MEASURE_LINE_WIDTH_PX = 1;
 const STATIC_TAB_OVERSCAN_PX = 300;
 const ROW_PACKING_EPSILON_PX = 0.1;
 const CSS_ZOOM_RATIO_EPSILON = 0.001;
 
 function getStaticTabColumnWidthPx(column, isLastColumn) {
-  if (column.type === "measureLine") return STATIC_TAB_MEASURE_LINE_WIDTH_PX;
-  return isLastColumn
-    ? STATIC_TAB_LAST_NOTES_COLUMN_WIDTH_PX
-    : STATIC_TAB_NOTES_COLUMN_WIDTH_PX;
+  const baseWidth =
+    column.type === "measureLine"
+      ? STATIC_TAB_MEASURE_LINE_WIDTH_PX
+      : STATIC_TAB_NOTES_COLUMN_WIDTH_PX;
+  return isLastColumn ? baseWidth + STATIC_TAB_END_LINE_WIDTH_PX : baseWidth;
 }
 
 function buildStaticTabRowLayout(columns, innerWidthPx) {
