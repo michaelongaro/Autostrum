@@ -25,6 +25,7 @@ import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
   EDITING_TAB_COLUMN_WIDTH_PX,
   EDITING_TAB_FOOTER_HEIGHT_PX,
+  EDITING_TAB_NOTE_LENGTH_GAP_PX,
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_INSET_PX,
@@ -304,51 +305,60 @@ function TabMeasureLine({
       )}
 
       {(reorderingColumns || showingDeleteColumnsButtons) && (
-        <div className="baseVertFlex mb-[-6px] mt-[6px] w-full">
-          <div className="baseVertFlex relative h-[58px] w-full">
-            {reorderingColumns && (
-              <div
-                ref={setActivatorNodeRef}
-                {...attributes}
-                {...listeners}
-                className={`hover:box-shadow-md ${
-                  isDragging ? "cursor-grabbing" : "cursor-grab"
-                } absolute top-[18px] z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
-                onMouseEnter={() => setHoveringOnHandle(true)}
-                onMouseDown={() => setGrabbingHandle(true)}
-                onMouseLeave={() => {
-                  setGrabbingHandle(false);
-                  setHoveringOnHandle(false);
-                }}
-                onMouseUp={() => {
-                  setGrabbingHandle(false);
-                  setHoveringOnHandle(false);
-                }}
-              >
-                <RxDragHandleDots2 className="h-8 w-6" />
+        <div
+          className="baseVertFlex w-full"
+          style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}
+        >
+          <div
+            className="w-full shrink-0"
+            style={{ height: EDITING_TAB_NOTE_LENGTH_GAP_PX }}
+          ></div>
+          <div className="baseVertFlex mb-[-6px] mt-[6px] w-full">
+            <div className="baseVertFlex relative h-[58px] w-full">
+              {reorderingColumns && (
                 <div
-                  style={{
-                    opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+                  ref={setActivatorNodeRef}
+                  {...attributes}
+                  {...listeners}
+                  className={`hover:box-shadow-md ${
+                    isDragging ? "cursor-grabbing" : "cursor-grab"
+                  } absolute top-[18px] z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
+                  onMouseEnter={() => setHoveringOnHandle(true)}
+                  onMouseDown={() => setGrabbingHandle(true)}
+                  onMouseLeave={() => {
+                    setGrabbingHandle(false);
+                    setHoveringOnHandle(false);
                   }}
-                  className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
-                ></div>
-              </div>
-            )}
+                  onMouseUp={() => {
+                    setGrabbingHandle(false);
+                    setHoveringOnHandle(false);
+                  }}
+                >
+                  <RxDragHandleDots2 className="h-8 w-6" />
+                  <div
+                    style={{
+                      opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+                    }}
+                    className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
+                  ></div>
+                </div>
+              )}
 
-            {showingDeleteColumnsButtons && (
-              <Button
-                variant={"destructive"}
-                size="sm"
-                disabled={audioIsPlaying}
-                className="absolute top-[20px] z-20 h-[1.75rem] w-[1.75rem] p-1"
-                onClick={handleDeleteMeasureLine}
-              >
-                <IoClose className="h-6 w-6" />
-              </Button>
-            )}
+              {showingDeleteColumnsButtons && (
+                <Button
+                  variant={"destructive"}
+                  size="sm"
+                  disabled={audioIsPlaying}
+                  className="absolute top-[20px] z-20 h-[1.75rem] w-[1.75rem] p-1"
+                  onClick={handleDeleteMeasureLine}
+                >
+                  <IoClose className="h-6 w-6" />
+                </Button>
+              )}
+            </div>
+
+            <div className="h-[16px] w-full"></div>
           </div>
-
-          <div className="h-[16px] w-full"></div>
         </div>
       )}
     </motion.div>

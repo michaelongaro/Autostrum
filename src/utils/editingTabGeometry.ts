@@ -13,8 +13,11 @@ export const EDITING_TAB_COLUMN_WIDTH_PX = 48;
 
 export const EDITING_TAB_PALM_MUTE_HEIGHT_PX = 48;
 
+/** Space between the sixth string and the note-length guide. */
+export const EDITING_TAB_NOTE_LENGTH_GAP_PX = 8;
+
 /** Ellipsis + chord-effect input + note-length guide under the strings. */
-export const EDITING_TAB_FOOTER_HEIGHT_PX = 74;
+export const EDITING_TAB_FOOTER_HEIGHT_PX = 74 + EDITING_TAB_NOTE_LENGTH_GAP_PX;
 
 export const EDITING_TAB_COLUMN_HEIGHT_PX =
   EDITING_TAB_PALM_MUTE_HEIGHT_PX +
