@@ -1,9 +1,13 @@
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import type { TabMeasureLine as TabMeasureLineType } from "~/stores/TabStore";
 import {
+  STATIC_TAB_BORDER_SPACER_PX,
   STATIC_TAB_MEASURE_LINE_WIDTH_PX,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
   STATIC_TAB_ROW_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_INSET_PX,
+  STATIC_TAB_STRINGS_HEIGHT_PX,
 } from "~/utils/staticTabGeometry";
 
 interface StaticTabMeasureLineProps {
@@ -17,7 +21,7 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
         height: STATIC_TAB_ROW_HEIGHT_PX,
         width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
       }}
-      className="baseVertFlex relative"
+      className="baseVertFlex relative !justify-start"
     >
       {/* BPM indicator */}
 
@@ -55,42 +59,31 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
         </>
       )}
 
-      {/* Vertical measure line segments for each string (1-6) */}
-      {([0, 1, 2, 3, 4, 5, 6, 7] as const).map((stringIndex) => (
+      {/* Former top container border — spacer only */}
+      <div
+        style={{ height: STATIC_TAB_BORDER_SPACER_PX }}
+        className="w-full shrink-0"
+      />
+
+      <div
+        className="relative w-full shrink-0"
+        style={{ height: STATIC_TAB_STRINGS_HEIGHT_PX }}
+      >
         <div
-          key={stringIndex}
           style={{
+            width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
+            height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+            marginTop: STATIC_TAB_STAFF_LINE_INSET_PX,
             backgroundColor: "hsl(var(--screenshot-foreground))",
           }}
-          className="baseFlex w-full shrink-0"
-        >
-          {stringIndex === 0 && (
-            <div className="baseVertFlex h-[8px] w-full !justify-start">
-              <div
-                style={{
-                  backgroundColor: "hsl(var(--screenshot-foreground))",
-                }}
-                className="h-[2px] w-full"
-              ></div>
-            </div>
-          )}
+        />
+      </div>
 
-          {stringIndex !== 0 && stringIndex !== 7 && (
-            <div className="h-[24px] w-[2px]"></div>
-          )}
-
-          {stringIndex === 7 && (
-            <div className="baseVertFlex h-[8px] w-full !justify-end">
-              <div
-                style={{
-                  backgroundColor: "hsl(var(--screenshot-foreground))",
-                }}
-                className="h-[2px] w-full"
-              ></div>
-            </div>
-          )}
-        </div>
-      ))}
+      {/* Former bottom container border — spacer only */}
+      <div
+        style={{ height: STATIC_TAB_BORDER_SPACER_PX }}
+        className="w-full shrink-0"
+      />
 
       <div
         style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
