@@ -245,7 +245,7 @@ function TabMeasureLine({
           </div>
         ))}
         <div
-          className={`absolute w-px bg-foreground ${
+          className={`absolute w-px bg-foreground/50 ${
             reorderingColumns || showingDeleteColumnsButtons
               ? "left-1/2 -translate-x-1/2"
               : "left-0"
@@ -267,7 +267,7 @@ function TabMeasureLine({
             <PopoverTrigger asChild>
               <Button
                 id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
-                className="absolute left-[-10px] top-1 z-10 size-5 shrink-0 rounded-full p-[0.125rem]"
+                className="absolute left-[-10px] top-[-4px] z-10 size-5 shrink-0 rounded-full p-[0.125rem]"
                 onKeyDown={handleKeyDown}
               >
                 <QuarterNote className="mr-[1px] h-[1rem]" />
@@ -281,8 +281,8 @@ function TabMeasureLine({
                 Specify a new BPM for the following measure
               </p>
 
-              <div className="baseFlex gap-2">
-                <QuarterNote className="fill-foreground" />
+              <div className="baseFlex">
+                <QuarterNote className="size-5 fill-foreground" />
 
                 <Input
                   type="text"
@@ -304,7 +304,7 @@ function TabMeasureLine({
       )}
 
       {(reorderingColumns || showingDeleteColumnsButtons) && (
-        <div className="baseVertFlex w-full">
+        <div className="baseVertFlex mb-[-6px] mt-[6px] w-full">
           <div className="baseVertFlex relative h-[58px] w-full">
             {reorderingColumns && (
               <div
