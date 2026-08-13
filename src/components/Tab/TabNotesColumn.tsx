@@ -34,6 +34,7 @@ import {
 import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
   EDITING_TAB_COLUMN_WIDTH_PX,
+  EDITING_TAB_NOTE_LENGTH_GAP_PX,
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STRING_ROW_HEIGHT_PX,
   EDITING_TAB_STRINGS_HEIGHT_PX,
@@ -349,7 +350,10 @@ function TabNotesColumn({
           ))}
 
           {/* Note Length Guide */}
-          <div className="baseVertFlex mb-2 h-4 w-full">
+          <div
+            className="baseVertFlex mb-2 h-4 w-full"
+            style={{ marginTop: EDITING_TAB_NOTE_LENGTH_GAP_PX }}
+          >
             {renderNoteLengthGuide({
               previousNoteLength: neighborMeta.previousNoteLength,
               currentNoteLength: columnData.noteLength,
