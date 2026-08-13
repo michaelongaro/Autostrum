@@ -2,12 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Element } from "react-scroll";
-import {
-  useEffect,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { useTabStore, type FullNoteLengths } from "~/stores/TabStore";
@@ -158,10 +153,7 @@ function TabNotesColumn({
     }
 
     // if the current chord is being flanked by two measure lines -> disable
-    if (
-      neighborMeta.previousIsMeasureLine &&
-      neighborMeta.nextIsMeasureLine
-    ) {
+    if (neighborMeta.previousIsMeasureLine && neighborMeta.nextIsMeasureLine) {
       disabled = true;
     }
 
@@ -356,47 +348,19 @@ function TabNotesColumn({
             </div>
           ))}
 
-          {/* Chord Settings Dropdown */}
-          {isHovered || chordSettingDropdownIsOpen ? (
-            <DropdownMenu
-              modal={true}
-              open={chordSettingDropdownIsOpen}
-              onOpenChange={(open) => setChordSettingDropdownIsOpen(open)}
-            >
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="my-1 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
-                >
-                  <Ellipsis className="h-3 w-4 rotate-90" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent side={"bottom"}>
-                <DropdownMenuItem
-                  className="baseFlex !justify-between gap-2"
-                  onClick={() => addNewColumn(false)}
-                >
-                  Add chord before
-                  <BsPlus className="h-4 w-4" />
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="baseFlex !justify-between gap-2"
-                  onClick={() => addNewColumn(true)}
-                >
-                  Add chord after
-                  <BsPlus className="h-4 w-4" />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-primary" />
-                <NoteLengthDropdown
-                  value={columnData.noteLength}
-                  onValueChange={handleNoteLengthChange}
-                />
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="my-1 h-2.5 w-5"></div>
-          )}
+          {/* Note Length Guide */}
+          <div className="baseVertFlex mb-2 h-4 w-full">
+            {renderNoteLengthGuide({
+              previousNoteLength: neighborMeta.previousNoteLength,
+              currentNoteLength: columnData.noteLength,
+              nextNoteLength: neighborMeta.nextNoteLength,
+              previousIsRestStrum: neighborMeta.previousIsRestStrum,
+              currentIsRestStrum,
+              nextIsRestStrum: neighborMeta.nextIsRestStrum,
+              isFirstInGroup: neighborMeta.isFirstInGroup,
+              isLastInGroup: neighborMeta.isLastInGroup,
+            })}
+          </div>
 
           {/* Chord Effects */}
           {!reorderingColumns && !showingDeleteColumnsButtons && (
@@ -456,19 +420,47 @@ function TabNotesColumn({
             </div>
           )}
 
-          {/* Note Length Guide */}
-          <div className="baseVertFlex mt-2 h-4 w-full">
-            {renderNoteLengthGuide({
-              previousNoteLength: neighborMeta.previousNoteLength,
-              currentNoteLength: columnData.noteLength,
-              nextNoteLength: neighborMeta.nextNoteLength,
-              previousIsRestStrum: neighborMeta.previousIsRestStrum,
-              currentIsRestStrum,
-              nextIsRestStrum: neighborMeta.nextIsRestStrum,
-              isFirstInGroup: neighborMeta.isFirstInGroup,
-              isLastInGroup: neighborMeta.isLastInGroup,
-            })}
-          </div>
+          {/* Chord Settings Dropdown */}
+          {isHovered || chordSettingDropdownIsOpen ? (
+            <DropdownMenu
+              modal={true}
+              open={chordSettingDropdownIsOpen}
+              onOpenChange={(open) => setChordSettingDropdownIsOpen(open)}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="my-1 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
+                >
+                  <Ellipsis className="h-3 w-4 rotate-90" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent side={"bottom"}>
+                <DropdownMenuItem
+                  className="baseFlex !justify-between gap-2"
+                  onClick={() => addNewColumn(false)}
+                >
+                  Add chord before
+                  <BsPlus className="h-4 w-4" />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="baseFlex !justify-between gap-2"
+                  onClick={() => addNewColumn(true)}
+                >
+                  Add chord after
+                  <BsPlus className="h-4 w-4" />
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-primary" />
+                <NoteLengthDropdown
+                  value={columnData.noteLength}
+                  onValueChange={handleNoteLengthChange}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="my-1 h-2.5 w-5"></div>
+          )}
         </div>
       </Element>
     </motion.div>

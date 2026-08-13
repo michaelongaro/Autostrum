@@ -20,7 +20,7 @@ import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { PrettyNote } from "~/components/ui/PrettyTuning";
+import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
@@ -183,8 +183,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   // recomputes palm-mute node opacities.
   const getPMNodeOpacities = useCallback(() => {
     const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-    const columns =
-      tabSubSection?.type === "tab" ? tabSubSection.data : [];
+    const columns = tabSubSection?.type === "tab" ? tabSubSection.data : [];
 
     if (lastModifiedPalmMuteNode === null) {
       return new Array(columns.length).fill("1") as string[];
@@ -1117,30 +1116,19 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       </div>
 
       <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4">
-        {editingPalmMuteNodes && (
-          <p className="absolute left-[6px] top-[14px] text-sm italic">PM</p>
-        )}
-
         <div className="baseVertFlex shrink-0">
           <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}></div>
           <div className="baseFlex !items-start">
-            <div className="baseVertFlex relative pr-1">
-              {getDisplayTuningNotes(tuning)
-                .toReversed()
-                .map((note, index) => (
-                  <div
-                    key={`${tuning}-${index}`}
-                    style={{ height: EDITING_TAB_STRING_ROW_HEIGHT_PX }}
-                    className="baseFlex !justify-start leading-none"
-                  >
-                    <PrettyNote note={note.toUpperCase()} />
-                  </div>
-                ))}
+            <div className="pr-2">
+              <PrettyVerticalTuning
+                tuning={tuning}
+                height={`${EDITING_TAB_STAFF_LINE_HEIGHT_PX}px`}
+              />
             </div>
             <div
-              className="shrink-0 bg-foreground"
+              className="shrink-0 bg-foreground/50"
               style={{
-                width: 2,
+                width: 1,
                 height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
                 marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
               }}
@@ -1155,10 +1143,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           collisionDetection={rectIntersection}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext
-            items={columnIds}
-            strategy={rectSortingStrategy}
-          >
+          <SortableContext items={columnIds} strategy={rectSortingStrategy}>
             {columnIds.map((columnId, index) => (
               <Fragment key={columnId}>
                 {columnTypes[index] === "measureLine" ? (
@@ -1187,6 +1172,21 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             ))}
           </SortableContext>
         </DndContext>
+
+        <div className="baseVertFlex shrink-0">
+          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}></div>
+          <div className="baseFlex !items-start">
+            <div
+              className="shrink-0 bg-foreground/50"
+              style={{
+                width: 1,
+                height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+                marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
+              }}
+            ></div>
+          </div>
+          <div style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}></div>
+        </div>
       </div>
 
       <Button
