@@ -209,9 +209,8 @@ function TabMeasureLine({
             columnHasBeenPlayed
               ? "100%"
               : "0%",
-          transition: "opacity 0.15s ease-in-out",
-          top: EDITING_TAB_PALM_MUTE_HEIGHT_PX,
-          height: EDITING_TAB_STRINGS_HEIGHT_PX,
+          top: EDITING_TAB_PALM_MUTE_HEIGHT_PX + 11,
+          height: EDITING_TAB_STRINGS_HEIGHT_PX - 25,
         }}
         className="absolute left-0 w-full bg-primary/25"
       ></div>
@@ -219,10 +218,10 @@ function TabMeasureLine({
       {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}
       <div
         className="baseFlex w-full shrink-0"
-        style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}
+        style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 4 }}
       >
         {columnData.isInPalmMuteSection && (
-          <div className="h-[1px] w-full bg-foreground"></div>
+          <div className="mb-1 h-[1px] w-full bg-foreground"></div>
         )}
       </div>
 
@@ -322,7 +321,7 @@ function TabMeasureLine({
                   {...listeners}
                   className={`hover:box-shadow-md ${
                     isDragging ? "cursor-grabbing" : "cursor-grab"
-                  } absolute top-[18px] z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
+                  } absolute top-[18px] z-20 mt-1 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
                   onMouseEnter={() => setHoveringOnHandle(true)}
                   onMouseDown={() => setGrabbingHandle(true)}
                   onMouseLeave={() => {
@@ -337,7 +336,11 @@ function TabMeasureLine({
                   <RxDragHandleDots2 className="h-8 w-6" />
                   <div
                     style={{
-                      opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+                      opacity: hoveringOnHandle
+                        ? grabbingHandle
+                          ? 0.5
+                          : 1
+                        : 0,
                     }}
                     className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
                   ></div>
@@ -349,7 +352,7 @@ function TabMeasureLine({
                   variant={"destructive"}
                   size="sm"
                   disabled={audioIsPlaying}
-                  className="absolute top-[20px] z-20 h-[1.75rem] w-[1.75rem] p-1"
+                  className="absolute top-[20px] z-20 mt-1 h-[1.75rem] w-[1.75rem] p-1"
                   onClick={handleDeleteMeasureLine}
                 >
                   <IoClose className="h-6 w-6" />
