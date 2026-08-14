@@ -23,6 +23,11 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
       }}
       className="baseVertFlex relative !justify-start"
     >
+      <div
+        style={{ height: columnData.isInPalmMuteSection ? "0px" : "12px" }}
+        className="w-full shrink-0"
+      />
+
       {/* BPM indicator */}
 
       {columnData.bpmAfterLine !== null ? (
@@ -46,7 +51,7 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
         <div className="baseFlex h-4 w-full shrink-0">
           <div
             style={{
-              backgroundColor: "hsl(var(--screenshot-foreground))",
+              backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
             }}
             className="relative mt-[-16px] h-[1px] w-full"
           ></div>
@@ -60,10 +65,6 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
       )}
 
       {/* Former top container border — spacer only */}
-      <div
-        style={{ height: STATIC_TAB_BORDER_SPACER_PX }}
-        className="w-full shrink-0"
-      />
 
       <div
         className="relative w-full shrink-0"
@@ -73,8 +74,10 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
           style={{
             width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
             height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
-            marginTop: STATIC_TAB_STAFF_LINE_INSET_PX,
-            backgroundColor: "hsl(var(--screenshot-foreground))",
+            marginTop: columnData.isInPalmMuteSection
+              ? STATIC_TAB_STAFF_LINE_INSET_PX
+              : "0px",
+            backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
           }}
         />
       </div>

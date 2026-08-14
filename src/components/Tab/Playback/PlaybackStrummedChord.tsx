@@ -109,7 +109,7 @@ function PlaybackStrummedChord({
             borderTop: "1px solid",
             borderBottom: "1px solid",
           }}
-          className="baseVertFlex relative mb-[30px] h-[126px] w-[40px] pb-4 mobilePortrait:h-[150px]"
+          className="baseVertFlex relative mb-[30px] h-[126px] w-[40px] !border-foreground/50 pb-4 mobilePortrait:h-[126px]"
         >
           <div className="baseFlex h-8">
             {chordName && (
