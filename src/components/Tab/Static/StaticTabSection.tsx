@@ -374,7 +374,7 @@ function StaticStaffLine() {
         width: STATIC_TAB_STAFF_LINE_WIDTH_PX,
         height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
         marginTop: STATIC_TAB_BORDER_SPACER_PX + STATIC_TAB_STAFF_LINE_INSET_PX,
-        backgroundColor: "hsl(var(--screenshot-foreground))",
+        backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
       }}
     />
   );
@@ -403,7 +403,7 @@ function TuningGutter({ tuning }: { tuning: string }) {
           style={{
             paddingRight: STATIC_TAB_TUNING_NOTE_GAP_PX,
             paddingTop:
-              STATIC_TAB_BORDER_SPACER_PX + STATIC_TAB_STAFF_LINE_INSET_PX,
+              STATIC_TAB_BORDER_SPACER_PX + STATIC_TAB_STAFF_LINE_INSET_PX - 12,
           }}
         >
           <PrettyVerticalTuning
@@ -435,7 +435,7 @@ function StaticEndStaffLine() {
           width: STATIC_TAB_END_LINE_WIDTH_PX,
           height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
           marginTop: STATIC_STAFF_LINE_MARGIN_TOP_PX,
-          backgroundColor: "hsl(var(--screenshot-foreground))",
+          backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
         }}
       />
     </div>

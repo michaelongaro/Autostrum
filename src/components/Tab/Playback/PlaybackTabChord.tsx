@@ -95,10 +95,10 @@ function PlaybackTabChord({
                 <div
                   key={isFirstChordInTab ? "firstRounded" : "regular"}
                   style={{
-                    borderLeft: isFirstChordInTab ? "2px solid" : "none",
+                    borderLeft: isFirstChordInTab ? "1px solid" : "none",
                     borderRadius: isFirstChordInTab ? "10px 0 0 10px" : "none",
                   }}
-                  className="baseVertFlex headerModalGradient relative w-[34px]"
+                  className="baseVertFlex headerModalGradient relative w-[34px] !border-foreground/50"
                 >
                   {columnData.slice(1, 7).map((stringNote, stringOffset) => {
                     const stringIndex = stringOffset + 1;
@@ -126,9 +126,7 @@ function PlaybackTabChord({
                             stringNote.includes(".") &&
                             !columnData[7]?.includes(".")
                           }
-                          isRest={
-                            stringIndex === 4 && columnData[7] === "r"
-                          }
+                          isRest={stringIndex === 4 && columnData[7] === "r"}
                         />
 
                         <div className="h-[1px] flex-[1] bg-foreground/50"></div>
