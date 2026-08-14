@@ -9,7 +9,7 @@ export const EDITING_TAB_STRINGS_HEIGHT_PX =
   EDITING_TAB_STRING_ROW_HEIGHT_PX * EDITING_TAB_STRING_COUNT;
 
 /** Fixed width of each notes column. The string line inside is still dynamic. */
-export const EDITING_TAB_COLUMN_WIDTH_PX = 48;
+export const EDITING_TAB_COLUMN_WIDTH_PX = 40;
 
 export const EDITING_TAB_PALM_MUTE_HEIGHT_PX = 48;
 

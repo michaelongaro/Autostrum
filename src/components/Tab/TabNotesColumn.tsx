@@ -289,10 +289,10 @@ function TabNotesColumn({
       >
         {/* absolutely positioned chord highlight */}
         <div
-          className="pointer-events-none absolute left-0 z-0 w-full bg-primary"
+          className="pointer-events-none absolute left-0 z-0 w-full bg-primary/25"
           style={{
-            top: EDITING_TAB_PALM_MUTE_HEIGHT_PX,
-            height: EDITING_TAB_STRINGS_HEIGHT_PX,
+            top: EDITING_TAB_PALM_MUTE_HEIGHT_PX + 13,
+            height: EDITING_TAB_STRINGS_HEIGHT_PX - 25,
             transform:
               highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",
             transformOrigin: "left center",
@@ -368,7 +368,7 @@ function TabNotesColumn({
 
           {/* Chord Effects */}
           {!reorderingColumns && !showingDeleteColumnsButtons && (
-            <div className="h-8 w-[29px]">
+            <div className="mt-1 h-8 w-[29px]">
               <TabNote
                 note={columnData.chordEffects}
                 sectionIndex={sectionIndex}
@@ -380,7 +380,7 @@ function TabNotesColumn({
           )}
 
           {reorderingColumns && (
-            <div className="baseFlex relative h-8 w-full">
+            <div className="baseFlex relative mt-1 h-8 w-full">
               <div
                 ref={setActivatorNodeRef}
                 {...attributes}
@@ -411,7 +411,7 @@ function TabNotesColumn({
           )}
 
           {showingDeleteColumnsButtons && (
-            <div className="baseFlex h-8 w-full">
+            <div className="baseFlex mt-1 h-8 w-full">
               <Button
                 variant={"destructive"}
                 size="sm"

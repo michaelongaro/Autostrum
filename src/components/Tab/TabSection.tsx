@@ -1117,7 +1117,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
       <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4">
         <div className="baseVertFlex shrink-0">
-          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}></div>
+          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 2 }}></div>
           <div className="baseFlex !items-start">
             <div className="pr-2">
               <PrettyVerticalTuning
@@ -1174,7 +1174,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         </DndContext>
 
         <div className="baseVertFlex shrink-0">
-          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}></div>
+          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 2 }}></div>
           <div className="baseFlex !items-start">
             <div
               className="shrink-0 bg-foreground/50"
