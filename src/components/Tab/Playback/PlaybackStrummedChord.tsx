@@ -43,7 +43,7 @@ function PlaybackStrummedChord({
   isFirstChord,
   isLastChord,
   isFirstChordInTab,
-  isLastChordInTab,
+  isLastChordInTab: _isLastChordInTab,
   isHighlighted = false,
   isDimmed,
   beatIndicator,
@@ -102,25 +102,14 @@ function PlaybackStrummedChord({
 
         <div
           // key is just used here to force a re-render, borderRadius was glitchy
-          key={
-            isFirstChordInTab
-              ? "firstRounded"
-              : isLastChordInTab
-                ? "lastRounded"
-                : "regular"
-          }
+          key={isFirstChordInTab ? "firstRounded" : "regular"}
           style={{
             borderLeft: isFirstChordInTab ? "2px solid" : "none",
-            borderRight: isLastChordInTab ? "2px solid" : "none",
-            borderRadius: isFirstChordInTab
-              ? "10px 0 0 10px"
-              : isLastChordInTab
-                ? "0 10px 10px 0"
-                : "none",
-            borderTop: "2px solid",
-            borderBottom: "2px solid",
+            borderRadius: isFirstChordInTab ? "10px 0 0 10px" : "none",
+            borderTop: "1px solid",
+            borderBottom: "1px solid",
           }}
-          className="baseVertFlex relative mb-[30px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
+          className="baseVertFlex relative mb-[30px] h-[126px] w-[40px] !border-foreground/50 pb-4 mobilePortrait:h-[126px]"
         >
           <div className="baseFlex h-8">
             {chordName && (

@@ -13,40 +13,74 @@ import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 // column MUST size itself from these constants.
 // ---------------------------------------------------------------------------
 
-/** Full height of one packed tab row (palm mute header + strings + note length footer). */
-export const STATIC_TAB_ROW_HEIGHT_PX = 248;
+export const STATIC_TAB_STRING_COUNT = 6;
+
+/** Vertical space for one string row. Unchanged from the boxed layout. */
+export const STATIC_TAB_STRING_ROW_HEIGHT_PX = 24;
+
+export const STATIC_TAB_STRINGS_HEIGHT_PX =
+  STATIC_TAB_STRING_ROW_HEIGHT_PX * STATIC_TAB_STRING_COUNT;
+
+/**
+ * Empty space above the first string / below the sixth string. Previously
+ * held the 2px top/bottom container borders; kept so packed row height and
+ * palm-mute / note-length alignment stay the same.
+ */
+export const STATIC_TAB_BORDER_SPACER_PX = 0;
+
+/** String stack plus the former top/bottom border spacers (8 + 144 + 8). */
+export const STATIC_TAB_STAFF_BLOCK_HEIGHT_PX =
+  STATIC_TAB_STRINGS_HEIGHT_PX + STATIC_TAB_BORDER_SPACER_PX * 2;
+
+/** Full height of one packed tab row (palm mute header + spacers + strings + footer). */
+export const STATIC_TAB_ROW_HEIGHT_PX = 221;
 
 /** Height of the palm mute node header at the top of every column. */
 export const STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX = 32;
 
 /** Height of the note length guide + chord effects footer at the bottom of every column. */
-export const STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX = 55;
-
-/** Width of the tuning gutter rendered at the start of the first row only. */
-export const STATIC_TAB_TUNING_GUTTER_WIDTH_PX = 34;
-
-/** Height of the rounded tuning box inside the tuning gutter / end cap. */
-export const STATIC_TAB_TUNING_BOX_HEIGHT_PX = 160;
-
-/** Height of the vertical tuning note list inside the tuning box. */
-export const STATIC_TAB_VERTICAL_TUNING_HEIGHT_PX = 150;
+export const STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX = 45;
 
 /** Width of the vertical tuning note list (wider variant fits accidentals). */
 export const STATIC_TAB_VERTICAL_TUNING_WIDTH_PX = 12;
 export const STATIC_TAB_VERTICAL_TUNING_ACCIDENTAL_WIDTH_PX = 16;
 
+/** Gap between the tuning letters and the 1px start nut. */
+export const STATIC_TAB_TUNING_NOTE_GAP_PX = 8;
+
+/** 1px start/end/measure vertical lines through the first–sixth strings. */
+export const STATIC_TAB_STAFF_LINE_WIDTH_PX = 1;
+
+/** Offset from the top of the string stack to the first 1px string line. */
+export const STATIC_TAB_STAFF_LINE_INSET_PX =
+  STATIC_TAB_STRING_ROW_HEIGHT_PX / 2;
+
+/** Vertical line spanning the first string through the sixth string. */
+export const STATIC_TAB_STAFF_LINE_HEIGHT_PX =
+  (STATIC_TAB_STRING_COUNT - 1) * STATIC_TAB_STRING_ROW_HEIGHT_PX + 1;
+
+/** Height of the vertical tuning note list (aligned to the staff line). */
+export const STATIC_TAB_VERTICAL_TUNING_HEIGHT_PX =
+  STATIC_TAB_STAFF_LINE_HEIGHT_PX;
+
+/**
+ * Width of the tuning gutter at the start of the first row: accidental-width
+ * letters + gap + 1px start nut. Packed to the right so the nut sits flush
+ * against the first notes column.
+ */
+export const STATIC_TAB_TUNING_GUTTER_WIDTH_PX =
+  STATIC_TAB_VERTICAL_TUNING_ACCIDENTAL_WIDTH_PX +
+  STATIC_TAB_TUNING_NOTE_GAP_PX +
+  STATIC_TAB_STAFF_LINE_WIDTH_PX;
+
 /** Width of a regular (non-last) notes column. */
 export const STATIC_TAB_NOTES_COLUMN_WIDTH_PX = 34;
 
-/** Width of the rounded end cap appended to the last notes column. */
-export const STATIC_TAB_END_CAP_WIDTH_PX = 12;
-
-/** Width of the last notes column (regular column + end cap). */
-export const STATIC_TAB_LAST_NOTES_COLUMN_WIDTH_PX =
-  STATIC_TAB_NOTES_COLUMN_WIDTH_PX + STATIC_TAB_END_CAP_WIDTH_PX;
+/** Width of the 1px end nut after the last column. */
+export const STATIC_TAB_END_LINE_WIDTH_PX = STATIC_TAB_STAFF_LINE_WIDTH_PX;
 
 /** Width of a measure line column. */
-export const STATIC_TAB_MEASURE_LINE_WIDTH_PX = 2;
+export const STATIC_TAB_MEASURE_LINE_WIDTH_PX = STATIC_TAB_STAFF_LINE_WIDTH_PX;
 
 /** Width of a single strum column inside a strumming pattern. */
 export const STATIC_STRUMMING_PATTERN_STRUM_WIDTH_PX = 40;
@@ -214,11 +248,12 @@ export function getStaticTabColumnWidthPx(
   column: TabNote | TabMeasureLine,
   isLastColumn: boolean,
 ): number {
-  if (isTabMeasureLine(column)) return STATIC_TAB_MEASURE_LINE_WIDTH_PX;
-
-  return isLastColumn
-    ? STATIC_TAB_LAST_NOTES_COLUMN_WIDTH_PX
+  const baseWidth = isTabMeasureLine(column)
+    ? STATIC_TAB_MEASURE_LINE_WIDTH_PX
     : STATIC_TAB_NOTES_COLUMN_WIDTH_PX;
+
+  // The 1px end nut is a sibling after the last column.
+  return isLastColumn ? baseWidth + STATIC_TAB_END_LINE_WIDTH_PX : baseWidth;
 }
 
 export interface StaticTabRowMetadata {
@@ -240,7 +275,7 @@ export interface StaticTabRowLayout {
 
 /**
  * Deterministically packs tab columns into rows, replicating what the
- * browser's flex-wrap layout produces: row 0 starts with the 32px tuning
+ * browser's flex-wrap layout produces: row 0 starts with the tuning
  * gutter, later rows use the full inner width. `innerWidthPx` must be the
  * subsection body's layout width (`offsetWidth` / `getStaticTabLayoutWidthPx`),
  * not a zoom-scaled `getBoundingClientRect` width.

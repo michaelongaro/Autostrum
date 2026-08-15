@@ -23,13 +23,19 @@ import {
   getStaticTabLayoutWidthPx,
   getVisibleRowRangeFromBodyRect,
   getVisibleViewportWindow,
+  STATIC_TAB_BORDER_SPACER_PX,
+  STATIC_TAB_END_LINE_WIDTH_PX,
   STATIC_TAB_MIN_VIRTUALIZATION_ROWS,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
   STATIC_TAB_OVERSCAN_PX,
   STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX,
   STATIC_TAB_ROW_HEIGHT_PX,
-  STATIC_TAB_TUNING_BOX_HEIGHT_PX,
+  STATIC_TAB_STAFF_BLOCK_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_INSET_PX,
+  STATIC_TAB_STAFF_LINE_WIDTH_PX,
   STATIC_TAB_TUNING_GUTTER_WIDTH_PX,
+  STATIC_TAB_TUNING_NOTE_GAP_PX,
   STATIC_TAB_VERTICAL_TUNING_HEIGHT_PX,
   type StaticTabRowLayout,
   type VisibleRowRange,
@@ -355,6 +361,25 @@ function SectionCard({
   );
 }
 
+const STATIC_STAFF_LINE_MARGIN_TOP_PX =
+  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX +
+  STATIC_TAB_BORDER_SPACER_PX +
+  STATIC_TAB_STAFF_LINE_INSET_PX;
+
+function StaticStaffLine() {
+  return (
+    <div
+      className="shrink-0"
+      style={{
+        width: STATIC_TAB_STAFF_LINE_WIDTH_PX,
+        height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+        marginTop: STATIC_TAB_BORDER_SPACER_PX + STATIC_TAB_STAFF_LINE_INSET_PX,
+        backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+      }}
+    />
+  );
+}
+
 // rendered at the start of the first row only
 function TuningGutter({ tuning }: { tuning: string }) {
   return (
@@ -362,32 +387,57 @@ function TuningGutter({ tuning }: { tuning: string }) {
       style={{
         height: STATIC_TAB_ROW_HEIGHT_PX,
         width: STATIC_TAB_TUNING_GUTTER_WIDTH_PX,
+        color: "hsl(var(--screenshot-foreground))",
       }}
-      className="baseVertFlex"
+      className="baseVertFlex !justify-start"
     >
       <div
         style={{ height: STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX }}
         className="w-full"
       ></div>
       <div
-        style={{
-          height: STATIC_TAB_TUNING_BOX_HEIGHT_PX,
-          width: STATIC_TAB_TUNING_GUTTER_WIDTH_PX,
-          borderColor: "hsl(var(--screenshot-foreground))",
-          color: "hsl(var(--screenshot-foreground))",
-          backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
-        }}
-        className="baseVertFlex relative rounded-l-2xl border-2 p-2"
+        style={{ height: STATIC_TAB_STAFF_BLOCK_HEIGHT_PX }}
+        className="baseFlex w-full !items-start !justify-end"
       >
-        <PrettyVerticalTuning
-          tuning={tuning}
-          height={`${STATIC_TAB_VERTICAL_TUNING_HEIGHT_PX}px`}
-        />
+        <div
+          style={{
+            paddingRight: STATIC_TAB_TUNING_NOTE_GAP_PX,
+            paddingTop:
+              STATIC_TAB_BORDER_SPACER_PX + STATIC_TAB_STAFF_LINE_INSET_PX - 12,
+          }}
+        >
+          <PrettyVerticalTuning
+            tuning={tuning}
+            height={`${STATIC_TAB_VERTICAL_TUNING_HEIGHT_PX}px`}
+          />
+        </div>
+        <StaticStaffLine />
       </div>
       <div
         style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
         className="w-full"
       ></div>
+    </div>
+  );
+}
+
+function StaticEndStaffLine() {
+  return (
+    <div
+      style={{
+        height: STATIC_TAB_ROW_HEIGHT_PX,
+        width: STATIC_TAB_END_LINE_WIDTH_PX,
+      }}
+      className="shrink-0"
+    >
+      <div
+        style={{
+          width: STATIC_TAB_END_LINE_WIDTH_PX,
+          height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+          marginTop: STATIC_STAFF_LINE_MARGIN_TOP_PX,
+          backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+        }}
+      />
     </div>
   );
 }
@@ -424,6 +474,10 @@ function renderColumnRange(
         />,
       );
     }
+  }
+
+  if (endIndex === columns.length - 1) {
+    renderedColumns.push(<StaticEndStaffLine key="static-end-staff-line" />);
   }
 
   return renderedColumns;

@@ -32,7 +32,7 @@ function PlaybackTabChord({
   isFirstChord,
   isLastChord,
   isFirstChordInTab,
-  isLastChordInTab,
+  isLastChordInTab: _isLastChordInTab,
   isHighlighted,
   isDimmed,
   prevChordNoteLength,
@@ -91,57 +91,48 @@ function PlaybackTabChord({
                 </div>
               )}
 
-              {index > 0 && index < 7 && (
+              {index === 1 && (
                 <div
-                  // key is just used here to force a re-render, borderRadius was glitchy
-                  key={
-                    isFirstChordInTab
-                      ? "firstRounded"
-                      : isLastChordInTab
-                        ? "lastRounded"
-                        : "regular"
-                  }
+                  key={isFirstChordInTab ? "firstRounded" : "regular"}
                   style={{
-                    borderTop: `${index === 1 ? "2px solid" : "none"}`,
-                    paddingTop: `${index === 1 ? "7px" : "0"}`,
-                    borderLeft: isFirstChordInTab ? "2px solid" : "none",
-                    borderRight: isLastChordInTab ? "2px solid" : "none",
-                    borderRadius:
-                      isFirstChordInTab && index === 1
-                        ? "10px 0 0 0" // top left
-                        : isFirstChordInTab && index === 6
-                          ? "0 0 0 10px" // bottom left
-                          : isLastChordInTab && index === 1
-                            ? "0 10px 0 0" // top right
-                            : isLastChordInTab && index === 6
-                              ? "0 0 10px 0" // bottom right
-                              : "none",
-                    borderBottom: `${index === 6 ? "2px solid" : "none"}`,
-                    paddingBottom: `${index === 6 ? "7px" : "0"}`,
+                    borderLeft: isFirstChordInTab ? "1px solid" : "none",
+                    borderRadius: isFirstChordInTab ? "10px 0 0 10px" : "none",
                   }}
-                  className="baseFlex headerModalGradient relative w-[34px] basis-[content]"
+                  className="baseVertFlex headerModalGradient relative w-[34px] !border-foreground/50"
                 >
-                  <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                  {columnData.slice(1, 7).map((stringNote, stringOffset) => {
+                    const stringIndex = stringOffset + 1;
+                    return (
+                      <div
+                        key={stringIndex}
+                        className="baseFlex relative w-[34px] basis-[content]"
+                      >
+                        <div className="h-[1px] flex-[1] bg-foreground/50"></div>
 
-                  <PlaybackTabNote
-                    note={
-                      note.includes(">")
-                        ? note.slice(0, note.length - 1)
-                        : note.includes(".")
-                          ? note.slice(0, note.length - 1)
-                          : note
-                    }
-                    isHighlighted={isHighlighted}
-                    isAccented={
-                      note.includes(">") || columnData[7]?.includes(">")
-                    }
-                    isStaccato={
-                      note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
-                    }
-                    isRest={index === 4 && columnData[7] === "r"}
-                  />
+                        <PlaybackTabNote
+                          note={
+                            stringNote.includes(">")
+                              ? stringNote.slice(0, stringNote.length - 1)
+                              : stringNote.includes(".")
+                                ? stringNote.slice(0, stringNote.length - 1)
+                                : stringNote
+                          }
+                          isHighlighted={isHighlighted}
+                          isAccented={
+                            stringNote.includes(">") ||
+                            columnData[7]?.includes(">")
+                          }
+                          isStaccato={
+                            stringNote.includes(".") &&
+                            !columnData[7]?.includes(".")
+                          }
+                          isRest={stringIndex === 4 && columnData[7] === "r"}
+                        />
 
-                  <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                        <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 

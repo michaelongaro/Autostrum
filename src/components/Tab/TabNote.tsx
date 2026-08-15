@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
 import { Input } from "~/components/ui/input";
 import {
   handleTabNoteChange,
   handleTabNoteKeyDown,
 } from "~/utils/tabNoteHandlers";
+import { cn } from "~/utils/cn";
 
 interface TabNote {
   note: string;
@@ -34,32 +34,51 @@ function TabNote({
     );
   });
 
-  const [isFocused, setIsFocused] = useState(false);
+  const isChordEffect = noteIndex === 7;
+  const hasVisibleNote = note.length > 0;
 
   return (
     <div
-      className={`relative ${isPulsing ? "copyAndPaste" : ""}`}
+      className={cn(
+        isPulsing && "copyAndPaste",
+        isChordEffect && "relative",
+        !isChordEffect && hasVisibleNote && "relative z-[1] shrink-0",
+        !isChordEffect && !hasVisibleNote && "absolute inset-0 z-[1]",
+        "group",
+      )}
       onAnimationEnd={() => setChordPulse(null)}
     >
+      <div
+        className={`pointer-events-none absolute isolate size-[29px] rounded-md group-hover:border ${isChordEffect ? "right-0" : `top-[0px] ${hasVisibleNote ? "right-0" : "right-[10px]"}`}`}
+      ></div>
       <Input
         id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
-        style={{
-          width: noteIndex !== 7 ? "35px" : "29px",
-          height: noteIndex !== 7 ? "35px" : "29px",
-          borderWidth: note.length > 0 && !isFocused ? "2px" : "1px",
-        }}
-        className="relative rounded-full p-0 text-center shadow-sm"
+        showFocusState={isChordEffect}
+        style={
+          isChordEffect
+            ? {
+                width: "29px",
+                height: "29px",
+              }
+            : {
+                width: hasVisibleNote
+                  ? // ? `${Math.max(note.length, 1)}ch`
+                    "29px"
+                  : "100%",
+                height: "29px",
+              }
+        }
+        className={
+          isChordEffect
+            ? `relative rounded-md p-0 text-center shadow-sm`
+            : "h-full rounded-none border-0 bg-transparent p-0 text-center font-normal tabular-nums leading-none shadow-none outline-none focus-visible:outline-none focus-visible:ring-0"
+        }
         onFocus={(e) => {
-          setIsFocused(true);
-
           // focuses end of the input (better ux when navigating with arrow keys)
           e.target.setSelectionRange(
             e.target.value.length,
             e.target.value.length,
           );
-        }}
-        onBlur={() => {
-          setIsFocused(false);
         }}
         type="text"
         autoComplete="off"
@@ -83,7 +102,6 @@ function TabNote({
             setCurrentlyCopiedChord,
             chordPulse,
             setChordPulse: setPulse,
-            setIsFocused,
           });
         }}
         onChange={(e) => {

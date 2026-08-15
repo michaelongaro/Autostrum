@@ -14,6 +14,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
+import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import { AnimatePresence, motion } from "framer-motion";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
@@ -35,10 +36,19 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import {
   useTabColumnIds,
   useTabColumnTypes,
   useTabSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
+import {
+  EDITING_TAB_PLAYHEAD_HEIGHT_PX,
+  useEditingTabPlayhead,
+} from "~/hooks/useEditingTabPlayhead";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   getTabData,
@@ -61,6 +71,14 @@ import {
   isTabNote,
   setPalmMuteValue,
 } from "~/utils/tabNoteHelpers";
+import { getDisplayTuningNotes } from "~/utils/tunings";
+import {
+  EDITING_TAB_FOOTER_HEIGHT_PX,
+  EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_INSET_PX,
+  EDITING_TAB_STRING_ROW_HEIGHT_PX,
+} from "~/utils/editingTabGeometry";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabMeasureLine from "./TabMeasureLine";
 import TabNotesColumn from "./TabNotesColumn";
@@ -132,6 +150,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const staffContainerRef = useRef<HTMLDivElement>(null);
+  const playheadRef = useRef<HTMLDivElement>(null);
 
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
@@ -140,6 +160,13 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
+
+  useEditingTabPlayhead({
+    sectionIndex,
+    subSectionIndex,
+    containerRef: staffContainerRef,
+    playheadRef,
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -165,18 +192,20 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   // Intentionally omit currentChordIndex / currentlyPlayingMetadata / playback
   // fields: columns subscribe to those with fine-grained selectors so playback
   // ticks don't re-render the whole section (and invalidate DndContext).
-  const { bpm, tuning, setTabData } = useTabStore((state) => ({
-    bpm: state.bpm,
-    tuning: state.tuning,
-    setTabData: state.setTabData,
-  }));
+  const { bpm, tuning, setTabData, setShowGlossaryDialog } = useTabStore(
+    (state) => ({
+      bpm: state.bpm,
+      tuning: state.tuning,
+      setTabData: state.setTabData,
+      setShowGlossaryDialog: state.setShowGlossaryDialog,
+    }),
+  );
 
   // React Compiler escape hatch: identity is an effect dependency that
   // recomputes palm-mute node opacities.
   const getPMNodeOpacities = useCallback(() => {
     const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-    const columns =
-      tabSubSection?.type === "tab" ? tabSubSection.data : [];
+    const columns = tabSubSection?.type === "tab" ? tabSubSection.data : [];
 
     if (lastModifiedPalmMuteNode === null) {
       return new Array(columns.length).fill("1") as string[];
@@ -1108,17 +1137,72 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         />
       </div>
 
-      <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4">
-        {editingPalmMuteNodes && (
-          <p className="absolute left-[6px] top-[14px] text-sm italic">PM</p>
-        )}
-
-        <div className="baseVertFlex">
-          <div className="h-[48px]"></div>
-          <div className="baseVertFlex relative h-[258px] rounded-l-2xl border-2 border-foreground bg-background/75 p-2">
-            <PrettyVerticalTuning tuning={tuning} height={"230px"} />
+      <div
+        ref={staffContainerRef}
+        className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4"
+      >
+        <div className="baseVertFlex shrink-0">
+          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 2 }}></div>
+          <div className="baseFlex !items-start">
+            <div className="pr-2">
+              <PrettyVerticalTuning
+                tuning={tuning}
+                height={`${EDITING_TAB_STAFF_LINE_HEIGHT_PX}px`}
+              />
+            </div>
+            <div
+              className="shrink-0 bg-foreground/50"
+              style={{
+                width: 1,
+                height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+                marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
+              }}
+            ></div>
           </div>
-          <div className="h-[74px]"></div>
+
+          <div className="baseFlex relative h-[41px] w-full">
+            <Popover>
+              <PopoverTrigger className="baseFlex absolute left-[-8px] top-4 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10">
+                <QuarterNote />
+                <EighthNote />
+              </PopoverTrigger>
+              <PopoverContent className="baseVertFlex p-3" side="left">
+                <span className="font-medium">Note lengths</span>
+                <span>
+                  For more info, visit the{" "}
+                  <Button
+                    variant="link"
+                    className="h-4 p-0 underline"
+                    onClick={() => setShowGlossaryDialog(true)}
+                  >
+                    Glossary
+                  </Button>
+                </span>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="baseFlex relative h-[41px] w-full">
+            <Popover>
+              <PopoverTrigger className="absolute left-[-8px] top-2 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10">
+                <BsArrowDown className="absolute left-0 top-1 size-4" />
+                <BsArrowUp className="absolute left-2 top-1 size-4" />
+              </PopoverTrigger>
+              <PopoverContent className="baseVertFlex p-3" side="left">
+                <span className="font-medium">Chord modifiers</span>
+                <span>
+                  For more info, visit the{" "}
+                  <Button
+                    variant="link"
+                    className="h-4 p-0 underline"
+                    onClick={() => setShowGlossaryDialog(true)}
+                  >
+                    Glossary
+                  </Button>
+                </span>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         <DndContext
@@ -1127,10 +1211,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           collisionDetection={rectIntersection}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext
-            items={columnIds}
-            strategy={rectSortingStrategy}
-          >
+          <SortableContext items={columnIds} strategy={rectSortingStrategy}>
             {columnIds.map((columnId, index) => (
               <Fragment key={columnId}>
                 {columnTypes[index] === "measureLine" ? (
@@ -1146,7 +1227,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     sectionIndex={sectionIndex}
                     subSectionIndex={subSectionIndex}
                     columnIndex={index}
-                    isLastColumn={index === columnIds.length - 1}
                     pmNodeOpacity={pmNodeOpacities[index] ?? "1"}
                     editingPalmMuteNodes={editingPalmMuteNodes}
                     setEditingPalmMuteNodes={setEditingPalmMuteNodes}
@@ -1160,6 +1240,31 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             ))}
           </SortableContext>
         </DndContext>
+
+        <div className="baseVertFlex shrink-0">
+          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 2 }}></div>
+          <div className="baseFlex !items-start">
+            <div
+              className="shrink-0 bg-foreground/50"
+              style={{
+                width: 1,
+                height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+                marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
+              }}
+            ></div>
+          </div>
+          <div style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}></div>
+        </div>
+
+        <div
+          ref={playheadRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-0 z-10 w-[2px] bg-primary will-change-transform"
+          style={{
+            height: EDITING_TAB_PLAYHEAD_HEIGHT_PX,
+            opacity: 0,
+          }}
+        />
       </div>
 
       <Button

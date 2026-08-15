@@ -678,16 +678,15 @@ function PlaybackModal() {
                     >
                       {!audioMetadata.editingLoopRange && (
                         <div className="baseFlex absolute left-0 top-0 size-full">
-                          <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
-                          {/* currently this fixes the highlight line extending past rounded borders of
-                          sections, but puts it behind measure lines. maybe this is a fine tradeoff?
+                          <div className="h-[126px] w-full mobilePortrait:h-[150px]"></div>
+                          {/* Playhead spans the tab/chord staff (first–sixth strings).
                           translateX is written imperatively during rubber-band overscroll so the
                           playhead stays attached to the strip. */}
                           <div
                             ref={playbackPlayheadRef}
-                            className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[165px]"
+                            className="z-0 ml-1 h-[126px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[150px]"
                           ></div>
-                          <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
+                          <div className="h-[126px] w-full mobilePortrait:h-[150px]"></div>
                         </div>
                       )}
 
