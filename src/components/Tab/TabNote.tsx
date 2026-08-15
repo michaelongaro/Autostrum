@@ -12,6 +12,8 @@ interface TabNote {
   subSectionIndex: number;
   columnIndex: number;
   noteIndex: number;
+  /** Playback-modal-style primary coloring for frets under the playhead trail. */
+  isHighlighted?: boolean;
 }
 
 function TabNote({
@@ -20,6 +22,7 @@ function TabNote({
   subSectionIndex,
   columnIndex,
   noteIndex,
+  isHighlighted = false,
 }: TabNote) {
   const setTabData = useTabStore((state) => state.setTabData);
   const setChordPulse = useTabStore((state) => state.setChordPulse);
@@ -36,6 +39,9 @@ function TabNote({
 
   const isChordEffect = noteIndex === 7;
   const hasVisibleNote = note.length > 0;
+  const noteColor = isHighlighted
+    ? "hsl(var(--primary))"
+    : "hsl(var(--foreground))";
 
   return (
     <div
@@ -59,6 +65,7 @@ function TabNote({
             ? {
                 width: "29px",
                 height: "29px",
+                color: noteColor,
               }
             : {
                 width: hasVisibleNote
@@ -66,6 +73,7 @@ function TabNote({
                     "29px"
                   : "100%",
                 height: "29px",
+                color: noteColor,
               }
         }
         className={

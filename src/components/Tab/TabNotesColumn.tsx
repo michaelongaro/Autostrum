@@ -23,6 +23,7 @@ import {
   useTabColumnNeighborMeta,
   useTabNoteColumnData,
 } from "~/hooks/useTabDataSelectors";
+import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
 import { NoteLengthDropdown } from "./NoteLengthDropdown";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
@@ -73,6 +74,12 @@ function TabNotesColumn({
     useState(false);
   // Local hover state avoids re-rendering every column in the section on mouse move
   const [isHovered, setIsHovered] = useState(false);
+
+  const { isHighlighted } = useColumnPlaybackHighlight(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  );
 
   const columnData = useTabNoteColumnData(
     sectionIndex,
@@ -303,6 +310,7 @@ function TabNotesColumn({
                 subSectionIndex={subSectionIndex}
                 columnIndex={columnIndex}
                 noteIndex={stringIndex}
+                isHighlighted={isHighlighted}
               />
 
               <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
