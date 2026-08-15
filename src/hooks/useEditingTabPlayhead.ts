@@ -1,5 +1,9 @@
 import { useEffect, useRef, type RefObject } from "react";
-import { useTabStore, type Metadata } from "~/stores/TabStore";
+import {
+  getTabStore,
+  useTabStore,
+  type Metadata,
+} from "~/stores/TabStore";
 import {
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
@@ -163,7 +167,7 @@ export function useEditingTabPlayhead({
 
     const tick = () => {
       rafId = null;
-      const state = useTabStore.getState();
+      const state = getTabStore();
       const container = containerRef.current;
       const {
         currentlyPlayingMetadata,
