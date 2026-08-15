@@ -14,6 +14,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
+import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import { AnimatePresence, motion } from "framer-motion";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
@@ -34,6 +35,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import {
   useTabColumnIds,
   useTabColumnTypes,
@@ -186,11 +192,14 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   // Intentionally omit currentChordIndex / currentlyPlayingMetadata / playback
   // fields: columns subscribe to those with fine-grained selectors so playback
   // ticks don't re-render the whole section (and invalidate DndContext).
-  const { bpm, tuning, setTabData } = useTabStore((state) => ({
-    bpm: state.bpm,
-    tuning: state.tuning,
-    setTabData: state.setTabData,
-  }));
+  const { bpm, tuning, setTabData, setShowGlossaryDialog } = useTabStore(
+    (state) => ({
+      bpm: state.bpm,
+      tuning: state.tuning,
+      setTabData: state.setTabData,
+      setShowGlossaryDialog: state.setShowGlossaryDialog,
+    }),
+  );
 
   // React Compiler escape hatch: identity is an effect dependency that
   // recomputes palm-mute node opacities.
@@ -1150,7 +1159,50 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
               }}
             ></div>
           </div>
-          <div style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}></div>
+
+          <div className="baseFlex relative h-[41px] w-full">
+            <Popover>
+              <PopoverTrigger className="baseFlex absolute left-[-8px] top-4 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10">
+                <QuarterNote />
+                <EighthNote />
+              </PopoverTrigger>
+              <PopoverContent className="baseVertFlex p-3" side="left">
+                <span className="font-medium">Note lengths</span>
+                <span>
+                  For more info, visit the{" "}
+                  <Button
+                    variant="link"
+                    className="h-4 p-0 underline"
+                    onClick={() => setShowGlossaryDialog(true)}
+                  >
+                    Glossary
+                  </Button>
+                </span>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="baseFlex relative h-[41px] w-full">
+            <Popover>
+              <PopoverTrigger className="absolute left-[-8px] top-2 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10">
+                <BsArrowDown className="absolute left-0 top-1 size-4" />
+                <BsArrowUp className="absolute left-2 top-1 size-4" />
+              </PopoverTrigger>
+              <PopoverContent className="baseVertFlex p-3" side="left">
+                <span className="font-medium">Chord modifiers</span>
+                <span>
+                  For more info, visit the{" "}
+                  <Button
+                    variant="link"
+                    className="h-4 p-0 underline"
+                    onClick={() => setShowGlossaryDialog(true)}
+                  >
+                    Glossary
+                  </Button>
+                </span>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         <DndContext
