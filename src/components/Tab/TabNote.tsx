@@ -78,8 +78,8 @@ function TabNote({
         }
         className={
           isChordEffect
-            ? `relative rounded-md p-0 text-center shadow-sm`
-            : "h-full rounded-none border-0 bg-transparent p-0 text-center font-normal tabular-nums leading-none shadow-none outline-none focus-visible:outline-none focus-visible:ring-0"
+            ? "relative rounded-md p-0 text-center shadow-sm transition-none"
+            : "h-full rounded-none border-0 bg-transparent p-0 text-center font-normal tabular-nums leading-none shadow-none outline-none transition-none focus-visible:outline-none focus-visible:ring-0"
         }
         onFocus={(e) => {
           // focuses end of the input (better ux when navigating with arrow keys)

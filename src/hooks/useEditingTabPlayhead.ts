@@ -15,6 +15,12 @@ const ROW_Y_SNAP_THRESHOLD_PX = 40;
 
 const MAX_FRAME_DELTA_MS = 100;
 
+/**
+ * When paused, park the 2px playhead this far left of the chord center so the
+ * fret digits stay readable under / beside the line.
+ */
+const PAUSED_PLAYHEAD_LEFT_OF_CENTER_PX = 10;
+
 interface ChordLayoutPos {
   /** Horizontal center of the column, relative to the staff container. */
   x: number;
@@ -153,7 +159,10 @@ function parkPlayheadAtMetadataIndex({
   }
 
   playhead.style.opacity = "1";
-  playhead.style.transform = `translate3d(${pos.x - 1}px, ${pos.y}px, 0)`;
+  // Center the 2px line (`- 1`), then nudge left so notes aren't covered.
+  playhead.style.transform = `translate3d(${
+    pos.x - 1 - PAUSED_PLAYHEAD_LEFT_OF_CENTER_PX
+  }px, ${pos.y}px, 0)`;
 }
 
 /**
