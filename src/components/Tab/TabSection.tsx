@@ -39,6 +39,10 @@ import {
   useTabColumnTypes,
   useTabSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
+import {
+  EDITING_TAB_PLAYHEAD_HEIGHT_PX,
+  useEditingTabPlayhead,
+} from "~/hooks/useEditingTabPlayhead";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   getTabData,
@@ -140,6 +144,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const staffContainerRef = useRef<HTMLDivElement>(null);
+  const playheadRef = useRef<HTMLDivElement>(null);
 
   const [reorderingColumns, setReorderingColumns] = useState(false);
   const [showingDeleteColumnsButtons, setShowingDeleteColumnsButtons] =
@@ -148,6 +154,13 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
 
   const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
+
+  useEditingTabPlayhead({
+    sectionIndex,
+    subSectionIndex,
+    containerRef: staffContainerRef,
+    playheadRef,
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -1115,7 +1128,10 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         />
       </div>
 
-      <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4">
+      <div
+        ref={staffContainerRef}
+        className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4"
+      >
         <div className="baseVertFlex shrink-0">
           <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 2 }}></div>
           <div className="baseFlex !items-start">
@@ -1187,6 +1203,16 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
           </div>
           <div style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}></div>
         </div>
+
+        <div
+          ref={playheadRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-0 z-10 w-[2px] bg-primary will-change-transform"
+          style={{
+            height: EDITING_TAB_PLAYHEAD_HEIGHT_PX,
+            opacity: 0,
+          }}
+        />
       </div>
 
       <Button

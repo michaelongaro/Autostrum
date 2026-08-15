@@ -200,8 +200,9 @@ function TabMeasureLine({
         zIndex: isDragging ? 20 : "auto",
       }}
       className="baseVertFlex relative"
+      id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
     >
-      {/* absolutely positioned highlight */}
+      {/* Reorder/delete mode: dim past columns so the active edit target is clearer */}
       <div
         style={{
           opacity:
