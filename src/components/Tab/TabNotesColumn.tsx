@@ -2,7 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Element } from "react-scroll";
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { useTabStore, type FullNoteLengths } from "~/stores/TabStore";
@@ -23,7 +23,6 @@ import {
   useTabColumnNeighborMeta,
   useTabNoteColumnData,
 } from "~/hooks/useTabDataSelectors";
-import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
 import { NoteLengthDropdown } from "./NoteLengthDropdown";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
@@ -37,7 +36,6 @@ import {
   EDITING_TAB_NOTE_LENGTH_GAP_PX,
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STRING_ROW_HEIGHT_PX,
-  EDITING_TAB_STRINGS_HEIGHT_PX,
 } from "~/utils/editingTabGeometry";
 
 interface TabNotesColumnProps {
@@ -71,14 +69,10 @@ function TabNotesColumn({
 }: TabNotesColumnProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
-  const [highlightChord, setHighlightChord] = useState(false);
   const [chordSettingDropdownIsOpen, setChordSettingDropdownIsOpen] =
     useState(false);
   // Local hover state avoids re-rendering every column in the section on mouse move
   const [isHovered, setIsHovered] = useState(false);
-
-  const { columnIsBeingPlayed, columnHasBeenPlayed, durationOfChord } =
-    useColumnPlaybackHighlight(sectionIndex, subSectionIndex, columnIndex);
 
   const columnData = useTabNoteColumnData(
     sectionIndex,
@@ -112,25 +106,6 @@ function TabNotesColumn({
       setHoveredChordLocation: state.setHoveredChordLocation,
     }),
   );
-
-  // ideally don't need this and can just use prop values passed in, but need to have a
-  // [0] index special case, since when looping it would keep the [0] index at 100% width
-  // immediately, so we need this semi hacky solution
-  useEffect(() => {
-    if (columnIndex === 0) {
-      if (columnIsBeingPlayed) {
-        setHighlightChord(false);
-
-        setTimeout(() => {
-          setHighlightChord(true);
-        }, 0);
-      } else {
-        setHighlightChord(false);
-      }
-    } else {
-      setHighlightChord(columnIsBeingPlayed);
-    }
-  }, [columnIndex, columnIsBeingPlayed]);
 
   if (!columnData) {
     return null;
@@ -287,21 +262,6 @@ function TabNotesColumn({
         id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
         className="baseFlex relative"
       >
-        {/* absolutely positioned chord highlight */}
-        <div
-          className="pointer-events-none absolute left-0 z-0 w-full bg-primary/25"
-          style={{
-            top: EDITING_TAB_PALM_MUTE_HEIGHT_PX + 13,
-            height: EDITING_TAB_STRINGS_HEIGHT_PX - 25,
-            transform:
-              highlightChord || columnHasBeenPlayed ? "scaleX(1)" : "scaleX(0)",
-            transformOrigin: "left center",
-            transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
-            msTransitionProperty: "transform",
-            transitionTimingFunction: "linear",
-          }}
-        ></div>
-
         <div
           className="baseVertFlex"
           style={{ width: EDITING_TAB_COLUMN_WIDTH_PX }}
