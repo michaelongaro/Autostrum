@@ -308,6 +308,30 @@ const pauseState = await page.evaluate(() => {
     );
   });
   if (!head) return { error: "no playhead element" };
+
+  const staffRect = staffEl.getBoundingClientRect();
+  const headRect = head.getBoundingClientRect();
+  const playheadX = headRect.left - staffRect.left + headRect.width / 2;
+
+  // Paused playhead should sit slightly left of the nearest chord's center.
+  let chordCenterX = null;
+  let leftOfCenterBy = null;
+  let bestDistance = Infinity;
+  for (const chordEl of document.querySelectorAll(
+    '[id^="section0-subSection0-chord"]',
+  )) {
+    const chordRect = chordEl.getBoundingClientRect();
+    // Skip skinny measure lines.
+    if (chordRect.width < 8) continue;
+    const center = chordRect.left - staffRect.left + chordRect.width / 2;
+    const distance = Math.abs(center - (playheadX + 10));
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      chordCenterX = center;
+      leftOfCenterBy = center - playheadX;
+    }
+  }
+
   const highlightedViaInline = [
     ...document.querySelectorAll('input[id^="input-0-0-"]'),
   ].filter((el) => {
@@ -320,10 +344,27 @@ const pauseState = await page.evaluate(() => {
       (el.getAttribute("style") || "").includes("primary")
     );
   }).length;
+
+  const sampleHighlighted = [
+    ...document.querySelectorAll('input[id^="input-0-0-"]'),
+  ].find(
+    (el) =>
+      (el.getAttribute("style") || "").includes("primary") &&
+      Number(el.id.split("-")[4]) >= 1 &&
+      Number(el.id.split("-")[4]) <= 6,
+  );
+  const highlightTransition = sampleHighlighted
+    ? getComputedStyle(sampleHighlighted).transitionProperty
+    : null;
+
   return {
     playheadOpacity: Number(getComputedStyle(head).opacity),
     playheadTransform: getComputedStyle(head).transform,
+    playheadX,
+    chordCenterX,
+    leftOfCenterBy,
     highlightedViaInline,
+    highlightTransition,
   };
 });
 console.log("pause state:", pauseState);
@@ -335,6 +376,17 @@ assert.ok(
 assert.ok(
   pauseState.highlightedViaInline >= 1,
   "highlighted chord notes stay visible on pause",
+);
+assert.ok(
+  pauseState.leftOfCenterBy != null &&
+    pauseState.leftOfCenterBy >= 6 &&
+    pauseState.leftOfCenterBy <= 16,
+  `paused playhead sits left of chord center (delta=${pauseState.leftOfCenterBy})`,
+);
+assert.ok(
+  pauseState.highlightTransition === "none" ||
+    pauseState.highlightTransition === "",
+  `highlight color has no transition (got "${pauseState.highlightTransition}")`,
 );
 
 await page.screenshot({
