@@ -241,6 +241,159 @@ if (uniqueYs.length > 1) {
   console.log("  INFO  single-row playback in this viewport; X motion verified");
 }
 
+// --- Note highlight coloring (playback-modal style) while playing ---
+const highlightWhilePlaying = await page.evaluate(() => {
+  const primary = getComputedStyle(document.documentElement)
+    .getPropertyValue("--primary")
+    .trim();
+  const inputs = [
+    ...document.querySelectorAll('input[id^="input-0-0-"]'),
+  ].filter((el) => {
+    const id = el.id;
+    // string notes only (noteIndex 1-6), skip chord effects (7)
+    const parts = id.split("-");
+    const noteIndex = Number(parts[4]);
+    return noteIndex >= 1 && noteIndex <= 6 && el.value.length > 0;
+  });
+  const highlighted = inputs.filter((el) => {
+    const color = getComputedStyle(el).color;
+    // primary is applied as hsl(var(--primary)); resolve via a probe.
+    return color.includes("rgb") && el.style.color.includes("primary");
+  });
+  return {
+    primaryVar: primary,
+    visibleNoteInputs: inputs.length,
+    highlightedViaInline: inputs.filter((el) =>
+      (el.getAttribute("style") || "").includes("primary"),
+    ).length,
+  };
+});
+console.log("highlight while playing:", highlightWhilePlaying);
+assert.ok(
+  highlightWhilePlaying.highlightedViaInline >= 1,
+  "at least one string note uses primary highlight while playing",
+);
+
+// --- Pause: playhead and highlights must remain ---
+const paused = await page.evaluate(() => {
+  const buttons = [...document.querySelectorAll("button")];
+  const candidate = buttons.find((btn) => {
+    if (btn.disabled) return false;
+    const cls = btn.className || "";
+    const rect = btn.getBoundingClientRect();
+    return (
+      (cls.includes("bg-audio") || cls.includes("audio")) &&
+      rect.bottom > window.innerHeight - 160 &&
+      rect.width > 0
+    );
+  });
+  if (!candidate) return { clicked: false };
+  candidate.click();
+  return { clicked: true };
+});
+assert.ok(paused.clicked, "clicked sticky audio button to pause");
+await page.waitForTimeout(400);
+
+const pauseState = await page.evaluate(() => {
+  const staffEl = document.querySelector(
+    ".baseFlex.relative.mt-4.w-full.flex-wrap",
+  );
+  if (!staffEl) return { error: "no staff" };
+  const head = [...staffEl.querySelectorAll("div")].find((el) => {
+    const style = getComputedStyle(el);
+    return (
+      el.classList.contains("bg-primary") &&
+      (el.className.includes("w-[2px]") || style.width === "2px") &&
+      style.position === "absolute"
+    );
+  });
+  if (!head) return { error: "no playhead element" };
+
+  const staffRect = staffEl.getBoundingClientRect();
+  const headRect = head.getBoundingClientRect();
+  const playheadX = headRect.left - staffRect.left + headRect.width / 2;
+
+  // Paused playhead should sit slightly left of the nearest chord's center.
+  let chordCenterX = null;
+  let leftOfCenterBy = null;
+  let bestDistance = Infinity;
+  for (const chordEl of document.querySelectorAll(
+    '[id^="section0-subSection0-chord"]',
+  )) {
+    const chordRect = chordEl.getBoundingClientRect();
+    // Skip skinny measure lines.
+    if (chordRect.width < 8) continue;
+    const center = chordRect.left - staffRect.left + chordRect.width / 2;
+    const distance = Math.abs(center - (playheadX + 10));
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      chordCenterX = center;
+      leftOfCenterBy = center - playheadX;
+    }
+  }
+
+  const highlightedViaInline = [
+    ...document.querySelectorAll('input[id^="input-0-0-"]'),
+  ].filter((el) => {
+    const parts = el.id.split("-");
+    const noteIndex = Number(parts[4]);
+    return (
+      noteIndex >= 1 &&
+      noteIndex <= 6 &&
+      el.value.length > 0 &&
+      (el.getAttribute("style") || "").includes("primary")
+    );
+  }).length;
+
+  const sampleHighlighted = [
+    ...document.querySelectorAll('input[id^="input-0-0-"]'),
+  ].find(
+    (el) =>
+      (el.getAttribute("style") || "").includes("primary") &&
+      Number(el.id.split("-")[4]) >= 1 &&
+      Number(el.id.split("-")[4]) <= 6,
+  );
+  const highlightTransition = sampleHighlighted
+    ? getComputedStyle(sampleHighlighted).transitionProperty
+    : null;
+
+  return {
+    playheadOpacity: Number(getComputedStyle(head).opacity),
+    playheadTransform: getComputedStyle(head).transform,
+    playheadX,
+    chordCenterX,
+    leftOfCenterBy,
+    highlightedViaInline,
+    highlightTransition,
+  };
+});
+console.log("pause state:", pauseState);
+assert.ok(!pauseState.error, `pause state ok: ${pauseState.error}`);
+assert.ok(
+  pauseState.playheadOpacity > 0.5,
+  `playhead stays visible on pause (opacity=${pauseState.playheadOpacity})`,
+);
+assert.ok(
+  pauseState.highlightedViaInline >= 1,
+  "highlighted chord notes stay visible on pause",
+);
+assert.ok(
+  pauseState.leftOfCenterBy != null &&
+    pauseState.leftOfCenterBy >= 6 &&
+    pauseState.leftOfCenterBy <= 16,
+  `paused playhead sits left of chord center (delta=${pauseState.leftOfCenterBy})`,
+);
+assert.ok(
+  pauseState.highlightTransition === "none" ||
+    pauseState.highlightTransition === "",
+  `highlight color has no transition (got "${pauseState.highlightTransition}")`,
+);
+
+await page.screenshot({
+  path: path.join(ARTIFACT_DIR, "playhead-paused.png"),
+  fullPage: false,
+});
+
 assert.equal(pageErrors.length, 0, `no page errors: ${pageErrors.join("; ")}`);
 
 console.log("\nALL PLAYHEAD CHECKS PASSED");
