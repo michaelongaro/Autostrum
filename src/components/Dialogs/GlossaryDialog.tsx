@@ -69,7 +69,7 @@ function GlossaryDialog() {
       open={showGlossaryDialog}
     >
       <VisuallyHidden>
-        <DialogTitle>Effect glossary</DialogTitle>
+        <DialogTitle>Modifier Glossary</DialogTitle>
         <DialogDescription>
           A list of all the effects and their notations that can be used in the
           tab editor.
@@ -84,7 +84,7 @@ function GlossaryDialog() {
             className="relative h-8 px-0"
           >
             <span className="baseFlex gap-2 font-semibold">
-              Effect Glossary
+              Modifier Glossary
             </span>
             {currentPane === "effects" && (
               <motion.span
@@ -133,7 +133,7 @@ function GlossaryDialog() {
                     className={`baseVertFlex gap-1 ${editing ? "min-w-[190px]" : "min-w-[150px]"}`}
                   >
                     <span className="mt-2 text-sm font-medium">
-                      Note effects
+                      Note Modifiers
                     </span>
 
                     <Separator className="mb-2 w-full bg-primary" />
@@ -392,7 +392,7 @@ function GlossaryDialog() {
 
                   <div className="baseVertFlex w-full gap-1">
                     <span className="mt-2 text-sm font-medium">
-                      Chord effects
+                      Chord Modifiers
                     </span>
                     <Separator className="mb-2 w-full bg-primary" />
 
@@ -469,7 +469,7 @@ function GlossaryDialog() {
 
                     <div className="baseVertFlex w-full gap-1">
                       <span className="mt-4 text-sm font-medium">
-                        Section effects
+                        Section Modifiers
                       </span>
                       <Separator className="mb-2 w-full bg-primary" />
                     </div>
@@ -504,7 +504,7 @@ function GlossaryDialog() {
                 <div className="baseVertFlex mt-2 w-full gap-2 xs:mt-0">
                   <Separator className="h-[1px] w-full bg-primary" />
                   <p className="text-sm">
-                    <span className="font-semibold">Bolded</span> effects are
+                    <span className="font-semibold">Bolded</span> modifiers are
                     accented.
                   </p>
                 </div>
@@ -523,7 +523,7 @@ function GlossaryDialog() {
                 <div className="baseVertFlex !items-start gap-0">
                   <div className="baseVertFlex gap-1">
                     <p className="text-sm font-medium">
-                      Supported note lengths
+                      Supported Note Lengths
                     </p>
                     <Separator className="mb-2 w-full bg-primary" />
                   </div>
@@ -531,9 +531,9 @@ function GlossaryDialog() {
                   <Table className="w-[300px] xs:w-full">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="px-0">Name</TableHead>
-                        <TableHead className="px-0">Duration</TableHead>
-                        <TableHead className="px-0">Notation</TableHead>
+                        <TableHead className="h-8 px-0">Name</TableHead>
+                        <TableHead className="h-8 px-0">Duration</TableHead>
+                        <TableHead className="h-8 px-0">Notation</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
