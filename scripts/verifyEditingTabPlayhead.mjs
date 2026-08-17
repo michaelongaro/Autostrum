@@ -159,14 +159,6 @@ assert.ok(
   `playhead visible before first play (opacity=${beforePlay.opacity})`,
 );
 
-const audioPlayButton = page
-  .locator("button:not([disabled])")
-  .filter({ has: page.locator("svg") })
-  .evaluateAll((buttons) => {
-    // Pick from the page after filtering in Node instead.
-    return buttons.length;
-  });
-
 const playClicked = await page.evaluate(async () => {
   const buttons = [...document.querySelectorAll("button")];
   const candidate = buttons.find((btn) => {
