@@ -13,6 +13,12 @@ import {
 /** Rows differ by ~column height + gap-y-4; anything above this is a wrap. */
 const ROW_Y_SNAP_THRESHOLD_PX = 40;
 
+/**
+ * Frame-to-frame X jumps larger than this snap instead of continuing a glide
+ * (section repeats / full-tab loops jump the playhead back to the start).
+ */
+const PLAYHEAD_X_SNAP_THRESHOLD_PX = 48;
+
 const MAX_FRAME_DELTA_MS = 100;
 
 /**
@@ -29,11 +35,15 @@ interface ChordLayoutPos {
   width: number;
 }
 
+function isPlayableMetadata(metadata: Metadata): boolean {
+  return metadata.type === "tab" || metadata.type === "strum";
+}
+
 function getChordDurationSeconds(
   metadata: Metadata,
   playbackSpeed: number,
 ): number {
-  if (metadata.type !== "tab" && metadata.type !== "strum") {
+  if (!isPlayableMetadata(metadata)) {
     return 0;
   }
 
@@ -103,21 +113,42 @@ function measureChordPosition(
   };
 }
 
-function findNextSameSubsectionIndex(
+/**
+ * Next same-subsection target for gliding. Skips zero-duration ornamentals
+ * (measure lines) so the playhead travels across their visual width during the
+ * preceding chord. Returns null on subsection repeats so the playhead holds at
+ * the end, then snaps to the start on the following segment.
+ */
+function findNextGlideTargetIndex(
   metadata: Metadata[],
   fromIndex: number,
   sectionIndex: number,
   subSectionIndex: number,
 ): number | null {
+  const fromMeta = metadata[fromIndex];
+  if (!fromMeta) return null;
+
   for (let index = fromIndex + 1; index < metadata.length; index++) {
     const entry = metadata[index];
     if (!entry) continue;
     if (
-      entry.location.sectionIndex === sectionIndex &&
-      entry.location.subSectionIndex === subSectionIndex
+      entry.location.sectionIndex !== sectionIndex ||
+      entry.location.subSectionIndex !== subSectionIndex
     ) {
-      return index;
+      continue;
     }
+
+    // Measure lines / spacers have no duration — never glide *to* them.
+    if (!isPlayableMetadata(entry)) {
+      continue;
+    }
+
+    // Same DOM columns replayed for a subsection repeat: snap, don't glide back.
+    if (entry.location.chordIndex <= fromMeta.location.chordIndex) {
+      return null;
+    }
+
+    return index;
   }
   return null;
 }
@@ -129,6 +160,7 @@ function parkPlayheadAtMetadataIndex({
   metadataIndex,
   sectionIndex,
   subSectionIndex,
+  pausedOffset,
 }: {
   container: HTMLElement;
   playhead: HTMLDivElement;
@@ -136,6 +168,7 @@ function parkPlayheadAtMetadataIndex({
   metadataIndex: number;
   sectionIndex: number;
   subSectionIndex: number;
+  pausedOffset: boolean;
 }) {
   const currMeta = metadata[metadataIndex];
   if (
@@ -143,7 +176,35 @@ function parkPlayheadAtMetadataIndex({
     currMeta.location.sectionIndex !== sectionIndex ||
     currMeta.location.subSectionIndex !== subSectionIndex
   ) {
-    playhead.style.opacity = "0";
+    // Keep a playhead visible in every tab subsection: park at the first
+    // playable column when playback is currently elsewhere.
+    const fallback = metadata.find(
+      (entry) =>
+        entry.location.sectionIndex === sectionIndex &&
+        entry.location.subSectionIndex === subSectionIndex &&
+        isPlayableMetadata(entry),
+    );
+    if (!fallback) {
+      playhead.style.opacity = "0";
+      return;
+    }
+
+    const fallbackPos = measureChordPosition(
+      container,
+      sectionIndex,
+      subSectionIndex,
+      fallback.location.chordIndex,
+    );
+    if (!fallbackPos) {
+      playhead.style.opacity = "0";
+      return;
+    }
+
+    playhead.style.opacity = "1";
+    const left = pausedOffset
+      ? fallbackPos.x - 1 - PAUSED_PLAYHEAD_LEFT_OF_CENTER_PX
+      : fallbackPos.x - 1;
+    playhead.style.transform = `translate3d(${left}px, ${fallbackPos.y}px, 0)`;
     return;
   }
 
@@ -159,18 +220,19 @@ function parkPlayheadAtMetadataIndex({
   }
 
   playhead.style.opacity = "1";
-  // Center the 2px line (`- 1`), then nudge left so notes aren't covered.
-  playhead.style.transform = `translate3d(${
-    pos.x - 1 - PAUSED_PLAYHEAD_LEFT_OF_CENTER_PX
-  }px, ${pos.y}px, 0)`;
+  // Center the 2px line (`- 1`), then nudge left when paused so notes aren't covered.
+  const left = pausedOffset
+    ? pos.x - 1 - PAUSED_PLAYHEAD_LEFT_OF_CENTER_PX
+    : pos.x - 1;
+  playhead.style.transform = `translate3d(${left}px, ${pos.y}px, 0)`;
 }
 
 /**
  * Imperatively animates the editing-tab playhead so TabSection itself does not
  * subscribe to currentChordIndex (avoids DndContext invalidation every tick).
  *
- * While paused, the playhead stays parked on the current chord (and follows
- * scrubbing via a paused-only currentChordIndex subscription).
+ * The playhead stays visible whenever playback metadata exists (playing or
+ * paused). Chord note highlighting is handled separately and only while playing.
  */
 export function useEditingTabPlayhead({
   sectionIndex,
@@ -200,9 +262,7 @@ export function useEditingTabPlayhead({
   // Capture the metadata index that playbackStartedAtAudioTime corresponds to.
   const anchorChordIndexRef = useRef(0);
   const anchorPlaybackStartedAtRef = useRef<number | null>(null);
-  // Once the user has started playback, keep the playhead visible across pause
-  // until metadata is cleared (empty tab / hard reset).
-  const hasEngagedPlaybackRef = useRef(false);
+  const lastPlayheadLeftPxRef = useRef<number | null>(null);
 
   useEffect(() => {
     const playhead = playheadRef.current;
@@ -210,10 +270,10 @@ export function useEditingTabPlayhead({
 
     const hide = () => {
       playhead.style.opacity = "0";
+      lastPlayheadLeftPxRef.current = null;
     };
 
     if (!hasPlaybackMetadata) {
-      hasEngagedPlaybackRef.current = false;
       hide();
       return;
     }
@@ -224,11 +284,6 @@ export function useEditingTabPlayhead({
     }
 
     if (!playing) {
-      if (!hasEngagedPlaybackRef.current) {
-        hide();
-        return;
-      }
-
       const state = getTabStore();
       const container = containerRef.current;
       if (!container || !state.currentlyPlayingMetadata) {
@@ -243,11 +298,10 @@ export function useEditingTabPlayhead({
         metadataIndex: pausedChordIndex ?? state.currentChordIndex,
         sectionIndex,
         subSectionIndex,
+        pausedOffset: true,
       });
       return;
     }
-
-    hasEngagedPlaybackRef.current = true;
 
     let rafId: number | null = null;
     let lastPerfMs = performance.now();
@@ -256,7 +310,11 @@ export function useEditingTabPlayhead({
 
     const applyPlayhead = (leftPx: number, topPx: number, visible: boolean) => {
       playhead.style.opacity = visible ? "1" : "0";
-      if (!visible) return;
+      if (!visible) {
+        lastPlayheadLeftPxRef.current = null;
+        return;
+      }
+      lastPlayheadLeftPxRef.current = leftPx;
       playhead.style.transform = `translate3d(${leftPx}px, ${topPx}px, 0)`;
     };
 
@@ -291,8 +349,7 @@ export function useEditingTabPlayhead({
           currentlyPlayingMetadata &&
           currentlyPlayingMetadata.length > 0 &&
           !audioMetadata.editingLoopRange &&
-          !state.showPlaybackModal &&
-          hasEngagedPlaybackRef.current
+          !state.showPlaybackModal
         ) {
           parkPlayheadAtMetadataIndex({
             container,
@@ -301,6 +358,7 @@ export function useEditingTabPlayhead({
             metadataIndex: currentChordIndex,
             sectionIndex,
             subSectionIndex,
+            pausedOffset: true,
           });
         } else {
           hide();
@@ -315,6 +373,7 @@ export function useEditingTabPlayhead({
         displayedElapsedMs = 0;
         audioHasStarted = audioContext.currentTime >= playbackStartedAtAudioTime;
         lastPerfMs = performance.now();
+        lastPlayheadLeftPxRef.current = null;
       }
 
       const metadata = currentlyPlayingMetadata;
@@ -356,32 +415,29 @@ export function useEditingTabPlayhead({
 
       if (!audioHasStarted) {
         // Park on the anchor chord until audio actually starts.
-        const anchorMeta = metadata[anchorIndex];
-        if (
-          anchorMeta &&
-          anchorMeta.location.sectionIndex === sectionIndex &&
-          anchorMeta.location.subSectionIndex === subSectionIndex
-        ) {
-          const pos = measureChordPosition(
-            container,
-            sectionIndex,
-            subSectionIndex,
-            anchorMeta.location.chordIndex,
-          );
-          if (pos) {
-            applyPlayhead(pos.x - 1, pos.y, true);
-          } else {
-            hide();
-          }
-        } else {
-          hide();
-        }
+        parkPlayheadAtMetadataIndex({
+          container,
+          playhead,
+          metadata,
+          metadataIndex: anchorIndex,
+          sectionIndex,
+          subSectionIndex,
+          pausedOffset: false,
+        });
         rafId = requestAnimationFrame(tick);
         return;
       }
 
       if (totalDurationSeconds <= 0) {
-        hide();
+        parkPlayheadAtMetadataIndex({
+          container,
+          playhead,
+          metadata,
+          metadataIndex: currentChordIndex,
+          sectionIndex,
+          subSectionIndex,
+          pausedOffset: false,
+        });
         rafId = requestAnimationFrame(tick);
         return;
       }
@@ -401,6 +457,20 @@ export function useEditingTabPlayhead({
           break;
         }
       }
+      // Zero-duration measure lines share a timestamp with the following chord —
+      // never treat the ornamental column as the active glide segment.
+      if (!isPlayableMetadata(metadata[segmentIndex]!)) {
+        let advanced = segmentIndex;
+        while (
+          advanced < metadata.length - 1 &&
+          !isPlayableMetadata(metadata[advanced]!)
+        ) {
+          advanced += 1;
+        }
+        if (isPlayableMetadata(metadata[advanced]!)) {
+          segmentIndex = advanced;
+        }
+      }
 
       const currMeta = metadata[segmentIndex];
       if (
@@ -408,7 +478,17 @@ export function useEditingTabPlayhead({
         currMeta.location.sectionIndex !== sectionIndex ||
         currMeta.location.subSectionIndex !== subSectionIndex
       ) {
-        hide();
+        // Playback is in another subsection — keep this section's playhead
+        // parked at its first playable column so it stays visible.
+        parkPlayheadAtMetadataIndex({
+          container,
+          playhead,
+          metadata,
+          metadataIndex: segmentIndex,
+          sectionIndex,
+          subSectionIndex,
+          pausedOffset: false,
+        });
         rafId = requestAnimationFrame(tick);
         return;
       }
@@ -420,7 +500,15 @@ export function useEditingTabPlayhead({
         currMeta.location.chordIndex,
       );
       if (!currPos) {
-        hide();
+        parkPlayheadAtMetadataIndex({
+          container,
+          playhead,
+          metadata,
+          metadataIndex: segmentIndex,
+          sectionIndex,
+          subSectionIndex,
+          pausedOffset: false,
+        });
         rafId = requestAnimationFrame(tick);
         return;
       }
@@ -433,7 +521,7 @@ export function useEditingTabPlayhead({
           ? Math.min(1, Math.max(0, (loopSeconds - segmentStart) / segmentDuration))
           : 0;
 
-      const nextIndex = findNextSameSubsectionIndex(
+      const nextIndex = findNextGlideTargetIndex(
         metadata,
         segmentIndex,
         sectionIndex,
@@ -452,19 +540,38 @@ export function useEditingTabPlayhead({
       let leftPx = currPos.x;
       const topPx = currPos.y;
 
-      if (nextPos && Math.abs(nextPos.y - currPos.y) <= ROW_Y_SNAP_THRESHOLD_PX) {
-        // Same wrapped row: glide from this column toward the next.
+      // Same-row glide only when the next target is forward in X. A leftward
+      // target means a wrapped repeat — hold at the end, then snap next segment.
+      const glidesForwardOnSameRow =
+        nextPos != null &&
+        Math.abs(nextPos.y - currPos.y) <= ROW_Y_SNAP_THRESHOLD_PX &&
+        nextPos.x > currPos.x;
+
+      if (glidesForwardOnSameRow && nextPos) {
+        // Same wrapped row: glide from this column toward the next (measure
+        // lines between them are included in the pixel distance).
         leftPx = currPos.x + (nextPos.x - currPos.x) * progress;
-      } else if (nextPos) {
+      } else if (nextPos && Math.abs(nextPos.y - currPos.y) > ROW_Y_SNAP_THRESHOLD_PX) {
         // Next chord is on a new row — finish this column, then snap Y on the
         // next segment (handled when segmentIndex advances).
         leftPx = currPos.x + (currPos.width / 2) * progress;
       } else {
-        // Last chord in this subsection: ease toward the right edge.
+        // Last chord before a repeat/section end, or wrap target: ease toward
+        // the right edge, then snap when the next segment starts at the left.
         leftPx = currPos.x + (currPos.width / 2) * progress;
       }
 
-      // Center the 2px line on leftPx.
+      // Center the 2px line on leftPx. Large X discontinuities snap by virtue
+      // of applying the new transform in one frame (no CSS transition).
+      const previousLeft = lastPlayheadLeftPxRef.current;
+      if (
+        previousLeft !== null &&
+        Math.abs(leftPx - 1 - previousLeft) >= PLAYHEAD_X_SNAP_THRESHOLD_PX
+      ) {
+        // Explicit snap path — clear any notion of continuing a prior glide.
+        lastPlayheadLeftPxRef.current = null;
+      }
+
       applyPlayhead(leftPx - 1, topPx, true);
       rafId = requestAnimationFrame(tick);
     };
@@ -473,8 +580,8 @@ export function useEditingTabPlayhead({
 
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
-      // Do not hide on cleanup while still engaged — the paused branch (or the
-      // next effect pass) will re-park. Hiding here caused a flash on pause.
+      // Do not hide on cleanup — the paused branch (or the next effect pass)
+      // will re-park so the playhead stays visible across pause/play toggles.
     };
   }, [
     playing,
