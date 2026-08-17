@@ -830,7 +830,7 @@ function MobileMenuDialog() {
                         <div className="baseFlex border-b-none rounded-md border-2">
                           <StrummingPattern
                             data={pattern}
-                            mode="viewing"
+                            mode="viewingWithHighlights"
                             index={index}
                             lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
                             setLastModifiedPalmMuteNode={

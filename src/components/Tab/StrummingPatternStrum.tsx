@@ -37,19 +37,18 @@ import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 
 const emptyChords: Chord[] = [];
 
-type StrummingPatternMode =
-  | "editingStrummingPattern"
-  | "editingChordSequence"
-  | "viewingWithChordNames"
-  | "viewing"
-  | "viewingInSelectDropdown";
-
 interface StrummingPatternStrumProps {
   strum: Strum;
   strumIndex: number;
   data: StrummingPatternType;
   chordSequence?: string[];
-  mode: StrummingPatternMode;
+  mode:
+    | "editingStrummingPattern"
+    | "editingChordSequence"
+    | "viewingWithChordNames"
+    | "viewing"
+    | "viewingWithHighlights"
+    | "viewingInSelectDropdown";
   patternIndex?: number;
   sectionIndex?: number;
   subSectionIndex?: number;
@@ -135,11 +134,12 @@ function StrummingPatternStrum({
     showingDeleteStrumsButtons ? state.previewMetadata.playing : false,
   );
 
-  const highlightColor = highlighted
-    ? "hsl(var(--primary))"
-    : mode === "editingStrummingPattern"
-      ? "hsl(var(--foreground))"
-      : "inherit";
+  const highlightColor =
+    highlighted && mode !== "viewing"
+      ? "hsl(var(--primary))"
+      : mode === "editingStrummingPattern"
+        ? "hsl(var(--foreground))"
+        : "inherit";
 
   return (
     <Element
@@ -256,6 +256,7 @@ function StrummingPatternStrum({
             <Input
               id={`input-strummingPatternModal-${strumIndex}-1`}
               type="text"
+              showFocusState={false}
               autoComplete="off"
               value={strum.strum}
               onKeyDown={(e) => onKeyDown(e, strumIndex)}
@@ -266,7 +267,7 @@ function StrummingPatternStrum({
                 }`,
                 color: highlightColor,
               }}
-              className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
+              className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm transition-none"
               onFocus={(e) => {
                 setIsFocused(true);
                 e.target.setSelectionRange(
@@ -281,7 +282,7 @@ function StrummingPatternStrum({
               style={{
                 color: highlightColor,
               }}
-              className={`baseVertFlex relative mb-2 h-[20px] text-lg ${mode === "viewingInSelectDropdown" ? "" : "transition-colors"}`}
+              className="baseVertFlex relative mb-2 h-[20px] text-lg"
             >
               {strum.strum.includes("v") && (
                 <BsArrowDown
@@ -339,6 +340,28 @@ function StrummingPatternStrum({
           ></div>
         </div>
 
+        <p
+          style={{
+            color: highlightColor,
+          }}
+          className={`text-sm ${mode === "editingStrummingPattern" ? "my-1" : ""}`}
+        >
+          {beatLabel}
+        </p>
+
+        <div className="h-4 w-full">
+          {renderNoteLengthGuide({
+            previousNoteLength: data.strums[strumIndex - 1]?.noteLength,
+            currentNoteLength: strum.noteLength,
+            nextNoteLength: data.strums[strumIndex + 1]?.noteLength,
+            previousIsRestStrum: data.strums[strumIndex - 1]?.strum === "r",
+            currentIsRestStrum: strum.strum === "r",
+            nextIsRestStrum: data.strums[strumIndex + 1]?.strum === "r",
+            isFirstInGroup: strumIndex === 0,
+            isLastInGroup: isLastStrum,
+          })}
+        </div>
+
         {mode === "editingStrummingPattern" && (
           <>
             {isHovered || settingsOpen ? (
@@ -350,7 +373,7 @@ function StrummingPatternStrum({
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
+                    className="mt-2 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
                   >
                     <Ellipsis className="h-3 w-4 rotate-90" />
                   </Button>
@@ -381,32 +404,10 @@ function StrummingPatternStrum({
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="h-2.5"></div>
+              <div className="mt-2 h-2.5"></div>
             )}
           </>
         )}
-
-        <p
-          style={{
-            color: highlightColor,
-          }}
-          className={`text-sm ${mode === "viewingInSelectDropdown" ? "" : "transition-colors"}`}
-        >
-          {beatLabel}
-        </p>
-
-        <div className="h-4 w-full">
-          {renderNoteLengthGuide({
-            previousNoteLength: data.strums[strumIndex - 1]?.noteLength,
-            currentNoteLength: strum.noteLength,
-            nextNoteLength: data.strums[strumIndex + 1]?.noteLength,
-            previousIsRestStrum: data.strums[strumIndex - 1]?.strum === "r",
-            currentIsRestStrum: strum.strum === "r",
-            nextIsRestStrum: data.strums[strumIndex + 1]?.strum === "r",
-            isFirstInGroup: strumIndex === 0,
-            isLastInGroup: isLastStrum,
-          })}
-        </div>
 
         {showingDeleteStrumsButtons && (
           <Button
