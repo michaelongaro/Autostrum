@@ -43,6 +43,14 @@ function TabNote({
     ? "hsl(var(--primary))"
     : "hsl(var(--foreground))";
 
+  // Empty string notes fill the row (easy click target). Filled notes shrink to
+  // the text so the flanking string segments claim the remaining width. In both
+  // cases TabNote is centered in the column, so a centered 29x24 hover border
+  // stays on the column midpoint without tying its box to the input width.
+  const stringNoteWidth = hasVisibleNote
+    ? `${Math.max(note.length, 1)}ch`
+    : "100%";
+
   return (
     <div
       className={cn(
@@ -55,8 +63,9 @@ function TabNote({
       onAnimationEnd={() => setChordPulse(null)}
     >
       <div
-        className={`pointer-events-none absolute isolate size-[29px] rounded-md group-hover:border ${isChordEffect ? "right-0" : `top-[0px] ${hasVisibleNote ? "right-0" : "right-[10px]"}`}`}
-      ></div>
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[24px] w-[29px] -translate-x-1/2 -translate-y-1/2 rounded-md group-hover:border"
+      />
       <Input
         id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}
         showFocusState={isChordEffect}
@@ -64,22 +73,19 @@ function TabNote({
           isChordEffect
             ? {
                 width: "29px",
-                height: "29px",
+                height: "24px",
                 color: noteColor,
               }
             : {
-                width: hasVisibleNote
-                  ? // ? `${Math.max(note.length, 1)}ch`
-                    "29px"
-                  : "100%",
-                height: "29px",
+                width: stringNoteWidth,
+                height: "24px",
                 color: noteColor,
               }
         }
         className={
           isChordEffect
-            ? "relative rounded-md p-0 text-center shadow-sm transition-none"
-            : "h-full rounded-none border-0 bg-transparent p-0 text-center font-normal tabular-nums leading-none shadow-none outline-none transition-none focus-visible:outline-none focus-visible:ring-0"
+            ? "relative z-[1] rounded-md p-0 text-center shadow-sm transition-none"
+            : "relative z-[1] h-full rounded-none border-0 bg-transparent p-0 text-center font-normal tabular-nums leading-none shadow-none outline-none transition-none focus-visible:outline-none focus-visible:ring-0"
         }
         onFocus={(e) => {
           // focuses end of the input (better ux when navigating with arrow keys)
