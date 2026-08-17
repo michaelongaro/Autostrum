@@ -155,8 +155,10 @@ async function measureFret(index) {
 }
 
 // Clear top fret so we can measure empty full-row behavior
-await page.locator("#input-chordModal-chordModal-0").fill("");
-await page.locator("#input-chordModal-chordModal-0").blur();
+await page.locator("#input-chordModal-chordModal-0").click();
+await page.locator("#input-chordModal-chordModal-0").press("Control+a");
+await page.locator("#input-chordModal-chordModal-0").press("Backspace");
+await page.waitForTimeout(50);
 
 const empty = await measureFret(0);
 const filled = await measureFret(3); // "2" from Em frets
@@ -207,7 +209,9 @@ assert.ok(
 
 // Chord letter hotkey still works
 await page.locator("#input-chordModal-chordModal-2").click();
-await page.locator("#input-chordModal-chordModal-2").fill("A");
+await page.locator("#input-chordModal-chordModal-2").press("Control+a");
+await page.locator("#input-chordModal-chordModal-2").press("Backspace");
+await page.locator("#input-chordModal-chordModal-2").type("A");
 await page.waitForTimeout(50);
 const afterHotkey = await page.evaluate(() =>
   [0, 1, 2, 3, 4, 5].map(
