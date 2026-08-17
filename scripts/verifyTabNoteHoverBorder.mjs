@@ -1,5 +1,5 @@
-// Verify TabNote hover border stays 29x29 and centered in the column
- // for both empty (full-width click target) and filled (minimal text width) states.
+// Verify TabNote hover border stays 29x24 and centered in the column
+// for both empty (full-width click target) and filled (minimal text width) states.
 //
 // Usage:
 //   1. npm run dev
@@ -96,7 +96,7 @@ async function measureColumn(columnIndex) {
     const evt = new MouseEvent("mouseover", { bubbles: true });
     hoverTarget.dispatchEvent(evt);
 
-    // The border is the absolute 29x29 sibling inside the TabNote group wrapper
+    // The border is the absolute 29x24 sibling inside the TabNote group wrapper
     const wrapper = input.parentElement;
     if (!wrapper) return { error: "no wrapper" };
     const border = [...wrapper.children].find((el) => {
@@ -104,7 +104,7 @@ async function measureColumn(columnIndex) {
       const style = getComputedStyle(el);
       return (
         style.position === "absolute" &&
-        (el.className.includes("size-[29px]") ||
+        (el.className.includes("w-[29px]") ||
           Math.round(el.getBoundingClientRect().width) === 29)
       );
     });
@@ -181,8 +181,8 @@ for (const [label, sample] of [
   assert.ok(!sample.error, `${label}: ${sample.error}`);
   assert.ok(
     Math.abs(sample.borderWidth - 29) <= 1 &&
-      Math.abs(sample.borderHeight - 29) <= 1,
-    `${label}: border is 29x29 (got ${sample.borderWidth}x${sample.borderHeight})`,
+      Math.abs(sample.borderHeight - 24) <= 1,
+    `${label}: border is 29x24 (got ${sample.borderWidth}x${sample.borderHeight})`,
   );
   assert.ok(
     sample.deltaX <= 2,
