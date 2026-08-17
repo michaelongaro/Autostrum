@@ -69,11 +69,19 @@ export function useColumnPlaybackHighlight(
       }
     }
 
+    // Chord notes only use primary highlighting while audio is actively
+    // playing. The trail / current logic above stays the same for playback;
+    // when paused or stopped, frets return to the default foreground color.
+    const isHighlighted =
+      state.audioMetadata.playing &&
+      !state.audioMetadata.editingLoopRange &&
+      (columnIsBeingPlayed || columnHasBeenPlayed);
+
     return {
       columnIsBeingPlayed,
       columnHasBeenPlayed,
       durationOfChord,
-      isHighlighted: columnIsBeingPlayed || columnHasBeenPlayed,
+      isHighlighted,
     };
   });
 }

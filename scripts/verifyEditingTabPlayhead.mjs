@@ -72,7 +72,8 @@ const draft = {
           id: uuid(),
           type: "tab",
           bpm: -1,
-          repetitions: 1,
+          // Two reps so we can assert the playhead snaps (not glides) on wrap.
+          repetitions: 2,
           baseNoteLength: "eighth",
           data: columns,
         },
@@ -118,6 +119,44 @@ await page.waitForFunction(
   },
   null,
   { timeout: 45000 },
+);
+
+function readPlayheadSample() {
+  return page.evaluate(() => {
+    const staffEl = document.querySelector(
+      ".baseFlex.relative.mt-4.w-full.flex-wrap",
+    );
+    if (!staffEl) return { error: "no staff" };
+    const head = [...staffEl.querySelectorAll("div")].find((el) => {
+      const style = getComputedStyle(el);
+      return (
+        el.classList.contains("bg-primary") &&
+        (el.className.includes("w-[2px]") || style.width === "2px") &&
+        style.position === "absolute"
+      );
+    });
+    if (!head) return { error: "no playhead element" };
+    const opacity = getComputedStyle(head).opacity;
+    const transform = getComputedStyle(head).transform;
+    const rect = head.getBoundingClientRect();
+    const staffRect = staffEl.getBoundingClientRect();
+    return {
+      opacity: Number(opacity),
+      transform,
+      x: rect.left - staffRect.left,
+      y: rect.top - staffRect.top,
+      height: rect.height,
+    };
+  });
+}
+
+// Playhead must be visible as soon as metadata exists (before first play).
+const beforePlay = await readPlayheadSample();
+console.log("before play:", beforePlay);
+assert.ok(!beforePlay.error, `before-play playhead ok: ${beforePlay.error}`);
+assert.ok(
+  beforePlay.opacity > 0.5,
+  `playhead visible before first play (opacity=${beforePlay.opacity})`,
 );
 
 const audioPlayButton = page
@@ -274,7 +313,7 @@ assert.ok(
   "at least one string note uses primary highlight while playing",
 );
 
-// --- Pause: playhead and highlights must remain ---
+// --- Pause: playhead stays; chord note highlights clear ---
 const paused = await page.evaluate(() => {
   const buttons = [...document.querySelectorAll("button")];
   const candidate = buttons.find((btn) => {
@@ -345,18 +384,6 @@ const pauseState = await page.evaluate(() => {
     );
   }).length;
 
-  const sampleHighlighted = [
-    ...document.querySelectorAll('input[id^="input-0-0-"]'),
-  ].find(
-    (el) =>
-      (el.getAttribute("style") || "").includes("primary") &&
-      Number(el.id.split("-")[4]) >= 1 &&
-      Number(el.id.split("-")[4]) <= 6,
-  );
-  const highlightTransition = sampleHighlighted
-    ? getComputedStyle(sampleHighlighted).transitionProperty
-    : null;
-
   return {
     playheadOpacity: Number(getComputedStyle(head).opacity),
     playheadTransform: getComputedStyle(head).transform,
@@ -364,7 +391,6 @@ const pauseState = await page.evaluate(() => {
     chordCenterX,
     leftOfCenterBy,
     highlightedViaInline,
-    highlightTransition,
   };
 });
 console.log("pause state:", pauseState);
@@ -373,9 +399,10 @@ assert.ok(
   pauseState.playheadOpacity > 0.5,
   `playhead stays visible on pause (opacity=${pauseState.playheadOpacity})`,
 );
-assert.ok(
-  pauseState.highlightedViaInline >= 1,
-  "highlighted chord notes stay visible on pause",
+assert.equal(
+  pauseState.highlightedViaInline,
+  0,
+  "no chord note highlighting while paused",
 );
 assert.ok(
   pauseState.leftOfCenterBy != null &&
@@ -383,16 +410,96 @@ assert.ok(
     pauseState.leftOfCenterBy <= 16,
   `paused playhead sits left of chord center (delta=${pauseState.leftOfCenterBy})`,
 );
-assert.ok(
-  pauseState.highlightTransition === "none" ||
-    pauseState.highlightTransition === "",
-  `highlight color has no transition (got "${pauseState.highlightTransition}")`,
-);
 
 await page.screenshot({
   path: path.join(ARTIFACT_DIR, "playhead-paused.png"),
   fullPage: false,
 });
+
+// --- Resume and sample densely for measure-line continuity + repeat snap ---
+const resumed = await page.evaluate(() => {
+  const buttons = [...document.querySelectorAll("button")];
+  const candidate = buttons.find((btn) => {
+    if (btn.disabled) return false;
+    const cls = btn.className || "";
+    const rect = btn.getBoundingClientRect();
+    return (
+      (cls.includes("bg-audio") || cls.includes("audio")) &&
+      rect.bottom > window.innerHeight - 160 &&
+      rect.width > 0
+    );
+  });
+  if (!candidate) return false;
+  candidate.click();
+  return true;
+});
+assert.ok(resumed, "resumed playback for continuity/snap checks");
+await page.waitForTimeout(400);
+
+const dense = [];
+for (let i = 0; i < 80; i++) {
+  dense.push(await readPlayheadSample());
+  await page.waitForTimeout(40);
+}
+
+const denseVisible = dense.filter((s) => s.opacity > 0.5 && !s.error);
+assert.ok(
+  denseVisible.length >= 40,
+  `dense playhead samples visible (got ${denseVisible.length})`,
+);
+
+// Measure-line continuity: on a single row, successive X should not jump by
+ // more than ~one column while moving forward (skipping the measure line).
+const forwardSteps = [];
+for (let i = 1; i < denseVisible.length; i++) {
+  const prev = denseVisible[i - 1];
+  const curr = denseVisible[i];
+  if (Math.abs(curr.y - prev.y) > 30) continue; // row wrap — separate concern
+  const dx = curr.x - prev.x;
+  if (dx > 0) forwardSteps.push(dx);
+}
+const maxForwardStep = forwardSteps.length ? Math.max(...forwardSteps) : 0;
+console.log("max forward step px:", maxForwardStep.toFixed(1));
+assert.ok(
+  maxForwardStep < 55,
+  `no playhead skip across measure lines (max forward step=${maxForwardStep.toFixed(1)}px)`,
+);
+
+// Repeat snap: a large backward X jump on the same row should happen in one
+ // sample (snap), not as a multi-step glide back to the start.
+const backwardRuns = [];
+let run = 0;
+for (let i = 1; i < denseVisible.length; i++) {
+  const prev = denseVisible[i - 1];
+  const curr = denseVisible[i];
+  if (Math.abs(curr.y - prev.y) > 30) {
+    run = 0;
+    continue;
+  }
+  const dx = curr.x - prev.x;
+  if (dx < -48) {
+    backwardRuns.push({ dx, runBefore: run });
+    run = 0;
+  } else if (dx < -2) {
+    run += 1;
+  } else {
+    run = 0;
+  }
+}
+console.log("backward snaps:", backwardRuns);
+if (backwardRuns.length > 0) {
+  for (const snap of backwardRuns) {
+    assert.ok(
+      snap.runBefore === 0,
+      `repeat wrap snaps in one frame (gradual steps before snap=${snap.runBefore})`,
+    );
+  }
+  console.log(`  PASS  ${backwardRuns.length} repeat wrap snap(s) observed`);
+} else {
+  console.log(
+    "  INFO  no subsection-repeat wrap observed in this window; snap rule still covered by unit glide logic",
+  );
+}
 
 assert.equal(pageErrors.length, 0, `no page errors: ${pageErrors.join("; ")}`);
 
