@@ -13,12 +13,6 @@ import {
 /** Rows differ by ~column height + gap-y-4; anything above this is a wrap. */
 const ROW_Y_SNAP_THRESHOLD_PX = 40;
 
-/**
- * Frame-to-frame X jumps larger than this snap instead of continuing a glide
- * (section repeats / full-tab loops jump the playhead back to the start).
- */
-const PLAYHEAD_X_SNAP_THRESHOLD_PX = 48;
-
 const MAX_FRAME_DELTA_MS = 100;
 
 /**
@@ -561,17 +555,9 @@ export function useEditingTabPlayhead({
         leftPx = currPos.x + (currPos.width / 2) * progress;
       }
 
-      // Center the 2px line on leftPx. Large X discontinuities snap by virtue
-      // of applying the new transform in one frame (no CSS transition).
-      const previousLeft = lastPlayheadLeftPxRef.current;
-      if (
-        previousLeft !== null &&
-        Math.abs(leftPx - 1 - previousLeft) >= PLAYHEAD_X_SNAP_THRESHOLD_PX
-      ) {
-        // Explicit snap path — clear any notion of continuing a prior glide.
-        lastPlayheadLeftPxRef.current = null;
-      }
-
+      // Center the 2px line on leftPx. Large X discontinuities (repeat wraps)
+      // snap in a single frame because we never lerp toward a leftward target
+      // and there is no CSS transition on the playhead transform.
       applyPlayhead(leftPx - 1, topPx, true);
       rafId = requestAnimationFrame(tick);
     };
