@@ -186,7 +186,12 @@ function Chord({ chordBeingEdited, highlightChord }: Chord) {
   }
 
   return (
-    <div className="baseFlex !items-start">
+    <div
+      style={{
+        zoom: 1.25,
+      }}
+      className="baseFlex !items-start"
+    >
       <div className="pr-2">
         <PrettyVerticalTuning
           tuning={tuning}
