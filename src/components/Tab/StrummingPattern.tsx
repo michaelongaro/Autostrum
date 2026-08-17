@@ -43,6 +43,7 @@ interface StrummingPattern {
     | "editingChordSequence"
     | "viewingWithChordNames"
     | "viewing"
+    | "viewingWithHighlights"
     | "viewingInSelectDropdown";
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
 
