@@ -50,7 +50,7 @@ function PlaybackTabMeasureLine({
                 {columnData[7] && columnData[7] !== "-1" && (
                   <div
                     className={`baseFlex absolute gap-[2px] text-foreground ${
-                      note === "-" ? "-top-1" : "top-3"
+                      note === "-" ? "-top-1" : "top-6"
                     }`}
                   >
                     <QuarterNote />
@@ -75,7 +75,7 @@ function PlaybackTabMeasureLine({
 
             {index > 0 && index < 7 && (
               <div className="baseFlex w-full">
-                <div className="h-[21px] w-[1px] bg-foreground mobilePortrait:h-[25px]"></div>
+                <div className="h-[18px] w-[1px] bg-foreground/50 mobilePortrait:h-[21px]"></div>
               </div>
             )}
           </Fragment>

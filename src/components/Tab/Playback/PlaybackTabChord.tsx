@@ -76,7 +76,7 @@ function PlaybackTabChord({
           {/* show new current bpm */}
           {showBpm && (
             <div
-              className={`baseFlex absolute left-[4px] gap-[2px] text-xs text-foreground ${columnData[0] === "start" ? "top-[-20px]" : "top-[4px]"}`}
+              className={`baseFlex absolute left-[4px] gap-[2px] text-xs text-foreground ${columnData[0] === "start" ? "top-[-20px]" : "top-[14px]"}`}
             >
               <QuarterNote />
               <span>{columnData[9]}</span>
@@ -94,12 +94,11 @@ function PlaybackTabChord({
               {index === 1 && (
                 <div
                   key={isFirstChordInTab ? "firstRounded" : "regular"}
-                  style={{
-                    borderLeft: isFirstChordInTab ? "1px solid" : "none",
-                    borderRadius: isFirstChordInTab ? "10px 0 0 10px" : "none",
-                  }}
-                  className="baseVertFlex headerModalGradient relative w-[34px] !border-foreground/50"
+                  className="baseVertFlex relative w-[34px]"
                 >
+                  {isFirstChordInTab && (
+                    <div className="absolute left-0 top-[11px] h-[104px] w-[1px] bg-foreground/50 mobilePortrait:top-3 mobilePortrait:h-[126px]"></div>
+                  )}
                   {columnData.slice(1, 7).map((stringNote, stringOffset) => {
                     const stringIndex = stringOffset + 1;
                     return (

@@ -15,6 +15,12 @@ const ROW_Y_SNAP_THRESHOLD_PX = 40;
 
 const MAX_FRAME_DELTA_MS = 100;
 
+/**
+ * When paused, park the 2px playhead this far left of the chord center so the
+ * fret digits stay readable under / beside the line.
+ */
+const PAUSED_PLAYHEAD_LEFT_OF_CENTER_PX = 10;
+
 interface ChordLayoutPos {
   /** Horizontal center of the column, relative to the staff container. */
   x: number;
@@ -116,9 +122,55 @@ function findNextSameSubsectionIndex(
   return null;
 }
 
+function parkPlayheadAtMetadataIndex({
+  container,
+  playhead,
+  metadata,
+  metadataIndex,
+  sectionIndex,
+  subSectionIndex,
+}: {
+  container: HTMLElement;
+  playhead: HTMLDivElement;
+  metadata: Metadata[];
+  metadataIndex: number;
+  sectionIndex: number;
+  subSectionIndex: number;
+}) {
+  const currMeta = metadata[metadataIndex];
+  if (
+    !currMeta ||
+    currMeta.location.sectionIndex !== sectionIndex ||
+    currMeta.location.subSectionIndex !== subSectionIndex
+  ) {
+    playhead.style.opacity = "0";
+    return;
+  }
+
+  const pos = measureChordPosition(
+    container,
+    sectionIndex,
+    subSectionIndex,
+    currMeta.location.chordIndex,
+  );
+  if (!pos) {
+    playhead.style.opacity = "0";
+    return;
+  }
+
+  playhead.style.opacity = "1";
+  // Center the 2px line (`- 1`), then nudge left so notes aren't covered.
+  playhead.style.transform = `translate3d(${
+    pos.x - 1 - PAUSED_PLAYHEAD_LEFT_OF_CENTER_PX
+  }px, ${pos.y}px, 0)`;
+}
+
 /**
  * Imperatively animates the editing-tab playhead so TabSection itself does not
  * subscribe to currentChordIndex (avoids DndContext invalidation every tick).
+ *
+ * While paused, the playhead stays parked on the current chord (and follows
+ * scrubbing via a paused-only currentChordIndex subscription).
  */
 export function useEditingTabPlayhead({
   sectionIndex,
@@ -136,10 +188,21 @@ export function useEditingTabPlayhead({
   const editingLoopRange = useTabStore(
     (state) => state.audioMetadata.editingLoopRange,
   );
+  // Stable `null` while playing so TabSection does not re-render every tick.
+  // While paused, tracks scrubbing / pause position for parking.
+  const pausedChordIndex = useTabStore((state) =>
+    state.audioMetadata.playing ? null : state.currentChordIndex,
+  );
+  const hasPlaybackMetadata = useTabStore(
+    (state) => state.currentlyPlayingMetadata != null,
+  );
 
   // Capture the metadata index that playbackStartedAtAudioTime corresponds to.
   const anchorChordIndexRef = useRef(0);
   const anchorPlaybackStartedAtRef = useRef<number | null>(null);
+  // Once the user has started playback, keep the playhead visible across pause
+  // until metadata is cleared (empty tab / hard reset).
+  const hasEngagedPlaybackRef = useRef(false);
 
   useEffect(() => {
     const playhead = playheadRef.current;
@@ -149,10 +212,42 @@ export function useEditingTabPlayhead({
       playhead.style.opacity = "0";
     };
 
-    if (!playing || showPlaybackModal || editingLoopRange) {
+    if (!hasPlaybackMetadata) {
+      hasEngagedPlaybackRef.current = false;
       hide();
       return;
     }
+
+    if (showPlaybackModal || editingLoopRange) {
+      hide();
+      return;
+    }
+
+    if (!playing) {
+      if (!hasEngagedPlaybackRef.current) {
+        hide();
+        return;
+      }
+
+      const state = getTabStore();
+      const container = containerRef.current;
+      if (!container || !state.currentlyPlayingMetadata) {
+        hide();
+        return;
+      }
+
+      parkPlayheadAtMetadataIndex({
+        container,
+        playhead,
+        metadata: state.currentlyPlayingMetadata,
+        metadataIndex: pausedChordIndex ?? state.currentChordIndex,
+        sectionIndex,
+        subSectionIndex,
+      });
+      return;
+    }
+
+    hasEngagedPlaybackRef.current = true;
 
     let rafId: number | null = null;
     let lastPerfMs = performance.now();
@@ -189,7 +284,27 @@ export function useEditingTabPlayhead({
         audioMetadata.editingLoopRange ||
         state.showPlaybackModal
       ) {
-        hide();
+        // Playback just paused mid-tick: park instead of hiding so the
+        // playhead does not flash away before the paused effect runs.
+        if (
+          container &&
+          currentlyPlayingMetadata &&
+          currentlyPlayingMetadata.length > 0 &&
+          !audioMetadata.editingLoopRange &&
+          !state.showPlaybackModal &&
+          hasEngagedPlaybackRef.current
+        ) {
+          parkPlayheadAtMetadataIndex({
+            container,
+            playhead,
+            metadata: currentlyPlayingMetadata,
+            metadataIndex: currentChordIndex,
+            sectionIndex,
+            subSectionIndex,
+          });
+        } else {
+          hide();
+        }
         return;
       }
 
@@ -358,10 +473,13 @@ export function useEditingTabPlayhead({
 
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
-      hide();
+      // Do not hide on cleanup while still engaged — the paused branch (or the
+      // next effect pass) will re-park. Hiding here caused a flash on pause.
     };
   }, [
     playing,
+    pausedChordIndex,
+    hasPlaybackMetadata,
     showPlaybackModal,
     editingLoopRange,
     sectionIndex,

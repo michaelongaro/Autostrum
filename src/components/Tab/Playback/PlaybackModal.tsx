@@ -684,7 +684,7 @@ function PlaybackModal() {
                           playhead stays attached to the strip. */}
                           <div
                             ref={playbackPlayheadRef}
-                            className="z-0 ml-1 h-[126px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[150px]"
+                            className="z-0 ml-1 h-[105px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[125px]"
                           ></div>
                           <div className="h-[126px] w-full mobilePortrait:h-[150px]"></div>
                         </div>
