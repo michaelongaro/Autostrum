@@ -81,15 +81,15 @@ await page.addInitScript((data) => {
 
 await page.goto(`${BASE}/create`, { waitUntil: "networkidle" });
 
-// Open the Chords accordion if needed, then open the existing chord editor
-const chordsTrigger = page.getByRole("button", { name: /chords/i }).first();
-if (await chordsTrigger.count()) {
-  await chordsTrigger.click();
-}
-
-const chordButton = page.getByRole("button", { name: /^Em$/i }).first();
-await chordButton.waitFor({ timeout: 20000 });
-await chordButton.click();
+// Open the Chords accordion, then edit the seeded Em chord
+await page.getByText("Chords", { exact: true }).click();
+const editChordButton = page
+  .locator(".baseVertFlex.overflow-hidden.rounded-md.border-2")
+  .filter({ hasText: "Em" })
+  .getByRole("button")
+  .first();
+await editChordButton.waitFor({ timeout: 20000 });
+await editChordButton.click();
 
 await page.locator("#input-chordModal-chordModal-0").waitFor({ timeout: 10000 });
 
