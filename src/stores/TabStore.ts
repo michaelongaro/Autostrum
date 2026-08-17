@@ -1646,6 +1646,16 @@ export const getTabStore = () => useTabStoreBase.getState();
 
 export const subscribeTabStore = useTabStoreBase.subscribe;
 
+// Playwright verify scripts (`scripts/verify*.mjs`) read compiled metadata
+// without mounting React selectors. Dev/test only surface — not used by UI.
+if (typeof window !== "undefined") {
+  (
+    window as unknown as {
+      __AUTOSTRUM_GET_TAB_STORE__?: typeof getTabStore;
+    }
+  ).__AUTOSTRUM_GET_TAB_STORE__ = getTabStore;
+}
+
 export const stringifyFullTabState = () => {
   const store = useTabStoreBase.getState();
 
