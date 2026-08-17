@@ -210,8 +210,11 @@ await page.evaluate(() => {
 });
 
 const afterOmit = await waitForCompile(
-  (s) => s.progressionCount === 1 && s.sectionCount === 2,
-  "intentional omission preserved",
+  (s) =>
+    s.progressionCount === 1 &&
+    s.sectionCount === 2 &&
+    s.fullTabMetadataLength === lengthAfterFirst,
+  "intentional omission preserved and metadata shrinks",
   10000,
 );
 
@@ -220,6 +223,11 @@ assert.equal(
   afterOmit.progressionCount,
   1,
   "user-removed progression entry must not be re-appended",
+);
+assert.equal(
+  afterOmit.fullTabMetadataLength,
+  lengthAfterFirst,
+  `metadata should shrink back to first-section length (got ${afterOmit.fullTabMetadataLength}, expected ${lengthAfterFirst})`,
 );
 
 console.log("\nALL AUTOCOMPILE NEW-SECTION CHECKS PASSED");
