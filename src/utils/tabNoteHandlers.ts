@@ -155,7 +155,6 @@ export interface TabNoteHandlerParams {
       type: "copy" | "paste";
     } | null,
   ) => void;
-  setIsFocused: (focused: boolean) => void;
 }
 
 export function handleTabNoteKeyDown(
@@ -495,13 +494,8 @@ export function handleTabNoteChange(
     setTabData: (updater: (draft: Section[]) => void) => void;
   },
 ) {
-  const {
-    noteIndex,
-    sectionIndex,
-    subSectionIndex,
-    columnIndex,
-    setTabData,
-  } = params;
+  const { noteIndex, sectionIndex, subSectionIndex, columnIndex, setTabData } =
+    params;
 
   const maybeSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
   if (!maybeSubSection || maybeSubSection.type !== "tab") return;

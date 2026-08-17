@@ -69,7 +69,12 @@ export function useColumnPlaybackHighlight(
       }
     }
 
-    return { columnIsBeingPlayed, columnHasBeenPlayed, durationOfChord };
+    return {
+      columnIsBeingPlayed,
+      columnHasBeenPlayed,
+      durationOfChord,
+      isHighlighted: columnIsBeingPlayed || columnHasBeenPlayed,
+    };
   });
 }
 

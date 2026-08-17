@@ -16,6 +16,7 @@ import {
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
+import { PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX } from "./playbackTabGeometry";
 import {
   isTabNote,
   isTabMeasureLine,
@@ -140,7 +141,7 @@ function expandFullTab({
   ) => {
     if (curr.type === "tab") {
       if (curr.data.chordData.includes("|")) {
-        return 2;
+        return PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX;
       }
       if (curr.data.chordData[0] === "-1") {
         return 16;

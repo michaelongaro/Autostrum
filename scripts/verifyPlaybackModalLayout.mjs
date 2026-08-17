@@ -14,7 +14,7 @@ function getChordWidth(chord) {
     (chord?.type === "tab" && chord?.data.chordData[0] === "-1") ||
     (chord?.type === "strum" && chord?.data.strumIndex === -1);
 
-  if (isMeasureLine) return 2;
+  if (isMeasureLine) return 1;
   if (isSpacerChord) return 16;
   if (chord?.type === "tab" || chord?.type === "loopDelaySpacer") return 34;
   return 40;

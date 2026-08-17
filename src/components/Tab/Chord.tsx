@@ -1,23 +1,81 @@
-import { useState } from "react";
 import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { Input } from "~/components/ui/input";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
+import { cn } from "~/utils/cn";
+import {
+  EDITING_TAB_COLUMN_WIDTH_PX,
+  EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_INSET_PX,
+  EDITING_TAB_STRING_ROW_HEIGHT_PX,
+} from "~/utils/editingTabGeometry";
 
 interface Chord {
   chordBeingEdited: { index: number; value: ChordType };
   highlightChord: boolean;
 }
 
-function Chord({ chordBeingEdited, highlightChord }: Chord) {
-  const [isFocused, setIsFocused] = useState([
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]);
+function ChordNoteInput({
+  fret,
+  index,
+  highlightChord,
+  onKeyDown,
+  onChange,
+}: {
+  fret: string;
+  index: number;
+  highlightChord: boolean;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, index: number) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+}) {
+  const hasVisibleNote = fret.length > 0;
+  const noteColor = highlightChord
+    ? "hsl(var(--primary))"
+    : "hsl(var(--foreground))";
 
+  // Match TabNote: empty notes fill the row (easy click target); filled notes
+  // shrink to the text so flanking string segments claim the remaining width.
+  // Hover border stays a centered 29x24 box independent of input width.
+  const noteWidth = hasVisibleNote ? `${Math.max(fret.length, 1)}ch` : "100%";
+
+  return (
+    <div
+      className={cn(
+        hasVisibleNote && "relative z-[1] shrink-0",
+        !hasVisibleNote && "absolute inset-0 z-[1]",
+        "group",
+      )}
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[24px] w-[29px] -translate-x-1/2 -translate-y-1/2 rounded-md group-hover:border"
+      />
+      <Input
+        id={`input-chordModal-chordModal-${index}`}
+        showFocusState={false}
+        type="text"
+        autoComplete="off"
+        value={fret}
+        onKeyDown={(e) => onKeyDown(e, index)}
+        onChange={(e) => onChange(e, index)}
+        style={{
+          width: noteWidth,
+          height: "24px",
+          color: noteColor,
+        }}
+        className="relative z-[1] h-full rounded-none border-0 bg-transparent p-0 text-center font-normal tabular-nums leading-none shadow-none outline-none transition-none focus-visible:outline-none focus-visible:ring-0"
+        onFocus={(e) => {
+          // focuses end of the input (better ux when navigating with arrow keys)
+          e.target.setSelectionRange(
+            e.target.value.length,
+            e.target.value.length,
+          );
+        }}
+      />
+    </div>
+  );
+}
+
+function Chord({ chordBeingEdited, highlightChord }: Chord) {
   const { tuning, setChordBeingEdited } = useTabStore((state) => ({
     tuning: state.tuning,
     setChordBeingEdited: state.setChordBeingEdited,
@@ -128,69 +186,65 @@ function Chord({ chordBeingEdited, highlightChord }: Chord) {
   }
 
   return (
-    <div className="baseFlex">
-      <div className="baseVertFlex relative h-[280px] rounded-l-2xl border-2 border-foreground bg-secondary/50 p-2">
-        <PrettyVerticalTuning tuning={tuning} height={"250px"} />
+    <div
+      style={{
+        zoom: 1.25,
+      }}
+      className="baseFlex !items-start"
+    >
+      <div className="pr-2">
+        <PrettyVerticalTuning
+          tuning={tuning}
+          height={`${EDITING_TAB_STAFF_LINE_HEIGHT_PX}px`}
+        />
       </div>
 
-      <div className="baseVertFlex gap-2 bg-secondary/50">
+      <div
+        className="shrink-0 bg-foreground/50"
+        style={{
+          width: 1,
+          height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+          marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
+        }}
+      />
+
+      <div
+        className="baseVertFlex"
+        style={{ width: EDITING_TAB_COLUMN_WIDTH_PX }}
+      >
         {chordBeingEdited.value.frets.map((fret, index) => (
           <div
             key={index}
             style={{
-              borderTop: `${index === 0 ? "2px solid" : "none"}`,
-              paddingTop: `${index === 0 ? "7px" : "0"}`,
-              borderBottom: `${index === 5 ? "2px solid" : "none"}`,
-              paddingBottom: `${index === 5 ? "7px" : "0"}`,
+              height: EDITING_TAB_STRING_ROW_HEIGHT_PX,
+              minHeight: EDITING_TAB_STRING_ROW_HEIGHT_PX,
+              width: EDITING_TAB_COLUMN_WIDTH_PX,
             }}
-            className="baseFlex w-full"
+            className="baseFlex relative"
           >
-            <div className="h-[1px] w-4 flex-[1] bg-foreground/50"></div>
+            <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
 
-            <>
-              <Input
-                id={`input-chordModal-chordModal-${index}`}
-                type="text"
-                autoComplete="off"
-                value={fret}
-                onKeyDown={(e) => handleKeyDown(e, index)}
-                onChange={(e) => handleChange(e, index)}
-                style={{
-                  borderWidth: `${
-                    fret.length > 0 && !isFocused[index] ? "2px" : "1px"
-                  }`,
-                  color: highlightChord
-                    ? "hsl(var(--primary))"
-                    : "hsl(var(--foreground))",
-                }}
-                className="h-[37px] w-[37px] rounded-full p-0 text-center shadow-sm"
-                onFocus={(e) => {
-                  setIsFocused((prev) => {
-                    prev[index] = true;
-                    return [...prev];
-                  });
+            <ChordNoteInput
+              fret={fret}
+              index={index}
+              highlightChord={highlightChord}
+              onKeyDown={handleKeyDown}
+              onChange={handleChange}
+            />
 
-                  // focuses end of the input (better ux when navigating with arrow keys)
-                  e.target.setSelectionRange(
-                    e.target.value.length,
-                    e.target.value.length,
-                  );
-                }}
-                onBlur={() => {
-                  setIsFocused((prev) => {
-                    prev[index] = false;
-                    return [...prev];
-                  });
-                }}
-              />
-            </>
-
-            <div className="h-[1px] w-4 flex-[1] bg-foreground/50"></div>
+            <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
           </div>
         ))}
       </div>
 
-      <div className="h-[280px] shrink-0 rounded-r-2xl border-2 border-foreground bg-secondary/50 p-2"></div>
+      <div
+        className="shrink-0 bg-foreground/50"
+        style={{
+          width: 1,
+          height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+          marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
+        }}
+      />
     </div>
   );
 }
