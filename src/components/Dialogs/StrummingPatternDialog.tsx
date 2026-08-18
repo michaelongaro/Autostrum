@@ -267,7 +267,7 @@ function StrummingPatternDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90vh] w-auto min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[800px] md:w-auto">
+      <DialogContent className="baseVertFlex sm:max-h-auto h-dvh w-full min-w-[370px] max-w-[100vw] !justify-between gap-4 overflow-y-auto border-0 p-4 text-foreground transition-all sm:max-h-[600px] sm:w-auto sm:max-w-[800px] sm:overflow-y-hidden sm:rounded-lg sm:border sm:shadow-sm">
         {strummingPattern && (
           <>
             <Button
@@ -280,11 +280,13 @@ function StrummingPatternDialog() {
               <X className="size-5" />
             </Button>
 
-            <div className="baseFlex mt-2 w-full !items-start !justify-between md:mt-0 md:!flex-col md:gap-8">
+            <div className="baseFlex relative mt-10 w-full !items-start !justify-between sm:gap-8 md:mt-0 md:!flex-col">
               <div className="baseFlex w-full !items-start !justify-between">
                 <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start lg:gap-4">
-                  <div className="baseFlex gap-2">
-                    <Label htmlFor="noteLength">Note length</Label>
+                  <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center">
+                    <Label htmlFor="noteLength" className="whitespace-nowrap">
+                      Note length
+                    </Label>
                     <Select
                       onValueChange={handleBaseNoteLengthChange}
                       value={strummingPattern.value.baseNoteLength}
@@ -433,7 +435,7 @@ function StrummingPatternDialog() {
                 </div>
               </div>
 
-              <div className="baseVertFlex mt-[22px] gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
+              <div className="baseVertFlex gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
                 <div className="baseFlex w-auto gap-2 font-semibold">
                   <BsKeyboard className="h-6 w-6" />
                   Hotkeys
@@ -479,7 +481,7 @@ function StrummingPatternDialog() {
               </div>
             </div>
 
-            <div className="baseVertFlex max-h-[35vh] !items-start !justify-start">
+            <div className="baseVertFlex !items-start !justify-start sm:max-h-[15vh] md:max-h-[25vh]">
               <OverlayScrollbarsComponent
                 options={{
                   scrollbars: { autoHide: "leave", autoHideDelay: 150 },
