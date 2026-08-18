@@ -806,6 +806,17 @@ function RenderChordByType({
         : undefined
     : undefined;
 
+  // #region agent log
+  {
+    const prevSlot = prevChord?.type === "tab" ? prevChord.data.chordData[8] : undefined;
+    const curSlot = chord?.type === "tab" ? chord.data.chordData[8] : undefined;
+    const nextSlot = nextChord?.type === "tab" ? nextChord.data.chordData[8] : undefined;
+    if (prevSlot === "measureLine" || curSlot === "measureLine" || nextSlot === "measureLine" || prevChordNoteLength === "measureLine" || currentChordNoteLength === "measureLine" || nextChordNoteLength === "measureLine") {
+      fetch("/api/debug-log",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({location:"PlaybackModal.tsx:RenderChordByType",message:"measureLine present in chordData[8] or resolved note lengths",data:{type,chordIndex,prevSlot,curSlot,nextSlot,prevChordNoteLength,currentChordNoteLength,nextChordNoteLength,prevType:prevChord?.type,chordType:chord?.type,nextType:nextChord?.type,isFirstChord:chord&&"isFirstChord"in chord?chord.isFirstChord:undefined,isLastChord:chord&&"isLastChord"in chord?chord.isLastChord:undefined},timestamp:Date.now(),hypothesisId:"A,E"})}).catch(()=>{});
+    }
+  }
+  // #endregion
+
   const prevChordIsRest =
     prevChord === undefined ||
     (prevChord.type === "tab" && prevChord.data.chordData[7] === "r") ||
