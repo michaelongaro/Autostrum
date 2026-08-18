@@ -267,7 +267,7 @@ function StrummingPatternDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90vh] min-w-[370px] w-auto max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[800px] md:w-auto">
+      <DialogContent className="baseVertFlex max-h-[90vh] w-auto min-w-[370px] max-w-[90vw] !justify-start gap-4 rounded-lg border p-4 text-foreground shadow-sm transition-all sm:max-w-[800px] md:w-auto">
         {strummingPattern && (
           <>
             <Button
@@ -282,48 +282,50 @@ function StrummingPatternDialog() {
 
             <div className="baseFlex mt-2 w-full !items-start !justify-between md:mt-0 md:!flex-col md:gap-8">
               <div className="baseFlex w-full !items-start !justify-between">
-                <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start">
-                  <Label htmlFor="noteLength">Note length</Label>
-                  <Select
-                    onValueChange={handleBaseNoteLengthChange}
-                    value={strummingPattern.value.baseNoteLength}
-                  >
-                    <SelectTrigger id="noteLength" className="w-[150px]">
-                      <SelectValue placeholder="Select a length" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="whole">
-                        <div className="baseFlex gap-2">
-                          <WholeNote />
-                          Whole
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="half">
-                        <div className="baseFlex gap-2">
-                          <HalfNote />
-                          Half
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="quarter">
-                        <div className="baseFlex gap-2">
-                          <QuarterNote />
-                          Quarter
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="eighth">
-                        <div className="baseFlex gap-2">
-                          <EighthNote />
-                          Eighth
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="sixteenth">
-                        <div className="baseFlex gap-2">
-                          <SixteenthNote />
-                          Sixteenth
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start lg:gap-4">
+                  <div className="baseFlex gap-2">
+                    <Label htmlFor="noteLength">Note length</Label>
+                    <Select
+                      onValueChange={handleBaseNoteLengthChange}
+                      value={strummingPattern.value.baseNoteLength}
+                    >
+                      <SelectTrigger id="noteLength" className="w-[150px]">
+                        <SelectValue placeholder="Select a length" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="whole">
+                          <div className="baseFlex gap-2">
+                            <WholeNote />
+                            Whole
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="half">
+                          <div className="baseFlex gap-2">
+                            <HalfNote />
+                            Half
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="quarter">
+                          <div className="baseFlex gap-2">
+                            <QuarterNote />
+                            Quarter
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="eighth">
+                          <div className="baseFlex gap-2">
+                            <EighthNote />
+                            Eighth
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="sixteenth">
+                          <div className="baseFlex gap-2">
+                            <SixteenthNote />
+                            Sixteenth
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   <div className="baseFlex">
                     <Button
@@ -512,8 +514,7 @@ function StrummingPatternDialog() {
                 onClick={() => {
                   if (
                     previewMetadata.playing &&
-                    strummingPattern.index ===
-                      previewMetadata.indexOfPattern &&
+                    strummingPattern.index === previewMetadata.indexOfPattern &&
                     previewMetadata.type === "strummingPattern"
                   ) {
                     setArtificalPlayButtonTimeout(true);
