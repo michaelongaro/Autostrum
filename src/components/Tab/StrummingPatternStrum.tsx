@@ -245,7 +245,10 @@ function StrummingPatternStrum({
           </>
         )}
 
-        <div className="baseFlex mb-1 mt-2">
+        <div
+          data-strum-playhead-span-start=""
+          className="baseFlex mb-1 mt-2"
+        >
           <div
             style={{
               width: mode === "editingChordSequence" ? "1.25rem" : "0.25rem",
@@ -341,6 +344,7 @@ function StrummingPatternStrum({
         </div>
 
         <p
+          data-strum-playhead-span-end=""
           style={{
             color: highlightColor,
           }}
