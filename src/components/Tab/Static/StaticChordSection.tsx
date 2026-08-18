@@ -54,7 +54,7 @@ function StaticChordSection({
                         "hsl(var(--screenshot-secondary) / 0.15)",
                       color: "hsl(var(--screenshot-foreground))",
                     }}
-                    className="baseFlex ml-4 gap-3 rounded-t-md border px-2 py-1 text-sm !shadow-sm"
+                    className="baseFlex ml-4 gap-3 rounded-t-md border border-b-0 px-2 py-1 text-sm !shadow-sm"
                   >
                     {showBpm(chordSequence) && (
                       <div className="baseFlex gap-1">

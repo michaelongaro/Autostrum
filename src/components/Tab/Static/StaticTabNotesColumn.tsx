@@ -100,51 +100,54 @@ function StaticTabNotesColumn({
           className="w-full shrink-0"
         />
 
-        {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => {
-          const note = getStringValue(columnData, stringIndex);
+        <div className="baseVertFlex relative">
+          <div className="absolute bottom-3 left-0 right-0 top-3 bg-background"></div>
+          {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => {
+            const note = getStringValue(columnData, stringIndex);
 
-          return (
-            <div
-              key={stringIndex}
-              style={{
-                width: STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
-              }}
-              className="baseFlex relative shrink-0"
-            >
+            return (
               <div
+                key={stringIndex}
                 style={{
-                  backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+                  width: STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
                 }}
-                className="h-[1px] w-full"
-              ></div>
+                className="baseFlex relative shrink-0"
+              >
+                <div
+                  style={{
+                    backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+                  }}
+                  className="h-[1px] w-full"
+                ></div>
 
-              <StaticTabNote
-                note={
-                  note.includes(">")
-                    ? note.slice(0, note.length - 1)
-                    : note.includes(".")
+                <StaticTabNote
+                  note={
+                    note.includes(">")
                       ? note.slice(0, note.length - 1)
-                      : note
-                }
-                isAccented={
-                  note.includes(">") || columnData.chordEffects?.includes(">")
-                }
-                isStaccato={
-                  note.includes(".") &&
-                  !columnData.chordEffects?.includes(".") // felt distracting to see the staccato on every note w/in the chord
-                }
-                isRest={stringIndex === 4 && columnData.chordEffects === "r"}
-              />
+                      : note.includes(".")
+                        ? note.slice(0, note.length - 1)
+                        : note
+                  }
+                  isAccented={
+                    note.includes(">") || columnData.chordEffects?.includes(">")
+                  }
+                  isStaccato={
+                    note.includes(".") &&
+                    !columnData.chordEffects?.includes(".") // felt distracting to see the staccato on every note w/in the chord
+                  }
+                  isRest={stringIndex === 4 && columnData.chordEffects === "r"}
+                />
 
-              <div
-                style={{
-                  backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
-                }}
-                className="h-[1px] w-full"
-              ></div>
-            </div>
-          );
-        })}
+                <div
+                  style={{
+                    backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+                  }}
+                  className="h-[1px] w-full"
+                ></div>
+              </div>
+            );
+          })}
+        </div>
 
         {/* Former bottom container border — spacer only */}
         <div
