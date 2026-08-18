@@ -834,7 +834,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-4 xl:!flex-row xl:!justify-start">
           <div className="baseFlex gap-2">
-            <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center">
+            <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-4">
               <div className="baseFlex gap-2">
                 <Label
                   htmlFor={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
@@ -937,7 +937,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
             </div>
           </div>
 
-          <div className="baseVertFlex !items-start gap-2 sm:!flex-row">
+          <div className="baseVertFlex !items-start gap-2 sm:!flex-row lg:gap-4">
             <div className="baseFlex">
               <TooltipProvider delayDuration={0}>
                 <Tooltip>

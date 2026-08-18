@@ -214,7 +214,7 @@ function ChordSequence({
       ) : (
         <div className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border bg-background p-4 shadow-sm">
           <div className="baseFlex w-full !items-start">
-            <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+            <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start lg:gap-4">
               <div className="baseFlex gap-2">
                 <Label
                   htmlFor={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
