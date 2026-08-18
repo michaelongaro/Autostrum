@@ -380,7 +380,7 @@ function PlaybackAudioControls({
             </div>
 
             {audioMetadata.editingLoopRange ? (
-              <p className="pb-1 pt-[3px] text-xs text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
+              <p className="h-0 pb-[15px] text-xs text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
                 {loopRangePrompt}
               </p>
             ) : (

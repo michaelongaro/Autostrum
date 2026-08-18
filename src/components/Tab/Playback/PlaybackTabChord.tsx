@@ -97,8 +97,9 @@ function PlaybackTabChord({
                   className="baseVertFlex relative w-[34px]"
                 >
                   {isFirstChordInTab && (
-                    <div className="absolute left-0 top-[11px] h-[104px] w-[1px] bg-foreground/50 mobilePortrait:top-3 mobilePortrait:h-[126px]"></div>
+                    <div className="absolute left-0 top-3 h-[126px] w-[1px] bg-foreground/50"></div>
                   )}
+
                   {columnData.slice(1, 7).map((stringNote, stringOffset) => {
                     const stringIndex = stringOffset + 1;
                     return (
@@ -246,7 +247,7 @@ function PlaybackTabNote({
 }: PlaybackTabNote) {
   return (
     <div className="baseFlex w-[34px]">
-      <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
+      <div className="my-3 h-[1px] flex-[1] bg-foreground/50"></div>
       <div
         style={{
           color: isHighlighted
@@ -267,7 +268,7 @@ function PlaybackTabNote({
 
         {isStaccato && <div className="relative -top-2">.</div>}
       </div>
-      <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
+      <div className="my-3 h-[1px] flex-[1] bg-foreground/50"></div>
     </div>
   );
 }

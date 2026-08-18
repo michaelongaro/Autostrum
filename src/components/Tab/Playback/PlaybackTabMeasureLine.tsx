@@ -39,9 +39,8 @@ function PlaybackTabMeasureLine({
       <div
         style={{
           opacity: isDimmed ? 0.5 : 1,
-          transition: "opacity 0.5s",
         }}
-        className="baseVertFlex mb-[2px] h-[202px] w-[1px] mobilePortrait:h-[222px]"
+        className="baseVertFlex mb-[2px] h-[222px] w-[1px]"
       >
         {columnData.map((note, index) => (
           <Fragment key={index}>
@@ -75,7 +74,7 @@ function PlaybackTabMeasureLine({
 
             {index > 0 && index < 7 && (
               <div className="baseFlex w-full">
-                <div className="h-[18px] w-[1px] bg-foreground/50 mobilePortrait:h-[21px]"></div>
+                <div className="h-[21px] w-[1px] bg-foreground/50"></div>
               </div>
             )}
           </Fragment>
@@ -83,9 +82,9 @@ function PlaybackTabMeasureLine({
       </div>
 
       {editingLoopRange && (
-        <div className="baseFlex mt-1 h-7 w-full">
+        <div className="baseFlex mt-6 h-7 w-full">
           {loopNodePresentation?.role === "middle" ? (
-            <div className="mb-5 h-px w-full bg-foreground mobilePortrait:mb-4" />
+            <div className="mb-4 h-px w-full bg-foreground" />
           ) : null}
         </div>
       )}
