@@ -100,21 +100,7 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     function handleKeyDown(e: KeyboardEvent) {
       if (disabled) return;
 
-      if (useHoveredChordLocation) {
-        // Only while editing, and never alongside the PlaybackModal handler.
-        if (!editing || showPlaybackModal) return;
-
-        const target = e.target;
-        if (
-          target instanceof HTMLElement &&
-          (target.tagName === "INPUT" ||
-            target.tagName === "TEXTAREA" ||
-            target.tagName === "SELECT" ||
-            target.isContentEditable)
-        ) {
-          return;
-        }
-      }
+      if (useHoveredChordLocation && (!editing || showPlaybackModal)) return;
 
       if (
         !countInTimer.showing &&
