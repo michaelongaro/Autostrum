@@ -206,14 +206,11 @@ function TabMeasureLine({
       <div
         style={{
           opacity:
-            (reorderingColumns || showingDeleteColumnsButtons) &&
-            columnHasBeenPlayed
-              ? "100%"
-              : "0%",
+            reorderingColumns || showingDeleteColumnsButtons ? "100%" : "0%",
           top: EDITING_TAB_PALM_MUTE_HEIGHT_PX + 11,
           height: EDITING_TAB_STRINGS_HEIGHT_PX - 25,
         }}
-        className="absolute left-0 w-full bg-primary/25"
+        className="absolute left-0 w-full bg-background"
       ></div>
 
       {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}

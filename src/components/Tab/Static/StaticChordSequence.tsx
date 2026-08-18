@@ -17,10 +17,10 @@ function StaticChordSequence({
     <div className="baseFlex">
       <div
         style={{
-          borderColor: "hsl(var(--screenshot-foreground))",
-          backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
+          borderColor: "hsl(var(--screenshot-foreground) / 0.5)",
+          backgroundColor: "hsl(var(--screenshot-background))",
         }}
-        className="baseVertFlex relative !justify-start gap-4 rounded-md border-2 p-1 shadow-sm"
+        className="baseVertFlex relative !justify-start gap-4 rounded-md border-[1px] p-1 shadow-sm"
       >
         <StaticStrummingPattern
           data={chordSequenceData.strummingPattern}

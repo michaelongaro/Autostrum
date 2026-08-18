@@ -291,31 +291,34 @@ function TabNotesColumn({
             />
           </div>
 
-          {/* String Notes (1-6) */}
-          {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
-            <div
-              key={stringIndex}
-              style={{
-                height: EDITING_TAB_STRING_ROW_HEIGHT_PX,
-                minHeight: EDITING_TAB_STRING_ROW_HEIGHT_PX,
-                width: EDITING_TAB_COLUMN_WIDTH_PX,
-              }}
-              className="baseFlex relative"
-            >
-              <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
+          <div className="baseVertFlex relative">
+            <div className="absolute bottom-3 left-0 right-0 top-3 bg-background"></div>
+            {/* String Notes (1-6) */}
+            {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
+              <div
+                key={stringIndex}
+                style={{
+                  height: EDITING_TAB_STRING_ROW_HEIGHT_PX,
+                  minHeight: EDITING_TAB_STRING_ROW_HEIGHT_PX,
+                  width: EDITING_TAB_COLUMN_WIDTH_PX,
+                }}
+                className="baseFlex relative"
+              >
+                <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
 
-              <TabNote
-                note={getStringValue(columnData, stringIndex)}
-                sectionIndex={sectionIndex}
-                subSectionIndex={subSectionIndex}
-                columnIndex={columnIndex}
-                noteIndex={stringIndex}
-                isHighlighted={isHighlighted}
-              />
+                <TabNote
+                  note={getStringValue(columnData, stringIndex)}
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={subSectionIndex}
+                  columnIndex={columnIndex}
+                  noteIndex={stringIndex}
+                  isHighlighted={isHighlighted}
+                />
 
-              <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
-            </div>
-          ))}
+                <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
+              </div>
+            ))}
+          </div>
 
           {/* Note Length Guide */}
           <div

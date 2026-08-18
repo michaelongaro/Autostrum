@@ -84,7 +84,7 @@ function TabNote({
         }
         className={
           isChordEffect
-            ? "relative z-[1] rounded-md p-0 text-center shadow-sm transition-none"
+            ? "relative z-[1] rounded-md bg-background p-0 text-center shadow-sm transition-none"
             : "relative z-[1] h-full rounded-none border-0 bg-transparent p-0 text-center font-normal tabular-nums leading-none shadow-none outline-none transition-none focus-visible:outline-none focus-visible:ring-0"
         }
         onFocus={(e) => {
