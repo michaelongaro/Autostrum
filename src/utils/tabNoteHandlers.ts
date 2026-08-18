@@ -82,7 +82,7 @@ function validNoteInput(input: string) {
   // "h", "p", "/", "\", "~", ">", ".", "b", "x"
   const characterPattern = /^[hp\/\\\\~>.br]$/;
 
-  if (input[0] === "/" || input[0] === "\\") {
+  if (input.startsWith("/") || input.startsWith("\\")) {
     if (input.length === 1) return true;
     // Check for "/" and "\" at the start (just one digit number after)
     else if (input.length === 2) {
@@ -173,7 +173,9 @@ export function handleTabNoteKeyDown(
   } = params;
 
   const maybeSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-  if (!maybeSubSection || maybeSubSection.type !== "tab") return;
+
+  if (maybeSubSection?.type !== "tab") return;
+
   const subSection = maybeSubSection;
 
   const currentNote = document.getElementById(
@@ -235,7 +237,7 @@ export function handleTabNoteKeyDown(
 
           if (e.ctrlKey) {
             const order = noteLengthCycle;
-            let idx = order.indexOf(current as NoteLength);
+            let idx = order.indexOf(current);
             if (idx === -1) idx = order.indexOf("quarter");
 
             if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
@@ -498,7 +500,9 @@ export function handleTabNoteChange(
     params;
 
   const maybeSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-  if (!maybeSubSection || maybeSubSection.type !== "tab") return;
+
+  if (maybeSubSection?.type !== "tab") return;
+
   const subSection = maybeSubSection;
 
   let value = e.target.value;
