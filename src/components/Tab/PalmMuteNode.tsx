@@ -488,26 +488,42 @@ function PalmMuteNode({
           disabled={getButtonOpacity() !== "1"}
           onKeyDown={handleKeyDown}
           onClick={handlePalmMuteNodeClick}
-          className="mx-1 h-7 w-full p-0 transition-all"
+          className={`h-7 w-full p-0 transition-all ${editingPalmMuteNodes ? "mx-1" : "group mx-0 bg-transparent !shadow-none"}`}
         >
           {value === "start" && (
             <div className="baseFlex w-full">
-              <div className="ml-1 h-[14px] w-[1px] shrink-0 bg-primary-foreground"></div>
+              <div
+                className={`ml-1 h-[14px] w-[1px] shrink-0 ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
 
-              <div className="h-[1px] w-[3px] shrink-0 bg-primary-foreground"></div>
+              <div
+                className={`h-[1px] w-[3px] shrink-0 ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
 
-              <i className="mx-[2px] text-xs text-primary-foreground">PM</i>
+              <i
+                className={`mx-[2px] text-xs ${editingPalmMuteNodes ? "text-primary-foreground" : "text-foreground group-hover:text-primary-foreground"}`}
+              >
+                PM
+              </i>
 
-              <div className="h-[1px] w-auto grow bg-primary-foreground"></div>
+              <div
+                className={`h-[1px] w-auto grow ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
             </div>
           )}
+
           {value === "end" && (
             <div className="baseFlex w-full">
-              <div className="h-[1px] w-auto grow bg-primary-foreground"></div>
+              <div
+                className={`h-[1px] w-auto grow ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
 
-              <div className="mr-1 h-[14px] w-[1px] bg-primary-foreground"></div>
+              <div
+                className={`mr-1 h-[14px] w-[1px] ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
             </div>
           )}
+
           {editingPalmMuteNodes && value === "" && (
             <BsPlus className="size-5" />
           )}
