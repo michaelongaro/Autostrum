@@ -34,7 +34,24 @@ const noteLengthCycle = [
   "sixteenth double-dotted",
 ] as const;
 
+const baseNoteLengthCycle = [
+  "whole",
+  "half",
+  "quarter",
+  "eighth",
+  "sixteenth",
+] as const;
+
 type NoteLength = (typeof noteLengthCycle)[number];
+type BaseNoteLength = (typeof baseNoteLengthCycle)[number];
+
+function getBaseNoteLength(noteLength: FullNoteLengths): BaseNoteLength {
+  if (noteLength.startsWith("whole")) return "whole";
+  if (noteLength.startsWith("half")) return "half";
+  if (noteLength.startsWith("quarter")) return "quarter";
+  if (noteLength.startsWith("eighth")) return "eighth";
+  return "sixteenth";
+}
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -247,12 +264,18 @@ function StrummingPattern({
     const newStrummingPattern = structuredClone(data);
 
     // v/↓ for downstrum, ^/↑ for upstrum, s for slap, r for rest
-    if ((!e.shiftKey && e.key === "ArrowDown") || e.key.toLowerCase() === "v") {
+    if (
+      (!e.shiftKey && e.key === "ArrowDown") ||
+      (!e.shiftKey && e.key.toLowerCase() === "v")
+    ) {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!,
         strum: "v",
       };
-    } else if ((!e.shiftKey && e.key === "ArrowUp") || e.key === "^") {
+    } else if (
+      (!e.shiftKey && e.key === "ArrowUp") ||
+      (!e.shiftKey && e.key === "^")
+    ) {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!,
         strum: "^",
@@ -285,17 +308,31 @@ function StrummingPattern({
     if (e.shiftKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
       e.preventDefault();
 
-      const order = noteLengthCycle;
       const current =
         newStrummingPattern.strums[beatIndex]?.noteLength ?? "quarter";
-      let idx = order.indexOf(current);
-      if (idx === -1) idx = order.indexOf("quarter");
 
-      if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
-      if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+      if (e.ctrlKey) {
+        const order = noteLengthCycle;
+        let idx = order.indexOf(current);
+        if (idx === -1) idx = order.indexOf("quarter");
 
-      const newLength: NoteLength = order[idx] ?? "quarter";
-      newStrummingPattern.strums[beatIndex]!.noteLength = newLength;
+        if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
+        if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+
+        const newLength: NoteLength = order[idx] ?? "quarter";
+        newStrummingPattern.strums[beatIndex]!.noteLength = newLength;
+      } else {
+        const order = baseNoteLengthCycle;
+        const currentBase = getBaseNoteLength(current);
+        let idx = order.indexOf(currentBase);
+        if (idx === -1) idx = order.indexOf("quarter");
+
+        if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
+        if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+
+        const newLength: BaseNoteLength = order[idx] ?? "quarter";
+        newStrummingPattern.strums[beatIndex]!.noteLength = newLength;
+      }
     }
 
     // arrow key navigation
