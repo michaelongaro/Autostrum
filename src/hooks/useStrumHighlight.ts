@@ -35,19 +35,18 @@ export function useStrumHighlight({
       );
     }
 
+    // Editing chord-sequence highlights match the tab playhead rules: only
+    // while audio is actively playing (preview/pattern dialog uses forPreview).
+    if (
+      !state.audioMetadata.playing ||
+      state.audioMetadata.editingLoopRange ||
+      state.showPlaybackModal
+    ) {
+      return false;
+    }
+
     const currentlyPlayingMetadata = state.currentlyPlayingMetadata;
     if (!currentlyPlayingMetadata) return false;
-
-    if (state.audioMetadata.editingLoopRange) {
-      return currentlyPlayingMetadata.some((metadata) => {
-        return (
-          sectionIndex === metadata.location.sectionIndex &&
-          subSectionIndex === metadata.location.subSectionIndex &&
-          chordSequenceIndex === metadata.location.chordSequenceIndex &&
-          strumIndex === metadata.location.chordIndex
-        );
-      });
-    }
 
     const correspondingChordExists = currentlyPlayingMetadata.some(
       (metadata) => {

@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -11,6 +12,7 @@ import {
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
+import { useEditingStrumPlayhead } from "~/hooks/useEditingStrumPlayhead";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
 import StrummingPatternStrum from "./StrummingPatternStrum";
 
@@ -77,6 +79,23 @@ function StrummingPattern({
 }: StrummingPattern) {
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
+  const strumPatternContainerRef = useRef<HTMLDivElement>(null);
+  const strumPlayheadRef = useRef<HTMLDivElement>(null);
+
+  const editingChordSequencePlayhead =
+    mode === "editingChordSequence" &&
+    sectionIndex !== undefined &&
+    subSectionIndex !== undefined &&
+    chordSequenceIndex !== undefined;
+
+  useEditingStrumPlayhead({
+    enabled: editingChordSequencePlayhead,
+    sectionIndex: sectionIndex ?? 0,
+    subSectionIndex: subSectionIndex ?? 0,
+    chordSequenceIndex: chordSequenceIndex ?? 0,
+    containerRef: strumPatternContainerRef,
+    playheadRef: strumPlayheadRef,
+  });
 
   // Intentionally omit currentChordIndex / currentlyPlayingMetadata /
   // previewMetadata: each strum subscribes with useStrumHighlight so playback
@@ -505,7 +524,10 @@ function StrummingPattern({
       }}
       className="baseFlex"
     >
-      <div className="baseFlex relative mb-1 flex-wrap !justify-start">
+      <div
+        ref={strumPatternContainerRef}
+        className="baseFlex relative mb-1 flex-wrap !justify-start"
+      >
         {mode === "editingChordSequence" && (
           <span
             style={{
@@ -547,6 +569,17 @@ function StrummingPattern({
             onExtendPatternClick={addStrumsToPattern}
           />
         ))}
+        {editingChordSequencePlayhead && (
+          <div
+            ref={strumPlayheadRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute left-0 top-0 z-10 w-[2px] bg-primary will-change-transform"
+            style={{
+              height: 0,
+              opacity: 0,
+            }}
+          />
+        )}
       </div>
     </div>
   );
