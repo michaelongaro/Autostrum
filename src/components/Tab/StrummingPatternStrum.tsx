@@ -267,7 +267,7 @@ function StrummingPatternStrum({
                 }`,
                 color: highlightColor,
               }}
-              className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm transition-none"
+              className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center transition-none focus-visible:outline focus-visible:outline-[1px] focus-visible:outline-foreground/70"
               onFocus={(e) => {
                 setIsFocused(true);
                 e.target.setSelectionRange(
