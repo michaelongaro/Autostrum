@@ -921,7 +921,7 @@ function DesktopInstrumentAndSpeedSelects() {
           >
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent side="top">
             <SelectItem value={"acoustic_guitar_nylon"}>
               Acoustic guitar - Nylon
             </SelectItem>
