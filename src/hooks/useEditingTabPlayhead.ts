@@ -1,9 +1,5 @@
 import { useEffect, useRef, type RefObject } from "react";
-import {
-  getTabStore,
-  useTabStore,
-  type Metadata,
-} from "~/stores/TabStore";
+import { getTabStore, useTabStore, type Metadata } from "~/stores/TabStore";
 import {
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
@@ -166,39 +162,10 @@ function parkPlayheadAtMetadataIndex({
 }) {
   const currMeta = metadata[metadataIndex];
   if (
-    !currMeta ||
-    currMeta.location.sectionIndex !== sectionIndex ||
+    currMeta?.location.sectionIndex !== sectionIndex ||
     currMeta.location.subSectionIndex !== subSectionIndex
   ) {
-    // Keep a playhead visible in every tab subsection: park at the first
-    // playable column when playback is currently elsewhere.
-    const fallback = metadata.find(
-      (entry) =>
-        entry.location.sectionIndex === sectionIndex &&
-        entry.location.subSectionIndex === subSectionIndex &&
-        isPlayableMetadata(entry),
-    );
-    if (!fallback) {
-      playhead.style.opacity = "0";
-      return;
-    }
-
-    const fallbackPos = measureChordPosition(
-      container,
-      sectionIndex,
-      subSectionIndex,
-      fallback.location.chordIndex,
-    );
-    if (!fallbackPos) {
-      playhead.style.opacity = "0";
-      return;
-    }
-
-    playhead.style.opacity = "1";
-    const left = pausedOffset
-      ? fallbackPos.x - 1 - PAUSED_PLAYHEAD_LEFT_OF_CENTER_PX
-      : fallbackPos.x - 1;
-    playhead.style.transform = `translate3d(${left}px, ${fallbackPos.y}px, 0)`;
+    playhead.style.opacity = "0";
     return;
   }
 
@@ -241,9 +208,7 @@ export function useEditingTabPlayhead({
 }) {
   const playing = useTabStore((state) => state.audioMetadata.playing);
   const showPlaybackModal = useTabStore((state) => state.showPlaybackModal);
-  const editingLoopRange = useTabStore(
-    (state) => state.audioMetadata.editingLoopRange,
-  );
+
   // Stable `null` while playing so TabSection does not re-render every tick.
   // While paused, tracks scrubbing / pause position for parking.
   const pausedChordIndex = useTabStore((state) =>
@@ -267,12 +232,7 @@ export function useEditingTabPlayhead({
       lastPlayheadLeftPxRef.current = null;
     };
 
-    if (!hasPlaybackMetadata) {
-      hide();
-      return;
-    }
-
-    if (showPlaybackModal || editingLoopRange) {
+    if (!hasPlaybackMetadata || showPlaybackModal) {
       hide();
       return;
     }
@@ -365,7 +325,8 @@ export function useEditingTabPlayhead({
         anchorPlaybackStartedAtRef.current = playbackStartedAtAudioTime;
         anchorChordIndexRef.current = currentChordIndex;
         displayedElapsedMs = 0;
-        audioHasStarted = audioContext.currentTime >= playbackStartedAtAudioTime;
+        audioHasStarted =
+          audioContext.currentTime >= playbackStartedAtAudioTime;
         lastPerfMs = performance.now();
         lastPlayheadLeftPxRef.current = null;
       }
@@ -468,8 +429,7 @@ export function useEditingTabPlayhead({
 
       const currMeta = metadata[segmentIndex];
       if (
-        !currMeta ||
-        currMeta.location.sectionIndex !== sectionIndex ||
+        currMeta?.location.sectionIndex !== sectionIndex ||
         currMeta.location.subSectionIndex !== subSectionIndex
       ) {
         // Playback is in another subsection — keep this section's playhead
@@ -512,7 +472,10 @@ export function useEditingTabPlayhead({
       const segmentDuration = segmentEnd - segmentStart;
       const progress =
         segmentDuration > 0
-          ? Math.min(1, Math.max(0, (loopSeconds - segmentStart) / segmentDuration))
+          ? Math.min(
+              1,
+              Math.max(0, (loopSeconds - segmentStart) / segmentDuration),
+            )
           : 0;
 
       const nextIndex = findNextGlideTargetIndex(
@@ -545,7 +508,10 @@ export function useEditingTabPlayhead({
         // Same wrapped row: glide from this column toward the next (measure
         // lines between them are included in the pixel distance).
         leftPx = currPos.x + (nextPos.x - currPos.x) * progress;
-      } else if (nextPos && Math.abs(nextPos.y - currPos.y) > ROW_Y_SNAP_THRESHOLD_PX) {
+      } else if (
+        nextPos &&
+        Math.abs(nextPos.y - currPos.y) > ROW_Y_SNAP_THRESHOLD_PX
+      ) {
         // Next chord is on a new row — finish this column, then snap Y on the
         // next segment (handled when segmentIndex advances).
         leftPx = currPos.x + (currPos.width / 2) * progress;
@@ -574,7 +540,6 @@ export function useEditingTabPlayhead({
     pausedChordIndex,
     hasPlaybackMetadata,
     showPlaybackModal,
-    editingLoopRange,
     sectionIndex,
     subSectionIndex,
     containerRef,

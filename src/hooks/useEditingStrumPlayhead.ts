@@ -1,9 +1,5 @@
 import { useEffect, useRef, type RefObject } from "react";
-import {
-  getTabStore,
-  useTabStore,
-  type Metadata,
-} from "~/stores/TabStore";
+import { getTabStore, useTabStore, type Metadata } from "~/stores/TabStore";
 
 /** Rows differ by more than a strum column; anything above this is a wrap. */
 const ROW_Y_SNAP_THRESHOLD_PX = 40;
@@ -114,12 +110,8 @@ function measureStrumPosition(
   );
   if (!element) return null;
 
-  const spanStart = element.querySelector(
-    "[data-strum-playhead-span-start]",
-  ) as HTMLElement | null;
-  const spanEnd = element.querySelector(
-    "[data-strum-playhead-span-end]",
-  ) as HTMLElement | null;
+  const spanStart = element.querySelector("[data-strum-playhead-span-start]");
+  const spanEnd = element.querySelector("[data-strum-playhead-span-end]");
   if (!spanStart || !spanEnd) return null;
 
   const containerRect = container.getBoundingClientRect();
@@ -219,35 +211,7 @@ function parkPlayheadAtMetadataIndex({
       chordSequenceIndex,
     )
   ) {
-    // Keep a playhead visible in every chord sequence: park at the first
-    // playable strum when playback is currently elsewhere.
-    const fallback = metadata.find(
-      (entry) =>
-        matchesChordSequenceLocation(
-          entry,
-          sectionIndex,
-          subSectionIndex,
-          chordSequenceIndex,
-        ) && isPlayableMetadata(entry),
-    );
-    if (!fallback) {
-      playhead.style.opacity = "0";
-      return;
-    }
-
-    const fallbackPos = measureStrumPosition(
-      container,
-      sectionIndex,
-      subSectionIndex,
-      chordSequenceIndex,
-      fallback.location.chordIndex,
-    );
-    if (!fallbackPos) {
-      playhead.style.opacity = "0";
-      return;
-    }
-
-    applyPos(fallbackPos);
+    playhead.style.opacity = "0";
     return;
   }
 
@@ -416,7 +380,8 @@ export function useEditingStrumPlayhead({
         anchorPlaybackStartedAtRef.current = playbackStartedAtAudioTime;
         anchorChordIndexRef.current = currentChordIndex;
         displayedElapsedMs = 0;
-        audioHasStarted = audioContext.currentTime >= playbackStartedAtAudioTime;
+        audioHasStarted =
+          audioContext.currentTime >= playbackStartedAtAudioTime;
         lastPerfMs = performance.now();
         lastPlayheadLeftPxRef.current = null;
       }
@@ -564,7 +529,10 @@ export function useEditingStrumPlayhead({
       const segmentDuration = segmentEnd - segmentStart;
       const progress =
         segmentDuration > 0
-          ? Math.min(1, Math.max(0, (loopSeconds - segmentStart) / segmentDuration))
+          ? Math.min(
+              1,
+              Math.max(0, (loopSeconds - segmentStart) / segmentDuration),
+            )
           : 0;
 
       const nextIndex = findNextGlideTargetIndex(
