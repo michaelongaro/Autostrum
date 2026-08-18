@@ -82,11 +82,13 @@ function PlaybackStrummedChord({
   return (
     // Keep loop-range nodes outside the dimmed wrapper so chord dimming
     // cannot make an enabled + look disabled (or vice versa).
-    <div className="baseVertFlex relative w-[40px]">
-      <div className={`baseVertFlex w-full ${isDimmed ? "opacity-50" : ""}`}>
+    <div className="baseVertFlex relative h-[260px] w-[40px]">
+      <div
+        className={`baseVertFlex mt-[12px] w-full ${isDimmed ? "opacity-50" : ""}`}
+      >
         {bpmToShow && (
           <div
-            className={`baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground ${palmMute === "start" ? "top-[-20px]" : "top-[4px]"}`}
+            className={`baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground ${palmMute === "start" ? "top-[-20px]" : "top-[14px]"}`}
           >
             <QuarterNote />
             <span>{bpmToShow}</span>
@@ -109,7 +111,7 @@ function PlaybackStrummedChord({
             borderTop: "1px solid",
             borderBottom: "1px solid",
           }}
-          className="baseVertFlex relative mb-[30px] h-[126px] w-[40px] !border-foreground/50 pb-4 mobilePortrait:h-[126px]"
+          className="baseVertFlex relative mb-[42px] h-[126px] w-[40px] !border-foreground/50 pb-4"
         >
           <div className="baseFlex h-8">
             {chordName && (

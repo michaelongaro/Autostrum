@@ -670,23 +670,16 @@ function PlaybackModal() {
                   >
                     <div
                       ref={containerRef}
-                      className={`relative flex w-full overflow-hidden ${
-                        audioMetadata.editingLoopRange
-                          ? "h-[290px] mobilePortrait:h-[315px]"
-                          : "h-[255px] mobilePortrait:h-[315px]"
-                      }`}
+                      className="relative flex h-[315px] w-full overflow-hidden"
                     >
                       {!audioMetadata.editingLoopRange && (
                         <div className="baseFlex absolute left-0 top-0 size-full">
-                          <div className="h-[126px] w-full mobilePortrait:h-[150px]"></div>
-                          {/* Playhead spans the tab/chord staff (first–sixth strings).
-                          translateX is written imperatively during rubber-band overscroll so the
-                          playhead stays attached to the strip. */}
+                          <div className="h-[150px] w-full"></div>
                           <div
                             ref={playbackPlayheadRef}
-                            className="z-0 ml-1 h-[105px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[125px]"
+                            className="z-0 ml-1 h-[125px] w-[2px] shrink-0 bg-primary will-change-transform"
                           ></div>
-                          <div className="h-[126px] w-full mobilePortrait:h-[150px]"></div>
+                          <div className="h-[150px] w-full"></div>
                         </div>
                       )}
 
