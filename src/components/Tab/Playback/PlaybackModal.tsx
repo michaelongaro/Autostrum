@@ -770,6 +770,30 @@ interface RenderChordByTypeProps {
   isHighlighted: boolean;
 }
 
+function isPlaybackTabMeasureLine(
+  playbackChord:
+    | PlaybackTabChordType
+    | PlaybackStrummedChordType
+    | PlaybackLoopDelaySpacerChord
+    | undefined,
+): boolean {
+  return (
+    playbackChord?.type === "tab" &&
+    (playbackChord.data.chordData.includes("|") ||
+      playbackChord.data.chordData[8] === "measureLine")
+  );
+}
+
+function getTabChordNoteLength(
+  playbackChord: PlaybackTabChordType,
+): FullNoteLengths | undefined {
+  if (isPlaybackTabMeasureLine(playbackChord)) {
+    return undefined;
+  }
+
+  return playbackChord.data.chordData[8] as FullNoteLengths;
+}
+
 function RenderChordByType({
   type,
   chordIndex,
@@ -785,7 +809,7 @@ function RenderChordByType({
     ? prevChord.type === "strum" && !prevChord.isLastChord // don't want to have separate strumming patterns' note length guides be connected
       ? prevChord.data.noteLength
       : prevChord.type === "tab"
-        ? (prevChord.data.chordData[8] as FullNoteLengths)
+        ? getTabChordNoteLength(prevChord)
         : undefined
     : undefined;
 
@@ -793,7 +817,7 @@ function RenderChordByType({
     ? chord.type === "strum"
       ? chord.data.noteLength
       : chord.type === "tab"
-        ? (chord.data.chordData[8] as FullNoteLengths)
+        ? getTabChordNoteLength(chord)
         : undefined
     : undefined;
 
@@ -802,20 +826,22 @@ function RenderChordByType({
       (chord.type !== "strum" || !chord.isLastChord) // don't want to have separate strumming patterns' note length guides be connected
       ? nextChord.data.noteLength
       : nextChord.type === "tab"
-        ? (nextChord.data.chordData[8] as FullNoteLengths)
+        ? getTabChordNoteLength(nextChord)
         : undefined
     : undefined;
 
-  // #region agent log
-  {
-    const prevSlot = prevChord?.type === "tab" ? prevChord.data.chordData[8] : undefined;
-    const curSlot = chord?.type === "tab" ? chord.data.chordData[8] : undefined;
-    const nextSlot = nextChord?.type === "tab" ? nextChord.data.chordData[8] : undefined;
-    if (prevSlot === "measureLine" || curSlot === "measureLine" || nextSlot === "measureLine" || prevChordNoteLength === "measureLine" || currentChordNoteLength === "measureLine" || nextChordNoteLength === "measureLine") {
-      fetch("/api/debug-log",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({location:"PlaybackModal.tsx:RenderChordByType",message:"measureLine present in chordData[8] or resolved note lengths",data:{type,chordIndex,prevSlot,curSlot,nextSlot,prevChordNoteLength,currentChordNoteLength,nextChordNoteLength,prevType:prevChord?.type,chordType:chord?.type,nextType:nextChord?.type,isFirstChord:chord&&"isFirstChord"in chord?chord.isFirstChord:undefined,isLastChord:chord&&"isLastChord"in chord?chord.isLastChord:undefined},timestamp:Date.now(),hypothesisId:"A,E"})}).catch(()=>{});
-    }
-  }
-  // #endregion
+  const prevIsMeasureLine = isPlaybackTabMeasureLine(prevChord);
+  const nextIsMeasureLine = isPlaybackTabMeasureLine(nextChord);
+
+  // Match StaticTabNotesColumn / useTabColumnNeighborMeta: measure lines break beam groups
+  const isFirstChord =
+    (chord.type === "tab" || chord.type === "strum"
+      ? chord.isFirstChord
+      : false) || prevIsMeasureLine;
+  const isLastChord =
+    (chord.type === "tab" || chord.type === "strum"
+      ? chord.isLastChord
+      : false) || nextIsMeasureLine;
 
   const prevChordIsRest =
     prevChord === undefined ||
@@ -837,8 +863,8 @@ function RenderChordByType({
       <PlaybackTabChord
         columnData={chord?.data.chordData}
         chordIndex={chordIndex}
-        isFirstChord={chord?.isFirstChord}
-        isLastChord={chord?.isLastChord}
+        isFirstChord={isFirstChord}
+        isLastChord={isLastChord}
         isFirstChordInTab={isFirstChordInTab}
         isLastChordInTab={isLastChordInTab}
         isHighlighted={isHighlighted}
@@ -870,8 +896,8 @@ function RenderChordByType({
         strum={chord?.data.strum || ""}
         chordIndex={chordIndex}
         palmMute={chord?.data.palmMute || ""}
-        isFirstChord={chord?.isFirstChord}
-        isLastChord={chord?.isLastChord}
+        isFirstChord={isFirstChord}
+        isLastChord={isLastChord}
         isFirstChordInTab={isFirstChordInTab}
         isLastChordInTab={isLastChordInTab}
         noteLength={chord?.data.noteLength || "quarter"}
