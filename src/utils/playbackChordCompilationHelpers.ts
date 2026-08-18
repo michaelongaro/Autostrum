@@ -301,11 +301,13 @@ function expandTabSection({
 
     const prevChord = compiledChords?.at(-1);
     const prevChordIsAMeasureLine = isTabMeasureLine(data[chordIdx - 1]!); // TODO: do actual type checking here
+    const nextChordIsAMeasureLine = isTabMeasureLine(data[chordIdx + 1]!);
 
     const chordData: PlaybackTabChord = {
       type: "tab",
-      isFirstChord: chordIdx === 0,
-      isLastChord: chordIdx === data.length - 1,
+      // Match editor/static: measure lines are beam-group boundaries
+      isFirstChord: chordIdx === 0 || prevChordIsAMeasureLine,
+      isLastChord: chordIdx === data.length - 1 || nextChordIsAMeasureLine,
       data: {
         chordData: chordArray,
         bpm: currentBpm,

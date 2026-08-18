@@ -26,9 +26,6 @@ function parseFullNoteLength(note: FullNoteLengths): ParsedNote {
   );
 
   if (!base) {
-    // #region agent log
-    fetch("/api/debug-log",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({location:"renderNoteLengthGuide.tsx:parseFullNoteLength",message:"Unsupported note length throw",data:{note:String(note),normalizedNote},timestamp:Date.now(),hypothesisId:"B"})}).catch(()=>{});
-    // #endregion
     throw new Error(`Unsupported note length: ${String(note)}`);
   }
 
@@ -196,10 +193,6 @@ function renderNoteLengthGuide({
   );
 
   const currentSupportsBeams = supportsBeaming(parsedCurrent);
-
-  // #region agent log
-  fetch("/api/debug-log",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({location:"renderNoteLengthGuide.tsx:beforeNeighborParse",message:"About to parse prev/next note lengths",data:{previousNoteLength,currentNoteLength,nextNoteLength,currentSupportsBeams,isFirstInGroup,isLastInGroup,willParsePrev:!!(currentSupportsBeams&&!isFirstInGroup&&previousNoteLength!==undefined&&!previousIsRestStrum),willParseNext:!!(currentSupportsBeams&&!isLastInGroup&&nextNoteLength!==undefined&&!nextIsRestStrum),prevIsMeasureLine:String(previousNoteLength)==="measureLine",nextIsMeasureLine:String(nextNoteLength)==="measureLine",currentIsMeasureLine:String(currentNoteLength)==="measureLine"},timestamp:Date.now(),hypothesisId:"A,C,D"})}).catch(()=>{});
-  // #endregion
 
   const parsedPrevious =
     currentSupportsBeams &&
