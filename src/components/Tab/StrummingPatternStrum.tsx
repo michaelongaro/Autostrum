@@ -154,6 +154,7 @@ function StrummingPatternStrum({
       <div
         style={{
           marginTop: mode === "editingStrummingPattern" ? "1rem" : "0",
+          width: mode === "editingStrummingPattern" ? "45px" : "auto",
         }}
         className="baseVertFlex relative"
         onMouseEnter={() => {
@@ -245,10 +246,7 @@ function StrummingPatternStrum({
           </>
         )}
 
-        <div
-          data-strum-playhead-span-start=""
-          className="baseFlex mb-1 mt-2"
-        >
+        <div data-strum-playhead-span-start="" className="baseFlex mb-1 mt-2">
           <div
             style={{
               width: mode === "editingChordSequence" ? "1.25rem" : "0.25rem",
@@ -266,11 +264,11 @@ function StrummingPatternStrum({
               onChange={(e) => onChange(e, strumIndex)}
               style={{
                 borderWidth: `${
-                  strum.strum.length > 0 && !isFocused ? "2px" : "1px"
+                  strum.strum.length > 0 || isFocused ? "2px" : "1px"
                 }`,
                 color: highlightColor,
               }}
-              className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center transition-none focus-visible:outline focus-visible:outline-[1px] focus-visible:outline-foreground/70"
+              className="h-[2rem] w-[35px] p-0 text-center transition-none focus-visible:outline-none"
               onFocus={(e) => {
                 setIsFocused(true);
                 e.target.setSelectionRange(
@@ -430,11 +428,11 @@ function StrummingPatternStrum({
         data.strums.length < 32 && (
           <Button
             id={"strummingPatternExtendPatternButton"}
-            className="ml-2 mr-1 rounded-full px-[6px] py-0 md:px-2"
+            className="ml-2 mr-1 size-9 px-[6px] py-0 md:px-0"
             onKeyDown={onExtendPatternKeyDown}
             onClick={onExtendPatternClick}
           >
-            <BsPlus className="h-6 w-6" />
+            <BsPlus className="size-[26px]" />
           </Button>
         )}
     </Element>
