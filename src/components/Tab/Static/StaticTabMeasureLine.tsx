@@ -51,9 +51,9 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
         <div className="baseFlex h-4 w-full shrink-0">
           <div
             style={{
-              backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+              backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="relative mt-[-16px] h-[1px] w-full"
+            className="relative mt-[-15px] h-[1px] w-full"
           ></div>
         </div>
       ) : (
@@ -89,7 +89,9 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
       />
 
       <div
-        style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
+        style={{
+          height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
+        }}
         className="w-full"
       ></div>
     </div>

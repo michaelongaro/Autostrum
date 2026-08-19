@@ -76,7 +76,7 @@ function PlaybackTabChord({
           {/* show new current bpm */}
           {showBpm && (
             <div
-              className={`baseFlex absolute left-[4px] gap-[2px] text-xs text-foreground ${columnData[0] === "start" ? "top-[-20px]" : "top-[14px]"}`}
+              className={`baseFlex absolute left-[4px] gap-[2px] text-xs text-foreground ${columnData[0] === "start" ? "top-[-20px]" : "top-[4px]"}`}
             >
               <QuarterNote />
               <span>{columnData[9]}</span>
