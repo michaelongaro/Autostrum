@@ -233,7 +233,6 @@ async function collectPlaybackGeometry(page) {
         const r = el.getBoundingClientRect();
         return {
           i,
-          cls: el.className.slice(0, 80),
           x: +(r.left - modalRect.left).toFixed(2),
           y: +(r.top - modalRect.top).toFixed(2),
           w: +r.width.toFixed(2),
