@@ -73,8 +73,10 @@ const strumSchema = z.object({
     z.literal("start"),
     z.literal("end"),
   ]),
-  strum: z.string(), // effects are v, ^, >, s, ., r
+  strum: z.string(), // effects are v, ^, v~, ^~, >, s, ., r
   noteLength: fullNoteLengths,
+  strumSpreadAuto: z.boolean().optional().default(true),
+  strumSpreadSeconds: z.number().nullable().optional().default(null),
 });
 
 // -----------------------------
@@ -127,6 +129,8 @@ const tabNoteSchema = z.object({
   sixthString: z.string(), // high E
   chordEffects: z.string(),
   noteLength: fullNoteLengths,
+  strumSpreadAuto: z.boolean().optional().default(true),
+  strumSpreadSeconds: z.number().nullable().optional().default(null),
   id: z.string(),
 });
 

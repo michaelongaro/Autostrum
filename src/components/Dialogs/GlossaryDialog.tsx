@@ -15,6 +15,8 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import ArpeggiatedDownstrumIcon from "~/components/ui/icons/ArpeggiatedDownstrumIcon";
+import ArpeggiatedUpstrumIcon from "~/components/ui/icons/ArpeggiatedUpstrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -409,6 +411,18 @@ function GlossaryDialog() {
                           <span className="col-span-3">Downstrum</span>
                         </div>
                         <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                          <span className="col-span-1">^~</span>
+                          <span className="col-span-1">-</span>
+                          <span className="col-span-3">Arpeggiated upstrum</span>
+                        </div>
+                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                          <span className="col-span-1">v~</span>
+                          <span className="col-span-1">-</span>
+                          <span className="col-span-3">
+                            Arpeggiated downstrum
+                          </span>
+                        </div>
+                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
                           <span className="col-span-1">{">"}</span>
                           <span className="col-span-1">-</span>
                           <span className="col-span-3">Accented</span>
@@ -444,6 +458,22 @@ function GlossaryDialog() {
                           </span>
                           <span className="col-span-1">-</span>
                           <span className="col-span-3">Downstrum</span>
+                        </div>
+                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                          <span className="col-span-1 -ml-1">
+                            <ArpeggiatedUpstrumIcon className="size-4" />
+                          </span>
+                          <span className="col-span-1">-</span>
+                          <span className="col-span-3">Arpeggiated upstrum</span>
+                        </div>
+                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                          <span className="col-span-1 -ml-1">
+                            <ArpeggiatedDownstrumIcon className="size-4" />
+                          </span>
+                          <span className="col-span-1">-</span>
+                          <span className="col-span-3">
+                            Arpeggiated downstrum
+                          </span>
                         </div>
                         <div className="grid w-full grid-cols-5 pl-1 text-sm">
                           <span className="col-span-1">s</span>

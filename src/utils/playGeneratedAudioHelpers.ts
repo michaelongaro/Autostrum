@@ -1,5 +1,10 @@
 import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
+import {
+  calculateAutomaticStrumSpreadSeconds,
+  parseCompiledStrumSpread,
+  remapStrumSpreadForType,
+} from "~/utils/strumEffectHelpers";
 
 export type StoppablePlaybackNode = { stop(when?: number): void };
 
@@ -877,17 +882,66 @@ function calculateRelativeVibratoFrequency(bpm: number) {
   return 3 + scaleFactor * 2;
 }
 
-function calculateRelativeChordDelayMultiplier(
-  bpm: number,
-  strumChordQuickly: boolean,
-) {
-  // Clamp BPM between 0 and 400
-  const clampedBpm = Math.max(0, Math.min(400, bpm));
+function countSoundedStrumNotes(currColumn: string[]): number {
+  let count = 0;
+  for (let index = 1; index < 7; index++) {
+    const note = currColumn[index];
+    if (!note || note === "" || note === "x") continue;
+    // Notes that are only tethered effect letters are skipped in the play loop
+    if (
+      note === "h" ||
+      note === "p" ||
+      note === "/" ||
+      note === "\\" ||
+      note === "r"
+    ) {
+      continue;
+    }
+    count++;
+  }
+  return count;
+}
 
-  // Linearly map 0 BPM to 0.05 seconds and 400 BPM to 0.0075 seconds
-  const mappedValue = 0.05 + (clampedBpm / 400) * (0.0075 - 0.05);
+function resolveChordDelayMultiplier({
+  currColumn,
+  bpm,
+  forTuningPreview,
+}: {
+  currColumn: string[];
+  bpm: number;
+  forTuningPreview?: boolean;
+}): number {
+  const effects = currColumn[7] ?? "";
+  if (!effects.includes("v") && !effects.includes("^")) {
+    return 0;
+  }
 
-  return strumChordQuickly ? mappedValue * 0.75 : mappedValue;
+  if (forTuningPreview) {
+    return 0.35;
+  }
+
+  const compiledSpread = parseCompiledStrumSpread(currColumn[10]);
+  const arpeggiated = effects.includes("~");
+  const strumQuickly = effects.includes(">") || effects.includes(".");
+
+  let totalSpreadSeconds: number;
+  if (compiledSpread.mode === "manual") {
+    totalSpreadSeconds = remapStrumSpreadForType(
+      compiledSpread.seconds,
+      arpeggiated,
+    );
+  } else {
+    // "auto" or missing slot (legacy compiled columns)
+    totalSpreadSeconds = calculateAutomaticStrumSpreadSeconds(
+      bpm,
+      arpeggiated,
+      strumQuickly,
+    );
+  }
+
+  const soundedNotes = countSoundedStrumNotes(currColumn);
+  if (soundedNotes <= 1) return 0;
+  return totalSpreadSeconds / (soundedNotes - 1);
 }
 
 interface TetheredMetadata {
@@ -986,12 +1040,11 @@ function playNoteColumn({
 
     // TODO: allow just > and or . to be present + provide handling for these cases
     if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
-      chordDelayMultiplier = forTuningPreview
-        ? 0.35
-        : calculateRelativeChordDelayMultiplier(
-            bpm,
-            currColumn[7]?.includes(">") || currColumn[7]?.includes("."),
-          );
+      chordDelayMultiplier = resolveChordDelayMultiplier({
+        currColumn,
+        bpm,
+        forTuningPreview,
+      });
     }
 
     const allInlineEffects = /[hp\/\\\\br~>.x]/g;

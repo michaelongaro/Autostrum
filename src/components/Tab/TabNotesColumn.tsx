@@ -5,29 +5,18 @@ import { Element } from "react-scroll";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { useTabStore, type FullNoteLengths } from "~/stores/TabStore";
-import { BsPlus } from "react-icons/bs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
-import Ellipsis from "~/components/ui/icons/Ellipsis";
 import {
   useTabColumnNeighborMeta,
   useTabNoteColumnData,
 } from "~/hooks/useTabDataSelectors";
 import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
-import { NoteLengthDropdown } from "./NoteLengthDropdown";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
-  createTabNote,
   getStringValue,
   isTabNote,
 } from "~/utils/tabNoteHelpers";
@@ -38,6 +27,11 @@ import {
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STRING_ROW_HEIGHT_PX,
 } from "~/utils/editingTabGeometry";
+import {
+  encodeStrumSpreadForCompile,
+  isStrumEffect,
+} from "~/utils/strumEffectHelpers";
+import StrumSettingsDropdown from "./StrumSettingsDropdown";
 
 interface TabNotesColumnProps {
   sectionIndex: number;
@@ -106,17 +100,34 @@ function TabNotesColumn({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { pauseAudio, setTabData, setHoveredChordLocation } = useTabStore(
-    (state) => ({
-      pauseAudio: state.pauseAudio,
-      setTabData: state.setTabData,
-      setHoveredChordLocation: state.setHoveredChordLocation,
-    }),
-  );
+  const {
+    pauseAudio,
+    setTabData,
+    setHoveredChordLocation,
+    bpm,
+    playPreview,
+    previewMetadata,
+  } = useTabStore((state) => ({
+    pauseAudio: state.pauseAudio,
+    setTabData: state.setTabData,
+    setHoveredChordLocation: state.setHoveredChordLocation,
+    bpm: state.bpm,
+    playPreview: state.playPreview,
+    previewMetadata: state.previewMetadata,
+  }));
 
   if (!columnData) {
     return null;
   }
+
+  const column = columnData;
+
+  const currentIsRestStrum = column.chordEffects === "r";
+  const showStrumSettings =
+    isStrumEffect(column.chordEffects) &&
+    !reorderingColumns &&
+    !showingDeleteColumnsButtons &&
+    (isHovered || chordSettingDropdownIsOpen);
 
   function deleteColumnButtonDisabled() {
     let disabled = false;
@@ -193,54 +204,50 @@ function TabNotesColumn({
     });
   }
 
-  function addNewColumn(after: boolean) {
+  function updateStrumSpread(updater: {
+    strumSpreadAuto?: boolean;
+    strumSpreadSeconds?: number | null;
+  }) {
     setTabData((draft) => {
       const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-
       if (currentSubSection?.type !== "tab") return;
-
-      const currentColumn = currentSubSection.data[columnIndex];
-      if (!currentColumn || !isTabNote(currentColumn)) return;
-
-      const newColumnPalmMuteValue: "" | "-" =
-        (currentColumn.palmMute === "start" && after) ||
-        (currentColumn.palmMute === "end" && !after) ||
-        currentColumn.palmMute === "-"
-          ? "-"
-          : "";
-
-      const newColumnData = createTabNote({
-        palmMute: newColumnPalmMuteValue,
-        noteLength: neighborMeta.baseNoteLength,
-      });
-
-      currentSubSection.data.splice(
-        after ? columnIndex + 1 : columnIndex,
-        0,
-        newColumnData,
-      );
-    });
-  }
-
-  function handleNoteLengthChange(noteLength: FullNoteLengths) {
-    setTabData((draft) => {
-      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-
-      if (currentSubSection?.type !== "tab") return;
-
       const column = currentSubSection.data[columnIndex];
       if (column && isTabNote(column)) {
-        column.noteLength = noteLength;
+        if (updater.strumSpreadAuto !== undefined) {
+          column.strumSpreadAuto = updater.strumSpreadAuto;
+        }
+        if (updater.strumSpreadSeconds !== undefined) {
+          column.strumSpreadSeconds = updater.strumSpreadSeconds;
+        }
       }
     });
   }
 
-  const currentIsRestStrum = columnData.chordEffects === "r";
+  function handlePreviewStrum() {
+    void playPreview({
+      data: [
+        column.firstString,
+        column.secondString,
+        column.thirdString,
+        column.fourthString,
+        column.fifthString,
+        column.sixthString,
+      ],
+      index: -1,
+      type: "chord",
+      chordEffects: column.chordEffects,
+      strumSpreadCompileValue: encodeStrumSpreadForCompile({
+        effects: column.chordEffects,
+        strumSpreadAuto: column.strumSpreadAuto,
+        strumSpreadSeconds: column.strumSpreadSeconds,
+      }),
+      customBpm: String(bpm),
+    });
+  }
 
   return (
     <motion.div
       key={columnData.id}
-      // id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
       style={{
         transform: CSS.Transform.toString(
@@ -395,44 +402,29 @@ function TabNotesColumn({
             </div>
           )}
 
-          {/* Chord Settings Dropdown */}
-          {isHovered || chordSettingDropdownIsOpen ? (
-            <DropdownMenu
-              modal={true}
+          {/* Strum settings — only for normal / arpeggiated strums */}
+          {showStrumSettings ? (
+            <StrumSettingsDropdown
+              effects={columnData.chordEffects}
+              bpm={bpm}
+              strumSpreadAuto={columnData.strumSpreadAuto ?? true}
+              strumSpreadSeconds={columnData.strumSpreadSeconds ?? null}
               open={chordSettingDropdownIsOpen}
-              onOpenChange={(open) => setChordSettingDropdownIsOpen(open)}
-            >
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="my-1 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
-                >
-                  <Ellipsis className="h-3 w-4 rotate-90" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent side={"bottom"}>
-                <DropdownMenuItem
-                  className="baseFlex !justify-between gap-2"
-                  onClick={() => addNewColumn(false)}
-                >
-                  Add chord before
-                  <BsPlus className="h-4 w-4" />
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="baseFlex !justify-between gap-2"
-                  onClick={() => addNewColumn(true)}
-                >
-                  Add chord after
-                  <BsPlus className="h-4 w-4" />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-primary" />
-                <NoteLengthDropdown
-                  value={columnData.noteLength}
-                  onValueChange={handleNoteLengthChange}
-                />
-              </DropdownMenuContent>
-            </DropdownMenu>
+              onOpenChange={setChordSettingDropdownIsOpen}
+              onStrumSpreadAutoChange={(auto) =>
+                updateStrumSpread({ strumSpreadAuto: auto })
+              }
+              onStrumSpreadSecondsChange={(seconds) =>
+                updateStrumSpread({
+                  strumSpreadAuto: false,
+                  strumSpreadSeconds: seconds,
+                })
+              }
+              onPreview={handlePreviewStrum}
+              previewDisabled={
+                previewMetadata.playing && previewMetadata.type === "chord"
+              }
+            />
           ) : (
             <div className="my-1 h-2.5 w-5"></div>
           )}

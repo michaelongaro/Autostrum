@@ -1,9 +1,9 @@
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import type { FullNoteLengths } from "~/stores/TabStore";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useTabStore } from "~/stores/TabStore";
 import ChordName from "~/components/ui/ChordName";
@@ -163,30 +163,19 @@ function PlaybackStrummedChord({
               className="baseVertFlex relative mb-2 h-[20px] text-lg"
             >
               <div className="baseFlex">
-                {strum.includes("v") && (
-                  <BsArrowDown
+                {(strum.includes("v") || strum.includes("^")) && (
+                  <ChordStrumIcon
+                    effects={strum}
                     style={{
+                      color:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
                       fill:
                         chordDisplayMode === "color" && chordColor
                           ? chordColor
                           : "currentColor",
-                      width: strum.includes(">") ? "18.5px" : "20px",
-                      height: strum.includes(">") ? "18.5px" : "20px",
                     }}
-                    strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
-                  />
-                )}
-                {strum.includes("^") && (
-                  <BsArrowUp
-                    style={{
-                      fill:
-                        chordDisplayMode === "color" && chordColor
-                          ? chordColor
-                          : "currentColor",
-                      width: strum.includes(">") ? "18.5px" : "20px",
-                      height: strum.includes(">") ? "18.5px" : "20px",
-                    }}
-                    strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
                   />
                 )}
 

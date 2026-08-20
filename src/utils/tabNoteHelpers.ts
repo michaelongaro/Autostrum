@@ -1,9 +1,11 @@
 import type {
   BaseNoteLengths,
   FullNoteLengths,
+  Strum,
   TabMeasureLine,
   TabNote,
 } from "~/stores/TabStore";
+import { encodeStrumSpreadForCompile } from "~/utils/strumEffectHelpers";
 
 // Type guards
 export function isTabNote(item: TabNote | TabMeasureLine): item is TabNote {
@@ -27,6 +29,8 @@ export function createTabNote(options?: {
   sixthString?: string;
   chordEffects?: string;
   noteLength?: FullNoteLengths;
+  strumSpreadAuto?: boolean;
+  strumSpreadSeconds?: number | null;
 }): TabNote {
   return {
     type: "note",
@@ -39,7 +43,25 @@ export function createTabNote(options?: {
     sixthString: options?.sixthString ?? "",
     chordEffects: options?.chordEffects ?? "",
     noteLength: options?.noteLength ?? "quarter",
+    strumSpreadAuto: options?.strumSpreadAuto ?? true,
+    strumSpreadSeconds: options?.strumSpreadSeconds ?? null,
     id: crypto.randomUUID(),
+  };
+}
+
+export function createStrum(options?: {
+  palmMute?: "" | "-" | "start" | "end";
+  strum?: string;
+  noteLength?: FullNoteLengths;
+  strumSpreadAuto?: boolean;
+  strumSpreadSeconds?: number | null;
+}): Strum {
+  return {
+    palmMute: options?.palmMute ?? "",
+    strum: options?.strum ?? "",
+    noteLength: options?.noteLength ?? "quarter",
+    strumSpreadAuto: options?.strumSpreadAuto ?? true,
+    strumSpreadSeconds: options?.strumSpreadSeconds ?? null,
   };
 }
 
@@ -97,7 +119,8 @@ export function setStringValue(
 
 // Legacy array conversion for playGeneratedAudioHelpers.ts
 // Array format: [0]=palmMute, [1]=firstString(lowE), [2]=secondString, ..., [6]=sixthString(highE),
-//               [7]=chordEffects, [8]=noteLength, [9]=id
+//               [7]=chordEffects, [8]=noteLength, [9]=id (overwritten with bpm at compile),
+//               [10]=strumSpread ("auto" | seconds | "")
 export function tabNoteToArray(note: TabNote): string[] {
   return [
     note.palmMute,
@@ -110,6 +133,11 @@ export function tabNoteToArray(note: TabNote): string[] {
     note.chordEffects,
     note.noteLength,
     note.id,
+    encodeStrumSpreadForCompile({
+      effects: note.chordEffects,
+      strumSpreadAuto: note.strumSpreadAuto,
+      strumSpreadSeconds: note.strumSpreadSeconds,
+    }),
   ];
 }
 
@@ -125,6 +153,7 @@ export function tabMeasureLineToArray(line: TabMeasureLine): string[] {
     line.bpmAfterLine !== null ? String(line.bpmAfterLine) : "-1", // chordEffects slot used for BPM
     "measureLine", // noteLength slot
     line.id,
+    "", // strum spread unused for measure lines
   ];
 }
 
