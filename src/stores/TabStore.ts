@@ -29,6 +29,7 @@ import {
 import { useShallow } from "zustand/shallow";
 import { isMobileOnly } from "react-device-detect";
 import { mapLoopRelativeChordIndexToFullTabIndex } from "~/utils/loopRangeHelpers";
+import { agentDebugLog } from "~/utils/agentDebugLog";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -870,7 +871,26 @@ const useTabStoreBase = create<TabState>()(
       setPlaybackSpeed: (playbackSpeed) =>
         set({ playbackSpeed: clampPlaybackSpeed(playbackSpeed) }),
       currentChordIndex: 0,
-      setCurrentChordIndex: (currentChordIndex) => set({ currentChordIndex }),
+      setCurrentChordIndex: (currentChordIndex) => {
+        // #region agent log
+        const prev = get();
+        agentDebugLog({
+          hypothesisId: "E",
+          location: "TabStore.ts:setCurrentChordIndex",
+          message: "setCurrentChordIndex called",
+          data: {
+            nextIndex: currentChordIndex,
+            prevIndex: prev.currentChordIndex,
+            editingLoopRange: prev.audioMetadata.editingLoopRange,
+            expandedLen: prev.expandedTabData?.length ?? null,
+            startLoopIndex: prev.audioMetadata.startLoopIndex,
+            endLoopIndex: prev.audioMetadata.endLoopIndex,
+            isZero: currentChordIndex === 0,
+          },
+        });
+        // #endregion
+        set({ currentChordIndex });
+      },
       playbackStartedAtAudioTime: null,
       playbackSessionId: 0,
       scheduledPlaybackNodes: [],
@@ -895,7 +915,12 @@ const useTabStoreBase = create<TabState>()(
           draftLoopEndIndex: endIndex,
         }),
       enterPlaybackLoopRangeEditor: () => {
-        const { audioMetadata, currentChordIndex, loopDelay } = get();
+        const {
+          audioMetadata,
+          currentChordIndex,
+          loopDelay,
+          expandedTabData,
+        } = get();
 
         const mappedChordIndex = mapLoopRelativeChordIndexToFullTabIndex({
           currentChordIndex,
@@ -904,6 +929,24 @@ const useTabStoreBase = create<TabState>()(
           fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
           loopDelay,
         });
+
+        // #region agent log
+        agentDebugLog({
+          hypothesisId: "A",
+          location: "TabStore.ts:enterPlaybackLoopRangeEditor",
+          message: "enter editor map + set",
+          data: {
+            currentChordIndex,
+            mappedChordIndex,
+            startLoopIndex: audioMetadata.startLoopIndex,
+            endLoopIndex: audioMetadata.endLoopIndex,
+            fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
+            loopDelay,
+            expandedLenBefore: expandedTabData?.length ?? null,
+            editingLoopRangeBefore: audioMetadata.editingLoopRange,
+          },
+        });
+        // #endregion
 
         set({
           draftLoopStartIndex: null,

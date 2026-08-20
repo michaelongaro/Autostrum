@@ -1,6 +1,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { Range } from "react-range";
 import { useTabStore } from "~/stores/TabStore";
+import { agentDebugLog } from "~/utils/agentDebugLog";
 
 interface PlaybackAudioRange {
   disabled: boolean;
@@ -70,6 +71,21 @@ function PlaybackAudioRange({
         }
 
         if (values[0] === undefined) return;
+
+        // #region agent log
+        agentDebugLog({
+          hypothesisId: "C",
+          location: "PlaybackAudioRange.tsx:onChange",
+          message: "Range onChange setCurrentChordIndex",
+          data: {
+            nextIndex: values[0],
+            prevIndex: currentChordIndex,
+            maxIndex,
+            editingLoopRange: audioMetadata.editingLoopRange,
+            metadataLen: currentlyPlayingMetadata?.length ?? null,
+          },
+        });
+        // #endregion
 
         if (values[0] < currentChordIndex) {
           // virtualization logic is set up to handle "forward" movement only, so we need to reset
