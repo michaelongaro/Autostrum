@@ -1,7 +1,7 @@
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
-import { getDynamicNoteLengthIcon, QuarterNote } from "~/utils/noteLengthIcons";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import type { FullNoteLengths } from "~/stores/TabStore";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
@@ -15,7 +15,6 @@ interface PlaybackStrummedChord {
   palmMute?: string;
   chordName?: string;
   chordColor?: string;
-  noteLength: FullNoteLengths;
   bpmToShow?: number;
   isFirstChord: boolean;
   isLastChord: boolean;
@@ -30,6 +29,7 @@ interface PlaybackStrummedChord {
   prevChordIsRest: boolean;
   currentChordIsRest: boolean;
   nextChordIsRest: boolean;
+  editingLoopRange: boolean;
 }
 
 function PlaybackStrummedChord({
@@ -38,7 +38,6 @@ function PlaybackStrummedChord({
   palmMute,
   chordName = "",
   chordColor = "",
-  noteLength,
   bpmToShow,
   isFirstChord,
   isLastChord,
@@ -53,6 +52,7 @@ function PlaybackStrummedChord({
   prevChordIsRest,
   currentChordIsRest,
   nextChordIsRest,
+  editingLoopRange,
 }: PlaybackStrummedChord) {
   const {
     chordDisplayMode,
@@ -69,6 +69,7 @@ function PlaybackStrummedChord({
   }));
   const showLoopNode =
     audioMetadata.editingLoopRange && typeof chordIndex === "number";
+
   const loopNodePresentation = showLoopNode
     ? getLoopRangeNodePresentation({
         index: chordIndex,
@@ -79,6 +80,22 @@ function PlaybackStrummedChord({
       })
     : null;
 
+  let bpmTopValue = "0px";
+
+  if (editingLoopRange) {
+    if (palmMute === "start") {
+      bpmTopValue = "-8px";
+    } else {
+      bpmTopValue = "16px";
+    }
+  } else {
+    if (palmMute === "start") {
+      bpmTopValue = "16px";
+    } else {
+      bpmTopValue = "40px";
+    }
+  }
+
   return (
     // Keep loop-range nodes outside the dimmed wrapper so chord dimming
     // cannot make an enabled + look disabled (or vice versa).
@@ -88,7 +105,10 @@ function PlaybackStrummedChord({
       >
         {bpmToShow && (
           <div
-            className={`baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground ${palmMute === "start" ? "top-[-20px]" : "top-[14px]"}`}
+            style={{
+              top: bpmTopValue,
+            }}
+            className="baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground"
           >
             <QuarterNote />
             <span>{bpmToShow}</span>

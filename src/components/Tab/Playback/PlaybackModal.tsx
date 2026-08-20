@@ -592,9 +592,10 @@ function PlaybackModal() {
         isLastChordInTab={isLastChordInTab}
         isDimmed={isDimmed}
         isHighlighted={isHighlighted}
+        editingLoopRange={audioMetadata.editingLoopRange}
       />
     ),
-    [loopDelay],
+    [loopDelay, audioMetadata.editingLoopRange],
   );
 
   return (
@@ -749,7 +750,7 @@ function PlaybackModal() {
 
 export default PlaybackModal;
 
-interface RenderChordByTypeProps {
+interface RenderChordByType {
   type: "tab" | "measureLine" | "strum" | "loopDelaySpacer";
   chordIndex: number;
   prevChord?:
@@ -768,6 +769,7 @@ interface RenderChordByTypeProps {
   isLastChordInTab: boolean;
   isDimmed: boolean;
   isHighlighted: boolean;
+  editingLoopRange: boolean;
 }
 
 function isPlaybackTabMeasureLine(
@@ -804,7 +806,8 @@ function RenderChordByType({
   isLastChordInTab,
   isDimmed,
   isHighlighted,
-}: RenderChordByTypeProps) {
+  editingLoopRange,
+}: RenderChordByType) {
   const prevChordNoteLength = prevChord
     ? prevChord.type === "strum" && !prevChord.isLastChord // don't want to have separate strumming patterns' note length guides be connected
       ? prevChord.data.noteLength
@@ -902,7 +905,6 @@ function RenderChordByType({
         isLastChord={isLastChord}
         isFirstChordInTab={isFirstChordInTab}
         isLastChordInTab={isLastChordInTab}
-        noteLength={chord?.data.noteLength || "quarter"}
         bpmToShow={chord?.data.showBpm ? chord?.data.bpm : undefined}
         chordName={chord?.data.chordName || ""}
         chordColor={chord?.data.chordColor || ""}
@@ -915,6 +917,7 @@ function RenderChordByType({
         prevChordIsRest={prevChordIsRest}
         currentChordIsRest={currentChordIsRest}
         nextChordIsRest={nextChordIsRest}
+        editingLoopRange={editingLoopRange}
       />
     );
   }
