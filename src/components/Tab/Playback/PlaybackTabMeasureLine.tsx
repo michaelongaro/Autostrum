@@ -2,6 +2,12 @@ import { Fragment } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
+import {
+  PLAYBACK_TAB_MEASURE_LINE_HEIGHT_PORTRAIT_PX,
+  PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX,
+  PLAYBACK_TAB_PALM_MUTE_CONNECTOR_TOP_PX,
+  PLAYBACK_TAB_STRING_ROW_HEIGHT_PX,
+} from "~/utils/playbackTabGeometry";
 
 interface PlaybackTabMeasureLine {
   columnData: string[];
@@ -45,8 +51,10 @@ function PlaybackTabMeasureLine({
       <div
         style={{
           opacity: isDimmed ? 0.5 : 1,
+          height: PLAYBACK_TAB_MEASURE_LINE_HEIGHT_PORTRAIT_PX,
+          width: PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX,
         }}
-        className="baseVertFlex mb-[2px] h-[222px] w-[1px]"
+        className="baseVertFlex mb-[2px]"
       >
         {columnData.map((note, index) => (
           <Fragment key={index}>
@@ -67,7 +75,7 @@ function PlaybackTabMeasureLine({
                   {note === "-" && (
                     <div
                       style={{
-                        top: "-26px",
+                        top: PLAYBACK_TAB_PALM_MUTE_CONNECTOR_TOP_PX,
                       }}
                       className="relative h-[1px] w-full bg-foreground"
                     ></div>
@@ -78,7 +86,13 @@ function PlaybackTabMeasureLine({
 
             {index > 0 && index < 7 && (
               <div className="baseFlex w-full">
-                <div className="h-[21px] w-[1px] bg-foreground/50"></div>
+                <div
+                  style={{
+                    height: PLAYBACK_TAB_STRING_ROW_HEIGHT_PX,
+                    width: PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX,
+                  }}
+                  className="bg-foreground/50"
+                ></div>
               </div>
             )}
           </Fragment>

@@ -26,7 +26,7 @@ function check(name, fn) {
 // so this script has zero build/transpile dependency. The browser e2e script
 // exercises the real module; this catches math regressions fast.
 
-const STATIC_TAB_ROW_HEIGHT_PX = 248;
+const STATIC_TAB_ROW_HEIGHT_PX = 221;
 const STATIC_TAB_TUNING_GUTTER_WIDTH_PX = 25;
 const STATIC_TAB_NOTES_COLUMN_WIDTH_PX = 34;
 const STATIC_TAB_END_LINE_WIDTH_PX = 1;

@@ -25,6 +25,12 @@ export const PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX = 1;
 export const PLAYBACK_TAB_MEASURE_LINE_HEIGHT_PX = 202;
 export const PLAYBACK_TAB_MEASURE_LINE_HEIGHT_PORTRAIT_PX = 222;
 
+/**
+ * Relative top offset for the palm-mute connector drawn inside a measure-line
+ * column (sits above the string stack while the host row stays h=0).
+ */
+export const PLAYBACK_TAB_PALM_MUTE_CONNECTOR_TOP_PX = -26;
+
 /** Playhead height matches the string span (tab staff / chord box). */
 export const PLAYBACK_TAB_HIGHLIGHT_HEIGHT_PX = PLAYBACK_TAB_STRINGS_HEIGHT_PX;
 export const PLAYBACK_TAB_HIGHLIGHT_HEIGHT_PORTRAIT_PX =

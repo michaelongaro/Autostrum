@@ -21,22 +21,21 @@ export const STATIC_TAB_STRING_ROW_HEIGHT_PX = 24;
 export const STATIC_TAB_STRINGS_HEIGHT_PX =
   STATIC_TAB_STRING_ROW_HEIGHT_PX * STATIC_TAB_STRING_COUNT;
 
-/**
- * Empty space above the first string / below the sixth string. Previously
- * held the 2px top/bottom container borders; kept so packed row height and
- * palm-mute / note-length alignment stay the same.
- */
-export const STATIC_TAB_BORDER_SPACER_PX = 0;
+/** String stack height used by the tuning gutter middle block. */
+export const STATIC_TAB_STAFF_BLOCK_HEIGHT_PX = STATIC_TAB_STRINGS_HEIGHT_PX;
 
-/** String stack plus the former top/bottom border spacers (8 + 144 + 8). */
-export const STATIC_TAB_STAFF_BLOCK_HEIGHT_PX =
-  STATIC_TAB_STRINGS_HEIGHT_PX + STATIC_TAB_BORDER_SPACER_PX * 2;
-
-/** Full height of one packed tab row (palm mute header + spacers + strings + footer). */
+/** Full height of one packed tab row (palm mute header + strings + footer). */
 export const STATIC_TAB_ROW_HEIGHT_PX = 221;
 
+/** Top margin above the palm-mute node inside a notes column. */
+export const STATIC_TAB_PALM_MUTE_MARGIN_TOP_PX = 8;
+
+/** Height of the palm-mute node row itself (excludes the top margin). */
+export const STATIC_TAB_PALM_MUTE_NODE_HEIGHT_PX = 24;
+
 /** Height of the palm mute node header at the top of every column. */
-export const STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX = 32;
+export const STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX =
+  STATIC_TAB_PALM_MUTE_MARGIN_TOP_PX + STATIC_TAB_PALM_MUTE_NODE_HEIGHT_PX;
 
 /** Height of the note length guide + chord effects footer at the bottom of every column. */
 export const STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX = 45;

@@ -7,6 +7,7 @@ import { type FullNoteLengths, useTabStore } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
+import { PLAYBACK_TAB_STRINGS_HEIGHT_PX } from "~/utils/playbackTabGeometry";
 
 interface PlaybackTabChord {
   columnData: string[];
@@ -97,7 +98,10 @@ function PlaybackTabChord({
                   className="baseVertFlex relative w-[34px]"
                 >
                   {isFirstChordInTab && (
-                    <div className="absolute left-0 top-3 h-[126px] w-[1px] bg-foreground/50"></div>
+                    <div
+                      className="absolute left-0 top-3 w-[1px] bg-foreground/50"
+                      style={{ height: PLAYBACK_TAB_STRINGS_HEIGHT_PX }}
+                    ></div>
                   )}
 
                   {isLastChordInTab && (

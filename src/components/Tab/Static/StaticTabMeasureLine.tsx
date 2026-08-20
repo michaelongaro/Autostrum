@@ -1,6 +1,5 @@
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
-  STATIC_TAB_BORDER_SPACER_PX,
   STATIC_TAB_MEASURE_LINE_WIDTH_PX,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
   STATIC_TAB_ROW_HEIGHT_PX,
@@ -87,12 +86,6 @@ function StaticTabMeasureLine({
           }}
         />
       </div>
-
-      {/* Former bottom container border — spacer only */}
-      <div
-        style={{ height: STATIC_TAB_BORDER_SPACER_PX }}
-        className="w-full shrink-0"
-      />
 
       <div
         style={{
