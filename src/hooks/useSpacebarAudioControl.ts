@@ -100,7 +100,22 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     function handleKeyDown(e: KeyboardEvent) {
       if (disabled) return;
 
-      if (useHoveredChordLocation && (!editing || showPlaybackModal)) return;
+      if (useHoveredChordLocation) {
+        if (!editing || showPlaybackModal) return;
+
+        const target = e.target;
+        if (
+          target instanceof HTMLElement &&
+          // should be able to use spacebar to control audio when focused on a <TabNote>
+          !target.id.includes("input") &&
+          (target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.tagName === "SELECT" ||
+            target.isContentEditable)
+        ) {
+          return;
+        }
+      }
 
       if (
         !countInTimer.showing &&
