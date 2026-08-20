@@ -14,6 +14,42 @@ export function getConcreteLoopEndIndex(
   return endLoopIndex;
 }
 
+/**
+ * Map a playback `currentChordIndex` (relative to the committed loop strip,
+ * which may include artificial viewport duplicates + loop-delay spacers) onto
+ * the corresponding full-tab metadata index for loop-range editing.
+ *
+ * Cycle length is `(concreteEnd - start + 1) + loopDelay` — one baseline copy
+ * before artificial duplication. Indices that land on delay spacers clamp to
+ * the last real chord in the loop so the editor stays on tab content.
+ */
+export function mapLoopRelativeChordIndexToFullTabIndex({
+  currentChordIndex,
+  startLoopIndex,
+  endLoopIndex,
+  fullTabMetadataLength,
+  loopDelay,
+}: {
+  currentChordIndex: number;
+  startLoopIndex: number;
+  endLoopIndex: number;
+  fullTabMetadataLength: number;
+  loopDelay: number;
+}): number {
+  const concreteEnd = getConcreteLoopEndIndex(
+    endLoopIndex,
+    fullTabMetadataLength,
+  );
+  const loopRangeLength = Math.max(1, concreteEnd - startLoopIndex + 1);
+  const cycleLength = loopRangeLength + Math.max(0, loopDelay);
+
+  const relativeInCycle =
+    ((currentChordIndex % cycleLength) + cycleLength) % cycleLength;
+  const relativeInRange = Math.min(relativeInCycle, loopRangeLength - 1);
+
+  return startLoopIndex + relativeInRange;
+}
+
 export function isDraftLoopRangeEmpty(
   draftStartIndex: number | null,
   draftEndIndex: number | null,
