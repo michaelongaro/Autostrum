@@ -88,7 +88,7 @@ function StaticTabNotesColumn({
       <div className="baseVertFlex size-full !justify-start">
         {/* Palm Mute Node */}
         <div
-          style={{ height: STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX }}
+          style={{ height: 24, marginTop: 8 }}
           className="baseVertFlex w-full"
         >
           <StaticPalmMuteNode value={columnData.palmMute} />
@@ -183,7 +183,7 @@ function StaticTabNotesColumn({
               lineHeight: "16px",
               color: "hsl(var(--screenshot-foreground))",
             }}
-            className="baseVertFlex relative mt-2 h-[19px] w-[1.5rem]"
+            className="baseVertFlex relative mt-2 h-[19px] w-[1.5rem] shrink-0"
           >
             {chordHasAtLeastOneNote(columnData) &&
               columnData.chordEffects?.includes("v") && (

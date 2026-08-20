@@ -53,7 +53,7 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="relative mt-[-15px] h-[1px] w-full"
+            className="relative mt-[-8px] h-[1px] w-full"
           ></div>
         </div>
       ) : (
