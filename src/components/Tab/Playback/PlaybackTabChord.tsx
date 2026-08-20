@@ -32,7 +32,7 @@ function PlaybackTabChord({
   isFirstChord,
   isLastChord,
   isFirstChordInTab,
-  isLastChordInTab: _isLastChordInTab,
+  isLastChordInTab,
   isHighlighted,
   isDimmed,
   prevChordNoteLength,
@@ -98,6 +98,10 @@ function PlaybackTabChord({
                 >
                   {isFirstChordInTab && (
                     <div className="absolute left-0 top-3 h-[126px] w-[1px] bg-foreground/50"></div>
+                  )}
+
+                  {isLastChordInTab && (
+                    <div className="absolute right-0 top-3 h-[126px] w-[1px] bg-foreground/50"></div>
                   )}
 
                   {columnData.slice(1, 7).map((stringNote, stringOffset) => {

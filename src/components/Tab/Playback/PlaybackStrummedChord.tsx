@@ -42,7 +42,7 @@ function PlaybackStrummedChord({
   isFirstChord,
   isLastChord,
   isFirstChordInTab,
-  isLastChordInTab: _isLastChordInTab,
+  isLastChordInTab,
   isHighlighted = false,
   isDimmed,
   beatIndicator,
@@ -126,8 +126,8 @@ function PlaybackStrummedChord({
           // key is just used here to force a re-render, borderRadius was glitchy
           key={isFirstChordInTab ? "firstRounded" : "regular"}
           style={{
-            borderLeft: isFirstChordInTab ? "2px solid" : "none",
-            borderRadius: isFirstChordInTab ? "10px 0 0 10px" : "none",
+            borderLeft: isFirstChordInTab ? "1px solid" : "none",
+            borderRight: isLastChordInTab ? "1px solid" : "none",
             borderTop: "1px solid",
             borderBottom: "1px solid",
           }}
