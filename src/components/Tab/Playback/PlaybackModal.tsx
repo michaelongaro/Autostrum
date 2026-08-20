@@ -886,6 +886,8 @@ function RenderChordByType({
         columnData={chord.data.chordData}
         chordIndex={chordIndex}
         isDimmed={isDimmed}
+        showBpm={chord.data.showBpm}
+        bpmToShow={chord.data.showBpm ? chord.data.bpm : undefined}
       />
     );
   }

@@ -9,6 +9,7 @@ import {
 } from "~/stores/TabStore";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
+import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
 
 /**
  * Fine-grained tabData selectors for the editing tree.
@@ -132,6 +133,35 @@ export const useTabSubSectionBpm = (
   return useTabStore((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     return sub?.type === "tab" ? sub.bpm : -1;
+  });
+};
+
+/**
+ * Sticky measure-line BPM display: whether to show the above-staff label and
+ * the effective before/after BPMs (placeholder uses bpmBefore).
+ */
+export const useMeasureLineBpmDisplay = (
+  sectionIndex: number,
+  subSectionIndex: number,
+  columnIndex: number,
+) => {
+  return useTabStore((state) => {
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    if (sub?.type !== "tab") {
+      return {
+        show: false,
+        bpm: state.bpm,
+        bpmBefore: state.bpm,
+        bpmAfter: state.bpm,
+      };
+    }
+
+    return getMeasureLineBpmDisplay({
+      columns: sub.data,
+      measureLineIndex: columnIndex,
+      subSectionBpm: sub.bpm,
+      baselineBpm: state.bpm,
+    });
   });
 };
 

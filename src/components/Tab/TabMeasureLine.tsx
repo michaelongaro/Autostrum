@@ -17,7 +17,7 @@ import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
   useTabColumnNeighborMeta,
   useTabMeasureLineColumnData,
-  useTabSubSectionBpm,
+  useMeasureLineBpmDisplay,
 } from "~/hooks/useTabDataSelectors";
 import { useMeasureLineHasBeenPlayed } from "~/hooks/useColumnPlaybackHighlight";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
@@ -71,7 +71,11 @@ function TabMeasureLine({
     columnIndex,
   );
 
-  const subSectionBpm = useTabSubSectionBpm(sectionIndex, subSectionIndex);
+  const measureLineBpmDisplay = useMeasureLineBpmDisplay(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  );
 
   const {
     attributes,
@@ -86,8 +90,7 @@ function TabMeasureLine({
     disabled: !reorderingColumns, // hopefully this is a performance improvement?
   });
 
-  const { bpm, setTabData } = useTabStore((state) => ({
-    bpm: state.bpm,
+  const { setTabData } = useTabStore((state) => ({
     setTabData: state.setTabData,
   }));
 
@@ -175,10 +178,8 @@ function TabMeasureLine({
   }
 
   function inputPlaceholder() {
-    if (subSectionBpm === -1) {
-      return bpm === -1 ? "" : bpm.toString();
-    }
-    return subSectionBpm.toString();
+    // Sticky: empty input means keep the BPM already in effect before this line
+    return measureLineBpmDisplay.bpmBefore.toString();
   }
 
   return (
@@ -213,13 +214,30 @@ function TabMeasureLine({
         className="absolute left-0 w-full bg-background"
       ></div>
 
-      {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}
+      {/* Palm mute connecting line + optional BPM label above the staff */}
       <div
-        className="baseFlex w-full shrink-0"
+        className="baseFlex relative w-full shrink-0"
         style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 4 }}
       >
+        {measureLineBpmDisplay.show && (
+          <div
+            className={`baseFlex absolute left-1/2 z-10 -translate-x-1/2 gap-[2px] text-foreground ${
+              columnData.isInPalmMuteSection ? "top-0" : "top-2"
+            }`}
+          >
+            <QuarterNote className="h-3" />
+            <p className="text-center text-xs">
+              {measureLineBpmDisplay.bpm.toString()}
+            </p>
+          </div>
+        )}
+
         {columnData.isInPalmMuteSection && (
-          <div className="mb-1 h-[1px] w-full bg-foreground"></div>
+          <div
+            className={`h-[1px] w-full bg-foreground ${
+              measureLineBpmDisplay.show ? "mt-5" : "mb-1"
+            }`}
+          ></div>
         )}
       </div>
 

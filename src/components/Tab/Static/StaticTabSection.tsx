@@ -17,6 +17,7 @@ import {
 } from "~/stores/TabStore";
 import type { COLORS, THEME } from "~/stores/TabStore";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
+import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import {
   buildStaticTabRowLayout,
@@ -77,8 +78,9 @@ function FullStaticTabSection({
   theme,
   overflowX,
 }: StaticTabSection) {
-  const { tuning } = useTabStore((state) => ({
+  const { tuning, bpm } = useTabStore((state) => ({
     tuning: state.tuning,
+    bpm: state.bpm,
   }));
 
   return (
@@ -93,6 +95,8 @@ function FullStaticTabSection({
           subSectionData.data.length - 1,
           color,
           theme,
+          subSectionData.bpm,
+          bpm,
         )}
       </div>
     </SectionCard>
@@ -104,8 +108,9 @@ function VirtualizedStaticTabSection({
   color,
   theme,
 }: StaticTabSection) {
-  const { tuning } = useTabStore((state) => ({
+  const { tuning, bpm } = useTabStore((state) => ({
     tuning: state.tuning,
+    bpm: state.bpm,
   }));
 
   // App zoom — triggers a remasure when the setting changes. Visible-range
@@ -268,6 +273,8 @@ function VirtualizedStaticTabSection({
           subSectionData.data.length - 1,
           color,
           theme,
+          subSectionData.bpm,
+          bpm,
         )}
       </>
     );
@@ -306,6 +313,8 @@ function VirtualizedStaticTabSection({
                 row.endIndex,
                 color,
                 theme,
+                subSectionData.bpm,
+                bpm,
               )}
             </div>
           ))}
@@ -450,6 +459,8 @@ function renderColumnRange(
   endIndex: number,
   color: COLORS,
   theme: THEME,
+  subSectionBpm: number,
+  baselineBpm: number,
 ): ReactNode[] {
   const renderedColumns: ReactNode[] = [];
 
@@ -458,8 +469,19 @@ function renderColumnRange(
     if (column === undefined) continue;
 
     if (isTabMeasureLine(column)) {
+      const { show, bpm } = getMeasureLineBpmDisplay({
+        columns,
+        measureLineIndex: index,
+        subSectionBpm,
+        baselineBpm,
+      });
       renderedColumns.push(
-        <StaticTabMeasureLine key={column.id} columnData={column} />,
+        <StaticTabMeasureLine
+          key={column.id}
+          isInPalmMuteSection={column.isInPalmMuteSection}
+          showBpm={show}
+          bpmToShow={show ? bpm : undefined}
+        />,
       );
     } else {
       renderedColumns.push(

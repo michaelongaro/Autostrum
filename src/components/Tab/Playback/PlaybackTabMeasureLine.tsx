@@ -7,12 +7,18 @@ interface PlaybackTabMeasureLine {
   columnData: string[];
   chordIndex?: number;
   isDimmed: boolean;
+  /** Show BPM only when tempo changes across this measure line. */
+  showBpm: boolean;
+  /** Effective post-line BPM to display when `showBpm` is true. */
+  bpmToShow?: number;
 }
 
 function PlaybackTabMeasureLine({
   columnData,
   chordIndex,
   isDimmed,
+  showBpm,
+  bpmToShow,
 }: PlaybackTabMeasureLine) {
   const { audioMetadata, draftLoopStartIndex, draftLoopEndIndex } = useTabStore(
     (state) => ({
@@ -46,16 +52,14 @@ function PlaybackTabMeasureLine({
           <Fragment key={index}>
             {index === 0 && (
               <>
-                {columnData[7] && columnData[7] !== "-1" && (
+                {showBpm && bpmToShow !== undefined && (
                   <div
                     className={`baseFlex absolute gap-[2px] text-foreground ${
                       note === "-" ? "-top-1" : "top-3"
                     }`}
                   >
                     <QuarterNote />
-                    <p className="text-center text-xs">
-                      {columnData[7].toString()}
-                    </p>
+                    <p className="text-center text-xs">{bpmToShow.toString()}</p>
                   </div>
                 )}
 
