@@ -94,7 +94,12 @@ export interface TabMeasureLine {
    * Shows a connecting line above the measure line when true.
    */
   isInPalmMuteSection: boolean;
-  bpmAfterLine: number | null; // null means no BPM change
+  /**
+   * Explicit BPM for notes after this measure line.
+   * `null` means keep the last defined BPM (sticky) — subsection/tab baseline
+   * until the first explicit measure-line BPM in the subsection.
+   */
+  bpmAfterLine: number | null;
   id: string;
 }
 

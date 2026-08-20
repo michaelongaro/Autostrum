@@ -1,5 +1,4 @@
 import { QuarterNote } from "~/utils/noteLengthIcons";
-import type { TabMeasureLine as TabMeasureLineType } from "~/stores/TabStore";
 import {
   STATIC_TAB_BORDER_SPACER_PX,
   STATIC_TAB_MEASURE_LINE_WIDTH_PX,
@@ -11,10 +10,21 @@ import {
 } from "~/utils/staticTabGeometry";
 
 interface StaticTabMeasureLineProps {
-  columnData: TabMeasureLineType;
+  /** Whether this measure line sits inside a palm-mute span. */
+  isInPalmMuteSection: boolean;
+  /**
+   * When true, render the BPM label above the staff (tempo changes across
+   * this measure line). Value is the effective post-line BPM.
+   */
+  showBpm: boolean;
+  bpmToShow?: number;
 }
 
-function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
+function StaticTabMeasureLine({
+  isInPalmMuteSection,
+  showBpm,
+  bpmToShow,
+}: StaticTabMeasureLineProps) {
   return (
     <div
       style={{
@@ -24,30 +34,28 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
       className="baseVertFlex relative !justify-start"
     >
       <div
-        style={{ height: columnData.isInPalmMuteSection ? "0px" : "12px" }}
+        style={{ height: isInPalmMuteSection ? "0px" : "12px" }}
         className="w-full shrink-0"
       />
 
-      {/* BPM indicator */}
+      {/* BPM indicator — only when chord-before BPM ≠ chord-after BPM */}
 
-      {columnData.bpmAfterLine !== null ? (
+      {showBpm && bpmToShow !== undefined ? (
         <div
           style={{
             color: "hsl(var(--screenshot-foreground))",
           }}
-          className={`baseFlex shrink-0 gap-[2px] ${columnData.isInPalmMuteSection ? "h-4" : "h-8"}`}
+          className={`baseFlex shrink-0 gap-[2px] ${isInPalmMuteSection ? "h-4" : "h-8"}`}
         >
           <QuarterNote />
-          <p className="text-center text-xs">
-            {columnData.bpmAfterLine.toString()}
-          </p>
+          <p className="text-center text-xs">{bpmToShow.toString()}</p>
         </div>
       ) : (
         <div className="h-4 w-full shrink-0"></div>
       )}
 
       {/* Palm mute connecting line */}
-      {columnData.isInPalmMuteSection ? (
+      {isInPalmMuteSection ? (
         <div className="baseFlex h-4 w-full shrink-0">
           <div
             style={{
@@ -58,9 +66,7 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
         </div>
       ) : (
         <>
-          {columnData.bpmAfterLine === null && (
-            <div className="h-4 w-full shrink-0"></div>
-          )}
+          {!showBpm && <div className="h-4 w-full shrink-0"></div>}
         </>
       )}
 
@@ -74,7 +80,7 @@ function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
           style={{
             width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
             height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
-            marginTop: columnData.isInPalmMuteSection
+            marginTop: isInPalmMuteSection
               ? STATIC_TAB_STAFF_LINE_INSET_PX
               : "0px",
             backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",

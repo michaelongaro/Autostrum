@@ -9,6 +9,7 @@ import {
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
+import { applyStickyMeasureLineBpm } from "./measureLineBpm";
 import { isTabMeasureLine, isTabNote } from "./tabNoteHelpers";
 
 interface UpdateElapsedSecondsInSectionProgression {
@@ -125,12 +126,7 @@ function updateElapsedTimeForTabSection({
 
   for (const column of subSection.data) {
     if (isTabMeasureLine(column)) {
-      const specifiedBpmToUsePostMeasureLine = column.bpmAfterLine;
-      if (specifiedBpmToUsePostMeasureLine !== null) {
-        currentBpm = specifiedBpmToUsePostMeasureLine;
-      } else {
-        currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
-      }
+      currentBpm = applyStickyMeasureLineBpm(currentBpm, column.bpmAfterLine);
       // Measure lines are ornamental and have 0 duration
       continue;
     }
