@@ -28,6 +28,7 @@ import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScroll
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import PlaybackAnimatedStrip from "~/components/Tab/Playback/PlaybackAnimatedStrip";
+import { agentDebugLog } from "~/utils/agentDebugLog";
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import {
   computePlaybackChordLayoutData,
@@ -202,7 +203,37 @@ function PlaybackModal() {
     // Orientation recompiles can shrink artificial loops; keep the index in range.
     const clampedIndex =
       currentChordIndex >= expandedTabData.length ? 0 : currentChordIndex;
+    // #region agent log
+    agentDebugLog({
+      hypothesisId: "B",
+      location: "PlaybackModal.tsx:expandedTabDataEffect",
+      message: "expandedTabData changed; evaluating clamp",
+      data: {
+        currentChordIndex,
+        expandedLen: expandedTabData.length,
+        previousExpandedLen: previousExpandedTabData?.length ?? null,
+        clampedIndex,
+        willClampToZero:
+          currentChordIndex >= expandedTabData.length && clampedIndex === 0,
+        editingLoopRange: audioMetadata.editingLoopRange,
+        playing: audioMetadata.playing,
+      },
+    });
+    // #endregion
     if (clampedIndex !== currentChordIndex) {
+      // #region agent log
+      agentDebugLog({
+        hypothesisId: "B",
+        location: "PlaybackModal.tsx:expandedTabDataEffect:clamp",
+        message: "CLAMP applied setCurrentChordIndex",
+        data: {
+          from: currentChordIndex,
+          to: clampedIndex,
+          expandedLen: expandedTabData.length,
+          editingLoopRange: audioMetadata.editingLoopRange,
+        },
+      });
+      // #endregion
       setCurrentChordIndex(clampedIndex);
       prevChordIndexRef.current = clampedIndex;
     }
@@ -214,6 +245,7 @@ function PlaybackModal() {
     expandedTabData,
     currentChordIndex,
     audioMetadata.playing,
+    audioMetadata.editingLoopRange,
     showPlaybackModal,
     setCurrentChordIndex,
     reanchorPlaybackStripAnimation,

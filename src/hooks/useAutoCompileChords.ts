@@ -14,6 +14,7 @@ import debounce from "lodash.debounce";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 import { appendNewlyAddedSectionsToProgression } from "~/utils/appendNewlyAddedSectionsToProgression";
+import { agentDebugLog } from "~/utils/agentDebugLog";
 
 /**
  * Recompiles playback metadata when tab content / playback settings change.
@@ -155,6 +156,12 @@ function useAutoCompileChords() {
           setSectionProgression,
         });
       } else {
+        const startLoopIndex = audioMetadata.editingLoopRange
+          ? 0
+          : audioMetadata.startLoopIndex;
+        const endLoopIndex = audioMetadata.editingLoopRange
+          ? -1
+          : audioMetadata.endLoopIndex;
         const expandedTabData = expandFullTab({
           tabData,
           location: audioMetadata.location,
@@ -163,15 +170,31 @@ function useAutoCompileChords() {
           baselineBpm: bpm,
           playbackSpeed,
           setPlaybackMetadata,
-          startLoopIndex: audioMetadata.editingLoopRange
-            ? 0
-            : audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.editingLoopRange
-            ? -1
-            : audioMetadata.endLoopIndex,
+          startLoopIndex,
+          endLoopIndex,
           visiblePlaybackContainerWidth,
           loopDelay,
         });
+
+        // #region agent log
+        const store = getTabStore();
+        agentDebugLog({
+          hypothesisId: "D",
+          location: "useAutoCompileChords.ts:setExpandedTabData",
+          message: "recompile expandedTabData",
+          data: {
+            editingLoopRange: audioMetadata.editingLoopRange,
+            startLoopIndexUsed: startLoopIndex,
+            endLoopIndexUsed: endLoopIndex,
+            committedStart: audioMetadata.startLoopIndex,
+            committedEnd: audioMetadata.endLoopIndex,
+            newExpandedLen: expandedTabData.chords.length,
+            prevExpandedLen: store.expandedTabData?.length ?? null,
+            currentChordIndex: store.currentChordIndex,
+            fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
+          },
+        });
+        // #endregion
 
         setExpandedTabData(expandedTabData.chords);
       }
