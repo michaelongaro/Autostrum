@@ -76,7 +76,6 @@ import {
   EDITING_TAB_FOOTER_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_INSET_PX,
-  EDITING_TAB_STRING_ROW_HEIGHT_PX,
   EDITING_TAB_TUNING_PALM_MUTE_SPACER_PX,
 } from "~/utils/editingTabGeometry";
 import MiscellaneousControls from "./MiscellaneousControls";
