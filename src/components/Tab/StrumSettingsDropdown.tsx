@@ -79,13 +79,13 @@ function StrumSettingsDropdown({
 
       <DropdownMenuContent
         side="bottom"
-        className="baseVertFlex w-[260px] gap-3 p-3"
+        className="baseVertFlex w-[280px] gap-3 p-3"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <div className="baseFlex w-full !justify-between gap-2">
-          <div className="baseFlex min-w-0 gap-2">
+          <div className="baseFlex min-w-0 flex-1 gap-2">
             <ChordStrumIcon effects={effects} size="18px" />
-            <span className="truncate text-sm font-medium">
+            <span className="text-sm font-medium leading-tight">
               {getStrumDisplayName(effects)}
             </span>
           </div>
