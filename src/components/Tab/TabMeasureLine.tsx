@@ -217,12 +217,13 @@ function TabMeasureLine({
       {/* Palm mute connecting line + optional BPM label above the staff */}
       <div
         className="baseFlex relative w-full shrink-0"
-        style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 4 }}
+        style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}
       >
         {measureLineBpmDisplay.show && (
           <div
             className={`baseFlex absolute left-1/2 z-10 -translate-x-1/2 gap-[2px] text-foreground ${
-              columnData.isInPalmMuteSection ? "top-0" : "top-2"
+              // Lift above the centered PM connector so the label has clear air
+              columnData.isInPalmMuteSection ? "-top-1" : "top-2"
             }`}
           >
             <QuarterNote className="h-3" />
@@ -233,11 +234,7 @@ function TabMeasureLine({
         )}
 
         {columnData.isInPalmMuteSection && (
-          <div
-            className={`h-[1px] w-full bg-foreground ${
-              measureLineBpmDisplay.show ? "mt-5" : "mb-1"
-            }`}
-          ></div>
+          <div className="h-[1px] w-full bg-foreground"></div>
         )}
       </div>
 
