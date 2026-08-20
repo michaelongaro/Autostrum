@@ -15,7 +15,6 @@ import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import { getConcreteDraftLoopRange } from "~/utils/loopRangeHelpers";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 interface PlaybackAudioControls {
@@ -59,9 +58,7 @@ function PlaybackAudioControls({
     playbackMetadata,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
-    draftLoopStartIndex,
-    draftLoopEndIndex,
-    initDraftLoopRangeFromAudioMetadata,
+    setDraftLoopRange,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
@@ -83,17 +80,8 @@ function PlaybackAudioControls({
     playbackMetadata: state.playbackMetadata,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
-    draftLoopStartIndex: state.draftLoopStartIndex,
-    draftLoopEndIndex: state.draftLoopEndIndex,
-    initDraftLoopRangeFromAudioMetadata:
-      state.initDraftLoopRangeFromAudioMetadata,
+    setDraftLoopRange: state.setDraftLoopRange,
   }));
-
-  const loopRange = getConcreteDraftLoopRange(
-    draftLoopStartIndex,
-    draftLoopEndIndex,
-    audioMetadata.fullTabMetadataLength,
-  );
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
@@ -306,16 +294,14 @@ function PlaybackAudioControls({
           <div className="baseFlex w-full gap-4">
             <div className="baseFlex w-9 !justify-start self-start">
               {formatSecondsToMinutes(
-                playbackMetadata?.[
-                  audioMetadata.editingLoopRange
-                    ? loopRange[0]
-                    : currentChordIndex
-                ]?.elapsedSeconds ?? 0,
+                playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
               )}
             </div>
 
             <PlaybackAudioRange
-              disabled={disablePlayButton}
+              disabled={
+                disablePlayButton && !audioMetadata.editingLoopRange
+              }
               chordDurations={chordDurations}
               setChordRepetitions={setChordRepetitions}
               scrollPositionsLength={scrollPositionsLength}
@@ -323,11 +309,8 @@ function PlaybackAudioControls({
 
             <div className="baseFlex w-9 !justify-end self-start">
               {formatSecondsToMinutes(
-                playbackMetadata?.[
-                  audioMetadata.editingLoopRange
-                    ? loopRange[1]
-                    : playbackMetadata?.length - 1
-                ]?.elapsedSeconds ?? 0,
+                playbackMetadata?.[playbackMetadata?.length - 1]
+                  ?.elapsedSeconds ?? 0,
               )}
             </div>
           </div>
@@ -341,9 +324,10 @@ function PlaybackAudioControls({
               className="h-8 w-8 p-1"
               onPressedChange={(value) => {
                 if (value) {
-                  initDraftLoopRangeFromAudioMetadata();
-                  setCurrentChordIndex(audioMetadata.startLoopIndex);
+                  // Blank slate so all + nodes are visible for picking.
+                  setDraftLoopRange({ startIndex: null, endIndex: null });
                 } else {
+                  setDraftLoopRange({ startIndex: null, endIndex: null });
                   setCurrentChordIndex(0);
                 }
 
@@ -369,7 +353,9 @@ function PlaybackAudioControls({
             )}
 
           <PlaybackAudioRange
-            disabled={disablePlayButton}
+            disabled={
+              disablePlayButton && !audioMetadata.editingLoopRange
+            }
             chordDurations={chordDurations}
             setChordRepetitions={setChordRepetitions}
             scrollPositionsLength={scrollPositionsLength}
@@ -378,11 +364,7 @@ function PlaybackAudioControls({
           <div className="baseFlex w-full !justify-between">
             <div className="baseFlex w-9 !justify-start self-start">
               {formatSecondsToMinutes(
-                playbackMetadata?.[
-                  audioMetadata.editingLoopRange
-                    ? loopRange[0]
-                    : currentChordIndex
-                ]?.elapsedSeconds ?? 0,
+                playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
               )}
             </div>
 
@@ -516,11 +498,8 @@ function PlaybackAudioControls({
 
             <div className="baseFlex w-9 !justify-end self-start">
               {formatSecondsToMinutes(
-                playbackMetadata?.[
-                  audioMetadata.editingLoopRange
-                    ? loopRange[1]
-                    : playbackMetadata?.length - 1
-                ]?.elapsedSeconds ?? 0,
+                playbackMetadata?.[playbackMetadata?.length - 1]
+                  ?.elapsedSeconds ?? 0,
               )}
             </div>
           </div>

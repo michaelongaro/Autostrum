@@ -1,10 +1,6 @@
-import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
-import { getTrackBackground, Range } from "react-range";
+import { type Dispatch, type SetStateAction } from "react";
+import { Range } from "react-range";
 import { useTabStore } from "~/stores/TabStore";
-import {
-  getConcreteDraftLoopRange,
-  snapLoopRangeIndexOffOrnamental,
-} from "~/utils/loopRangeHelpers";
 
 interface PlaybackAudioRange {
   disabled: boolean;
@@ -25,59 +21,13 @@ function PlaybackAudioRange({
     currentlyPlayingMetadata,
     audioMetadata,
     pauseAudio,
-    draftLoopStartIndex,
-    draftLoopEndIndex,
-    setDraftLoopRange,
-    playbackMetadata,
   } = useTabStore((state) => ({
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
     pauseAudio: state.pauseAudio,
-    draftLoopStartIndex: state.draftLoopStartIndex,
-    draftLoopEndIndex: state.draftLoopEndIndex,
-    setDraftLoopRange: state.setDraftLoopRange,
-    playbackMetadata: state.playbackMetadata,
   }));
-
-  const prevEditingLoopRangeState = useRef(audioMetadata.editingLoopRange);
-
-  const loopRange = getConcreteDraftLoopRange(
-    draftLoopStartIndex,
-    draftLoopEndIndex,
-    audioMetadata.fullTabMetadataLength,
-  );
-
-  // keeps draft loop range in sync when changing selected section back to full
-  useEffect(() => {
-    if (
-      audioMetadata.startLoopIndex === 0 &&
-      audioMetadata.endLoopIndex === -1 &&
-      !audioMetadata.editingLoopRange
-    ) {
-      setDraftLoopRange({ startIndex: null, endIndex: null });
-    }
-  }, [
-    audioMetadata.startLoopIndex,
-    audioMetadata.endLoopIndex,
-    audioMetadata.editingLoopRange,
-    setDraftLoopRange,
-  ]);
-
-  useEffect(() => {
-    // Check if the value has changed from true to false or false to true
-    if (prevEditingLoopRangeState.current !== audioMetadata.editingLoopRange) {
-      setCurrentChordIndex(
-        audioMetadata.editingLoopRange ? loopRange[0] || 0 : 0,
-      );
-    }
-
-    // Update ref to the current value for the next render
-    prevEditingLoopRangeState.current = audioMetadata.editingLoopRange;
-  }, [audioMetadata.editingLoopRange, loopRange, setCurrentChordIndex]);
-
-  // might want to do something dynamic visually with isDragged prop for thumbs
 
   // used to keep currentChordIndex within bounds of the currently playing metadata
   // when the tab is artifically extended to fit within the user's viewport
@@ -100,216 +50,72 @@ function PlaybackAudioRange({
   }
 
   return (
-    <>
-      {audioMetadata.editingLoopRange ? (
-        <Range
-          key={"rangeTwoThumbs"} // needed so thumb(s) are properly initialized
-          label="Start/end slider to control range to loop within current tab"
-          step={1}
-          min={0}
-          max={audioMetadata.fullTabMetadataLength - 1}
-          draggableTrack
-          values={loopRange}
-          onChange={(newLoopRange) => {
-            let nextStart = newLoopRange[0] ?? 0;
-            let nextEnd = newLoopRange[1] ?? 0;
+    <Range
+      key={"rangeOneThumb"} // needed so thumb is properly initialized
+      label="Slider to control the progress within the current tab"
+      step={1}
+      min={0}
+      max={maxIndex}
+      values={[
+        mapToRange(
+          currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
+          0,
+          maxIndex,
+        ),
+      ]}
+      disabled={disabled}
+      onChange={(values) => {
+        if (audioMetadata.playing) {
+          pauseAudio();
+        }
 
-            // react-range doesn't allow for a range of 0
-            if (Math.abs(nextStart - nextEnd) === 0) return;
+        if (values[0] === undefined) return;
 
-            const prevStart = loopRange[0];
-            const prevEnd = loopRange[1];
-            const maxIndex = audioMetadata.fullTabMetadataLength - 1;
+        if (values[0] < currentChordIndex) {
+          // virtualization logic is set up to handle "forward" movement only, so we need to reset
+          // whenever we move backwards to ensure the correct chords are rendered
+          setChordRepetitions(new Array(scrollPositionsLength).fill(0));
+        }
 
-            // Never let either thumb rest on a measure line / ornamental column.
-            if (nextStart !== prevStart) {
-              const snappedStart = snapLoopRangeIndexOffOrnamental({
-                index: nextStart,
-                moveDirection: nextStart > prevStart ? 1 : -1,
-                playbackMetadata,
-                minIndex: 0,
-                maxIndex,
-              });
-              if (snappedStart === null) return;
-              nextStart = snappedStart;
-            }
-
-            if (nextEnd !== prevEnd) {
-              const snappedEnd = snapLoopRangeIndexOffOrnamental({
-                index: nextEnd,
-                moveDirection: nextEnd > prevEnd ? 1 : -1,
-                playbackMetadata,
-                minIndex: 0,
-                maxIndex,
-              });
-              if (snappedEnd === null) return;
-              nextEnd = snappedEnd;
-            }
-
-            if (nextStart >= nextEnd) return;
-
-            const startChanged = nextStart !== prevStart;
-            const endChanged = nextEnd !== prevEnd;
-            if (!startChanged && !endChanged) return;
-
-            // Window shift (both thumbs moved): scroll to the start node.
-            // Otherwise scroll to whichever boundary changed.
-            if (startChanged && endChanged) {
-              setCurrentChordIndex(nextStart);
-            } else if (startChanged) {
-              setCurrentChordIndex(nextStart);
-            } else {
-              setCurrentChordIndex(nextEnd);
-            }
-
-            setDraftLoopRange({
-              startIndex: nextStart,
-              endIndex: nextEnd,
-            });
-          }}
-          renderTrack={({ props, children, disabled }) => (
-            <div
-              onMouseDown={props.onMouseDown}
-              onTouchStart={props.onTouchStart}
-              style={{
-                ...props.style,
-                display: "flex",
-                width: "100%",
-              }}
-            >
-              <div
-                ref={props.ref}
-                style={{
-                  height: "8px",
-                  width: "100%",
-                  borderRadius: "4px",
-                  filter: disabled ? "brightness(0.75)" : "none",
-                  background: getTrackBackground({
-                    values: loopRange,
-                    colors: [
-                      "hsl(var(--gray) / 0.75)",
-                      "hsl(var(--primary))",
-                      "hsl(var(--gray) / 0.75)",
-                    ],
-                    min: 0,
-                    max: audioMetadata.fullTabMetadataLength - 1,
-                  }),
-                  alignSelf: "center",
-                }}
-                className="transition-all"
-              >
-                {children}
-              </div>
-            </div>
-          )}
-          renderThumb={({ props, index }) => {
-            // react-range was including a key value inside of props
-            const { key, ...thumbProps } = props;
-
-            return (
-              <div
-                key={`${key}-${index}-toggle`}
-                {...thumbProps}
-                style={{
-                  ...thumbProps.style,
-                }}
-                className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
-              />
-            );
-          }}
-        />
-      ) : (
-        <Range
-          key={"rangeOneThumb"} // needed so thumb is properly initialized
-          label="Slider to control the progress within the current tab"
-          step={1}
-          min={0}
-          max={maxIndex}
-          values={[
-            mapToRange(
-              currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
-              0,
-              maxIndex,
-            ),
-          ]}
-          disabled={disabled}
-          onChange={(values) => {
+        setCurrentChordIndex(values[0]);
+      }}
+      renderTrack={({ props, children, disabled }) => (
+        <div
+          onMouseDown={props.onMouseDown}
+          onTouchStart={props.onTouchStart}
+          onPointerDown={() => {
             if (audioMetadata.playing) {
               pauseAudio();
             }
-
-            if (values[0] === undefined) return;
-
-            if (values[0] < currentChordIndex) {
-              // virtualization logic is set up to handle "forward" movement only, so we need to reset
-              // whenever we move backwards to ensure the correct chords are rendered
-              setChordRepetitions(new Array(scrollPositionsLength).fill(0));
-            }
-
-            setCurrentChordIndex(values[0]);
           }}
-          renderTrack={({ props, children, disabled }) => (
-            <div
-              onMouseDown={props.onMouseDown}
-              onTouchStart={props.onTouchStart}
-              onPointerDown={() => {
-                if (audioMetadata.playing) {
-                  pauseAudio();
-                }
-              }}
-              style={{
-                ...props.style,
-                display: "flex",
-                width: "100%",
-                justifyContent: "center",
-              }}
-            >
+          style={{
+            ...props.style,
+            display: "flex",
+            width: "100%",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            ref={props.ref}
+            style={{
+              height: "8px",
+              borderRadius: "4px",
+              alignSelf: "center",
+              filter: disabled ? "brightness(0.75)" : "none",
+            }}
+            className={`relative w-full bg-[hsl(var(--gray)/0.5)] transition`}
+          >
+            <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
               <div
-                ref={props.ref}
+                id="playbackSliderTrack"
                 style={{
-                  height: "8px",
-                  borderRadius: "4px",
-                  alignSelf: "center",
-                  filter: disabled ? "brightness(0.75)" : "none",
-                }}
-                className={`relative w-full bg-[hsl(var(--gray)/0.5)] transition`}
-              >
-                <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
-                  <div
-                    id="playbackSliderTrack"
-                    style={{
-                      transform: `scaleX(${
-                        mapToRange(
-                          currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
-                          0,
-                          maxIndex,
-                        ) / maxIndex
-                      })`,
-                      transitionProperty: "transform",
-                      transitionTimingFunction: "linear",
-                      transitionDuration: `${
-                        audioMetadata.playing
-                          ? `${chordDurations[currentChordIndex] ?? 0}s`
-                          : "0s"
-                      }`,
-                    }}
-                    className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary will-change-transform"
-                  ></div>
-                </div>
-                {children}
-              </div>
-            </div>
-          )}
-          renderThumb={({ props }) => {
-            const { key, ...thumbProps } = props;
-
-            return (
-              <div
-                key={key}
-                {...thumbProps}
-                id="playbackSliderThumb"
-                style={{
-                  ...thumbProps.style,
+                  transform: `scaleX(${
+                    mapToRange(
+                      currentChordIndex + (isPlayingAndNotAtEnd ? 1 : 0),
+                      0,
+                      maxIndex,
+                    ) / maxIndex
+                  })`,
                   transitionProperty: "transform",
                   transitionTimingFunction: "linear",
                   transitionDuration: `${
@@ -318,13 +124,36 @@ function PlaybackAudioRange({
                       : "0s"
                   }`,
                 }}
-                className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
-              />
-            );
-          }}
-        />
+                className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary will-change-transform"
+              ></div>
+            </div>
+            {children}
+          </div>
+        </div>
       )}
-    </>
+      renderThumb={({ props }) => {
+        const { key, ...thumbProps } = props;
+
+        return (
+          <div
+            key={key}
+            {...thumbProps}
+            id="playbackSliderThumb"
+            style={{
+              ...thumbProps.style,
+              transitionProperty: "transform",
+              transitionTimingFunction: "linear",
+              transitionDuration: `${
+                audioMetadata.playing
+                  ? `${chordDurations[currentChordIndex] ?? 0}s`
+                  : "0s"
+              }`,
+            }}
+            className="!z-20 size-[18px] rounded-full border border-foreground/50 bg-primary will-change-transform"
+          />
+        );
+      }}
+    />
   );
 }
 
