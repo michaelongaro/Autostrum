@@ -1,6 +1,12 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
+import CustomizeLook from "~/components/HomePage/CustomizeLook";
+import FAQ from "~/components/HomePage/FAQ";
 import Hero from "~/components/HomePage/Hero";
+import PillarCards from "~/components/HomePage/PillarCards";
+import SignupCTA from "~/components/HomePage/SignupCTA";
+import TabMarquee from "~/components/HomePage/TabMarquee";
+import ToolsShowcase from "~/components/HomePage/ToolsShowcase";
 
 function Home() {
   return (
@@ -10,7 +16,7 @@ function Home() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex w-full"
+      className="baseVertFlex w-full gap-16 py-16 md:gap-24 md:py-24"
     >
       <Head>
         <title>Autostrum</title>
@@ -33,6 +39,12 @@ function Home() {
       </Head>
 
       <Hero />
+      <PillarCards />
+      <TabMarquee />
+      <SignupCTA />
+      <ToolsShowcase />
+      <CustomizeLook />
+      <FAQ />
     </motion.div>
   );
 }
