@@ -923,7 +923,6 @@ const useTabStoreBase = create<TabState>()(
           playbackMetadata,
           draftLoopStartIndex,
           draftLoopEndIndex,
-          setCurrentChordIndex,
         } = get();
 
         const fullLength = audioMetadata.fullTabMetadataLength;
@@ -958,7 +957,7 @@ const useTabStoreBase = create<TabState>()(
             draftLoopStartIndex: index,
             draftLoopEndIndex: null,
           });
-          setCurrentChordIndex(index);
+
           return;
         }
 
@@ -971,7 +970,7 @@ const useTabStoreBase = create<TabState>()(
           if (index <= start || Math.abs(index - start) < 1) return;
 
           set({ draftLoopEndIndex: index });
-          setCurrentChordIndex(index);
+
           return;
         }
 
@@ -985,13 +984,12 @@ const useTabStoreBase = create<TabState>()(
           if (end !== null) {
             if (index >= end || Math.abs(end - index) < 1) return;
             set({ draftLoopStartIndex: index });
-            setCurrentChordIndex(index);
+
             return;
           }
 
           if (index === lastIndex) return;
           set({ draftLoopStartIndex: index });
-          setCurrentChordIndex(index);
         }
       },
       instruments: {} as Record<InstrumentNames, Soundfont.Player>,
