@@ -46,44 +46,7 @@ export function mapLoopRelativeChordIndexToFullTabIndex({
   const relativeInCycle =
     ((currentChordIndex % cycleLength) + cycleLength) % cycleLength;
   const relativeInRange = Math.min(relativeInCycle, loopRangeLength - 1);
-  const result = startLoopIndex + relativeInRange;
-
-  // #region agent log
-  if (typeof window !== "undefined") {
-    try {
-      // Lazy import avoided: keep sync + tiny. Mirror via fetch for NDJSON sink.
-      const payload = {
-        hypothesisId: "A",
-        location: "loopRangeHelpers.ts:mapLoopRelativeChordIndexToFullTabIndex",
-        message: "mapping computation",
-        data: {
-          currentChordIndex,
-          startLoopIndex,
-          endLoopIndex,
-          fullTabMetadataLength,
-          loopDelay,
-          concreteEnd,
-          loopRangeLength,
-          cycleLength,
-          relativeInCycle,
-          relativeInRange,
-          result,
-        },
-        timestamp: Date.now(),
-      };
-      console.log("[agent-debug]", payload);
-      void fetch("/api/agent-debug-log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } catch {
-      /* ignore */
-    }
-  }
-  // #endregion
-
-  return result;
+  return startLoopIndex + relativeInRange;
 }
 
 export function isDraftLoopRangeEmpty(
