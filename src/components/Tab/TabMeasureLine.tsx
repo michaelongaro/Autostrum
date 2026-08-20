@@ -331,7 +331,7 @@ function TabMeasureLine({
                   {...listeners}
                   className={`hover:box-shadow-md ${
                     isDragging ? "cursor-grabbing" : "cursor-grab"
-                  } absolute top-[18px] z-20 mt-1 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
+                  } absolute top-[18px] z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
                   onMouseEnter={() => setHoveringOnHandle(true)}
                   onMouseDown={() => setGrabbingHandle(true)}
                   onMouseLeave={() => {
