@@ -1219,6 +1219,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
                     sectionIndex={sectionIndex}
                     subSectionIndex={subSectionIndex}
                     columnIndex={index}
+                    editingPalmMuteNodes={editingPalmMuteNodes}
                     reorderingColumns={reorderingColumns}
                     showingDeleteColumnsButtons={showingDeleteColumnsButtons}
                   />
