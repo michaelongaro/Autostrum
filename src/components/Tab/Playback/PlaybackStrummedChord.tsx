@@ -8,6 +8,7 @@ import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useTabStore } from "~/stores/TabStore";
 import ChordName from "~/components/ui/ChordName";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
+import { PLAYBACK_TAB_STRINGS_HEIGHT_PX } from "~/utils/playbackTabGeometry";
 
 interface PlaybackStrummedChord {
   strum: string;
@@ -111,7 +112,8 @@ function PlaybackStrummedChord({
             borderTop: "1px solid",
             borderBottom: "1px solid",
           }}
-          className="baseVertFlex relative mb-[42px] h-[126px] w-[40px] !border-foreground/50 pb-4"
+          className="baseVertFlex relative mb-[42px] w-[40px] !border-foreground/50 pb-4"
+          style={{ height: PLAYBACK_TAB_STRINGS_HEIGHT_PX }}
         >
           <div className="baseFlex h-8">
             {chordName && (

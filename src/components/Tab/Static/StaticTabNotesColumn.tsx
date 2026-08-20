@@ -14,10 +14,10 @@ import {
   isTabNote,
 } from "~/utils/tabNoteHelpers";
 import {
-  STATIC_TAB_BORDER_SPACER_PX,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
   STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
-  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX,
+  STATIC_TAB_PALM_MUTE_MARGIN_TOP_PX,
+  STATIC_TAB_PALM_MUTE_NODE_HEIGHT_PX,
   STATIC_TAB_ROW_HEIGHT_PX,
 } from "~/utils/staticTabGeometry";
 
@@ -88,17 +88,14 @@ function StaticTabNotesColumn({
       <div className="baseVertFlex size-full !justify-start">
         {/* Palm Mute Node */}
         <div
-          style={{ height: 24, marginTop: 8 }}
+          style={{
+            height: STATIC_TAB_PALM_MUTE_NODE_HEIGHT_PX,
+            marginTop: STATIC_TAB_PALM_MUTE_MARGIN_TOP_PX,
+          }}
           className="baseVertFlex w-full"
         >
           <StaticPalmMuteNode value={columnData.palmMute} />
         </div>
-
-        {/* Former top container border — spacer only, so row height is unchanged */}
-        <div
-          style={{ height: STATIC_TAB_BORDER_SPACER_PX }}
-          className="w-full shrink-0"
-        />
 
         <div className="baseVertFlex relative">
           <div className="absolute bottom-3 left-0 right-0 top-3 bg-background"></div>
@@ -148,12 +145,6 @@ function StaticTabNotesColumn({
             );
           })}
         </div>
-
-        {/* Former bottom container border — spacer only */}
-        <div
-          style={{ height: STATIC_TAB_BORDER_SPACER_PX }}
-          className="w-full shrink-0"
-        />
 
         <div
           style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}

@@ -24,7 +24,6 @@ import {
   getStaticTabLayoutWidthPx,
   getVisibleRowRangeFromBodyRect,
   getVisibleViewportWindow,
-  STATIC_TAB_BORDER_SPACER_PX,
   STATIC_TAB_END_LINE_WIDTH_PX,
   STATIC_TAB_MIN_VIRTUALIZATION_ROWS,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
@@ -371,9 +370,7 @@ function SectionCard({
 }
 
 const STATIC_STAFF_LINE_MARGIN_TOP_PX =
-  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX +
-  STATIC_TAB_BORDER_SPACER_PX +
-  STATIC_TAB_STAFF_LINE_INSET_PX;
+  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX + STATIC_TAB_STAFF_LINE_INSET_PX;
 
 function StaticStaffLine() {
   return (
@@ -382,7 +379,7 @@ function StaticStaffLine() {
       style={{
         width: STATIC_TAB_STAFF_LINE_WIDTH_PX,
         height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
-        marginTop: STATIC_TAB_BORDER_SPACER_PX + STATIC_TAB_STAFF_LINE_INSET_PX,
+        marginTop: STATIC_TAB_STAFF_LINE_INSET_PX,
         backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
       }}
     />
@@ -411,8 +408,6 @@ function TuningGutter({ tuning }: { tuning: string }) {
         <div
           style={{
             paddingRight: STATIC_TAB_TUNING_NOTE_GAP_PX,
-            paddingTop:
-              STATIC_TAB_BORDER_SPACER_PX + STATIC_TAB_STAFF_LINE_INSET_PX - 12,
           }}
         >
           <PrettyVerticalTuning

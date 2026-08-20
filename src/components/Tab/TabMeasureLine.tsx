@@ -26,6 +26,9 @@ import {
   EDITING_TAB_FOOTER_HEIGHT_PX,
   EDITING_TAB_NOTE_LENGTH_GAP_PX,
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+  EDITING_TAB_REORDER_DIM_HEIGHT_PX,
+  EDITING_TAB_REORDER_DIM_TOP_PX,
+  EDITING_TAB_REORDER_FOOTER_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_INSET_PX,
   EDITING_TAB_STRING_ROW_HEIGHT_PX,
@@ -201,8 +204,8 @@ function TabMeasureLine({
         style={{
           opacity:
             reorderingColumns || showingDeleteColumnsButtons ? "100%" : "0%",
-          top: EDITING_TAB_PALM_MUTE_HEIGHT_PX + 11,
-          height: EDITING_TAB_STRINGS_HEIGHT_PX - 25,
+          top: EDITING_TAB_REORDER_DIM_TOP_PX,
+          height: EDITING_TAB_REORDER_DIM_HEIGHT_PX,
         }}
         className="absolute left-0 w-full bg-background"
       ></div>
@@ -316,7 +319,7 @@ function TabMeasureLine({
       {(reorderingColumns || showingDeleteColumnsButtons) && (
         <div
           className="baseVertFlex w-full"
-          style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX + 4 }}
+          style={{ height: EDITING_TAB_REORDER_FOOTER_HEIGHT_PX }}
         >
           <div
             className="w-full shrink-0"

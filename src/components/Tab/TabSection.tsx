@@ -74,10 +74,10 @@ import {
 import { getDisplayTuningNotes } from "~/utils/tunings";
 import {
   EDITING_TAB_FOOTER_HEIGHT_PX,
-  EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_INSET_PX,
   EDITING_TAB_STRING_ROW_HEIGHT_PX,
+  EDITING_TAB_TUNING_PALM_MUTE_SPACER_PX,
 } from "~/utils/editingTabGeometry";
 import MiscellaneousControls from "./MiscellaneousControls";
 import TabMeasureLine from "./TabMeasureLine";
@@ -1142,7 +1142,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4"
       >
         <div className="baseVertFlex shrink-0">
-          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 2 }}></div>
+          <div style={{ height: EDITING_TAB_TUNING_PALM_MUTE_SPACER_PX }}></div>
           <div className="baseFlex !items-start">
             <div className="pr-2">
               <PrettyVerticalTuning
@@ -1243,7 +1243,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         </DndContext>
 
         <div className="baseVertFlex shrink-0">
-          <div style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX - 2 }}></div>
+          <div style={{ height: EDITING_TAB_TUNING_PALM_MUTE_SPACER_PX }}></div>
           <div className="baseFlex !items-start">
             <div
               className="shrink-0 bg-foreground/50"
