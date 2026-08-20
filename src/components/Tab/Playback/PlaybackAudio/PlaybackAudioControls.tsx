@@ -59,6 +59,7 @@ function PlaybackAudioControls({
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
     setDraftLoopRange,
+    enterPlaybackLoopRangeEditor,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
@@ -81,6 +82,7 @@ function PlaybackAudioControls({
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
     setDraftLoopRange: state.setDraftLoopRange,
+    enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
   }));
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
@@ -324,16 +326,15 @@ function PlaybackAudioControls({
               className="h-8 w-8 p-1"
               onPressedChange={(value) => {
                 if (value) {
-                  // Blank slate so all + nodes are visible for picking.
-                  setDraftLoopRange({ startIndex: null, endIndex: null });
-                } else {
-                  setDraftLoopRange({ startIndex: null, endIndex: null });
-                  setCurrentChordIndex(0);
+                  enterPlaybackLoopRangeEditor();
+                  return;
                 }
 
+                setDraftLoopRange({ startIndex: null, endIndex: null });
+                setCurrentChordIndex(0);
                 setAudioMetadata({
                   ...audioMetadata,
-                  editingLoopRange: value,
+                  editingLoopRange: false,
                 });
               }}
             >

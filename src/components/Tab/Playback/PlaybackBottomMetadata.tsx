@@ -76,6 +76,7 @@ function PlaybackBottomMetadata({
     setCurrentChordIndex,
     pauseAudio,
     setDraftLoopRange,
+    enterPlaybackLoopRangeEditor,
   } = useTabStore((state) => ({
     capo: state.capo,
     tuning: state.tuning,
@@ -88,6 +89,7 @@ function PlaybackBottomMetadata({
     setCurrentChordIndex: state.setCurrentChordIndex,
     pauseAudio: state.pauseAudio,
     setDraftLoopRange: state.setDraftLoopRange,
+    enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
   }));
 
   // Close settings popover on device orientation change
@@ -171,16 +173,15 @@ function PlaybackBottomMetadata({
                 className="size-9 p-1"
                 onPressedChange={(value) => {
                   if (value) {
-                    // Blank slate so all + nodes are visible for picking.
-                    setDraftLoopRange({ startIndex: null, endIndex: null });
-                  } else {
-                    setDraftLoopRange({ startIndex: null, endIndex: null });
-                    setCurrentChordIndex(0);
+                    enterPlaybackLoopRangeEditor();
+                    return;
                   }
 
+                  setDraftLoopRange({ startIndex: null, endIndex: null });
+                  setCurrentChordIndex(0);
                   setAudioMetadata({
                     ...audioMetadata,
-                    editingLoopRange: value,
+                    editingLoopRange: false,
                   });
                 }}
               >
@@ -870,12 +871,11 @@ function DesktopSettings({
     playbackSpeed,
     setPlaybackSpeed,
     audioMetadata,
-    setAudioMetadata,
     pauseAudio,
     countInTimer,
     loopDelay,
     setLoopDelay,
-    setDraftLoopRange,
+    enterPlaybackLoopRangeEditor,
     updateMasterVolumeGainNode,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
@@ -883,12 +883,11 @@ function DesktopSettings({
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
     audioMetadata: state.audioMetadata,
-    setAudioMetadata: state.setAudioMetadata,
     pauseAudio: state.pauseAudio,
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
-    setDraftLoopRange: state.setDraftLoopRange,
+    enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
     updateMasterVolumeGainNode: state.updateMasterVolumeGainNode,
   }));
 
@@ -1002,14 +1001,7 @@ function DesktopSettings({
               disabled={audioMetadata.playing || countInTimer.showing}
               className="baseFlex gap-2"
               onClick={() => {
-                // Blank slate so all + nodes are visible for picking.
-                // Keep currentChordIndex so the user stays where they are.
-                setDraftLoopRange({ startIndex: null, endIndex: null });
-
-                setAudioMetadata({
-                  ...audioMetadata,
-                  editingLoopRange: true,
-                });
+                enterPlaybackLoopRangeEditor();
               }}
             >
               <CgArrowsShrinkH className="h-6 w-6" />
