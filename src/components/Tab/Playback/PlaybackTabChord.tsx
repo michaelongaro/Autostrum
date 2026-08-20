@@ -1,7 +1,7 @@
 import { Fragment } from "react";
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { type FullNoteLengths, useTabStore } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
@@ -162,28 +162,9 @@ function PlaybackTabChord({
               {index === 8 && (
                 <div className="baseFlex relative mt-2 size-5">
                   {chordHasAtLeastOneNote(columnData) &&
-                    chordEffect?.includes("v") && (
-                      <BsArrowDown
-                        style={{
-                          width: "19px",
-                          height: "19px",
-                        }}
-                        strokeWidth={
-                          chordEffect?.includes(">") ? "1.25px" : "0px"
-                        }
-                      />
-                    )}
-                  {chordHasAtLeastOneNote(columnData) &&
-                    chordEffect?.includes("^") && (
-                      <BsArrowUp
-                        style={{
-                          width: "19px",
-                          height: "19px",
-                        }}
-                        strokeWidth={
-                          chordEffect?.includes(">") ? "1.25px" : "0px"
-                        }
-                      />
+                    (chordEffect?.includes("v") ||
+                      chordEffect?.includes("^")) && (
+                      <ChordStrumIcon effects={chordEffect} size="19px" />
                     )}
 
                   {chordEffect?.includes("s") && (

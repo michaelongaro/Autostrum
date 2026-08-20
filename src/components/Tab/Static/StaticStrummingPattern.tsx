@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import {
   Popover,
   PopoverContent,
@@ -155,31 +155,19 @@ function StaticStrummingPattern({
                 }}
                 className="baseVertFlex relative mb-2 h-[20px] text-lg"
               >
-                {strum.strum.includes("v") && (
-                  <BsArrowDown
+                {(strum.strum.includes("v") || strum.strum.includes("^")) && (
+                  <ChordStrumIcon
+                    effects={strum.strum}
                     style={{
+                      color:
+                        chordDisplayMode === "color"
+                          ? (strumColors[strumIndex] ?? "currentColor")
+                          : "currentColor",
                       fill:
                         chordDisplayMode === "color"
                           ? (strumColors[strumIndex] ?? "currentColor")
                           : "currentColor",
-                      width: strum.strum.includes(">") ? "18.5px" : "20px",
-                      height: strum.strum.includes(">") ? "18.5px" : "20px",
                     }}
-                    strokeWidth={strum.strum.includes(">") ? "1.25px" : "0px"}
-                  />
-                )}
-
-                {strum.strum.includes("^") && (
-                  <BsArrowUp
-                    style={{
-                      fill:
-                        chordDisplayMode === "color"
-                          ? (strumColors[strumIndex] ?? "currentColor")
-                          : "currentColor",
-                      width: strum.strum.includes(">") ? "18.5px" : "20px",
-                      height: strum.strum.includes(">") ? "18.5px" : "20px",
-                    }}
-                    strokeWidth={strum.strum.includes(">") ? "1.25px" : "0px"}
                   />
                 )}
 

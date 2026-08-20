@@ -1,17 +1,17 @@
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
-import { type StrummingPattern } from "~/stores/TabStore";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
+import type { StrummingPattern } from "~/stores/TabStore";
 
 interface StrummingPatternPreview {
-  data?: StrummingPattern;
+  data: StrummingPattern;
 }
 
 function StrummingPatternPreview({ data }: StrummingPatternPreview) {
-  if (!data) return null;
-
   return (
-    <div className="baseFlex w-full !justify-start p-1">
+    <div className="baseFlex w-full">
       <div
-        // TODO: look at alignment when not just v/^
+        style={{
+          overflowX: data.strums.length > 8 ? "hidden" : "visible",
+        }}
         className="baseFlex !justify-start"
       >
         {data.strums.slice(0, 8).map((strum, strumIndex) => (
@@ -22,11 +22,8 @@ function StrummingPatternPreview({ data }: StrummingPatternPreview) {
 
                 {/* only rendering v/^/s to keep preview from getting too large */}
                 <div className="baseVertFlex h-full text-lg text-foreground">
-                  {strum.strum.includes("v") && (
-                    <BsArrowDown className="h-4 w-4" />
-                  )}
-                  {strum.strum.includes("^") && (
-                    <BsArrowUp className="h-4 w-4" />
+                  {(strum.strum.includes("v") || strum.strum.includes("^")) && (
+                    <ChordStrumIcon effects={strum.strum} className="h-4 w-4" />
                   )}
 
                   {strum.strum.includes("s") && (

@@ -54,8 +54,15 @@ export interface StrummingPattern {
 
 export interface Strum {
   palmMute: "" | "-" | "start" | "end";
-  strum: string; // effects are v, ^, >, s, ., r
+  strum: string; // effects are v, ^, v~, ^~, >, s, ., r
   noteLength: FullNoteLengths;
+  /**
+   * When true (default), inter-string strum spread is derived from BPM +
+   * normal vs arpeggiated curves. When false, `strumSpreadSeconds` is used.
+   */
+  strumSpreadAuto?: boolean;
+  /** Total strum spread across sounded strings, in seconds. */
+  strumSpreadSeconds?: number | null;
 }
 
 export interface ChordSequence {
@@ -83,8 +90,15 @@ export interface TabNote {
   fourthString: string; // G
   fifthString: string; // B
   sixthString: string; // high E
-  chordEffects: string; // v, ^, s, >, ., r
+  chordEffects: string; // v, ^, v~, ^~, s, >, ., r
   noteLength: FullNoteLengths;
+  /**
+   * When true (default), inter-string strum spread is derived from BPM +
+   * normal vs arpeggiated curves. When false, `strumSpreadSeconds` is used.
+   */
+  strumSpreadAuto?: boolean;
+  /** Total strum spread across sounded strings, in seconds. */
+  strumSpreadSeconds?: number | null;
   id: string;
 }
 
@@ -274,6 +288,12 @@ interface PlayPreview {
   type: "chord" | "strummingPattern";
   customTuning?: string;
   customBpm?: string;
+  /** When true, uses the slow fixed delay used by the custom tuning preview. */
+  forTuningPreview?: boolean;
+  /** Chord-effect string for type "chord" previews (defaults to "v"). */
+  chordEffects?: string;
+  /** Compiled strum-spread slot value ("auto" or seconds string) for type "chord". */
+  strumSpreadCompileValue?: string;
 }
 
 export interface PlaybackTabChord {
@@ -1367,6 +1387,9 @@ const useTabStoreBase = create<TabState>()(
         type,
         customTuning,
         customBpm,
+        forTuningPreview,
+        chordEffects,
+        strumSpreadCompileValue,
       }: PlayPreview) => {
         const { capo, tuning, previewMetadata, ensureAudioSystemReady } = get();
 
@@ -1392,7 +1415,16 @@ const useTabStoreBase = create<TabState>()(
 
         const compiledChords =
           type === "chord"
-            ? [["", ...(data as string[]), "v", "quarter", customBpm ?? "58"]]
+            ? [
+                [
+                  "",
+                  ...(data as string[]),
+                  chordEffects ?? "v",
+                  "quarter",
+                  customBpm ?? "58",
+                  strumSpreadCompileValue ?? "auto",
+                ],
+              ]
             : compileStrummingPatternPreview({
                 strummingPattern: data as StrummingPattern,
               });
@@ -1434,7 +1466,7 @@ const useTabStoreBase = create<TabState>()(
             currentInstrument,
             currentlyPlayingStrings,
             acousticSteelOverrideForPreview: instruments.acoustic_guitar_steel,
-            forTuningPreview: customBpm !== undefined,
+            forTuningPreview: forTuningPreview === true,
           });
 
           const { breakOnNextPreviewChord } = get();

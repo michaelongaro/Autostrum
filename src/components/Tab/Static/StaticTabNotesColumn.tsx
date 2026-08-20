@@ -1,6 +1,6 @@
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import type {
   COLORS,
   THEME,
@@ -177,28 +177,11 @@ function StaticTabNotesColumn({
             className="baseVertFlex relative mt-2 h-[19px] w-[1.5rem] shrink-0"
           >
             {chordHasAtLeastOneNote(columnData) &&
-              columnData.chordEffects?.includes("v") && (
-                <BsArrowDown
-                  style={{
-                    width: "19px",
-                    height: "19px",
-                  }}
-                  strokeWidth={
-                    columnData.chordEffects?.includes(">") ? "1.25px" : "0px"
-                  }
-                />
-              )}
-
-            {chordHasAtLeastOneNote(columnData) &&
-              columnData.chordEffects?.includes("^") && (
-                <BsArrowUp
-                  style={{
-                    width: "19px",
-                    height: "19px",
-                  }}
-                  strokeWidth={
-                    columnData.chordEffects?.includes(">") ? "1.25px" : "0px"
-                  }
+              (columnData.chordEffects?.includes("v") ||
+                columnData.chordEffects?.includes("^")) && (
+                <ChordStrumIcon
+                  effects={columnData.chordEffects}
+                  size="19px"
                 />
               )}
 

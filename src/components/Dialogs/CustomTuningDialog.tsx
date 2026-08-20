@@ -363,6 +363,7 @@ function CustomTuningDialog() {
                 type: "chord",
                 customTuning: newTuning.join(" "),
                 customBpm: "40",
+                forTuningPreview: true,
               });
 
               setTimeout(() => {
