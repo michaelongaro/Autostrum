@@ -19,7 +19,6 @@ import {
   useTabMeasureLineColumnData,
   useMeasureLineBpmDisplay,
 } from "~/hooks/useTabDataSelectors";
-import { useMeasureLineHasBeenPlayed } from "~/hooks/useColumnPlaybackHighlight";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
@@ -33,13 +32,11 @@ import {
   EDITING_TAB_STRINGS_HEIGHT_PX,
 } from "~/utils/editingTabGeometry";
 
-// FYI: this whole component is such a mess architecture-wise, but I don't really know
-// how to refactor it so we don't have so many magic numbers
-
 interface TabMeasureLineProps {
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
+  editingPalmMuteNodes: boolean;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
 }
@@ -48,16 +45,12 @@ function TabMeasureLine({
   sectionIndex,
   subSectionIndex,
   columnIndex,
+  editingPalmMuteNodes,
   reorderingColumns,
   showingDeleteColumnsButtons,
 }: TabMeasureLineProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
-  const columnHasBeenPlayed = useMeasureLineHasBeenPlayed(
-    sectionIndex,
-    subSectionIndex,
-    columnIndex,
-  );
 
   const columnData = useTabMeasureLineColumnData(
     sectionIndex,
@@ -200,7 +193,7 @@ function TabMeasureLine({
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
         zIndex: isDragging ? 20 : "auto",
       }}
-      className="baseVertFlex relative"
+      className="baseVertFlex relative !justify-start"
       id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
     >
       {/* Reorder/delete mode: dim past columns so the active edit target is clearer */}
@@ -219,19 +212,22 @@ function TabMeasureLine({
         className="baseFlex relative w-full shrink-0"
         style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}
       >
-        {measureLineBpmDisplay.show && (
-          <div
-            className={`baseFlex absolute left-1/2 z-10 -translate-x-1/2 gap-[2px] text-foreground ${
-              // Lift above the centered PM connector so the label has clear air
-              columnData.isInPalmMuteSection ? "-top-1" : "top-2"
-            }`}
-          >
-            <QuarterNote className="h-3" />
-            <p className="text-center text-xs">
-              {measureLineBpmDisplay.bpm.toString()}
-            </p>
-          </div>
-        )}
+        {/* conditional below is not my favorite, but the workarounds to show it
+            way above the PM node buttons did not look good, and I also didn't
+            want to increase the gap between the rows  */}
+        {measureLineBpmDisplay.show &&
+          (columnData.isInPalmMuteSection || !editingPalmMuteNodes) && (
+            <div
+              className={`baseFlex absolute left-1/2 z-10 -translate-x-1/2 gap-[2px] text-foreground ${
+                columnData.isInPalmMuteSection ? "top-0" : "top-8"
+              }`}
+            >
+              <QuarterNote className="h-4" />
+              <p className="text-center text-xs">
+                {measureLineBpmDisplay.bpm.toString()}
+              </p>
+            </div>
+          )}
 
         {columnData.isInPalmMuteSection && (
           <div className="h-[1px] w-full bg-foreground"></div>
@@ -257,6 +253,7 @@ function TabMeasureLine({
             )}
           </div>
         ))}
+
         <div
           className={`absolute w-px bg-foreground/50 ${
             reorderingColumns || showingDeleteColumnsButtons
@@ -319,7 +316,7 @@ function TabMeasureLine({
       {(reorderingColumns || showingDeleteColumnsButtons) && (
         <div
           className="baseVertFlex w-full"
-          style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}
+          style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX + 4 }}
         >
           <div
             className="w-full shrink-0"
@@ -365,7 +362,7 @@ function TabMeasureLine({
                   variant={"destructive"}
                   size="sm"
                   disabled={audioIsPlaying}
-                  className="absolute top-[20px] z-20 mt-1 h-[1.75rem] w-[1.75rem] p-1"
+                  className="absolute top-[20px] z-20 h-[1.75rem] w-[1.75rem] p-1"
                   onClick={handleDeleteMeasureLine}
                 >
                   <IoClose className="h-6 w-6" />
@@ -373,7 +370,7 @@ function TabMeasureLine({
               )}
             </div>
 
-            <div className="h-[16px] w-full"></div>
+            <div className="h-[12px] w-full"></div>
           </div>
         </div>
       )}
