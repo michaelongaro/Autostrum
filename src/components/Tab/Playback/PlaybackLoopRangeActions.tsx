@@ -97,7 +97,7 @@ function PlaybackLoopRangeActions() {
 
   return (
     <div
-      className={`baseFlex w-full gap-3 px-4 pb-2 ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`}
+      className={`baseFlex w-full gap-3 px-4 mobilePortrait:pb-2 ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`}
     >
       {viewportLabel.includes("Landscape") && <PlaybackSectionPicker />}
 

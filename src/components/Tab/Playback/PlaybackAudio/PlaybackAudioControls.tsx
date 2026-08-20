@@ -361,6 +361,13 @@ function PlaybackAudioControls({
 
       {!viewportLabel.includes("Landscape") && (
         <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[612px]">
+          {audioMetadata.editingLoopRange &&
+            viewportLabel.includes("mobile") && (
+              <p className="h-0 pb-[20px] text-sm text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
+                {loopRangePrompt}
+              </p>
+            )}
+
           <PlaybackAudioRange
             disabled={disablePlayButton}
             chordDurations={chordDurations}
@@ -380,9 +387,13 @@ function PlaybackAudioControls({
             </div>
 
             {audioMetadata.editingLoopRange ? (
-              <p className="h-0 pb-[15px] text-xs text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
-                {loopRangePrompt}
-              </p>
+              <>
+                {viewportLabel.includes("mobile") ? null : (
+                  <p className="h-0 pb-[15px] text-xs text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
+                    {loopRangePrompt}
+                  </p>
+                )}
+              </>
             ) : (
               <div className="baseFlex gap-6">
                 <Button
