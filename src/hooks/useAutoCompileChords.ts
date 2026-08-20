@@ -125,8 +125,14 @@ function useAutoCompileChords() {
           baselineBpm: bpm,
           playbackSpeed,
           setCurrentlyPlayingMetadata,
-          startLoopIndex: audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.endLoopIndex,
+          // While editing the loop range the strip shows the full selected
+          // tab/section, so slider bounds/timestamps must match that scope.
+          startLoopIndex: audioMetadata.editingLoopRange
+            ? 0
+            : audioMetadata.startLoopIndex,
+          endLoopIndex: audioMetadata.editingLoopRange
+            ? -1
+            : audioMetadata.endLoopIndex,
           atomicallyUpdateAudioMetadata,
           forMetadataOnly: true,
         });
@@ -139,8 +145,12 @@ function useAutoCompileChords() {
           baselineBpm: bpm,
           playbackSpeed,
           setCurrentlyPlayingMetadata,
-          startLoopIndex: audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.endLoopIndex,
+          startLoopIndex: audioMetadata.editingLoopRange
+            ? 0
+            : audioMetadata.startLoopIndex,
+          endLoopIndex: audioMetadata.editingLoopRange
+            ? -1
+            : audioMetadata.endLoopIndex,
           atomicallyUpdateAudioMetadata,
           forMetadataOnly: true,
           forPlayback: isEditing ? undefined : { loopDelay },

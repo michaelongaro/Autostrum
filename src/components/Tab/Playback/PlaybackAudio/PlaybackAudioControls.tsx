@@ -55,7 +55,6 @@ function PlaybackAudioControls({
     countInTimer,
     setCountInTimer,
     viewportLabel,
-    playbackMetadata,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
     setDraftLoopRange,
@@ -78,12 +77,27 @@ function PlaybackAudioControls({
     countInTimer: state.countInTimer,
     setCountInTimer: state.setCountInTimer,
     viewportLabel: state.viewportLabel,
-    playbackMetadata: state.playbackMetadata,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
     setDraftLoopRange: state.setDraftLoopRange,
     enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
   }));
+
+  // One compiled cycle of whatever scope the strip is showing (committed loop,
+  // or the full selected tab/section while editing the loop range). Artificial
+  // viewport duplicates are excluded so Range min/max and timestamps stay in
+  // the same coordinate system.
+  const rangeMetadataLength = currentlyPlayingMetadata?.length ?? 0;
+  const rangeChordIndex =
+    rangeMetadataLength > 0
+      ? ((currentChordIndex % rangeMetadataLength) + rangeMetadataLength) %
+        rangeMetadataLength
+      : 0;
+  const rangeStartSeconds =
+    currentlyPlayingMetadata?.[rangeChordIndex]?.elapsedSeconds ?? 0;
+  const rangeEndSeconds =
+    currentlyPlayingMetadata?.[Math.max(0, rangeMetadataLength - 1)]
+      ?.elapsedSeconds ?? 0;
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
@@ -295,9 +309,7 @@ function PlaybackAudioControls({
 
           <div className="baseFlex w-full gap-4">
             <div className="baseFlex w-9 !justify-start self-start">
-              {formatSecondsToMinutes(
-                playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
-              )}
+              {formatSecondsToMinutes(rangeStartSeconds)}
             </div>
 
             <PlaybackAudioRange
@@ -310,10 +322,7 @@ function PlaybackAudioControls({
             />
 
             <div className="baseFlex w-9 !justify-end self-start">
-              {formatSecondsToMinutes(
-                playbackMetadata?.[playbackMetadata?.length - 1]
-                  ?.elapsedSeconds ?? 0,
-              )}
+              {formatSecondsToMinutes(rangeEndSeconds)}
             </div>
           </div>
 
@@ -364,9 +373,7 @@ function PlaybackAudioControls({
 
           <div className="baseFlex w-full !justify-between">
             <div className="baseFlex w-9 !justify-start self-start">
-              {formatSecondsToMinutes(
-                playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
-              )}
+              {formatSecondsToMinutes(rangeStartSeconds)}
             </div>
 
             {audioMetadata.editingLoopRange ? (
@@ -498,10 +505,7 @@ function PlaybackAudioControls({
             )}
 
             <div className="baseFlex w-9 !justify-end self-start">
-              {formatSecondsToMinutes(
-                playbackMetadata?.[playbackMetadata?.length - 1]
-                  ?.elapsedSeconds ?? 0,
-              )}
+              {formatSecondsToMinutes(rangeEndSeconds)}
             </div>
           </div>
         </div>
