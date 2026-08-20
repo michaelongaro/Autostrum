@@ -1,51 +1,7 @@
-import type { AudioMetadata, PlaybackMetadata } from "~/stores/TabStore";
+import type { AudioMetadata } from "~/stores/TabStore";
 import type { LoopRangeNodeRole } from "~/components/Tab/Playback/PlaybackLoopRangeNode";
 
 export type LoopRangeSelectionStep = "selectStart" | "selectEnd" | "complete";
-
-function isNonSelectableLoopIndex(
-  index: number,
-  playbackMetadata: PlaybackMetadata[] | null,
-): boolean {
-  const type = playbackMetadata?.[index]?.type;
-  return type === "ornamental" || type === "loopDelaySpacer";
-}
-
-/**
- * Snap a Range thumb index off measure lines / ornamental columns.
- * Prefers continuing in `moveDirection`, then searches the opposite way.
- */
-export function snapLoopRangeIndexOffOrnamental({
-  index,
-  moveDirection,
-  playbackMetadata,
-  minIndex,
-  maxIndex,
-}: {
-  index: number;
-  moveDirection: -1 | 1;
-  playbackMetadata: PlaybackMetadata[] | null;
-  minIndex: number;
-  maxIndex: number;
-}): number | null {
-  if (index < minIndex || index > maxIndex) return null;
-
-  if (!isNonSelectableLoopIndex(index, playbackMetadata)) {
-    return index;
-  }
-
-  for (const direction of [moveDirection, -moveDirection] as const) {
-    let cursor = index + direction;
-    while (cursor >= minIndex && cursor <= maxIndex) {
-      if (!isNonSelectableLoopIndex(cursor, playbackMetadata)) {
-        return cursor;
-      }
-      cursor += direction;
-    }
-  }
-
-  return null;
-}
 
 /** Store/UI sentinel: endLoopIndex -1 means "through the last chord". */
 export function getConcreteLoopEndIndex(
@@ -56,30 +12,6 @@ export function getConcreteLoopEndIndex(
     return Math.max(0, fullTabMetadataLength - 1);
   }
   return endLoopIndex;
-}
-
-/**
- * Concrete [start, end] for the two-thumb Range while editing.
- * Missing endpoints expand toward the tab bounds so the Range always has values.
- */
-export function getConcreteDraftLoopRange(
-  draftStartIndex: number | null,
-  draftEndIndex: number | null,
-  fullTabMetadataLength: number,
-): [number, number] {
-  const lastIndex = Math.max(0, fullTabMetadataLength - 1);
-
-  if (draftStartIndex === null && draftEndIndex === null) {
-    return [0, lastIndex];
-  }
-  if (draftStartIndex !== null && draftEndIndex === null) {
-    return [draftStartIndex, lastIndex];
-  }
-  if (draftStartIndex === null && draftEndIndex !== null) {
-    return [0, draftEndIndex];
-  }
-
-  return [draftStartIndex!, draftEndIndex!];
 }
 
 export function isDraftLoopRangeEmpty(

@@ -657,7 +657,6 @@ interface TabState {
     startIndex: number | null;
     endIndex: number | null;
   }) => void;
-  initDraftLoopRangeFromAudioMetadata: () => void;
   selectPlaybackLoopRangeChord: (index: number) => void;
   instruments: Record<InstrumentNames, Soundfont.Player>;
   setInstruments: (
@@ -888,29 +887,6 @@ const useTabStoreBase = create<TabState>()(
           draftLoopStartIndex: startIndex,
           draftLoopEndIndex: endIndex,
         }),
-      initDraftLoopRangeFromAudioMetadata: () => {
-        const { audioMetadata } = get();
-        if (
-          audioMetadata.startLoopIndex === 0 &&
-          audioMetadata.endLoopIndex === -1
-        ) {
-          set({
-            draftLoopStartIndex: null,
-            draftLoopEndIndex: null,
-          });
-          return;
-        }
-
-        const concreteEnd =
-          audioMetadata.endLoopIndex === -1
-            ? Math.max(0, audioMetadata.fullTabMetadataLength - 1)
-            : audioMetadata.endLoopIndex;
-
-        set({
-          draftLoopStartIndex: audioMetadata.startLoopIndex,
-          draftLoopEndIndex: concreteEnd,
-        });
-      },
       selectPlaybackLoopRangeChord: (index) => {
         const {
           audioMetadata,
