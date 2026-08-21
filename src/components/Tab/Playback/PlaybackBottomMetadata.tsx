@@ -976,15 +976,14 @@ function DesktopSettings({
           <TooltipTrigger asChild>
             <Button
               variant={"outline"}
-              size="icon"
               aria-label="Enter the loop range editor"
               disabled={audioMetadata.playing || countInTimer.showing}
-              className="baseFlex gap-2"
+              className="baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
               onClick={() => {
                 enterPlaybackLoopRangeEditor();
               }}
             >
-              <CgArrowsShrinkH className="h-6 w-6" />
+              <CgArrowsShrinkH className="size-6" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side={"bottom"}>
@@ -1000,7 +999,7 @@ function DesktopSettings({
               variant={"outline"}
               aria-label="Toggle count-in"
               disabled={audioMetadata.playing || countInTimer.showing}
-              className={`baseFlex size-10 gap-2 p-0 ${countIn ? "bg-secondary" : ""}`}
+              className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${countIn ? "bg-accent/90 text-primary-foreground" : ""}`}
               onClick={() => {
                 localStorageCountIn.set(String(!countIn));
               }}
@@ -1020,7 +1019,7 @@ function DesktopSettings({
             <Button
               variant={"outline"}
               aria-label="Toggle color-coded chords"
-              className={`baseFlex size-10 gap-2 p-0 ${colorCodedChords ? "bg-secondary" : ""}`}
+              className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${colorCodedChords ? "bg-accent/90 text-primary-foreground" : ""}`}
               onClick={() => {
                 localStorageColorCodedChords.set(String(!colorCodedChords));
               }}
@@ -1045,7 +1044,10 @@ function DesktopSettings({
                 onOpenChange={setVolumePopoverIsOpen}
               >
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="size-10 !p-0">
+                  <Button
+                    variant="outline"
+                    className="size-10 !p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
+                  >
                     <AnimatePresence mode="popLayout" initial={false}>
                       {volume === 0 && (
                         <motion.div
