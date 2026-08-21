@@ -126,8 +126,8 @@ export const searchRouter = createTRPCRouter({
     }),
 
   getMostPopularDailyTabsAndArtists: publicProcedure.query(async ({ ctx }) => {
-    // Trending tab ids are updated weekly; popular artist ids are updated daily
-    // from all-time views. This just fetches the necessary fields from each id.
+    // Trending tab ids are updated weekly from WeeklyTabView.
+    // Popular artists are the current all-time most viewed (no timeframe).
 
     const trendingTabs = await ctx.prisma.mostPopularTabs.findMany({
       select: {
@@ -152,18 +152,14 @@ export const searchRouter = createTRPCRouter({
       take: 5,
     });
 
-    const popularArtists = await ctx.prisma.mostPopularArtists.findMany({
+    const popularArtists = await ctx.prisma.artist.findMany({
       select: {
-        artist: {
-          select: {
-            id: true,
-            name: true,
-            isVerified: true,
-          },
-        },
+        id: true,
+        name: true,
+        isVerified: true,
       },
       orderBy: {
-        id: "asc",
+        totalViews: "desc",
       },
       take: 5,
     });
@@ -181,15 +177,7 @@ export const searchRouter = createTRPCRouter({
       };
     });
 
-    const sanitizedArtists = popularArtists.map((artist) => {
-      return {
-        id: artist.artist.id,
-        name: artist.artist.name,
-        isVerified: artist.artist.isVerified,
-      };
-    });
-
-    return { tabs: sanitizedTabs, artists: sanitizedArtists };
+    return { tabs: sanitizedTabs, artists: popularArtists };
   }),
 
   getMostRecentAndPopularTabs: publicProcedure.query(async ({ ctx }) => {
