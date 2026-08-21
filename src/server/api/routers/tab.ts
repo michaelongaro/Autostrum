@@ -440,8 +440,24 @@ export const tabRouter = createTRPCRouter({
         });
       }
 
+      // 5) increment this tab's weekly page views (for trending songs)
+      await ctx.prisma.weeklyTabView.upsert({
+        where: {
+          tabId,
+        },
+        update: {
+          pageViews: {
+            increment: 1,
+          },
+        },
+        create: {
+          tabId,
+          pageViews: 1,
+        },
+      });
+
       if (artistId) {
-        // 5) increment the artist's totalTabViews
+        // 6) increment the artist's totalTabViews
         await ctx.prisma.artist.update({
           where: {
             id: artistId,

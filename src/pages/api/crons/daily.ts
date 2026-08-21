@@ -24,23 +24,7 @@ export default async function handler(
     // clear the daily tab view model
     await prisma.dailyTabView.deleteMany({});
 
-    // get the top 5 most popular tabs
-    const topFiveTabs = await prisma.tab.findMany({
-      orderBy: {
-        pageViews: "desc",
-      },
-      take: 5,
-    });
-
-    // Create an array of individual update promises
-    const updateTabPromises = topFiveTabs.map((tab, index) =>
-      prisma.mostPopularTabs.update({
-        where: { id: index + 1 },
-        data: { tabId: tab.id },
-      }),
-    );
-
-    // get the top 5 most popular artists
+    // get the top 5 most popular artists (all-time views)
     const topFiveArtists = await prisma.artist.findMany({
       orderBy: {
         totalViews: "desc",
@@ -57,7 +41,7 @@ export default async function handler(
     );
 
     // Execute all update operations in a single transaction
-    await prisma.$transaction([...updateTabPromises, ...updateArtistPromises]);
+    await prisma.$transaction(updateArtistPromises);
 
     return res.status(200).json({ success: true });
   } catch (error) {

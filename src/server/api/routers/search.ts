@@ -126,10 +126,10 @@ export const searchRouter = createTRPCRouter({
     }),
 
   getMostPopularDailyTabsAndArtists: publicProcedure.query(async ({ ctx }) => {
-    // tab/artist ids are updated daily by a cron job,
-    // this just fetches the necessary fields from each id
+    // Trending tab ids are updated weekly; popular artist ids are updated daily
+    // from all-time views. This just fetches the necessary fields from each id.
 
-    const dailyMostPopularTabs = await ctx.prisma.mostPopularTabs.findMany({
+    const trendingTabs = await ctx.prisma.mostPopularTabs.findMany({
       select: {
         tab: {
           select: {
@@ -152,24 +152,23 @@ export const searchRouter = createTRPCRouter({
       take: 5,
     });
 
-    const dailyMostPopularArtists =
-      await ctx.prisma.mostPopularArtists.findMany({
-        select: {
-          artist: {
-            select: {
-              id: true,
-              name: true,
-              isVerified: true,
-            },
+    const popularArtists = await ctx.prisma.mostPopularArtists.findMany({
+      select: {
+        artist: {
+          select: {
+            id: true,
+            name: true,
+            isVerified: true,
           },
         },
-        orderBy: {
-          id: "asc",
-        },
-        take: 5,
-      });
+      },
+      orderBy: {
+        id: "asc",
+      },
+      take: 5,
+    });
 
-    const sanitizedTabs = dailyMostPopularTabs.map((tab) => {
+    const sanitizedTabs = trendingTabs.map((tab) => {
       return {
         id: tab.tab.id,
         title: tab.tab.title,
@@ -182,7 +181,7 @@ export const searchRouter = createTRPCRouter({
       };
     });
 
-    const sanitizedArtists = dailyMostPopularArtists.map((artist) => {
+    const sanitizedArtists = popularArtists.map((artist) => {
       return {
         id: artist.artist.id,
         name: artist.artist.name,

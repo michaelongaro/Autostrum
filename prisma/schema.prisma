@@ -39,8 +39,20 @@ model DailyTabView {
     @@id([userIpAddress, tabId]) // composite key because we always are querying by userIpAddress + tabId
 }
 
-// top 5 most popular tabs based on pageViews 
-// (updated daily by a cron job)
+// used to get the top trending tabs each week
+// (entire model is cleared weekly by a cron job)
+model WeeklyTabView {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+
+    tabId     Int @unique
+    pageViews Int @default(0) // page views for the week
+
+    tab Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+}
+
+// top 5 trending tabs based on weekly page views
+// (updated weekly by a cron job)
 model MostPopularTabs {
     id Int @id @default(autoincrement())
 
@@ -48,7 +60,7 @@ model MostPopularTabs {
     tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
 }
 
-// top 5 most popular artists based on aggregate # of pageViews
+// top 5 most popular artists based on all-time aggregate page views
 // (updated daily by a cron job)
 model MostPopularArtists {
     id Int @id @default(autoincrement())
@@ -124,6 +136,7 @@ model Tab {
     bookmarks       Bookmark[]
     comments        Comment[]
     mostPopularTabs MostPopularTabs[]
+    weeklyTabViews  WeeklyTabView[]
 
     averageRating Float       @default(0)
     ratingsCount  Int         @default(0) // needed to calculate new average rating in optimistic fashion
