@@ -4,16 +4,15 @@ export const ARPEGGIO_STRUM_SPREAD_MIN = 0.16;
 export const ARPEGGIO_STRUM_SPREAD_MAX = 0.3;
 
 /** Auto total-spread curve endpoints (seconds) mapped from BPM 0 → 400. */
-const NORMAL_AUTO_AT_0_BPM = 0.1;
-const NORMAL_AUTO_AT_400_BPM = 0.03;
-const ARPEGGIO_AUTO_AT_0_BPM = 0.28;
-const ARPEGGIO_AUTO_AT_400_BPM = 0.18;
+const NORMAL_AUTO_AT_0_BPM = 0.05;
+const NORMAL_AUTO_AT_400_BPM = 0;
+const ARPEGGIO_AUTO_AT_0_BPM = 0.21;
+const ARPEGGIO_AUTO_AT_400_BPM = 0.16;
 
 const QUICK_STRUM_FACTOR = 0.75;
 
 /** Valid chord-effect strings, including optional arpeggio `~` on v/^ only. */
-export const CHORD_EFFECTS_WITH_STRUM_REGEX =
-  /^([v^]~?|s)(>|\.|>\.|\.>)?$/;
+export const CHORD_EFFECTS_WITH_STRUM_REGEX = /^([v^]~?|s)(>|\.|>\.|\.>)?$/;
 export const CHORD_EFFECTS_ACCENT_STACCATO_REGEX = /^(>|\.|>\.|\.>)$/;
 export const CHORD_EFFECTS_REST_REGEX = /^r$/;
 
@@ -64,7 +63,7 @@ export function setStrumDirectionInEffects(
     return `s${modifiers}`;
   }
 
-  const arpeggiated = current.includes("~") && current[0] !== "s";
+  const arpeggiated = current.includes("~") && !current.startsWith("s");
   const modifiers = current.replace(/^[v^s]~?/, "");
   return `${direction}${arpeggiated ? "~" : ""}${modifiers}`;
 }
@@ -111,9 +110,7 @@ export function remapStrumSpreadForType(
 
   const span = ARPEGGIO_STRUM_SPREAD_MAX - ARPEGGIO_STRUM_SPREAD_MIN;
   const t =
-    span === 0
-      ? 0
-      : clamp((seconds - ARPEGGIO_STRUM_SPREAD_MIN) / span, 0, 1);
+    span === 0 ? 0 : clamp((seconds - ARPEGGIO_STRUM_SPREAD_MIN) / span, 0, 1);
   return min + t * (max - min);
 }
 
@@ -178,7 +175,9 @@ export function encodeStrumSpreadForCompile({
     return "auto";
   }
 
-  return String(remapStrumSpreadForType(strumSpreadSeconds, isArpeggiatedStrum(effects)));
+  return String(
+    remapStrumSpreadForType(strumSpreadSeconds, isArpeggiatedStrum(effects)),
+  );
 }
 
 export function parseCompiledStrumSpread(
