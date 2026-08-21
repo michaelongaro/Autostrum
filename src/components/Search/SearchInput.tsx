@@ -379,21 +379,21 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
               }}
               className="baseVertFlex min-h-dvh w-full !justify-start sm:min-h-[250px]"
             >
-              {/* no search input and daily popular songs/artists loaded, show popular songs/artists */}
+              {/* no search input and trending songs / popular artists loaded */}
               {searchQuery.trim() === "" &&
                 !isFetchingMostPopularDailyTabsAndArtists &&
                 mostPopularDailyTabsAndArtists && (
                   <>
                     {searchType === "songs" ? (
                       <motion.div
-                        key={"popularSongs"}
+                        key={"trendingSongs"}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
                         className="baseVertFlex mt-2 w-full !items-start gap-2"
                       >
-                        <p className="ml-2 font-medium">Popular Songs</p>
+                        <p className="ml-2 font-medium">Trending Songs</p>
                         <div className="baseVertFlex h-full w-full">
                           {mostPopularDailyTabsAndArtists.tabs.map(
                             (song, idx) => (

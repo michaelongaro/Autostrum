@@ -21,6 +21,48 @@ export default async function handler(
   }
 
   try {
+    // Get the top tabs based on weekly page views
+    const topTabsFromViews = await prisma.weeklyTabView.findMany({
+      orderBy: {
+        pageViews: "desc",
+      },
+      take: 5,
+    });
+
+    let trendingTabIds = topTabsFromViews.map((tabView) => tabView.tabId);
+
+    // Fill remaining spots with all-time popular tabs if needed
+    const neededTabs = 5 - trendingTabIds.length;
+
+    if (neededTabs > 0) {
+      const fillerTabs = await prisma.tab.findMany({
+        take: neededTabs,
+        where: {
+          id: {
+            notIn: trendingTabIds,
+          },
+        },
+        orderBy: {
+          pageViews: "desc",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      trendingTabIds = [
+        ...trendingTabIds,
+        ...fillerTabs.map((tab) => tab.id),
+      ];
+    }
+
+    const updateTabPromises = trendingTabIds.map((tabId, index) =>
+      prisma.mostPopularTabs.update({
+        where: { id: index + 1 },
+        data: { tabId },
+      }),
+    );
+
     // Get the top users based on weekly tab views
     const topUsersFromViews = await prisma.weeklyUserTotalTabView.findMany({
       orderBy: {
@@ -64,6 +106,8 @@ export default async function handler(
 
     // Perform all related write operations within a transaction for consistency
     await prisma.$transaction([
+      ...updateTabPromises,
+
       // Clear the previous weekly featured users
       prisma.weeklyFeaturedUser.deleteMany({}),
 
@@ -75,6 +119,7 @@ export default async function handler(
 
       // Clear the source data for the next cycle
       prisma.weeklyUserTotalTabView.deleteMany({}),
+      prisma.weeklyTabView.deleteMany({}),
     ]);
 
     // Revalidate only after the transaction is successful
