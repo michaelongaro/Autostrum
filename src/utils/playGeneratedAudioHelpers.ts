@@ -2,6 +2,7 @@ import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
 import {
   calculateAutomaticStrumSpreadSeconds,
+  chordEffectCharsForNoteAudio,
   parseCompiledStrumSpread,
   remapStrumSpreadForType,
 } from "~/utils/strumEffectHelpers";
@@ -1310,8 +1311,9 @@ function playNoteColumn({
       }
 
       if (currColumn[7] !== "") {
-        const separatedEffects = currColumn[7]!.split("");
-        separatedEffects.forEach((effect) => {
+        // Chord-effect `~` is arpeggio (spread), not vibrato. Vibrato `~` only
+        // comes from the fret note via currNoteEffects above.
+        chordEffectCharsForNoteAudio(currColumn[7]!).forEach((effect) => {
           effects.push(effect);
         });
       }
