@@ -36,6 +36,15 @@ export function isArpeggiatedStrum(
   return isStrumEffect(effects) && Boolean(effects?.includes("~"));
 }
 
+/**
+ * Chord-effect characters that affect per-note audio (accent, staccato, strum
+ * attack, slap, etc.). Excludes `~`, which on chord effects means arpeggiated
+ * strum — fret vibrato `~` is parsed from the note string separately.
+ */
+export function chordEffectCharsForNoteAudio(chordEffects: string): string[] {
+  return chordEffects.split("").filter((char) => char !== "~");
+}
+
 export function getStrumDirection(
   effects: string | undefined | null,
 ): "v" | "^" | null {
