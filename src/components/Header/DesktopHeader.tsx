@@ -52,7 +52,7 @@ function DesktopHeader() {
       <div className={classes.desktopHeader}>
         <Link
           href={"/"}
-          className={`${classes.logo} shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70`}
+          className={`${classes.logo} baseFlex shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70`}
         >
           <HeaderLogo width={175} height={28} />
         </Link>
