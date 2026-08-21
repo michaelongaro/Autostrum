@@ -6,6 +6,7 @@ import { useTabStore } from "~/stores/TabStore";
 import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
 import { useTuner } from "~/hooks/useTuner";
 import useScreenWakeLock from "~/hooks/useScreenWakeLock";
+import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 
 function Tuner() {
   const { tuning, capo } = useTabStore((state) => ({
@@ -49,27 +50,30 @@ function Tuner() {
         ></meta>
       </Head>
 
-      <div className="baseVertFlex w-full gap-4 pb-4 xs:px-3 sm:px-6 md:px-8">
-        <div className="baseFlex w-full !justify-start px-3 xs:px-0">
-          <div className="baseFlex gap-2">
-            <TuningFork className="size-5" />
-            <p className="text-lg font-semibold">Guitar Tuner</p>
-          </div>
+      <div className="baseVertFlex w-full gap-4">
+        <div className="baseFlex w-full !justify-start pb-2">
+          <ToolRouteHeader
+            icon={<TuningFork className="size-5" />}
+            title="Guitar Tuner"
+            description="A quick and accurate microphone tuner to get your guitar sounding right."
+          />
         </div>
 
-        <TunerPanel
-          targetNotes={tuner.targetNotes}
-          currentTargetIndex={tuner.currentTargetIndex}
-          reading={tuner.reading}
-          isListening={tuner.isListening}
-          completed={tuner.completed}
-          error={tuner.error}
-          permissionDenied={tuner.permissionDenied}
-          onStartListening={tuner.startListening}
-          onStopListening={tuner.stopListening}
-          onResetProgress={tuner.resetProgress}
-          onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
-        />
+        <div className="baseVertFlex w-full xs:px-3 sm:px-6 md:px-8">
+          <TunerPanel
+            targetNotes={tuner.targetNotes}
+            currentTargetIndex={tuner.currentTargetIndex}
+            reading={tuner.reading}
+            isListening={tuner.isListening}
+            completed={tuner.completed}
+            error={tuner.error}
+            permissionDenied={tuner.permissionDenied}
+            onStartListening={tuner.startListening}
+            onStopListening={tuner.stopListening}
+            onResetProgress={tuner.resetProgress}
+            onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
+          />
+        </div>
       </div>
 
       <CustomTuningDialog />
