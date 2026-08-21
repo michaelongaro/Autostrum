@@ -10,7 +10,6 @@ import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
 import { Button } from "~/components/ui/button";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
-import { Toggle } from "~/components/ui/toggle";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
@@ -45,7 +44,6 @@ function PlaybackAudioControls({
     setCurrentChordIndex,
     currentlyPlayingMetadata,
     audioMetadata,
-    setAudioMetadata,
     previewMetadata,
     currentInstrument,
     playTab,
@@ -57,7 +55,6 @@ function PlaybackAudioControls({
     viewportLabel,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
-    setDraftLoopRange,
     enterPlaybackLoopRangeEditor,
   } = useTabStore((state) => ({
     bpm: state.bpm,
@@ -67,7 +64,6 @@ function PlaybackAudioControls({
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
-    setAudioMetadata: state.setAudioMetadata,
     previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
     playTab: state.playTab,
@@ -79,7 +75,6 @@ function PlaybackAudioControls({
     viewportLabel: state.viewportLabel,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
-    setDraftLoopRange: state.setDraftLoopRange,
     enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
   }));
 
@@ -313,9 +308,7 @@ function PlaybackAudioControls({
             </div>
 
             <PlaybackAudioRange
-              disabled={
-                disablePlayButton && !audioMetadata.editingLoopRange
-              }
+              disabled={disablePlayButton && !audioMetadata.editingLoopRange}
               chordDurations={chordDurations}
               setChordRepetitions={setChordRepetitions}
               scrollPositionsLength={scrollPositionsLength}
@@ -327,28 +320,15 @@ function PlaybackAudioControls({
           </div>
 
           {!audioMetadata.editingLoopRange && (
-            <Toggle
+            <Button
               variant={"outline"}
               aria-label="Edit loop range"
               disabled={audioMetadata.playing || countInTimer.showing}
-              pressed={audioMetadata.editingLoopRange}
               className="h-8 w-8 p-1"
-              onPressedChange={(value) => {
-                if (value) {
-                  enterPlaybackLoopRangeEditor();
-                  return;
-                }
-
-                setDraftLoopRange({ startIndex: null, endIndex: null });
-                setCurrentChordIndex(0);
-                setAudioMetadata({
-                  ...audioMetadata,
-                  editingLoopRange: false,
-                });
-              }}
+              onClick={() => enterPlaybackLoopRangeEditor()}
             >
-              <CgArrowsShrinkH className="h-6 w-6" />
-            </Toggle>
+              <CgArrowsShrinkH className="size-6" />
+            </Button>
           )}
         </div>
       )}
@@ -363,9 +343,7 @@ function PlaybackAudioControls({
             )}
 
           <PlaybackAudioRange
-            disabled={
-              disablePlayButton && !audioMetadata.editingLoopRange
-            }
+            disabled={disablePlayButton && !audioMetadata.editingLoopRange}
             chordDurations={chordDurations}
             setChordRepetitions={setChordRepetitions}
             scrollPositionsLength={scrollPositionsLength}

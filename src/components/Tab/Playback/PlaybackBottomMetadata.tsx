@@ -38,7 +38,6 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
-import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
@@ -71,11 +70,8 @@ function PlaybackBottomMetadata({
     playbackMetadata,
     viewportLabel,
     setShowGlossaryDialog,
-    setAudioMetadata,
     countInTimer,
-    setCurrentChordIndex,
     pauseAudio,
-    setDraftLoopRange,
     enterPlaybackLoopRangeEditor,
   } = useTabStore((state) => ({
     capo: state.capo,
@@ -84,11 +80,8 @@ function PlaybackBottomMetadata({
     playbackMetadata: state.playbackMetadata,
     viewportLabel: state.viewportLabel,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
-    setAudioMetadata: state.setAudioMetadata,
     countInTimer: state.countInTimer,
-    setCurrentChordIndex: state.setCurrentChordIndex,
     pauseAudio: state.pauseAudio,
-    setDraftLoopRange: state.setDraftLoopRange,
     enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
   }));
 
@@ -165,28 +158,15 @@ function PlaybackBottomMetadata({
 
               <MobileMenuDialog />
 
-              <Toggle
+              <Button
                 variant={"outline"}
                 aria-label="Edit loop range"
                 disabled={audioMetadata.playing || countInTimer.showing}
-                pressed={audioMetadata.editingLoopRange}
                 className="size-9 p-1"
-                onPressedChange={(value) => {
-                  if (value) {
-                    enterPlaybackLoopRangeEditor();
-                    return;
-                  }
-
-                  setDraftLoopRange({ startIndex: null, endIndex: null });
-                  setCurrentChordIndex(0);
-                  setAudioMetadata({
-                    ...audioMetadata,
-                    editingLoopRange: false,
-                  });
-                }}
+                onClick={() => enterPlaybackLoopRangeEditor()}
               >
                 <CgArrowsShrinkH className="h-6 w-6" />
-              </Toggle>
+              </Button>
 
               <Button
                 variant={"outline"}
