@@ -195,7 +195,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-7 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -228,7 +228,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-7 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -263,7 +263,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-7 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -296,7 +296,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-7 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
@@ -329,7 +329,7 @@ function UserStatistics() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="pulseAnimation ml-8 h-8 w-20 rounded-md lg:h-9"
+                      className="pulseAnimation ml-8 h-7 w-20 rounded-md lg:h-9"
                     ></motion.div>
                   )}
                 </div>
