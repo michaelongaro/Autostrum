@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -23,6 +23,7 @@ import Verified from "~/components/ui/icons/Verified";
 import type { COLORS, THEME } from "~/stores/TabStore";
 
 const loadedTabScreenshotKeys = new Set<string>();
+const SCREENSHOT_REVEAL_DELAY_MS = 100;
 
 function getTabScreenshotVersion(updatedAt: unknown) {
   if (updatedAt instanceof Date) {
@@ -58,7 +59,7 @@ interface GridTabCard {
 function GridTabCard({
   minimalTab,
   currentUser,
-  color,
+  color: _color,
   theme,
   largeVariant,
   pinnedTabType,
@@ -79,13 +80,37 @@ function GridTabCard({
     theme,
     screenshotVersion,
   );
-  const [tabScreenshotLoaded, setTabScreenshotLoaded] = useState(() =>
-    loadedTabScreenshotKeys.has(screenshotCacheKey),
+  const screenshotRevealTimeoutRef = useRef<number | null>(null);
+  const [revealedScreenshotCacheKey, setRevealedScreenshotCacheKey] = useState<
+    string | null
+  >(() =>
+    loadedTabScreenshotKeys.has(screenshotCacheKey) ? screenshotCacheKey : null,
   );
+  const tabScreenshotLoaded =
+    loadedTabScreenshotKeys.has(screenshotCacheKey) ||
+    revealedScreenshotCacheKey === screenshotCacheKey;
 
   useEffect(() => {
-    setTabScreenshotLoaded(loadedTabScreenshotKeys.has(screenshotCacheKey));
+    return () => {
+      if (screenshotRevealTimeoutRef.current !== null) {
+        window.clearTimeout(screenshotRevealTimeoutRef.current);
+        screenshotRevealTimeoutRef.current = null;
+      }
+    };
   }, [screenshotCacheKey]);
+
+  function revealTabScreenshot() {
+    loadedTabScreenshotKeys.add(screenshotCacheKey);
+
+    if (screenshotRevealTimeoutRef.current !== null) {
+      window.clearTimeout(screenshotRevealTimeoutRef.current);
+    }
+
+    screenshotRevealTimeoutRef.current = window.setTimeout(() => {
+      setRevealedScreenshotCacheKey(screenshotCacheKey);
+      screenshotRevealTimeoutRef.current = null;
+    }, SCREENSHOT_REVEAL_DELAY_MS);
+  }
 
   function allowedToRenderArtistLink() {
     const isArtistPage = asPath.includes("/artist");
@@ -160,21 +185,20 @@ function GridTabCard({
               }}
               className="relative grid grid-cols-1 grid-rows-1 border-b"
             >
-              <>
+              <div
+                style={{
+                  opacity: tabScreenshotLoaded ? 1 : 0,
+                  transition: "opacity 0.3s ease-in-out",
+                }}
+                className="relative col-start-1 col-end-2 row-start-1 row-end-2"
+              >
                 <Image
                   src={screenshotSrc}
                   alt={`screenshot of ${minimalTab.title}`}
                   fill
                   sizes={`(max-width: 768px) 100vw, ${getDynamicWidth()}px`}
-                  onLoad={() => {
-                    loadedTabScreenshotKeys.add(screenshotCacheKey);
-                    setTabScreenshotLoaded(true);
-                  }}
-                  style={{
-                    opacity: tabScreenshotLoaded ? 1 : 0,
-                    transition: "opacity 0.3s ease-in-out",
-                  }}
-                  className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-t-sm object-cover object-center !transition-all"
+                  onLoad={revealTabScreenshot}
+                  className="pointer-events-none rounded-t-sm object-cover object-center"
                 />
 
                 <div
@@ -182,20 +206,22 @@ function GridTabCard({
                     backgroundColor:
                       "hsl(var(--screenshot-secondary) / var(--screenshot-color-overlay-alpha))",
                   }}
-                  className="absolute inset-0 z-10 size-full mix-blend-color"
+                  className="absolute inset-0 size-full rounded-t-sm mix-blend-color"
                 ></div>
-              </>
+              </div>
 
               <AnimatePresence>
                 {!tabScreenshotLoaded && (
                   <motion.div
                     key={`${minimalTab.id}gridTabCardSkeletonImageLoader`}
-                    initial={{ opacity: 1 }}
-                    animate={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="pulseAnimation absolute inset-0 z-10 rounded-t-none"
-                  />
+                    className="absolute inset-0 z-10 rounded-t-none"
+                  >
+                    <div className="pulseAnimation size-full rounded-t-none" />
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
@@ -243,7 +269,7 @@ function GridTabCard({
             <Link
               prefetch={false}
               href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
-              className="baseFlex !h-5 min-w-0 max-w-full !justify-start !p-0 !font-semibold md:h-6 md:!text-lg"
+              className="baseFlex !h-5 min-w-0 max-w-full select-all !justify-start !p-0 !font-semibold md:h-6 md:!text-lg"
             >
               <span className="block truncate">{minimalTab.title}</span>
             </Link>

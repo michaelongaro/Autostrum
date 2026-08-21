@@ -288,15 +288,15 @@ kbd {
    0% opacity */
 @keyframes pulseAnimation {
   0% {
-    opacity: 1.0;
-  }
-
-  50% {
     opacity: 0.25;
   }
 
-  100% {
+  50% {
     opacity: 1.0;
+  }
+
+  100% {
+    opacity: 0.25;
   }
 }
 
