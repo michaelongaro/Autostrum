@@ -50,12 +50,18 @@ function GlossaryDialog() {
     }),
   );
 
-  const [currentPane, setCurrentPane] = useState<"effects" | "noteLengths">(
-    "effects",
+  const [currentPane, setCurrentPane] = useState<"modifiers" | "noteLengths">(
+    "modifiers",
   );
 
   const targetMinHeight =
-    currentPane === "effects" ? (editing ? "408px" : "350px") : "408px";
+    currentPane === "modifiers"
+      ? editing
+        ? "475px"
+        : "415px"
+      : editing
+        ? "475px"
+        : "415px";
 
   return (
     <Dialog
@@ -64,7 +70,7 @@ function GlossaryDialog() {
 
         if (!open) {
           setTimeout(() => {
-            setCurrentPane("effects");
+            setCurrentPane("modifiers");
           }, 175);
         }
       }}
@@ -73,22 +79,22 @@ function GlossaryDialog() {
       <VisuallyHidden>
         <DialogTitle>Modifier Glossary</DialogTitle>
         <DialogDescription>
-          A list of all the effects and their notations that can be used in the
-          tab editor.
+          A list of all the modifiers and their notations that can be used in
+          the tab editor.
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 rounded-lg p-4 transition-all xs:max-w-[420px]">
+      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 rounded-lg p-4 transition-all xs:max-w-[445px]">
         <div className="baseFlex w-full !justify-start gap-4">
           <Button
             variant={"text"}
-            onClick={() => setCurrentPane("effects")}
+            onClick={() => setCurrentPane("modifiers")}
             className="relative h-8 px-0"
           >
             <span className="baseFlex gap-2 font-semibold">
               Modifier Glossary
             </span>
-            {currentPane === "effects" && (
+            {currentPane === "modifiers" && (
               <motion.span
                 layoutId="glossaryActiveTabUnderline"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
@@ -119,9 +125,9 @@ function GlossaryDialog() {
           className="w-full overflow-y-auto overflow-x-hidden xs:overflow-y-hidden"
         >
           <AnimatePresence mode="wait" initial={false}>
-            {currentPane === "effects" && (
+            {currentPane === "modifiers" && (
               <motion.div
-                key={"GlossaryDialogEffectsPane"}
+                key={"GlossaryDialogmodifiersPane"}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -131,9 +137,7 @@ function GlossaryDialog() {
                 <div
                   className={`baseFlex !items-start gap-4 xs:gap-8 ${editing ? "!flex-col xs:!flex-row" : ""}`}
                 >
-                  <div
-                    className={`baseVertFlex gap-1 ${editing ? "min-w-[190px]" : "min-w-[150px]"}`}
-                  >
+                  <div className={`baseVertFlex w-full gap-1`}>
                     <span className="mt-2 text-sm font-medium">
                       Note Modifiers
                     </span>
@@ -390,6 +394,19 @@ function GlossaryDialog() {
                         <span className="col-span-3">Muted note</span>
                       </div>
                     </div>
+
+                    <div className="baseVertFlex w-full gap-1">
+                      <span className="mt-4 text-sm font-medium">
+                        Section Modifiers
+                      </span>
+                      <Separator className="mb-2 w-full bg-primary" />
+                    </div>
+
+                    <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                      <span className="col-span-1">PM</span>
+                      <span className="col-span-1 ml-1">-</span>
+                      <span className="col-span-3">Palm mute</span>
+                    </div>
                   </div>
 
                   <div className="baseVertFlex w-full gap-1">
@@ -413,7 +430,9 @@ function GlossaryDialog() {
                         <div className="grid w-full grid-cols-5 pl-1 text-sm">
                           <span className="col-span-1">^~</span>
                           <span className="col-span-1">-</span>
-                          <span className="col-span-3">Arpeggiated upstrum</span>
+                          <span className="col-span-3">
+                            Arpeggiated upstrum
+                          </span>
                         </div>
                         <div className="grid w-full grid-cols-5 pl-1 text-sm">
                           <span className="col-span-1">v~</span>
@@ -464,7 +483,9 @@ function GlossaryDialog() {
                             <ArpeggiatedUpstrumIcon className="size-4" />
                           </span>
                           <span className="col-span-1">-</span>
-                          <span className="col-span-3">Arpeggiated upstrum</span>
+                          <span className="col-span-3">
+                            Arpeggiated upstrum
+                          </span>
                         </div>
                         <div className="grid w-full grid-cols-5 pl-1 text-sm">
                           <span className="col-span-1 -ml-1">
@@ -496,19 +517,6 @@ function GlossaryDialog() {
                         </div>
                       </div>
                     )}
-
-                    <div className="baseVertFlex w-full gap-1">
-                      <span className="mt-4 text-sm font-medium">
-                        Section Modifiers
-                      </span>
-                      <Separator className="mb-2 w-full bg-primary" />
-                    </div>
-
-                    <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                      <span className="col-span-1">PM</span>
-                      <span className="col-span-1 ml-1">-</span>
-                      <span className="col-span-3">Palm mute</span>
-                    </div>
 
                     {editing && (
                       <>
