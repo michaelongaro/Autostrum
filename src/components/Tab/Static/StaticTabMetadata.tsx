@@ -192,8 +192,10 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex pulseAnimation h-10 w-28 rounded-md"
-                    ></motion.div>
+                      className="baseFlex h-10 w-28"
+                    >
+                      <div className="pulseAnimation size-full rounded-md"></div>
+                    </motion.div>
                   )}
 
                   {dynamicMetadata ? (
@@ -225,8 +227,10 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex pulseAnimation h-10 w-36 rounded-md"
-                    ></motion.div>
+                      className="baseFlex h-10 w-36"
+                    >
+                      <div className="pulseAnimation size-full rounded-md"></div>
+                    </motion.div>
                   )}
 
                   <Button
@@ -319,8 +323,10 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex pulseAnimation h-10 w-28 rounded-md"
-                    ></motion.div>
+                      className="baseFlex h-10 w-28"
+                    >
+                      <div className="pulseAnimation size-full rounded-md"></div>
+                    </motion.div>
                   )}
 
                   {dynamicMetadata ? (
@@ -352,8 +358,10 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex pulseAnimation h-10 w-36 rounded-md"
-                    ></motion.div>
+                      className="baseFlex h-10 w-36"
+                    >
+                      <div className="pulseAnimation size-full rounded-md"></div>
+                    </motion.div>
                   )}
 
                   <Button
@@ -425,10 +433,10 @@ function StaticTabMetadata() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.35 }}
-                  className="h-6"
+                  transition={{ duration: 0.25 }}
+                  className="h-6 w-48"
                 >
-                  <div className="pulseAnimation h-6 w-48 rounded-md" />
+                  <div className="pulseAnimation size-full rounded-md" />
                 </motion.div>
               ) : (
                 <motion.div
@@ -492,8 +500,10 @@ function StaticTabMetadata() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
-                  className="pulseAnimation h-5 min-w-[78px] rounded-md"
-                />
+                  className="h-5 min-w-[78px]"
+                >
+                  <div className="pulseAnimation size-full rounded-md"></div>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>

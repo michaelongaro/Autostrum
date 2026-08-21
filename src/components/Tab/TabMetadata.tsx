@@ -1027,8 +1027,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md"
-                        ></motion.div>
+                          className="baseFlex h-10 w-28"
+                        >
+                          <div className="pulseAnimation size-full rounded-md"></div>
+                        </motion.div>
                       )}
 
                       {dynamicMetadata ? (
@@ -1060,8 +1062,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md"
-                        ></motion.div>
+                          className="baseFlex h-10 w-36"
+                        >
+                          <div className="pulseAnimation size-full rounded-md"></div>
+                        </motion.div>
                       )}
 
                       <Button
@@ -1154,8 +1158,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-28 rounded-md"
-                        ></motion.div>
+                          className="baseFlex h-10 w-28"
+                        >
+                          <div className="pulseAnimation size-full rounded-md"></div>
+                        </motion.div>
                       )}
 
                       {dynamicMetadata ? (
@@ -1187,8 +1193,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex pulseAnimation h-10 w-36 rounded-md"
-                        ></motion.div>
+                          className="baseFlex h-10 w-36"
+                        >
+                          <div className="pulseAnimation size-full rounded-md"></div>
+                        </motion.div>
                       )}
 
                       <Button
