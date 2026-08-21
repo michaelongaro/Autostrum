@@ -83,7 +83,7 @@ function StrumSettingsDropdown({
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <div className="baseFlex w-full !justify-between gap-2">
-          <div className="baseFlex min-w-0 flex-1 gap-2">
+          <div className="baseFlex gap-2">
             <ChordStrumIcon effects={effects} size="18px" />
             <span className="text-sm font-medium leading-tight">
               {getStrumDisplayName(effects)}
@@ -101,7 +101,8 @@ function StrumSettingsDropdown({
           />
         </div>
 
-        <div className="w-full px-1 pt-1">
+        <div className="baseVertFlex w-full !items-start px-1 pt-1">
+          <div className="mb-2 text-xs font-medium">Strum duration</div>
           <Range
             label="Strum duration"
             labelledBy="strum-duration"
@@ -147,13 +148,10 @@ function StrumSettingsDropdown({
                   style={{
                     height: "8px",
                     width: "100%",
-                    borderRadius: "4px",
+
                     background: getTrackBackground({
                       values: [displayValue],
-                      colors: [
-                        "hsl(var(--primary))",
-                        "hsl(var(--gray) / 0.5)",
-                      ],
+                      colors: ["hsl(var(--primary))", "hsl(var(--gray) / 0.5)"],
                       min,
                       max,
                     }),
