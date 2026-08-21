@@ -60,8 +60,8 @@ model MostPopularTabs {
     tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
 }
 
-// top 5 most popular artists based on all-time aggregate page views
-// (updated daily by a cron job)
+// Legacy snapshot table for popular artists. Search autofill now queries
+// Artist.totalViews directly (all-time), so this is no longer updated.
 model MostPopularArtists {
     id Int @id @default(autoincrement())
 
