@@ -111,12 +111,7 @@ function PlaybackTopMetadata({
                   </OverlayScrollbarsComponent>
                 </div>
 
-                {!viewportLabel.includes("mobile") && (
-                  <div className="baseFlex gap-4">
-                    <Separator className="h-6 w-[1px] bg-foreground/50" />
-                    <PlaybackSectionPicker />
-                  </div>
-                )}
+                {!viewportLabel.includes("mobile") && <PlaybackSectionPicker />}
               </div>
 
               <div className="baseFlex w-full !justify-between gap-4">

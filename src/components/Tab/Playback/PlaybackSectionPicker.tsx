@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Label } from "~/components/ui/label";
+import { Separator } from "~/components/ui/separator";
 
 function PlaybackSectionPicker() {
   const {
@@ -74,41 +75,44 @@ function PlaybackSectionPicker() {
   if (sectionProgression.length <= 1) return null;
 
   return (
-    <div className="baseFlex gap-2">
-      <Label htmlFor="sectionPicker" className="text-sm font-medium">
-        Section
-      </Label>
-      <Select
-        value={currentSectionId}
-        onValueChange={(value) => {
-          handleChangeSection(value);
-        }}
-      >
-        <SelectTrigger
-          id="sectionPicker"
-          className="!h-9 !max-w-32 mobilePortrait:!h-8 mobilePortrait:!max-w-none"
+    <div className="baseFlex gap-4">
+      <Separator className="h-6 w-[1px] bg-foreground/50" />
+      <div className="baseFlex gap-2">
+        <Label htmlFor="sectionPicker" className="text-sm font-medium">
+          Section
+        </Label>
+        <Select
+          value={currentSectionId}
+          onValueChange={(value) => {
+            handleChangeSection(value);
+          }}
         >
-          <SelectValue placeholder="Select a section" asChild>
-            <p className="truncate">{currentSectionTitle}</p>
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent className="!justify-start">
-          <>
-            {uniqueSections.map((section) => {
-              return (
-                <SelectItem key={section.sectionId} value={section.sectionId}>
-                  {section.title}
-                </SelectItem>
-              );
-            })}
+          <SelectTrigger
+            id="sectionPicker"
+            className="!h-9 !max-w-32 mobilePortrait:!h-8 mobilePortrait:!max-w-none"
+          >
+            <SelectValue placeholder="Select a section" asChild>
+              <p className="truncate">{currentSectionTitle}</p>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="!justify-start">
+            <>
+              {uniqueSections.map((section) => {
+                return (
+                  <SelectItem key={section.sectionId} value={section.sectionId}>
+                    {section.title}
+                  </SelectItem>
+                );
+              })}
 
-            <div className="my-1 h-[1px] w-full bg-primary"></div>
-            <SelectItem key={"fullTab"} value={`fullTab`}>
-              Full tab
-            </SelectItem>
-          </>
-        </SelectContent>
-      </Select>
+              <div className="my-1 h-[1px] w-full bg-primary"></div>
+              <SelectItem key={"fullTab"} value={`fullTab`}>
+                Full tab
+              </SelectItem>
+            </>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
