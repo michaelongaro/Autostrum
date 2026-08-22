@@ -76,7 +76,7 @@ function PlaybackSectionPicker() {
 
   return (
     <div className="baseFlex gap-4">
-      <Separator className="h-6 w-[1px] bg-foreground/50" />
+      <Separator className="hidden h-6 w-[1px] bg-foreground/50 tablet:block" />
       <div className="baseFlex gap-2">
         <Label htmlFor="sectionPicker" className="text-sm font-medium">
           Section
