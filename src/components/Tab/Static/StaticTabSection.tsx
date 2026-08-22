@@ -85,7 +85,7 @@ function FullStaticTabSection({
   return (
     <SectionCard>
       <div
-        className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto" : "flex-wrap"}`}
+        className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto overflow-y-hidden" : "flex-wrap"}`}
       >
         <TuningGutter tuning={tuning} />
         {renderColumnRange(
