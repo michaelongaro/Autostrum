@@ -2,6 +2,11 @@ import { Prisma } from "../../../generated/client";
 import { z } from "zod";
 import { tuningNotes } from "~/utils/tunings";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  buildPrefixTsQuery,
+  FUZZY_MIN_QUERY_LENGTH,
+  WORD_SIMILARITY_THRESHOLD,
+} from "~/server/api/searchQuery";
 
 interface TabWithArtistRank {
   id: number;
@@ -296,9 +301,14 @@ export const searchRouter = createTRPCRouter({
         return []; // Handle empty query
       }
 
-      const tsQuery = Prisma.sql`websearch_to_tsquery('english', ${trimmedQuery})`;
-      // Pattern for ILIKE prefix match (case-insensitive)
+      const prefixTsQueryString = buildPrefixTsQuery(trimmedQuery);
+      // Prefix tsquery so "minecr" matches lexeme "minecraft" via minecr:*
+      const tsQuery = prefixTsQueryString
+        ? Prisma.sql`to_tsquery('english', ${prefixTsQueryString})`
+        : null;
       const prefixPattern = `${trimmedQuery}%`;
+      const containsPattern = `%${trimmedQuery}%`;
+      const enableFuzzy = trimmedQuery.length >= FUZZY_MIN_QUERY_LENGTH;
 
       try {
         const results = await ctx.prisma.$queryRaw<TabWithArtistRank[]>`
@@ -309,25 +319,50 @@ export const searchRouter = createTRPCRouter({
             "Tab"."artistId",
             "Artist"."name" AS "artistName",
             "Artist"."isVerified" AS "artistIsVerified",
-            ts_rank_cd("Tab"."searchVector", ${tsQuery}) AS rank
+            ${
+              tsQuery
+                ? Prisma.sql`ts_rank_cd("Tab"."searchVector", ${tsQuery})`
+                : Prisma.sql`0`
+            } AS rank
           FROM
             "Tab"
           LEFT JOIN
             "Artist" ON "Tab"."artistId" = "Artist"."id"
           WHERE
-            -- Match EITHER the FTS vector OR the title prefix
-            ("Tab"."searchVector" @@ ${tsQuery})
-            OR
-            ("Tab".title ILIKE ${prefixPattern})
+            (
+              ${
+                tsQuery
+                  ? Prisma.sql`("Tab"."searchVector" @@ ${tsQuery}) OR`
+                  : Prisma.empty
+              }
+              ("Tab".title ILIKE ${containsPattern})
+              OR
+              ("Artist"."name" ILIKE ${containsPattern})
+              ${
+                enableFuzzy
+                  ? Prisma.sql`OR word_similarity(${trimmedQuery}, "Tab".title) >= ${WORD_SIMILARITY_THRESHOLD}
+                    OR word_similarity(${trimmedQuery}, COALESCE("Artist"."name", '')) >= ${WORD_SIMILARITY_THRESHOLD}`
+                  : Prisma.empty
+              }
+            )
           ORDER BY
-            -- Prioritize prefix matches, then exact, then others
             CASE
-              -- Assign 0 if title starts with the query (case-insensitive)
               WHEN "Tab".title ILIKE ${prefixPattern} THEN 0
-              ELSE 1 -- 1 for others
-            END ASC, -- Sort by priority (0 comes first)
-            rank DESC, -- Then sort by FTS relevance score
-            "Tab".title ASC -- Final tie-breaker by title alphabetically
+              WHEN "Tab".title ILIKE ${containsPattern} THEN 1
+              WHEN "Artist"."name" ILIKE ${prefixPattern} THEN 2
+              WHEN "Artist"."name" ILIKE ${containsPattern} THEN 3
+              ELSE 4
+            END ASC,
+            ${
+              enableFuzzy
+                ? Prisma.sql`GREATEST(
+                    word_similarity(${trimmedQuery}, "Tab".title),
+                    word_similarity(${trimmedQuery}, COALESCE("Artist"."name", ''))
+                  ) DESC,`
+                : Prisma.empty
+            }
+            rank DESC,
+            "Tab".title ASC
           LIMIT 5;
         `;
 
@@ -356,40 +391,45 @@ export const searchRouter = createTRPCRouter({
       // FYI: multiple artists with the same name can exist. Not using
       // distinct here because we want to show all of them, but I know
       // it's not the best approach.
+      const prefixPattern = `${trimmedQuery}%`;
+      const containsPattern = `%${trimmedQuery}%`;
+      const enableFuzzy = trimmedQuery.length >= FUZZY_MIN_QUERY_LENGTH;
+
       try {
-        const results = await ctx.prisma.artist.findMany({
-          where: {
-            OR: [
-              {
-                // Condition 1: Name starts with the query
-                name: {
-                  startsWith: trimmedQuery,
-                  mode: "insensitive",
-                },
-              },
-              {
-                // Condition 2: Name contains the query
-                name: {
-                  contains: trimmedQuery,
-                  mode: "insensitive",
-                },
-              },
-            ],
-          },
-          select: {
-            id: true,
-            name: true,
-            isVerified: true,
-          },
-          orderBy: {
-            name: "asc",
-          },
-          take: limitResults ? 5 : undefined,
-        });
+        const results = await ctx.prisma.$queryRaw<
+          { id: number; name: string; isVerified: boolean }[]
+        >`
+          SELECT
+            id,
+            name,
+            "isVerified"
+          FROM
+            "Artist"
+          WHERE
+            name ILIKE ${containsPattern}
+            ${
+              enableFuzzy
+                ? Prisma.sql`OR word_similarity(${trimmedQuery}, name) >= ${WORD_SIMILARITY_THRESHOLD}`
+                : Prisma.empty
+            }
+          ORDER BY
+            CASE
+              WHEN name ILIKE ${prefixPattern} THEN 0
+              WHEN name ILIKE ${containsPattern} THEN 1
+              ELSE 2
+            END ASC,
+            ${
+              enableFuzzy
+                ? Prisma.sql`word_similarity(${trimmedQuery}, name) DESC,`
+                : Prisma.empty
+            }
+            name ASC
+          ${limitResults ? Prisma.sql`LIMIT 5` : Prisma.empty};
+        `;
 
         return results;
       } catch (error) {
-        console.error("Error searching artists with ILIKE:", error);
+        console.error("Error searching artists with ILIKE/trgm:", error);
         throw error;
       }
     }),
@@ -438,15 +478,32 @@ export const searchRouter = createTRPCRouter({
 
       // --- FTS Relevance Search Path (using $queryRaw) ---
       if (useFts && trimmedQuery) {
-        const tsQuery = Prisma.sql`websearch_to_tsquery('english', ${trimmedQuery})`;
+        const prefixTsQueryString = buildPrefixTsQuery(trimmedQuery);
+        const tsQuery = prefixTsQueryString
+          ? Prisma.sql`to_tsquery('english', ${prefixTsQueryString})`
+          : null;
         const prefixPattern = `${trimmedQuery}%`;
+        const containsPattern = `%${trimmedQuery}%`;
+        const enableFuzzy = trimmedQuery.length >= FUZZY_MIN_QUERY_LENGTH;
         const page = cursor ?? 0; // Treat cursor as page number for FTS
         const offset = page * limit;
 
         // Build WHERE conditions dynamically and safely
-        const conditions = [
-          Prisma.sql`("Tab"."searchVector" @@ ${tsQuery} OR "Tab"."title" ILIKE ${prefixPattern})`,
-        ];
+        const matchCondition = Prisma.sql`(
+          ${
+            tsQuery
+              ? Prisma.sql`("Tab"."searchVector" @@ ${tsQuery}) OR`
+              : Prisma.empty
+          }
+          ("Tab"."title" ILIKE ${containsPattern})
+          ${
+            enableFuzzy
+              ? Prisma.sql`OR word_similarity(${trimmedQuery}, "Tab"."title") >= ${WORD_SIMILARITY_THRESHOLD}`
+              : Prisma.empty
+          }
+        )`;
+
+        const conditions = [matchCondition];
 
         if (genre !== undefined) {
           conditions.push(Prisma.sql`"Tab"."genre" = ${genre}`);
@@ -489,13 +546,23 @@ export const searchRouter = createTRPCRouter({
             ? Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`
             : Prisma.empty;
 
-        // FTS specific ORDER BY
+        // Prefer title prefix/contains, then trigram similarity, then FTS rank
         const orderByClause = Prisma.sql`ORDER BY
           CASE
             WHEN "Tab"."title" ILIKE ${prefixPattern} THEN 0
-            ELSE 1
+            WHEN "Tab"."title" ILIKE ${containsPattern} THEN 1
+            ELSE 2
           END ASC,
-          ts_rank_cd("Tab"."searchVector", ${tsQuery}) DESC,
+          ${
+            enableFuzzy
+              ? Prisma.sql`word_similarity(${trimmedQuery}, "Tab"."title") DESC,`
+              : Prisma.empty
+          }
+          ${
+            tsQuery
+              ? Prisma.sql`ts_rank_cd("Tab"."searchVector", ${tsQuery}) DESC,`
+              : Prisma.empty
+          }
           "Tab"."title" ASC`;
 
         const selectFields = Prisma.sql`
@@ -507,7 +574,11 @@ export const searchRouter = createTRPCRouter({
           "Artist"."isVerified" AS "artistIsVerified",
           "Tab"."createdByUserId",
           "User"."username" AS "createdByUsername",
-          ts_rank_cd("Tab"."searchVector", ${tsQuery}) AS rank
+          ${
+            tsQuery
+              ? Prisma.sql`ts_rank_cd("Tab"."searchVector", ${tsQuery})`
+              : Prisma.sql`0`
+          } AS rank
       `;
 
         const dataQuery = Prisma.sql`
@@ -765,36 +836,34 @@ export const searchRouter = createTRPCRouter({
 
       // FYI: by the time this is called, we have already done a direct (case-insensitive) query
       // and there weren't any results. So this is a fallback to find similar artists.
+      const containsPattern = `%${trimmedQuery}%`;
+      const enableFuzzy = trimmedQuery.length >= FUZZY_MIN_QUERY_LENGTH;
 
-      const results = await ctx.prisma.artist.findMany({
-        where: {
-          OR: [
-            {
-              // Condition 1: Name starts with the query
-              name: {
-                startsWith: trimmedQuery,
-                mode: "insensitive",
-              },
-            },
-            {
-              // Condition 2: Name contains the query
-              name: {
-                contains: trimmedQuery,
-                mode: "insensitive",
-              },
-            },
-          ],
-        },
-        orderBy: {
-          name: "asc",
-        },
-        select: {
-          id: true,
-          name: true,
-          isVerified: true,
-        },
-        take: 3,
-      });
+      const results = await ctx.prisma.$queryRaw<
+        { id: number; name: string; isVerified: boolean }[]
+      >`
+        SELECT
+          id,
+          name,
+          "isVerified"
+        FROM
+          "Artist"
+        WHERE
+          name ILIKE ${containsPattern}
+          ${
+            enableFuzzy
+              ? Prisma.sql`OR word_similarity(${trimmedQuery}, name) >= ${WORD_SIMILARITY_THRESHOLD}`
+              : Prisma.empty
+          }
+        ORDER BY
+          ${
+            enableFuzzy
+              ? Prisma.sql`word_similarity(${trimmedQuery}, name) DESC,`
+              : Prisma.empty
+          }
+          name ASC
+        LIMIT 3;
+      `;
 
       return results;
     }),
