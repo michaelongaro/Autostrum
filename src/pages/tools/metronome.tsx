@@ -772,7 +772,7 @@ function MetronomeToolPage() {
           )}
 
           {/* Controls: time signature, subdivision, accent */}
-          <div className="grid w-full gap-3 sm:mt-3 sm:grid-cols-3 sm:place-items-center">
+          <div className="grid w-full gap-6 sm:mt-3 sm:grid-cols-3 sm:place-items-center">
             <div className="baseVertFlex w-full !items-start gap-2">
               <p className="text-sm font-medium">Time Signature</p>
               <div className="baseFlex w-full !justify-start gap-2 sm:w-auto">
@@ -784,7 +784,7 @@ function MetronomeToolPage() {
                         ? "default"
                         : "outline"
                     }
-                    className="!h-8 w-full px-3 sm:w-auto"
+                    className="!h-8 w-full px-4 sm:w-auto"
                     onClick={() => setTimeSignature(signature)}
                   >
                     {signature.label}
@@ -802,7 +802,7 @@ function MetronomeToolPage() {
                     variant={
                       subdivisionOption === subdivision ? "default" : "outline"
                     }
-                    className="!h-8 w-full px-3 sm:w-auto"
+                    className="!h-8 w-full px-4 sm:w-auto"
                     onClick={() => setSubdivision(subdivisionOption)}
                   >
                     {subdivisionOption}x
@@ -816,7 +816,7 @@ function MetronomeToolPage() {
               <div className="baseFlex w-full !justify-start gap-2 sm:w-auto">
                 <Button
                   variant={accentDownbeat ? "default" : "outline"}
-                  className="!h-8 w-full px-3 sm:w-auto"
+                  className="!h-8 w-full px-4 sm:w-auto"
                   onClick={() =>
                     setAccentDownbeat((currentlyAccented) => !currentlyAccented)
                   }
@@ -825,7 +825,7 @@ function MetronomeToolPage() {
                 </Button>
                 <Button
                   variant={accentDownbeat ? "outline" : "default"}
-                  className="!h-8 w-full px-3 sm:w-auto"
+                  className="!h-8 w-full px-4 sm:w-auto"
                   onClick={() =>
                     setAccentDownbeat((currentlyAccented) => !currentlyAccented)
                   }
