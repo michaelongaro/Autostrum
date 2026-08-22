@@ -55,13 +55,7 @@ function GlossaryDialog() {
   );
 
   const targetMinHeight =
-    currentPane === "modifiers"
-      ? editing
-        ? "475px"
-        : "415px"
-      : editing
-        ? "475px"
-        : "415px";
+    editing && currentPane === "modifiers" ? "475px" : "425px";
 
   return (
     <Dialog
@@ -122,7 +116,7 @@ function GlossaryDialog() {
         <motion.div
           animate={{ height: targetMinHeight }}
           transition={{ duration: 0.25, ease: "easeInOut" }}
-          className="w-full overflow-y-auto overflow-x-hidden xs:overflow-y-hidden"
+          className="w-full overflow-y-auto overflow-x-hidden md:overflow-y-hidden"
         >
           <AnimatePresence mode="wait" initial={false}>
             {currentPane === "modifiers" && (
@@ -132,7 +126,7 @@ function GlossaryDialog() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className={`baseVertFlex w-full !justify-start gap-4 ${editing ? "h-[408px]" : "h-[350px]"}`}
+                className={`baseVertFlex w-full !justify-start gap-4 ${editing ? "h-[475px]" : "h-[425px]"}`}
               >
                 <div
                   className={`baseFlex !items-start gap-4 xs:gap-8 ${editing ? "!flex-col xs:!flex-row" : ""}`}
@@ -556,7 +550,7 @@ function GlossaryDialog() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="baseVertFlex min-h-[408px] w-full !items-start gap-4 xs:gap-4"
+                className={`baseVertFlex h-[425px] w-full !items-start gap-4 xs:gap-4`}
               >
                 <div className="baseVertFlex !items-start gap-0">
                   <div className="baseVertFlex gap-1">
