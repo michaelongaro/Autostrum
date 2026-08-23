@@ -679,7 +679,7 @@ function PlaybackModal() {
                           <div className="h-[150px] w-full"></div>
                           <div
                             ref={playbackPlayheadRef}
-                            className="z-0 ml-1 h-[125px] w-[2px] shrink-0 bg-primary will-change-transform"
+                            className="z-0 mb-[2px] ml-1 h-[124px] w-[2px] shrink-0 bg-primary will-change-transform"
                           ></div>
                           <div className="h-[150px] w-full"></div>
                         </div>
