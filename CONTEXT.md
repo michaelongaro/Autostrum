@@ -7,7 +7,7 @@ A single domain for composing, sharing, discovering, and practicing guitar arran
 ### People
 
 **User**:
-A signed-in account that can create tabs, bookmark, rate, and appear as a weekly featured creator.
+A signed-in account that can create tabs, bookmark, rate, and appear as a weekly featured creator. Usernames that differ only by casing are distinct Users.
 _Avoid_: Artist (for accounts), account holder, member
 
 **Artist**:
@@ -15,7 +15,7 @@ A named song credit attached to tabs. Not a signed-in account. Names that differ
 _Avoid_: User, creator, band (unless that is the credit string)
 
 **Verified**:
-An Artist flag meaning the credit is treated as an official catalog entry (badge in search/profile). Not a User identity proof.
+An Artist flag meaning the credit is treated as an official catalog entry (badge in search/profile). Set by ops only today — there is no self-serve claim flow. Not a User identity proof.
 _Avoid_: Official artist, authenticated, claimed
 
 ### Core document
