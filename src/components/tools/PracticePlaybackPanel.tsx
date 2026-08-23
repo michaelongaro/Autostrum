@@ -22,6 +22,7 @@ import {
   playbackDifficultyOptions,
 } from "../../utils/playbackSpeedControls";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
+import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -278,6 +279,8 @@ function PracticePlaybackPanel({
       <AnimatePresence mode="wait">
         {showPlaybackModal && <PlaybackModal />}
       </AnimatePresence>
+
+      <GlossaryDialog />
     </div>
   );
 }
