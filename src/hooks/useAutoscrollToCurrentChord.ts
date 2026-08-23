@@ -1,47 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useTabStore } from "~/stores/TabStore";
-import scrollChordIntoView from "~/utils/scrollChordIntoView";
-
-const STICKY_HEADER_HEIGHT_PX = 64;
-const MOBILE_TOP_SCROLL_PADDING_PX = 20;
-const DESKTOP_TOP_SCROLL_PADDING_PX = 28;
-const MOBILE_BOTTOM_VIEWPORT_PADDING_PX = 24;
-const DESKTOP_BOTTOM_VIEWPORT_PADDING_PX = 32;
-
-function getChordElementById(location: {
-  sectionIndex: number;
-  subSectionIndex: number;
-  chordSequenceIndex?: number;
-  chordIndex: number;
-}): HTMLElement | null {
-  const { sectionIndex, subSectionIndex, chordSequenceIndex, chordIndex } =
-    location;
-
-  if (chordSequenceIndex !== undefined) {
-    return document.getElementById(
-      `section${sectionIndex}-subSection${subSectionIndex}-chordSequence${chordSequenceIndex}-chord${chordIndex}`,
-    );
-  }
-
-  return document.getElementById(
-    `section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`,
-  );
-}
-
-function getChordViewportMargins() {
-  const isAboveLargeViewport = window.innerWidth >= 1024;
-
-  return {
-    topMargin:
-      STICKY_HEADER_HEIGHT_PX +
-      (isAboveLargeViewport
-        ? DESKTOP_TOP_SCROLL_PADDING_PX
-        : MOBILE_TOP_SCROLL_PADDING_PX),
-    bottomMargin: isAboveLargeViewport
-      ? DESKTOP_BOTTOM_VIEWPORT_PADDING_PX
-      : MOBILE_BOTTOM_VIEWPORT_PADDING_PX,
-  };
-}
+import scrollChordIntoView, {
+  getChordElement,
+  getChordViewportMargins,
+  isTabletOrLargerViewport,
+} from "~/utils/scrollChordIntoView";
 
 function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
   // not my favorite hack: but is used to avoid scrolling when
@@ -81,7 +44,7 @@ function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
 
     const currentChordLocation =
       currentlyPlayingMetadata[currentChordIndex].location;
-    const currentElement = getChordElementById(currentChordLocation);
+    const currentElement = getChordElement(currentChordLocation);
 
     if (!currentElement) return;
 
@@ -90,6 +53,7 @@ function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
     const { topMargin, bottomMargin } = getChordViewportMargins();
     const { sectionIndex, chordSequenceIndex, chordIndex } =
       currentChordLocation;
+    const isTabletOrLarger = isTabletOrLargerViewport();
 
     if (
       previousChordYScrollValueRef.current !== -1 &&
@@ -115,17 +79,29 @@ function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
       previousChordSectionIndexRef.current !== sectionIndex &&
       chordIndex === 0;
 
-    if (targetIsOutOfViewportWithMargins || isFirstChordOfNewStrummingSection) {
+    // Tablet+: keep the active chord vertically centered whenever its row
+    // changes. Smaller viewports keep the existing edge-margin behavior.
+    if (
+      isTabletOrLarger ||
+      targetIsOutOfViewportWithMargins ||
+      isFirstChordOfNewStrummingSection
+    ) {
       scrollChordIntoView({
         location: currentChordLocation,
         duration: targetIsWayOutOfViewport ? 0 : 200,
-        align: isFirstChordOfNewStrummingSection
-          ? "belowHeader"
-          : "comfortable",
+        align: isTabletOrLarger
+          ? "center"
+          : isFirstChordOfNewStrummingSection
+            ? "belowHeader"
+            : "comfortable",
       });
     }
 
-    previousChordYScrollValueRef.current = currentChordYScrollValue;
+    // After a centered scroll, store the post-scroll target Y so same-row
+    // chords (still near center) don't immediately trigger another scroll.
+    previousChordYScrollValueRef.current = isTabletOrLarger
+      ? Math.round(window.innerHeight / 2 - rect.height / 2)
+      : currentChordYScrollValue;
     previousChordSectionIndexRef.current = sectionIndex;
   }, [
     editing,

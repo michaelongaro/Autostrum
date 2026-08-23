@@ -41,7 +41,9 @@ import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import scrollChordIntoView from "~/utils/scrollChordIntoView";
+import scrollChordIntoView, {
+  isTabletOrLargerViewport,
+} from "~/utils/scrollChordIntoView";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Direction, getTrackBackground, Range } from "react-range";
@@ -132,6 +134,7 @@ function AudioControls() {
       if (currentlyPlayingMetadata?.[currentChordIndex] && autoscrollEnabled) {
         scrollChordIntoView({
           location: currentlyPlayingMetadata[currentChordIndex].location,
+          align: isTabletOrLargerViewport() ? "center" : "comfortable",
         });
       }
 
@@ -617,6 +620,9 @@ function AudioControls() {
                   scrollChordIntoView({
                     location:
                       currentlyPlayingMetadata[currentChordIndex].location,
+                    align: isTabletOrLargerViewport()
+                      ? "center"
+                      : "comfortable",
                   });
                 }
               }}
