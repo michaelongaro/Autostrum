@@ -59,7 +59,7 @@ function Tuner() {
           />
         </div>
 
-        <div className="baseVertFlex w-full xs:px-3 sm:px-6 md:px-8">
+        <div className="baseVertFlex w-full md:px-8">
           <TunerPanel
             targetNotes={tuner.targetNotes}
             currentTargetIndex={tuner.currentTargetIndex}
