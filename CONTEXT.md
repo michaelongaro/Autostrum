@@ -11,7 +11,7 @@ A signed-in account that can create tabs, bookmark, rate, and appear as a weekly
 _Avoid_: Artist (for accounts), account holder, member
 
 **Artist**:
-A named song credit attached to tabs. Not a signed-in account.
+A named song credit attached to tabs. Not a signed-in account. Names that differ only by casing are distinct Artists.
 _Avoid_: User, creator, band (unless that is the credit string)
 
 **Verified**:
