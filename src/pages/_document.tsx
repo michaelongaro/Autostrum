@@ -98,14 +98,22 @@ function Document(_props: DocumentProps) {
   return (
     <Html lang="en" data-color={DEFAULT_COLOR} data-theme="light">
       <Head>
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
+        {/* Static PNG for crawlers; SVG below is theme-swapped by JS. */}
+        <link
+          rel="icon"
+          href="/favicon-96x96.png"
+          type="image/png"
+          sizes="96x96"
+        />
         <link
           id={DYNAMIC_FAVICON_ID}
           rel="icon"
           href="/favicon.svg"
           type="image/svg+xml"
         />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" sizes="180x180" />
+        <link rel="manifest" href="/manifest.json" />
         <script
           dangerouslySetInnerHTML={{
             __html: themeInitializerScript,
