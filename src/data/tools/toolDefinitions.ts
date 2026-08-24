@@ -14,7 +14,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "warmups",
     title: "Warm-up Exercises",
     description:
-      "Build finger strength and dexterity before jumping into your next practice session.",
+      "Finger, picking, and stretch drills for every level — from open strings to sweeps.",
     category: "Practice",
     href: "/tools/warmups",
     status: "available",
@@ -23,7 +23,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "scales",
     title: "Scales Practice",
     description:
-      "Practice common scale patterns and get more familiar with moving around the fretboard.",
+      "Pentatonics, open scales, movable shapes, modes, and sequences across every skill level.",
     category: "Practice",
     href: "/tools/scales",
     status: "available",

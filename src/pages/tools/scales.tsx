@@ -22,7 +22,7 @@ function ScalesPage() {
       <ToolRouteHeader
         icon={<GiMusicalScore className="size-8" />}
         title="Scales Practice"
-        description="Learn the fretboard and build muscle memory by playing through essential scale shapes."
+        description="The shapes players actually return to: pentatonics, open majors and minors, modes, and sequences."
       />
 
       <PracticePlaybackPanel
