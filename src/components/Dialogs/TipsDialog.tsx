@@ -137,9 +137,9 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <span>
-                  Press the
+                  Press
                   <kbd className="ml-1.5">Spacebar</kbd> to play/pause the tab.
-                  If you hover over a chord, the tab will start playing from
+                  If you are hovered over a chord, the tab will start playing from
                   there.
                 </span>
               </div>
