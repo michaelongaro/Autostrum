@@ -20,10 +20,6 @@ import {
 } from "~/data/tools/practiceExercises";
 import { useTabStore } from "~/stores/TabStore";
 import Logo from "~/components/ui/icons/Logo";
-import {
-  getPlaybackControlValue,
-  playbackDifficultyOptions,
-} from "../../utils/playbackSpeedControls";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 
@@ -63,8 +59,6 @@ function PracticePlaybackPanel({
     setExpandedTabData,
     setVisiblePlaybackContainerWidth,
     audioMetadata,
-    playbackSpeed,
-    setPlaybackSpeed,
     color,
     theme,
   } = useTabStore((state) => ({
@@ -85,8 +79,6 @@ function PracticePlaybackPanel({
     setExpandedTabData: state.setExpandedTabData,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     audioMetadata: state.audioMetadata,
-    playbackSpeed: state.playbackSpeed,
-    setPlaybackSpeed: state.setPlaybackSpeed,
     color: state.color,
     theme: state.theme,
   }));
@@ -110,11 +102,6 @@ function PracticePlaybackPanel({
   const subSection = selectedExerciseTabData[0]?.data[0];
   const selectedExerciseTabSection =
     subSection?.type === "tab" ? subSection : null;
-
-  const selectedDifficultyValue = getPlaybackControlValue({
-    playbackSpeed,
-    useDifficultyLabels: true,
-  });
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -192,7 +179,9 @@ function PracticePlaybackPanel({
             <SelectContent className="sm:hidden">
               {exerciseGroups.map((group) => (
                 <SelectGroup key={group.level}>
-                  <SelectLabel>{group.label}</SelectLabel>
+                  <SelectLabel className="text-foreground/60">
+                    {group.label}
+                  </SelectLabel>
                   {group.items.map((exercise) => (
                     <SelectItem key={exercise.id} value={exercise.id}>
                       <span className="baseVertFlex w-72 flex-wrap !items-start gap-0.5 text-left">
@@ -215,7 +204,7 @@ function PracticePlaybackPanel({
           <div className="hidden w-full flex-col gap-4 sm:flex">
             {exerciseGroups.map((group) => (
               <div key={group.level} className="grid grid-cols-2 gap-2">
-                <p className="col-span-2 text-xs font-semibold uppercase tracking-wide text-foreground/60">
+                <p className="col-span-2 text-sm font-medium text-foreground/60">
                   {group.label}
                 </p>
                 {group.items.map((exercise) => (
@@ -228,11 +217,11 @@ function PracticePlaybackPanel({
                     onClick={() => setSelectedExerciseId(exercise.id)}
                   >
                     <span className="baseVertFlex !items-start gap-0.5">
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium transition">
                         {exercise.title}
                       </span>
                       <span
-                        className={`text-xs ${exercise.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
+                        className={`text-xs transition ${exercise.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
                       >
                         {exercise.description}
                       </span>
@@ -260,28 +249,7 @@ function PracticePlaybackPanel({
           )}
         </div>
 
-        <div className="baseFlex w-full flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="baseVertFlex w-full !items-start gap-2">
-            <p className="text-sm font-medium">Difficulty</p>
-
-            <div className="baseFlex w-full flex-wrap !justify-start gap-2">
-              {playbackDifficultyOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  variant={
-                    option.value === selectedDifficultyValue
-                      ? "default"
-                      : "outline"
-                  }
-                  className="!h-8 px-3"
-                  onClick={() => setPlaybackSpeed(option.speed)}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
+        <div className="baseFlex my-2 w-full sm:mb-2 sm:mt-0">
           <Button
             variant="audio"
             className="baseFlex gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
