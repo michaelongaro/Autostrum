@@ -41,6 +41,8 @@ function PracticePlaybackPanel({
     exercises[0]?.id ?? "",
   );
 
+  const [selectedDifficulty, setSelectedDifficulty] = useState("Beginner");
+
   const {
     showPlaybackModal,
     setShowPlaybackModal,
@@ -167,7 +169,7 @@ function PracticePlaybackPanel({
     <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
       <div className="baseVertFlex w-full items-start gap-4 rounded-none border-y bg-background p-4 shadow-md sm:gap-8 sm:rounded-lg sm:border-x">
         <div className="baseVertFlex w-full !items-start gap-2">
-          <p className="text-sm font-medium">Choose an exercise</p>
+          <p className="text-sm font-medium sm:hidden">Choose an exercise</p>
 
           <Select
             value={selectedExerciseId}
@@ -202,33 +204,64 @@ function PracticePlaybackPanel({
           </Select>
 
           <div className="hidden w-full flex-col gap-4 sm:flex">
-            {exerciseGroups.map((group) => (
-              <div key={group.level} className="grid grid-cols-2 gap-2">
-                <p className="col-span-2 text-sm font-medium text-foreground/60">
-                  {group.label}
-                </p>
-                {group.items.map((exercise) => (
-                  <Button
-                    key={exercise.id}
-                    variant={
-                      exercise.id === selectedExerciseId ? "default" : "outline"
-                    }
-                    className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
-                    onClick={() => setSelectedExerciseId(exercise.id)}
-                  >
-                    <span className="baseVertFlex !items-start gap-0.5">
-                      <span className="text-sm font-medium transition">
-                        {exercise.title}
-                      </span>
-                      <span
-                        className={`text-xs transition ${exercise.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
-                      >
-                        {exercise.description}
-                      </span>
-                    </span>
-                  </Button>
-                ))}
+            <div className="baseFlex !justify-between gap-4">
+              <p className="text-sm font-medium">Choose an exercise</p>
+
+              <div className="baseFlex gap-4">
+                <span className="text-sm font-medium">Difficulty</span>
+                <div className="baseFlex gap-2">
+                  {exerciseGroups.map((group) => (
+                    <Button
+                      key={group.level}
+                      variant={"text"}
+                      className="relative"
+                      onClick={() => {
+                        setSelectedDifficulty(group.label);
+                        setSelectedExerciseId(group.items.at(0)?.id ?? "");
+                      }}
+                    >
+                      {group.label}
+                      {selectedDifficulty === group.label && (
+                        <span className="absolute bottom-0.5 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground" />
+                      )}
+                    </Button>
+                  ))}
+                </div>
               </div>
+            </div>
+            {exerciseGroups.map((group) => (
+              <>
+                {selectedDifficulty === group.label && (
+                  <div
+                    key={`exercises-${group.level}`}
+                    className="grid grid-cols-2 gap-2"
+                  >
+                    {group.items.map((exercise) => (
+                      <Button
+                        key={exercise.id}
+                        variant={
+                          exercise.id === selectedExerciseId
+                            ? "default"
+                            : "outline"
+                        }
+                        className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
+                        onClick={() => setSelectedExerciseId(exercise.id)}
+                      >
+                        <span className="baseVertFlex !items-start gap-0.5">
+                          <span className="text-sm font-medium transition">
+                            {exercise.title}
+                          </span>
+                          <span
+                            className={`text-xs transition ${exercise.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
+                          >
+                            {exercise.description}
+                          </span>
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </>
             ))}
           </div>
         </div>
