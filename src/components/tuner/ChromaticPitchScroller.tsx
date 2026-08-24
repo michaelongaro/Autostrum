@@ -86,7 +86,7 @@ function ChromaticPitchScroller({
   return (
     <div
       ref={viewportRef}
-      className="relative mx-auto h-[76px] w-full max-w-sm overflow-hidden lg:h-[84px]"
+      className="relative mx-auto h-[76px] w-full max-w-[300px] overflow-hidden xs:max-w-sm lg:h-[84px]"
       style={{
         maskImage:
           "linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)",
