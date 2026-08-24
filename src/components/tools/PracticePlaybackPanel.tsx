@@ -238,28 +238,7 @@ function PracticePlaybackPanel({
           )}
         </div>
 
-        <div className="baseFlex w-full flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="baseVertFlex w-full !items-start gap-2">
-            <p className="text-sm font-medium">Difficulty</p>
-
-            <div className="baseFlex w-full flex-wrap !justify-start gap-2">
-              {playbackDifficultyOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  variant={
-                    option.value === selectedDifficultyValue
-                      ? "default"
-                      : "outline"
-                  }
-                  className="!h-8 px-3"
-                  onClick={() => setPlaybackSpeed(option.speed)}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-
+        <div className="baseFlex my-2 w-full sm:mb-2 sm:mt-0">
           <Button
             variant="audio"
             className="baseFlex gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
