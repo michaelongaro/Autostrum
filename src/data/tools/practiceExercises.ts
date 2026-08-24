@@ -780,7 +780,7 @@ export const scaleExercises: PracticeExercise[] = [
     notesPerMeasure: 3,
     steps: scaleFromShape({
       id: "a-natural-minor-5th",
-      shape: [[5, 7, 8], [5, 7, 8], [5, 7, 9], [5, 7, 9], [6, 8, 9], [5, 7, 8]],
+      shape: [[5, 7, 8], [5, 7, 8], [5, 7, 9], [5, 7, 9], [6, 8, 10], [5, 7, 8]],
       pitchClasses: C_MAJOR,
     }),
   },
