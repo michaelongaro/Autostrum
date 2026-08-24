@@ -422,7 +422,8 @@ function TunerPanel({
                   <button
                     type="button"
                     key={`${note}-${index}`}
-                    className={`baseVertFlex relative min-h-[74px] gap-1 rounded-md px-1 py-2 text-sm transition-colors ${selected ? "bg-primary/10" : "bg-transparent"}`}
+                    // tried to do some kind of inset box shadow on light theme, but was too cramped on mobile
+                    className={`baseVertFlex relative min-h-[80px] gap-1 rounded-md px-1 py-2 text-sm transition ${selected ? "bg-primary/10" : "bg-transparent"}`}
                     onClick={() => onSetCurrentTargetIndex(index)}
                     aria-current={selected ? "true" : "false"}
                   >
@@ -518,7 +519,7 @@ function TunerPanel({
                 </div>
               </div>
 
-              <div className="h-[180px] w-full rounded-md bg-secondary px-3 md:px-6 lg:px-5">
+              <div className="h-[180px] w-full rounded-md bg-primary/10 px-3 shadow-sm md:px-6 lg:px-5">
                 <div className="relative size-full py-6">
                   <motion.div
                     className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
