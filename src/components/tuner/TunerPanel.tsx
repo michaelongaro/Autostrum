@@ -348,6 +348,7 @@ function TunerPanel({
           onStartListening={onStartListening}
           onStopListening={onStopListening}
           onResetProgress={onResetProgress}
+          hideReset={mode === "chromatic"}
         />
       </div>
 
