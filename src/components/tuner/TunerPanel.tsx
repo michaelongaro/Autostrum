@@ -4,6 +4,8 @@ import { useState } from "react";
 import { get } from "@tonaljs/note";
 import { Button } from "~/components/ui/button";
 import { FaMicrophone } from "react-icons/fa";
+import StopIcon from "~/components/ui/icons/StopIcon";
+import { VscDebugRestart } from "react-icons/vsc";
 import CapoSelect from "~/components/ui/CapoSelect";
 import TuningSelect from "~/components/ui/TuningSelect";
 import TuningFork from "~/components/ui/icons/TuningFork";
@@ -192,9 +194,10 @@ function ListeningControls({
         <Button
           size="sm"
           variant="outline"
-          className="w-full lg:w-auto"
+          className="baseFlex w-full gap-2 lg:w-auto"
           onClick={onStopListening}
         >
+          <StopIcon />
           Stop
         </Button>
       ) : (
@@ -213,9 +216,10 @@ function ListeningControls({
           size="sm"
           disabled={resetDisabled}
           variant="outline"
-          className="w-full lg:w-auto"
+          className="baseFlex w-full gap-2 lg:w-auto"
           onClick={onResetProgress}
         >
+          <VscDebugRestart />
           Reset
         </Button>
       )}
