@@ -6,13 +6,16 @@ import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import {
   buildPracticeExerciseTabData,
+  groupPracticeExercisesByLevel,
   type PracticeExercise,
 } from "~/data/tools/practiceExercises";
 import { useTabStore } from "~/stores/TabStore";
@@ -92,6 +95,7 @@ function PracticePlaybackPanel({
 
   const selectedExercise =
     exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null;
+  const exerciseGroups = groupPracticeExercisesByLevel(exercises);
 
   const selectedExerciseTabData = selectedExercise
     ? buildPracticeExerciseTabData(selectedExercise, {
@@ -182,42 +186,56 @@ function PracticePlaybackPanel({
               <SelectValue>{selectedExercise.title}</SelectValue>
             </SelectTrigger>
             <SelectContent className="sm:hidden">
-              {exercises.map((exercise) => (
-                <SelectItem key={exercise.id} value={exercise.id}>
-                  <span className="baseVertFlex w-72 flex-wrap !items-start gap-0.5 text-left">
-                    <span className="text-sm font-medium">
-                      {exercise.title}
-                    </span>
-                    <span
-                      className={`text-xs ${selectedExerciseId === exercise.id ? "text-primary-foreground/75" : "text-foreground"}`}
-                    >
-                      {exercise.description}
-                    </span>
-                  </span>
-                </SelectItem>
+              {exerciseGroups.map((group) => (
+                <SelectGroup key={group.level}>
+                  <SelectLabel>{group.label}</SelectLabel>
+                  {group.items.map((exercise) => (
+                    <SelectItem key={exercise.id} value={exercise.id}>
+                      <span className="baseVertFlex w-72 flex-wrap !items-start gap-0.5 text-left">
+                        <span className="text-sm font-medium">
+                          {exercise.title}
+                        </span>
+                        <span
+                          className={`text-xs ${selectedExerciseId === exercise.id ? "text-primary-foreground/75" : "text-foreground"}`}
+                        >
+                          {exercise.description}
+                        </span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>
 
-          <div className="hidden w-full gap-2 sm:grid sm:grid-cols-2">
-            {exercises.map((exercise) => (
-              <Button
-                key={exercise.id}
-                variant={
-                  exercise.id === selectedExerciseId ? "default" : "outline"
-                }
-                className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
-                onClick={() => setSelectedExerciseId(exercise.id)}
-              >
-                <span className="baseVertFlex !items-start gap-0.5">
-                  <span className="text-sm font-medium">{exercise.title}</span>
-                  <span
-                    className={`text-xs ${exercise.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
+          <div className="hidden w-full flex-col gap-4 sm:flex">
+            {exerciseGroups.map((group) => (
+              <div key={group.level} className="grid grid-cols-2 gap-2">
+                <p className="col-span-2 text-xs font-semibold uppercase tracking-wide text-foreground/60">
+                  {group.label}
+                </p>
+                {group.items.map((exercise) => (
+                  <Button
+                    key={exercise.id}
+                    variant={
+                      exercise.id === selectedExerciseId ? "default" : "outline"
+                    }
+                    className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
+                    onClick={() => setSelectedExerciseId(exercise.id)}
                   >
-                    {exercise.description}
-                  </span>
-                </span>
-              </Button>
+                    <span className="baseVertFlex !items-start gap-0.5">
+                      <span className="text-sm font-medium">
+                        {exercise.title}
+                      </span>
+                      <span
+                        className={`text-xs ${exercise.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
+                      >
+                        {exercise.description}
+                      </span>
+                    </span>
+                  </Button>
+                ))}
+              </div>
             ))}
           </div>
         </div>

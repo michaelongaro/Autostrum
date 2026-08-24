@@ -22,7 +22,7 @@ function WarmupsPage() {
       <ToolRouteHeader
         icon={<IoMusicalNotes className="size-5" />}
         title="Warm-up Exercises"
-        description="Build finger strength and dexterity before jumping into your next practice session."
+        description="Finger, picking, and stretch drills for every level — from open strings to sweeps."
       />
 
       <PracticePlaybackPanel
