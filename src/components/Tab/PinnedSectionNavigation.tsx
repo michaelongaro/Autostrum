@@ -139,7 +139,7 @@ function PinnedSectionNavigation({
     carouselApi?.scrollTo(sectionIndex);
 
     scroller.scrollTo(element.id, {
-      duration: 450,
+      duration: 0,
       delay: 0,
       smooth: "easeInOutQuad",
       offset: -offset,
@@ -188,15 +188,7 @@ function PinnedSectionNavigation({
                 >
                   {sectionTitles[index] || `Section ${index + 1}`}
                   {isActive && (
-                    <motion.span
-                      layoutId="pinnedSectionNavigationUnderline"
-                      transition={{
-                        type: "spring",
-                        bounce: 0.2,
-                        duration: 0.6,
-                      }}
-                      className="absolute bottom-0.5 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground"
-                    />
+                    <span className="absolute bottom-0.5 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground" />
                   )}
                 </Button>
               </CarouselItem>
