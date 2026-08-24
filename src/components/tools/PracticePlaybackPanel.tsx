@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
@@ -97,11 +97,15 @@ function PracticePlaybackPanel({
     exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null;
   const exerciseGroups = groupPracticeExercisesByLevel(exercises);
 
-  const selectedExerciseTabData = selectedExercise
-    ? buildPracticeExerciseTabData(selectedExercise, {
-        repetitions: 2,
-      })
-    : [];
+  const selectedExerciseTabData = useMemo(
+    () =>
+      selectedExercise
+        ? buildPracticeExerciseTabData(selectedExercise, {
+            repetitions: 2,
+          })
+        : [],
+    [selectedExercise],
+  );
 
   const subSection = selectedExerciseTabData[0]?.data[0];
   const selectedExerciseTabSection =
