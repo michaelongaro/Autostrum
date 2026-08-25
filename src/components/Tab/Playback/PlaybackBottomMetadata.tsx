@@ -49,6 +49,7 @@ import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
 import { IoColorPalette } from "react-icons/io5";
 import CountIn from "~/components/ui/icons/CountIn";
 import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
+import { useRouter } from "next/router";
 
 interface PlaybackBottomMetadata {
   tabProgressValue: number;
@@ -63,6 +64,8 @@ function PlaybackBottomMetadata({
   showBackgroundBlur,
   setShowBackgroundBlur,
 }: PlaybackBottomMetadata) {
+  const { asPath } = useRouter();
+
   const {
     capo,
     tuning,
@@ -133,7 +136,7 @@ function PlaybackBottomMetadata({
               setShowBackgroundBlur={setShowBackgroundBlur}
             />
 
-            <MobileMenuDialog />
+            {!asPath.includes("/tools") && <MobileMenuDialog />}
 
             <Button
               variant={"outline"}
@@ -156,7 +159,7 @@ function PlaybackBottomMetadata({
                 setShowBackgroundBlur={setShowBackgroundBlur}
               />
 
-              <MobileMenuDialog />
+              {!asPath.includes("/tools") && <MobileMenuDialog />}
 
               <Button
                 variant={"outline"}
