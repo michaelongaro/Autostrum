@@ -39,7 +39,7 @@ function PracticePlaybackSectionPicker() {
         <Select value={selectedExerciseId} onValueChange={selectExercise}>
           <SelectTrigger
             id="practiceExercisePicker"
-            className="!h-9 !max-w-48 mobilePortrait:!h-8 mobilePortrait:!max-w-none"
+            className="!h-9 !max-w-48 mobilePortrait:!h-8 mobilePortrait:!max-w-[120px] tablet:!max-w-none"
           >
             <SelectValue placeholder="Select an exercise" asChild>
               <p className="truncate">
