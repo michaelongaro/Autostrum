@@ -450,10 +450,7 @@ function ChordTrainerPage() {
   }, [queue, updateStreamStyles]);
 
   const rebuildQueue = useCallback(
-    (
-      chords: ChordTrainerPreset[],
-      pattern: ChordTrainerStrummingPattern,
-    ) => {
+    (chords: ChordTrainerPreset[], pattern: ChordTrainerStrummingPattern) => {
       scrollXRef.current = 0;
       lastFrameTimeRef.current = null;
       lastTriggeredIndexRef.current = -1;
@@ -730,14 +727,14 @@ function ChordTrainerPage() {
 
       <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
         <div className="baseVertFlex w-full">
-          <div className="relative w-full overflow-hidden border-y bg-[radial-gradient(circle_at_center,_hsl(var(--background))_0%,_hsl(var(--background))_52%,_hsl(var(--secondary))_100%)] sm:rounded-md sm:border-x">
+          <div className="relative w-full overflow-hidden border-y bg-[radial-gradient(circle_at_center,_hsl(var(--background))_0%,_hsl(var(--background))_52%,_hsl(var(--secondary))_100%)] xs:rounded-md xs:border-x">
             <div
-              className="relative h-[260px] w-full overflow-hidden bg-background/70 shadow-inner sm:h-[260px]"
+              className="relative h-[260px] w-full overflow-hidden bg-background/70 shadow-inner xs:h-[260px]"
               ref={stageRef}
             >
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-background via-background/90 to-transparent sm:w-24" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-4 bg-gradient-to-l from-background via-background/90 to-transparent sm:w-24" />
-              <div className="bg-primary/12 pointer-events-none absolute left-1/2 top-1/2 z-10 h-[180px] w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl sm:h-[220px] sm:w-[240px]" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-background via-background/90 to-transparent xs:w-24" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-4 bg-gradient-to-l from-background via-background/90 to-transparent xs:w-24" />
+              <div className="bg-primary/12 pointer-events-none absolute left-1/2 top-1/2 z-10 h-[180px] w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl xs:h-[220px] xs:w-[240px]" />
               <span
                 aria-hidden="true"
                 className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 text-lg font-semibold leading-none text-foreground drop-shadow-[0_2px_8px_rgba(0,0,0,0.28)]"
@@ -821,12 +818,12 @@ function ChordTrainerPage() {
             </div>
           </div>
 
-          <div className="baseVertFlex my-8 w-full gap-6 px-8 md:px-0">
+          <div className="baseVertFlex my-8 w-full max-w-[375px] gap-6 px-8 md:max-w-[500px] md:px-0">
             <div className="baseVertFlex w-full gap-6 md:!flex-row md:!items-start md:gap-8">
               <ChordTrainerBpmRange
                 tempo={tempo}
                 onTempoChange={handleTempoChange}
-                className="md:min-w-0 md:flex-1"
+                className=""
               />
 
               <div className="baseVertFlex w-full !items-start gap-2 md:w-auto">
@@ -843,18 +840,9 @@ function ChordTrainerPage() {
                 >
                   <SelectTrigger
                     id="chord-trainer-strumming-pattern"
-                    className="w-full md:w-[280px]"
+                    className="w-[200px]"
                   >
-                    <SelectValue>
-                      <div className="baseFlex gap-3">
-                        {showStrumIcons && (
-                          <ChordTrainerStrumPreview
-                            strums={selectedStrummingPattern.strums}
-                          />
-                        )}
-                        <span>{selectedStrummingPattern.label}</span>
-                      </div>
-                    </SelectValue>
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {CHORD_TRAINER_STRUMMING_PATTERNS.map((pattern) => (
@@ -863,7 +851,9 @@ function ChordTrainerPage() {
                           {pattern.showIcons && (
                             <ChordTrainerStrumPreview strums={pattern.strums} />
                           )}
-                          <span>{pattern.label}</span>
+                          {pattern.label === "None" && (
+                            <span>{pattern.label}</span>
+                          )}
                         </div>
                       </SelectItem>
                     ))}
@@ -872,38 +862,45 @@ function ChordTrainerPage() {
               </div>
             </div>
 
-            <div className="baseVertFlex w-full gap-6 md:w-auto md:!flex-row md:gap-3">
-              <Select
-                value={audioOption}
-                onValueChange={(v) => {
-                  setAudioOption(v as AudioOption);
-                  setCurrentInstrumentName(
-                    v as
-                      | "acoustic_guitar_nylon"
-                      | "acoustic_guitar_steel"
-                      | "electric_guitar_clean"
-                      | "electric_guitar_jazz",
-                  );
-                }}
-              >
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue>
-                    <div className="baseFlex gap-2">
-                      <BsFillVolumeUpFill className="size-5" />
-                      {AUDIO_SOURCE_LABELS[audioOption]}
-                    </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(AUDIO_SOURCE_LABELS) as AudioOption[]).map(
-                    (key) => (
-                      <SelectItem key={key} value={key}>
-                        {AUDIO_SOURCE_LABELS[key]}
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
+            <div className="baseVertFlex w-full !items-start gap-6 md:!flex-row md:!items-end md:gap-3">
+              <div className="baseVertFlex !items-start gap-2">
+                <Label htmlFor="chordTrainerInstrument">Instrument</Label>
+
+                <Select
+                  value={audioOption}
+                  onValueChange={(v) => {
+                    setAudioOption(v as AudioOption);
+                    setCurrentInstrumentName(
+                      v as
+                        | "acoustic_guitar_nylon"
+                        | "acoustic_guitar_steel"
+                        | "electric_guitar_clean"
+                        | "electric_guitar_jazz",
+                    );
+                  }}
+                >
+                  <SelectTrigger
+                    id="chordTrainerInstrument"
+                    className="w-[200px]"
+                  >
+                    <SelectValue>
+                      <div className="baseFlex gap-2">
+                        <BsFillVolumeUpFill className="size-5" />
+                        {AUDIO_SOURCE_LABELS[audioOption]}
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(AUDIO_SOURCE_LABELS) as AudioOption[]).map(
+                      (key) => (
+                        <SelectItem key={key} value={key}>
+                          {AUDIO_SOURCE_LABELS[key]}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div className="baseFlex w-full gap-3 md:w-auto">
                 <Button
@@ -934,7 +931,7 @@ function ChordTrainerPage() {
           </div>
         </div>
 
-        <div className="baseVertFlex w-full !items-start gap-4 border-y bg-background p-4 shadow-md sm:rounded-md sm:border-x sm:p-6">
+        <div className="baseVertFlex w-full !items-start gap-4 border-y bg-background p-4 shadow-md xs:rounded-md xs:border-x xs:p-6">
           <div className="baseVertFlex w-full !items-start lg:flex-row lg:gap-6">
             <aside className="hidden w-full max-w-[280px] flex-col gap-3 rounded-md lg:flex">
               <div className="baseVertFlex !items-start gap-1">
@@ -985,7 +982,7 @@ function ChordTrainerPage() {
                   value={activeChordPresetId}
                   onValueChange={handleChordPresetSelect}
                 >
-                  <SelectTrigger className="w-full bg-background sm:max-w-[320px]">
+                  <SelectTrigger className="w-full bg-background xs:max-w-[320px]">
                     <SelectValue placeholder="Choose a chord preset" />
                   </SelectTrigger>
 

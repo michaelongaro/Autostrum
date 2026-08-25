@@ -1,6 +1,7 @@
 import { getTrackBackground, Range } from "react-range";
 import { Label } from "~/components/ui/label";
 import { cn } from "~/utils/cn";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 
 export const CHORD_TRAINER_BPM_MIN = 10;
 export const CHORD_TRAINER_BPM_MAX = 180;
@@ -33,11 +34,14 @@ function ChordTrainerBpmRange({
 
   return (
     <div className={cn("baseVertFlex w-full !items-start", className)}>
-      <div className="baseFlex mb-1 w-full !justify-between text-sm">
+      <div className="baseFlex w-full !justify-between text-sm">
         <Label htmlFor="chord-trainer-bpm" className="font-medium">
           BPM
         </Label>
-        <span className="tabular-nums">{clampedTempo}</span>
+        <span className="baseFlex gap-1 tabular-nums">
+          <QuarterNote />
+          {clampedTempo}
+        </span>
       </div>
 
       <div className="w-full px-1">
@@ -67,9 +71,7 @@ function ChordTrainerBpmRange({
                   height: isMajorTick ? "16px" : "12px",
                   width: "2px",
                   borderRadius: "1px",
-                  backgroundColor: isActive
-                    ? "hsl(var(--primary))"
-                    : "#939098",
+                  backgroundColor: isActive ? "hsl(var(--primary))" : "#939098",
                 }}
               />
             );
@@ -100,7 +102,7 @@ function ChordTrainerBpmRange({
                     max: CHORD_TRAINER_BPM_MAX,
                   }),
                 }}
-                className="relative mb-2 w-full"
+                className="relative w-full"
               >
                 {children}
               </div>
