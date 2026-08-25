@@ -15,6 +15,7 @@ import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import ChromaticPitchScroller from "~/components/tuner/ChromaticPitchScroller";
 import { formatNoteLabel, frequencyFromMidi } from "~/utils/tunerMath";
 import { TUNER_DEFAULTS, type TunerReading } from "~/hooks/useTuner";
+import { Label } from "~/components/ui/label";
 
 const CENTS_TICKS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
 const MOBILE_LABEL_TICKS = [-50, -25, 0, 25, 50];
@@ -319,7 +320,12 @@ function TunerPanel({
           className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "gap-8" : "flex-col gap-3 xs:flex-row"}`}
         >
           <div className="baseFlex gap-2 lg:gap-3">
-            <p className="text-sm font-semibold text-foreground/80">Tuning</p>
+            <Label
+              htmlFor="tuning"
+              className="text-sm font-semibold text-foreground/80"
+            >
+              Tuning
+            </Label>
             {forPlaybackModal ? (
               <PrettyTuning
                 tuning={tuning}
@@ -332,7 +338,9 @@ function TunerPanel({
           </div>
 
           <div className="baseFlex gap-2 text-sm lg:gap-3">
-            <p className="font-semibold text-foreground/80">Capo</p>
+            <Label htmlFor="capo" className="font-semibold text-foreground/80">
+              Capo
+            </Label>
             {forPlaybackModal ? (
               <p>{capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}</p>
             ) : (
