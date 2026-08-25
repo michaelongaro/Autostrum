@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { get } from "@tonaljs/note";
 import { Button } from "~/components/ui/button";
 import { FaMicrophone } from "react-icons/fa";
@@ -249,6 +249,19 @@ function TunerPanel({
   }));
 
   const [mode, setMode] = useState<"guided" | "chromatic">("guided");
+  const [chromaticViewReady, setChromaticViewReady] = useState(false);
+
+  useEffect(() => {
+    if (mode !== "chromatic" || chromaticViewReady) {
+      return;
+    }
+
+    const animationFrame = requestAnimationFrame(() => {
+      setChromaticViewReady(true);
+    });
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [chromaticViewReady, mode]);
 
   const {
     signalDetected,
@@ -263,6 +276,19 @@ function TunerPanel({
   const hasDetectedFrequency = signalDetected && detectedFrequency !== null;
   const hasChromaticCents = signalDetected && detectedCents !== null;
   const hasGuidedCents = signalDetected && targetCentsOffset !== null;
+  const chromaticViewInitializing = mode === "chromatic" && !chromaticViewReady;
+
+  function handleGuidedModeSelect() {
+    if (mode === "guided") return;
+    setChromaticViewReady(false);
+    setMode("guided");
+  }
+
+  function handleChromaticModeSelect() {
+    if (mode === "chromatic") return;
+    setChromaticViewReady(false);
+    setMode("chromatic");
+  }
 
   const clampedGuidedCents = Math.max(
     -GUIDED_RANGE_CENTS,
@@ -270,9 +296,10 @@ function TunerPanel({
   );
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
   const guidedNeedleDegrees = (clampedGuidedCents / GUIDED_RANGE_CENTS) * 90;
-  const chromaticMarkerLeftPercent = hasChromaticCents
-    ? ((clampedDetectedCents + 50) / 100) * 100
-    : 50;
+  const chromaticMarkerLeftPercent =
+    !chromaticViewInitializing && hasChromaticCents
+      ? ((clampedDetectedCents + 50) / 100) * 100
+      : 50;
 
   const frequencyLabel = hasDetectedFrequency
     ? `${detectedFrequency.toFixed(1)} Hz`
@@ -296,7 +323,7 @@ function TunerPanel({
               type="button"
               variant={mode === "guided" ? "default" : "ghost"}
               className="h-8 text-xs"
-              onClick={() => setMode("guided")}
+              onClick={handleGuidedModeSelect}
             >
               Guided
             </Button>
@@ -304,7 +331,7 @@ function TunerPanel({
               type="button"
               variant={mode === "chromatic" ? "default" : "ghost"}
               className="h-8 text-xs"
-              onClick={() => setMode("chromatic")}
+              onClick={handleChromaticModeSelect}
             >
               Chromatic
             </Button>
@@ -558,10 +585,14 @@ function TunerPanel({
 
                   <motion.div
                     className="absolute inset-y-0 z-50"
+                    initial={false}
                     animate={{
                       // Idle / no-signal: always park exactly on the 0¢ tick (50%).
                       left: `${chromaticMarkerLeftPercent}%`,
-                      opacity: hasChromaticCents ? 1 : 0.3,
+                      opacity:
+                        !chromaticViewInitializing && hasChromaticCents
+                          ? 1
+                          : 0.3,
                     }}
                     transition={{
                       type: "spring",
