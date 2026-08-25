@@ -12,9 +12,15 @@ import type Soundfont from "soundfont-player";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Paintbrush } from "lucide-react";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
+import ChordTrainerBpmRange, {
+  clampChordTrainerTempo,
+} from "~/components/tools/ChordTrainerBpmRange";
+import ChordTrainerStrumPreview from "~/components/tools/ChordTrainerStrumPreview";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -26,6 +32,12 @@ import {
   chordTrainerPresets,
   type ChordTrainerPreset,
 } from "~/data/tools/chordTrainerPresets";
+import {
+  CHORD_TRAINER_STRUMMING_PATTERNS,
+  getChordTrainerStrummingPattern,
+  NONE_CHORD_TRAINER_STRUMMING_PATTERN,
+  type ChordTrainerStrummingPattern,
+} from "~/data/tools/chordTrainerStrummingPatterns";
 import { cn } from "~/utils/cn";
 import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
 import { DEFAULT_TUNING, parse } from "~/utils/tunings";
@@ -44,6 +56,8 @@ type AudioOption = AudioSource | "none";
 type QueueItem = {
   instanceId: string;
   chord: ChordTrainerPreset;
+  strum: string;
+  showDiagram: boolean;
 };
 
 type ChordTrainerSelectionPreset = {
@@ -59,14 +73,6 @@ const AUDIO_SOURCE_LABELS: Record<AudioSource, string> = {
   electric_guitar_clean: "Electric - Clean",
   electric_guitar_jazz: "Electric - Jazz",
 };
-
-const DIFFICULTY_PRESETS = [
-  { id: "beginner", label: "Beginner", tempo: 40 },
-  { id: "easy", label: "Easy", tempo: 60 },
-  { id: "intermediate", label: "Intermediate", tempo: 72 },
-  { id: "advanced", label: "Advanced", tempo: 100 },
-  { id: "expert", label: "Expert", tempo: 120 },
-] as const;
 
 const DEFAULT_CHORD_PRESET_ID = "common-open";
 const CUSTOM_CHORD_PRESET_ID = "custom";
@@ -139,9 +145,8 @@ const DEFAULT_SELECTED_CHORD_IDS =
   CHORD_SELECTION_PRESETS.find(
     (preset) => preset.id === DEFAULT_CHORD_PRESET_ID,
   )?.chordIds ?? [];
-const DEFAULT_TEMPO = 72;
-const MIN_TEMPO = 10;
-const MAX_TEMPO = 180;
+const DEFAULT_TEMPO = 70;
+const DEFAULT_STRUMMING_PATTERN_ID = NONE_CHORD_TRAINER_STRUMMING_PATTERN.id;
 const STANDARD_TUNING = parse(DEFAULT_TUNING);
 
 const INITIAL_QUEUE_LENGTH = 36;
@@ -164,15 +169,29 @@ const CHORD_PRESET_OPTIONS = [
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-function clampTempo(value: number) {
-  return Math.min(MAX_TEMPO, Math.max(MIN_TEMPO, value));
-}
+function createPatternQueueItems(
+  chord: ChordTrainerPreset,
+  pattern: ChordTrainerStrummingPattern,
+): QueueItem[] {
+  let diagramAssigned = false;
 
-function createQueueItem(chord: ChordTrainerPreset): QueueItem {
-  return {
-    instanceId: crypto.randomUUID(),
-    chord,
-  };
+  return pattern.strums.map((strum) => {
+    const isSpacer = strum.effect === "";
+    const showDiagram = pattern.showIcons
+      ? !isSpacer && !diagramAssigned
+      : true;
+
+    if (showDiagram) {
+      diagramAssigned = true;
+    }
+
+    return {
+      instanceId: crypto.randomUUID(),
+      chord,
+      strum: strum.effect,
+      showDiagram,
+    };
+  });
 }
 
 function getRandomChord(
@@ -202,22 +221,25 @@ function resolveQueueChord(
   return chord ?? fallbackChord;
 }
 
-function buildInitialQueue(chords: ChordTrainerPreset[]): QueueItem[] {
+function buildInitialQueue(
+  chords: ChordTrainerPreset[],
+  pattern: ChordTrainerStrummingPattern,
+): QueueItem[] {
   const queue: QueueItem[] = [];
   let previousChordId: string | undefined = undefined;
   const fallbackChord = chords[0];
 
-  if (!fallbackChord) {
+  if (!fallbackChord || pattern.strums.length === 0) {
     return queue;
   }
 
-  for (let index = 0; index < INITIAL_QUEUE_LENGTH; index++) {
+  while (queue.length < INITIAL_QUEUE_LENGTH) {
     const chord = resolveQueueChord(
       getRandomChord(chords, previousChordId),
       fallbackChord,
     );
 
-    queue.push(createQueueItem(chord));
+    queue.push(...createPatternQueueItems(chord, pattern));
     previousChordId = chord.id;
   }
 
@@ -227,9 +249,10 @@ function buildInitialQueue(chords: ChordTrainerPreset[]): QueueItem[] {
 function appendQueue(
   queue: QueueItem[],
   chords: ChordTrainerPreset[],
+  pattern: ChordTrainerStrummingPattern,
   count = APPEND_CHUNK_SIZE,
 ): QueueItem[] {
-  if (chords.length === 0) return queue;
+  if (chords.length === 0 || pattern.strums.length === 0) return queue;
 
   let lastChordId = queue[queue.length - 1]?.chord.id;
   const fallbackChord = chords[0];
@@ -237,13 +260,13 @@ function appendQueue(
 
   const appends: QueueItem[] = [];
 
-  for (let index = 0; index < count; index++) {
+  while (appends.length < count) {
     const nextChord = resolveQueueChord(
       getRandomChord(chords, lastChordId),
       fallbackChord,
     );
 
-    appends.push(createQueueItem(nextChord));
+    appends.push(...createPatternQueueItems(nextChord, pattern));
     lastChordId = nextChord.id;
   }
 
@@ -275,6 +298,7 @@ function ChordTrainerPage() {
   const queueRef = useRef<QueueItem[]>([]);
   const selectedChordsRef = useRef<ChordTrainerPreset[]>([]);
   const tempoRef = useRef(DEFAULT_TEMPO);
+  const strummingPatternRef = useRef(NONE_CHORD_TRAINER_STRUMMING_PATTERN);
   const audioEnabledRef = useRef(true);
   const scrollXRef = useRef(0);
   const stageWidthRef = useRef(0);
@@ -290,6 +314,9 @@ function ChordTrainerPage() {
     ...DEFAULT_SELECTED_CHORD_IDS,
   ]);
   const [tempo, setTempo] = useState(DEFAULT_TEMPO);
+  const [strummingPatternId, setStrummingPatternId] = useState(
+    DEFAULT_STRUMMING_PATTERN_ID,
+  );
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioOption, setAudioOption] = useState<AudioOption>(
@@ -312,8 +339,9 @@ function ChordTrainerPage() {
 
   const selectedChordCount = selectedChords.length;
   const audioEnabled = audioOption !== "none";
-  const selectedDifficultyId =
-    DIFFICULTY_PRESETS.find((preset) => preset.tempo === tempo)?.id ?? null;
+  const selectedStrummingPattern =
+    getChordTrainerStrummingPattern(strummingPatternId);
+  const showStrumIcons = selectedStrummingPattern.showIcons;
 
   useEffect(() => {
     selectedChordsRef.current = selectedChords;
@@ -322,6 +350,10 @@ function ChordTrainerPage() {
   useEffect(() => {
     tempoRef.current = tempo;
   }, [tempo]);
+
+  useEffect(() => {
+    strummingPatternRef.current = selectedStrummingPattern;
+  }, [selectedStrummingPattern]);
 
   useEffect(() => {
     audioEnabledRef.current = audioEnabled;
@@ -345,8 +377,9 @@ function ChordTrainerPage() {
   }, [audioContext]);
 
   const playChord = useCallback(
-    async (chord: ChordTrainerPreset, bpm: number) => {
+    async (chord: ChordTrainerPreset, bpm: number, strum: string) => {
       if (
+        !strum ||
         !audioEnabledRef.current ||
         !audioContext ||
         !masterVolumeGainNode ||
@@ -359,7 +392,7 @@ function ChordTrainerPage() {
           tuning: STANDARD_TUNING,
           capo: 0,
           bpm: bpm * 1.4,
-          currColumn: ["", ...chord.frets, "v", "quarter", `${bpm * 1.4}`],
+          currColumn: ["", ...chord.frets, strum, "quarter", `${bpm * 1.4}`],
           audioContext,
           masterVolumeGainNode,
           currentInstrument,
@@ -416,16 +449,22 @@ function ChordTrainerPage() {
     updateStreamStyles(scrollXRef.current);
   }, [queue, updateStreamStyles]);
 
-  const rebuildQueue = useCallback((chords: ChordTrainerPreset[]) => {
-    scrollXRef.current = 0;
-    lastFrameTimeRef.current = null;
-    lastTriggeredIndexRef.current = -1;
-    queueMutationPendingRef.current = false;
+  const rebuildQueue = useCallback(
+    (
+      chords: ChordTrainerPreset[],
+      pattern: ChordTrainerStrummingPattern,
+    ) => {
+      scrollXRef.current = 0;
+      lastFrameTimeRef.current = null;
+      lastTriggeredIndexRef.current = -1;
+      queueMutationPendingRef.current = false;
 
-    const nextQueue = buildInitialQueue(chords);
-    queueRef.current = nextQueue;
-    setQueue(nextQueue);
-  }, []);
+      const nextQueue = buildInitialQueue(chords, pattern);
+      queueRef.current = nextQueue;
+      setQueue(nextQueue);
+    },
+    [],
+  );
 
   const extendQueue = useCallback(() => {
     if (
@@ -440,6 +479,7 @@ function ChordTrainerPage() {
       const nextQueue = appendQueue(
         currentQueue,
         selectedChordsRef.current,
+        strummingPatternRef.current,
         APPEND_CHUNK_SIZE,
       );
 
@@ -469,6 +509,7 @@ function ChordTrainerPage() {
       const nextQueue = appendQueue(
         trimmedQueue,
         selectedChordsRef.current,
+        strummingPatternRef.current,
         trimCount,
       );
 
@@ -513,11 +554,16 @@ function ChordTrainerPage() {
     }
 
     const rebuildQueueTimeoutId = window.setTimeout(() => {
-      rebuildQueue(nextSelectedChords);
+      rebuildQueue(nextSelectedChords, selectedStrummingPattern);
     }, 0);
 
     return () => window.clearTimeout(rebuildQueueTimeoutId);
-  }, [rebuildQueue, selectedChordIds, updateStreamStyles]);
+  }, [
+    rebuildQueue,
+    selectedChordIds,
+    selectedStrummingPattern,
+    updateStreamStyles,
+  ]);
 
   useEffect(() => {
     if (!isPlaying || queue.length === 0 || selectedChords.length === 0) {
@@ -558,7 +604,11 @@ function ChordTrainerPage() {
         ) {
           const targetChord = queueRef.current[index];
           if (targetChord && audioEnabledRef.current) {
-            void playChordRef.current(targetChord.chord, tempoRef.current);
+            void playChordRef.current(
+              targetChord.chord,
+              tempoRef.current,
+              targetChord.strum,
+            );
           }
         }
 
@@ -609,8 +659,8 @@ function ChordTrainerPage() {
     };
   }, []);
 
-  function handleDifficultySelect(nextTempo: number) {
-    setTempo(clampTempo(nextTempo));
+  function handleTempoChange(nextTempo: number) {
+    setTempo(clampChordTrainerTempo(nextTempo));
   }
 
   function handleChordPresetSelect(nextPresetId: string) {
@@ -712,16 +762,21 @@ function ChordTrainerPage() {
                     }}
                   >
                     <div
-                      className="pointer-events-none flex items-center justify-center p-2"
+                      className={cn(
+                        "pointer-events-none flex items-center justify-center p-2",
+                        showStrumIcons && "h-[132px] w-full",
+                      )}
                       style={{
                         borderColor: showColorCoding
                           ? `${item.chord.color}40`
                           : undefined,
                       }}
                     >
-                      <div className="h-full w-full text-foreground">
-                        <ChordDiagram originalFrets={item.chord.frets} />
-                      </div>
+                      {item.showDiagram && (
+                        <div className="h-full w-full text-foreground">
+                          <ChordDiagram originalFrets={item.chord.frets} />
+                        </div>
+                      )}
                     </div>
 
                     <span
@@ -734,6 +789,26 @@ function ChordTrainerPage() {
                     >
                       {item.chord.name}
                     </span>
+
+                    {showStrumIcons && (
+                      <div
+                        className="baseFlex h-5"
+                        style={
+                          showColorCoding
+                            ? {
+                                color: item.chord.color,
+                                fill: item.chord.color,
+                              }
+                            : undefined
+                        }
+                      >
+                        {item.strum ? (
+                          <ChordStrumIcon effects={item.strum} />
+                        ) : (
+                          <div className="h-5 w-4" />
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -747,31 +822,53 @@ function ChordTrainerPage() {
           </div>
 
           <div className="baseVertFlex my-8 w-full gap-6 px-8 md:px-0">
-            <div className="baseVertFlex !items-start gap-2">
-              <div className="baseFlex w-full !justify-between gap-3">
-                <span className="text-sm font-medium leading-none">
-                  Difficulty
-                </span>
-              </div>
+            <div className="baseVertFlex w-full gap-6 md:!flex-row md:!items-start md:gap-8">
+              <ChordTrainerBpmRange
+                tempo={tempo}
+                onTempoChange={handleTempoChange}
+                className="md:min-w-0 md:flex-1"
+              />
 
-              <div className="grid w-full grid-cols-6 gap-2 md:flex">
-                {DIFFICULTY_PRESETS.map((preset, index) => (
-                  <Button
-                    key={preset.id}
-                    type="button"
-                    variant={
-                      selectedDifficultyId === preset.id ? "default" : "outline"
-                    }
-                    className={cn(
-                      "w-full",
-                      index < 3 ? "col-span-2" : "col-span-3",
-                      "md:col-span-1",
-                    )}
-                    onClick={() => handleDifficultySelect(preset.tempo)}
+              <div className="baseVertFlex w-full !items-start gap-2 md:w-auto">
+                <Label
+                  htmlFor="chord-trainer-strumming-pattern"
+                  className="font-medium"
+                >
+                  Strumming pattern
+                </Label>
+
+                <Select
+                  value={strummingPatternId}
+                  onValueChange={setStrummingPatternId}
+                >
+                  <SelectTrigger
+                    id="chord-trainer-strumming-pattern"
+                    className="w-full md:w-[280px]"
                   >
-                    {preset.label}
-                  </Button>
-                ))}
+                    <SelectValue>
+                      <div className="baseFlex gap-3">
+                        {showStrumIcons && (
+                          <ChordTrainerStrumPreview
+                            strums={selectedStrummingPattern.strums}
+                          />
+                        )}
+                        <span>{selectedStrummingPattern.label}</span>
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CHORD_TRAINER_STRUMMING_PATTERNS.map((pattern) => (
+                      <SelectItem key={pattern.id} value={pattern.id}>
+                        <div className="baseFlex gap-3">
+                          {pattern.showIcons && (
+                            <ChordTrainerStrumPreview strums={pattern.strums} />
+                          )}
+                          <span>{pattern.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
