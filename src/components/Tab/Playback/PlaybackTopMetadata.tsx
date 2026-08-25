@@ -14,6 +14,7 @@ import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
 import { tuningNotesToName } from "~/utils/tunings";
 import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
+import { useRouter } from "next/router";
 
 interface PlaybackTopMetadata {
   tabProgressValue: number;
@@ -24,6 +25,8 @@ function PlaybackTopMetadata({
   tabProgressValue,
   setTabProgressValue,
 }: PlaybackTopMetadata) {
+  const { asPath } = useRouter();
+
   const {
     title,
     tuning,
@@ -191,7 +194,8 @@ function PlaybackTopMetadata({
                   )}
                 </div>
 
-                {!viewportLabel.includes("mobile") && <Menu />}
+                {!viewportLabel.includes("mobile") &&
+                  !asPath.includes("/tools") && <Menu />}
               </div>
             </div>
           </div>
