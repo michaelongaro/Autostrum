@@ -346,7 +346,7 @@ function TunerPanel({
         )}
 
         <div
-          className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "gap-8" : "mt-2 justify-between lg:mt-0 lg:gap-6"}`}
+          className={`flex w-full items-center justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "gap-8" : "mt-2 gap-4 lg:mt-0 lg:gap-6"}`}
         >
           <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-3">
             <Label
