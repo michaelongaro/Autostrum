@@ -557,7 +557,7 @@ function TunerPanel({
                   ))}
 
                   <motion.div
-                    className="absolute inset-y-0"
+                    className="absolute inset-y-0 z-50"
                     animate={{
                       // Idle / no-signal: always park exactly on the 0¢ tick (50%).
                       left: `${chromaticMarkerLeftPercent}%`,
