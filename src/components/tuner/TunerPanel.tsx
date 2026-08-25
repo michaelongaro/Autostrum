@@ -195,7 +195,7 @@ function ListeningControls({
         <Button
           size="sm"
           variant="outline"
-          className="baseFlex w-full gap-2 lg:w-auto"
+          className="baseFlex w-full gap-2 lg:w-[100px]"
           onClick={onStopListening}
         >
           <StopIcon />
@@ -204,7 +204,7 @@ function ListeningControls({
       ) : (
         <Button
           size="sm"
-          className="w-full gap-2 px-8 lg:w-auto"
+          className="w-full gap-2 lg:w-[100px]"
           onClick={() => void onStartListening()}
         >
           <FaMicrophone />
@@ -291,21 +291,23 @@ function TunerPanel({
         className={`baseVertFlex w-full gap-3 px-3 md:px-6 lg:flex-row lg:!items-center lg:!justify-between lg:px-6 ${forPlaybackModal ? "lg:mt-8" : ""}`}
       >
         {!forPlaybackModal && (
-          <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border p-1 lg:col-span-1 lg:w-[190px]">
-            <button
+          <div className="col-span-2 grid w-full max-w-[418px] grid-cols-2 gap-1 rounded-lg border p-1 lg:col-span-1 lg:w-[190px]">
+            <Button
               type="button"
+              variant={mode === "guided" ? "default" : "ghost"}
+              className="h-8 text-xs"
               onClick={() => setMode("guided")}
-              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "guided" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
             >
               Guided
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={mode === "chromatic" ? "default" : "ghost"}
+              className="h-8 text-xs"
               onClick={() => setMode("chromatic")}
-              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "chromatic" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
             >
               Chromatic
-            </button>
+            </Button>
           </div>
         )}
 
@@ -317,12 +319,12 @@ function TunerPanel({
         )}
 
         <div
-          className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "gap-8" : "flex-col gap-3 xs:flex-row"}`}
+          className={`flex w-full items-center xs:justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "gap-8" : "mt-2 justify-between lg:mt-0 lg:gap-6"}`}
         >
-          <div className="baseFlex gap-2 lg:gap-3">
+          <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-3">
             <Label
               htmlFor="tuning"
-              className="text-sm font-semibold text-foreground/80"
+              className="font-semibold text-foreground/80"
             >
               Tuning
             </Label>
@@ -337,7 +339,7 @@ function TunerPanel({
             )}
           </div>
 
-          <div className="baseFlex gap-2 text-sm lg:gap-3">
+          <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-3">
             <Label htmlFor="capo" className="font-semibold text-foreground/80">
               Capo
             </Label>
@@ -492,7 +494,7 @@ function TunerPanel({
           <ListeningControls
             isListening={isListening}
             resetDisabled={currentTargetIndex === 0}
-            className="grid w-full grid-cols-2 gap-2 px-4 lg:hidden"
+            className="grid w-full max-w-[418px] grid-cols-2 gap-2 px-4 lg:hidden"
             onStartListening={onStartListening}
             onStopListening={onStopListening}
             onResetProgress={onResetProgress}
