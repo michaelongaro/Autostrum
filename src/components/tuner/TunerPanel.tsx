@@ -18,8 +18,8 @@ import { TUNER_DEFAULTS, type TunerReading } from "~/hooks/useTuner";
 
 const CENTS_TICKS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
 const MOBILE_LABEL_TICKS = [-50, -25, 0, 25, 50];
-const REGULAR_RANGE_CENTS = 25;
-const REGULAR_ARC_MARKER_RATIOS = [-1, -0.4, -0.2, 0, 0.2, 0.4, 1];
+const GUIDED_RANGE_CENTS = 25;
+const GUIDED_ARC_MARKER_RATIOS = [-1, -0.4, -0.2, 0, 0.2, 0.4, 1];
 const STRING_THICKNESSES = [8, 7, 6, 5, 4, 3];
 
 type ArcLayout = {
@@ -98,7 +98,7 @@ function semicircleGradient(toleranceCents: number) {
       0,
       Math.min(
         180,
-        ((centsOffset + REGULAR_RANGE_CENTS) / (REGULAR_RANGE_CENTS * 2)) * 180,
+        ((centsOffset + GUIDED_RANGE_CENTS) / (GUIDED_RANGE_CENTS * 2)) * 180,
       ),
     );
 
@@ -112,17 +112,17 @@ function semicircleGradient(toleranceCents: number) {
   return `conic-gradient(from 270deg at 50% 100%, rgba(239, 68, 68, 0.2) 0deg ${leftOrange}deg, rgba(249, 115, 22, 0.2) ${leftOrange}deg ${leftYellow}deg, rgba(250, 204, 21, 0.2) ${leftYellow}deg ${leftGreen}deg, rgba(34, 197, 94, 0.18) ${leftGreen}deg ${rightGreen}deg, rgba(250, 204, 21, 0.2) ${rightGreen}deg ${rightYellow}deg, rgba(249, 115, 22, 0.2) ${rightYellow}deg ${rightOrange}deg, rgba(239, 68, 68, 0.2) ${rightOrange}deg 180deg, transparent 180deg 360deg)`;
 }
 
-function RegularArcMarkers({ layout }: { layout: ArcLayout }) {
+function GuidedArcMarkers({ layout }: { layout: ArcLayout }) {
   return (
     <>
-      {REGULAR_ARC_MARKER_RATIOS.map((ratio) => {
+      {GUIDED_ARC_MARKER_RATIOS.map((ratio) => {
         const angleRadians = ratio * (Math.PI / 2);
         const angleDegrees = ratio * 90;
         const tickX = Math.sin(angleRadians) * layout.tickRadiusX;
         const tickY = Math.cos(angleRadians) * layout.tickRadiusY;
         const labelX = Math.sin(angleRadians) * layout.labelRadiusX;
         const labelY = Math.cos(angleRadians) * layout.labelRadiusY;
-        const markerValue = ratio * REGULAR_RANGE_CENTS;
+        const markerValue = ratio * GUIDED_RANGE_CENTS;
         const markerLabel =
           Math.abs(markerValue) < 0.5
             ? "0"
@@ -247,7 +247,7 @@ function TunerPanel({
     capo: state.capo,
   }));
 
-  const [mode, setMode] = useState<"regular" | "chromatic">("regular");
+  const [mode, setMode] = useState<"guided" | "chromatic">("guided");
 
   const {
     signalDetected,
@@ -261,14 +261,14 @@ function TunerPanel({
   const currentTargetFrequency = frequencyFromNote(currentTarget);
   const hasDetectedFrequency = signalDetected && detectedFrequency !== null;
   const hasChromaticCents = signalDetected && detectedCents !== null;
-  const hasRegularCents = signalDetected && targetCentsOffset !== null;
+  const hasGuidedCents = signalDetected && targetCentsOffset !== null;
 
-  const clampedRegularCents = Math.max(
-    -REGULAR_RANGE_CENTS,
-    Math.min(REGULAR_RANGE_CENTS, hasRegularCents ? targetCentsOffset : 0),
+  const clampedGuidedCents = Math.max(
+    -GUIDED_RANGE_CENTS,
+    Math.min(GUIDED_RANGE_CENTS, hasGuidedCents ? targetCentsOffset : 0),
   );
   const clampedDetectedCents = Math.max(-50, Math.min(50, detectedCents ?? 0));
-  const regularNeedleDegrees = (clampedRegularCents / REGULAR_RANGE_CENTS) * 90;
+  const guidedNeedleDegrees = (clampedGuidedCents / GUIDED_RANGE_CENTS) * 90;
   const chromaticMarkerLeftPercent = hasChromaticCents
     ? ((clampedDetectedCents + 50) / 100) * 100
     : 50;
@@ -293,10 +293,10 @@ function TunerPanel({
           <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border p-1 lg:col-span-1 lg:w-[190px]">
             <button
               type="button"
-              onClick={() => setMode("regular")}
-              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+              onClick={() => setMode("guided")}
+              className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "guided" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
             >
-              Regular
+              Guided
             </button>
             <button
               type="button"
@@ -352,7 +352,7 @@ function TunerPanel({
         />
       </div>
 
-      {mode === "regular" ? (
+      {mode === "guided" ? (
         <>
           <div className="baseVertFlex w-full px-3 md:px-6">
             <div className="baseVertFlex w-full rounded-md p-3 lg:p-5">
@@ -393,11 +393,11 @@ function TunerPanel({
                       transition:
                         "background-color 0.6s ease, box-shadow 0.6s ease",
                       ...needleStyle(
-                        hasRegularCents ? clampedRegularCents : null,
+                        hasGuidedCents ? clampedGuidedCents : null,
                         toleranceCents,
                       ),
                     }}
-                    animate={{ rotate: regularNeedleDegrees }}
+                    animate={{ rotate: guidedNeedleDegrees }}
                     transition={{
                       type: "spring",
                       stiffness: 260,
@@ -410,8 +410,8 @@ function TunerPanel({
                     ¢
                   </div>
 
-                  <RegularArcMarkers layout={MOBILE_ARC} />
-                  <RegularArcMarkers layout={DESKTOP_ARC} />
+                  <GuidedArcMarkers layout={MOBILE_ARC} />
+                  <GuidedArcMarkers layout={DESKTOP_ARC} />
                 </div>
               </div>
             </div>
