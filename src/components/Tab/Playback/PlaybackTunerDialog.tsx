@@ -22,10 +22,11 @@ function PlaybackTunerDialog() {
   }));
 
   const [open, setOpen] = useState(false);
+  const [selectedCapo, setSelectedCapo] = useState(capo);
 
   const tuner = useTuner({
     targetTuning: tuning,
-    capo,
+    capo: selectedCapo,
   });
 
   useScreenWakeLock(tuner.isListening);
@@ -36,6 +37,7 @@ function PlaybackTunerDialog() {
       onOpenChange={(nextOpen) => {
         if (nextOpen) {
           pauseAudio();
+          setSelectedCapo(capo);
         } else {
           tuner.stopListening();
         }
@@ -53,7 +55,7 @@ function PlaybackTunerDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="baseVertFlex h-[85dvh] max-h-[85dvh] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-x-0 border-y p-0 xs:border-y-0 sm:h-auto sm:w-[calc(100vw-4rem)]">
+      <DialogContent className="baseVertFlex h-[85dvh] max-h-[600px] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-x-0 border-y p-0 xs:border-y-0 sm:h-auto sm:w-[calc(100vw-4rem)]">
         <DialogHeader className="sr-only">
           <DialogTitle>Guitar Tuner</DialogTitle>
           <DialogDescription>
@@ -75,6 +77,15 @@ function PlaybackTunerDialog() {
             onResetProgress={tuner.resetProgress}
             onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
             forPlaybackModal={true}
+            playbackCapoToggle={
+              capo > 0
+                ? {
+                    requiredCapo: capo,
+                    selectedCapo,
+                    onSelectCapo: setSelectedCapo,
+                  }
+                : undefined
+            }
           />
         </div>
       </DialogContent>

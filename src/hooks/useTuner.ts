@@ -161,12 +161,14 @@ function robustSpread(values: number[]) {
   return upper - lower;
 }
 
-function resolveTargetNotes(targetTuning: string) {
-  return normalizeTuningValue(targetTuning).split(" ");
+function resolveTargetNotes(targetTuning: string, capo = 0) {
+  return normalizeTuningValue(
+    capo === 0 ? targetTuning : transposeTuningValue(targetTuning, capo),
+  ).split(" ");
 }
 
 function resolveTargetMidis(targetTuning: string, capo: number) {
-  const notes = resolveTargetNotes(transposeTuningValue(targetTuning, capo));
+  const notes = resolveTargetNotes(targetTuning, capo);
 
   const midis = notes
     .map((note) => get(note).midi)
@@ -302,8 +304,8 @@ export function useTuner({
   const masterVolumeGainNodeRef = useRef(masterVolumeGainNode);
 
   const targetNotes = useMemo(
-    () => resolveTargetNotes(targetTuning),
-    [targetTuning],
+    () => resolveTargetNotes(targetTuning, capo),
+    [capo, targetTuning],
   );
 
   const targetMidis = useMemo(

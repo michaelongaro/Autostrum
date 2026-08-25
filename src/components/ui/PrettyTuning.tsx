@@ -41,16 +41,24 @@ function PrettyTuning({
   width,
   displayWithFlex,
   showScientificPitchNotation,
+  fontSize,
+  lineHeight,
 }: {
   tuning?: string | null;
   width?: string;
   displayWithFlex?: boolean;
   showScientificPitchNotation?: boolean;
+  fontSize?: string;
+  lineHeight?: string;
 }) {
   const notes = getDisplayTuningNotes(tuning);
 
   return (
     <div
+      style={{
+        fontSize,
+        lineHeight,
+      }}
       className={`${displayWithFlex ? `baseFlex whitespace-nowrap ${showScientificPitchNotation ? "gap-1.5 text-sm" : "gap-1"}` : "grid grid-cols-6 !place-items-start"} ${width}`}
     >
       {notes.map((note, index) => (

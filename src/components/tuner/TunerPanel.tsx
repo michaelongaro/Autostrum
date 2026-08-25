@@ -170,6 +170,11 @@ type TunerPanelProps = {
   onResetProgress: () => void;
   onSetCurrentTargetIndex: (index: number) => void;
   forPlaybackModal?: boolean;
+  playbackCapoToggle?: {
+    requiredCapo: number;
+    selectedCapo: number;
+    onSelectCapo: (capo: number) => void;
+  };
 };
 
 function ListeningControls({
@@ -242,6 +247,7 @@ function TunerPanel({
   onResetProgress,
   onSetCurrentTargetIndex,
   forPlaybackModal,
+  playbackCapoToggle,
 }: TunerPanelProps) {
   const { tuning, capo } = useTabStore((state) => ({
     tuning: state.tuning,
@@ -309,16 +315,22 @@ function TunerPanel({
     : "--";
 
   const resetDisabled = mode === "chromatic" || currentTargetIndex === 0;
+  const requiredPlaybackCapo = playbackCapoToggle?.requiredCapo ?? 0;
+  const showPlaybackCapoToggle = forPlaybackModal && requiredPlaybackCapo > 0;
+  const playbackCapoControl = showPlaybackCapoToggle
+    ? playbackCapoToggle
+    : undefined;
+  const displayedCapo = playbackCapoToggle?.selectedCapo ?? capo;
 
   return (
     <div
       className={`baseVertFlex h-full w-full gap-4 bg-background py-3 shadow-sm md:rounded-lg md:border lg:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
     >
       <div
-        className={`baseVertFlex w-full gap-3 px-3 md:px-6 lg:flex-row lg:!items-center lg:!justify-between lg:px-6 ${forPlaybackModal ? "lg:mt-8" : ""}`}
+        className={`baseVertFlex w-full gap-3 px-3 md:px-6 ${forPlaybackModal ? "!flex-col !items-start" : "lg:flex-row lg:!items-center lg:!justify-between lg:px-6"}`}
       >
         {!forPlaybackModal && (
-          <div className="col-span-2 grid w-full max-w-[418px] grid-cols-2 gap-1 rounded-lg border p-1 lg:col-span-1 lg:w-[190px]">
+          <div className="col-span-2 grid w-full max-w-[418px] shrink-0 grid-cols-2 gap-1 rounded-lg border p-1 lg:col-span-1 lg:w-[190px]">
             <Button
               type="button"
               variant={mode === "guided" ? "default" : "ghost"}
@@ -339,54 +351,109 @@ function TunerPanel({
         )}
 
         {forPlaybackModal && (
-          <div className="baseFlex w-full !justify-start gap-2 xs:w-auto">
+          <div className="baseFlex mb-2 !justify-start gap-2">
             <TuningFork className="size-5" />
             <p className="text-lg font-semibold">Guitar Tuner</p>
           </div>
         )}
 
         <div
-          className={`flex w-full items-center justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "gap-8" : "mt-2 gap-4 lg:mt-0 lg:gap-6"}`}
+          className={`baseFlex w-full !justify-between ${forPlaybackModal ? "!items-end !justify-between" : "lg:pl-6"}`}
         >
-          <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-3">
-            <Label
-              htmlFor="tuning"
-              className="font-semibold text-foreground/80"
+          <div
+            className={`flex w-full items-center justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "!items-end gap-8" : "mt-2 gap-4 lg:mt-0 lg:gap-6"}`}
+          >
+            <div
+              className={`baseVertFlex !items-start gap-2 ${forPlaybackModal ? "!flex-col !items-start" : "sm:!flex-row sm:!items-center lg:gap-3"}`}
             >
-              Tuning
-            </Label>
-            {forPlaybackModal ? (
-              <PrettyTuning
-                tuning={tuning}
-                displayWithFlex={true}
-                showScientificPitchNotation={true}
-              />
-            ) : (
-              <TuningSelect showScientificPitchNotationInTrigger={true} />
-            )}
+              <Label
+                htmlFor="tuning"
+                className="font-semibold text-foreground/80"
+              >
+                Tuning
+              </Label>
+              {forPlaybackModal ? (
+                <div className="!text-xl">
+                  <PrettyTuning
+                    tuning={tuning}
+                    displayWithFlex={true}
+                    fontSize={
+                      playbackCapoControl !== undefined ? "18px" : "16px"
+                    }
+                    lineHeight={
+                      playbackCapoControl !== undefined ? "28px" : "24px"
+                    }
+                    showScientificPitchNotation={true}
+                  />
+                </div>
+              ) : (
+                <TuningSelect showScientificPitchNotationInTrigger={true} />
+              )}
+            </div>
+
+            <div
+              className={`baseVertFlex !items-start gap-2 ${forPlaybackModal ? "!flex-col !items-start" : "sm:!flex-row sm:!items-center lg:gap-3"}`}
+            >
+              <Label
+                htmlFor="capo"
+                className="font-semibold text-foreground/80"
+              >
+                Capo
+              </Label>
+
+              {forPlaybackModal ? (
+                playbackCapoControl ? (
+                  <div className="grid w-full max-w-[220px] grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      variant={
+                        playbackCapoControl.selectedCapo === 0
+                          ? "default"
+                          : "outline"
+                      }
+                      className="h-8 text-xs"
+                      onClick={() => playbackCapoControl.onSelectCapo(0)}
+                    >
+                      No capo
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={
+                        playbackCapoControl.selectedCapo !== 0
+                          ? "default"
+                          : "outline"
+                      }
+                      className="h-8 text-xs"
+                      onClick={() =>
+                        playbackCapoControl.onSelectCapo(requiredPlaybackCapo)
+                      }
+                    >
+                      {`${getOrdinalSuffix(requiredPlaybackCapo)} fret`}
+                    </Button>
+                  </div>
+                ) : (
+                  <p>
+                    {displayedCapo === 0
+                      ? "No capo"
+                      : `${getOrdinalSuffix(displayedCapo)} fret`}
+                  </p>
+                )
+              ) : (
+                <CapoSelect />
+              )}
+            </div>
           </div>
 
-          <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-3">
-            <Label htmlFor="capo" className="font-semibold text-foreground/80">
-              Capo
-            </Label>
-            {forPlaybackModal ? (
-              <p>{capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}</p>
-            ) : (
-              <CapoSelect />
-            )}
-          </div>
+          <ListeningControls
+            isListening={isListening}
+            resetDisabled={resetDisabled}
+            className="hidden w-full gap-2 lg:flex lg:w-auto lg:gap-4"
+            onStartListening={onStartListening}
+            onStopListening={onStopListening}
+            onResetProgress={onResetProgress}
+            hideReset={mode === "chromatic"}
+          />
         </div>
-
-        <ListeningControls
-          isListening={isListening}
-          resetDisabled={resetDisabled}
-          className="hidden w-full gap-2 lg:flex lg:w-auto lg:gap-4"
-          onStartListening={onStartListening}
-          onStopListening={onStopListening}
-          onResetProgress={onResetProgress}
-          hideReset={mode === "chromatic"}
-        />
       </div>
 
       {mode === "guided" ? (
