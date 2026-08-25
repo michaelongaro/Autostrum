@@ -165,7 +165,7 @@ function CustomTuningDialog() {
         </div>
 
         <div className="baseFlex w-full !justify-center">
-          <div className="baseFlex gap-1 rounded-md border bg-secondary p-1">
+          <div className="baseFlex gap-1 rounded-lg border bg-secondary p-1">
             <Button
               type="button"
               size="sm"
