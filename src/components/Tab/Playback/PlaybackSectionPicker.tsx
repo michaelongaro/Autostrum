@@ -9,8 +9,20 @@ import {
 } from "~/components/ui/select";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
+import { usePracticePlayback } from "~/components/tools/PracticePlaybackContext";
+import PracticePlaybackSectionPicker from "~/components/Tab/Playback/PracticePlaybackSectionPicker";
 
 function PlaybackSectionPicker() {
+  const practicePlayback = usePracticePlayback();
+
+  if (practicePlayback) {
+    return <PracticePlaybackSectionPicker />;
+  }
+
+  return <TabPlaybackSectionPicker />;
+}
+
+function TabPlaybackSectionPicker() {
   const {
     audioMetadata,
     setAudioMetadata,

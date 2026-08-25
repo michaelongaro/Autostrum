@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
@@ -14,14 +14,20 @@ import {
 } from "~/components/ui/select";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import {
-  buildPracticeExerciseTabData,
+  getPracticeExerciseBpm,
+  getPracticeExerciseTabSection,
+  getPracticeExercisesTabData,
   groupPracticeExercisesByLevel,
+  PRACTICE_LEVEL_LABELS,
+  PRACTICE_TUNING,
   type PracticeExercise,
 } from "~/data/tools/practiceExercises";
-import { useTabStore } from "~/stores/TabStore";
+import { getTabStore, useTabStore } from "~/stores/TabStore";
 import Logo from "~/components/ui/icons/Logo";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
+import { PracticePlaybackProvider } from "~/components/tools/PracticePlaybackContext";
+import { generateDefaultSectionProgression } from "~/utils/chordCompilationHelpers";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -60,6 +66,7 @@ function PracticePlaybackPanel({
     setAudioMetadata,
     setExpandedTabData,
     setVisiblePlaybackContainerWidth,
+    setDraftLoopRange,
     audioMetadata,
     color,
     theme,
@@ -80,6 +87,7 @@ function PracticePlaybackPanel({
     setAudioMetadata: state.setAudioMetadata,
     setExpandedTabData: state.setExpandedTabData,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
+    setDraftLoopRange: state.setDraftLoopRange,
     audioMetadata: state.audioMetadata,
     color: state.color,
     theme: state.theme,
@@ -89,73 +97,115 @@ function PracticePlaybackPanel({
 
   const selectedExercise =
     exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null;
-  const exerciseGroups = groupPracticeExercisesByLevel(exercises);
+  const exerciseGroups = useMemo(
+    () => groupPracticeExercisesByLevel(exercises),
+    [exercises],
+  );
+  const selectedExerciseTabSection = selectedExercise
+    ? getPracticeExerciseTabSection(selectedExercise)
+    : null;
 
-  const selectedExerciseTabData = useMemo(
-    () =>
-      selectedExercise
-        ? buildPracticeExerciseTabData(selectedExercise, {
-            repetitions: 2,
-          })
-        : [],
-    [selectedExercise],
+  const selectExercise = useCallback(
+    (exerciseId: string) => {
+      const exercise = exercises.find((item) => item.id === exerciseId);
+      if (!exercise || exercise.id === selectedExerciseId) return;
+
+      const sectionIndex = exercises.findIndex((item) => item.id === exerciseId);
+      const {
+        showPlaybackModal: modalOpen,
+        audioMetadata: currentAudioMetadata,
+      } = getTabStore();
+
+      setSelectedExerciseId(exerciseId);
+      setSelectedDifficulty(PRACTICE_LEVEL_LABELS[exercise.level]);
+
+      pauseAudio(true, true);
+      setTitle(exercise.title);
+      setBpm(getPracticeExerciseBpm(exercise));
+      setCurrentChordIndex(0);
+      setDraftLoopRange({
+        startIndex: null,
+        endIndex: null,
+      });
+
+      if (!modalOpen) {
+        // Clear stale playback layout from the previous exercise so the modal
+        // remeasures/recompiles instead of inheriting the old strip width/data.
+        setExpandedTabData(null);
+        setVisiblePlaybackContainerWidth(0);
+      }
+
+      setAudioMetadata({
+        ...currentAudioMetadata,
+        playing: false,
+        location: { sectionIndex },
+        startLoopIndex: 0,
+        endLoopIndex: -1,
+        editingLoopRange: false,
+      });
+    },
+    [
+      exercises,
+      selectedExerciseId,
+      pauseAudio,
+      setTitle,
+      setBpm,
+      setCurrentChordIndex,
+      setDraftLoopRange,
+      setExpandedTabData,
+      setVisiblePlaybackContainerWidth,
+      setAudioMetadata,
+    ],
   );
 
-  const subSection = selectedExerciseTabData[0]?.data[0];
-  const selectedExerciseTabSection =
-    subSection?.type === "tab" ? subSection : null;
-
   useEffect(() => {
-    if (!selectedExercise) return;
+    const allSections = structuredClone(getPracticeExercisesTabData(exercises));
 
     pauseAudio(true, true);
     setShowPlaybackModal(false);
-
     setEditing(false);
-    setTitle(selectedExercise.title);
-    setTuning(selectedExercise.tuning);
-    setBpm(selectedExercise.bpm);
+    setTuning(PRACTICE_TUNING);
     setCapo(0);
     setChords([]);
     setStrummingPatterns([]);
-    setSectionProgression([]);
+    setSectionProgression(generateDefaultSectionProgression(allSections));
     setCurrentChordIndex(0);
-    // Clear stale playback layout from the previous exercise so the modal
-    // remeasures/recompiles instead of inheriting the old strip width/data.
     setExpandedTabData(null);
     setVisiblePlaybackContainerWidth(0);
 
+    setTabData((draft) => {
+      draft.splice(0, draft.length, ...allSections);
+    });
+
+    const exercise =
+      exercises.find((item) => item.id === selectedExerciseId) ?? exercises[0];
+    if (!exercise) return;
+
+    const sectionIndex = exercises.findIndex((item) => item.id === exercise.id);
+
+    setTitle(exercise.title);
+    setBpm(getPracticeExerciseBpm(exercise));
     setAudioMetadata({
       playing: false,
-      location: null,
+      location: { sectionIndex },
       startLoopIndex: 0,
       endLoopIndex: -1,
       editingLoopRange: false,
       fullTabMetadataLength: -1,
     });
+    // Intentionally only rehydrate when the exercise list changes. Switching
+    // exercises is handled by selectExercise so the playback modal stays open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exercises]);
 
-    setTabData((draft) => {
-      draft.splice(0, draft.length, ...selectedExerciseTabData);
-    });
-  }, [
-    selectedExercise,
-    selectedExerciseTabData,
-    pauseAudio,
-    setShowPlaybackModal,
-    setEditing,
-    setTitle,
-    setTuning,
-    setBpm,
-    setCapo,
-    setChords,
-    setStrummingPatterns,
-    setSectionProgression,
-    setCurrentChordIndex,
-    setExpandedTabData,
-    setVisiblePlaybackContainerWidth,
-    setAudioMetadata,
-    setTabData,
-  ]);
+  const practicePlaybackValue = useMemo(
+    () => ({
+      exerciseGroups,
+      selectedExerciseId,
+      selectExercise,
+    }),
+    [exerciseGroups, selectedExerciseId, selectExercise],
+  );
 
   if (!selectedExercise) {
     return (
@@ -166,145 +216,143 @@ function PracticePlaybackPanel({
   }
 
   return (
-    <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
-      <div className="baseVertFlex w-full items-start gap-4 rounded-none border-y bg-background p-4 shadow-md sm:gap-8 sm:rounded-lg sm:border-x">
-        <div className="baseVertFlex w-full !items-start gap-2">
-          <p className="text-sm font-medium sm:hidden">Choose an exercise</p>
+    <PracticePlaybackProvider value={practicePlaybackValue}>
+      <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
+        <div className="baseVertFlex w-full items-start gap-4 rounded-none border-y bg-background p-4 shadow-md sm:gap-8 sm:rounded-lg sm:border-x">
+          <div className="baseVertFlex w-full !items-start gap-2">
+            <p className="text-sm font-medium sm:hidden">Choose an exercise</p>
 
-          <Select
-            value={selectedExerciseId}
-            onValueChange={setSelectedExerciseId}
-          >
-            <SelectTrigger className="sm:hidden">
-              <SelectValue>{selectedExercise.title}</SelectValue>
-            </SelectTrigger>
-            <SelectContent className="sm:hidden">
-              {exerciseGroups.map((group) => (
-                <SelectGroup key={group.level}>
-                  <SelectLabel className="text-foreground/60">
-                    {group.label}
-                  </SelectLabel>
-                  {group.items.map((exercise) => (
-                    <SelectItem key={exercise.id} value={exercise.id}>
-                      <span className="baseVertFlex w-72 flex-wrap !items-start gap-0.5 text-left">
-                        <span className="text-sm font-medium">
-                          {exercise.title}
-                        </span>
-                        <span
-                          className={`text-xs ${selectedExerciseId === exercise.id ? "text-primary-foreground/75" : "text-foreground"}`}
-                        >
-                          {exercise.description}
-                        </span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="hidden w-full flex-col gap-4 sm:flex">
-            <div className="baseFlex !justify-between gap-4">
-              <p className="text-sm font-medium">Choose an exercise</p>
-
-              <div className="baseFlex gap-4">
-                <span className="text-sm font-medium">Difficulty</span>
-                <div className="baseFlex gap-2">
-                  {exerciseGroups.map((group) => (
-                    <Button
-                      key={group.level}
-                      variant={"text"}
-                      className="relative"
-                      onClick={() => {
-                        setSelectedDifficulty(group.label);
-                        setSelectedExerciseId(group.items.at(0)?.id ?? "");
-                      }}
-                    >
+            <Select value={selectedExerciseId} onValueChange={selectExercise}>
+              <SelectTrigger className="sm:hidden">
+                <SelectValue>{selectedExercise.title}</SelectValue>
+              </SelectTrigger>
+              <SelectContent className="sm:hidden">
+                {exerciseGroups.map((group) => (
+                  <SelectGroup key={group.level}>
+                    <SelectLabel className="text-foreground/60">
                       {group.label}
-                      {selectedDifficulty === group.label && (
-                        <span className="absolute bottom-0.5 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground" />
-                      )}
-                    </Button>
-                  ))}
+                    </SelectLabel>
+                    {group.items.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        <span className="baseVertFlex w-72 flex-wrap !items-start gap-0.5 text-left">
+                          <span className="text-sm font-medium">
+                            {item.title}
+                          </span>
+                          <span
+                            className={`text-xs ${selectedExerciseId === item.id ? "text-primary-foreground/75" : "text-foreground"}`}
+                          >
+                            {item.description}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="hidden w-full flex-col gap-4 sm:flex">
+              <div className="baseFlex !justify-between gap-4">
+                <p className="text-sm font-medium">Choose an exercise</p>
+
+                <div className="baseFlex gap-4">
+                  <span className="text-sm font-medium">Difficulty</span>
+                  <div className="baseFlex gap-2">
+                    {exerciseGroups.map((group) => (
+                      <Button
+                        key={group.level}
+                        variant={"text"}
+                        className="relative"
+                        onClick={() => {
+                          setSelectedDifficulty(group.label);
+                          const firstExerciseId = group.items.at(0)?.id;
+                          if (firstExerciseId) {
+                            selectExercise(firstExerciseId);
+                          }
+                        }}
+                      >
+                        {group.label}
+                        {selectedDifficulty === group.label && (
+                          <span className="absolute bottom-0.5 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground" />
+                        )}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-            {exerciseGroups.map((group) => (
-              <>
-                {selectedDifficulty === group.label && (
+              {exerciseGroups.map((group) =>
+                selectedDifficulty === group.label ? (
                   <div
                     key={`exercises-${group.level}`}
                     className="grid grid-cols-2 gap-2"
                   >
-                    {group.items.map((exercise) => (
+                    {group.items.map((item) => (
                       <Button
-                        key={exercise.id}
+                        key={item.id}
                         variant={
-                          exercise.id === selectedExerciseId
-                            ? "default"
-                            : "outline"
+                          item.id === selectedExerciseId ? "default" : "outline"
                         }
                         className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
-                        onClick={() => setSelectedExerciseId(exercise.id)}
+                        onClick={() => selectExercise(item.id)}
                       >
                         <span className="baseVertFlex !items-start gap-0.5">
                           <span className="text-sm font-medium transition">
-                            {exercise.title}
+                            {item.title}
                           </span>
                           <span
-                            className={`text-xs transition ${exercise.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
+                            className={`text-xs transition ${item.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
                           >
-                            {exercise.description}
+                            {item.description}
                           </span>
                         </span>
                       </Button>
                     ))}
                   </div>
-                )}
-              </>
-            ))}
+                ) : null,
+              )}
+            </div>
+          </div>
+
+          <div className="baseVertFlex w-full !items-start gap-2">
+            <p className="text-sm font-medium">Preview</p>
+            {selectedExerciseTabSection && (
+              <div className="w-full">
+                <StaticTabSection
+                  subSectionData={selectedExerciseTabSection}
+                  sectionIndex={0}
+                  subSectionIndex={0}
+                  color={color}
+                  theme={theme}
+                  overflowX={true}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="baseFlex my-2 w-full sm:mb-2 sm:mt-0">
+            <Button
+              variant="audio"
+              className="baseFlex gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
+              disabled={audioMetadata.fullTabMetadataLength <= 0}
+              onClick={() => {
+                primePlaybackUserGesture();
+                setCurrentChordIndex(0);
+                setShowPlaybackModal(true);
+              }}
+            >
+              <Logo className="size-3 sm:size-4" />
+              Begin
+            </Button>
           </div>
         </div>
 
-        <div className="baseVertFlex w-full !items-start gap-2">
-          <p className="text-sm font-medium">Preview</p>
-          {selectedExerciseTabSection && (
-            <div className="w-full">
-              <StaticTabSection
-                subSectionData={selectedExerciseTabSection}
-                sectionIndex={0}
-                subSectionIndex={0}
-                color={color}
-                theme={theme}
-                overflowX={true}
-              />
-            </div>
-          )}
-        </div>
+        <AnimatePresence mode="wait">
+          {showPlaybackModal && <PlaybackModal />}
+        </AnimatePresence>
 
-        <div className="baseFlex my-2 w-full sm:mb-2 sm:mt-0">
-          <Button
-            variant="audio"
-            className="baseFlex gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
-            disabled={audioMetadata.fullTabMetadataLength <= 0}
-            onClick={() => {
-              primePlaybackUserGesture();
-              setCurrentChordIndex(0);
-              setShowPlaybackModal(true);
-            }}
-          >
-            <Logo className="size-3 sm:size-4" />
-            Begin
-          </Button>
-        </div>
+        <GlossaryDialog />
       </div>
-
-      <AnimatePresence mode="wait">
-        {showPlaybackModal && <PlaybackModal />}
-      </AnimatePresence>
-
-      <GlossaryDialog />
-    </div>
+    </PracticePlaybackProvider>
   );
 }
 
