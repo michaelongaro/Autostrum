@@ -805,31 +805,41 @@ function SearchResults({
                     <Label>Layout</Label>
                     <div className="baseFlex relative overflow-y-hidden rounded-md border">
                       <Button
-                        variant={
-                          layoutType.value === "grid" ? "toggleOn" : "toggleOff"
-                        }
+                        variant="toggle"
                         size="sm"
                         disabled={disableFiltersAndLayoutToggle}
+                        style={{
+                          color:
+                            theme === "light"
+                              ? layoutType.value === "grid"
+                                ? "hsl(var(--foreground))"
+                                : "hsl(var(--background))"
+                              : "hsl(var(--primary-foreground))",
+                        }}
+                        className="baseFlex relative gap-2 border-none"
                         onClick={() => {
                           layoutType.set("grid");
                         }}
-                        className="baseFlex relative gap-2 border-none"
                       >
                         <BsGridFill className="size-4" />
                       </Button>
 
                       <Button
-                        variant={
-                          layoutType.value === "table"
-                            ? "toggleOn"
-                            : "toggleOff"
-                        }
+                        variant="toggle"
                         size="sm"
                         disabled={disableFiltersAndLayoutToggle}
+                        style={{
+                          color:
+                            theme === "light"
+                              ? layoutType.value === "table"
+                                ? "hsl(var(--foreground))"
+                                : "hsl(var(--background))"
+                              : "hsl(var(--primary-foreground))",
+                        }}
+                        className="baseFlex relative gap-2 border-none"
                         onClick={() => {
                           layoutType.set("table");
                         }}
-                        className="baseFlex relative gap-2 border-none"
                       >
                         <CiViewTable className="size-4 stroke-[0.5px]" />
                       </Button>
@@ -840,10 +850,13 @@ function SearchResults({
                             layoutType.value === "grid"
                               ? "translateX(0)"
                               : "translateX(40px)",
-                          transition:
-                            "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                          backgroundColor:
+                            theme === "light"
+                              ? "hsl(var(--background)"
+                              : "hsl(var(--primary))",
+                          transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                         }}
-                        className="absolute inset-0 !z-[-1] w-[40px] rounded-sm bg-background"
+                        className={`absolute inset-0 !z-[-1] w-[40px] ${layoutType.value === "grid" ? "rounded-l-sm" : "rounded-r-sm"}`}
                       ></div>
                     </div>
                   </div>
@@ -1679,30 +1692,42 @@ function SearchResults({
                   <Label>Layout</Label>
                   <div className="baseFlex relative overflow-hidden rounded-md border">
                     <Button
-                      variant={
-                        layoutType.value === "grid" ? "toggleOn" : "toggleOff"
-                      }
+                      variant="toggle"
                       size="sm"
                       disabled={disableFiltersAndLayoutToggle}
+                      style={{
+                        color:
+                          theme === "light"
+                            ? layoutType.value === "grid"
+                              ? "hsl(var(--foreground))"
+                              : "hsl(var(--background))"
+                            : "hsl(var(--primary-foreground))",
+                      }}
+                      className="baseFlex relative gap-2 rounded-sm"
                       onClick={() => {
                         layoutType.set("grid");
                       }}
-                      className="baseFlex relative gap-2 rounded-sm"
                     >
                       <BsGridFill className="size-4" />
                       Grid
                     </Button>
 
                     <Button
-                      variant={
-                        layoutType.value === "table" ? "toggleOn" : "toggleOff"
-                      }
+                      variant="toggle"
                       size="sm"
                       disabled={disableFiltersAndLayoutToggle}
+                      style={{
+                        color:
+                          theme === "light"
+                            ? layoutType.value === "table"
+                              ? "hsl(var(--foreground))"
+                              : "hsl(var(--background))"
+                            : "hsl(var(--primary-foreground))",
+                      }}
+                      className="baseFlex relative gap-2 rounded-sm"
                       onClick={() => {
                         layoutType.set("table");
                       }}
-                      className="baseFlex relative gap-2 rounded-sm"
                     >
                       <CiViewTable className="size-4 stroke-[0.5px]" />
                       Table
@@ -1710,15 +1735,18 @@ function SearchResults({
 
                     <div
                       style={{
+                        width: layoutType.value === "grid" ? "76.5px" : "83px",
                         transform:
                           layoutType.value === "grid"
                             ? "translateX(0)"
                             : "translateX(78px)",
-                        transition:
-                          "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-                        width: layoutType.value === "grid" ? "76.5px" : "83px",
+                        backgroundColor:
+                          theme === "light"
+                            ? "hsl(var(--background)"
+                            : "hsl(var(--primary))",
+                        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                       }}
-                      className="absolute inset-0 !z-[-1] rounded-sm bg-background"
+                      className={`absolute inset-0 !z-[-1] ${layoutType.value === "grid" ? "rounded-l-sm" : "rounded-r-sm"}`}
                     ></div>
                   </div>
                 </div>

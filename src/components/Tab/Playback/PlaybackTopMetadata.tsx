@@ -1,20 +1,21 @@
+import { useRouter } from "next/router";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { type Dispatch, type SetStateAction } from "react";
 import { FaBook } from "react-icons/fa";
+import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
+import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
+import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
-import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
-import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { Separator } from "~/components/ui/separator";
 import { useTabStore, type PlaybackMetadata } from "~/stores/TabStore";
-import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
+import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { tuningNotesToName } from "~/utils/tunings";
-import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
-import { useRouter } from "next/router";
+import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
 
 interface PlaybackTopMetadata {
   tabProgressValue: number;
@@ -143,7 +144,11 @@ function PlaybackTopMetadata({
                       {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
                     </div>
 
-                    <PlaybackTunerDialog />
+                    {viewportLabel.includes("mobile") ? (
+                      <PlaybackTunerDrawer />
+                    ) : (
+                      <PlaybackTunerDialog />
+                    )}
 
                     {!viewportLabel.includes("mobile") && (
                       <Button

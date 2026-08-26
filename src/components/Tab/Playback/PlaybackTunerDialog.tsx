@@ -10,7 +10,6 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import TuningFork from "~/components/ui/icons/TuningFork";
-import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 import { useTuner } from "~/hooks/useTuner";
 import { useTabStore } from "~/stores/TabStore";
 
@@ -28,8 +27,6 @@ function PlaybackTunerDialog() {
     targetTuning: tuning,
     capo: selectedCapo,
   });
-
-  useScreenWakeLock(tuner.isListening);
 
   return (
     <Dialog
@@ -66,31 +63,29 @@ function PlaybackTunerDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="baseVertFlex size-full">
-          <TunerPanel
-            targetNotes={tuner.targetNotes}
-            currentTargetIndex={tuner.currentTargetIndex}
-            reading={tuner.reading}
-            isListening={tuner.isListening}
-            completed={tuner.completed}
-            error={tuner.error}
-            permissionDenied={tuner.permissionDenied}
-            onStartListening={tuner.startListening}
-            onStopListening={tuner.stopListening}
-            onResetProgress={tuner.resetProgress}
-            onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
-            forPlaybackModal={true}
-            playbackCapoToggle={
-              capo > 0
-                ? {
-                    requiredCapo: capo,
-                    selectedCapo,
-                    onSelectCapo: setSelectedCapo,
-                  }
-                : undefined
-            }
-          />
-        </div>
+        <TunerPanel
+          targetNotes={tuner.targetNotes}
+          currentTargetIndex={tuner.currentTargetIndex}
+          reading={tuner.reading}
+          isListening={tuner.isListening}
+          completed={tuner.completed}
+          error={tuner.error}
+          permissionDenied={tuner.permissionDenied}
+          onStartListening={tuner.startListening}
+          onStopListening={tuner.stopListening}
+          onResetProgress={tuner.resetProgress}
+          onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
+          forPlaybackModal={true}
+          playbackCapoToggle={
+            capo > 0
+              ? {
+                  requiredCapo: capo,
+                  selectedCapo,
+                  onSelectCapo: setSelectedCapo,
+                }
+              : undefined
+          }
+        />
       </DialogContent>
     </Dialog>
   );

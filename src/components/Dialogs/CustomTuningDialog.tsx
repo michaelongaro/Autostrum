@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { Label } from "~/components/ui/label";
 
 const validNotationRegex =
   /^(A[0-7]|A#[0-7]|B[0-7]|C[1-8]|C#[1-8]|D[1-7]|D#[1-7]|E[1-7]|F[1-7]|F#[1-7]|G[1-7]|G#[1-7])$/;
@@ -39,6 +40,7 @@ function CustomTuningDialog() {
     setTuning,
     showCustomTuningDialog,
     setShowCustomTuningDialog,
+    theme,
   } = useTabStore((state) => ({
     previewMetadata: state.previewMetadata,
     playPreview: state.playPreview,
@@ -46,6 +48,7 @@ function CustomTuningDialog() {
     setTuning: state.setTuning,
     showCustomTuningDialog: state.showCustomTuningDialog,
     setShowCustomTuningDialog: state.setShowCustomTuningDialog,
+    theme: state.theme,
   }));
 
   const [newTuning, setNewTuning] = useState<string[]>(
@@ -164,30 +167,52 @@ function CustomTuningDialog() {
           </Button>
         </div>
 
-        <div className="baseFlex w-full !justify-center">
-          <div className="baseFlex gap-1 rounded-lg border bg-secondary p-1">
+        <div className="baseFlex gap-3">
+          <Label>Mode</Label>
+          <div className="baseFlex relative overflow-y-hidden rounded-md border">
             <Button
-              type="button"
+              variant="toggle"
               size="sm"
-              variant={inputMode === "auto" ? "default" : "ghost"}
-              className="px-6"
+              style={{
+                color:
+                  inputMode === "auto"
+                    ? "hsl(var(--primary-foreground))"
+                    : "hsl(var(--foreground))",
+              }}
+              className="baseFlex relative w-[55px] gap-2 border-none"
               onClick={() => {
                 setInputMode("auto");
               }}
             >
               Auto
             </Button>
+
             <Button
-              type="button"
+              variant="toggle"
               size="sm"
-              variant={inputMode === "manual" ? "default" : "ghost"}
-              className="px-6"
+              style={{
+                color:
+                  inputMode === "manual"
+                    ? "hsl(var(--primary-foreground))"
+                    : "hsl(var(--foreground))",
+              }}
+              className="baseFlex relative w-[72px] gap-2 border-none"
               onClick={() => {
                 setInputMode("manual");
               }}
             >
               Manual
             </Button>
+
+            <div
+              style={{
+                width: inputMode === "auto" ? "55px" : "72px",
+                transform:
+                  inputMode === "auto" ? "translateX(0)" : "translateX(55px)",
+                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+              className={`absolute inset-0 !z-[-1] bg-primary ${inputMode === "auto" ? "rounded-l-sm" : "rounded-r-sm"}`}
+            ></div>
           </div>
         </div>
 

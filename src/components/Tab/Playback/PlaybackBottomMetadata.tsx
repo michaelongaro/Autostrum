@@ -45,11 +45,11 @@ import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { tuningNotesToName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
 import { IoMdSettings } from "react-icons/io";
-import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
 import { IoColorPalette } from "react-icons/io5";
 import CountIn from "~/components/ui/icons/CountIn";
 import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 import { useRouter } from "next/router";
+import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
 
 interface PlaybackBottomMetadata {
   tabProgressValue: number;
@@ -125,7 +125,7 @@ function PlaybackBottomMetadata({
               {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
             </div>
 
-            <PlaybackTunerDialog />
+            <PlaybackTunerDrawer />
           </div>
 
           <div className="baseFlex gap-4">

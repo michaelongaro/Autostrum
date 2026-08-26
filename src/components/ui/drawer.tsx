@@ -41,10 +41,16 @@ const DrawerOverlay = React.forwardRef<
 ));
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
+type DrawerContentProps = React.ComponentPropsWithoutRef<
+  typeof DrawerPrimitive.Content
+> & {
+  forPlaybackModalTuner?: boolean;
+};
+
 const DrawerContent = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  React.ComponentRef<typeof DrawerPrimitive.Content>,
+  DrawerContentProps
+>(({ className, children, forPlaybackModalTuner, ...props }, ref) => (
   <DrawerPortal>
     {/* little hack below here, since the default overlay when scrolling drawer up past default height wouldn't show the border-x that I have on <DrawerContent> */}
     <DrawerOverlay className="fixed">
@@ -61,7 +67,13 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
-      <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray/25" />
+      {forPlaybackModalTuner ? (
+        <div className="baseFlex w-full bg-accent">
+          <div className="mx-auto mb-1 mt-3 h-1 w-12 flex-shrink-0 rounded-full bg-primary-foreground/25"></div>
+        </div>
+      ) : (
+        <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray/25"></div>
+      )}
 
       {children}
     </DrawerPrimitive.Content>

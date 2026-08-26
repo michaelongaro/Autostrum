@@ -181,7 +181,6 @@ function ListeningControls({
   isListening,
   resetDisabled,
   hideReset,
-  forPlaybackModal,
   className,
   onStartListening,
   onStopListening,
@@ -190,7 +189,6 @@ function ListeningControls({
   isListening: boolean;
   resetDisabled: boolean;
   hideReset?: boolean;
-  forPlaybackModal?: boolean;
   className?: string;
   onStartListening: () => Promise<void>;
   onStopListening: () => void;
@@ -250,9 +248,10 @@ function TunerPanel({
   forPlaybackModal,
   playbackCapoToggle,
 }: TunerPanelProps) {
-  const { tuning, capo } = useTabStore((state) => ({
+  const { tuning, capo, theme } = useTabStore((state) => ({
     tuning: state.tuning,
     capo: state.capo,
+    theme: state.theme,
   }));
 
   const [mode, setMode] = useState<"guided" | "chromatic">("guided");
@@ -330,7 +329,15 @@ function TunerPanel({
               <Button
                 variant="toggle"
                 size="sm"
-                className="baseFlex relative h-[38px] w-[117px] gap-2 border-none sm:w-[72px]"
+                style={{
+                  color:
+                    theme === "light"
+                      ? mode === "guided"
+                        ? "hsl(var(--foreground))"
+                        : "hsl(var(--background))"
+                      : "hsl(var(--primary-foreground))",
+                }}
+                className="baseFlex relative h-[30px] w-[117px] gap-2 border-none sm:h-[38px] sm:w-[72px]"
                 onClick={() => {
                   if (mode === "guided") return;
                   setChromaticViewReady(false);
@@ -343,7 +350,15 @@ function TunerPanel({
               <Button
                 variant="toggle"
                 size="sm"
-                className="baseFlex relative h-[38px] w-[117px] gap-2 border-none sm:w-[93px]"
+                style={{
+                  color:
+                    theme === "light"
+                      ? mode === "chromatic"
+                        ? "hsl(var(--foreground))"
+                        : "hsl(var(--background))"
+                      : "hsl(var(--primary-foreground))",
+                }}
+                className="baseFlex relative h-[30px] w-[117px] gap-2 border-none sm:h-[38px] sm:w-[93px]"
                 onClick={() => {
                   if (mode === "chromatic") return;
                   setChromaticViewReady(false);
@@ -355,12 +370,13 @@ function TunerPanel({
 
               <div
                 style={{
-                  // transform:
-                  //   mode === "guided" ? "translateX(0)" : "translateX(72px)",
-                  transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-                  // width: mode === "guided" ? "72px" : "93px",
+                  backgroundColor:
+                    theme === "light"
+                      ? "hsl(var(--background)"
+                      : "hsl(var(--primary))",
+                  transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
-                className={`absolute inset-0 !z-[-1] rounded-sm bg-primary ${mode === "guided" ? "w-[117px] translate-x-0 sm:w-[72px]" : "w-[117px] translate-x-[117px] sm:w-[93px] sm:translate-x-[72px]"}`}
+                className={`absolute inset-0 !z-[-1] ${mode === "guided" ? "w-[117px] translate-x-0 rounded-l-sm sm:w-[72px]" : "w-[117px] translate-x-[117px] rounded-r-sm sm:w-[93px] sm:translate-x-[72px]"}`}
               ></div>
             </div>
           </div>
