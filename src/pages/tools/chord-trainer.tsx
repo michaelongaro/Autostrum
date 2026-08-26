@@ -1,14 +1,6 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { IoIosArrowUp } from "react-icons/io";
 import Head from "next/head";
-import type Soundfont from "soundfont-player";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Paintbrush } from "lucide-react";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
@@ -16,9 +8,9 @@ import ChordTrainerBpmRange, {
   clampChordTrainerTempo,
 } from "~/components/tools/ChordTrainerBpmRange";
 import ChordTrainerStrumPreview from "~/components/tools/ChordTrainerStrumPreview";
+import ChordTrainerVisualizer from "~/components/tools/ChordTrainerVisualizer";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
-import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { Label } from "~/components/ui/label";
 import {
@@ -28,37 +20,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  chordTrainerPresets,
-  type ChordTrainerPreset,
-} from "~/data/tools/chordTrainerPresets";
+import { chordTrainerPresets } from "~/data/tools/chordTrainerPresets";
 import {
   CHORD_TRAINER_STRUMMING_PATTERNS,
   getChordTrainerStrummingPattern,
   NONE_CHORD_TRAINER_STRUMMING_PATTERN,
-  type ChordTrainerStrummingPattern,
 } from "~/data/tools/chordTrainerStrummingPatterns";
+import useChordTrainerPlayback from "~/hooks/useChordTrainerPlayback";
 import { cn } from "~/utils/cn";
-import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
-import { DEFAULT_TUNING, parse } from "~/utils/tunings";
 import Logo from "~/components/ui/icons/Logo";
 import { useTabStore } from "~/stores/TabStore";
 
-type AudioSource =
+type AudioOption =
   | "none"
   | "acoustic_guitar_nylon"
   | "acoustic_guitar_steel"
   | "electric_guitar_clean"
   | "electric_guitar_jazz";
-
-type AudioOption = AudioSource | "none";
-
-type QueueItem = {
-  instanceId: string;
-  chord: ChordTrainerPreset;
-  strum: string;
-  showDiagram: boolean;
-};
 
 type ChordTrainerSelectionPreset = {
   id: string;
@@ -66,7 +44,7 @@ type ChordTrainerSelectionPreset = {
   chordIds: string[];
 };
 
-const AUDIO_SOURCE_LABELS: Record<AudioSource, string> = {
+const AUDIO_SOURCE_LABELS: Record<AudioOption, string> = {
   none: "None",
   acoustic_guitar_nylon: "Acoustic - Nylon",
   acoustic_guitar_steel: "Acoustic - Steel",
@@ -147,15 +125,6 @@ const DEFAULT_SELECTED_CHORD_IDS =
   )?.chordIds ?? [];
 const DEFAULT_TEMPO = 70;
 const DEFAULT_STRUMMING_PATTERN_ID = NONE_CHORD_TRAINER_STRUMMING_PATTERN.id;
-const STANDARD_TUNING = parse(DEFAULT_TUNING);
-
-const INITIAL_QUEUE_LENGTH = 36;
-const APPEND_CHUNK_SIZE = 12;
-const CHORD_ITEM_WIDTH = 136;
-const CHORD_ITEM_GAP = 40;
-const TOTAL_CHORD_WIDTH = CHORD_ITEM_WIDTH + CHORD_ITEM_GAP;
-const CENTER_TRIGGER_EPSILON = 0.001;
-const MIN_EDGE_OPACITY = 0.18;
 const CUSTOM_CHORD_PRESET_OPTION: ChordTrainerSelectionPreset = {
   id: CUSTOM_CHORD_PRESET_ID,
   label: "Custom",
@@ -166,146 +135,10 @@ const CHORD_PRESET_OPTIONS = [
   CUSTOM_CHORD_PRESET_OPTION,
 ];
 
-const useIsomorphicLayoutEffect =
-  typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
-function createPatternQueueItems(
-  chord: ChordTrainerPreset,
-  pattern: ChordTrainerStrummingPattern,
-): QueueItem[] {
-  let diagramAssigned = false;
-
-  return pattern.strums.map((strum) => {
-    const isSpacer = strum.effect === "";
-    const showDiagram = pattern.showIcons
-      ? !isSpacer && !diagramAssigned
-      : true;
-
-    if (showDiagram) {
-      diagramAssigned = true;
-    }
-
-    return {
-      instanceId: crypto.randomUUID(),
-      chord,
-      strum: strum.effect,
-      showDiagram,
-    };
-  });
-}
-
-function getRandomChord(
-  chords: ChordTrainerPreset[],
-  previousChordId?: string,
-): ChordTrainerPreset | null {
-  if (chords.length === 0) return null;
-  if (chords.length === 1) return chords[0] ?? null;
-
-  const candidates = previousChordId
-    ? chords.filter((chord) => chord.id !== previousChordId)
-    : chords;
-  const randomIndex = Math.floor(Math.random() * candidates.length);
-  const randomChord = candidates.at(randomIndex);
-
-  if (randomChord) {
-    return randomChord;
-  }
-
-  return chords[0] ?? null;
-}
-
-function resolveQueueChord(
-  chord: ChordTrainerPreset | null,
-  fallbackChord: ChordTrainerPreset,
-) {
-  return chord ?? fallbackChord;
-}
-
-function buildInitialQueue(
-  chords: ChordTrainerPreset[],
-  pattern: ChordTrainerStrummingPattern,
-): QueueItem[] {
-  const queue: QueueItem[] = [];
-  let previousChordId: string | undefined = undefined;
-  const fallbackChord = chords[0];
-
-  if (!fallbackChord || pattern.strums.length === 0) {
-    return queue;
-  }
-
-  while (queue.length < INITIAL_QUEUE_LENGTH) {
-    const chord = resolveQueueChord(
-      getRandomChord(chords, previousChordId),
-      fallbackChord,
-    );
-
-    queue.push(...createPatternQueueItems(chord, pattern));
-    previousChordId = chord.id;
-  }
-
-  return queue;
-}
-
-function appendQueue(
-  queue: QueueItem[],
-  chords: ChordTrainerPreset[],
-  pattern: ChordTrainerStrummingPattern,
-  count = APPEND_CHUNK_SIZE,
-): QueueItem[] {
-  if (chords.length === 0 || pattern.strums.length === 0) return queue;
-
-  let lastChordId = queue[queue.length - 1]?.chord.id;
-  const fallbackChord = chords[0];
-  if (!fallbackChord) return queue;
-
-  const appends: QueueItem[] = [];
-
-  while (appends.length < count) {
-    const nextChord = resolveQueueChord(
-      getRandomChord(chords, lastChordId),
-      fallbackChord,
-    );
-
-    appends.push(...createPatternQueueItems(nextChord, pattern));
-    lastChordId = nextChord.id;
-  }
-
-  return [...queue, ...appends];
-}
-
 function ChordTrainerPage() {
-  const {
-    audioContext,
-    masterVolumeGainNode,
-    currentInstrument,
-    setCurrentInstrumentName,
-  } = useTabStore((state) => ({
-    audioContext: state.audioContext,
-    masterVolumeGainNode: state.masterVolumeGainNode,
-    currentInstrument: state.currentInstrument,
+  const { setCurrentInstrumentName } = useTabStore((state) => ({
     setCurrentInstrumentName: state.setCurrentInstrumentName,
   }));
-
-  const stageRef = useRef<HTMLDivElement | null>(null);
-  const sliderContainerRef = useRef<HTMLDivElement | null>(null);
-  const masterGainRef = useRef<GainNode | null>(null);
-  const currentlyPlayingStringsRef = useRef<
-    (Soundfont.Player | AudioBufferSourceNode | undefined)[]
-  >([undefined, undefined, undefined, undefined, undefined, undefined]);
-  const soundfontCacheRef = useRef<
-    Partial<Record<AudioSource, Soundfont.Player>>
-  >({});
-  const queueRef = useRef<QueueItem[]>([]);
-  const selectedChordsRef = useRef<ChordTrainerPreset[]>([]);
-  const tempoRef = useRef(DEFAULT_TEMPO);
-  const strummingPatternRef = useRef(NONE_CHORD_TRAINER_STRUMMING_PATTERN);
-  const audioEnabledRef = useRef(true);
-  const scrollXRef = useRef(0);
-  const stageWidthRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
-  const lastFrameTimeRef = useRef<number | null>(null);
-  const lastTriggeredIndexRef = useRef(-1);
-  const queueMutationPendingRef = useRef(false);
 
   const [activeChordPresetId, setActiveChordPresetId] = useState(
     DEFAULT_CHORD_PRESET_ID,
@@ -317,17 +150,20 @@ function ChordTrainerPage() {
   const [strummingPatternId, setStrummingPatternId] = useState(
     DEFAULT_STRUMMING_PATTERN_ID,
   );
-  const [queue, setQueue] = useState<QueueItem[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [audioOption, setAudioOption] = useState<AudioOption>(
     "acoustic_guitar_steel",
   );
   const [showColorCoding, setShowColorCoding] = useState(true);
 
-  const selectedChordIdSet = new Set(selectedChordIds);
+  const selectedChordIdSet = useMemo(
+    () => new Set(selectedChordIds),
+    [selectedChordIds],
+  );
 
-  const selectedChords = chordTrainerPresets.filter((chord) =>
-    selectedChordIdSet.has(chord.id),
+  const selectedChords = useMemo(
+    () =>
+      chordTrainerPresets.filter((chord) => selectedChordIdSet.has(chord.id)),
+    [selectedChordIdSet],
   );
 
   const activeChordPreset =
@@ -336,331 +172,57 @@ function ChordTrainerPage() {
     ) ?? null;
 
   const isCustomChordPreset = activeChordPresetId === CUSTOM_CHORD_PRESET_ID;
-
   const selectedChordCount = selectedChords.length;
   const audioEnabled = audioOption !== "none";
   const selectedStrummingPattern =
     getChordTrainerStrummingPattern(strummingPatternId);
   const showStrumIcons = selectedStrummingPattern.showIcons;
 
-  useEffect(() => {
-    selectedChordsRef.current = selectedChords;
-  }, [selectedChords]);
-
-  useEffect(() => {
-    tempoRef.current = tempo;
-  }, [tempo]);
-
-  useEffect(() => {
-    strummingPatternRef.current = selectedStrummingPattern;
-  }, [selectedStrummingPattern]);
-
-  useEffect(() => {
-    audioEnabledRef.current = audioEnabled;
-  }, [audioEnabled]);
-
-  useEffect(() => {
-    if (audioEnabled) return;
-
-    for (const playingString of currentlyPlayingStringsRef.current) {
-      try {
-        playingString?.stop?.();
-      } catch {
-        // best-effort cleanup only
-      }
-    }
-  }, [audioEnabled]);
-
-  useEffect(() => {
-    masterGainRef.current = null;
-    soundfontCacheRef.current = {};
-  }, [audioContext]);
-
-  const playChord = useCallback(
-    async (chord: ChordTrainerPreset, bpm: number, strum: string) => {
-      if (
-        !strum ||
-        !audioEnabledRef.current ||
-        !audioContext ||
-        !masterVolumeGainNode ||
-        !currentInstrument
-      )
-        return;
-
-      try {
-        await playNoteColumn({
-          tuning: STANDARD_TUNING,
-          capo: 0,
-          bpm: bpm * 1.4,
-          currColumn: ["", ...chord.frets, strum, "quarter", `${bpm * 1.4}`],
-          audioContext,
-          masterVolumeGainNode,
-          currentInstrument,
-          currentlyPlayingStrings: currentlyPlayingStringsRef.current,
-        });
-      } catch (error) {
-        console.error("Unable to play chord trainer audio:", error);
-      }
-    },
-    [audioContext, currentInstrument, masterVolumeGainNode],
-  );
-
-  const playChordRef = useRef(playChord);
-  useEffect(() => {
-    playChordRef.current = playChord;
-  }, [playChord]);
-
-  // React Compiler escape hatch: identity is a layout + ResizeObserver effect dep.
-  const updateStreamStyles = useCallback((scrollX: number) => {
-    const stageElement = stageRef.current;
-    const sliderElement = sliderContainerRef.current;
-    if (!stageElement || !sliderElement) return;
-
-    const stageWidth = stageWidthRef.current || stageElement.clientWidth;
-    if (!stageWidth) return;
-
-    const baseOffset = stageWidth / 2 - CHORD_ITEM_WIDTH / 2;
-    const centerX = stageWidth / 2;
-    const maxDistance = centerX + CHORD_ITEM_WIDTH / 2;
-
-    sliderElement.style.transform = `translate3d(${(baseOffset - scrollX).toFixed(3)}px, 0, 0)`;
-
-    const children = Array.from(sliderElement.children) as HTMLDivElement[];
-
-    children.forEach((child, index) => {
-      const itemCenter =
-        baseOffset - scrollX + index * TOTAL_CHORD_WIDTH + CHORD_ITEM_WIDTH / 2;
-      const distanceRatio = Math.min(
-        Math.abs(itemCenter - centerX) / maxDistance,
-        1,
-      );
-      const opacity = Math.max(1 - distanceRatio * 0.82, MIN_EDGE_OPACITY);
-      const blur = distanceRatio > 0.75 ? (distanceRatio - 0.75) * 4 : 0;
-
-      child.style.opacity = opacity.toFixed(3);
-      child.style.filter = `blur(${blur.toFixed(2)}px)`;
-      child.style.zIndex = `${Math.round((1 - distanceRatio) * 100)}`;
-    });
-  }, []);
-
-  useIsomorphicLayoutEffect(() => {
-    queueRef.current = queue;
-    queueMutationPendingRef.current = false;
-    updateStreamStyles(scrollXRef.current);
-  }, [queue, updateStreamStyles]);
-
-  const rebuildQueue = useCallback(
-    (chords: ChordTrainerPreset[], pattern: ChordTrainerStrummingPattern) => {
-      scrollXRef.current = 0;
-      lastFrameTimeRef.current = null;
-      lastTriggeredIndexRef.current = -1;
-      queueMutationPendingRef.current = false;
-
-      const nextQueue = buildInitialQueue(chords, pattern);
-      queueRef.current = nextQueue;
-      setQueue(nextQueue);
-    },
-    [],
-  );
-
-  const extendQueue = useCallback(() => {
-    if (
-      queueMutationPendingRef.current ||
-      selectedChordsRef.current.length === 0
-    ) {
-      return;
-    }
-
-    queueMutationPendingRef.current = true;
-    setQueue((currentQueue) => {
-      const nextQueue = appendQueue(
-        currentQueue,
-        selectedChordsRef.current,
-        strummingPatternRef.current,
-        APPEND_CHUNK_SIZE,
-      );
-
-      queueRef.current = nextQueue;
-      return nextQueue;
-    });
-  }, []);
-
-  const trimQueue = useCallback((currentCenterIndex: number) => {
-    if (
-      queueMutationPendingRef.current ||
-      currentCenterIndex <= 14 ||
-      queueRef.current.length <= INITIAL_QUEUE_LENGTH + APPEND_CHUNK_SIZE
-    ) {
-      return;
-    }
-
-    const trimCount = currentCenterIndex - 8;
-    if (trimCount <= 0) return;
-
-    queueMutationPendingRef.current = true;
-    scrollXRef.current -= trimCount * TOTAL_CHORD_WIDTH;
-    lastTriggeredIndexRef.current -= trimCount;
-
-    setQueue((currentQueue) => {
-      const trimmedQueue = currentQueue.slice(trimCount);
-      const nextQueue = appendQueue(
-        trimmedQueue,
-        selectedChordsRef.current,
-        strummingPatternRef.current,
-        trimCount,
-      );
-
-      queueRef.current = nextQueue;
-      return nextQueue;
-    });
-  }, []);
-
-  useEffect(() => {
-    const stageElement = stageRef.current;
-    if (!stageElement || typeof ResizeObserver === "undefined") return;
-
-    stageWidthRef.current = stageElement.clientWidth;
-    updateStreamStyles(scrollXRef.current);
-
-    const observer = new ResizeObserver(([entry]) => {
-      stageWidthRef.current =
-        entry?.contentRect.width ?? stageElement.clientWidth;
-      updateStreamStyles(scrollXRef.current);
-    });
-
-    observer.observe(stageElement);
-
-    return () => observer.disconnect();
-  }, [updateStreamStyles]);
-
-  useEffect(() => {
-    const nextSelectedChords = chordTrainerPresets.filter((chord) =>
-      selectedChordIds.includes(chord.id),
-    );
-
-    if (nextSelectedChords.length === 0) {
-      queueRef.current = [];
-      scrollXRef.current = 0;
-      const resetQueueTimeoutId = window.setTimeout(() => {
-        setQueue([]);
-        setIsPlaying(false);
-        updateStreamStyles(0);
-      }, 0);
-
-      return () => window.clearTimeout(resetQueueTimeoutId);
-    }
-
-    const rebuildQueueTimeoutId = window.setTimeout(() => {
-      rebuildQueue(nextSelectedChords, selectedStrummingPattern);
-    }, 0);
-
-    return () => window.clearTimeout(rebuildQueueTimeoutId);
-  }, [
-    rebuildQueue,
-    selectedChordIds,
-    selectedStrummingPattern,
-    updateStreamStyles,
-  ]);
-
-  useEffect(() => {
-    if (!isPlaying || queue.length === 0 || selectedChords.length === 0) {
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-      lastFrameTimeRef.current = null;
-      return;
-    }
-
-    const tick = (time: number) => {
-      if (lastFrameTimeRef.current === null) {
-        lastFrameTimeRef.current = time;
-      }
-
-      const deltaTime = Math.min(time - lastFrameTimeRef.current, 32);
-      lastFrameTimeRef.current = time;
-
-      const msPerChord = (60 / tempoRef.current) * 1000;
-      const velocity = TOTAL_CHORD_WIDTH / msPerChord;
-      scrollXRef.current += velocity * deltaTime;
-
-      updateStreamStyles(scrollXRef.current);
-
-      const currentCenterIndex = Math.max(
-        0,
-        Math.floor(
-          scrollXRef.current / TOTAL_CHORD_WIDTH + CENTER_TRIGGER_EPSILON,
-        ),
-      );
-
-      if (currentCenterIndex > lastTriggeredIndexRef.current) {
-        for (
-          let index = lastTriggeredIndexRef.current + 1;
-          index <= currentCenterIndex;
-          index++
-        ) {
-          const targetChord = queueRef.current[index];
-          if (targetChord && audioEnabledRef.current) {
-            void playChordRef.current(
-              targetChord.chord,
-              tempoRef.current,
-              targetChord.strum,
-            );
-          }
-        }
-
-        lastTriggeredIndexRef.current = currentCenterIndex;
-      }
-
-      if (currentCenterIndex + 18 >= queueRef.current.length) {
-        extendQueue();
-      }
-
-      trimQueue(currentCenterIndex);
-
-      rafRef.current = window.requestAnimationFrame(tick);
-    };
-
-    rafRef.current = window.requestAnimationFrame(tick);
-
-    return () => {
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-    };
-  }, [
-    extendQueue,
+  const {
+    stageRef,
+    sliderContainerRef,
+    queue,
     isPlaying,
-    queue.length,
-    selectedChords.length,
-    trimQueue,
-    updateStreamStyles,
-  ]);
-
-  useEffect(() => {
-    const currentlyPlayingStrings = currentlyPlayingStringsRef.current;
-
-    return () => {
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-      }
-
-      for (const playingString of currentlyPlayingStrings) {
-        try {
-          playingString?.stop?.();
-        } catch {
-          // best-effort cleanup only
-        }
-      }
-    };
-  }, []);
+    pausePlayback,
+    togglePlayback,
+  } = useChordTrainerPlayback({
+    selectedChords,
+    strummingPattern: selectedStrummingPattern,
+    tempo,
+    audioEnabled,
+    colorCoded: showColorCoding,
+  });
 
   function handleTempoChange(nextTempo: number) {
+    pausePlayback();
     setTempo(clampChordTrainerTempo(nextTempo));
   }
 
+  function handleStrummingPatternChange(nextPatternId: string) {
+    pausePlayback();
+    setStrummingPatternId(nextPatternId);
+  }
+
+  function handleAudioOptionChange(nextOption: string) {
+    pausePlayback();
+    setAudioOption(nextOption as AudioOption);
+    setCurrentInstrumentName(
+      nextOption as
+        | "acoustic_guitar_nylon"
+        | "acoustic_guitar_steel"
+        | "electric_guitar_clean"
+        | "electric_guitar_jazz",
+    );
+  }
+
+  function handleColorCodingToggle() {
+    pausePlayback();
+    setShowColorCoding((previous) => !previous);
+  }
+
   function handleChordPresetSelect(nextPresetId: string) {
+    pausePlayback();
+
     if (nextPresetId === CUSTOM_CHORD_PRESET_ID) {
       setActiveChordPresetId(CUSTOM_CHORD_PRESET_ID);
       return;
@@ -677,6 +239,7 @@ function ChordTrainerPage() {
   }
 
   function handleChordToggle(chordId: string) {
+    pausePlayback();
     setActiveChordPresetId(CUSTOM_CHORD_PRESET_ID);
     setSelectedChordIds((previous) => {
       const sourceIds = isCustomChordPreset
@@ -689,17 +252,6 @@ function ChordTrainerPage() {
 
       return [...sourceIds, chordId];
     });
-  }
-
-  async function handleStartPause() {
-    if (selectedChords.length === 0 || queue.length === 0) return;
-
-    if (!isPlaying) {
-      setIsPlaying(true);
-      return;
-    }
-
-    setIsPlaying(false);
   }
 
   return (
@@ -727,96 +279,13 @@ function ChordTrainerPage() {
 
       <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
         <div className="baseVertFlex w-full">
-          <div className="relative w-full overflow-hidden border-y bg-[radial-gradient(circle_at_center,_hsl(var(--background))_0%,_hsl(var(--background))_52%,_hsl(var(--secondary))_100%)] xs:rounded-md xs:border-x">
-            <div
-              className="relative h-[260px] w-full overflow-hidden bg-background/70 shadow-inner xs:h-[260px]"
-              ref={stageRef}
-            >
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-background via-background/90 to-transparent xs:w-24" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-4 bg-gradient-to-l from-background via-background/90 to-transparent xs:w-24" />
-              <div className="bg-primary/12 pointer-events-none absolute left-1/2 top-1/2 z-10 h-[180px] w-[180px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl xs:h-[220px] xs:w-[240px]" />
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 text-lg font-semibold leading-none text-foreground drop-shadow-[0_2px_8px_rgba(0,0,0,0.28)]"
-              >
-                <IoIosArrowUp />
-              </span>
-
-              <div
-                ref={sliderContainerRef}
-                className="absolute inset-y-0 left-0 flex items-center will-change-transform"
-                style={{ transform: "translate3d(0px, 0, 0)" }}
-              >
-                {queue.map((item) => (
-                  <div
-                    key={item.instanceId}
-                    className="baseVertFlex relative flex-shrink-0 flex-col items-center justify-center gap-2 will-change-transform [backface-visibility:hidden] [contain:layout_paint]"
-                    style={{
-                      width: CHORD_ITEM_WIDTH,
-                      marginRight: CHORD_ITEM_GAP,
-                      transform: "translateZ(0) scale(1)",
-                      opacity: 1,
-                    }}
-                  >
-                    <div
-                      className={cn(
-                        "pointer-events-none flex items-center justify-center p-2",
-                        showStrumIcons && "h-[132px] w-full",
-                      )}
-                      style={{
-                        borderColor: showColorCoding
-                          ? `${item.chord.color}40`
-                          : undefined,
-                      }}
-                    >
-                      {item.showDiagram && (
-                        <div className="h-full w-full text-foreground">
-                          <ChordDiagram originalFrets={item.chord.frets} />
-                        </div>
-                      )}
-                    </div>
-
-                    <span
-                      className="text-xl font-semibold sm:text-2xl"
-                      style={
-                        showColorCoding
-                          ? { color: item.chord.color }
-                          : undefined
-                      }
-                    >
-                      {item.chord.name}
-                    </span>
-
-                    {showStrumIcons && (
-                      <div
-                        className="baseFlex h-5"
-                        style={
-                          showColorCoding
-                            ? {
-                                color: item.chord.color,
-                                fill: item.chord.color,
-                              }
-                            : undefined
-                        }
-                      >
-                        {item.strum ? (
-                          <ChordStrumIcon effects={item.strum} />
-                        ) : (
-                          <div className="h-5 w-4" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {queue.length === 0 && (
-                <div className="baseFlex absolute inset-0 h-full w-full text-sm text-foreground/70">
-                  Choose at least one chord to start.
-                </div>
-              )}
-            </div>
-          </div>
+          <ChordTrainerVisualizer
+            stageRef={stageRef}
+            sliderContainerRef={sliderContainerRef}
+            queue={queue}
+            showColorCoding={showColorCoding}
+            showStrumIcons={showStrumIcons}
+          />
 
           <div className="baseVertFlex my-8 w-full max-w-[375px] gap-6 px-8 md:max-w-[500px] md:px-0">
             <div className="baseVertFlex w-full gap-6 md:!flex-row md:!items-start md:gap-8">
@@ -836,7 +305,7 @@ function ChordTrainerPage() {
 
                 <Select
                   value={strummingPatternId}
-                  onValueChange={setStrummingPatternId}
+                  onValueChange={handleStrummingPatternChange}
                 >
                   <SelectTrigger
                     id="chord-trainer-strumming-pattern"
@@ -868,16 +337,7 @@ function ChordTrainerPage() {
 
                 <Select
                   value={audioOption}
-                  onValueChange={(v) => {
-                    setAudioOption(v as AudioOption);
-                    setCurrentInstrumentName(
-                      v as
-                        | "acoustic_guitar_nylon"
-                        | "acoustic_guitar_steel"
-                        | "electric_guitar_clean"
-                        | "electric_guitar_jazz",
-                    );
-                  }}
+                  onValueChange={handleAudioOptionChange}
                 >
                   <SelectTrigger
                     id="chordTrainerInstrument"
@@ -906,7 +366,7 @@ function ChordTrainerPage() {
                 <Button
                   type="button"
                   variant={showColorCoding ? "default" : "outline"}
-                  onClick={() => setShowColorCoding((previous) => !previous)}
+                  onClick={handleColorCodingToggle}
                   className="w-full gap-2 md:w-auto"
                 >
                   <Paintbrush className="size-4" />
@@ -914,8 +374,9 @@ function ChordTrainerPage() {
                 </Button>
 
                 <Button
+                  id="chord-trainer-start-pause"
                   variant="audio"
-                  onClick={() => void handleStartPause()}
+                  onClick={togglePlayback}
                   disabled={selectedChordCount === 0}
                   className="w-full gap-2 px-8 text-base md:w-[134px]"
                 >
