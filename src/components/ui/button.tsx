@@ -28,10 +28,8 @@ const buttonVariants = cva(
           "baseFlex !size-5 absolute right-4 shadow-none top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:pointer-events-none",
         headerNavigation:
           "bg-secondary text-secondary-foreground hover:bg-accent !shadow-primaryButton hover:text-accent-foreground active:brightness-90",
-        toggleOn:
-          "text-toggle-foreground hover:bg-secondary/20 active:bg-secondary/30",
-        toggleOff:
-          "text-toggle-background hover:bg-secondary/20 active:bg-secondary/30",
+        toggle:
+          "text-primary-foreground hover:brightness-95 active:brightness-90",
         theme: "border rounded-full hover:brightness-110 active:brightness-100",
         drawer:
           "w-full !rounded-none font-normal !h-[65px] last-of-type:border-b-none border-b border-gray/50 h-full baseFlex active:bg-secondary active:brightness-90 relative py-0",

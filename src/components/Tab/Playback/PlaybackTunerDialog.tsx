@@ -57,7 +57,7 @@ function PlaybackTunerDialog() {
 
       <DialogContent
         closeButtonColor="hsl(var(--primary-foreground))"
-        className="baseVertFlex h-[85dvh] max-h-[616px] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-0 p-0 sm:h-auto sm:w-[calc(100vw-4rem)]"
+        className="baseVertFlex h-[85dvh] max-h-[618px] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-0 p-0 sm:h-auto sm:w-[calc(100vw-4rem)]"
       >
         <DialogHeader className="sr-only">
           <DialogTitle>Guitar Tuner</DialogTitle>

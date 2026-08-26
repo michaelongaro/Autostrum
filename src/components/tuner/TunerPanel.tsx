@@ -316,45 +316,53 @@ function TunerPanel({
       className={`baseVertFlex h-full w-full gap-4 bg-background pb-3 shadow-sm md:rounded-lg md:border md:pb-6 ${forPlaybackModal ? "!justify-between !border-0" : "border-y"}`}
     >
       <div
-        className={`baseVertFlex w-full gap-3 bg-accent p-3 md:p-6 ${forPlaybackModal ? "!flex-col !items-start md:rounded-t-lg" : "md:rounded-t-lg lg:flex-row lg:!items-center lg:!justify-between"}`}
+        className={`baseVertFlex w-full gap-3 bg-accent p-3 md:p-6 ${forPlaybackModal ? "!flex-col !items-start md:rounded-t-lg" : "sm:flex-row sm:!items-center sm:!justify-between md:rounded-t-lg"}`}
       >
         {!forPlaybackModal && (
-          <div className="baseFlex relative z-10 shrink-0 overflow-y-hidden rounded-md border">
-            <Button
-              variant={mode === "guided" ? "toggleOn" : "toggleOff"}
-              size="sm"
-              onClick={() => {
-                if (mode === "guided") return;
-                setChromaticViewReady(false);
-                setMode("guided");
-              }}
-              className="baseFlex relative gap-2 border-none"
+          <div className="baseFlex gap-2">
+            <Label
+              className={`${forPlaybackModal ? "text-primary-foreground/80" : "text-primary-foreground"} `}
             >
-              Guided
-            </Button>
+              Type
+            </Label>
 
-            <Button
-              variant={mode === "chromatic" ? "toggleOn" : "toggleOff"}
-              size="sm"
-              onClick={() => {
-                if (mode === "chromatic") return;
-                setChromaticViewReady(false);
-                setMode("chromatic");
-              }}
-              className="baseFlex relative gap-2 border-none"
-            >
-              Chromatic
-            </Button>
+            <div className="baseFlex relative z-10 shrink-0 overflow-y-hidden rounded-md border">
+              <Button
+                variant="toggle"
+                size="sm"
+                className="baseFlex relative h-[38px] w-[117px] gap-2 border-none sm:w-[72px]"
+                onClick={() => {
+                  if (mode === "guided") return;
+                  setChromaticViewReady(false);
+                  setMode("guided");
+                }}
+              >
+                Guided
+              </Button>
 
-            <div
-              style={{
-                transform:
-                  mode === "guided" ? "translateX(0)" : "translateX(72px)",
-                transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-                width: mode === "guided" ? "72px" : "92px",
-              }}
-              className="absolute inset-0 !z-[-1] rounded-sm bg-background"
-            ></div>
+              <Button
+                variant="toggle"
+                size="sm"
+                className="baseFlex relative h-[38px] w-[117px] gap-2 border-none sm:w-[93px]"
+                onClick={() => {
+                  if (mode === "chromatic") return;
+                  setChromaticViewReady(false);
+                  setMode("chromatic");
+                }}
+              >
+                Chromatic
+              </Button>
+
+              <div
+                style={{
+                  // transform:
+                  //   mode === "guided" ? "translateX(0)" : "translateX(72px)",
+                  transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                  // width: mode === "guided" ? "72px" : "93px",
+                }}
+                className={`absolute inset-0 !z-[-1] rounded-sm bg-primary ${mode === "guided" ? "w-[117px] translate-x-0 sm:w-[72px]" : "w-[117px] translate-x-[117px] sm:w-[93px] sm:translate-x-[72px]"}`}
+              ></div>
+            </div>
           </div>
         )}
 
@@ -369,7 +377,7 @@ function TunerPanel({
           className={`baseFlex w-full !justify-between ${forPlaybackModal ? "!items-end !justify-between" : "lg:pl-6"}`}
         >
           <div
-            className={`flex w-full items-center justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "!items-end gap-8" : "mt-2 gap-4 lg:mt-0 lg:gap-6"}`}
+            className={`flex w-full items-center justify-center sm:w-auto sm:items-center sm:justify-center ${forPlaybackModal ? "!items-end gap-8" : "mt-2 gap-4 sm:mt-0 sm:gap-6"}`}
           >
             <div
               className={`baseVertFlex !items-start ${forPlaybackModal ? "!flex-col !items-start gap-1" : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
@@ -479,6 +487,7 @@ function TunerPanel({
                       note={formatNoteLabel(currentTarget)}
                       displayWithFlex={true}
                       showScientificPitchNotation={true}
+                      forGuidedTuner={true}
                     />
                   </div>
                   <div className="baseFlex gap-2">
@@ -581,8 +590,8 @@ function TunerPanel({
                     <span
                       className={
                         tuned
-                          ? "mt-1 text-xs font-semibold text-primary lg:text-sm"
-                          : "mt-1 text-xs text-foreground lg:text-sm"
+                          ? "mt-1 text-xs font-semibold text-primary lg:text-base"
+                          : "mt-1 text-xs text-foreground lg:text-base"
                       }
                     >
                       <PrettyNote
@@ -600,7 +609,7 @@ function TunerPanel({
           <ListeningControls
             isListening={isListening}
             resetDisabled={currentTargetIndex === 0}
-            className="grid w-full max-w-[418px] grid-cols-2 gap-2 px-4 lg:hidden"
+            className="grid w-full max-w-[418px] grid-cols-2 gap-4 px-4 lg:hidden"
             onStartListening={onStartListening}
             onStopListening={onStopListening}
             onResetProgress={onResetProgress}
