@@ -171,16 +171,26 @@ assert(
 await page.click("#chord-trainer-start-pause");
 await waitUntilPlayingOffBoundary(page);
 await page.locator("#chordTrainerInstrument").click();
+await page.waitForTimeout(150);
+const afterInstrumentOpen = await readState(page);
+assert(
+  afterInstrumentOpen.buttonText.includes("Start"),
+  `opening instrument select pauses playback (got "${afterInstrumentOpen.buttonText}")`,
+);
+assert(
+  afterInstrumentOpen.distanceFromStart <= PARK_EPSILON_PX,
+  `opening instrument select parks on a chord start (distance ${afterInstrumentOpen.distanceFromStart?.toFixed?.(3)})`,
+);
 await page.getByRole("option", { name: "Acoustic - Nylon" }).click();
 await page.waitForTimeout(150);
 const afterInstrument = await readState(page);
 assert(
   afterInstrument.buttonText.includes("Start"),
-  `instrument change pauses playback (got "${afterInstrument.buttonText}")`,
+  `instrument change stays paused (got "${afterInstrument.buttonText}")`,
 );
 assert(
   afterInstrument.distanceFromStart <= PARK_EPSILON_PX,
-  `instrument change parks on a chord start (distance ${afterInstrument.distanceFromStart?.toFixed?.(3)})`,
+  `instrument change stays parked on a chord start (distance ${afterInstrument.distanceFromStart?.toFixed?.(3)})`,
 );
 
 await page.click("#chord-trainer-start-pause");

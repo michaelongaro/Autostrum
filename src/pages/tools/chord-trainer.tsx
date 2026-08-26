@@ -198,6 +198,10 @@ function ChordTrainerPage() {
     setTempo(clampChordTrainerTempo(nextTempo));
   }
 
+  function handleSelectOpenChange(open: boolean) {
+    if (open) pausePlayback();
+  }
+
   function handleStrummingPatternChange(nextPatternId: string) {
     pausePlayback();
     setStrummingPatternId(nextPatternId);
@@ -305,6 +309,7 @@ function ChordTrainerPage() {
 
                 <Select
                   value={strummingPatternId}
+                  onOpenChange={handleSelectOpenChange}
                   onValueChange={handleStrummingPatternChange}
                 >
                   <SelectTrigger
@@ -337,6 +342,7 @@ function ChordTrainerPage() {
 
                 <Select
                   value={audioOption}
+                  onOpenChange={handleSelectOpenChange}
                   onValueChange={handleAudioOptionChange}
                 >
                   <SelectTrigger
