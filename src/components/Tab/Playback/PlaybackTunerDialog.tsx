@@ -51,11 +51,14 @@ function PlaybackTunerDialog() {
           className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
         >
           <TuningFork className="size-4" />
-          <span className="hidden sm:block">Tuner</span>
+          <span className="hidden xs:block">Tuner</span>
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="baseVertFlex h-[85dvh] max-h-[600px] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-x-0 border-y p-0 xs:border-y-0 sm:h-auto sm:w-[calc(100vw-4rem)]">
+      <DialogContent
+        closeButtonColor="hsl(var(--primary-foreground))"
+        className="baseVertFlex h-[85dvh] max-h-[616px] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-0 p-0 sm:h-auto sm:w-[calc(100vw-4rem)]"
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>Guitar Tuner</DialogTitle>
           <DialogDescription>

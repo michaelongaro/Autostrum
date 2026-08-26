@@ -181,6 +181,7 @@ function ListeningControls({
   isListening,
   resetDisabled,
   hideReset,
+  forPlaybackModal,
   className,
   onStartListening,
   onStopListening,
@@ -189,6 +190,7 @@ function ListeningControls({
   isListening: boolean;
   resetDisabled: boolean;
   hideReset?: boolean;
+  forPlaybackModal?: boolean;
   className?: string;
   onStartListening: () => Promise<void>;
   onStopListening: () => void;
@@ -199,8 +201,7 @@ function ListeningControls({
       {isListening ? (
         <Button
           size="sm"
-          variant="outline"
-          className="baseFlex w-full gap-2 lg:w-[100px]"
+          className={`baseFlex w-full gap-2 lg:w-[100px]`}
           onClick={onStopListening}
         >
           <StopIcon />
@@ -222,7 +223,7 @@ function ListeningControls({
           size="sm"
           disabled={resetDisabled}
           variant="outline"
-          className="baseFlex w-full gap-2 lg:w-auto"
+          className="baseFlex w-full gap-2 lg:w-auto lg:text-primary-foreground"
           onClick={onResetProgress}
         >
           <VscDebugRestart />
@@ -284,18 +285,6 @@ function TunerPanel({
   const hasGuidedCents = signalDetected && targetCentsOffset !== null;
   const chromaticViewInitializing = mode === "chromatic" && !chromaticViewReady;
 
-  function handleGuidedModeSelect() {
-    if (mode === "guided") return;
-    setChromaticViewReady(false);
-    setMode("guided");
-  }
-
-  function handleChromaticModeSelect() {
-    if (mode === "chromatic") return;
-    setChromaticViewReady(false);
-    setMode("chromatic");
-  }
-
   const clampedGuidedCents = Math.max(
     -GUIDED_RANGE_CENTS,
     Math.min(GUIDED_RANGE_CENTS, hasGuidedCents ? targetCentsOffset : 0),
@@ -324,34 +313,53 @@ function TunerPanel({
 
   return (
     <div
-      className={`baseVertFlex h-full w-full gap-4 bg-background py-3 shadow-sm md:rounded-lg md:border lg:py-5 ${forPlaybackModal ? "md:py-6" : "border-y md:py-6"}`}
+      className={`baseVertFlex h-full w-full gap-4 bg-background pb-3 shadow-sm md:rounded-lg md:border md:pb-6 ${forPlaybackModal ? "!justify-between !border-0" : "border-y"}`}
     >
       <div
-        className={`baseVertFlex w-full gap-3 px-3 md:px-6 ${forPlaybackModal ? "!flex-col !items-start" : "lg:flex-row lg:!items-center lg:!justify-between lg:px-6"}`}
+        className={`baseVertFlex w-full gap-3 bg-accent p-3 md:p-6 ${forPlaybackModal ? "!flex-col !items-start md:rounded-t-lg" : "md:rounded-t-lg lg:flex-row lg:!items-center lg:!justify-between"}`}
       >
         {!forPlaybackModal && (
-          <div className="col-span-2 grid w-full max-w-[418px] shrink-0 grid-cols-2 gap-1 rounded-lg border p-1 lg:col-span-1 lg:w-[190px]">
+          <div className="baseFlex relative z-10 shrink-0 overflow-y-hidden rounded-md border">
             <Button
-              type="button"
-              variant={mode === "guided" ? "default" : "ghost"}
-              className="h-8 text-xs"
-              onClick={handleGuidedModeSelect}
+              variant={mode === "guided" ? "toggleOn" : "toggleOff"}
+              size="sm"
+              onClick={() => {
+                if (mode === "guided") return;
+                setChromaticViewReady(false);
+                setMode("guided");
+              }}
+              className="baseFlex relative gap-2 border-none"
             >
               Guided
             </Button>
+
             <Button
-              type="button"
-              variant={mode === "chromatic" ? "default" : "ghost"}
-              className="h-8 text-xs"
-              onClick={handleChromaticModeSelect}
+              variant={mode === "chromatic" ? "toggleOn" : "toggleOff"}
+              size="sm"
+              onClick={() => {
+                if (mode === "chromatic") return;
+                setChromaticViewReady(false);
+                setMode("chromatic");
+              }}
+              className="baseFlex relative gap-2 border-none"
             >
               Chromatic
             </Button>
+
+            <div
+              style={{
+                transform:
+                  mode === "guided" ? "translateX(0)" : "translateX(72px)",
+                transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                width: mode === "guided" ? "72px" : "92px",
+              }}
+              className="absolute inset-0 !z-[-1] rounded-sm bg-background"
+            ></div>
           </div>
         )}
 
         {forPlaybackModal && (
-          <div className="baseFlex mb-2 !justify-start gap-2">
+          <div className="baseFlex mb-2 !justify-start gap-2 text-primary-foreground">
             <TuningFork className="size-5" />
             <p className="text-lg font-semibold">Guitar Tuner</p>
           </div>
@@ -364,11 +372,11 @@ function TunerPanel({
             className={`flex w-full items-center justify-center xs:gap-8 lg:w-auto lg:items-center lg:justify-center ${forPlaybackModal ? "!items-end gap-8" : "mt-2 gap-4 lg:mt-0 lg:gap-6"}`}
           >
             <div
-              className={`baseVertFlex !items-start gap-2 ${forPlaybackModal ? "!flex-col !items-start" : "sm:!flex-row sm:!items-center lg:gap-3"}`}
+              className={`baseVertFlex !items-start ${forPlaybackModal ? "!flex-col !items-start gap-1" : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
             >
               <Label
                 htmlFor="tuning"
-                className="font-semibold text-foreground/80"
+                className={`${forPlaybackModal ? "text-primary-foreground/80" : "text-primary-foreground"} `}
               >
                 Tuning
               </Label>
@@ -383,20 +391,24 @@ function TunerPanel({
                     lineHeight={
                       playbackCapoControl !== undefined ? "28px" : "24px"
                     }
+                    color={"hsl(var(--primary-foreground))"}
                     showScientificPitchNotation={true}
                   />
                 </div>
               ) : (
-                <TuningSelect showScientificPitchNotationInTrigger={true} />
+                <TuningSelect
+                  showScientificPitchNotationInTrigger={true}
+                  triggerTextColor="text-primary-foreground"
+                />
               )}
             </div>
 
             <div
-              className={`baseVertFlex !items-start gap-2 ${forPlaybackModal ? "!flex-col !items-start" : "sm:!flex-row sm:!items-center lg:gap-3"}`}
+              className={`baseVertFlex !items-start ${forPlaybackModal ? "!flex-col !items-start gap-1" : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
             >
               <Label
                 htmlFor="capo"
-                className="font-semibold text-foreground/80"
+                className={`${forPlaybackModal ? "text-primary-foreground/80" : "text-primary-foreground"} `}
               >
                 Capo
               </Label>
@@ -411,7 +423,7 @@ function TunerPanel({
                           ? "default"
                           : "outline"
                       }
-                      className="h-8 text-xs"
+                      className="h-8 text-xs text-primary-foreground"
                       onClick={() => playbackCapoControl.onSelectCapo(0)}
                     >
                       No capo
@@ -423,7 +435,7 @@ function TunerPanel({
                           ? "default"
                           : "outline"
                       }
-                      className="h-8 text-xs"
+                      className="h-8 text-xs text-primary-foreground"
                       onClick={() =>
                         playbackCapoControl.onSelectCapo(requiredPlaybackCapo)
                       }
@@ -432,14 +444,14 @@ function TunerPanel({
                     </Button>
                   </div>
                 ) : (
-                  <p>
+                  <p className="text-primary-foreground">
                     {displayedCapo === 0
                       ? "No capo"
                       : `${getOrdinalSuffix(displayedCapo)} fret`}
                   </p>
                 )
               ) : (
-                <CapoSelect />
+                <CapoSelect triggerClassName="text-primary-foreground" />
               )}
             </div>
           </div>

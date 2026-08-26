@@ -15,10 +15,12 @@ import { useState } from "react";
 
 type TuningSelectProps = {
   showScientificPitchNotationInTrigger?: boolean;
+  triggerTextColor?: string;
 };
 
 function TuningSelect({
   showScientificPitchNotationInTrigger = false,
+  triggerTextColor,
 }: TuningSelectProps) {
   const { tuning, setTuning, setShowCustomTuningDialog } = useTabStore(
     (state) => ({
@@ -45,7 +47,7 @@ function TuningSelect({
     >
       <SelectTrigger
         id="tuning"
-        className={`h-10 ${showScientificPitchNotationInTrigger ? "w-auto" : "w-[175px]"}`}
+        className={`h-10 ${triggerTextColor} ${showScientificPitchNotationInTrigger ? "w-auto" : "w-[175px]"}`}
       >
         <SelectValue placeholder="Select tuning...">
           {tuning ? (

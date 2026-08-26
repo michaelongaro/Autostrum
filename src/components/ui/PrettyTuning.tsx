@@ -43,6 +43,7 @@ function PrettyTuning({
   showScientificPitchNotation,
   fontSize,
   lineHeight,
+  color,
 }: {
   tuning?: string | null;
   width?: string;
@@ -50,6 +51,7 @@ function PrettyTuning({
   showScientificPitchNotation?: boolean;
   fontSize?: string;
   lineHeight?: string;
+  color?: string;
 }) {
   const notes = getDisplayTuningNotes(tuning);
 
@@ -58,6 +60,7 @@ function PrettyTuning({
       style={{
         fontSize,
         lineHeight,
+        color,
       }}
       className={`${displayWithFlex ? `baseFlex whitespace-nowrap ${showScientificPitchNotation ? "gap-1.5 text-sm" : "gap-1"}` : "grid grid-cols-6 !place-items-start"} ${width}`}
     >
