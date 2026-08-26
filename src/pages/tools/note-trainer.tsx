@@ -155,10 +155,7 @@ function NoteTrainerPage() {
 
       const oscillator = audioContext.createOscillator();
       oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(
-        frequency,
-        audioContext.currentTime,
-      );
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
 
       const gainNode = audioContext.createGain();
       gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
@@ -262,7 +259,7 @@ function NoteTrainerPage() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] !justify-start gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
+      className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
       <Head>
         <title>Note Trainer | Autostrum</title>
