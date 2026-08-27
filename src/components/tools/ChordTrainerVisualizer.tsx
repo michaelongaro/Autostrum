@@ -106,6 +106,8 @@ function ChordTrainerVisualizer({
         </div>
       ) : showStrumIcons ? (
         <ChordTrainerPatternVisualizer
+          stageRef={stageRef}
+          sliderContainerRef={sliderContainerRef}
           queue={queue}
           currentItemIndex={currentItemIndex}
           patternLength={patternLength}

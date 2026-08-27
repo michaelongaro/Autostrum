@@ -60,4 +60,21 @@ assert.equal(
   TOTAL_CHORD_WIDTH * 5,
 );
 
+function getPatternGroupIndex(itemIndex, patternLength) {
+  if (patternLength <= 0) return 0;
+  return Math.floor(Math.max(0, itemIndex) / patternLength);
+}
+
+function getPatternVisualScrollX(itemIndex, patternLength) {
+  return getPatternGroupIndex(itemIndex, patternLength) * TOTAL_CHORD_WIDTH;
+}
+
+assert.equal(getPatternGroupIndex(0, 4), 0);
+assert.equal(getPatternGroupIndex(3, 4), 0);
+assert.equal(getPatternGroupIndex(4, 4), 1);
+assert.equal(getPatternVisualScrollX(0, 4), 0);
+assert.equal(getPatternVisualScrollX(3, 4), 0);
+assert.equal(getPatternVisualScrollX(4, 4), TOTAL_CHORD_WIDTH);
+assert.equal(getPatternVisualScrollX(9, 8), TOTAL_CHORD_WIDTH);
+
 console.log("verifyChordTrainerSnap: all assertions passed");

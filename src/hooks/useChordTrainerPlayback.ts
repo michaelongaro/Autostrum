@@ -13,6 +13,9 @@ import {
   buildInitialQueue,
   getCenteredChordIndex,
   getChordStartScrollX,
+  getPatternGroupIndex,
+  getPatternLength,
+  getPatternVisualScrollX,
   type ChordTrainerQueueItem,
 } from "~/utils/chordTrainerQueue";
 import {
@@ -23,6 +26,7 @@ import { DEFAULT_TUNING, parse } from "~/utils/tunings";
 
 const STANDARD_TUNING = parse(DEFAULT_TUNING);
 const MIN_EDGE_OPACITY = 0.18;
+const PATTERN_SLIDE_MS = 380;
 const EMPTY_PLAYING_STRINGS: (
   | Soundfont.Player
   | AudioBufferSourceNode
@@ -108,6 +112,7 @@ function useChordTrainerPlayback({
   >(EMPTY_PLAYING_STRINGS.slice());
   const queueRef = useRef<ChordTrainerQueueItem[]>([]);
   const scrollXRef = useRef(0);
+  const visualScrollXRef = useRef(0);
   const stageWidthRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
@@ -122,6 +127,7 @@ function useChordTrainerPlayback({
 
   const selectedChordKey = selectedChords.map((chord) => chord.id).join(",");
   const patternId = strummingPattern.id;
+  const patternLength = getPatternLength(strummingPattern);
   const isPatternVisualizer = strummingPattern.showIcons;
 
   const commitItemIndex = useCallback((index: number) => {
@@ -178,14 +184,16 @@ function useChordTrainerPlayback({
     scrollXRef.current = getChordStartScrollX(currentIndex);
     lastTriggeredIndexRef.current = currentIndex - 1;
     commitItemIndex(currentIndex);
-    if (!isPatternVisualizer) {
-      updateStreamStyles(scrollXRef.current);
-    }
+    visualScrollXRef.current = isPatternVisualizer
+      ? getPatternVisualScrollX(currentIndex, patternLength)
+      : scrollXRef.current;
+    updateStreamStyles(visualScrollXRef.current);
     stopPlayingStrings(currentlyPlayingStringsRef.current);
     setIsPlaying(false);
   }, [
     commitItemIndex,
     isPatternVisualizer,
+    patternLength,
     stopAnimationFrame,
     updateStreamStyles,
   ]);
@@ -197,12 +205,11 @@ function useChordTrainerPlayback({
     currentItemIndexRef.current = 0;
     queueMutationPendingRef.current = false;
     queueRef.current = [];
+    visualScrollXRef.current = 0;
     setQueue([]);
     setCurrentItemIndex(0);
-    if (!isPatternVisualizer) {
-      updateStreamStyles(0);
-    }
-  }, [isPatternVisualizer, updateStreamStyles]);
+    updateStreamStyles(0);
+  }, [updateStreamStyles]);
 
   const rebuildQueue = useCallback(
     (chords: ChordTrainerPreset[], pattern: ChordTrainerStrummingPattern) => {
@@ -211,6 +218,7 @@ function useChordTrainerPlayback({
       lastTriggeredIndexRef.current = -1;
       currentItemIndexRef.current = 0;
       queueMutationPendingRef.current = false;
+      visualScrollXRef.current = 0;
 
       const nextQueue = buildInitialQueue(chords, pattern);
       queueRef.current = nextQueue;
@@ -223,9 +231,9 @@ function useChordTrainerPlayback({
   useIsomorphicLayoutEffect(() => {
     queueRef.current = queue;
     queueMutationPendingRef.current = false;
-    if (!isPatternVisualizer) {
-      updateStreamStyles(scrollXRef.current);
-    }
+    updateStreamStyles(
+      isPatternVisualizer ? visualScrollXRef.current : scrollXRef.current,
+    );
   }, [isPatternVisualizer, queue, updateStreamStyles]);
 
   useEffect(() => {
@@ -256,18 +264,20 @@ function useChordTrainerPlayback({
   }, [patternId, rebuildQueue, resetQueue, selectedChordKey, selectedChords, strummingPattern]);
 
   useEffect(() => {
-    if (isPatternVisualizer) return;
-
     const stageElement = stageRef.current;
     if (!stageElement || typeof ResizeObserver === "undefined") return;
 
     stageWidthRef.current = stageElement.clientWidth;
-    updateStreamStyles(scrollXRef.current);
+    updateStreamStyles(
+      isPatternVisualizer ? visualScrollXRef.current : scrollXRef.current,
+    );
 
     const observer = new ResizeObserver(([entry]) => {
       stageWidthRef.current =
         entry?.contentRect.width ?? stageElement.clientWidth;
-      updateStreamStyles(scrollXRef.current);
+      updateStreamStyles(
+        isPatternVisualizer ? visualScrollXRef.current : scrollXRef.current,
+      );
     });
 
     observer.observe(stageElement);
@@ -295,10 +305,6 @@ function useChordTrainerPlayback({
       const msPerChord = (60 / tempo) * 1000;
       const velocity = TOTAL_CHORD_WIDTH / msPerChord;
       scrollXRef.current += velocity * deltaTime;
-
-      if (!isPatternVisualizer) {
-        updateStreamStyles(scrollXRef.current);
-      }
 
       let currentCenterIndex = getCenteredChordIndex(scrollXRef.current);
 
@@ -347,12 +353,19 @@ function useChordTrainerPlayback({
         currentCenterIndex > 14 &&
         queueRef.current.length > INITIAL_QUEUE_LENGTH + APPEND_CHUNK_SIZE
       ) {
-        const trimCount = currentCenterIndex - 8;
+        const trimCount = isPatternVisualizer
+          ? Math.floor((currentCenterIndex - 8) / patternLength) *
+            patternLength
+          : currentCenterIndex - 8;
         if (trimCount > 0) {
           queueMutationPendingRef.current = true;
           scrollXRef.current -= trimCount * TOTAL_CHORD_WIDTH;
           lastTriggeredIndexRef.current -= trimCount;
           currentCenterIndex -= trimCount;
+          if (isPatternVisualizer) {
+            visualScrollXRef.current -=
+              getPatternGroupIndex(trimCount, patternLength) * TOTAL_CHORD_WIDTH;
+          }
 
           setQueue((currentQueue) => {
             const trimmedQueue = currentQueue.slice(trimCount);
@@ -366,6 +379,25 @@ function useChordTrainerPlayback({
             return nextQueue;
           });
         }
+      }
+
+      if (isPatternVisualizer) {
+        const targetVisualScrollX = getPatternVisualScrollX(
+          currentCenterIndex,
+          patternLength,
+        );
+        const remaining = targetVisualScrollX - visualScrollXRef.current;
+        const maxStep = (TOTAL_CHORD_WIDTH / PATTERN_SLIDE_MS) * deltaTime;
+
+        if (Math.abs(remaining) <= maxStep) {
+          visualScrollXRef.current = targetVisualScrollX;
+        } else {
+          visualScrollXRef.current += Math.sign(remaining) * maxStep;
+        }
+
+        updateStreamStyles(visualScrollXRef.current);
+      } else {
+        updateStreamStyles(scrollXRef.current);
       }
 
       commitItemIndex(currentCenterIndex);
@@ -383,6 +415,7 @@ function useChordTrainerPlayback({
     commitItemIndex,
     isPatternVisualizer,
     isPlaying,
+    patternLength,
     selectedChords,
     stopAnimationFrame,
     strummingPattern,

@@ -66,6 +66,33 @@ export function getPatternGroup(
   };
 }
 
+export function getPatternGroups(
+  queue: ChordTrainerQueueItem[],
+  patternLength: number,
+): ChordTrainerPatternGroup[] {
+  if (patternLength <= 0) return [];
+
+  const groups: ChordTrainerPatternGroup[] = [];
+
+  for (
+    let groupIndex = 0;
+    groupIndex * patternLength < queue.length;
+    groupIndex++
+  ) {
+    const group = getPatternGroup(queue, groupIndex, patternLength);
+    if (group) groups.push(group);
+  }
+
+  return groups;
+}
+
+export function getPatternVisualScrollX(
+  itemIndex: number,
+  patternLength: number,
+) {
+  return getPatternGroupIndex(itemIndex, patternLength) * TOTAL_CHORD_WIDTH;
+}
+
 export function createPatternQueueItems(
   chord: ChordTrainerPreset,
   pattern: ChordTrainerStrummingPattern,
