@@ -330,7 +330,10 @@ function ChordTrainerPage() {
                       >
                         <div className="baseFlex gap-3">
                           {pattern.showIcons && (
-                            <ChordTrainerStrumPreview strums={pattern.strums} />
+                            <>
+                              <span className="sr-only">{pattern.label}</span>
+                              <ChordTrainerStrumPreview strums={pattern.strums} />
+                            </>
                           )}
                           {pattern.label === "None" && (
                             <span>{pattern.label}</span>
