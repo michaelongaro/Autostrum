@@ -324,7 +324,7 @@ function TunerPanel({
       className={`baseVertFlex h-full w-full gap-4 bg-background pb-3 shadow-sm md:rounded-lg md:border md:pb-6 ${forPlaybackModal ? "!justify-between !border-0" : "border-y"}`}
     >
       <div
-        className={`baseVertFlex w-full gap-3 bg-accent p-3 md:p-6 ${forPlaybackModal ? "!flex-col !items-start md:rounded-t-lg" : "sm:flex-row sm:!items-center sm:!justify-between md:rounded-t-lg"}`}
+        className={`baseVertFlex w-full gap-3 bg-accent p-3 md:p-6 ${forPlaybackModal ? "!hidden !flex-col !items-start tablet:!flex tablet:rounded-t-lg" : "sm:flex-row sm:!items-center sm:!justify-between md:rounded-t-lg"}`}
       >
         {!forPlaybackModal && (
           <div className="baseFlex gap-3">
@@ -403,7 +403,7 @@ function TunerPanel({
             className={`flex w-full items-center justify-center sm:w-auto sm:items-center sm:justify-center ${forPlaybackModal ? "!items-end gap-8" : "mt-2 gap-4 sm:mt-0 sm:gap-6"}`}
           >
             <div
-              className={`baseVertFlex !items-start ${forPlaybackModal ? "!flex-col !items-start gap-1" : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
+              className={`baseVertFlex !items-start ${forPlaybackModal ? "!flex-col !items-start gap-1 tablet:gap-[10px]" : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
             >
               <Label
                 htmlFor="tuning"
@@ -446,33 +446,51 @@ function TunerPanel({
 
               {forPlaybackModal ? (
                 playbackCapoControl ? (
-                  <div className="grid w-full max-w-[220px] grid-cols-2 gap-2">
+                  <div className="baseFlex relative z-10 mt-1 shrink-0 overflow-y-hidden rounded-md border">
                     <Button
-                      type="button"
-                      variant={
-                        playbackCapoControl.selectedCapo === 0
-                          ? "default"
-                          : "outline"
-                      }
-                      className="h-8 text-xs text-primary-foreground"
+                      variant="toggle"
+                      style={{
+                        color:
+                          theme === "light"
+                            ? playbackCapoControl.selectedCapo === 0
+                              ? "hsl(var(--foreground))"
+                              : "hsl(var(--background))"
+                            : "hsl(var(--primary-foreground))",
+                      }}
+                      className="baseFlex relative h-[24px] w-[80px] gap-2 border-none sm:w-[90px]"
                       onClick={() => playbackCapoControl.onSelectCapo(0)}
                     >
                       No capo
                     </Button>
+
                     <Button
-                      type="button"
-                      variant={
-                        playbackCapoControl.selectedCapo !== 0
-                          ? "default"
-                          : "outline"
-                      }
-                      className="h-8 text-xs text-primary-foreground"
+                      variant="toggle"
+                      style={{
+                        color:
+                          theme === "light"
+                            ? playbackCapoControl.selectedCapo !== 0
+                              ? "hsl(var(--foreground))"
+                              : "hsl(var(--background))"
+                            : "hsl(var(--primary-foreground))",
+                      }}
+                      className="baseFlex relative h-[24px] w-[80px] gap-2 border-none sm:w-[90px]"
                       onClick={() =>
                         playbackCapoControl.onSelectCapo(requiredPlaybackCapo)
                       }
                     >
                       {`${getOrdinalSuffix(requiredPlaybackCapo)} fret`}
                     </Button>
+
+                    <div
+                      style={{
+                        backgroundColor:
+                          theme === "light"
+                            ? "hsl(var(--background)"
+                            : "hsl(var(--primary))",
+                        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                      }}
+                      className={`absolute inset-0 !z-[-1] ${playbackCapoControl.selectedCapo === 0 ? "w-[80px] translate-x-0 rounded-l-sm sm:w-[90px]" : "w-[80px] translate-x-[80px] rounded-r-sm sm:w-[90px] sm:translate-x-[90px]"}`}
+                    ></div>
                   </div>
                 ) : (
                   <p className="text-primary-foreground">
@@ -511,6 +529,50 @@ function TunerPanel({
             }}
             className="baseVertFlex w-full gap-4"
           >
+            {playbackCapoControl && (
+              <div className="baseFlex gap-3 tablet:hidden">
+                <Label>Capo</Label>
+                <div className="baseFlex relative z-10 shrink-0 overflow-y-hidden rounded-md border">
+                  <Button
+                    variant="toggle"
+                    style={{
+                      color:
+                        playbackCapoControl.selectedCapo === 0
+                          ? "hsl(var(--primary-foreground))"
+                          : "hsl(var(--foreground))",
+                    }}
+                    className="baseFlex relative h-[24px] w-[80px] gap-2 border-none sm:w-[90px]"
+                    onClick={() => playbackCapoControl.onSelectCapo(0)}
+                  >
+                    No capo
+                  </Button>
+
+                  <Button
+                    variant="toggle"
+                    style={{
+                      color:
+                        playbackCapoControl.selectedCapo !== 0
+                          ? "hsl(var(--primary-foreground))"
+                          : "hsl(var(--foreground))",
+                    }}
+                    className="baseFlex relative h-[24px] w-[80px] gap-2 border-none sm:w-[90px]"
+                    onClick={() =>
+                      playbackCapoControl.onSelectCapo(requiredPlaybackCapo)
+                    }
+                  >
+                    {`${getOrdinalSuffix(requiredPlaybackCapo)} fret`}
+                  </Button>
+
+                  <div
+                    style={{
+                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                    className={`absolute inset-0 !z-[-1] bg-primary ${playbackCapoControl.selectedCapo === 0 ? "w-[80px] translate-x-0 rounded-l-sm sm:w-[90px]" : "w-[80px] translate-x-[80px] rounded-r-sm sm:w-[90px] sm:translate-x-[90px]"}`}
+                  ></div>
+                </div>
+              </div>
+            )}
+
             <div className="baseVertFlex w-full px-3 md:px-6">
               <div className="baseVertFlex w-full rounded-md p-3 lg:p-5">
                 <div className="relative h-[230px] w-full lg:h-[280px]">

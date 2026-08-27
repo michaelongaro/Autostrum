@@ -68,9 +68,7 @@ const DrawerContent = React.forwardRef<
       {...props}
     >
       {forPlaybackModalTuner ? (
-        <div className="baseFlex w-full bg-accent">
-          <div className="mx-auto mb-1 mt-3 h-1 w-12 flex-shrink-0 rounded-full bg-primary-foreground/25"></div>
-        </div>
+        <div className="mx-auto mb-8 mt-4 h-1 w-12 flex-shrink-0 rounded-full bg-gray/25"></div>
       ) : (
         <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray/25"></div>
       )}

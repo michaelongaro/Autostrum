@@ -139,7 +139,7 @@ function PlaybackTopMetadata({
                       </div>
                     </div>
 
-                    <div className="baseVertFlex !items-start">
+                    <div className="baseVertFlex !items-start text-nowrap">
                       <span className="text-sm font-medium">Capo</span>
                       {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
                     </div>
