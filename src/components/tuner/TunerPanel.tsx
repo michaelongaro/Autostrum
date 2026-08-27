@@ -196,9 +196,32 @@ function ListeningControls({
 }) {
   return (
     <div className={className}>
+      <AnimatePresence mode="wait" initial={false}>
+        {!hideReset && (
+          <motion.div
+            key="tunerResetButton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.15,
+            }}
+          >
+            <Button
+              disabled={resetDisabled}
+              variant="outline"
+              className="baseFlex w-full gap-2 lg:w-auto lg:text-primary-foreground"
+              onClick={onResetProgress}
+            >
+              <VscDebugRestart />
+              Reset
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {isListening ? (
         <Button
-          size="sm"
           className={`baseFlex w-full gap-2 lg:w-[100px]`}
           onClick={onStopListening}
         >
@@ -207,25 +230,11 @@ function ListeningControls({
         </Button>
       ) : (
         <Button
-          size="sm"
           className="w-full gap-2 lg:w-[100px]"
           onClick={() => void onStartListening()}
         >
           <FaMicrophone />
           Start
-        </Button>
-      )}
-
-      {!hideReset && (
-        <Button
-          size="sm"
-          disabled={resetDisabled}
-          variant="outline"
-          className="baseFlex w-full gap-2 lg:w-auto lg:text-primary-foreground"
-          onClick={onResetProgress}
-        >
-          <VscDebugRestart />
-          Reset
         </Button>
       )}
     </div>
@@ -318,7 +327,7 @@ function TunerPanel({
         className={`baseVertFlex w-full gap-3 bg-accent p-3 md:p-6 ${forPlaybackModal ? "!flex-col !items-start md:rounded-t-lg" : "sm:flex-row sm:!items-center sm:!justify-between md:rounded-t-lg"}`}
       >
         {!forPlaybackModal && (
-          <div className="baseFlex gap-2">
+          <div className="baseFlex gap-3">
             <Label
               className={`${forPlaybackModal ? "text-primary-foreground/80" : "text-primary-foreground"} `}
             >
@@ -328,7 +337,6 @@ function TunerPanel({
             <div className="baseFlex relative z-10 shrink-0 overflow-y-hidden rounded-md border">
               <Button
                 variant="toggle"
-                size="sm"
                 style={{
                   color:
                     theme === "light"
@@ -337,7 +345,7 @@ function TunerPanel({
                         : "hsl(var(--background))"
                       : "hsl(var(--primary-foreground))",
                 }}
-                className="baseFlex relative h-[30px] w-[117px] gap-2 border-none sm:h-[38px] sm:w-[72px]"
+                className="baseFlex relative h-[30px] w-[123px] gap-2 border-none sm:h-[38px] sm:w-[72px]"
                 onClick={() => {
                   if (mode === "guided") return;
                   setChromaticViewReady(false);
@@ -349,7 +357,6 @@ function TunerPanel({
 
               <Button
                 variant="toggle"
-                size="sm"
                 style={{
                   color:
                     theme === "light"
@@ -358,7 +365,7 @@ function TunerPanel({
                         : "hsl(var(--background))"
                       : "hsl(var(--primary-foreground))",
                 }}
-                className="baseFlex relative h-[30px] w-[117px] gap-2 border-none sm:h-[38px] sm:w-[93px]"
+                className="baseFlex relative h-[30px] w-[123px] gap-2 border-none sm:h-[38px] sm:w-[93px]"
                 onClick={() => {
                   if (mode === "chromatic") return;
                   setChromaticViewReady(false);
@@ -376,7 +383,7 @@ function TunerPanel({
                       : "hsl(var(--primary))",
                   transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
-                className={`absolute inset-0 !z-[-1] ${mode === "guided" ? "w-[117px] translate-x-0 rounded-l-sm sm:w-[72px]" : "w-[117px] translate-x-[117px] rounded-r-sm sm:w-[93px] sm:translate-x-[72px]"}`}
+                className={`absolute inset-0 !z-[-1] ${mode === "guided" ? "w-[123px] translate-x-0 rounded-l-sm sm:w-[72px]" : "w-[123px] translate-x-[123px] rounded-r-sm sm:w-[93px] sm:translate-x-[72px]"}`}
               ></div>
             </div>
           </div>
@@ -492,259 +499,279 @@ function TunerPanel({
         </div>
       </div>
 
-      {mode === "guided" ? (
-        <>
-          <div className="baseVertFlex w-full px-3 md:px-6">
-            <div className="baseVertFlex w-full rounded-md p-3 lg:p-5">
-              <div className="relative h-[230px] w-full lg:h-[280px]">
-                <div className="baseVertFlex w-full gap-4">
-                  <div className="font-semibold text-foreground">
-                    <PrettyNote
-                      note={formatNoteLabel(currentTarget)}
-                      displayWithFlex={true}
-                      showScientificPitchNotation={true}
-                      forGuidedTuner={true}
-                    />
-                  </div>
-                  <div className="baseFlex gap-2">
-                    <div className="baseFlex w-20">{frequencyLabel}</div>/
-                    <div className="baseFlex w-20">
-                      {`${currentTargetFrequency.toFixed(1)} Hz`}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 lg:h-[180px] lg:w-[280px]">
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full lg:h-[144px]"
-                    style={{
-                      backgroundImage: semicircleGradient(toleranceCents),
-                    }}
-                  />
-
-                  <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 lg:h-[144px]" />
-                  <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 lg:h-[146px]" />
-
-                  <motion.div
-                    className="absolute bottom-0 h-[108px] w-[3px] rounded-full lg:h-[130px]"
-                    initial={false}
-                    style={{
-                      left: "calc(50% - 1.5px)",
-                      transformOrigin: "bottom center",
-                      transition:
-                        "background-color 0.6s ease, box-shadow 0.6s ease",
-                      ...needleStyle(
-                        hasGuidedCents ? clampedGuidedCents : null,
-                        toleranceCents,
-                      ),
-                    }}
-                    animate={{ rotate: guidedNeedleDegrees }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 260,
-                      damping: 22,
-                      mass: 0.6,
-                    }}
-                  />
-
-                  <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-base font-semibold text-foreground/70 lg:size-9 lg:text-lg">
-                    ¢
-                  </div>
-
-                  <GuidedArcMarkers layout={MOBILE_ARC} />
-                  <GuidedArcMarkers layout={DESKTOP_ARC} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="baseVertFlex w-full md:px-6">
-            <div className="grid w-full grid-cols-6 gap-1 px-3 py-2 md:rounded-md lg:gap-2 lg:px-2">
-              {targetNotes.map((note, index) => {
-                const selected = index === currentTargetIndex;
-                const tuned = completed || index < currentTargetIndex;
-
-                return (
-                  <button
-                    type="button"
-                    key={`${note}-${index}`}
-                    // tried to do some kind of inset box shadow on light theme, but was too cramped on mobile
-                    className={`baseVertFlex relative min-h-[80px] gap-1 rounded-md px-1 py-2 text-sm transition ${selected ? "bg-primary/10" : "bg-transparent"}`}
-                    onClick={() => onSetCurrentTargetIndex(index)}
-                    aria-current={selected ? "true" : "false"}
-                  >
-                    <AnimatePresence mode="popLayout">
-                      {tuned && (
-                        <motion.span
-                          key={`motion-${note}-${index}`}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.25, ease: "easeOut" }}
-                          className="baseFlex absolute right-1 top-1 rounded-full bg-primary p-[0.1rem] text-primary-foreground sm:p-0.5"
-                        >
-                          <Check className="size-2 sm:size-2.5" />
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-
-                    <div className="baseFlex h-7 w-full">
-                      <motion.div
-                        className={`rounded-full ${selected ? "bg-primary" : "bg-foreground/35"}`}
-                        animate={{
-                          opacity: selected ? 1 : 0.75,
-                          scaleY: selected ? 1.04 : 1,
-                        }}
-                        transition={{ duration: 0.15 }}
-                        style={{
-                          width: `${STRING_THICKNESSES[index] ?? 3}px`,
-                          height: "30px",
-                        }}
-                      />
-                    </div>
-
-                    <span
-                      className={
-                        tuned
-                          ? "mt-1 text-xs font-semibold text-primary lg:text-base"
-                          : "mt-1 text-xs text-foreground lg:text-base"
-                      }
-                    >
+      <AnimatePresence mode="wait" initial={false}>
+        {mode === "guided" ? (
+          <motion.div
+            key="tunerPanel-guided"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.15,
+            }}
+            className="baseVertFlex w-full gap-4"
+          >
+            <div className="baseVertFlex w-full px-3 md:px-6">
+              <div className="baseVertFlex w-full rounded-md p-3 lg:p-5">
+                <div className="relative h-[230px] w-full lg:h-[280px]">
+                  <div className="baseVertFlex w-full gap-4">
+                    <div className="font-semibold text-foreground">
                       <PrettyNote
-                        note={formatNoteLabel(note)}
+                        note={formatNoteLabel(currentTarget)}
                         displayWithFlex={true}
                         showScientificPitchNotation={true}
+                        forGuidedTuner={true}
                       />
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <ListeningControls
-            isListening={isListening}
-            resetDisabled={currentTargetIndex === 0}
-            className="grid w-full max-w-[418px] grid-cols-2 gap-4 px-4 lg:hidden"
-            onStartListening={onStartListening}
-            onStopListening={onStopListening}
-            onResetProgress={onResetProgress}
-          />
-        </>
-      ) : (
-        <div className="baseVertFlex w-full gap-4">
-          <div className="baseVertFlex w-full rounded-md bg-background px-0 py-4 md:px-6 md:py-8">
-            <ChromaticPitchScroller
-              detectedNote={detectedNote}
-              detectedCents={detectedCents}
-              signalDetected={signalDetected}
-            />
-
-            {/* Shared horizontal track: labels + ticks + marker use the same % axis */}
-            <div className="relative mt-4 w-full px-5 sm:px-6">
-              <div className="size-full px-3 md:px-6 lg:px-5">
-                <div className="relative mb-1 h-4 w-full text-xs tabular-nums text-foreground/70">
-                  {MOBILE_LABEL_TICKS.map((tick) => (
-                    <span
-                      key={`mobile-label-${tick}`}
-                      className="absolute top-0 -translate-x-1/2 lg:hidden"
-                      style={{ left: `${((tick + 50) / 100) * 100}%` }}
-                    >
-                      {tick}
-                    </span>
-                  ))}
-                  {CENTS_TICKS.map((tick) => (
-                    <span
-                      key={`desktop-label-${tick}`}
-                      className="absolute top-0 hidden -translate-x-1/2 lg:block"
-                      style={{ left: `${((tick + 50) / 100) * 100}%` }}
-                    >
-                      {tick}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="h-[180px] w-full rounded-md bg-primary/10 px-3 shadow-sm md:px-6 lg:px-5">
-                <div className="relative size-full py-6">
-                  <motion.div
-                    className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
-                    animate={{
-                      opacity: signalDetected ? [0.35, 0.8, 0.35] : 0.35,
-                    }}
-                    transition={{
-                      duration: 0.8,
-                      repeat: signalDetected ? Infinity : 0,
-                      ease: "linear",
-                    }}
-                  />
-
-                  {CENTS_TICKS.map((tick) => (
-                    <div
-                      key={`tick-${tick}`}
-                      className="absolute top-[34%] h-[32%] w-px -translate-x-1/2 bg-foreground/25"
-                      style={{ left: `${((tick + 50) / 100) * 100}%` }}
-                    />
-                  ))}
-
-                  <motion.div
-                    className="absolute inset-y-0 z-50"
-                    initial={false}
-                    animate={{
-                      // Idle / no-signal: always park exactly on the 0¢ tick (50%).
-                      left: `${chromaticMarkerLeftPercent}%`,
-                      opacity:
-                        !chromaticViewInitializing && hasChromaticCents
-                          ? 1
-                          : 0.3,
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 320,
-                      damping: 24,
-                      mass: 0.55,
-                    }}
-                  >
-                    <div className="relative h-full -translate-x-1/2">
-                      <motion.div
-                        className="absolute top-1/2 h-14 w-[3px] -translate-y-1/2 rounded-full bg-primary"
-                        animate={{
-                          boxShadow: signalDetected
-                            ? [
-                                "0 0 0px hsl(var(--primary) / 0)",
-                                "0 0 12px hsl(var(--primary) / 0.65)",
-                                "0 0 0px hsl(var(--primary) / 0)",
-                              ]
-                            : "0 0 0px hsl(var(--primary) / 0)",
-                        }}
-                        transition={{
-                          duration: 0.7,
-                          repeat: signalDetected ? Infinity : 0,
-                          ease: "linear",
-                        }}
-                      />
-
-                      <div className="absolute bottom-3 left-1/2 w-[88px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-sm font-semibold tabular-nums text-primary">
-                        {chromaticCentsLabel}
+                    </div>
+                    <div className="baseFlex gap-2">
+                      <div className="baseFlex w-20">{frequencyLabel}</div>/
+                      <div className="baseFlex w-20">
+                        {`${currentTargetFrequency.toFixed(1)} Hz`}
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
+
+                  <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 lg:h-[180px] lg:w-[280px]">
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full lg:h-[144px]"
+                      style={{
+                        backgroundImage: semicircleGradient(toleranceCents),
+                      }}
+                    />
+
+                    <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 lg:h-[144px]" />
+                    <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 lg:h-[146px]" />
+
+                    <motion.div
+                      className="absolute bottom-0 h-[108px] w-[3px] rounded-full lg:h-[130px]"
+                      initial={false}
+                      style={{
+                        left: "calc(50% - 1.5px)",
+                        transformOrigin: "bottom center",
+                        transition:
+                          "background-color 0.6s ease, box-shadow 0.6s ease",
+                        ...needleStyle(
+                          hasGuidedCents ? clampedGuidedCents : null,
+                          toleranceCents,
+                        ),
+                      }}
+                      animate={{ rotate: guidedNeedleDegrees }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 22,
+                        mass: 0.6,
+                      }}
+                    />
+
+                    <div className="absolute bottom-[-17px] left-1/2 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background text-base font-semibold text-foreground/70 lg:size-9 lg:text-lg">
+                      ¢
+                    </div>
+
+                    <GuidedArcMarkers layout={MOBILE_ARC} />
+                    <GuidedArcMarkers layout={DESKTOP_ARC} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <ListeningControls
-            isListening={isListening}
-            resetDisabled
-            hideReset
-            className="baseFlex w-36 lg:hidden [&_button]:w-full"
-            onStartListening={onStartListening}
-            onStopListening={onStopListening}
-            onResetProgress={onResetProgress}
-          />
-        </div>
-      )}
+            <div className="baseVertFlex w-full md:px-6">
+              <div className="grid w-full grid-cols-6 gap-1 px-3 py-2 md:rounded-md lg:gap-2 lg:px-2">
+                {targetNotes.map((note, index) => {
+                  const selected = index === currentTargetIndex;
+                  const tuned = completed || index < currentTargetIndex;
+
+                  return (
+                    <button
+                      type="button"
+                      key={`${note}-${index}`}
+                      // tried to do some kind of inset box shadow on light theme, but was too cramped on mobile
+                      className={`baseVertFlex relative min-h-[80px] gap-1 rounded-md px-1 py-2 text-sm transition ${selected ? "bg-primary/10" : "bg-transparent"}`}
+                      onClick={() => onSetCurrentTargetIndex(index)}
+                      aria-current={selected ? "true" : "false"}
+                    >
+                      <AnimatePresence mode="popLayout">
+                        {tuned && (
+                          <motion.span
+                            key={`motion-${note}-${index}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            className="baseFlex absolute right-1 top-1 rounded-full bg-primary p-[0.1rem] text-primary-foreground sm:p-0.5"
+                          >
+                            <Check className="size-2 sm:size-2.5" />
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="baseFlex h-7 w-full">
+                        <motion.div
+                          className={`rounded-full ${selected ? "bg-primary" : "bg-foreground/35"}`}
+                          animate={{
+                            opacity: selected ? 1 : 0.75,
+                            scaleY: selected ? 1.04 : 1,
+                          }}
+                          transition={{ duration: 0.15 }}
+                          style={{
+                            width: `${STRING_THICKNESSES[index] ?? 3}px`,
+                            height: "30px",
+                          }}
+                        />
+                      </div>
+
+                      <span
+                        className={
+                          tuned
+                            ? "mt-1 text-xs font-semibold text-primary lg:text-base"
+                            : "mt-1 text-xs text-foreground lg:text-base"
+                        }
+                      >
+                        <PrettyNote
+                          note={formatNoteLabel(note)}
+                          displayWithFlex={true}
+                          showScientificPitchNotation={true}
+                        />
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <ListeningControls
+              isListening={isListening}
+              resetDisabled={currentTargetIndex === 0}
+              className="grid w-full max-w-[418px] grid-cols-2 gap-4 px-4 lg:hidden"
+              onStartListening={onStartListening}
+              onStopListening={onStopListening}
+              onResetProgress={onResetProgress}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="tunerPanel-chromatic"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: 0.15,
+            }}
+            className="baseVertFlex w-full gap-4"
+          >
+            <div className="baseVertFlex w-full rounded-md bg-background px-0 py-[37px] md:px-6 md:py-[66px]">
+              <ChromaticPitchScroller
+                detectedNote={detectedNote}
+                detectedCents={detectedCents}
+                signalDetected={signalDetected}
+              />
+
+              {/* Shared horizontal track: labels + ticks + marker use the same % axis */}
+              <div className="relative mt-4 w-full px-5 sm:px-6">
+                <div className="size-full px-3 md:px-6 lg:px-5">
+                  <div className="relative mb-1 h-4 w-full text-xs tabular-nums text-foreground/70">
+                    {MOBILE_LABEL_TICKS.map((tick) => (
+                      <span
+                        key={`mobile-label-${tick}`}
+                        className="absolute top-0 -translate-x-1/2 lg:hidden"
+                        style={{ left: `${((tick + 50) / 100) * 100}%` }}
+                      >
+                        {tick}
+                      </span>
+                    ))}
+                    {CENTS_TICKS.map((tick) => (
+                      <span
+                        key={`desktop-label-${tick}`}
+                        className="absolute top-0 hidden -translate-x-1/2 lg:block"
+                        style={{ left: `${((tick + 50) / 100) * 100}%` }}
+                      >
+                        {tick}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-[180px] w-full rounded-md bg-primary/10 px-3 shadow-sm md:px-6 lg:px-5">
+                  <div className="relative size-full py-6">
+                    <motion.div
+                      className="absolute left-0 right-0 top-1/2 h-px bg-foreground/30"
+                      animate={{
+                        opacity: signalDetected ? [0.35, 0.8, 0.35] : 0.35,
+                      }}
+                      transition={{
+                        duration: 0.8,
+                        repeat: signalDetected ? Infinity : 0,
+                        ease: "linear",
+                      }}
+                    />
+
+                    {CENTS_TICKS.map((tick) => (
+                      <div
+                        key={`tick-${tick}`}
+                        className="absolute top-[34%] h-[32%] w-px -translate-x-1/2 bg-foreground/25"
+                        style={{ left: `${((tick + 50) / 100) * 100}%` }}
+                      />
+                    ))}
+
+                    <motion.div
+                      className="absolute inset-y-0 z-50"
+                      initial={false}
+                      animate={{
+                        // Idle / no-signal: always park exactly on the 0¢ tick (50%).
+                        left: `${chromaticMarkerLeftPercent}%`,
+                        opacity:
+                          !chromaticViewInitializing && hasChromaticCents
+                            ? 1
+                            : 0.3,
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 320,
+                        damping: 24,
+                        mass: 0.55,
+                      }}
+                    >
+                      <div className="relative h-full -translate-x-1/2">
+                        <motion.div
+                          className="absolute top-1/2 h-14 w-[3px] -translate-y-1/2 rounded-full bg-primary"
+                          animate={{
+                            boxShadow: signalDetected
+                              ? [
+                                  "0 0 0px hsl(var(--primary) / 0)",
+                                  "0 0 12px hsl(var(--primary) / 0.65)",
+                                  "0 0 0px hsl(var(--primary) / 0)",
+                                ]
+                              : "0 0 0px hsl(var(--primary) / 0)",
+                          }}
+                          transition={{
+                            duration: 0.7,
+                            repeat: signalDetected ? Infinity : 0,
+                            ease: "linear",
+                          }}
+                        />
+
+                        <div className="absolute bottom-3 left-1/2 w-[88px] -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-center text-sm font-semibold tabular-nums text-primary">
+                          {chromaticCentsLabel}
+                        </div>
+                      </div>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <ListeningControls
+              isListening={isListening}
+              resetDisabled
+              hideReset
+              className="baseFlex w-36 lg:hidden [&_button]:w-full"
+              onStartListening={onStartListening}
+              onStopListening={onStopListening}
+              onResetProgress={onResetProgress}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {(error || permissionDenied) && (
         <p className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
