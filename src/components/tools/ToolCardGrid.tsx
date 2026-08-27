@@ -14,7 +14,7 @@ const toolIcons: Record<string, ReactNode> = {
   "chord-trainer": <Logo className="size-5" />,
   metronome: <PiMetronome className="size-6" />,
   "note-trainer": <IoEar className="size-5" />,
-  tuner: <TuningFork className="size-5" />,
+  tuner: <TuningFork className="mr-[3px] w-[10px]" />,
 };
 
 type ToolCardGridProps = {

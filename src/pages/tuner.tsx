@@ -53,7 +53,7 @@ function Tuner() {
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-start pb-2">
           <ToolRouteHeader
-            icon={<TuningFork className="size-5" />}
+            icon={<TuningFork className="mr-1 w-[12px]" />}
             title="Guitar Tuner"
             description="A quick and accurate microphone tuner to get your guitar sounding right."
           />

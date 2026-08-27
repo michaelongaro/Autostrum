@@ -2,9 +2,7 @@ function TuningFork(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      height={800}
-      width={800}
-      viewBox="0 0 512 512"
+      viewBox="114.456 0 283.091 512"
       xmlSpace="preserve"
       fill="currentColor"
       {...props}

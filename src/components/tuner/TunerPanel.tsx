@@ -390,8 +390,8 @@ function TunerPanel({
         )}
 
         {forPlaybackModal && (
-          <div className="baseFlex mb-2 !justify-start gap-2 text-primary-foreground">
-            <TuningFork className="size-5" />
+          <div className="mb-2 hidden gap-2 text-primary-foreground xs:flex xs:items-center xs:justify-start">
+            <TuningFork className="mr-[2px] w-[10px]" />
             <p className="text-lg font-semibold">Guitar Tuner</p>
           </div>
         )}
