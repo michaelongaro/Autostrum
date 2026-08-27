@@ -182,6 +182,7 @@ function ChordTrainerPage() {
     stageRef,
     sliderContainerRef,
     queue,
+    currentItemIndex,
     isPlaying,
     pausePlayback,
     togglePlayback,
@@ -287,6 +288,8 @@ function ChordTrainerPage() {
             stageRef={stageRef}
             sliderContainerRef={sliderContainerRef}
             queue={queue}
+            currentItemIndex={currentItemIndex}
+            patternLength={selectedStrummingPattern.strums.length}
             showColorCoding={showColorCoding}
             showStrumIcons={showStrumIcons}
           />
@@ -320,7 +323,11 @@ function ChordTrainerPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {CHORD_TRAINER_STRUMMING_PATTERNS.map((pattern) => (
-                      <SelectItem key={pattern.id} value={pattern.id}>
+                      <SelectItem
+                        key={pattern.id}
+                        value={pattern.id}
+                        aria-label={pattern.label}
+                      >
                         <div className="baseFlex gap-3">
                           {pattern.showIcons && (
                             <ChordTrainerStrumPreview strums={pattern.strums} />

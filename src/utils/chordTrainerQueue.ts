@@ -26,6 +26,46 @@ export function getChordStartScrollX(chordIndex: number) {
   return chordIndex * TOTAL_CHORD_WIDTH;
 }
 
+export type ChordTrainerPatternGroup = {
+  id: string;
+  chord: ChordTrainerPreset;
+  items: ChordTrainerQueueItem[];
+};
+
+export function getPatternLength(pattern: ChordTrainerStrummingPattern) {
+  return Math.max(1, pattern.strums.length);
+}
+
+export function getPatternGroupIndex(itemIndex: number, patternLength: number) {
+  if (patternLength <= 0) return 0;
+  return Math.floor(Math.max(0, itemIndex) / patternLength);
+}
+
+export function getStrumIndexInPattern(itemIndex: number, patternLength: number) {
+  if (patternLength <= 0) return 0;
+  return Math.max(0, itemIndex) % patternLength;
+}
+
+export function getPatternGroup(
+  queue: ChordTrainerQueueItem[],
+  groupIndex: number,
+  patternLength: number,
+): ChordTrainerPatternGroup | null {
+  if (patternLength <= 0 || groupIndex < 0) return null;
+
+  const start = groupIndex * patternLength;
+  const items = queue.slice(start, start + patternLength);
+  const firstItem = items[0];
+
+  if (!firstItem) return null;
+
+  return {
+    id: firstItem.instanceId,
+    chord: firstItem.chord,
+    items,
+  };
+}
+
 export function createPatternQueueItems(
   chord: ChordTrainerPreset,
   pattern: ChordTrainerStrummingPattern,
