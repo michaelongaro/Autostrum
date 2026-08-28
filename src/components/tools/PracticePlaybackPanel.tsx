@@ -110,7 +110,9 @@ function PracticePlaybackPanel({
       const exercise = exercises.find((item) => item.id === exerciseId);
       if (!exercise || exercise.id === selectedExerciseId) return;
 
-      const sectionIndex = exercises.findIndex((item) => item.id === exerciseId);
+      const sectionIndex = exercises.findIndex(
+        (item) => item.id === exerciseId,
+      );
       const {
         showPlaybackModal: modalOpen,
         audioMetadata: currentAudioMetadata,
@@ -292,7 +294,7 @@ function PracticePlaybackPanel({
                         variant={
                           item.id === selectedExerciseId ? "default" : "outline"
                         }
-                        className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
+                        className={`!h-auto min-h-14 !justify-start px-3 py-2 text-left ${item.id === selectedExerciseId ? "border border-transparent" : ""}`}
                         onClick={() => selectExercise(item.id)}
                       >
                         <span className="baseVertFlex !items-start gap-0.5">
@@ -324,6 +326,7 @@ function PracticePlaybackPanel({
                   color={color}
                   theme={theme}
                   overflowX={true}
+                  height={"h-64"} // prevents layout shift from conditional horizontal scrollbar
                 />
               </div>
             )}

@@ -56,6 +56,7 @@ interface StaticTabSection {
   color: COLORS;
   theme: THEME;
   overflowX?: boolean;
+  height?: string;
   /**
    * Opt-in row-level virtualization. Only enabled from StaticTab via
    * StaticSectionContainer; every other caller keeps the full-render path.
@@ -76,6 +77,7 @@ function FullStaticTabSection({
   color,
   theme,
   overflowX,
+  height,
 }: StaticTabSection) {
   const { tuning, bpm } = useTabStore((state) => ({
     tuning: state.tuning,
@@ -85,7 +87,7 @@ function FullStaticTabSection({
   return (
     <SectionCard>
       <div
-        className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto overflow-y-hidden" : "flex-wrap"}`}
+        className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto overflow-y-hidden" : "flex-wrap"} ${height}`}
       >
         <TuningGutter tuning={tuning} />
         {renderColumnRange(
