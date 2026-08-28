@@ -175,7 +175,7 @@ function GridTabCard({
           <Link
             href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
             prefetch={false}
-            className="block cursor-pointer rounded-t-md transition-all hover:brightness-90 active:brightness-[0.8]"
+            className={`block cursor-pointer rounded-t-md transition-all ${theme === "light" ? "hover:brightness-95 active:brightness-90" : "hover:brightness-90 active:brightness-[0.8]"} `}
           >
             {/* tab preview screenshot */}
             <div
