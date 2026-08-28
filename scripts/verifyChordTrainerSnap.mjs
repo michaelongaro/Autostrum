@@ -65,8 +65,32 @@ function getPatternGroupIndex(itemIndex, patternLength) {
   return Math.floor(Math.max(0, itemIndex) / patternLength);
 }
 
-function getPatternVisualScrollX(itemIndex, patternLength) {
-  return getPatternGroupIndex(itemIndex, patternLength) * TOTAL_CHORD_WIDTH;
+const PATTERN_CHORD_ITEM_GAP = 16;
+const PATTERN_TOTAL_CHORD_WIDTH = CHORD_ITEM_WIDTH + PATTERN_CHORD_ITEM_GAP;
+const PATTERN_KEEP_PAST_GROUPS = 8;
+
+function getPatternVisualScrollX(
+  itemIndex,
+  patternLength,
+  stride = PATTERN_TOTAL_CHORD_WIDTH,
+) {
+  return getPatternGroupIndex(itemIndex, patternLength) * stride;
+}
+
+function getPatternPlayheadProgress(scrollX, patternLength) {
+  if (patternLength <= 0) return 0;
+  const groupWidth = patternLength * TOTAL_CHORD_WIDTH;
+  const groupIndex = Math.floor(Math.max(0, scrollX) / groupWidth);
+  const groupStartX = groupIndex * groupWidth;
+  return Math.max(0, Math.min(1, (scrollX - groupStartX) / groupWidth));
+}
+
+function getPatternTrimCount(currentCenterIndex, patternLength) {
+  if (patternLength <= 0) return 0;
+  const keepPastItems = PATTERN_KEEP_PAST_GROUPS * patternLength;
+  const raw = currentCenterIndex - keepPastItems;
+  if (raw <= 0) return 0;
+  return Math.floor(raw / patternLength) * patternLength;
 }
 
 assert.equal(getPatternGroupIndex(0, 4), 0);
@@ -74,7 +98,19 @@ assert.equal(getPatternGroupIndex(3, 4), 0);
 assert.equal(getPatternGroupIndex(4, 4), 1);
 assert.equal(getPatternVisualScrollX(0, 4), 0);
 assert.equal(getPatternVisualScrollX(3, 4), 0);
-assert.equal(getPatternVisualScrollX(4, 4), TOTAL_CHORD_WIDTH);
-assert.equal(getPatternVisualScrollX(9, 8), TOTAL_CHORD_WIDTH);
+assert.equal(getPatternVisualScrollX(4, 4), PATTERN_TOTAL_CHORD_WIDTH);
+assert.equal(getPatternVisualScrollX(9, 8), PATTERN_TOTAL_CHORD_WIDTH);
+
+assert.equal(getPatternPlayheadProgress(0, 4), 0);
+assert.equal(getPatternPlayheadProgress(TOTAL_CHORD_WIDTH, 4), 0.25);
+assert.equal(getPatternPlayheadProgress(TOTAL_CHORD_WIDTH * 2, 4), 0.5);
+assert.equal(getPatternPlayheadProgress(TOTAL_CHORD_WIDTH * 4, 4), 0);
+
+assert.equal(getPatternTrimCount(0, 4), 0);
+assert.equal(getPatternTrimCount(31, 4), 0);
+assert.equal(getPatternTrimCount(32, 4), 0);
+assert.equal(getPatternTrimCount(36, 4), 4);
+assert.equal(getPatternTrimCount(16, 8), 0);
+assert.equal(getPatternTrimCount(72, 8), 8);
 
 console.log("verifyChordTrainerSnap: all assertions passed");

@@ -13,6 +13,11 @@ export const APPEND_CHUNK_SIZE = 12;
 export const CHORD_ITEM_WIDTH = 136;
 export const CHORD_ITEM_GAP = 40;
 export const TOTAL_CHORD_WIDTH = CHORD_ITEM_WIDTH + CHORD_ITEM_GAP;
+export const PATTERN_CHORD_ITEM_GAP = 16;
+export const PATTERN_TOTAL_CHORD_WIDTH =
+  CHORD_ITEM_WIDTH + PATTERN_CHORD_ITEM_GAP;
+export const PATTERN_KEEP_PAST_GROUPS = 8;
+export const PATTERN_AHEAD_GROUPS = 16;
 export const CENTER_TRIGGER_EPSILON = 0.001;
 
 export function getCenteredChordIndex(scrollX: number) {
@@ -86,11 +91,69 @@ export function getPatternGroups(
   return groups;
 }
 
+export function getPatternItemStride(showIcons: boolean) {
+  return showIcons ? PATTERN_TOTAL_CHORD_WIDTH : TOTAL_CHORD_WIDTH;
+}
+
 export function getPatternVisualScrollX(
   itemIndex: number,
   patternLength: number,
+  stride: number = PATTERN_TOTAL_CHORD_WIDTH,
 ) {
-  return getPatternGroupIndex(itemIndex, patternLength) * TOTAL_CHORD_WIDTH;
+  return getPatternGroupIndex(itemIndex, patternLength) * stride;
+}
+
+export function getPatternPlayheadProgress(
+  scrollX: number,
+  patternLength: number,
+) {
+  if (patternLength <= 0) return 0;
+
+  const groupWidth = patternLength * TOTAL_CHORD_WIDTH;
+  if (groupWidth <= 0) return 0;
+
+  const groupIndex = Math.floor(Math.max(0, scrollX) / groupWidth);
+  const groupStartX = groupIndex * groupWidth;
+
+  return Math.max(0, Math.min(1, (scrollX - groupStartX) / groupWidth));
+}
+
+export function getPatternTrimCount(
+  currentCenterIndex: number,
+  patternLength: number,
+) {
+  if (patternLength <= 0) return 0;
+
+  const keepPastItems = PATTERN_KEEP_PAST_GROUPS * patternLength;
+  const raw = currentCenterIndex - keepPastItems;
+  if (raw <= 0) return 0;
+
+  return Math.floor(raw / patternLength) * patternLength;
+}
+
+export function shouldExtendPatternQueue(
+  currentCenterIndex: number,
+  queueLength: number,
+  patternLength: number,
+) {
+  if (patternLength <= 0) return false;
+
+  const currentGroup = getPatternGroupIndex(currentCenterIndex, patternLength);
+  const totalGroups = Math.ceil(queueLength / patternLength);
+
+  return currentGroup + PATTERN_AHEAD_GROUPS >= totalGroups;
+}
+
+export function getInitialQueueLength(
+  showIcons: boolean,
+  patternLength: number,
+) {
+  if (!showIcons) return INITIAL_QUEUE_LENGTH;
+
+  return Math.max(
+    INITIAL_QUEUE_LENGTH,
+    patternLength * (PATTERN_KEEP_PAST_GROUPS + PATTERN_AHEAD_GROUPS),
+  );
 }
 
 export function createPatternQueueItems(
@@ -157,7 +220,12 @@ export function buildInitialQueue(
     return queue;
   }
 
-  while (queue.length < INITIAL_QUEUE_LENGTH) {
+  const targetLength = getInitialQueueLength(
+    pattern.showIcons,
+    getPatternLength(pattern),
+  );
+
+  while (queue.length < targetLength) {
     const chord = resolveQueueChord(
       getRandomChord(chords, previousChordId),
       fallbackChord,

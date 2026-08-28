@@ -11,6 +11,7 @@ import { chromium } from "playwright";
 
 const BASE = process.argv[2] ?? "http://127.0.0.1:3000";
 const PARK_EPSILON_PX = 1.5;
+const ICON_GAP_EPSILON_PX = 1;
 
 const failures = [];
 let checks = 0;
@@ -38,17 +39,40 @@ function readPatternState() {
   const translateX = matrix.m41;
   const baseOffset = stage.clientWidth / 2 - 136 / 2;
   const visualScrollX = baseOffset - translateX;
-  const groupIndex = Math.round(visualScrollX / 176);
-  const distanceFromGroup = Math.abs(visualScrollX - groupIndex * 176);
+  const groupIndex = Math.round(visualScrollX / 152);
+  const distanceFromGroup = Math.abs(visualScrollX - groupIndex * 152);
   const nextLabel = [...stage.querySelectorAll("span")].some(
     (el) => el.textContent?.trim() === "Next",
-  );
-  const played = [...stage.querySelectorAll("[data-strum-played]")].map(
-    (el) => el.getAttribute("data-strum-played") === "true",
   );
   const currentName = stage.querySelector('[data-current-group="true"]')
     ?.getAttribute("data-chord-name");
   const startPause = document.getElementById("chord-trainer-start-pause");
+  const groups = [...stage.querySelectorAll("[data-group-index]")];
+  const firstGroup = groups[0];
+  const secondGroup = groups[1];
+  const groupMarginRight = firstGroup
+    ? Number.parseFloat(firstGroup.style.marginRight || "0")
+    : null;
+  const row = stage.querySelector("[data-strum-pattern-row]");
+  const icons = row
+    ? [...row.querySelectorAll("[data-strum-index]")]
+    : [];
+  const iconGap =
+    icons[0] && icons[1]
+      ? icons[1].getBoundingClientRect().left -
+        icons[0].getBoundingClientRect().right
+      : null;
+  const rowGap = row ? window.getComputedStyle(row).columnGap : null;
+  const playhead = stage.querySelector("[data-strum-playhead]");
+  const playheadProgress = Number.parseFloat(
+    playhead?.getAttribute("data-progress") ?? "0",
+  );
+  const playheadRect = playhead?.getBoundingClientRect();
+  const rowRect = row?.getBoundingClientRect();
+  const lowestGroupIndex = groups.reduce((lowest, group) => {
+    const index = Number(group.getAttribute("data-group-index"));
+    return Number.isFinite(index) ? Math.min(lowest, index) : lowest;
+  }, Number.POSITIVE_INFINITY);
 
   return {
     ok: true,
@@ -56,9 +80,29 @@ function readPatternState() {
     groupIndex,
     distanceFromGroup,
     nextLabel,
-    played,
     currentName,
-    groupCount: stage.querySelectorAll("[data-group-index]").length,
+    groupCount: groups.length,
+    lowestGroupIndex: Number.isFinite(lowestGroupIndex)
+      ? lowestGroupIndex
+      : null,
+    pastGroupCount: groups.filter((group) => {
+      const index = Number(group.getAttribute("data-group-index"));
+      return Number.isFinite(index) && index < groupIndex;
+    }).length,
+    groupMarginRight,
+    groupGap:
+      firstGroup && secondGroup
+        ? secondGroup.getBoundingClientRect().left -
+          firstGroup.getBoundingClientRect().right
+        : null,
+    iconGap,
+    rowGap,
+    playheadProgress,
+    playheadX: playheadRect && rowRect ? playheadRect.left - rowRect.left : null,
+    hasPlayhead: Boolean(playhead),
+    played: [...stage.querySelectorAll("[data-strum-played]")].map(
+      (el) => el.getAttribute("data-strum-played") === "true",
+    ),
     buttonText: startPause?.textContent?.replace(/\s+/g, " ").trim() ?? "",
   };
 }
@@ -112,12 +156,32 @@ assert(
 );
 assert(initial.groupIndex === 0, `initial group is 0 (got ${initial.groupIndex})`);
 assert(
-  initial.played?.[0] === true && initial.played?.at(-1) === false,
-  `idle strums are current/upcoming (${JSON.stringify(initial.played)})`,
+  initial.hasPlayhead,
+  "strumming pattern has a vertical playhead",
 );
 assert(
-  (initial.groupCount ?? 0) >= 3,
-  `multiple aligned chord groups are rendered (got ${initial.groupCount})`,
+  (initial.playheadProgress ?? 1) <= 0.02,
+  `idle playhead starts at the beginning of the pattern (progress ${initial.playheadProgress})`,
+);
+assert(
+  (initial.played?.length ?? 0) === 0,
+  `strum icons no longer use opacity played markers (${JSON.stringify(initial.played)})`,
+);
+assert(
+  (initial.groupCount ?? 0) >= 16,
+  `enough chord groups are rendered for an infinite strip (got ${initial.groupCount})`,
+);
+assert(
+  (initial.groupMarginRight ?? 99) <= 16,
+  `chord group margin-right is tightened (got ${initial.groupMarginRight})`,
+);
+assert(
+  (initial.iconGap ?? 99) <= ICON_GAP_EPSILON_PX,
+  `strum icons have no gap between them (gap ${initial.iconGap})`,
+);
+assert(
+  initial.rowGap === "0px" || initial.rowGap === "normal",
+  `strum row has no CSS gap (got ${initial.rowGap})`,
 );
 
 await page.click("#chord-trainer-start-pause");
@@ -126,7 +190,7 @@ const midPattern = await waitForState(
   (state) =>
     state.buttonText.includes("Pause") &&
     state.groupIndex === 0 &&
-    (state.played?.filter(Boolean).length ?? 0) >= 2,
+    (state.playheadProgress ?? 0) >= 0.2,
 );
 assert(
   midPattern.buttonText.includes("Pause"),
@@ -137,8 +201,9 @@ assert(
   `strip stays on group 0 during the pattern (group ${midPattern.groupIndex}, distance ${midPattern.distanceFromGroup?.toFixed?.(3)})`,
 );
 assert(
-  (midPattern.played?.filter(Boolean).length ?? 0) >= 2,
-  `played strum icons light up during the pattern (${JSON.stringify(midPattern.played)})`,
+  (midPattern.playheadProgress ?? 0) >= 0.2 &&
+    (midPattern.playheadProgress ?? 1) < 1,
+  `playhead advances across the pattern without sliding (${midPattern.playheadProgress})`,
 );
 
 const afterPattern = await waitForState(
@@ -155,9 +220,26 @@ assert(
   `next chord parks in the center (distance ${afterPattern.distanceFromGroup?.toFixed?.(3)})`,
 );
 assert(
-  afterPattern.played?.[0] === true &&
-    (afterPattern.played?.filter(Boolean).length ?? 0) <= 2,
-  `strum progress resets on the new chord (${JSON.stringify(afterPattern.played)})`,
+  (afterPattern.playheadProgress ?? 1) < 0.35,
+  `playhead resets near the start of the new pattern (${afterPattern.playheadProgress})`,
+);
+
+const afterSecondSlide = await waitForState(
+  page,
+  (state) => state.groupIndex >= 2 && state.distanceFromGroup <= PARK_EPSILON_PX,
+  12000,
+);
+assert(
+  afterSecondSlide.groupIndex >= 2,
+  `strip advances again after the next pattern (group ${afterSecondSlide.groupIndex})`,
+);
+assert(
+  (afterSecondSlide.lowestGroupIndex ?? 1) === 0,
+  `earliest rendered group remains off to the left instead of unmounting (lowest ${afterSecondSlide.lowestGroupIndex})`,
+);
+assert(
+  (afterSecondSlide.pastGroupCount ?? 0) >= 2,
+  `at least two past chord groups stay mounted (${afterSecondSlide.pastGroupCount})`,
 );
 
 await page.click("#chord-trainer-start-pause");
