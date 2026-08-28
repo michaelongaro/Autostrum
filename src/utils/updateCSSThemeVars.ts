@@ -104,18 +104,18 @@ type ColorValues = Record<COLORS, Record<THEME, ColorScale>>;
 //   },
 // }
 
-// FYI: my color names for each variant:
-// peony - crimson,
-// coral - red,
-// saffron - tomato,
-// maple - bronze,
-// pistachio - grass,
-// verdant - teal,
-// aqua - cyan,
-// sapphire - indigo,
-// amethyst - purple,
+// FYI: my color names for each variant (my names <- radix names):
+// peony <- crimson,
+// coral <- red,
+// saffron <- tomato,
+// maple <- bronze,
+// pistachio <- grass,
+// verdant <- teal,
+// aqua <- cyan,
+// sapphire <- indigo,
+// amethyst <- purple,
 
-// FYI: logo gradient is just primary -> primary -10% lightness
+// FYI: logo gradient is just primary with -10% lightness
 
 // FYI: "near white" values are all just level two light mode radix variants
 
