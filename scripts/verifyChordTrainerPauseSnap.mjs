@@ -196,7 +196,7 @@ assert(
 await page.click("#chord-trainer-start-pause");
 await waitUntilPlayingOffBoundary(page);
 await page.locator(".grid button").nth(10).click();
-await page.waitForTimeout(150);
+await page.waitForTimeout(200);
 const afterChordToggle = await readState(page);
 assert(
   afterChordToggle.buttonText.includes("Start"),
@@ -205,6 +205,25 @@ assert(
 assert(
   afterChordToggle.distanceFromStart <= PARK_EPSILON_PX,
   `selecting a chord parks on a chord start (distance ${afterChordToggle.distanceFromStart?.toFixed?.(3)})`,
+);
+assert(
+  afterChordToggle.chordIndex === 0,
+  `selecting a chord recreates the queue at the start (index ${afterChordToggle.chordIndex})`,
+);
+
+await page.click("#chord-trainer-start-pause");
+await waitUntilPlayingOffBoundary(page, { minChordIndex: 1 });
+await page.getByRole("button", { name: /Minor chords/ }).click();
+await page.waitForTimeout(200);
+const afterPreset = await readState(page);
+assert(
+  afterPreset.buttonText.includes("Start"),
+  `switching presets pauses playback (got "${afterPreset.buttonText}")`,
+);
+assert(
+  afterPreset.chordIndex === 0 &&
+    afterPreset.distanceFromStart <= PARK_EPSILON_PX,
+  `switching presets recreates the queue at the start (index ${afterPreset.chordIndex}, distance ${afterPreset.distanceFromStart?.toFixed?.(3)})`,
 );
 
 await browser.close();
