@@ -3,8 +3,8 @@ import { IoIosArrowUp } from "react-icons/io";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
 import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import {
-  CHORD_ITEM_GAP,
   CHORD_ITEM_WIDTH,
+  PATTERN_CHORD_ITEM_GAP,
   getPatternGroup,
   getPatternGroupIndex,
   getPatternGroups,
@@ -65,7 +65,7 @@ function ChordTrainerPatternVisualizer({
             className="baseVertFlex relative flex-shrink-0 flex-col items-center justify-center gap-2 will-change-transform [backface-visibility:hidden] [contain:layout_paint]"
             style={{
               width: CHORD_ITEM_WIDTH,
-              marginRight: CHORD_ITEM_GAP,
+              marginRight: PATTERN_CHORD_ITEM_GAP,
               transform: "translateZ(0) scale(1)",
               opacity: 1,
             }}
@@ -91,38 +91,43 @@ function ChordTrainerPatternVisualizer({
       {currentGroup && (
         <div
           id="chord-trainer-pattern-strums"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[5] flex w-[136px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2"
+          data-current-strum={strumIndex}
+          className="pointer-events-none absolute left-1/2 top-1/2 z-[5] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2"
         >
-          <div className="h-[132px] w-full p-2" aria-hidden="true" />
-          <div className="h-8 w-full" aria-hidden="true" />
-          <div className="baseFlex h-6 gap-0.5">
-            {currentGroup.items.map((item, index) => {
-              const played = index <= strumIndex;
-
-              return (
-                <div
-                  key={`${item.instanceId}-strum`}
-                  data-strum-index={index}
-                  data-strum-played={played ? "true" : "false"}
-                  className="baseFlex h-6 w-5 transition-opacity duration-150"
-                  style={{
-                    opacity: played ? 1 : 0.5,
-                    color: showColorCoding
-                      ? currentGroup.chord.color
-                      : undefined,
-                    fill: showColorCoding
-                      ? currentGroup.chord.color
-                      : undefined,
-                  }}
-                >
-                  {item.strum ? (
-                    <ChordStrumIcon effects={item.strum} />
-                  ) : (
-                    <div className="h-5 w-2.5" />
-                  )}
-                </div>
-              );
-            })}
+          <div className="h-[132px] w-[136px] p-2" aria-hidden="true" />
+          <div className="h-8 w-[136px]" aria-hidden="true" />
+          <div
+            id="chord-trainer-strum-row"
+            data-strum-pattern-row
+            className="baseFlex relative h-6 gap-0"
+          >
+            {currentGroup.items.map((item, index) => (
+              <div
+                key={`${item.instanceId}-strum`}
+                data-strum-index={index}
+                className="baseFlex h-6"
+                style={{
+                  color: showColorCoding
+                    ? currentGroup.chord.color
+                    : undefined,
+                  fill: showColorCoding
+                    ? currentGroup.chord.color
+                    : undefined,
+                }}
+              >
+                {item.strum ? (
+                  <ChordStrumIcon effects={item.strum} />
+                ) : (
+                  <div className="h-5 w-2.5" />
+                )}
+              </div>
+            ))}
+            <div
+              id="chord-trainer-strum-playhead"
+              data-strum-playhead
+              aria-hidden="true"
+              className="pointer-events-none absolute left-0 top-0 z-10 h-full w-[2px] -translate-x-1/2 bg-primary will-change-transform"
+            />
           </div>
         </div>
       )}

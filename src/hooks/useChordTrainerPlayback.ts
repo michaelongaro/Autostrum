@@ -7,15 +7,20 @@ import { getTabStore } from "~/stores/TabStore";
 import {
   APPEND_CHUNK_SIZE,
   CHORD_ITEM_WIDTH,
-  INITIAL_QUEUE_LENGTH,
+  PATTERN_KEEP_PAST_GROUPS,
+  PATTERN_TOTAL_CHORD_WIDTH,
   TOTAL_CHORD_WIDTH,
   appendQueue,
   buildInitialQueue,
   getCenteredChordIndex,
   getChordStartScrollX,
-  getPatternGroupIndex,
+  getInitialQueueLength,
+  getPatternItemStride,
   getPatternLength,
+  getPatternPlayheadProgress,
+  getPatternTrimCount,
   getPatternVisualScrollX,
+  shouldExtendPatternQueue,
   type ChordTrainerQueueItem,
 } from "~/utils/chordTrainerQueue";
 import {
@@ -136,37 +141,68 @@ function useChordTrainerPlayback({
     setCurrentItemIndex(index);
   }, []);
 
-  const updateStreamStyles = useCallback((scrollX: number) => {
+  const updateStrumPlayhead = useCallback(() => {
+    if (!isPatternVisualizer) return;
+
     const stageElement = stageRef.current;
-    const sliderElement = sliderContainerRef.current;
-    if (!stageElement || !sliderElement) return;
+    if (!stageElement) return;
 
-    const stageWidth = stageWidthRef.current || stageElement.clientWidth;
-    if (!stageWidth) return;
+    const row = stageElement.querySelector<HTMLElement>(
+      "[data-strum-pattern-row]",
+    );
+    const playhead = stageElement.querySelector<HTMLElement>(
+      "[data-strum-playhead]",
+    );
+    if (!row || !playhead) return;
 
-    const baseOffset = stageWidth / 2 - CHORD_ITEM_WIDTH / 2;
-    const centerX = stageWidth / 2;
-    const maxDistance = centerX + CHORD_ITEM_WIDTH / 2;
+    const rowWidth = row.offsetWidth;
+    if (rowWidth <= 0) return;
 
-    sliderElement.style.transform = `translate3d(${(baseOffset - scrollX).toFixed(3)}px, 0, 0)`;
+    const progress = getPatternPlayheadProgress(
+      scrollXRef.current,
+      patternLength,
+    );
+    playhead.dataset.progress = progress.toFixed(4);
+    playhead.style.transform = `translate3d(${(progress * rowWidth).toFixed(3)}px, 0, 0) translateX(-50%)`;
+  }, [isPatternVisualizer, patternLength]);
 
-    const children = Array.from(sliderElement.children) as HTMLDivElement[];
+  const updateStreamStyles = useCallback(
+    (scrollX: number) => {
+      const stageElement = stageRef.current;
+      const sliderElement = sliderContainerRef.current;
+      if (!stageElement || !sliderElement) return;
 
-    children.forEach((child, index) => {
-      const itemCenter =
-        baseOffset - scrollX + index * TOTAL_CHORD_WIDTH + CHORD_ITEM_WIDTH / 2;
-      const distanceRatio = Math.min(
-        Math.abs(itemCenter - centerX) / maxDistance,
-        1,
-      );
-      const opacity = Math.max(1 - distanceRatio * 0.82, MIN_EDGE_OPACITY);
-      const blur = distanceRatio > 0.75 ? (distanceRatio - 0.75) * 4 : 0;
+      const stageWidth = stageWidthRef.current || stageElement.clientWidth;
+      if (!stageWidth) return;
 
-      child.style.opacity = opacity.toFixed(3);
-      child.style.filter = `blur(${blur.toFixed(2)}px)`;
-      child.style.zIndex = `${Math.round((1 - distanceRatio) * 100)}`;
-    });
-  }, []);
+      const stride = getPatternItemStride(isPatternVisualizer);
+      const baseOffset = stageWidth / 2 - CHORD_ITEM_WIDTH / 2;
+      const centerX = stageWidth / 2;
+      const maxDistance = centerX + CHORD_ITEM_WIDTH / 2;
+
+      sliderElement.style.transform = `translate3d(${(baseOffset - scrollX).toFixed(3)}px, 0, 0)`;
+
+      const children = Array.from(sliderElement.children) as HTMLDivElement[];
+
+      children.forEach((child, index) => {
+        const itemCenter =
+          baseOffset - scrollX + index * stride + CHORD_ITEM_WIDTH / 2;
+        const distanceRatio = Math.min(
+          Math.abs(itemCenter - centerX) / maxDistance,
+          1,
+        );
+        const opacity = Math.max(1 - distanceRatio * 0.82, MIN_EDGE_OPACITY);
+        const blur = distanceRatio > 0.75 ? (distanceRatio - 0.75) * 4 : 0;
+
+        child.style.opacity = opacity.toFixed(3);
+        child.style.filter = `blur(${blur.toFixed(2)}px)`;
+        child.style.zIndex = `${Math.round((1 - distanceRatio) * 100)}`;
+      });
+
+      updateStrumPlayhead();
+    },
+    [isPatternVisualizer, updateStrumPlayhead],
+  );
 
   const stopAnimationFrame = useCallback(() => {
     if (rafRef.current === null) return;
@@ -329,18 +365,29 @@ function useChordTrainerPlayback({
         lastTriggeredIndexRef.current = currentCenterIndex;
       }
 
-      if (currentCenterIndex + 18 >= queueRef.current.length) {
+      const shouldExtend = isPatternVisualizer
+        ? shouldExtendPatternQueue(
+            currentCenterIndex,
+            queueRef.current.length,
+            patternLength,
+          )
+        : currentCenterIndex + 18 >= queueRef.current.length;
+
+      if (shouldExtend) {
         if (
           !queueMutationPendingRef.current &&
           selectedChords.length > 0
         ) {
           queueMutationPendingRef.current = true;
+          const appendCount = isPatternVisualizer
+            ? patternLength * 4
+            : APPEND_CHUNK_SIZE;
           setQueue((currentQueue) => {
             const nextQueue = appendQueue(
               currentQueue,
               selectedChords,
               strummingPattern,
-              APPEND_CHUNK_SIZE,
+              appendCount,
             );
             queueRef.current = nextQueue;
             return nextQueue;
@@ -348,14 +395,21 @@ function useChordTrainerPlayback({
         }
       }
 
+      const keepPastItems = isPatternVisualizer
+        ? PATTERN_KEEP_PAST_GROUPS * patternLength
+        : 8;
+      const minQueueLength = getInitialQueueLength(
+        isPatternVisualizer,
+        patternLength,
+      );
+
       if (
         !queueMutationPendingRef.current &&
-        currentCenterIndex > 14 &&
-        queueRef.current.length > INITIAL_QUEUE_LENGTH + APPEND_CHUNK_SIZE
+        currentCenterIndex > keepPastItems &&
+        queueRef.current.length > minQueueLength + APPEND_CHUNK_SIZE
       ) {
         const trimCount = isPatternVisualizer
-          ? Math.floor((currentCenterIndex - 8) / patternLength) *
-            patternLength
+          ? getPatternTrimCount(currentCenterIndex, patternLength)
           : currentCenterIndex - 8;
         if (trimCount > 0) {
           queueMutationPendingRef.current = true;
@@ -363,8 +417,10 @@ function useChordTrainerPlayback({
           lastTriggeredIndexRef.current -= trimCount;
           currentCenterIndex -= trimCount;
           if (isPatternVisualizer) {
-            visualScrollXRef.current -=
-              getPatternGroupIndex(trimCount, patternLength) * TOTAL_CHORD_WIDTH;
+            visualScrollXRef.current -= getPatternVisualScrollX(
+              trimCount,
+              patternLength,
+            );
           }
 
           setQueue((currentQueue) => {
@@ -387,7 +443,8 @@ function useChordTrainerPlayback({
           patternLength,
         );
         const remaining = targetVisualScrollX - visualScrollXRef.current;
-        const maxStep = (TOTAL_CHORD_WIDTH / PATTERN_SLIDE_MS) * deltaTime;
+        const maxStep =
+          (PATTERN_TOTAL_CHORD_WIDTH / PATTERN_SLIDE_MS) * deltaTime;
 
         if (Math.abs(remaining) <= maxStep) {
           visualScrollXRef.current = targetVisualScrollX;
