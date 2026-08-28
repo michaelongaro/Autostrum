@@ -3,11 +3,11 @@ import { Label } from "~/components/ui/label";
 import { cn } from "~/utils/cn";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 
-export const CHORD_TRAINER_BPM_MIN = 10;
-export const CHORD_TRAINER_BPM_MAX = 180;
+export const CHORD_TRAINER_BPM_MIN = 50;
+export const CHORD_TRAINER_BPM_MAX = 350;
 export const CHORD_TRAINER_BPM_STEP = 10;
 
-const BPM_LABELS = [10, 50, 90, 130, 180] as const;
+const BPM_LABELS = [50, 130, 210, 290, 350] as const;
 
 interface ChordTrainerBpmRangeProps {
   tempo: number;
@@ -120,7 +120,7 @@ function ChordTrainerBpmRange({
           }}
         />
 
-        <div className="relative mt-4 h-4 w-full text-xs font-medium">
+        <div className="relative mt-3 h-4 w-full text-xs font-medium">
           {BPM_LABELS.map((label) => {
             const percent =
               ((label - CHORD_TRAINER_BPM_MIN) /
