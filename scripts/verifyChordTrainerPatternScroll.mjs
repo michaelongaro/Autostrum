@@ -74,13 +74,28 @@ function readPatternState() {
     return Number.isFinite(index) ? Math.min(lowest, index) : lowest;
   }, Number.POSITIVE_INFINITY);
 
+  const currentEl = stage.querySelector('[data-current-group="true"]');
+  const currentRect = currentEl?.getBoundingClientRect();
+  const stageRect = stage.getBoundingClientRect();
+  const currentCenterOffset =
+    currentRect && stageRect
+      ? currentRect.left +
+        currentRect.width / 2 -
+        (stageRect.left + stageRect.width / 2)
+      : null;
+  const chordNames = groups
+    .map((group) => group.getAttribute("data-chord-name"))
+    .filter(Boolean);
+
   return {
     ok: true,
     visualScrollX,
     groupIndex,
     distanceFromGroup,
+    currentCenterOffset,
     nextLabel,
     currentName,
+    chordNames,
     groupCount: groups.length,
     lowestGroupIndex: Number.isFinite(lowestGroupIndex)
       ? lowestGroupIndex
@@ -253,6 +268,102 @@ assert(
   afterPause.distanceFromGroup <= PARK_EPSILON_PX,
   `pause parks on the current chord group (distance ${afterPause.distanceFromGroup?.toFixed?.(3)}, group ${afterPause.groupIndex})`,
 );
+assert(
+  (afterPause.groupIndex ?? 0) >= 2,
+  `pause is still past the first chords so a rebuild is observable (group ${afterPause.groupIndex})`,
+);
+
+const namesBeforePreset = afterPause.chordNames ?? [];
+await page.getByRole("button", { name: /Seventh chords/ }).click();
+await page.waitForTimeout(200);
+const afterPreset = await readState(page);
+assert(
+  afterPreset.buttonText.includes("Start"),
+  `switching presets pauses playback (got "${afterPreset.buttonText}")`,
+);
+assert(
+  afterPreset.groupIndex === 0 &&
+    afterPreset.distanceFromGroup <= PARK_EPSILON_PX,
+  `switching presets recreates the queue at the start (group ${afterPreset.groupIndex}, distance ${afterPreset.distanceFromGroup?.toFixed?.(3)})`,
+);
+assert(
+  (afterPreset.chordNames ?? []).some((name) => /7/.test(name ?? "")),
+  `switching presets fills the strip with the new chord set (${JSON.stringify(afterPreset.chordNames?.slice(0, 6))})`,
+);
+assert(
+  JSON.stringify(afterPreset.chordNames) !== JSON.stringify(namesBeforePreset),
+  "switching presets replaces the previous queue contents",
+);
+
+const namesBeforeToggle = afterPreset.chordNames ?? [];
+await page.locator(".grid button").nth(3).click();
+await page.waitForTimeout(200);
+const afterCustom = await readState(page);
+assert(
+  afterCustom.groupIndex === 0 &&
+    afterCustom.distanceFromGroup <= PARK_EPSILON_PX,
+  `toggling a custom chord recreates the queue at the start (group ${afterCustom.groupIndex})`,
+);
+assert(
+  JSON.stringify(afterCustom.chordNames) !== JSON.stringify(namesBeforeToggle),
+  "toggling a custom chord replaces the previous queue contents",
+);
+
+await page.getByRole("button", { name: /Common open chords/ }).click();
+await page.waitForTimeout(200);
+const bpmTrack = page.locator("#chord-trainer-bpm");
+const bpmBox = await bpmTrack.boundingBox();
+assert(Boolean(bpmBox), "BPM slider is available");
+await bpmTrack.click({
+  position: { x: Math.max(4, (bpmBox?.width ?? 8) - 4), y: 4 },
+});
+await page.waitForTimeout(150);
+await page.click("#chord-trainer-strumming-pattern");
+await page.getByRole("option", { name: "DDDD" }).click();
+await page.waitForSelector("#chord-trainer-pattern-visualizer");
+await page.waitForTimeout(200);
+await page.click("#chord-trainer-start-pause");
+
+const parkedOffsets = [];
+let parkedAdvances = 0;
+let lastParkedName = null;
+const flickerDeadline = Date.now() + 25000;
+let lastFlicker = await readState(page);
+
+while (Date.now() < flickerDeadline && parkedAdvances < 12) {
+  lastFlicker = await readState(page);
+  const parked =
+    lastFlicker.ok &&
+    (lastFlicker.playheadProgress ?? 0) >= 0.5 &&
+    (lastFlicker.playheadProgress ?? 1) <= 0.92;
+  if (parked) {
+    parkedOffsets.push(Math.abs(lastFlicker.currentCenterOffset ?? 999));
+    if (
+      lastFlicker.currentName &&
+      lastFlicker.currentName !== lastParkedName
+    ) {
+      lastParkedName = lastFlicker.currentName;
+      parkedAdvances += 1;
+    }
+  }
+  await page.waitForTimeout(30);
+}
+
+assert(
+  parkedAdvances >= 12,
+  `sampled 12 parked pattern advances through the carousel window (got ${parkedAdvances})`,
+);
+const maxParkedOffset = Math.max(0, ...parkedOffsets);
+assert(
+  maxParkedOffset <= 8,
+  `current chord stays centered while parked after carousel trims (max offset ${maxParkedOffset.toFixed(3)}px)`,
+);
+assert(
+  (lastFlicker.pastGroupCount ?? 0) >= 2,
+  `past chords remain mounted after carousel trims (${lastFlicker.pastGroupCount})`,
+);
+
+await page.click("#chord-trainer-start-pause");
 
 await browser.close();
 
