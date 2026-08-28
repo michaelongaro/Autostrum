@@ -1,3 +1,5 @@
+> Historical implementation notes for Playback techniques. Domain term is **Technique** in [`CONTEXT.md`](../CONTEXT.md); product boundary is [`docs/adr/0007-generated-audio-only.md`](../docs/adr/0007-generated-audio-only.md).
+
 **Guitar effect audio recreation methodology**  
 All guitar effects are recreated using the Web Audio API with Soundfont.js providing the base guitar samples. The implementation prioritizes realistic sound reproduction while managing memory efficiently through proper cleanup of AudioBufferSourceNodes.
 
