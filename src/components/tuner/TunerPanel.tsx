@@ -403,7 +403,7 @@ function TunerPanel({
             className={`flex w-full items-center justify-center sm:w-auto sm:items-center sm:justify-center ${forPlaybackModal ? "!items-end gap-8" : "mt-2 gap-4 sm:mt-0 sm:gap-6"}`}
           >
             <div
-              className={`baseVertFlex !items-start ${forPlaybackModal ? "!flex-col !items-start gap-1 tablet:gap-[10px]" : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
+              className={`baseVertFlex !items-start ${forPlaybackModal ? `!flex-col !items-start ${playbackCapoControl !== undefined ? "tablet:gap-1.5" : "gap-1"}` : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
             >
               <Label
                 htmlFor="tuning"
@@ -416,11 +416,15 @@ function TunerPanel({
                   <PrettyTuning
                     tuning={tuning}
                     displayWithFlex={true}
-                    fontSize={
-                      playbackCapoControl !== undefined ? "18px" : "16px"
+                    noteClass={
+                      playbackCapoControl !== undefined
+                        ? "text-lg"
+                        : "text-base"
                     }
-                    lineHeight={
-                      playbackCapoControl !== undefined ? "28px" : "24px"
+                    accidentalClass={
+                      playbackCapoControl !== undefined
+                        ? "text-base"
+                        : "text-sm"
                     }
                     color={"hsl(var(--primary-foreground))"}
                     showScientificPitchNotation={true}
@@ -582,7 +586,8 @@ function TunerPanel({
                         note={formatNoteLabel(currentTarget)}
                         displayWithFlex={true}
                         showScientificPitchNotation={true}
-                        forGuidedTuner={true}
+                        noteClass="text-lg xs:text-xl"
+                        accidentalClass="text-base xs:mr-1 xs:text-lg"
                       />
                     </div>
                     <div className="baseFlex gap-2">

@@ -537,7 +537,14 @@ function StaticTabMetadata() {
             <div className="font-semibold">Tuning</div>
             {tuningNotesToName[
               tuning.toLowerCase() as keyof typeof tuningNotesToName
-            ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+            ] ?? (
+              <PrettyTuning
+                tuning={tuning}
+                displayWithFlex
+                noteClass="text-base"
+                accidentalClass="text-sm"
+              />
+            )}
           </div>
 
           <div className={`${classes.capo} baseVertFlex !items-start gap-1`}>

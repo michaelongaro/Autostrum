@@ -136,6 +136,8 @@ function ChromaticPitchScroller({
                     note={formatNoteLabel(noteName)}
                     displayWithFlex={true}
                     showScientificPitchNotation={true}
+                    noteClass="text-lg xs:text-xl"
+                    accidentalClass="text-base xs:mr-1 xs:text-lg"
                   />
                 </div>
                 <div
