@@ -6,6 +6,7 @@ import NextProgress from "next-progress";
 import ClientErrorBoundary from "~/components/errors/ClientErrorBoundary";
 import GeneralLayout from "~/components/Layout/GeneralLayout";
 import "~/styles/globals.css";
+import "~/components/HomePage/redesign/redesign.css";
 import "overlayscrollbars/overlayscrollbars.css";
 import { useTabStore } from "~/stores/TabStore";
 import { COLOR_HEX_VALUES } from "~/utils/updateCSSThemeVars";
