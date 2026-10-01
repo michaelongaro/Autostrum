@@ -28,7 +28,10 @@ import {
 } from "~/utils/playbackSpeedControls";
 import { useShallow } from "zustand/shallow";
 import { isMobileOnly } from "react-device-detect";
-import { mapLoopRelativeChordIndexToFullTabIndex } from "~/utils/loopRangeHelpers";
+import {
+  getInitialDraftLoopRange,
+  mapLoopRelativeChordIndexToFullTabIndex,
+} from "~/utils/loopRangeHelpers";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -679,9 +682,11 @@ interface TabState {
     endIndex: number | null;
   }) => void;
   /**
-   * Enter loop-range editing with a blank draft, remapping `currentChordIndex`
-   * from the loop-relative (possibly artificially duplicated) strip onto the
-   * matching full-tab chord so the viewport stays put.
+   * Enter loop-range editing. A committed range that is a real subset of the
+   * current section or tab is seeded into the draft so the user can adjust it.
+   * A range that already spans the whole section/tab starts blank.
+   * Remaps `currentChordIndex` from the loop-relative (possibly artificially
+   * duplicated) strip onto the matching full-tab chord so the viewport stays put.
    */
   enterPlaybackLoopRangeEditor: () => void;
   selectPlaybackLoopRangeChord: (index: number) => void;
@@ -927,9 +932,11 @@ const useTabStoreBase = create<TabState>()(
           loopDelay,
         });
 
+        const initialDraft = getInitialDraftLoopRange(audioMetadata);
+
         set({
-          draftLoopStartIndex: null,
-          draftLoopEndIndex: null,
+          draftLoopStartIndex: initialDraft.startIndex,
+          draftLoopEndIndex: initialDraft.endIndex,
           currentChordIndex: mappedChordIndex,
           audioMetadata: {
             ...audioMetadata,
