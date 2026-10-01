@@ -27,7 +27,7 @@ import {
   replaceIdInTabSection,
   replaceIdInSection,
 } from "~/utils/replaceWithUniqueIdHelpers";
-import isEqual from "lodash.isequal";
+import { playbackScopesMatch } from "~/utils/playbackScope";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import { Check } from "lucide-react";
 import {
@@ -349,16 +349,21 @@ function MiscellaneousControls({
             sectionIsEmpty
           }
           onClick={() => {
-            const locationIsEqual = isEqual(audioMetadata.location, {
-              sectionIndex,
-              subSectionIndex,
-              chordSequenceIndex,
-            });
+            // Same scope keeps currentChordIndex. A different scope resets,
+            // then starts that scope from its first chord.
+            const samePlaybackScope = playbackScopesMatch(
+              audioMetadata.location,
+              {
+                sectionIndex,
+                subSectionIndex,
+                chordSequenceIndex,
+              },
+            );
 
-            if (audioMetadata.playing && locationIsEqual) {
+            if (audioMetadata.playing && samePlaybackScope) {
               pauseAudio();
             } else {
-              if (!locationIsEqual) {
+              if (!samePlaybackScope) {
                 pauseAudio(true);
               }
 
@@ -373,7 +378,7 @@ function MiscellaneousControls({
                     },
                   });
                 },
-                !locationIsEqual ? 50 : 0,
+                !samePlaybackScope ? 50 : 0,
               );
             }
           }}
