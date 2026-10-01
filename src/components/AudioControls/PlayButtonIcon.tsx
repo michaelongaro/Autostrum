@@ -10,6 +10,7 @@ import {
   type AudioMetadata,
   type PreviewMetadata,
 } from "~/stores/TabStore";
+import { playbackScopesMatch } from "~/utils/playbackScope";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -104,10 +105,12 @@ function PlayButtonIcon({
 
     const isAudioPlayingOnCurrentLocation =
       uniqueLocationKey === "audioControls" ||
-      (audioMetadata &&
-        audioMetadata.location?.sectionIndex === sectionIndex &&
-        audioMetadata.location?.subSectionIndex === subSectionIndex &&
-        audioMetadata.location?.chordSequenceIndex === chordSequenceIndex);
+      (typeof sectionIndex === "number" &&
+        playbackScopesMatch(audioMetadata?.location, {
+          sectionIndex,
+          subSectionIndex,
+          chordSequenceIndex,
+        }));
 
     const isPreviewPlayingWithPatternAndType =
       previewMetadata?.playing &&
