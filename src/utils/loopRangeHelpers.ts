@@ -49,6 +49,58 @@ export function mapLoopRelativeChordIndexToFullTabIndex({
   return startLoopIndex + relativeInRange;
 }
 
+/**
+ * A committed range that already covers every chord in the current section or
+ * tab is the default playback scope, not a user-defined loop.
+ * `endLoopIndex === -1` means "through the last chord".
+ */
+export function isStoredLoopRangeFullSpan(
+  audioMetadata: AudioMetadata,
+): boolean {
+  if (audioMetadata.startLoopIndex !== 0) return false;
+  if (audioMetadata.endLoopIndex === -1) return true;
+
+  const length = audioMetadata.fullTabMetadataLength;
+  if (length <= 0) return false;
+
+  return (
+    getConcreteLoopEndIndex(audioMetadata.endLoopIndex, length) >= length - 1
+  );
+}
+
+/**
+ * Draft shown when the loop-range editor opens. A narrowed range is seeded so
+ * the user can adjust it; a full section/tab span starts blank.
+ */
+export function getInitialDraftLoopRange(audioMetadata: AudioMetadata): {
+  startIndex: number | null;
+  endIndex: number | null;
+} {
+  const length = audioMetadata.fullTabMetadataLength;
+  if (isStoredLoopRangeFullSpan(audioMetadata) || length <= 1) {
+    return { startIndex: null, endIndex: null };
+  }
+
+  const concreteEnd = getConcreteLoopEndIndex(
+    audioMetadata.endLoopIndex,
+    length,
+  );
+
+  if (
+    audioMetadata.startLoopIndex < 0 ||
+    audioMetadata.startLoopIndex >= length ||
+    concreteEnd <= audioMetadata.startLoopIndex ||
+    concreteEnd >= length
+  ) {
+    return { startIndex: null, endIndex: null };
+  }
+
+  return {
+    startIndex: audioMetadata.startLoopIndex,
+    endIndex: concreteEnd,
+  };
+}
+
 export function isDraftLoopRangeEmpty(
   draftStartIndex: number | null,
   draftEndIndex: number | null,
@@ -68,11 +120,8 @@ export function isDraftLoopRangeUnchanged(
   draftEndIndex: number | null,
   audioMetadata: AudioMetadata,
 ): boolean {
-  const storeIsFullRange =
-    audioMetadata.startLoopIndex === 0 && audioMetadata.endLoopIndex === -1;
-
   if (isDraftLoopRangeEmpty(draftStartIndex, draftEndIndex)) {
-    return storeIsFullRange;
+    return isStoredLoopRangeFullSpan(audioMetadata);
   }
 
   if (!isDraftLoopRangeComplete(draftStartIndex, draftEndIndex)) {
