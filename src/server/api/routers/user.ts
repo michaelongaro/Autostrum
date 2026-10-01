@@ -537,7 +537,17 @@ export const userRouter = createTRPCRouter({
       }
     }
 
-    miscStats.push(genres, tunings, difficulties, capos, artists);
+    const artistsSortedByMostTabs = new Map(
+      [...artists].sort((a, b) => b[1] - a[1]),
+    );
+
+    miscStats.push(
+      genres,
+      tunings,
+      difficulties,
+      capos,
+      artistsSortedByMostTabs,
+    );
 
     return {
       ...user,
