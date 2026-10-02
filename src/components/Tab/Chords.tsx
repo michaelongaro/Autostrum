@@ -71,7 +71,7 @@ function Chords() {
                 if (chordName === chordNameToBeDeleted) {
                   const section = draft[sectionIndex]!.data[subSectionIndex];
 
-                  if (!section || section.type !== "chord") continue;
+                  if (section?.type !== "chord") continue;
 
                   section.data[chordSequenceIndex]!.data[chordIndex] = "";
                 }
@@ -127,6 +127,7 @@ function Chords() {
                         color={chord.color}
                         truncate={false}
                         showFullName={true}
+                        hideColor={true}
                       />
                     </div>
 

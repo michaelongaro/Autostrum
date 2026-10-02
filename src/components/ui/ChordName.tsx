@@ -1,5 +1,4 @@
 import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
-import { getContrastTextColor } from "~/utils/chordColors";
 
 function dynamicFontSize(chordNameLength: number): number {
   const inMin = 1;
@@ -22,6 +21,7 @@ interface ChordName {
   screenshotColor?: COLORS;
   screenshotTheme?: THEME;
   showFullName?: boolean;
+  hideColor?: boolean;
 }
 
 function ChordName({
@@ -32,6 +32,7 @@ function ChordName({
   screenshotColor,
   screenshotTheme,
   showFullName,
+  hideColor,
 }: ChordName) {
   const chordDisplayMode = useTabStore((state) => {
     return state.chordDisplayMode;
@@ -39,8 +40,8 @@ function ChordName({
 
   let textColor = "";
 
-  if (chordDisplayMode === "color") {
-    textColor = getContrastTextColor(color);
+  if (chordDisplayMode === "color" && !hideColor) {
+    textColor = color;
   } else {
     textColor = isHighlighted
       ? "hsl(var(--primary))"
@@ -57,22 +58,17 @@ function ChordName({
   return (
     <div
       style={{
-        backgroundColor: chordDisplayMode === "color" ? color : undefined,
         color: textColor,
-        fontSize: truncate
-          ? `${dynamicFontSize(name.length)}px`
-          : chordDisplayMode === "color"
-            ? "14px"
-            : "16px",
+        fontSize: truncate ? `${dynamicFontSize(name.length)}px` : "16px",
         lineHeight: "1.25rem",
-        zIndex: showFullName ? 9 : undefined, // still want hover to take priority over chord popover being open
+        zIndex: showFullName ? 9 : undefined, // I still want hover to take priority over chord popover being open
         rotate:
           modifiedChordName.length > 4 && !showFullName ? "-30deg" : "0deg",
         transition: "rotate 0.15s ease-out",
       }}
       // FYI: I am still unsure why adding "isolate" fixes the issue where the chord name
       // would sometimes not change color when highlighted on iOS
-      className="baseFlex isolate h-5 shrink-0 rounded-full px-[5px] font-semibold hover:z-10"
+      className="baseFlex isolate h-5 shrink-0 px-1 font-semibold hover:z-10"
     >
       {modifiedChordName}
     </div>

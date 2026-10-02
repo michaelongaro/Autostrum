@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { AnimatePresence, motion } from "framer-motion";
 
 function ChordDialog() {
   const {
@@ -206,26 +207,30 @@ function ChordDialog() {
                           color: getContrastTextColor(color),
                         }}
                         className={`baseFlex size-7 rounded-full transition-all ${
-                          chord.value.color === color
-                            ? "ring-1 ring-primary ring-offset-2 ring-offset-background"
-                            : "hover:scale-110"
+                          chord.value.color === color ? "" : "hover:scale-110"
                         }`}
                       >
-                        {chord.value.color === color && (
-                          <svg
-                            className="size-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={3}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        )}
+                        <AnimatePresence mode="popLayout">
+                          {chord.value.color === color && (
+                            <motion.svg
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="size-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={3}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </motion.svg>
+                          )}
+                        </AnimatePresence>
                       </button>
                     ))}
                   </div>
