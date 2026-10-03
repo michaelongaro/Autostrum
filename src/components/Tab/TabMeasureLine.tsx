@@ -1,7 +1,11 @@
+import type {
+  DraggableAttributes,
+  DraggableSyntheticListeners,
+} from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { CSS, type Transform } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import {
@@ -13,6 +17,7 @@ import { getTabData, useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
+import { focusEditingTabInput } from "~/utils/tabNoteHandlers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
   useTabColumnNeighborMeta,
@@ -42,6 +47,17 @@ interface TabMeasureLineProps {
   editingPalmMuteNodes: boolean;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
+  drag?: ColumnDragBindings;
+}
+
+interface ColumnDragBindings {
+  setNodeRef: (element: HTMLElement | null) => void;
+  setActivatorNodeRef: (element: HTMLElement | null) => void;
+  transform: Transform | null;
+  transition: string | undefined;
+  isDragging: boolean;
+  attributes: DraggableAttributes;
+  listeners: DraggableSyntheticListeners;
 }
 
 function TabMeasureLine({
@@ -51,6 +67,7 @@ function TabMeasureLine({
   editingPalmMuteNodes,
   reorderingColumns,
   showingDeleteColumnsButtons,
+  drag,
 }: TabMeasureLineProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
@@ -80,11 +97,8 @@ function TabMeasureLine({
     setActivatorNodeRef,
     transform,
     transition,
-    isDragging,
-  } = useSortable({
-    id: columnData?.id ?? `measure-line-${columnIndex}`,
-    disabled: !reorderingColumns, // hopefully this is a performance improvement?
-  });
+    isDragging = false,
+  } = drag ?? {};
 
   const { setTabData } = useTabStore((state) => ({
     setTabData: state.setTabData,
@@ -140,11 +154,13 @@ function TabMeasureLine({
           ? columnIndex - 2
           : columnIndex - 1;
 
-      const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`,
-      );
-
-      focusAndScrollIntoView(currentNote, newNoteToFocus);
+      focusEditingTabInput({
+        currentElement: currentNote,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: adjColumnIndex,
+        noteIndex: 7,
+      });
       return;
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
@@ -164,11 +180,13 @@ function TabMeasureLine({
           ? columnIndex + 2
           : columnIndex + 1;
 
-      const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`,
-      );
-
-      focusAndScrollIntoView(currentNote, newNoteToFocus);
+      focusEditingTabInput({
+        currentElement: currentNote,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: adjColumnIndex,
+        noteIndex: 7,
+      });
       return;
     }
   }
@@ -183,9 +201,9 @@ function TabMeasureLine({
       key={columnData.id}
       ref={setNodeRef}
       style={{
-        transform: CSS.Transform.toString(
-          transform && { ...transform, scaleY: 1, scaleX: 1 },
-        ),
+        transform: transform
+          ? CSS.Transform.toString({ ...transform, scaleY: 1, scaleX: 1 })
+          : undefined,
         // need to have same width as chords for the drag and drop algorithm
         // to behave properly without the ui breaking
         width:
@@ -330,8 +348,8 @@ function TabMeasureLine({
               {reorderingColumns && (
                 <div
                   ref={setActivatorNodeRef}
-                  {...attributes}
-                  {...listeners}
+                  {...(attributes ?? {})}
+                  {...(listeners ?? {})}
                   className={`hover:box-shadow-md ${
                     isDragging ? "cursor-grabbing" : "cursor-grab"
                   } absolute top-[18px] z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
@@ -381,4 +399,33 @@ function TabMeasureLine({
   );
 }
 
-export default TabMeasureLine;
+const MemoTabMeasureLine = memo(TabMeasureLine);
+
+function SortableTabMeasureLine(props: TabMeasureLineProps) {
+  const columnData = useTabMeasureLineColumnData(
+    props.sectionIndex,
+    props.subSectionIndex,
+    props.columnIndex,
+  );
+  const sortable = useSortable({
+    id: columnData?.id ?? `measure-line-${props.columnIndex}`,
+  });
+
+  return (
+    <TabMeasureLine
+      {...props}
+      drag={{
+        setNodeRef: sortable.setNodeRef,
+        setActivatorNodeRef: sortable.setActivatorNodeRef,
+        transform: sortable.transform,
+        transition: sortable.transition,
+        isDragging: sortable.isDragging,
+        attributes: sortable.attributes,
+        listeners: sortable.listeners,
+      }}
+    />
+  );
+}
+
+export { SortableTabMeasureLine };
+export default MemoTabMeasureLine;

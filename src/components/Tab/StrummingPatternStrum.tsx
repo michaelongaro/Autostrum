@@ -114,7 +114,10 @@ function StrummingPatternStrum({
   );
   const bpm = useTabStore((state) => state.bpm);
   const playPreview = useTabStore((state) => state.playPreview);
-  const previewMetadata = useTabStore((state) => state.previewMetadata);
+  const chordPreviewPlaying = useTabStore(
+    (state) =>
+      state.previewMetadata.playing && state.previewMetadata.type === "chord",
+  );
 
   const forPreview =
     mode === "editingStrummingPattern" || patternIndex !== undefined;
@@ -393,7 +396,7 @@ function StrummingPatternStrum({
                 }
                 onPreview={handlePreviewStrum}
                 previewDisabled={
-                  previewMetadata.playing && previewMetadata.type === "chord"
+                  chordPreviewPlaying
                 }
                 triggerClassName="mt-2 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
               />

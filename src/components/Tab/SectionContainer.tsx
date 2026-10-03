@@ -2,6 +2,8 @@ import { AnimatePresence } from "framer-motion";
 import debounce from "lodash.debounce";
 import {
   useEffect,
+  useMemo,
+  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -85,6 +87,47 @@ function SectionContainer({
   // index) re-initializes from the store value.
   const [localTitle, setLocalTitle] = useState(sectionTitle);
 
+  const sectionIndexRef = useRef(sectionIndex);
+  const sectionIdRef = useRef(sectionId);
+  const sectionProgressionRef = useRef(sectionProgression);
+  sectionIndexRef.current = sectionIndex;
+  sectionIdRef.current = sectionId;
+  sectionProgressionRef.current = sectionProgression;
+
+  // One shared debounce. Creating `debounce(...)()` per keystroke scheduled a
+  // separate store write for every character, and each write walked every
+  // mounted column.
+  const commitSectionTitle = useMemo(
+    () =>
+      debounce((value: string) => {
+        const index = sectionIndexRef.current;
+        const id = sectionIdRef.current;
+
+        setTabData((draft) => {
+          const section = draft[index];
+          if (section && section.id === id) {
+            section.title = value;
+          }
+        });
+
+        const progression = sectionProgressionRef.current;
+        if (!progression.some((section) => section.sectionId === id)) return;
+
+        setSectionProgression(
+          progression.map((section) =>
+            section.sectionId === id ? { ...section, title: value } : section,
+          ),
+        );
+      }, 1000),
+    [setSectionProgression, setTabData],
+  );
+
+  useEffect(() => {
+    return () => {
+      commitSectionTitle.flush();
+    };
+  }, [commitSectionTitle]);
+
   useEffect(() => {
     if (forceCloseSectionAccordions) {
       setAccordionOpen("closed");
@@ -102,21 +145,7 @@ function SectionContainer({
     if (e.target.value.length > 25) return;
 
     setLocalTitle(e.target.value);
-
-    // in general app slows down w/ size of tab increasing, but it's especially
-    // noticeable when updating the title of a section since it can be
-    // updated faster than the tab data (in general)
-    debounce(() => {
-      setTabData((draft) => {
-        draft[sectionIndex]!.title = e.target.value;
-      });
-
-      const newSectionProgression = sectionProgression.map((s) =>
-        s.sectionId === sectionId ? { ...s, title: e.target.value } : s,
-      );
-
-      setSectionProgression(newSectionProgression);
-    }, 1000)();
+    commitSectionTitle(e.target.value);
   }
 
   function generateDefaultTabSection(): TabSectionType {

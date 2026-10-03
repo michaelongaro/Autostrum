@@ -137,6 +137,47 @@ function validNoteInput(input: string) {
   return false;
 }
 
+/**
+ * Focus a tab input, mounting it first when row virtualization has unmounted
+ * the target column. Retries across frames so the reveal can commit.
+ */
+export function focusEditingTabInput({
+  currentElement,
+  sectionIndex,
+  subSectionIndex,
+  columnIndex,
+  noteIndex,
+  noScroll,
+}: {
+  currentElement: HTMLElement | null;
+  sectionIndex: number;
+  subSectionIndex: number;
+  columnIndex: number;
+  noteIndex: number;
+  noScroll?: boolean;
+}) {
+  const inputId = `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`;
+
+  const tryFocus = (triesLeft: number) => {
+    const target = document.getElementById(inputId);
+    if (target instanceof HTMLElement) {
+      focusAndScrollIntoView(currentElement ?? target, target, noScroll);
+      return;
+    }
+
+    if (triesLeft <= 0) return;
+
+    window.dispatchEvent(
+      new CustomEvent("editing-tab-reveal-column", {
+        detail: { sectionIndex, subSectionIndex, columnIndex, noteIndex },
+      }),
+    );
+    requestAnimationFrame(() => tryFocus(triesLeft - 1));
+  };
+
+  tryFocus(4);
+}
+
 export interface TabNoteHandlerParams {
   note: string;
   sectionIndex: number;
@@ -220,14 +261,14 @@ export function handleTabNoteKeyDown(
         }
       });
 
-      // Focus the newly created column
-      setTimeout(() => {
-        const newNoteToFocus = document.getElementById(
-          `input-${sectionIndex}-${subSectionIndex}-${insertionIndex}-${noteIndex}`,
-        );
-
-        focusAndScrollIntoView(currentNote, newNoteToFocus);
-      }, 0);
+      // Focus the newly created column (may still be outside the virtual window).
+      focusEditingTabInput({
+        currentElement: currentNote,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: insertionIndex,
+        noteIndex,
+      });
     }
 
     return;
@@ -321,16 +362,15 @@ export function handleTabNoteKeyDown(
       });
 
       // Focus the next column, or previous if at end
-      setTimeout(() => {
-        const nextIndex =
-          columnIndex < subSection.data.length - 1
-            ? columnIndex
-            : columnIndex - 1;
-        const newNoteToFocus = document.getElementById(
-          `input-${sectionIndex}-${subSectionIndex}-${nextIndex}-${noteIndex}`,
-        );
-        focusAndScrollIntoView(currentNote, newNoteToFocus);
-      }, 0);
+      const nextIndex =
+        columnIndex < subSection.data.length - 1 ? columnIndex : columnIndex - 1;
+      focusEditingTabInput({
+        currentElement: currentNote,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: nextIndex,
+        noteIndex,
+      });
     }
 
     return;
@@ -340,24 +380,24 @@ export function handleTabNoteKeyDown(
   if (e.key === "ArrowDown" && !e.shiftKey) {
     e.preventDefault(); // prevent cursor from moving
 
-    const newNoteToFocus = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${
-        noteIndex + 1
-      }`,
-    );
-
-    focusAndScrollIntoView(currentNote, newNoteToFocus);
+    focusEditingTabInput({
+      currentElement: currentNote,
+      sectionIndex,
+      subSectionIndex,
+      columnIndex,
+      noteIndex: noteIndex + 1,
+    });
     return;
   } else if (e.key === "ArrowUp" && !e.shiftKey) {
     e.preventDefault(); // prevent cursor from moving
 
-    const newNoteToFocus = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${
-        noteIndex - 1
-      }`,
-    );
-
-    focusAndScrollIntoView(currentNote, newNoteToFocus);
+    focusEditingTabInput({
+      currentElement: currentNote,
+      sectionIndex,
+      subSectionIndex,
+      columnIndex,
+      noteIndex: noteIndex - 1,
+    });
     return;
   } else if (e.key === "ArrowLeft") {
     e.preventDefault(); // prevent cursor from moving
@@ -368,11 +408,13 @@ export function handleTabNoteKeyDown(
         ? columnIndex - 2
         : columnIndex - 1;
 
-    const newNoteToFocus = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
-    );
-
-    focusAndScrollIntoView(currentNote, newNoteToFocus);
+    focusEditingTabInput({
+      currentElement: currentNote,
+      sectionIndex,
+      subSectionIndex,
+      columnIndex: adjColumnIndex,
+      noteIndex,
+    });
     return;
   } else if (e.key === "ArrowRight") {
     e.preventDefault(); // prevent cursor from moving
@@ -392,11 +434,13 @@ export function handleTabNoteKeyDown(
         ? columnIndex + 2
         : columnIndex + 1;
 
-    const newNoteToFocus = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
-    );
-
-    focusAndScrollIntoView(currentNote, newNoteToFocus);
+    focusEditingTabInput({
+      currentElement: currentNote,
+      sectionIndex,
+      subSectionIndex,
+      columnIndex: adjColumnIndex,
+      noteIndex,
+    });
     return;
   }
 
@@ -630,13 +674,13 @@ export function handleTabNoteChange(
         }
       });
 
-      const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${
-          columnIndex + 1
-        }-${noteIndex}`,
-      );
-
-      newNoteToFocus?.focus();
+      focusEditingTabInput({
+        currentElement: e.target,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: columnIndex + 1,
+        noteIndex,
+      });
       return;
     }
   }

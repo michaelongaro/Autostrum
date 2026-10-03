@@ -1,5 +1,9 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { getTabStore, useTabStore, type Metadata } from "~/stores/TabStore";
+import {
+  findPlaybackSegmentIndex,
+  getPlaybackCumulativeSeconds,
+} from "~/utils/playbackTimeline";
 
 /** Rows differ by more than a strum column; anything above this is a wrap. */
 const ROW_Y_SNAP_THRESHOLD_PX = 40;
@@ -24,42 +28,6 @@ interface StrumLayoutPos {
 
 function isPlayableMetadata(metadata: Metadata): boolean {
   return metadata.type === "tab" || metadata.type === "strum";
-}
-
-function getChordDurationSeconds(
-  metadata: Metadata,
-  playbackSpeed: number,
-): number {
-  if (!isPlayableMetadata(metadata)) {
-    return 0;
-  }
-
-  const bpm = metadata.bpm;
-  const noteLengthMultiplier = Number(metadata.noteLengthMultiplier);
-  if (
-    !(bpm > 0) ||
-    !(noteLengthMultiplier > 0) ||
-    !(playbackSpeed > 0) ||
-    !Number.isFinite(bpm) ||
-    !Number.isFinite(noteLengthMultiplier)
-  ) {
-    return 0;
-  }
-
-  return 60 / ((bpm / noteLengthMultiplier) * playbackSpeed);
-}
-
-function buildCumulativeTimesSeconds(
-  metadata: Metadata[],
-  playbackSpeed: number,
-): number[] {
-  const cumulative = new Array(metadata.length + 1).fill(0) as number[];
-  for (let index = 0; index < metadata.length; index++) {
-    cumulative[index + 1] =
-      cumulative[index]! +
-      getChordDurationSeconds(metadata[index]!, playbackSpeed);
-  }
-  return cumulative;
 }
 
 function normalizeModulo(value: number, modulus: number) {
@@ -387,7 +355,7 @@ export function useEditingStrumPlayhead({
       }
 
       const metadata = currentlyPlayingMetadata;
-      const cumulative = buildCumulativeTimesSeconds(metadata, playbackSpeed);
+      const cumulative = getPlaybackCumulativeSeconds(metadata, playbackSpeed);
       const totalDurationSeconds = cumulative[metadata.length] ?? 0;
       const anchorIndex =
         ((anchorChordIndexRef.current % metadata.length) + metadata.length) %
@@ -457,14 +425,11 @@ export function useEditingStrumPlayhead({
         ? normalizeModulo(absoluteSeconds, totalDurationSeconds)
         : Math.min(absoluteSeconds, totalDurationSeconds);
 
-      let segmentIndex = 0;
-      for (let index = 0; index < metadata.length; index++) {
-        if ((cumulative[index] ?? 0) <= loopSeconds) {
-          segmentIndex = index;
-        } else {
-          break;
-        }
-      }
+      let segmentIndex = findPlaybackSegmentIndex(
+        cumulative,
+        metadata.length,
+        loopSeconds,
+      );
       if (!isPlayableMetadata(metadata[segmentIndex]!)) {
         let advanced = segmentIndex;
         while (

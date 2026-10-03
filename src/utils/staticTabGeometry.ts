@@ -352,11 +352,12 @@ export interface VisibleRowRange {
  * @param viewportTopPx    layout viewport top (always 0 for document scroll)
  */
 export function getVisibleRowRangeFromBodyRect(
-  layout: StaticTabRowLayout,
+  layout: { rows: { top: number }[]; totalHeight: number },
   bodyRect: Pick<DOMRect, "top" | "bottom" | "height">,
   viewportHeightPx: number,
   overscanPx: number = STATIC_TAB_OVERSCAN_PX,
   viewportTopPx: number = 0,
+  rowStridePx: number = STATIC_TAB_ROW_HEIGHT_PX,
 ): VisibleRowRange | null {
   const rowCount = layout.rows.length;
   if (rowCount === 0 || layout.totalHeight <= 0) return null;
@@ -387,8 +388,9 @@ export function getVisibleRowRangeFromBodyRect(
 
   const clamp = (value: number) => Math.min(Math.max(value, 0), rowCount - 1);
 
-  const startRow = clamp(Math.floor(layoutStart / STATIC_TAB_ROW_HEIGHT_PX));
-  const endRow = clamp(Math.ceil(layoutEnd / STATIC_TAB_ROW_HEIGHT_PX) - 1);
+  const stride = rowStridePx > 0 ? rowStridePx : STATIC_TAB_ROW_HEIGHT_PX;
+  const startRow = clamp(Math.floor(layoutStart / stride));
+  const endRow = clamp(Math.ceil(layoutEnd / stride) - 1);
 
   if (endRow < startRow) return null;
 
