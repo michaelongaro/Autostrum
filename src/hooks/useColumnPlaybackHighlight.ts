@@ -1,4 +1,12 @@
 import { useTabStore } from "~/stores/TabStore";
+import { playbackMetadataHasColumn } from "~/utils/playbackColumnIndex";
+
+const IDLE_HIGHLIGHT = {
+  columnIsBeingPlayed: false,
+  columnHasBeenPlayed: false,
+  durationOfChord: 0,
+  isHighlighted: false,
+};
 
 /**
  * Fine-grained playback highlight state for a single tab column.
@@ -7,6 +15,12 @@ import { useTabStore } from "~/stores/TabStore";
  * re-renders the column(s) whose highlight state actually changed. Keeping
  * this out of TabSection avoids section-wide re-renders (and DndContext
  * invalidation) on every currentChordIndex tick during playback.
+ *
+ * While audio is stopped this returns a stable object and does no metadata
+ * scan. While playing, "is this column in the compiled tab?" is a cached
+ * set lookup — not a linear search per column. Both used to be O(metadata)
+ * per mounted column per store update, which is quadratic when every note
+ * lives in one section.
  */
 export function useColumnPlaybackHighlight(
   sectionIndex: number,
@@ -14,68 +28,49 @@ export function useColumnPlaybackHighlight(
   columnIndex: number,
 ) {
   return useTabStore((state) => {
-    const metadata = state.currentlyPlayingMetadata?.[state.currentChordIndex];
-    const location = metadata?.location;
-
-    let columnIsBeingPlayed = false;
-    let columnHasBeenPlayed = false;
-    let durationOfChord = 0;
-
-    if (state.currentlyPlayingMetadata && location) {
-      const isSameSection =
-        location.sectionIndex === sectionIndex &&
-        location.subSectionIndex === subSectionIndex;
-      const isCurrentColumn =
-        isSameSection && location.chordIndex === columnIndex;
-
-      columnIsBeingPlayed =
-        isCurrentColumn &&
-        state.audioMetadata.playing &&
-        !state.audioMetadata.editingLoopRange;
-
-      if (state.audioMetadata.editingLoopRange) {
-        columnHasBeenPlayed = state.currentlyPlayingMetadata.some(
-          (entry) =>
-            sectionIndex === entry.location.sectionIndex &&
-            subSectionIndex === entry.location.subSectionIndex &&
-            columnIndex === entry.location.chordIndex,
-        );
-      } else {
-        const correspondingChordExists = state.currentlyPlayingMetadata.some(
-          (entry) =>
-            sectionIndex === entry.location.sectionIndex &&
-            subSectionIndex === entry.location.subSectionIndex &&
-            columnIndex === entry.location.chordIndex,
-        );
-
-        if (correspondingChordExists) {
-          const subSection = state.tabData[sectionIndex]?.data[subSectionIndex];
-          const subSectionLength =
-            subSection?.type === "tab" ? subSection.data.length : 0;
-
-          columnHasBeenPlayed =
-            isSameSection &&
-            (location.chordIndex > columnIndex ||
-              (location.chordIndex === columnIndex &&
-                location.chordIndex === subSectionLength));
-        }
-      }
-
-      if (isCurrentColumn) {
-        durationOfChord =
-          60 /
-          ((metadata.bpm / Number(metadata.noteLengthMultiplier)) *
-            state.playbackSpeed);
-      }
+    if (
+      !state.audioMetadata.playing ||
+      state.audioMetadata.editingLoopRange ||
+      !state.currentlyPlayingMetadata
+    ) {
+      return IDLE_HIGHLIGHT;
     }
 
-    // Chord notes only use primary highlighting while audio is actively
-    // playing. The trail / current logic above stays the same for playback;
-    // when paused or stopped, frets return to the default foreground color.
-    const isHighlighted =
-      state.audioMetadata.playing &&
-      !state.audioMetadata.editingLoopRange &&
-      (columnIsBeingPlayed || columnHasBeenPlayed);
+    const metadata = state.currentlyPlayingMetadata;
+    const current = metadata[state.currentChordIndex];
+    const location = current?.location;
+    if (!location) return IDLE_HIGHLIGHT;
+
+    if (
+      location.sectionIndex !== sectionIndex ||
+      location.subSectionIndex !== subSectionIndex ||
+      location.chordIndex < columnIndex
+    ) {
+      return IDLE_HIGHLIGHT;
+    }
+
+    if (
+      !playbackMetadataHasColumn(metadata, {
+        sectionIndex,
+        subSectionIndex,
+        chordIndex: columnIndex,
+      })
+    ) {
+      return IDLE_HIGHLIGHT;
+    }
+
+    const columnIsBeingPlayed = location.chordIndex === columnIndex;
+    const columnHasBeenPlayed = location.chordIndex > columnIndex;
+    const isHighlighted = columnIsBeingPlayed || columnHasBeenPlayed;
+    if (!isHighlighted) return IDLE_HIGHLIGHT;
+
+    let durationOfChord = 0;
+    if (columnIsBeingPlayed) {
+      durationOfChord =
+        60 /
+        ((current.bpm / Number(current.noteLengthMultiplier)) *
+          state.playbackSpeed);
+    }
 
     return {
       columnIsBeingPlayed,

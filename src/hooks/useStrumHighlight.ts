@@ -1,4 +1,5 @@
 import { useTabStore } from "~/stores/TabStore";
+import { playbackMetadataHasColumn } from "~/utils/playbackColumnIndex";
 
 type UseStrumHighlightArgs = {
   strumIndex: number;
@@ -48,19 +49,6 @@ export function useStrumHighlight({
     const currentlyPlayingMetadata = state.currentlyPlayingMetadata;
     if (!currentlyPlayingMetadata) return false;
 
-    const correspondingChordExists = currentlyPlayingMetadata.some(
-      (metadata) => {
-        return (
-          sectionIndex === metadata.location.sectionIndex &&
-          subSectionIndex === metadata.location.subSectionIndex &&
-          chordSequenceIndex === metadata.location.chordSequenceIndex &&
-          strumIndex === metadata.location.chordIndex
-        );
-      },
-    );
-
-    if (!correspondingChordExists) return false;
-
     const location =
       currentlyPlayingMetadata[state.currentChordIndex]?.location;
     if (!location) return false;
@@ -74,6 +62,13 @@ export function useStrumHighlight({
       return false;
     }
 
-    return true;
+    // Loop ranges can omit earlier strums that the index comparison would
+    // otherwise paint. The key set is built once per metadata array.
+    return playbackMetadataHasColumn(currentlyPlayingMetadata, {
+      sectionIndex: sectionIndex ?? -1,
+      subSectionIndex: subSectionIndex ?? -1,
+      chordSequenceIndex,
+      chordIndex: strumIndex,
+    });
   });
 }

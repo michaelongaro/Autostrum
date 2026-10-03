@@ -52,3 +52,30 @@ export const EDITING_TAB_STAFF_LINE_INSET_PX =
 /** Vertical line spanning the first string through the sixth string. */
 export const EDITING_TAB_STAFF_LINE_HEIGHT_PX =
   (EDITING_TAB_STRING_COUNT - 1) * EDITING_TAB_STRING_ROW_HEIGHT_PX + 1;
+
+/** `gap-y-4` between wrapped editing-staff rows. */
+export const EDITING_TAB_ROW_GAP_PX = 16;
+
+/** Distance from one wrapped row's top to the next. */
+export const EDITING_TAB_ROW_STRIDE_PX =
+  EDITING_TAB_COLUMN_HEIGHT_PX + EDITING_TAB_ROW_GAP_PX;
+
+/** In-flow width of a measure line outside reorder/delete mode. */
+export const EDITING_TAB_MEASURE_LINE_WIDTH_PX = 1;
+
+/** 1px end nut after the last column. */
+export const EDITING_TAB_END_NUT_WIDTH_PX = 1;
+
+/** Vertical tuning letters, matching PrettyVerticalTuning. */
+export const EDITING_TAB_TUNING_LETTER_WIDTH_PX = 12;
+export const EDITING_TAB_TUNING_ACCIDENTAL_WIDTH_PX = 16;
+
+/** `pr-2` between the tuning letters and the start nut. */
+export const EDITING_TAB_TUNING_GAP_PX = 8;
+
+/**
+ * Subsections shorter than this stay on the full flex-wrap path. Virtualizing
+ * a handful of columns costs more than it saves, and keeps short tabs on the
+ * exact layout the playhead already measures.
+ */
+export const EDITING_TAB_VIRTUALIZE_MIN_COLUMNS = 48;

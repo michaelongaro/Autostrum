@@ -1,8 +1,12 @@
+import type {
+  DraggableAttributes,
+  DraggableSyntheticListeners,
+} from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { CSS, type Transform } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Element } from "react-scroll";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { memo, useState, type Dispatch, type SetStateAction } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import { useTabStore } from "~/stores/TabStore";
@@ -47,6 +51,17 @@ interface TabNotesColumnProps {
   >;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
+  drag?: ColumnDragBindings;
+}
+
+interface ColumnDragBindings {
+  setNodeRef: (element: HTMLElement | null) => void;
+  setActivatorNodeRef: (element: HTMLElement | null) => void;
+  transform: Transform | null;
+  transition: string | undefined;
+  isDragging: boolean;
+  attributes: DraggableAttributes;
+  listeners: DraggableSyntheticListeners;
 }
 
 function TabNotesColumn({
@@ -61,6 +76,7 @@ function TabNotesColumn({
   setLastModifiedPalmMuteNode,
   reorderingColumns,
   showingDeleteColumnsButtons,
+  drag,
 }: TabNotesColumnProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
@@ -94,11 +110,8 @@ function TabNotesColumn({
     setActivatorNodeRef,
     transform,
     transition,
-    isDragging,
-  } = useSortable({
-    id: columnData?.id ?? `tab-note-${columnIndex}`,
-    disabled: !reorderingColumns, // hopefully this is a performance improvement?
-  });
+    isDragging = false,
+  } = drag ?? {};
 
   const {
     pauseAudio,
@@ -106,15 +119,18 @@ function TabNotesColumn({
     setHoveredChordLocation,
     bpm,
     playPreview,
-    previewMetadata,
   } = useTabStore((state) => ({
     pauseAudio: state.pauseAudio,
     setTabData: state.setTabData,
     setHoveredChordLocation: state.setHoveredChordLocation,
     bpm: state.bpm,
     playPreview: state.playPreview,
-    previewMetadata: state.previewMetadata,
   }));
+
+  const chordPreviewPlaying = useTabStore(
+    (state) =>
+      state.previewMetadata.playing && state.previewMetadata.type === "chord",
+  );
 
   if (!columnData) {
     return null;
@@ -250,9 +266,9 @@ function TabNotesColumn({
       key={columnData.id}
       ref={setNodeRef}
       style={{
-        transform: CSS.Transform.toString(
-          transform && { ...transform, scaleY: 1, scaleX: 1 },
-        ),
+        transform: transform
+          ? CSS.Transform.toString({ ...transform, scaleY: 1, scaleX: 1 })
+          : undefined,
         transition,
         zIndex: isDragging ? 20 : "auto",
         height: EDITING_TAB_COLUMN_HEIGHT_PX,
@@ -361,8 +377,8 @@ function TabNotesColumn({
             <div className="baseFlex relative mt-1 h-8 w-full">
               <div
                 ref={setActivatorNodeRef}
-                {...attributes}
-                {...listeners}
+                {...(attributes ?? {})}
+                {...(listeners ?? {})}
                 className={`hover:box-shadow-md w-[1.5rem] cursor-grab rounded-md text-foreground ${
                   isDragging ? "cursor-grabbing" : "cursor-grab"
                 }`}
@@ -422,7 +438,7 @@ function TabNotesColumn({
               }
               onPreview={handlePreviewStrum}
               previewDisabled={
-                previewMetadata.playing && previewMetadata.type === "chord"
+                chordPreviewPlaying
               }
             />
           ) : (
@@ -434,4 +450,33 @@ function TabNotesColumn({
   );
 }
 
-export default TabNotesColumn;
+const MemoTabNotesColumn = memo(TabNotesColumn);
+
+function SortableTabNotesColumn(props: TabNotesColumnProps) {
+  const columnData = useTabNoteColumnData(
+    props.sectionIndex,
+    props.subSectionIndex,
+    props.columnIndex,
+  );
+  const sortable = useSortable({
+    id: columnData?.id ?? `tab-note-${props.columnIndex}`,
+  });
+
+  return (
+    <TabNotesColumn
+      {...props}
+      drag={{
+        setNodeRef: sortable.setNodeRef,
+        setActivatorNodeRef: sortable.setActivatorNodeRef,
+        transform: sortable.transform,
+        transition: sortable.transition,
+        isDragging: sortable.isDragging,
+        attributes: sortable.attributes,
+        listeners: sortable.listeners,
+      }}
+    />
+  );
+}
+
+export { SortableTabNotesColumn };
+export default MemoTabNotesColumn;

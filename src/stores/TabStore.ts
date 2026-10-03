@@ -26,6 +26,7 @@ import {
   clampPlaybackSpeed,
   type PlaybackSpeed,
 } from "~/utils/playbackSpeedControls";
+import { setHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 import { useShallow } from "zustand/shallow";
 import { isMobileOnly } from "react-device-detect";
 import {
@@ -555,7 +556,11 @@ interface TabState {
   setCountInTimerEnabled: (countInTimerEnabled: boolean) => void;
   updateMasterVolumeGainNode: (newVolume: number) => void;
 
-  /** Chord column currently under the mouse while editing (for spacebar play). */
+  /**
+   * Unused store mirror. `setHoveredChordLocation` writes a module-level value
+   * read by the spacebar handler and does not notify subscribers — hovering a
+   * column must not wake every mounted note.
+   */
   hoveredChordLocation: HoveredChordLocation | null;
   setHoveredChordLocation: (
     hoveredChordLocation: HoveredChordLocation | null,
@@ -1041,8 +1046,10 @@ const useTabStoreBase = create<TabState>()(
       setCountInTimerEnabled: (countInTimerEnabled) =>
         set({ countInTimerEnabled }),
       hoveredChordLocation: null,
-      setHoveredChordLocation: (hoveredChordLocation) =>
-        set({ hoveredChordLocation }),
+      // Module-level, not `set()`: mouseenter must not notify every column.
+      setHoveredChordLocation: (hoveredChordLocation) => {
+        setHoveredChordLocationValue(hoveredChordLocation);
+      },
 
       // this function is needed because react doesn't want you to directly
       // update a property of a value returned from a hook
@@ -1680,7 +1687,10 @@ const useTabStoreBase = create<TabState>()(
         set({ followsDeviceTheme }),
 
       // reset
-      resetStoreToInitValues: () => set(initialStoreState),
+      resetStoreToInitValues: () => {
+        setHoveredChordLocationValue(null);
+        set(initialStoreState);
+      },
     })),
   ),
 );
