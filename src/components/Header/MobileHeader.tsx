@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import { PiMetronome } from "react-icons/pi";
 import { stringifyFullTabState, useTabStore } from "~/stores/TabStore";
+import { isDevSoundLabPath } from "~/utils/devSoundLabPath";
 import { IoMdSettings } from "react-icons/io";
 import { IoBookmark, IoStatsChart } from "react-icons/io5";
 import Logo from "~/components/ui/icons/Logo";
@@ -343,6 +344,9 @@ function MobileHeader() {
                         onClick={() => {
                           // snapshotting current tabData into localStorage for when
                           // user is redirected back onto site
+                          if (isDevSoundLabPath(window.location.pathname)) {
+                            return;
+                          }
                           localStorage.setItem(
                             "autostrum-tabData",
                             stringifyFullTabState(),

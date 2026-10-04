@@ -3,6 +3,7 @@ import { MdOutlineMailOutline } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import { FaGithub } from "react-icons/fa";
 import { Separator } from "~/components/ui/separator";
+import { DEV_SOUND_LAB_PATH } from "~/utils/devSoundLabPath";
 
 function Footer() {
   return (
@@ -52,6 +53,21 @@ function Footer() {
           <span>GitHub</span>
         </a>
       </Button>
+
+      {process.env.NODE_ENV !== "production" && (
+        <>
+          <Separator
+            orientation="vertical"
+            className="h-4 w-[1px] bg-foreground/50"
+          />
+
+          <Button variant={"link"} asChild>
+            <Link prefetch={false} href={DEV_SOUND_LAB_PATH}>
+              Sound lab
+            </Link>
+          </Button>
+        </>
+      )}
     </footer>
   );
 }

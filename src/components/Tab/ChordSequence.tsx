@@ -64,6 +64,27 @@ function ChordSequence({
     chordSequenceIndex,
   );
 
+  // The select starts at index 0, which is wrong whenever this sequence was
+  // saved with a later pattern. Audio already uses the embedded pattern.
+  useEffect(() => {
+    const patternId = chordSequence?.strummingPattern?.id;
+    if (!patternId) return;
+
+    const index = strummingPatterns.findIndex(
+      (pattern) => pattern.id === patternId,
+    );
+    if (
+      index >= 0 &&
+      index !== indexOfCurrentlySelectedStrummingPattern
+    ) {
+      setIndexOfCurrentlySelectedStrummingPattern(index);
+    }
+  }, [
+    chordSequence,
+    strummingPatterns,
+    indexOfCurrentlySelectedStrummingPattern,
+  ]);
+
   // sets sequence's strumming pattern to first existing pattern if the current pattern is empty
   useEffect(() => {
     // Skip while AnimatePresence is exiting a deleted sequence/subsection.

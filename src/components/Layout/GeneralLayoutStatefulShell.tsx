@@ -14,6 +14,7 @@ import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 import useColorAndThemeController from "~/hooks/useColorAndThemeController";
 import PostSignupDialog from "~/components/Dialogs/PostSignupDialog";
 import MobileHeaderModal from "~/components/modals/MobileHeaderModal";
+import { isDevSoundLabPath } from "~/utils/devSoundLabPath";
 
 // I had quite a bit of reactive logic in the GeneralLayout component, so I
 // moved it to this component to contain the rerenders to this component (+ children) only
@@ -80,10 +81,15 @@ function GeneralLayoutStatefulShell() {
   useEffect(() => {
     pauseAudio(true);
 
+    // The sound lab is a dev-only route (404 in production) that reuses the
+    // editor transport so each effect section can be played on its own.
+    const isSoundLab = isDevSoundLabPath(asPath);
     setShowingAudioControls(
-      asPath.includes("/edit") || asPath.includes("/create"),
+      asPath.includes("/edit") || asPath.includes("/create") || isSoundLab,
     );
-    setEditing(asPath.includes("/create") || asPath.includes("edit"));
+    setEditing(
+      asPath.includes("/create") || asPath.includes("edit") || isSoundLab,
+    );
 
     resetStoreToInitValues();
   }, [
