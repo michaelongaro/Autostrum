@@ -44,6 +44,7 @@ import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import scrollChordIntoView, {
   isTabletOrLargerViewport,
 } from "~/utils/scrollChordIntoView";
+import { AUDIO_CONTROLS_BOTTOM_OFFSET } from "./AudioControlsStickyBounds";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Direction, getTrackBackground, Range } from "react-range";
@@ -142,7 +143,10 @@ function AudioControls() {
     }
   }
 
-  let dynamicBottomValue = "1rem";
+  // Expanded stick offset matches the resting gap under the Tab container
+  // (see AudioControlsStickyBounds). Minimized values slide the bar down
+  // past the viewport edge.
+  let dynamicBottomValue = AUDIO_CONTROLS_BOTTOM_OFFSET;
 
   if (visibility === "minimized") {
     if (aboveLargeViewportWidth) {
@@ -150,8 +154,6 @@ function AudioControls() {
     } else {
       dynamicBottomValue = "-2.85rem";
     }
-  } else if (visibility === "expanded") {
-    dynamicBottomValue = "1rem";
   }
 
   const disablePlayButton =
@@ -187,7 +189,7 @@ function AudioControls() {
       style={{
         transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
       }}
-      className="baseFlex sticky z-30 mb-8 w-[95vw] max-w-[500px] lg:max-w-[825px] xl:w-10/12"
+      className="baseFlex pointer-events-auto sticky z-30 w-[95vw] max-w-[500px] lg:max-w-[825px] xl:w-10/12"
     >
       <div className="baseVertFlex z-30 size-full rounded-xl bg-accent p-2 text-primary-foreground shadow-xl transition-opacity lg:rounded-full lg:px-10 lg:py-2">
         <AnimatePresence mode="sync">
