@@ -44,9 +44,9 @@ function TabNote({
     : "hsl(var(--foreground))";
 
   // Empty string notes fill the row (easy click target). Filled notes shrink to
-  // the text so the flanking string segments claim the remaining width. In both
-  // cases TabNote is centered in the column, so a centered 29x24 hover border
-  // stays on the column midpoint without tying its box to the input width.
+  // the text so the flanking string segments claim the remaining width. The
+  // string row owns the hover hitbox (group/note), so the centered 29x24
+  // outline tracks the whole cell instead of the glyph width.
   const stringNoteWidth = hasVisibleNote
     ? `${Math.max(note.length, 1)}ch`
     : "100%";
@@ -64,7 +64,7 @@ function TabNote({
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[24px] w-[29px] -translate-x-1/2 -translate-y-1/2 rounded-md group-hover:border"
+        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[24px] w-[29px] -translate-x-1/2 -translate-y-1/2 rounded-md group-hover:border group-hover/note:border"
       />
       <Input
         id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}

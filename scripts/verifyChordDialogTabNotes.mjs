@@ -128,6 +128,13 @@ async function measureFret(index) {
     const columnRect = column.getBoundingClientRect();
     const inputRect = inputEl.getBoundingClientRect();
     const borderRect = border.getBoundingClientRect();
+    // The chord editor is CSS-zoomed. Layout checks use unscaled CSS pixels;
+    // getBoundingClientRect is in zoomed viewport pixels.
+    let zoom = 1;
+    for (let node = row; node; node = node.parentElement) {
+      const z = Number(getComputedStyle(node).zoom);
+      if (z) zoom *= z;
+    }
 
     const columnCenterX = columnRect.left + columnRect.width / 2;
     const rowCenterY = rowRect.top + rowRect.height / 2;
@@ -140,16 +147,16 @@ async function measureFret(index) {
 
     return {
       noteValue: inputEl.value,
-      inputWidth: inputRect.width,
+      inputWidth: inputRect.width / zoom,
       inputIsFullRow: Math.abs(inputRect.width - rowRect.width) < 2,
-      borderWidth: borderRect.width,
-      borderHeight: borderRect.height,
+      borderWidth: borderRect.width / zoom,
+      borderHeight: borderRect.height / zoom,
       deltaX: Math.abs(borderCenterX - columnCenterX),
       deltaY: Math.abs(borderCenterY - rowCenterY),
-      leftSegWidth: segments[0]?.getBoundingClientRect().width ?? null,
-      rightSegWidth: segments[1]?.getBoundingClientRect().width ?? null,
-      rowHeight: rowRect.height,
-      columnWidth: columnRect.width,
+      leftSegWidth: (segments[0]?.getBoundingClientRect().width ?? 0) / zoom,
+      rightSegWidth: (segments[1]?.getBoundingClientRect().width ?? 0) / zoom,
+      rowHeight: rowRect.height / zoom,
+      columnWidth: columnRect.width / zoom,
     };
   }, index);
 }
@@ -205,6 +212,49 @@ assert.ok(
 assert.ok(
   Math.abs(filled.leftSegWidth - filled.rightSegWidth) <= 2,
   "flanking string segments stay balanced around a filled fret",
+);
+
+// Filled frets shrink to the glyphs. Hovering or clicking the rest of the
+// cell still shows the outline and focuses the input.
+const offGlyph = await page.evaluate(() => {
+  const input = document.getElementById("input-chordModal-chordModal-3");
+  const row = input?.closest(".baseFlex.relative");
+  if (!input || !row) return { error: "missing row" };
+  const inputRect = input.getBoundingClientRect();
+  const rowRect = row.getBoundingClientRect();
+  return {
+    x: rowRect.left + 3,
+    y: rowRect.top + rowRect.height / 2,
+    inputLeft: inputRect.left,
+  };
+});
+assert.ok(!offGlyph.error, offGlyph.error);
+assert.ok(
+  offGlyph.x < offGlyph.inputLeft - 1,
+  `probe is left of the glyph (x=${offGlyph.x}, inputLeft=${offGlyph.inputLeft})`,
+);
+await page.mouse.move(offGlyph.x, offGlyph.y);
+await page.waitForTimeout(50);
+const offGlyphBorder = await page.evaluate(() => {
+  const input = document.getElementById("input-chordModal-chordModal-3");
+  const border = [...(input?.parentElement?.children ?? [])].find((el) =>
+    el.className.includes("w-[29px]"),
+  );
+  return border ? getComputedStyle(border).borderTopWidth : null;
+});
+assert.ok(
+  Number.parseFloat(offGlyphBorder) > 0,
+  `outline shows when hovering beside a filled fret (got ${offGlyphBorder})`,
+);
+await page.mouse.click(offGlyph.x, offGlyph.y);
+await page.waitForTimeout(50);
+const focusedFret = await page.evaluate(
+  () => document.activeElement?.id ?? "",
+);
+assert.equal(
+  focusedFret,
+  "input-chordModal-chordModal-3",
+  `clicking beside a filled fret focuses it (focused ${focusedFret})`,
 );
 
 // Chord letter hotkey still works
