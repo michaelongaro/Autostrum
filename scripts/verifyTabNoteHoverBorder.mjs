@@ -212,5 +212,72 @@ assert.ok(
   "flanking string segments stay balanced around a filled note",
 );
 
+// Filled notes shrink to the glyphs. The string row is still the hitbox:
+// hovering or clicking beside the text must reveal the outline and focus.
+for (const [label, columnIndex] of [
+  ["single", 1],
+  ["double", 2],
+]) {
+  const point = await page.evaluate((col) => {
+    const input = document.getElementById(`input-0-0-${col}-5`);
+    const row = input?.closest(".baseFlex.relative");
+    if (!input || !row) return { error: "missing row" };
+    const inputRect = input.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    const border = [...(input.parentElement?.children ?? [])].find((el) =>
+      el.className.includes("w-[29px]"),
+    );
+    return {
+      x: rowRect.left + 3,
+      y: rowRect.top + rowRect.height / 2,
+      inputLeft: inputRect.left,
+      borderTopWidth: border
+        ? getComputedStyle(border).borderTopWidth
+        : null,
+    };
+  }, columnIndex);
+
+  assert.ok(!point.error, `${label} off-glyph point: ${point.error}`);
+  assert.ok(
+    point.x < point.inputLeft - 1,
+    `${label}: probe is left of the glyph (x=${point.x}, inputLeft=${point.inputLeft})`,
+  );
+
+  await page.mouse.move(point.x, point.y);
+  await page.waitForTimeout(50);
+
+  const hovered = await page.evaluate((col) => {
+    const input = document.getElementById(`input-0-0-${col}-5`);
+    const border = [...(input?.parentElement?.children ?? [])].find((el) =>
+      el.className.includes("w-[29px]"),
+    );
+    return {
+      borderTopWidth: border
+        ? getComputedStyle(border).borderTopWidth
+        : null,
+    };
+  }, columnIndex);
+
+  assert.equal(
+    hovered.borderTopWidth,
+    "1px",
+    `${label}: outline shows when hovering the cell beside the text (got ${hovered.borderTopWidth})`,
+  );
+
+  await page.mouse.click(point.x, point.y);
+  await page.waitForTimeout(50);
+  const focusedId = await page.evaluate(() => document.activeElement?.id ?? "");
+  assert.equal(
+    focusedId,
+    `input-0-0-${columnIndex}-5`,
+    `${label}: clicking beside the text focuses the note (focused ${focusedId})`,
+  );
+
+  await page.screenshot({
+    path: path.join(ARTIFACT_DIR, `column-${columnIndex}-off-glyph.png`),
+    fullPage: false,
+  });
+}
+
 console.log("\nALL TABNOTE HOVER BORDER CHECKS PASSED");
 await browser.close();

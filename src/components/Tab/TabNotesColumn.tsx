@@ -325,7 +325,20 @@ function TabNotesColumn({
                   minHeight: EDITING_TAB_STRING_ROW_HEIGHT_PX,
                   width: EDITING_TAB_COLUMN_WIDTH_PX,
                 }}
-                className="baseFlex relative"
+                className="baseFlex group/note relative cursor-text"
+                onMouseDown={(event) => {
+                  const input = event.currentTarget.querySelector("input");
+                  if (
+                    !(input instanceof HTMLInputElement) ||
+                    event.target === input
+                  ) {
+                    return;
+                  }
+                  // The glyphs are narrower than the cell. Keep the click on
+                  // the string row from blurring, then focus the fret input.
+                  event.preventDefault();
+                  input.focus();
+                }}
               >
                 <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
 

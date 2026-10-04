@@ -34,7 +34,8 @@ function ChordNoteInput({
 
   // Match TabNote: empty notes fill the row (easy click target); filled notes
   // shrink to the text so flanking string segments claim the remaining width.
-  // Hover border stays a centered 29x24 box independent of input width.
+  // The fret row owns the hover hitbox, so the centered 29x24 outline tracks
+  // the whole cell instead of the glyph width.
   const noteWidth = hasVisibleNote ? `${Math.max(fret.length, 1)}ch` : "100%";
 
   return (
@@ -47,7 +48,7 @@ function ChordNoteInput({
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[24px] w-[29px] -translate-x-1/2 -translate-y-1/2 rounded-md group-hover:border"
+        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[24px] w-[29px] -translate-x-1/2 -translate-y-1/2 rounded-md group-hover:border group-hover/note:border"
       />
       <Input
         id={`input-chordModal-chordModal-${index}`}
@@ -220,7 +221,18 @@ function Chord({ chordBeingEdited, highlightChord }: Chord) {
               minHeight: EDITING_TAB_STRING_ROW_HEIGHT_PX,
               width: EDITING_TAB_COLUMN_WIDTH_PX,
             }}
-            className="baseFlex relative"
+            className="baseFlex group/note relative cursor-text"
+            onMouseDown={(event) => {
+              const input = event.currentTarget.querySelector("input");
+              if (
+                !(input instanceof HTMLInputElement) ||
+                event.target === input
+              ) {
+                return;
+              }
+              event.preventDefault();
+              input.focus();
+            }}
           >
             <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
 
