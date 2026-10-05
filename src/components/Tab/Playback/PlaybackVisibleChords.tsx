@@ -11,7 +11,7 @@ import { isLoopRangeChordDimmed } from "~/utils/loopRangeHelpers";
 const VIRTUALIZATION_BUFFER = 100;
 
 /**
- * While playing, refresh the visibility window from the rAF scroll position
+ * While playing, refresh the visibility window from the live scroll position
  * at this interval so we are not tied to the 25ms-polled currentChordIndex
  * (which lags the strip at loop wraps).
  */
@@ -73,8 +73,8 @@ function PlaybackVisibleChords({
     draftLoopEndIndex: state.draftLoopEndIndex,
   }));
 
-  // Throttled mirror of the rAF scroll position for visibility culling while
-  // playing. Avoids depending on lagged currentChordIndex at loop wraps.
+  // Throttled mirror of the compositor scroll position for visibility culling
+  // while playing. Avoids depending on lagged currentChordIndex at loop wraps.
   const [playingScrollPosition, setPlayingScrollPosition] = useState(0);
 
   useEffect(() => {
