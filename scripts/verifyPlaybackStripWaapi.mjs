@@ -52,8 +52,13 @@ async function openHarness(page, params) {
   });
   await page.waitForFunction(
     () => {
-      const snapshot = window.__playbackStripHarness?.getSnapshot();
-      return Boolean(snapshot && snapshot.playStates.length > 0);
+      const harness = window.__playbackStripHarness;
+      const snapshot = harness?.getSnapshot();
+      if (!snapshot || harness.readPositionPx() === null) return false;
+      // Lead-in holds an inline transform before the animation exists.
+      // Once audio has started, exactly one WAAPI animation should own the strip.
+      if (snapshot.audioElapsedMs < 0) return true;
+      return snapshot.playStates.length === 1;
     },
     { timeout: 15000 },
   );
@@ -78,7 +83,7 @@ async function sampleFrames(page, durationMs) {
           rates: snapshot?.playbackRates ?? [],
           states: snapshot?.playStates ?? [],
           corrections: snapshot?.correctionCount ?? 0,
-          queued: snapshot?.hasQueuedSegment ?? false,
+          queued: (snapshot?.playStates.length ?? 0) > 1,
           scrollRef: harness.scrollPosition(),
         });
         if (performance.now() - start < duration) {
@@ -224,8 +229,18 @@ try {
   const loopSummary = summarizeMotion(loopFrames);
   console.log(" ", loopSummary);
   assertSmooth(loopSummary, "hook loop");
-  assert(loopSummary.sawQueued, "hook loop: successor segment is queued");
+  assert(
+    loopFrames.every((frame) => !frame.queued),
+    "hook loop: a second transform animation is never stacked on the strip",
+  );
   assert(loopSummary.corrections === 0, "hook loop: clocks did not need a correction");
+  const early = loopFrames.find((frame) => frame.audioElapsed > 40);
+  assert(early, "hook loop: saw a frame after the lead-in");
+  const endKeyframesAway = Math.abs((early.painted ?? 0) - (early.expected ?? 0));
+  assert(
+    endKeyframesAway < 8,
+    `hook loop: opening frame is the playhead, not the end keyframe (delta ${endKeyframesAway.toFixed(2)}px)`,
+  );
   const final = loopFrames[loopFrames.length - 1];
   assertClose(
     final.painted,
@@ -316,7 +331,10 @@ try {
   const handoffSummary = summarizeMotion(handoffFrames);
   console.log(" ", handoffSummary);
   assertSmooth(handoffSummary, "handoff");
-  assert(handoffSummary.sawQueued, "handoff: a successor is queued ahead of the boundary");
+  assert(
+    handoffFrames.every((frame) => !frame.queued),
+    "handoff: extension replaces the animation instead of stacking one",
+  );
   assert(
     handoffSummary.corrections === 0,
     "handoff: chaining does not take the drift-correction path",
