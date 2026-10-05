@@ -52,7 +52,7 @@ interface PlaybackAnimatedStrip {
 
 // React Compiler escape hatch: custom compare intentionally ignores
 // currentChordIndex/scrollContainerTransform/currentRepetition while playing
-// so rAF owns transform without per-chord React re-renders.
+// so the compositor animation owns transform without per-chord React re-renders.
 const PlaybackAnimatedStrip = memo(
   function PlaybackAnimatedStrip({
     chordLayoutData,
@@ -93,15 +93,13 @@ const PlaybackAnimatedStrip = memo(
       scrollPositionRef,
     });
 
-    // While paused, React owns transform for scrubbing. On the paused→playing
-    // edge, pin the current transform so React does not clear it to identity
-    // for a frame before rAF takes ownership. While playing, do not write
-    // transform from React or it will fight the continuous scroll.
-    // While glide-scrubbing, re-apply the scrub position after React commits
-    // so highlight-driven re-renders cannot clear the inline transform.
+    // While paused, React owns transform for scrubbing. While playing, the
+    // WAAPI driver owns transform — writing it here would cancel the
+    // compositor animation. While glide-scrubbing, re-apply the scrub position
+    // after React commits so highlight re-renders cannot clear it.
     useLayoutEffect(() => {
       const stripElement = scrollStripRef.current;
-      if (!stripElement) return;
+      if (!stripElement || playing) return;
 
       if (isGlideScrubbing) {
         stripElement.style.transition = "none";
@@ -109,27 +107,12 @@ const PlaybackAnimatedStrip = memo(
         return;
       }
 
-      if (!playing) {
-        // Avoid retaining a speculative compositor layer between sessions.
-        // The animation hook promotes and synchronously primes a fresh 3D
-        // transform layer on the next paused→playing edge.
-        stripElement.style.backfaceVisibility = "";
-        stripElement.style.webkitBackfaceVisibility = "";
-        stripElement.style.transform = scrollContainerTransform;
-        return;
-      }
-
-      // Pin whatever is currently painted (inline or mid-CSS-transition scrub)
-      // so the play handoff never flashes identity before rAF reseeds.
-      if (!stripElement.style.transform) {
-        const computedTransform =
-          window.getComputedStyle(stripElement).transform;
-        stripElement.style.transition = "none";
-        stripElement.style.transform =
-          computedTransform === "none"
-            ? scrollContainerTransform
-            : computedTransform;
-      }
+      // Drop the playback compositor hints. The driver promotes a fresh layer
+      // on the next paused→playing edge.
+      stripElement.style.willChange = "";
+      stripElement.style.backfaceVisibility = "";
+      stripElement.style.webkitBackfaceVisibility = "";
+      stripElement.style.transform = scrollContainerTransform;
     }, [
       isGlideScrubbing,
       playing,

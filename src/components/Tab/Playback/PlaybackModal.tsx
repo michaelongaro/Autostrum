@@ -228,7 +228,7 @@ function PlaybackModal() {
   }
 
   // React Compiler escape hatch: stable identity so PlaybackAnimatedStrip's
-  // custom memo and the rAF effect deps do not thrash on every parent render.
+  // custom memo and the strip animation effect do not thrash on every parent render.
   const chordLayoutData = useMemo<PlaybackChordLayoutData | null>(
     () =>
       computePlaybackChordLayoutData({
@@ -537,7 +537,7 @@ function PlaybackModal() {
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 
   // Keep the inline transform at the current chord boundary.
-  // While playing, rAF owns motion. While paused, this preserves the existing settle/scrub path.
+  // While playing, WAAPI owns motion. While paused, this preserves the existing settle/scrub path.
   const scrollContainerTransform = useMemo(() => {
     if (
       !chordLayoutData ||
