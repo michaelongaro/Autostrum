@@ -38,6 +38,7 @@ import {
   getLoopRangePrompt,
   getLoopRangeSelectionStep,
 } from "~/utils/loopRangeHelpers";
+import { beamBreaksForPlaybackIndex } from "~/utils/noteLengthBeaming";
 
 const backdropVariants = {
   expanded: {
@@ -573,30 +574,39 @@ function PlaybackModal() {
       isLastChordInTab,
       isDimmed,
       isHighlighted,
-    }: RenderVisibleChord) => (
-      <RenderChordByType
-        key={loopDelay}
-        type={
-          chord.type === "strum"
-            ? "strum"
-            : chord.type === "tab"
-              ? chord.data.chordData.includes("|")
-                ? "measureLine"
-                : "tab"
-              : "loopDelaySpacer"
-        }
-        chordIndex={index}
-        prevChord={prevChord}
-        chord={chord}
-        nextChord={nextChord}
-        isFirstChordInTab={isFirstChordInTab}
-        isLastChordInTab={isLastChordInTab}
-        isDimmed={isDimmed}
-        isHighlighted={isHighlighted}
-        editingLoopRange={audioMetadata.editingLoopRange}
-      />
-    ),
-    [loopDelay, audioMetadata.editingLoopRange],
+    }: RenderVisibleChord) => {
+      const beamBreaks = beamBreaksForPlaybackIndex(
+        expandedTabData ?? [],
+        index,
+      );
+
+      return (
+        <RenderChordByType
+          key={loopDelay}
+          type={
+            chord.type === "strum"
+              ? "strum"
+              : chord.type === "tab"
+                ? chord.data.chordData.includes("|")
+                  ? "measureLine"
+                  : "tab"
+                : "loopDelaySpacer"
+          }
+          chordIndex={index}
+          prevChord={prevChord}
+          chord={chord}
+          nextChord={nextChord}
+          isFirstChordInTab={isFirstChordInTab}
+          isLastChordInTab={isLastChordInTab}
+          isDimmed={isDimmed}
+          isHighlighted={isHighlighted}
+          editingLoopRange={audioMetadata.editingLoopRange}
+          breakBeamWithPrevious={beamBreaks.breakWithPrevious}
+          breakBeamWithNext={beamBreaks.breakWithNext}
+        />
+      );
+    },
+    [loopDelay, audioMetadata.editingLoopRange, expandedTabData],
   );
 
   return (
@@ -771,6 +781,8 @@ interface RenderChordByType {
   isDimmed: boolean;
   isHighlighted: boolean;
   editingLoopRange: boolean;
+  breakBeamWithPrevious: boolean;
+  breakBeamWithNext: boolean;
 }
 
 function isPlaybackTabMeasureLine(
@@ -808,6 +820,8 @@ function RenderChordByType({
   isDimmed,
   isHighlighted,
   editingLoopRange,
+  breakBeamWithPrevious,
+  breakBeamWithNext,
 }: RenderChordByType) {
   const prevChordNoteLength = prevChord
     ? prevChord.type === "strum" && !prevChord.isLastChord // don't want to have separate strumming patterns' note length guides be connected
@@ -879,6 +893,8 @@ function RenderChordByType({
         prevChordIsRest={prevChordIsRest}
         currentChordIsRest={currentChordIsRest}
         nextChordIsRest={nextChordIsRest}
+        breakBeamWithPrevious={breakBeamWithPrevious}
+        breakBeamWithNext={breakBeamWithNext}
         showBpm={chord.data.showBpm}
       />
     );
@@ -918,6 +934,8 @@ function RenderChordByType({
         prevChordIsRest={prevChordIsRest}
         currentChordIsRest={currentChordIsRest}
         nextChordIsRest={nextChordIsRest}
+        breakBeamWithPrevious={breakBeamWithPrevious}
+        breakBeamWithNext={breakBeamWithNext}
         editingLoopRange={editingLoopRange}
       />
     );

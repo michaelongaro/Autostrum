@@ -370,6 +370,8 @@ function TabNotesColumn({
               nextIsRestStrum: neighborMeta.nextIsRestStrum,
               isFirstInGroup: neighborMeta.isFirstInGroup,
               isLastInGroup: neighborMeta.isLastInGroup,
+              breakBeamWithPrevious: neighborMeta.breakBeamWithPrevious,
+              breakBeamWithNext: neighborMeta.breakBeamWithNext,
             })}
           </div>
 

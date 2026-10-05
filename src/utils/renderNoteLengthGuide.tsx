@@ -58,27 +58,53 @@ function getFallbackBeamSide(
   return "right";
 }
 
+/**
+ * A beam that meets the neighbor runs to the column edge. A flag or beamlet
+ * stops short of that edge so a broken group shows a gap, instead of two
+ * half-width beams touching and looking connected.
+ */
+const PARTIAL_BEAM_INSET = "6px";
+
+interface BeamSegment {
+  offset: number;
+  /** True when this segment joins the same-level beam on the neighboring note. */
+  connected: boolean;
+}
+
 function createBeamSegments(
   position: BeamSide,
-  offsets: number[],
+  segments: BeamSegment[],
   backgroundColor: string,
 ) {
-  return offsets.map((offset) => {
+  return segments.map((segment) => {
     const style: CSSProperties = {
-      bottom: offset,
-      width: "50%",
+      bottom: segment.offset,
       backgroundColor,
     };
 
-    if (position === "left") {
-      style.left = 0;
+    if (segment.connected) {
+      style.width = "50%";
+      if (position === "left") {
+        style.left = 0;
+      } else {
+        style.right = 0;
+      }
+    } else if (position === "left") {
+      // Right edge sits 1px past the stem; outer edge stays PARTIAL_BEAM_INSET in.
+      style.right = "calc(50% - 1px)";
+      style.width = `calc(50% - ${PARTIAL_BEAM_INSET} + 1px)`;
     } else {
-      style.right = 0;
+      style.left = "calc(50% - 1px)";
+      style.width = `calc(50% - ${PARTIAL_BEAM_INSET} + 1px)`;
     }
 
     return (
       <div
-        key={`${position}-${offset}`}
+        key={`${position}-${segment.offset}`}
+        data-note-beam=""
+        data-beam-side={position}
+        data-beam-connected={segment.connected ? "true" : "false"}
+        data-beam-offset={segment.offset}
         style={style}
         className="absolute h-[3px]"
       ></div>
@@ -126,6 +152,13 @@ interface RenderNoteLengthGuide {
   isFirstInGroup?: boolean;
   /** True if this is the last strum in a chord sequence or before a measure. */
   isLastInGroup?: boolean;
+  /**
+   * Extra beam break before this note. Set when the previous note starts in
+   * a different beat, even if it is an eighth or sixteenth.
+   */
+  breakBeamWithPrevious?: boolean;
+  /** Extra beam break after this note. See breakBeamWithPrevious. */
+  breakBeamWithNext?: boolean;
 }
 
 function renderNoteLengthGuide({
@@ -139,6 +172,8 @@ function renderNoteLengthGuide({
   theme,
   isFirstInGroup = false,
   isLastInGroup = false,
+  breakBeamWithPrevious = false,
+  breakBeamWithNext = false,
 }: RenderNoteLengthGuide) {
   if (!currentNoteLength) {
     return null;
@@ -210,17 +245,21 @@ function renderNoteLengthGuide({
       ? parseFullNoteLength(nextNoteLength)
       : null;
 
-  const previousSupportsBeams = supportsBeaming(parsedPrevious);
-  const nextSupportsBeams = supportsBeaming(parsedNext);
+  const previousSupportsBeams =
+    supportsBeaming(parsedPrevious) && !breakBeamWithPrevious;
+  const nextSupportsBeams = supportsBeaming(parsedNext) && !breakBeamWithNext;
 
-  const previousIsSixteenth = parsedPrevious?.base === "sixteenth";
-  const nextIsSixteenth = parsedNext?.base === "sixteenth";
+  const previousIsSixteenth =
+    parsedPrevious?.base === "sixteenth" && !breakBeamWithPrevious;
+  const nextIsSixteenth =
+    parsedNext?.base === "sixteenth" && !breakBeamWithNext;
 
   const fallbackBeamSide = getFallbackBeamSide(isFirstInGroup, isLastInGroup);
 
   /*
-   * The primary beam joins any adjacent eighth or sixteenth note. If this
-   * note has no beamable neighbors, a half-width segment acts as its flag.
+   * The primary beam joins an adjacent eighth or sixteenth in the same beat.
+   * If this note has no beam in either direction, a short segment acts as
+   * its flag. A flag is narrower than a beam that actually meets its neighbor.
    */
   let showLeftFirstBeam = previousSupportsBeams;
   let showRightFirstBeam = nextSupportsBeams;
@@ -232,11 +271,19 @@ function renderNoteLengthGuide({
 
   if (parsedCurrent.base === "eighth") {
     const leftBeams = showLeftFirstBeam
-      ? createBeamSegments("left", [0], noteColor)
+      ? createBeamSegments(
+          "left",
+          [{ offset: 0, connected: previousSupportsBeams }],
+          noteColor,
+        )
       : null;
 
     const rightBeams = showRightFirstBeam
-      ? createBeamSegments("right", [0], noteColor)
+      ? createBeamSegments(
+          "right",
+          [{ offset: 0, connected: nextSupportsBeams }],
+          noteColor,
+        )
       : null;
 
     return (
@@ -272,34 +319,34 @@ function renderNoteLengthGuide({
       }
     }
 
-    const leftOffsets: number[] = [];
+    const leftSegments: BeamSegment[] = [];
 
     if (showLeftFirstBeam) {
-      leftOffsets.push(0);
+      leftSegments.push({ offset: 0, connected: previousSupportsBeams });
     }
 
     if (showLeftSecondBeam) {
-      leftOffsets.push(5);
+      leftSegments.push({ offset: 5, connected: previousIsSixteenth });
     }
 
-    const rightOffsets: number[] = [];
+    const rightSegments: BeamSegment[] = [];
 
     if (showRightFirstBeam) {
-      rightOffsets.push(0);
+      rightSegments.push({ offset: 0, connected: nextSupportsBeams });
     }
 
     if (showRightSecondBeam) {
-      rightOffsets.push(5);
+      rightSegments.push({ offset: 5, connected: nextIsSixteenth });
     }
 
     const leftBeams =
-      leftOffsets.length > 0
-        ? createBeamSegments("left", leftOffsets, noteColor)
+      leftSegments.length > 0
+        ? createBeamSegments("left", leftSegments, noteColor)
         : null;
 
     const rightBeams =
-      rightOffsets.length > 0
-        ? createBeamSegments("right", rightOffsets, noteColor)
+      rightSegments.length > 0
+        ? createBeamSegments("right", rightSegments, noteColor)
         : null;
 
     return (

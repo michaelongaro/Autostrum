@@ -30,6 +30,8 @@ interface PlaybackStrummedChord {
   prevChordIsRest: boolean;
   currentChordIsRest: boolean;
   nextChordIsRest: boolean;
+  breakBeamWithPrevious: boolean;
+  breakBeamWithNext: boolean;
   editingLoopRange: boolean;
 }
 
@@ -53,6 +55,8 @@ function PlaybackStrummedChord({
   prevChordIsRest,
   currentChordIsRest,
   nextChordIsRest,
+  breakBeamWithPrevious,
+  breakBeamWithNext,
   editingLoopRange,
 }: PlaybackStrummedChord) {
   const {
@@ -243,6 +247,8 @@ function PlaybackStrummedChord({
               nextIsRestStrum: nextChordIsRest,
               isFirstInGroup: isFirstChord,
               isLastInGroup: isLastChord,
+              breakBeamWithPrevious,
+              breakBeamWithNext,
             })}
           </div>
         </div>

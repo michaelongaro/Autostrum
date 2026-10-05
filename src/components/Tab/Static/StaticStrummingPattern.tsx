@@ -13,6 +13,7 @@ import {
 import { Button } from "~/components/ui/button";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import { beamBreaksForStrums } from "~/utils/noteLengthBeaming";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
@@ -48,6 +49,7 @@ function StaticStrummingPattern({
   const beatLabels = generateBeatLabels(
     data.strums.map((strum) => strum.noteLength),
   );
+  const beamBreaks = beamBreaksForStrums(data.strums);
 
   // Compute the active chord color for each strum position (only when color mode is active)
   // Chords only appear at positions where they change, so we track the "current" chord
@@ -247,6 +249,10 @@ function StaticStrummingPattern({
                 theme,
                 isFirstInGroup: strumIndex === 0,
                 isLastInGroup: strumIndex === data.strums.length - 1,
+                breakBeamWithPrevious:
+                  beamBreaks[strumIndex]?.breakWithPrevious ?? true,
+                breakBeamWithNext:
+                  beamBreaks[strumIndex]?.breakWithNext ?? true,
               })}
             </div>
           </div>

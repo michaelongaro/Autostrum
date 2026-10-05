@@ -16,6 +16,7 @@ import {
   type TabSection,
 } from "~/stores/TabStore";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import { beamBreaksForTabColumns } from "~/utils/noteLengthBeaming";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
@@ -466,6 +467,7 @@ function renderColumnRange(
   baselineBpm: number,
 ): ReactNode[] {
   const renderedColumns: ReactNode[] = [];
+  const beamBreaks = beamBreaksForTabColumns(columns);
   const lastColumnIndex = columns.length - 1;
 
   for (let index = startIndex; index <= endIndex; index++) {
@@ -500,6 +502,8 @@ function renderColumnRange(
           isLastColumn={isLastColumn}
           color={color}
           theme={theme}
+          breakBeamWithPrevious={beamBreaks[index]?.breakWithPrevious ?? true}
+          breakBeamWithNext={beamBreaks[index]?.breakWithNext ?? true}
         />
       );
     }
