@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaBook } from "react-icons/fa";
 import { useTabStore, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
@@ -55,6 +55,7 @@ function StaticTab() {
   );
 
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
+  const [relatedTabsInView, setRelatedTabsInView] = useState(false);
   const [showPinnedChords, setShowPinnedChords] = useState(false);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -83,6 +84,21 @@ function StaticTab() {
       setTabContentIsInView(inView);
     },
   });
+
+  // The glossary / practice / settings bar slides in while reading the tab.
+  // Once the related-tabs section is on screen, that slide plays over the
+  // suggestions, so show and hide it immediately instead.
+  useEffect(() => {
+    const relatedTabs = document.getElementById("related-tabs");
+    if (!relatedTabs) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setRelatedTabsInView(entry?.isIntersecting ?? false);
+    });
+
+    observer.observe(relatedTabs);
+    return () => observer.disconnect();
+  }, []);
 
   const {
     // Read-only state
@@ -197,13 +213,18 @@ function StaticTab() {
             {audioMetadata.fullTabMetadataLength > 0 && tabContentIsInView && (
               <motion.div
                 id="stickyBottomControls"
-                initial={{ y: 100 }}
+                initial={relatedTabsInView ? false : { y: 100 }}
                 animate={{ y: 0 }}
-                exit={{ y: 100 }}
-                transition={{
-                  duration: 0.3,
-                  ease: "easeOut",
-                }}
+                exit={
+                  relatedTabsInView
+                    ? { y: 0, transition: { duration: 0 } }
+                    : { y: 100 }
+                }
+                transition={
+                  relatedTabsInView
+                    ? { duration: 0 }
+                    : { duration: 0.3, ease: "easeOut" }
+                }
                 className="baseFlex sticky bottom-4 top-4 mb-4 gap-4 tablet:bottom-6"
               >
                 <TooltipProvider delayDuration={150}>
