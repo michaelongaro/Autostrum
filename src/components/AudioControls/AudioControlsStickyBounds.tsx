@@ -16,7 +16,7 @@ export const AUDIO_CONTROLS_BOTTOM_OFFSET = "1rem";
  * AudioControls may not travel above this distance from the top of the tab
  * data section (the block where TabSection and ChordSection render).
  */
-export const AUDIO_CONTROLS_STICKY_CEILING_PX = 240;
+export const AUDIO_CONTROLS_STICKY_CEILING_PX = 280;
 
 interface AudioControlsStickyBoundsProps {
   tabDataSectionRef: RefObject<HTMLDivElement | null>;
