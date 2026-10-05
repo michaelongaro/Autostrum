@@ -25,7 +25,6 @@ import {
   useTabColumnTypes,
   useTabSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   getTabData,
   useTabStore,
@@ -114,8 +113,6 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     useState(false);
 
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
-
-  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   // Meta + column identity only — note edits must not re-render this section shell.
   const subSection = useTabSubSectionMeta(sectionIndex, subSectionIndex);
@@ -784,10 +781,8 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
   return (
     <div
       ref={containerRef}
-      style={{
-        padding: aboveMediumViewportWidth ? "2rem" : "1rem 0.5rem 1rem 0.5rem",
-      }}
-      className="baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 shadow-md"
+
+      className="baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 p-4 shadow-md md:p-8"
     >
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-4 xl:!flex-row xl:!justify-start">
