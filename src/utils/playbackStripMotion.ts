@@ -39,10 +39,15 @@ export interface StripSegmentKeyframe {
 export interface StripSegment {
   keyframes: StripSegmentKeyframe[];
   durationMs: number;
-  /** Content elapsed at local time 0. */
+  /** Content elapsed at the end of `holdMs` (local time 0 when there is no hold). */
   fromElapsedMs: number;
   /** Content elapsed at local time `durationMs`. */
   endElapsedMs: number;
+  /**
+   * Local time spent on the first position before content time advances.
+   * Covers the audio lead-in so motion begins on the compositor clock.
+   */
+  holdMs: number;
   warp: StripSegmentWarp | null;
 }
 
@@ -605,16 +610,61 @@ export function buildStripSegment({
     durationMs,
     fromElapsedMs: contentStartMs,
     endElapsedMs: lastMapped.contentElapsedMs,
+    holdMs: 0,
     warp: activeWarp,
   };
 }
 
+/**
+ * Repeat the first frame for `holdMs` so the strip can be scheduled before
+ * audio begins and start moving on the compositor, without a JS catch-up jump.
+ */
+export function withStartHold(
+  segment: StripSegment,
+  holdMs: number,
+): StripSegment {
+  if (holdMs <= 0) return { ...segment, holdMs: 0 };
+
+  const durationMs = segment.durationMs + holdMs;
+  const keyframes = segment.keyframes.map((frame, index) => ({
+    offset:
+      index === segment.keyframes.length - 1
+        ? 1
+        : (holdMs + frame.offset * segment.durationMs) / durationMs,
+    easing: "linear" as const,
+    transform: frame.transform,
+  }));
+  const first = segment.keyframes[0];
+  if (first) {
+    keyframes.unshift({
+      offset: 0,
+      easing: "linear",
+      transform: first.transform,
+    });
+  }
+
+  for (let index = 1; index < keyframes.length - 1; index++) {
+    const previousOffset = keyframes[index - 1]!.offset;
+    if (keyframes[index]!.offset <= previousOffset) {
+      keyframes[index]!.offset = Math.min(0.999999, previousOffset + 1e-6);
+    }
+  }
+
+  return {
+    ...segment,
+    keyframes,
+    durationMs,
+    holdMs,
+  };
+}
+
 export function contentElapsedAtLocalMs(
-  segment: Pick<StripSegment, "fromElapsedMs" | "warp">,
+  segment: Pick<StripSegment, "fromElapsedMs" | "warp" | "holdMs">,
   localMs: number,
 ): number {
-  if (segment.warp) return warpContentForLocalMs(segment.warp, localMs);
-  return segment.fromElapsedMs + localMs;
+  const motionLocalMs = Math.max(0, localMs - (segment.holdMs ?? 0));
+  if (segment.warp) return warpContentForLocalMs(segment.warp, motionLocalMs);
+  return segment.fromElapsedMs + motionLocalMs;
 }
 
 /**

@@ -8,6 +8,7 @@ import {
   getPlaybackStripTransform,
   getStripAnchor,
   parseStripPositionPx,
+  withStartHold,
   STRIP_DRIFT_DEADBAND_MS,
   STRIP_DRIFT_HARD_SEEK_MS,
   STRIP_MAX_KEYFRAMES,
@@ -38,8 +39,14 @@ import {
 const SUPERVISOR_INTERVAL_MS = 100;
 const DRIFT_CHECK_INTERVAL_MS = 250;
 const DEAD_ANIMATION_MS = 220;
-/** Stay off the 0% keyframe. iOS samples the 100% keyframe at effect time 0. */
+/**
+ * Stay off the 0% keyframe. iOS samples the 100% keyframe at effect time 0.
+ * The opening segment repeats its first frame at least this long so playback
+ * can be running inside that hold before audio starts, then leave it on the
+ * compositor clock instead of jumping ahead from a timer.
+ */
 const MIN_ACTIVE_LOCAL_MS = 16;
+const START_HOLD_MS = 80;
 /** Swap in the next segment while the current one still has this much left. */
 const EXTEND_BEFORE_END_MS = 1500;
 
@@ -114,7 +121,6 @@ export class PlaybackStripDriver {
 
   private alive = false;
   private suspended = false;
-  private holdingLeadIn = false;
   private suspendedVisualElapsedMs = 0;
   private active: ScheduledSegment | null = null;
   private timerId: number | null = null;
@@ -165,7 +171,6 @@ export class PlaybackStripDriver {
 
     this.alive = true;
     this.suspended = false;
-    this.holdingLeadIn = false;
     this.element.style.transition = "none";
     // will-change and backface-visibility: hidden promote a layer that iOS
     // drops while the transform is still identity (playback from the start).
@@ -260,16 +265,6 @@ export class PlaybackStripDriver {
     this.syncAudioRunning(now);
     if (!this.alive || this.suspended) return;
 
-    if (this.audioElapsedMs() < 0 || this.holdingLeadIn) {
-      if (this.audioElapsedMs() < 0) {
-        this.holdLeadIn();
-        this.publishScroll(now);
-        return;
-      }
-      this.holdingLeadIn = false;
-      this.playFromElapsed(Math.max(0, this.audioElapsedMs()), now);
-    }
-
     this.maybeExtend(now);
     this.publishScroll(now);
     this.maybeRecoverDeadAnimation(now);
@@ -324,20 +319,20 @@ export class PlaybackStripDriver {
     if (!this.geometry) return false;
 
     const audioElapsedMs = this.audioElapsedMs();
-    if (audioElapsedMs < 0) {
-      this.holdLeadIn();
-      return true;
+    if (audioElapsedMs > 0) {
+      return this.playFromElapsed(audioElapsedMs, now);
     }
 
-    return this.playFromElapsed(audioElapsedMs, now);
-  }
-
-  private holdLeadIn() {
-    this.holdingLeadIn = true;
-    this.cancelAll();
-    const positionPx = this.positionForElapsed(0);
-    this.element.style.transform = getPlaybackStripTransform(positionPx);
-    this.onScrollPosition?.(positionPx);
+    // Schedule through the lead-in. local time is already past 0, inside a
+    // flat copy of the anchor frame, and reaches real motion at audio time 0.
+    const holdMs = Math.max(
+      START_HOLD_MS,
+      MIN_ACTIVE_LOCAL_MS - audioElapsedMs,
+    );
+    const base = this.buildIdentitySegment(0);
+    if (!base) return false;
+    const segment = withStartHold(base, holdMs);
+    return this.startSegment(segment, holdMs + audioElapsedMs, now);
   }
 
   private playFromElapsed(elapsedMs: number, now: number) {
@@ -488,7 +483,7 @@ export class PlaybackStripDriver {
   }
 
   private maybeExtend(now: number) {
-    if (!this.active || this.holdingLeadIn) return;
+    if (!this.active) return;
 
     const localMs = now - this.active.documentStartTime;
     if (localMs < this.active.segment.durationMs * 0.5) return;
@@ -574,7 +569,6 @@ export class PlaybackStripDriver {
       documentStartTime: origin,
     };
     this.lastObservedCurrentTime = null;
-    this.holdingLeadIn = false;
     return true;
   }
 

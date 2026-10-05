@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import {
   buildStripSegment,
   contentElapsedAtLocalMs,
+  withStartHold,
   elapsedForAbsolutePositionPx,
   getAbsoluteScrollPositionPx,
   getPlaybackStripMotionModel,
@@ -286,6 +287,57 @@ test("warp across a loop boundary never rewinds", () => {
     );
     previous = position;
   }
+});
+
+test("start hold keeps the anchor parked, then matches the motion curve", () => {
+  const base = buildStripSegment({
+    model,
+    totalWidth: irregular.totalWidth,
+    anchorStartTimeMs: 0,
+    baseRepetition: 0,
+    fromElapsedMs: 0,
+    targetDurationMs: 1200,
+  });
+  assert.ok(base);
+  const held = withStartHold(base, 80);
+  assert.equal(contentElapsedAtLocalMs(held, 0), 0);
+  assert.equal(contentElapsedAtLocalMs(held, 79), 0);
+  assert.equal(contentElapsedAtLocalMs(held, 80), 0);
+  assert.ok(Math.abs(contentElapsedAtLocalMs(held, 180) - 100) < 0.001);
+
+  const startPosition = parseStripPositionPx(held.keyframes[0].transform);
+  const holdEnd = held.keyframes[1];
+  assert.equal(parseStripPositionPx(holdEnd.transform), startPosition);
+  assert.ok(holdEnd.offset > 0 && holdEnd.offset < 1);
+
+  for (let index = 1; index < held.keyframes.length; index++) {
+    assert.ok(held.keyframes[index].offset > held.keyframes[index - 1].offset);
+  }
+
+  const laterLocal = 80 + 250;
+  const offset = laterLocal / held.durationMs;
+  let frameIndex = 0;
+  while (
+    frameIndex < held.keyframes.length - 2 &&
+    held.keyframes[frameIndex + 1].offset < offset
+  ) {
+    frameIndex += 1;
+  }
+  const start = held.keyframes[frameIndex];
+  const end = held.keyframes[frameIndex + 1];
+  const span = end.offset - start.offset;
+  const progress = (offset - start.offset) / span;
+  const startPos = parseStripPositionPx(start.transform);
+  const endPos = parseStripPositionPx(end.transform);
+  const painted = startPos + (endPos - startPos) * progress;
+  const expected = getAbsoluteScrollPositionPx({
+    model,
+    totalWidth: irregular.totalWidth,
+    anchorStartTimeMs: 0,
+    baseRepetition: 0,
+    elapsedMs: 250,
+  });
+  assert.ok(Math.abs(painted - expected) < 0.08, `held ${painted} expected ${expected}`);
 });
 
 test("warp holds the painted frame and reaches the audio clock", () => {
