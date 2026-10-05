@@ -8,9 +8,7 @@ import type { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import AudioControls from "~/components/AudioControls/AudioControls";
-import Chords from "~/components/Tab/Chords";
 import SectionContainer from "~/components/Tab/SectionContainer";
-import StrummingPatterns from "~/components/Tab/StrummingPatterns";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import { useSectionIds } from "~/hooks/useTabDataSelectors";
@@ -19,8 +17,7 @@ import {
   SOUND_LAB_BPM,
   SOUND_LAB_CHORD_COUNT,
   SOUND_LAB_PATTERN_COUNT,
-  SOUND_LAB_SECTION_IDS,
-  type SoundLabGuideEntry,
+  SOUND_LAB_SECTION_ID,
 } from "~/data/dev/soundLabFixture";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
 import { DEFAULT_TUNING } from "~/utils/tunings";
@@ -35,7 +32,6 @@ function parseCapo(value: string | string[] | undefined) {
 function DevSoundLab() {
   const { query, isReady } = useRouter();
   const capo = parseCapo(query.capo);
-  const [guide, setGuide] = useState<SoundLabGuideEntry[] | null>(null);
   const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
     useState(false);
 
@@ -56,7 +52,7 @@ function DevSoundLab() {
   const ready =
     snapshot.editing &&
     snapshot.showingAudioControls &&
-    snapshot.firstSectionId === SOUND_LAB_SECTION_IDS.sectionRepeat &&
+    snapshot.firstSectionId === SOUND_LAB_SECTION_ID &&
     snapshot.bpm === SOUND_LAB_BPM &&
     snapshot.capo === capo &&
     snapshot.chordCount === SOUND_LAB_CHORD_COUNT &&
@@ -69,16 +65,13 @@ function DevSoundLab() {
     const hydrated =
       state.editing &&
       state.showingAudioControls &&
-      state.tabData[0]?.id === SOUND_LAB_SECTION_IDS.sectionRepeat &&
+      state.tabData[0]?.id === SOUND_LAB_SECTION_ID &&
       state.bpm === SOUND_LAB_BPM &&
       state.capo === capo &&
       state.chords.length === SOUND_LAB_CHORD_COUNT &&
       state.strummingPatterns.length === SOUND_LAB_PATTERN_COUNT;
 
-    if (hydrated) {
-      setGuide((current) => current ?? createVerifiedSoundLab().guide);
-      return;
-    }
+    if (hydrated) return;
 
     const lab = createVerifiedSoundLab();
     const store = getTabStore();
@@ -98,7 +91,6 @@ function DevSoundLab() {
     store.setTabData((draft) => {
       draft.splice(0, draft.length, ...structuredClone(lab.tabData));
     });
-    setGuide(lab.guide);
   }, [isReady, capo, snapshot]);
 
   return (
@@ -112,50 +104,8 @@ function DevSoundLab() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <div className="baseVertFlex w-full !items-start gap-4 px-4 md:px-0">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-          Sound lab
-        </h1>
-        <p className="max-w-3xl text-sm leading-relaxed text-foreground/80">
-          Every section below is a real tab played by the editor. Use a
-          section&apos;s play button to hear just that group. The transport at
-          the bottom plays the current scope; before any section is selected
-          that scope is the whole lab, which starts by repeating section 1
-          twice. After a section play, choose Play whole tab to clear the
-          scope. Add <span className="font-medium">?capo=2</span> (0–12) to
-          shift every fret. Nothing on this page can be published.
-        </p>
-
-        {guide && (
-          <details open className="w-full max-w-3xl rounded-md border bg-background p-4 text-sm">
-            <summary className="cursor-pointer font-semibold">
-              What each section is for
-            </summary>
-            <ol className="mt-3 flex list-decimal flex-col gap-3 pl-5">
-              {guide.map((entry, index) => (
-                <li key={entry.id}>
-                  <a
-                    href={`#sectionIndex${index}`}
-                    className="font-medium underline-offset-2 hover:underline"
-                  >
-                    {entry.title}
-                  </a>
-                  <ol className="mt-1 list-decimal pl-5 text-foreground/80">
-                    {entry.hears.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ol>
-                </li>
-              ))}
-            </ol>
-          </details>
-        )}
-      </div>
-
-      {ready && guide && (
-        <div className="baseVertFlex mt-8 w-full gap-4">
-          <Chords />
-          <StrummingPatterns />
+      {ready && (
+        <div className="baseVertFlex w-full gap-4">
           {sectionIds.map((sectionId, index) => (
             <div key={sectionId} className="w-full">
               <SectionContainer

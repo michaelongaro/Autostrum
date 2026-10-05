@@ -23,20 +23,7 @@ import type {
  */
 export const SOUND_LAB_BPM = 75;
 
-export const SOUND_LAB_SECTION_IDS = {
-  sectionRepeat: "sl-section-repeat",
-  subsectionRepeat: "sl-section-subsection-repeat",
-  noteLengths: "sl-section-note-lengths",
-  noteEffects: "sl-section-note-effects",
-  hammers: "sl-section-hammers",
-  slides: "sl-section-slides",
-  bends: "sl-section-bends",
-  palmMute: "sl-section-palm-mute",
-  strums: "sl-section-strums",
-  slap: "sl-section-slap",
-  chords: "sl-section-chords",
-  bpm: "sl-section-bpm",
-} as const;
+export const SOUND_LAB_SECTION_ID = "sl-section";
 
 export const SOUND_LAB_CHORD_COUNT = 6;
 export const SOUND_LAB_PATTERN_COUNT = 4;
@@ -65,14 +52,9 @@ const EM = ["0", "2", "2", "0", "0", "0"] as const;
 type FretName = "E" | "A" | "D" | "G" | "B" | "e";
 
 type Phrase = {
-  label: string;
+  /** Kept next to the columns so the fixture stays readable. Not rendered. */
+  label?: string;
   columns: (TabNote | TabMeasureLine)[];
-};
-
-export type SoundLabGuideEntry = {
-  id: string;
-  title: string;
-  hears: string[];
 };
 
 export type SoundLabFixture = {
@@ -80,7 +62,6 @@ export type SoundLabFixture = {
   chords: Chord[];
   strummingPatterns: StrummingPattern[];
   sectionProgression: SectionProgression[];
-  guide: SoundLabGuideEntry[];
 };
 
 let idCounter = 0;
@@ -153,15 +134,6 @@ function shape(
   );
 }
 
-function bar(): TabMeasureLine {
-  return {
-    type: "measureLine",
-    isInPalmMuteSection: false,
-    bpmAfterLine: null,
-    id: nextId("bar"),
-  };
-}
-
 function bpmBar(bpm: number): TabMeasureLine {
   return {
     type: "measureLine",
@@ -199,12 +171,7 @@ function palmMute(
 }
 
 function joinPhrases(phrases: Phrase[]): (TabNote | TabMeasureLine)[] {
-  const columns: (TabNote | TabMeasureLine)[] = [];
-  phrases.forEach((phrase, index) => {
-    if (index > 0) columns.push(bar());
-    columns.push(...phrase.columns);
-  });
-  return columns;
+  return phrases.flatMap((phrase) => phrase.columns);
 }
 
 function tabSection(
@@ -327,24 +294,11 @@ function createChords(): Chord[] {
   ];
 }
 
-function pushTab(
-  sections: Section[],
-  guide: SoundLabGuideEntry[],
-  id: string,
-  title: string,
+function appendPhrases(
+  columns: (TabNote | TabMeasureLine)[],
   phrases: Phrase[],
-  opts?: { bpm?: number; repetitions?: number; base?: BaseNoteLengths },
 ) {
-  sections.push({
-    id,
-    title,
-    data: [tabSection(joinPhrases(phrases), opts)],
-  });
-  guide.push({
-    id,
-    title,
-    hears: phrases.map((phrase) => phrase.label),
-  });
+  columns.push(...joinPhrases(phrases));
 }
 
 function half(fret: string, extra?: Parameters<typeof n>[1]) {
@@ -354,54 +308,9 @@ function half(fret: string, extra?: Parameters<typeof n>[1]) {
 export function createSoundLab(): SoundLabFixture {
   resetIds();
 
-  const sections: Section[] = [];
-  const guide: SoundLabGuideEntry[] = [];
+  const tabColumns: (TabNote | TabMeasureLine)[] = [];
 
-  pushTab(
-    sections,
-    guide,
-    SOUND_LAB_SECTION_IDS.sectionRepeat,
-    "1 Section repeat",
-    [
-      {
-        label:
-          "High E 16 then 19. This section's play button plays it once. Whole-tab play repeats the section twice, and it is first so that repeat is immediate.",
-        columns: [n({ e: "16" }), n({ e: "19" })],
-      },
-    ],
-  );
-
-  pushTab(
-    sections,
-    guide,
-    SOUND_LAB_SECTION_IDS.subsectionRepeat,
-    "2 Subsection repeat",
-    [
-      {
-        label:
-          "High E 15 then 17. The subsection repetition is 2, so this section's play button plays the pair twice.",
-        columns: [n({ e: "15" }), n({ e: "17" })],
-      },
-    ],
-    { repetitions: 2 },
-  );
-
-  pushTab(
-    sections,
-    guide,
-    SOUND_LAB_SECTION_IDS.noteLengths,
-    "3 Note lengths",
-    [
-      {
-        label:
-          "Open high E, one of every note length from whole through double-dotted sixteenth. This subsection is at 120 BPM.",
-        columns: NOTE_LENGTHS.map((len) => n({ e: "0" }, { len })),
-      },
-    ],
-    { bpm: 120 },
-  );
-
-  pushTab(sections, guide, SOUND_LAB_SECTION_IDS.noteEffects, "4 Note effects", [
+  appendPhrases(tabColumns, [
     {
       label: "Plain high E 5",
       columns: [n({ e: "5" })],
@@ -436,12 +345,7 @@ export function createSoundLab(): SoundLabFixture {
     },
   ]);
 
-  pushTab(
-    sections,
-    guide,
-    SOUND_LAB_SECTION_IDS.hammers,
-    "5 Hammers & pulls",
-    [
+  appendPhrases(tabColumns, [
       {
         label: "Suffix hammer-on 5h to 7",
         columns: [n({ e: "5h" }), n({ e: "7" })],
@@ -477,7 +381,7 @@ export function createSoundLab(): SoundLabFixture {
     ],
   );
 
-  pushTab(sections, guide, SOUND_LAB_SECTION_IDS.slides, "6 Slides", [
+  appendPhrases(tabColumns, [
     {
       label: "Suffix slide up 5/ to 7",
       columns: [half("5/"), half("7")],
@@ -518,14 +422,9 @@ export function createSoundLab(): SoundLabFixture {
       label: "Palm-muted slide up 5/ to 8",
       columns: palmMute([half("5/"), half("8")]),
     },
-  ], { base: "half" });
+  ]);
 
-  pushTab(
-    sections,
-    guide,
-    SOUND_LAB_SECTION_IDS.bends,
-    "7 Bends & releases",
-    [
+  appendPhrases(tabColumns, [
       {
         label:
           "Unspecified bend 7b (two frets). Low E separates it from a plucked 9, the pitch it should reach.",
@@ -553,11 +452,9 @@ export function createSoundLab(): SoundLabFixture {
         label: "Palm-muted bend 6b to 8",
         columns: palmMute([half("6b"), half("8")]),
       },
-    ],
-    { base: "half" },
-  );
+  ]);
 
-  pushTab(sections, guide, SOUND_LAB_SECTION_IDS.palmMute, "8 Palm mute", [
+  appendPhrases(tabColumns, [
     {
       label: "Low E fret 3, open then palm-muted, so the low-string mute filter is obvious",
       columns: [
@@ -591,13 +488,8 @@ export function createSoundLab(): SoundLabFixture {
       columns: palmMute([n({ e: "x" }), n({ e: "x" })]),
     },
     {
-      label: "Palm mute held across a bar line (5, bar, 7, 9)",
-      columns: palmMute([
-        n({ e: "5" }),
-        bar(),
-        n({ e: "7" }),
-        n({ e: "9" }),
-      ]),
+      label: "Palm mute across three notes",
+      columns: palmMute([n({ e: "5" }), n({ e: "7" }), n({ e: "9" })]),
     },
   ]);
 
@@ -685,15 +577,9 @@ export function createSoundLab(): SoundLabFixture {
     },
   );
 
-  pushTab(
-    sections,
-    guide,
-    SOUND_LAB_SECTION_IDS.strums,
-    "9 Strums & spread",
-    strumPhrases,
-  );
+  appendPhrases(tabColumns, strumPhrases);
 
-  pushTab(sections, guide, SOUND_LAB_SECTION_IDS.slap, "10 Slap", [
+  appendPhrases(tabColumns, [
     {
       label: "Downstrum, as a reference before the slaps",
       columns: [shape(G, "v")],
@@ -727,6 +613,19 @@ export function createSoundLab(): SoundLabFixture {
       columns: [shape(G, "v")],
     },
   ]);
+
+  tabColumns.push(
+    bpmBar(120),
+    ...NOTE_LENGTHS.map((len) => n({ e: "0" }, { len })),
+    bpmBar(70),
+    half("5~"),
+    bpmBar(160),
+    half("5~"),
+    bpmBar(60),
+    shape(G, "v~"),
+    bpmBar(220),
+    shape(G, "v~"),
+  );
 
   const chordEffects = pattern(
     [
@@ -780,62 +679,17 @@ export function createSoundLab(): SoundLabFixture {
     ],
   };
 
-  sections.push({
-    id: SOUND_LAB_SECTION_IDS.chords,
-    title: "11 Chord sequences",
-    data: [chordSubSection],
-  });
-  guide.push({
-    id: SOUND_LAB_SECTION_IDS.chords,
-    title: "11 Chord sequences",
-    hears: [
-      "G through the chord-section compiler: block, downstrum, upstrum, arpeggio, slap, rest, accented downstrum, staccato downstrum.",
-      "Em: spread 0s, spread 0.15s, arp spread 0.3s, then a palm-muted down, down, up.",
-      "G, carried G, C, carried C, played twice by the sequence repetition.",
-      "Leading empty chord (silence, sixteenth), missing chord name (silence, whole), D, then Gdead so a dead high E is compiled from a chord shape.",
-    ],
-  });
-
-  sections.push({
-    id: SOUND_LAB_SECTION_IDS.bpm,
-    title: "12 BPM changes",
+  const section: Section = {
+    id: SOUND_LAB_SECTION_ID,
+    title: "Sound lab",
     data: [
-      tabSection(
-        [
-          half("5~"),
-          bpmBar(160),
-          half("5~"),
-          bpmBar(60),
-          shape(G, "v~"),
-          bpmBar(220),
-          shape(G, "v~"),
-        ],
-        { bpm: 70, base: "half" },
-      ),
+      tabSection(tabColumns),
+      chordSubSection,
     ],
-  });
-  guide.push({
-    id: SOUND_LAB_SECTION_IDS.bpm,
-    title: "12 BPM changes",
-    hears: [
-      "Vibrato at the subsection tempo, 70 BPM.",
-      "The same vibrato after a 160 BPM measure line. The wobble should be faster and the note shorter.",
-      "Automatic arpeggiated downstrum at 60 BPM.",
-      "The same arpeggio after a 220 BPM measure line. Automatic spread only changes a little; section 9's manual spreads are the obvious comparison.",
-    ],
-  });
-
-  const sectionProgression: SectionProgression[] = sections.map((section) => ({
-    id: `sl-prog-${section.id}`,
-    sectionId: section.id,
-    title: section.title,
-    repetitions: section.id === SOUND_LAB_SECTION_IDS.sectionRepeat ? 2 : 1,
-    startSeconds: 0,
-    endSeconds: 0,
-  }));
+  };
 
   return {
-    tabData: sections,
+    tabData: [section],
     chords: createChords(),
     strummingPatterns: [
       chordEffects,
@@ -843,8 +697,16 @@ export function createSoundLab(): SoundLabFixture {
       chordChanges,
       chordEdges,
     ],
-    sectionProgression,
-    guide,
+    sectionProgression: [
+      {
+        id: "sl-prog-section",
+        sectionId: SOUND_LAB_SECTION_ID,
+        title: section.title,
+        repetitions: 1,
+        startSeconds: 0,
+        endSeconds: 0,
+      },
+    ],
   };
 }
 
@@ -901,10 +763,6 @@ function hasSequence(lane: string[], sequence: string[]) {
   return false;
 }
 
-function countValue(compiled: string[][], stringIndex: number, value: string) {
-  return compiled.filter((column) => column[stringIndex] === value).length;
-}
-
 function countGram(compiled: string[][], keys: string[]) {
   let count = 0;
   for (let index = 0; index <= compiled.length - keys.length; index++) {
@@ -927,23 +785,27 @@ function verifySoundLab(lab: SoundLabFixture) {
     fail(`expected ${SOUND_LAB_PATTERN_COUNT} strumming patterns`);
   }
 
-  const sectionRepeat = lab.tabData.find(
-    (section) => section.id === SOUND_LAB_SECTION_IDS.sectionRepeat,
-  );
-  const subsectionRepeat = lab.tabData.find(
-    (section) => section.id === SOUND_LAB_SECTION_IDS.subsectionRepeat,
-  );
-  if (sectionRepeat?.data[0]?.repetitions !== 1) {
-    fail("section-repeat subsection should play once per section pass");
+  if (lab.tabData.length !== 1) {
+    fail("sound lab should be a single section");
   }
-  if (subsectionRepeat?.data[0]?.repetitions !== 2) {
-    fail("subsection-repeat subsection should repeat twice");
+  const section = lab.tabData[0];
+  const tabSubSection = section?.data[0];
+  const strumSubSection = section?.data[1];
+  if (section?.data.length !== 2) {
+    fail("sound lab should contain one tab subsection and one strumming subsection");
   }
-  const sectionRepeatProgression = lab.sectionProgression.find(
-    (entry) => entry.sectionId === SOUND_LAB_SECTION_IDS.sectionRepeat,
-  );
-  if (sectionRepeatProgression?.repetitions !== 2) {
-    fail("section progression should repeat the first section twice");
+  if (tabSubSection?.type !== "tab") {
+    fail("first subsection should be a tab");
+  }
+  if (strumSubSection?.type !== "chord") {
+    fail("second subsection should be a strumming section");
+  }
+  if (tabSubSection?.type === "tab") {
+    for (const column of tabSubSection.data) {
+      if (column.type === "measureLine" && column.bpmAfterLine === null) {
+        fail("measure lines are only for BPM changes");
+      }
+    }
   }
 
   const compiled = compileFullTab({
@@ -1015,13 +877,6 @@ function verifySoundLab(lab: SoundLabFixture) {
     )
   ) {
     fail("missing post-note slide down");
-  }
-
-  if (countValue(compiled, 6, "16") !== 2) {
-    fail("section progression repeat should emit high E 16 twice");
-  }
-  if (countValue(compiled, 6, "15") !== 2) {
-    fail("subsection repeat should emit high E 15 twice");
   }
 
   const effects = new Set(compiled.map((column) => column[7] ?? ""));
