@@ -24,6 +24,8 @@ interface PlaybackTabChord {
   prevChordIsRest: boolean;
   currentChordIsRest: boolean;
   nextChordIsRest: boolean;
+  breakBeamWithPrevious: boolean;
+  breakBeamWithNext: boolean;
   showBpm: boolean;
 }
 
@@ -42,6 +44,8 @@ function PlaybackTabChord({
   prevChordIsRest,
   currentChordIsRest,
   nextChordIsRest,
+  breakBeamWithPrevious,
+  breakBeamWithNext,
   showBpm,
 }: PlaybackTabChord) {
   const chordEffect = columnData[7] || "";
@@ -155,6 +159,8 @@ function PlaybackTabChord({
                     nextIsRestStrum: nextChordIsRest,
                     isFirstInGroup: isFirstChord,
                     isLastInGroup: isLastChord,
+                    breakBeamWithPrevious,
+                    breakBeamWithNext,
                   })}
                 </div>
               )}

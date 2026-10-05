@@ -41,6 +41,8 @@ interface StaticTabNotesColumnProps {
   isLastColumn: boolean;
   color: COLORS;
   theme: THEME;
+  breakBeamWithPrevious: boolean;
+  breakBeamWithNext: boolean;
 }
 
 function StaticTabNotesColumn({
@@ -50,6 +52,8 @@ function StaticTabNotesColumn({
   isLastColumn,
   color,
   theme,
+  breakBeamWithPrevious,
+  breakBeamWithNext,
 }: StaticTabNotesColumnProps) {
   const previousColumnIsPlayable =
     previousColumn !== undefined && isTabNote(previousColumn);
@@ -164,6 +168,8 @@ function StaticTabNotesColumn({
                 theme,
                 isFirstInGroup,
                 isLastInGroup,
+                breakBeamWithPrevious,
+                breakBeamWithNext,
               })}
             </div>
           </div>
@@ -179,10 +185,7 @@ function StaticTabNotesColumn({
             {chordHasAtLeastOneNote(columnData) &&
               (columnData.chordEffects?.includes("v") ||
                 columnData.chordEffects?.includes("^")) && (
-                <ChordStrumIcon
-                  effects={columnData.chordEffects}
-                  size="19px"
-                />
+                <ChordStrumIcon effects={columnData.chordEffects} size="19px" />
               )}
 
             {columnData.chordEffects?.includes("s") && (

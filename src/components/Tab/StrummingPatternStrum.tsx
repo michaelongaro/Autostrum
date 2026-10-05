@@ -25,6 +25,7 @@ import {
   type Strum,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
+import { beamBreaksForStrums } from "~/utils/noteLengthBeaming";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
   encodeStrumSpreadForCompile,
@@ -151,6 +152,8 @@ function StrummingPatternStrum({
     mode === "editingStrummingPattern" &&
     isStrumEffect(strum.strum) &&
     (isHovered || settingsOpen);
+
+  const beamBreaks = beamBreaksForStrums(data.strums)[strumIndex];
 
   function handlePreviewStrum() {
     void playPreview({
@@ -372,6 +375,8 @@ function StrummingPatternStrum({
             nextIsRestStrum: data.strums[strumIndex + 1]?.strum === "r",
             isFirstInGroup: strumIndex === 0,
             isLastInGroup: isLastStrum,
+            breakBeamWithPrevious: beamBreaks?.breakWithPrevious ?? true,
+            breakBeamWithNext: beamBreaks?.breakWithNext ?? true,
           })}
         </div>
 

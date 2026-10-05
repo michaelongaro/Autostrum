@@ -8,6 +8,7 @@ import {
   type FullNoteLengths,
 } from "~/stores/TabStore";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
+import { beamBreaksAtTabColumn } from "~/utils/noteLengthBeaming";
 import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
 import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
 
@@ -240,6 +241,8 @@ export const useTabColumnNeighborMeta = (
         nextIsMeasureLine: false,
         isFirstInGroup: true,
         isLastInGroup: true,
+        breakBeamWithPrevious: true,
+        breakBeamWithNext: true,
       };
     }
 
@@ -259,6 +262,7 @@ export const useTabColumnNeighborMeta = (
       nextColumn !== undefined && isTabMeasureLine(nextColumn);
 
     const isLastColumn = columnIndex === sub.data.length - 1;
+    const beamBreaks = beamBreaksAtTabColumn(sub.data, columnIndex);
 
     return {
       columnCount: sub.data.length,
@@ -277,6 +281,8 @@ export const useTabColumnNeighborMeta = (
       nextIsMeasureLine,
       isFirstInGroup: columnIndex === 0 || previousIsMeasureLine,
       isLastInGroup: isLastColumn || nextIsMeasureLine,
+      breakBeamWithPrevious: beamBreaks.breakWithPrevious,
+      breakBeamWithNext: beamBreaks.breakWithNext,
     };
   });
 };
