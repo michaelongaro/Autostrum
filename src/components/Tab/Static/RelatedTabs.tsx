@@ -74,7 +74,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
             className="baseVertFlex w-full !items-start gap-4"
           >
             <div className="baseFlex w-full !items-baseline !justify-between gap-3 px-4 md:px-0">
-              <div className="baseVertFlex min-w-0 !items-start gap-1">
+              <div className="baseVertFlex min-w-0 !items-start sm:gap-1">
                 <h2 className="m-0 text-lg font-bold tracking-tight text-foreground md:text-[1.35rem]">
                   {section.kind === "artist" && artist && artistName ? (
                     <>
@@ -101,7 +101,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
                       <Link
                         prefetch={false}
                         href={artistTabsHref(artist)}
-                        className="!h-6 !px-0 !py-0 text-foreground"
+                        className="hidden !h-6 !px-0 !py-0 text-foreground sm:block"
                       >
                         All tabs by {artistName}
                       </Link>
@@ -143,6 +143,18 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
                 ))}
               </CarouselContent>
             </Carousel>
+
+            {artist && artistName && (
+              <Button variant="link" asChild>
+                <Link
+                  prefetch={false}
+                  href={artistTabsHref(artist)}
+                  className="ml-4 !h-6 !self-start !px-0 !py-0 text-foreground sm:hidden"
+                >
+                  Browse all tabs by {artistName}
+                </Link>
+              </Button>
+            )}
           </section>
         );
       })}
