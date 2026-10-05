@@ -6,19 +6,21 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type Modifier,
 } from "@dnd-kit/core";
-import { restrictToParentElement } from "@dnd-kit/modifiers";
 import {
   rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
+import type { Transform } from "@dnd-kit/utilities";
 import { useIsomorphicLayoutEffect } from "@react-hookz/web";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import {
   Fragment,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type Dispatch,
@@ -52,10 +54,7 @@ import {
   type EditingTabRow,
   type EditingTabRowLayout,
 } from "~/utils/editingTabLayout";
-import {
-  EighthNote,
-  QuarterNote,
-} from "~/utils/noteLengthIcons";
+import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
 import {
   getStaticTabLayoutWidthPx,
   getVisibleRowRangeFromBodyRect,
@@ -71,7 +70,42 @@ const EDITING_TAB_OVERSCAN_PX = EDITING_TAB_ROW_STRIDE_PX * 2;
 const keyboardSensorOptions = {
   coordinateGetter: sortableKeyboardCoordinates,
 };
-const dndModifiers = [restrictToParentElement];
+
+const ENDCAP_GROUP_CLASS =
+  "baseFlex w-max shrink-0 flex-nowrap !items-start !justify-start";
+
+/**
+ * Keep column drags inside the staff. The last column's DOM parent is the
+ * endcap group, so `restrictToParentElement` would clamp that drag to the
+ * group instead of the staff.
+ */
+function restrictTransformToRect(
+  transform: Transform,
+  rect: { top: number; left: number; bottom: number; right: number },
+  boundingRect: DOMRect,
+): Transform {
+  const value = { ...transform };
+
+  if (rect.top + transform.y <= boundingRect.top) {
+    value.y = boundingRect.top - rect.top;
+  } else if (
+    rect.bottom + transform.y >=
+    boundingRect.top + boundingRect.height
+  ) {
+    value.y = boundingRect.top + boundingRect.height - rect.bottom;
+  }
+
+  if (rect.left + transform.x <= boundingRect.left) {
+    value.x = boundingRect.left - rect.left;
+  } else if (
+    rect.right + transform.x >=
+    boundingRect.left + boundingRect.width
+  ) {
+    value.x = boundingRect.left + boundingRect.width - rect.right;
+  }
+
+  return value;
+}
 
 interface RevealColumnDetail {
   sectionIndex: number;
@@ -156,6 +190,21 @@ function EditingTabStaff({
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, keyboardSensorOptions),
+  );
+
+  const dndModifiers = useMemo<Modifier[]>(
+    () => [
+      ({ transform, draggingNodeRect }) => {
+        const staff = staffRef.current;
+        if (!draggingNodeRect || !staff) return transform;
+        return restrictTransformToRect(
+          transform,
+          draggingNodeRect,
+          staff.getBoundingClientRect(),
+        );
+      },
+    ],
+    [],
   );
 
   const forceFullLayout = reorderingColumns || showingDeleteColumnsButtons;
@@ -250,9 +299,12 @@ function EditingTabStaff({
 
     let intersectionObserver: IntersectionObserver | null = null;
     if (body && typeof IntersectionObserver !== "undefined") {
-      intersectionObserver = new IntersectionObserver(() => scheduleRecompute(), {
-        rootMargin: `${EDITING_TAB_OVERSCAN_PX}px 0px`,
-      });
+      intersectionObserver = new IntersectionObserver(
+        () => scheduleRecompute(),
+        {
+          rootMargin: `${EDITING_TAB_OVERSCAN_PX}px 0px`,
+        },
+      );
       intersectionObserver.observe(body);
     }
 
@@ -355,9 +407,27 @@ function EditingTabStaff({
   function renderColumns(startIndex: number, endIndex: number) {
     const columns = [];
     for (let index = startIndex; index <= endIndex; index++) {
-      columns.push(renderColumn(index));
+      columns.push(renderColumnWithEndcap(index));
     }
     return columns;
+  }
+
+  // The 1px end nut is its own flex item. Grouping it with the last column
+  // keeps flex-wrap from dropping the nut onto a line by itself.
+  function renderColumnWithEndcap(index: number) {
+    const column = renderColumn(index);
+    if (index !== columnIds.length - 1 || column === null) return column;
+
+    return (
+      <div
+        key={`${columnIds[index]}-endcap`}
+        data-tab-endcap-group=""
+        className={ENDCAP_GROUP_CLASS}
+      >
+        {column}
+        <EndNut />
+      </div>
+    );
   }
 
   const rowsToPaint: EditingTabRow[] = [];
@@ -422,7 +492,6 @@ function EditingTabStaff({
               />
             )}
             {renderColumns(row.startIndex, row.endIndex)}
-            {row.rowIndex === virtualizedLayout.rows.length - 1 && <EndNut />}
           </div>
         ))
       ) : awaitingVirtualMeasure ? null : (
@@ -440,16 +509,20 @@ function EditingTabStaff({
             >
               <SortableContext items={columnIds} strategy={rectSortingStrategy}>
                 {columnIds.map((columnId, index) => (
-                  <Fragment key={columnId}>{renderColumn(index)}</Fragment>
+                  <Fragment key={columnId}>
+                    {renderColumnWithEndcap(index)}
+                  </Fragment>
                 ))}
               </SortableContext>
             </DndContext>
           ) : (
             columnIds.map((columnId, index) => (
-              <Fragment key={columnId}>{renderColumn(index)}</Fragment>
+              <Fragment key={columnId}>
+                {renderColumnWithEndcap(index)}
+              </Fragment>
             ))
           )}
-          <EndNut />
+          {columnIds.length === 0 && <EndNut />}
         </>
       )}
 
@@ -542,7 +615,7 @@ function TuningGutter({
 
 function EndNut() {
   return (
-    <div className="baseVertFlex shrink-0">
+    <div data-tab-end-nut="" className="baseVertFlex shrink-0">
       <div style={{ height: EDITING_TAB_TUNING_PALM_MUTE_SPACER_PX }}></div>
       <div className="baseFlex !items-start">
         <div
