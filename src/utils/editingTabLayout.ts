@@ -2,6 +2,7 @@ import { getDisplayTuningNotes } from "~/utils/tunings";
 import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
   EDITING_TAB_COLUMN_WIDTH_PX,
+  EDITING_TAB_END_NUT_WIDTH_PX,
   EDITING_TAB_MEASURE_LINE_WIDTH_PX,
   EDITING_TAB_ROW_STRIDE_PX,
   EDITING_TAB_TUNING_ACCIDENTAL_WIDTH_PX,
@@ -30,10 +31,16 @@ export interface EditingTabRowLayout {
 
 export function getEditingColumnWidthPx(
   columnType: "note" | "measureLine",
+  isLastColumn = false,
 ): number {
-  return columnType === "measureLine"
-    ? EDITING_TAB_MEASURE_LINE_WIDTH_PX
-    : EDITING_TAB_COLUMN_WIDTH_PX;
+  const baseWidth =
+    columnType === "measureLine"
+      ? EDITING_TAB_MEASURE_LINE_WIDTH_PX
+      : EDITING_TAB_COLUMN_WIDTH_PX;
+
+  // The 1px end nut is grouped with the last column so flex-wrap cannot
+  // leave it alone on the next line. Packing must use that combined width.
+  return isLastColumn ? baseWidth + EDITING_TAB_END_NUT_WIDTH_PX : baseWidth;
 }
 
 /**
@@ -81,7 +88,10 @@ export function buildEditingTabRowLayout(
   };
 
   for (let index = 0; index < columnTypes.length; index++) {
-    const columnWidth = getEditingColumnWidthPx(columnTypes[index]!);
+    const columnWidth = getEditingColumnWidthPx(
+      columnTypes[index]!,
+      index === columnTypes.length - 1,
+    );
 
     if (columnsInRow > 0 && rowWidth + columnWidth > maxRowWidth) {
       pushRow(index - 1);

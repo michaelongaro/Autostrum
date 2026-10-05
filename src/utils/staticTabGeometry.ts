@@ -251,7 +251,8 @@ export function getStaticTabColumnWidthPx(
     ? STATIC_TAB_MEASURE_LINE_WIDTH_PX
     : STATIC_TAB_NOTES_COLUMN_WIDTH_PX;
 
-  // The 1px end nut is a sibling after the last column.
+  // The 1px end nut is grouped with the last column so flex-wrap cannot
+  // leave it alone on the next line. Packing must use that combined width.
   return isLastColumn ? baseWidth + STATIC_TAB_END_LINE_WIDTH_PX : baseWidth;
 }
 
