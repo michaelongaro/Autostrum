@@ -87,6 +87,7 @@ function FullStaticTabSection({
   return (
     <SectionCard>
       <div
+        data-static-tab-body=""
         className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto overflow-y-hidden" : "flex-wrap"} ${height}`}
       >
         <TuningGutter tuning={tuning} />
@@ -334,6 +335,7 @@ function VirtualizedStaticTabSection({
     <SectionCard fullWidth={isVirtualized}>
       <div
         ref={bodyRef}
+        data-static-tab-body=""
         style={
           virtualizedLayout === null
             ? undefined
@@ -427,9 +429,13 @@ function TuningGutter({ tuning }: { tuning: string }) {
   );
 }
 
+const ENDCAP_GROUP_CLASS =
+  "baseFlex w-max shrink-0 flex-nowrap !items-start !justify-start";
+
 function StaticEndStaffLine() {
   return (
     <div
+      data-tab-end-nut=""
       style={{
         height: STATIC_TAB_ROW_HEIGHT_PX,
         width: STATIC_TAB_END_LINE_WIDTH_PX,
@@ -460,10 +466,14 @@ function renderColumnRange(
   baselineBpm: number,
 ): ReactNode[] {
   const renderedColumns: ReactNode[] = [];
+  const lastColumnIndex = columns.length - 1;
 
   for (let index = startIndex; index <= endIndex; index++) {
     const column = columns[index];
     if (column === undefined) continue;
+
+    const isLastColumn = index === lastColumnIndex;
+    let columnNode: ReactNode;
 
     if (isTabMeasureLine(column)) {
       const { show, bpm } = getMeasureLineBpmDisplay({
@@ -472,30 +482,47 @@ function renderColumnRange(
         subSectionBpm,
         baselineBpm,
       });
-      renderedColumns.push(
+      columnNode = (
         <StaticTabMeasureLine
           key={column.id}
           isInPalmMuteSection={column.isInPalmMuteSection}
           showBpm={show}
           bpmToShow={show ? bpm : undefined}
-        />,
+        />
       );
     } else {
-      renderedColumns.push(
+      columnNode = (
         <StaticTabNotesColumn
           key={column.id}
           columnData={column}
           previousColumn={columns[index - 1]}
           nextColumn={columns[index + 1]}
-          isLastColumn={index === columns.length - 1}
+          isLastColumn={isLastColumn}
           color={color}
           theme={theme}
-        />,
+        />
       );
+    }
+
+    // The 1px end nut is its own flex item. Grouping it with the last
+    // column keeps flex-wrap from dropping the nut onto a line by itself.
+    if (isLastColumn) {
+      renderedColumns.push(
+        <div
+          key={`${column.id}-endcap`}
+          data-tab-endcap-group=""
+          className={ENDCAP_GROUP_CLASS}
+        >
+          {columnNode}
+          <StaticEndStaffLine />
+        </div>,
+      );
+    } else {
+      renderedColumns.push(columnNode);
     }
   }
 
-  if (endIndex === columns.length - 1) {
+  if (endIndex === lastColumnIndex && columns.length === 0) {
     renderedColumns.push(<StaticEndStaffLine key="static-end-staff-line" />);
   }
 
