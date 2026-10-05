@@ -107,8 +107,8 @@ const PlaybackAnimatedStrip = memo(
         return;
       }
 
-      // Drop the playback compositor hints. The driver promotes a fresh layer
-      // on the next paused→playing edge.
+      // Drop any compositor hints left from an older session. iOS hides a
+      // layer that is still at the identity transform when these are set.
       stripElement.style.willChange = "";
       stripElement.style.backfaceVisibility = "";
       stripElement.style.webkitBackfaceVisibility = "";

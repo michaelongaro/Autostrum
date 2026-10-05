@@ -20,21 +20,28 @@ import {
 /**
  * Compositor-thread playback strip.
  *
- * The animation free-runs at playbackRate 1. Its start time is latched to the
- * audio clock once, then a successor segment is queued on the same document
- * timeline so a loop handoff does not wait for main-thread `onfinish`.
+ * The animation free-runs at playbackRate 1. It is started already inside its
+ * active interval and is the only transform animation on the element.
  *
- * Drift is corrected rarely, and only by replacing the animation with a new
- * one whose first frame is the painted position. `playbackRate` and
- * `currentTime` are never written after an animation is scheduled — those
- * updates are applied with a stale main-thread time on iOS and were the source
- * of the old WAAPI stutters.
+ * iOS Safari paints the 100% keyframe whenever a transform animation's effect
+ * time is 0. That happens when playback begins at the start of the tab, and
+ * again for a second animation queued with a future start time. The strip is
+ * translated to the far end of the segment — out of the overflow viewport —
+ * until effect time finally advances. Audio keeps going the whole time.
+ * Starting at currentTime 0, stacking a waiting animation, will-change, and
+ * backface-visibility: hidden are all avoided here.
+ *
+ * Drift is corrected rarely, by replacing that one animation from the painted
+ * frame. playbackRate is never written after scheduling.
  */
 
 const SUPERVISOR_INTERVAL_MS = 100;
 const DRIFT_CHECK_INTERVAL_MS = 250;
 const DEAD_ANIMATION_MS = 220;
-const SUCCESSOR_PROMOTE_DELAY_MS = 8;
+/** Stay off the 0% keyframe. iOS samples the 100% keyframe at effect time 0. */
+const MIN_ACTIVE_LOCAL_MS = 16;
+/** Swap in the next segment while the current one still has this much left. */
+const EXTEND_BEFORE_END_MS = 1500;
 
 export interface PlaybackStripClock {
   getAudioCurrentTime: () => number;
@@ -87,25 +94,14 @@ function getDocumentTimelineNow(): number | null {
   return null;
 }
 
-function scheduleSegmentAnimation(
-  element: HTMLElement,
-  segment: StripSegment,
-  fill: FillMode,
-  startTime: number,
-): Animation | null {
-  try {
-    const effect = new KeyframeEffect(element, segment.keyframes, {
-      duration: segment.durationMs,
-      fill,
-      easing: "linear",
-      composite: "replace",
-    });
-    const animation = new Animation(effect, document.timeline);
-    animation.startTime = startTime;
-    return animation;
-  } catch {
-    return null;
+function activeLocalMs(durationMs: number, preferredLocalMs: number) {
+  if (durationMs <= MIN_ACTIVE_LOCAL_MS + 1) {
+    return Math.max(0.001, durationMs / 2);
   }
+  return Math.min(
+    durationMs - 1,
+    Math.max(MIN_ACTIVE_LOCAL_MS, preferredLocalMs),
+  );
 }
 
 export class PlaybackStripDriver {
@@ -118,9 +114,9 @@ export class PlaybackStripDriver {
 
   private alive = false;
   private suspended = false;
+  private holdingLeadIn = false;
   private suspendedVisualElapsedMs = 0;
   private active: ScheduledSegment | null = null;
-  private queued: ScheduledSegment | null = null;
   private timerId: number | null = null;
   private unsubscribeAudioState: (() => void) | null = null;
   private nextDriftCheckAt = 0;
@@ -169,19 +165,14 @@ export class PlaybackStripDriver {
 
     this.alive = true;
     this.suspended = false;
+    this.holdingLeadIn = false;
     this.element.style.transition = "none";
-    this.element.style.willChange = "transform";
-    this.element.style.backfaceVisibility = "hidden";
-    this.element.style.webkitBackfaceVisibility = "hidden";
+    // will-change and backface-visibility: hidden promote a layer that iOS
+    // drops while the transform is still identity (playback from the start).
+    this.element.style.willChange = "auto";
+    this.element.style.backfaceVisibility = "";
+    this.element.style.webkitBackfaceVisibility = "";
     this.element.dataset.playbackMotion = "waapi";
-
-    // Prime a 3D layer before the first animation so a cold WebKit compositor
-    // has a transform target. The animation replaces this inline value.
-    const primedElapsedMs = Math.max(0, this.audioElapsedMs());
-    this.element.style.transform = getPlaybackStripTransform(
-      this.positionForElapsed(primedElapsedMs),
-    );
-    void this.element.getBoundingClientRect();
 
     if (!this.alignToAudio(now)) {
       this.stop();
@@ -201,12 +192,7 @@ export class PlaybackStripDriver {
   }
 
   stop() {
-    if (
-      !this.alive &&
-      this.active === null &&
-      this.queued === null &&
-      this.timerId === null
-    ) {
+    if (!this.alive && this.active === null && this.timerId === null) {
       return;
     }
 
@@ -251,7 +237,7 @@ export class PlaybackStripDriver {
       correctionCount: this.correctionCount,
       suspended: this.suspended,
       activeDurationMs: this.active?.segment.durationMs ?? null,
-      hasQueuedSegment: this.queued !== null,
+      hasQueuedSegment: false,
     };
   }
 
@@ -274,8 +260,17 @@ export class PlaybackStripDriver {
     this.syncAudioRunning(now);
     if (!this.alive || this.suspended) return;
 
-    this.promoteQueued(now);
-    this.ensureSuccessor();
+    if (this.audioElapsedMs() < 0 || this.holdingLeadIn) {
+      if (this.audioElapsedMs() < 0) {
+        this.holdLeadIn();
+        this.publishScroll(now);
+        return;
+      }
+      this.holdingLeadIn = false;
+      this.playFromElapsed(Math.max(0, this.audioElapsedMs()), now);
+    }
+
+    this.maybeExtend(now);
     this.publishScroll(now);
     this.maybeRecoverDeadAnimation(now);
     this.maybeCorrectDrift(now);
@@ -329,12 +324,32 @@ export class PlaybackStripDriver {
     if (!this.geometry) return false;
 
     const audioElapsedMs = this.audioElapsedMs();
-    const fromElapsedMs = Math.max(0, audioElapsedMs);
-    const documentStartTime = now - (audioElapsedMs - fromElapsedMs);
+    if (audioElapsedMs < 0) {
+      this.holdLeadIn();
+      return true;
+    }
+
+    return this.playFromElapsed(audioElapsedMs, now);
+  }
+
+  private holdLeadIn() {
+    this.holdingLeadIn = true;
+    this.cancelAll();
+    const positionPx = this.positionForElapsed(0);
+    this.element.style.transform = getPlaybackStripTransform(positionPx);
+    this.onScrollPosition?.(positionPx);
+  }
+
+  private playFromElapsed(elapsedMs: number, now: number) {
+    const localMs = activeLocalMs(this.segmentTargetMs, MIN_ACTIVE_LOCAL_MS);
+    const fromElapsedMs = Math.max(0, elapsedMs - localMs);
     const segment = this.buildIdentitySegment(fromElapsedMs);
     if (!segment) return false;
-
-    return this.replaceActive(segment, documentStartTime);
+    const appliedLocalMs = Math.min(
+      activeLocalMs(segment.durationMs, elapsedMs - fromElapsedMs),
+      segment.durationMs - 1,
+    );
+    return this.startSegment(segment, Math.max(0.001, appliedLocalMs), now);
   }
 
   private realign(
@@ -346,11 +361,7 @@ export class PlaybackStripDriver {
     const errorMs = visualElapsedMs - Math.max(0, audioElapsedMs);
 
     if (Math.abs(errorMs) <= STRIP_DRIFT_DEADBAND_MS) {
-      const segment = this.buildIdentitySegment(Math.max(0, visualElapsedMs), {
-        firstPositionPx: paintedPositionPx ?? undefined,
-      });
-      if (!segment) return;
-      this.replaceActive(segment, now);
+      this.playFromElapsed(Math.max(0, visualElapsedMs), now);
       return;
     }
 
@@ -432,15 +443,13 @@ export class PlaybackStripDriver {
 
     if (!segment) return;
 
-    this.replaceActive(segment, now);
+    this.startSegment(segment, MIN_ACTIVE_LOCAL_MS, now);
     this.correctionCount += 1;
     this.correctionCooldownUntil = now + windowMs + 1500;
   }
 
   private hardSeek(audioElapsedMs: number, now: number) {
-    const segment = this.buildIdentitySegment(Math.max(0, audioElapsedMs));
-    if (!segment) return;
-    this.replaceActive(segment, now);
+    if (!this.playFromElapsed(Math.max(0, audioElapsedMs), now)) return;
     this.correctionCount += 1;
     this.correctionCooldownUntil = now + 1500;
   }
@@ -478,70 +487,20 @@ export class PlaybackStripDriver {
     this.lastObservedCurrentTime = null;
   }
 
-  private promoteQueued(now: number) {
-    if (!this.queued || !this.active) return;
-    if (now < this.queued.documentStartTime + SUCCESSOR_PROMOTE_DELAY_MS) {
+  private maybeExtend(now: number) {
+    if (!this.active || this.holdingLeadIn) return;
+
+    const localMs = now - this.active.documentStartTime;
+    if (localMs < this.active.segment.durationMs * 0.5) return;
+
+    if (this.active.segment.warp && localMs < this.active.segment.warp.windowMs) {
       return;
     }
 
-    const queuedTime = this.queued.animation.currentTime;
-    const successorStarted =
-      typeof queuedTime === "number" &&
-      queuedTime >= SUCCESSOR_PROMOTE_DELAY_MS;
+    const remainingMs = this.active.segment.durationMs - localMs;
+    if (remainingMs > EXTEND_BEFORE_END_MS) return;
 
-    if (!successorStarted) {
-      const rebuilt = scheduleSegmentAnimation(
-        this.element,
-        this.queued.segment,
-        "both",
-        this.queued.documentStartTime,
-      );
-      this.queued.animation.cancel();
-      if (!rebuilt) {
-        this.queued = null;
-        this.hardSeek(Math.max(0, this.audioElapsedMs()), now);
-        return;
-      }
-      this.queued = {
-        animation: rebuilt,
-        segment: this.queued.segment,
-        documentStartTime: this.queued.documentStartTime,
-      };
-    }
-
-    const previous = this.active;
-    try {
-      this.queued.animation.effect?.updateTiming({ fill: "both" });
-    } catch {
-      // The successor is already inside its active interval, where fill does
-      // not change the painted frame. Forwards-fill only matters if it ends
-      // before the next segment is queued.
-    }
-
-    this.active = this.queued;
-    this.queued = null;
-    previous.animation.cancel();
-    this.ensureSuccessor();
-  }
-
-  private ensureSuccessor() {
-    if (!this.alive || this.suspended || this.queued || !this.active) return;
-    if (!this.geometry) return;
-
-    const documentStartTime =
-      this.active.documentStartTime + this.active.segment.durationMs;
-    const segment = this.buildIdentitySegment(this.active.segment.endElapsedMs);
-    if (!segment) return;
-
-    const animation = scheduleSegmentAnimation(
-      this.element,
-      segment,
-      "none",
-      documentStartTime,
-    );
-    if (!animation) return;
-
-    this.queued = { animation, segment, documentStartTime };
+    this.playFromElapsed(Math.max(0, this.visualElapsedMs(now)), now);
   }
 
   private buildIdentitySegment(
@@ -562,19 +521,60 @@ export class PlaybackStripDriver {
     });
   }
 
-  private replaceActive(segment: StripSegment, documentStartTime: number) {
-    this.cancelAll();
-    const animation = scheduleSegmentAnimation(
-      this.element,
-      segment,
-      "both",
-      documentStartTime,
+  private startSegment(segment: StripSegment, localMs: number, now: number) {
+    const safeLocalMs = activeLocalMs(segment.durationMs, localMs);
+    const elapsedMs = contentElapsedAtLocalMs(segment, safeLocalMs);
+    // Inline frame first, so cancelling the previous animation cannot reveal
+    // the 100% keyframe iOS uses whenever effect time is still 0.
+    this.element.style.transform = getPlaybackStripTransform(
+      this.positionForElapsed(elapsedMs),
     );
-    if (!animation) return false;
 
-    this.active = { animation, segment, documentStartTime };
+    this.cancelAll();
+
+    let animation: Animation;
+    try {
+      const effect = new KeyframeEffect(this.element, segment.keyframes, {
+        duration: segment.durationMs,
+        fill: "both",
+        easing: "linear",
+        composite: "replace",
+      });
+      // Construct idle, set a non-zero currentTime, then play. element.animate()
+      // would sample effect time 0 before we could move it.
+      animation = new Animation(effect, document.timeline);
+      animation.currentTime = safeLocalMs;
+      animation.play();
+    } catch {
+      return false;
+    }
+
+    // Pin the origin ourselves. play() can leave startTime at "now" while
+    // currentTime is already MIN_ACTIVE_LOCAL_MS, which made the model lead
+    // the painted frame by that offset for the whole segment.
+    const timelineNow = getDocumentTimelineNow() ?? now;
+    const documentStartTime = timelineNow - safeLocalMs;
+    try {
+      animation.startTime = documentStartTime;
+    } catch {
+      // Idle/play already established the origin. The sampled fallback below
+      // still tracks the animation.
+    }
+    const appliedLocalMs =
+      typeof animation.currentTime === "number" && animation.currentTime > 0
+        ? animation.currentTime
+        : safeLocalMs;
+    const origin =
+      typeof animation.startTime === "number"
+        ? animation.startTime
+        : timelineNow - appliedLocalMs;
+    this.active = {
+      animation,
+      segment,
+      documentStartTime: origin,
+    };
     this.lastObservedCurrentTime = null;
-    this.ensureSuccessor();
+    this.holdingLeadIn = false;
     return true;
   }
 
@@ -616,22 +616,18 @@ export class PlaybackStripDriver {
   private playbackRates() {
     const rates: number[] = [];
     if (this.active) rates.push(this.active.animation.playbackRate);
-    if (this.queued) rates.push(this.queued.animation.playbackRate);
     return rates;
   }
 
   private playStates() {
     const states: string[] = [];
     if (this.active) states.push(this.active.animation.playState);
-    if (this.queued) states.push(this.queued.animation.playState);
     return states;
   }
 
   private cancelAll() {
     this.active?.animation.cancel();
-    this.queued?.animation.cancel();
     this.active = null;
-    this.queued = null;
 
     if (typeof this.element.getAnimations === "function") {
       for (const animation of this.element.getAnimations()) {

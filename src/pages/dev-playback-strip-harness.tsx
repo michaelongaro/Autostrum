@@ -253,7 +253,6 @@ export default function DevPlaybackStripHarness() {
             display: "flex",
             height: "100%",
             width: layout.totalWidth,
-            willChange: "transform",
           }}
         >
           {CHORDS.map((chord, index) => (
