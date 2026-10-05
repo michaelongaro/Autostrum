@@ -163,6 +163,25 @@ function summarizeMotion(frames, { syncTo = "expected" } = {}) {
   };
 }
 
+function assertNoStartupJump(frames, label) {
+  const started = frames.findIndex((frame) => frame.audioElapsed >= 0);
+  assert(started > 0, `${label}: sampled the frame before audio starts`);
+  const window = frames.slice(started - 1, started + 6);
+  let maxDelta = 0;
+  for (let index = 1; index < window.length; index++) {
+    const previous = window[index - 1]?.painted;
+    const current = window[index]?.painted;
+    if (typeof previous !== "number" || typeof current !== "number") continue;
+    maxDelta = Math.max(maxDelta, current - previous);
+  }
+  // The opening chord moves about 0.1px/ms. A timer catch-up of ~100ms is
+  // ~10px; one display frame is about 2px.
+  assert(
+    maxDelta < 6,
+    `${label}: motion begins without a catch-up jump (max step ${maxDelta.toFixed(2)}px)`,
+  );
+}
+
 function assertSmooth(summary, label) {
   assert(summary.frames > 20, `${label}: sampled enough frames (${summary.frames})`);
   assert(
@@ -269,6 +288,7 @@ try {
     moved[moved.length - 1].painted > holdPositions[0] + 4,
     "lead-in: strip moves after the audio clock starts",
   );
+  assertNoStartupJump(leadFrames, "lead-in");
 
   console.log("\n[hook] resume anchor");
   await openHarness(page, {
