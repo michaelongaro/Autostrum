@@ -38,6 +38,8 @@ export interface RelatedTabCandidate extends RelatedTabSource {
 export interface RelatedTabSection<T extends RelatedTabCandidate> {
   kind: RelatedTabSectionKind;
   tabs: T[];
+  /** Full matching count before the carousel cap; used for "see all" links. */
+  totalCount?: number;
 }
 
 interface AttributeMatch {
@@ -124,16 +126,17 @@ export function selectRelatedTabSections<T extends RelatedTabCandidate>(
   }
 
   const selectedArtist = artistTabs.slice(0, RELATED_TAB_LIMIT);
-  const selectedSimilar = similarTabs.slice(
-    0,
-    RELATED_TAB_LIMIT - selectedArtist.length,
-  );
+  const selectedSimilar = similarTabs.slice(0, RELATED_TAB_LIMIT);
   const meaningfulCount = selectedArtist.length + selectedSimilar.length;
 
   const sections: RelatedTabSection<T>[] = [];
 
   if (selectedArtist.length > 0) {
-    sections.push({ kind: "artist", tabs: selectedArtist });
+    sections.push({
+      kind: "artist",
+      tabs: selectedArtist,
+      totalCount: artistTabs.length,
+    });
   }
 
   if (selectedSimilar.length > 0) {
