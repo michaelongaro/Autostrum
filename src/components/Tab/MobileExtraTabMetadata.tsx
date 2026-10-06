@@ -95,7 +95,7 @@ function MobileExtraTabMetadata() {
   return (
     <div className="baseVertFlex w-full gap-4">
       {/* tab selector + expand/collapse toggle*/}
-      <div className="baseFlex w-full !justify-between gap-2 px-3 sm:!justify-center">
+      <div className="baseFlex w-full !justify-between gap-2 sm:!justify-center">
         <Carousel
           setApi={setCarouselApi}
           opts={{
@@ -108,7 +108,7 @@ function MobileExtraTabMetadata() {
           }}
           className="baseFlex max-w-[90%]"
         >
-          <CarouselContent>
+          <CarouselContent className="pl-3">
             <CarouselItem className="baseFlex basis-auto">
               <Button
                 variant={"text"}
@@ -177,10 +177,10 @@ function MobileExtraTabMetadata() {
         <Button
           variant={"text"}
           onClick={() => setTabContentExpanded((prev) => !prev)}
-          className="baseFlex !p-0"
+          className="baseFlex mr-[9px] !p-0"
         >
           <ChevronDown
-            className={`size-4 transition-transform ${
+            className={`size-[18px] transition-transform ${
               tabContentExpanded ? "rotate-180" : ""
             }`}
           />
