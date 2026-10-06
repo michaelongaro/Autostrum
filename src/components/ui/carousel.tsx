@@ -60,8 +60,6 @@ const Carousel = React.forwardRef<
   ) => {
     const [carouselRef, api] = useEmblaCarousel(
       {
-        watchDrag: (emblaApi) =>
-          Boolean(emblaApi.canScrollPrev() || emblaApi.canScrollNext()),
         ...opts,
         axis: orientation === "horizontal" ? "x" : "y",
       },
@@ -89,10 +87,10 @@ const Carousel = React.forwardRef<
     }
 
     function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-      if (event.key === "ArrowLeft" && canScrollPrev) {
+      if (event.key === "ArrowLeft") {
         event.preventDefault();
         scrollPrev();
-      } else if (event.key === "ArrowRight" && canScrollNext) {
+      } else if (event.key === "ArrowRight") {
         event.preventDefault();
         scrollNext();
       }
@@ -114,14 +112,9 @@ const Carousel = React.forwardRef<
       onSelect(api);
       api.on("reInit", onSelect);
       api.on("select", onSelect);
-      api.on("scroll", onSelect);
-      api.on("resize", onSelect);
 
       return () => {
-        api.off("reInit", onSelect);
-        api.off("select", onSelect);
-        api.off("scroll", onSelect);
-        api.off("resize", onSelect);
+        api?.off("select", onSelect);
       };
     }, [api, onSelect]);
 
@@ -157,31 +150,12 @@ Carousel.displayName = "Carousel";
 
 const CarouselContent = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    viewportClassName?: string;
-  }
->(({ className, viewportClassName, ...props }, ref) => {
-  const { carouselRef, orientation, canScrollPrev, canScrollNext } =
-    useCarousel();
-  const fadeEdges = viewportClassName?.includes("carouselHorizontalFade");
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const { carouselRef, orientation } = useCarousel();
 
   return (
-    <div
-      ref={carouselRef}
-      className={cn("w-full overflow-hidden", viewportClassName)}
-      style={
-        fadeEdges
-          ? ({
-              "--carousel-fade-left": canScrollPrev
-                ? "var(--carousel-fade-size)"
-                : "0rem",
-              "--carousel-fade-right": canScrollNext
-                ? "var(--carousel-fade-size)"
-                : "0rem",
-            } as React.CSSProperties)
-          : undefined
-      }
-    >
+    <div ref={carouselRef} className="overflow-hidden">
       <div
         ref={ref}
         className={cn(
@@ -200,8 +174,7 @@ const CarouselItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  const { orientation, canScrollPrev, canScrollNext } = useCarousel();
-  const canDrag = canScrollPrev || canScrollNext;
+  const { orientation } = useCarousel();
 
   return (
     <div
@@ -209,10 +182,7 @@ const CarouselItem = React.forwardRef<
       role="group"
       aria-roledescription="slide"
       className={cn(
-        "min-w-0 shrink-0 grow-0 basis-full select-none",
-        canDrag
-          ? "cursor-grab active:cursor-grabbing"
-          : "cursor-default active:cursor-default",
+        "min-w-0 shrink-0 grow-0 basis-full cursor-grab select-none active:cursor-grabbing",
         orientation === "horizontal" ? "pl-4" : "pt-4",
         className,
       )}
