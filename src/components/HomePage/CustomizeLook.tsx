@@ -9,6 +9,7 @@ import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type COLORS } from "~/stores/TabStore";
 import { api } from "~/utils/api";
+import { Check } from "lucide-react";
 import {
   COLOR_HEX_VALUES,
   NEAR_WHITE_COLOR_VALUES,
@@ -145,7 +146,7 @@ function CustomizeLook() {
                     onFocus={() => setHoveredColor(colorString)}
                     onBlur={() => setHoveredColor(null)}
                     onClick={() => selectColor(colorString)}
-                    className="group relative h-24 overflow-hidden rounded-lg border border-gray text-left shadow-sm transition hover:brightness-105 active:brightness-100 sm:h-36"
+                    className="group relative h-24 overflow-hidden rounded-lg border-gray text-left shadow-sm transition hover:brightness-105 active:brightness-100 sm:h-36"
                     aria-pressed={selected}
                     aria-label={`Select ${colorString} color`}
                   >
@@ -154,15 +155,15 @@ function CustomizeLook() {
                       alt=""
                       fill
                       sizes="500px"
-                      className="object-cover transition duration-300 group-hover:scale-[1.04]"
+                      className={`object-cover transition duration-300 ${selected ? "" : "group-hover:scale-[1.02]"}`}
                     />
-                    <div
+                    {/* <div
                       className="absolute inset-0"
                       style={{
-                        background: `linear-gradient(to top, ${COLOR_HEX_VALUES[colorString]}cc, ${COLOR_HEX_VALUES[colorString]}55 45%, transparent)`,
+                        background: `linear-gradient(to top, ${COLOR_HEX_VALUES[colorString]}cc, ${COLOR_HEX_VALUES[colorString]}15 45%, transparent)`,
                       }}
-                    />
-                    <div className="baseFlex absolute inset-x-0 bottom-0 !justify-between gap-2 p-2.5">
+                    /> */}
+                    {/* <div className="baseFlex absolute inset-x-0 bottom-0 !justify-between gap-2 p-2.5">
                       <span className="text-sm font-semibold text-white drop-shadow">
                         {colorString.charAt(0).toUpperCase() +
                           colorString.slice(1)}
@@ -190,6 +191,35 @@ function CustomizeLook() {
                           )}
                         </AnimatePresence>
                       </span>
+                    </div> */}
+
+                    <div
+                      style={{
+                        backgroundColor: COLOR_HEX_VALUES[colorString],
+                        color: NEAR_WHITE_COLOR_VALUES[colorString],
+                      }}
+                      className="baseFlex absolute inset-x-0 bottom-0 w-3/4 !justify-between gap-2 rounded-tr-lg p-2 sm:w-32 sm:p-2.5"
+                    >
+                      <span className="text-sm font-semibold drop-shadow">
+                        {colorString.charAt(0).toUpperCase() +
+                          colorString.slice(1)}
+                      </span>
+
+                      <AnimatePresence>
+                        {showRing && (
+                          <motion.div
+                            key={`ring-${colorString}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+
+                            className="right-2 top-2"
+                          >
+                            <Check className="size-4 stroke-[3px] sm:size-5" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </button>
                 );
