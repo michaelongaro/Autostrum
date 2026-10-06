@@ -127,7 +127,10 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
               }}
               className="baseFlex w-full"
             >
-              <CarouselContent className="mr-4 pb-1 md:mr-0">
+              <CarouselContent
+                viewportClassName="carouselHorizontalFade [--carousel-fade-size:1.5rem] md:[--carousel-fade-size:2rem]"
+                className="mr-4 pb-1 md:mr-0"
+              >
                 {section.tabs.map((tab) => (
                   <CarouselItem
                     key={tab.id}
