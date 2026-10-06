@@ -62,6 +62,9 @@ function getFallbackBeamSide(
  * A beam that meets the neighbor runs to the column edge. A flag or beamlet
  * stops short of that edge so a broken group shows a gap, instead of two
  * half-width beams touching and looking connected.
+ *
+ * Connected and partial beams share the same inner edge at the column
+ * center so flags and beamlets stay flush with the 1px stem.
  */
 const PARTIAL_BEAM_INSET = "6px";
 
@@ -80,22 +83,15 @@ function createBeamSegments(
     const style: CSSProperties = {
       bottom: segment.offset,
       backgroundColor,
+      width: segment.connected
+        ? "50%"
+        : `calc(50% - ${PARTIAL_BEAM_INSET})`,
     };
 
-    if (segment.connected) {
-      style.width = "50%";
-      if (position === "left") {
-        style.left = 0;
-      } else {
-        style.right = 0;
-      }
-    } else if (position === "left") {
-      // Right edge sits 1px past the stem; outer edge stays PARTIAL_BEAM_INSET in.
-      style.right = "calc(50% - 1px)";
-      style.width = `calc(50% - ${PARTIAL_BEAM_INSET} + 1px)`;
+    if (position === "left") {
+      style.right = "50%";
     } else {
-      style.left = "calc(50% - 1px)";
-      style.width = `calc(50% - ${PARTIAL_BEAM_INSET} + 1px)`;
+      style.left = "50%";
     }
 
     return (
@@ -220,6 +216,7 @@ function renderNoteLengthGuide({
 
   const verticalStem = (
     <div
+      data-note-stem=""
       className={`w-[1px] rounded-md ${
         isHalfNote ? "h-1/2 self-start" : "h-full"
       }`}

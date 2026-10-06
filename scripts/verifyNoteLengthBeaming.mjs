@@ -6,8 +6,9 @@
  *   node --experimental-strip-types scripts/verifyNoteLengthBeaming.mjs http://127.0.0.1:3000
  *
  * The browser half needs `npm run dev` and checks the real renderer at
- * /dev-beam-harness: connecting beams meet, and partial beams stay short
- * enough that a broken group does not look connected.
+ * /dev-beam-harness: connecting beams meet, partial beams stay short
+ * enough that a broken group does not look connected, and flags/beamlets
+ * stay flush with the stem.
  */
 
 import assert from "node:assert/strict";
@@ -177,6 +178,22 @@ try {
     return box;
   }
 
+  async function stemBox(row, index) {
+    const box = await page
+      .locator(
+        `[data-beam-row="${row}"] [data-beam-column="${index}"] [data-note-stem]`,
+      )
+      .boundingBox();
+    assert.ok(box, `missing stem ${row}[${index}]`);
+    return box;
+  }
+
+  function assertFlushWithStem(beam, stem, message) {
+    const stemCenter = stem.x + stem.width / 2;
+    const inner = beam.side === "left" ? beam.box.x + beam.box.width : beam.box.x;
+    nearly(inner, stemCenter, 0.75, message);
+  }
+
   async function beams(row, index) {
     const handles = await page
       .locator(
@@ -256,8 +273,8 @@ try {
         `flag ${flag.box.width}px should be shorter than connected ${connected.box.width}px`,
       );
       const col = await columnBox("orphan-flag", 1);
-      // 6px inset from the outer edge, 1px stem overlap: width is half minus 5px.
-      nearly(flag.box.width, col.width / 2 - 5, 1.5, "partial beam width");
+      // 6px inset from the outer edge; inner edge stays at the stem (50%).
+      nearly(flag.box.width, col.width / 2 - 6, 1.5, "partial beam width");
     },
   );
 
@@ -329,6 +346,79 @@ try {
       nearly(col.width, 40, 1, "editor column width");
     },
   );
+
+  await geometry("a right flag is flush with its stem", async () => {
+    const flag = (await beams("orphan-flag", 1)).find(
+      (beam) => beam.connected === "false" && beam.side === "right",
+    );
+    assert.ok(flag?.box);
+    assertFlushWithStem(flag, await stemBox("orphan-flag", 1), "right flag");
+  });
+
+  await geometry("a left flag is flush with its stem", async () => {
+    const flag = (await beams("rest-separated", 4)).find(
+      (beam) => beam.connected === "false" && beam.side === "left",
+    );
+    assert.ok(flag?.box);
+    assertFlushWithStem(
+      flag,
+      await stemBox("rest-separated", 4),
+      "left flag",
+    );
+  });
+
+  await geometry(
+    "a sixteenth beamlet shares the stem edge with its primary beam",
+    async () => {
+      const columnBeams = await beams("shuffle", 1);
+      const primary = columnBeams.find(
+        (beam) => beam.side === "left" && beam.offset === "0",
+      );
+      const beamlet = columnBeams.find(
+        (beam) => beam.side === "left" && beam.offset === "5",
+      );
+      assert.ok(primary?.box && beamlet?.box);
+      nearly(
+        primary.box.x + primary.box.width,
+        beamlet.box.x + beamlet.box.width,
+        0.5,
+        "beamlet inner edge matches primary",
+      );
+      const stem = await stemBox("shuffle", 1);
+      assertFlushWithStem(primary, stem, "shuffle primary");
+      assertFlushWithStem(beamlet, stem, "shuffle beamlet");
+    },
+  );
+
+  await geometry("odd-width flags stay flush with the stem", async () => {
+    const rightFlag = (await beams("odd-width-orphan-right", 1)).find(
+      (beam) => beam.connected === "false" && beam.side === "right",
+    );
+    const leftFlag = (await beams("odd-width-orphan-left", 2)).find(
+      (beam) => beam.connected === "false" && beam.side === "left",
+    );
+    assert.ok(rightFlag?.box && leftFlag?.box);
+    assertFlushWithStem(
+      rightFlag,
+      await stemBox("odd-width-orphan-right", 1),
+      "odd-width right flag",
+    );
+    assertFlushWithStem(
+      leftFlag,
+      await stemBox("odd-width-orphan-left", 2),
+      "odd-width left flag",
+    );
+
+    const beamlet = (await beams("odd-width-shuffle", 1)).find(
+      (beam) => beam.side === "left" && beam.offset === "5",
+    );
+    assert.ok(beamlet?.box);
+    assertFlushWithStem(
+      beamlet,
+      await stemBox("odd-width-shuffle", 1),
+      "odd-width beamlet",
+    );
+  });
 } finally {
   await browser.close();
 }

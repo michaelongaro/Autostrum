@@ -126,6 +126,24 @@ function DevBeamHarness() {
         pattern={["e", "e", "e", "e", "e", "e", "e", "e"]}
         columnWidth={40}
       />
+      <BeamRow
+        id="odd-width-orphan-right"
+        label="Lone eighth flag at odd (last-column) width"
+        pattern={["q", "e", "q"]}
+        columnWidth={35}
+      />
+      <BeamRow
+        id="odd-width-orphan-left"
+        label="Pair plus leftover eighth flag at odd width"
+        pattern={["e", "e", "e"]}
+        columnWidth={35}
+      />
+      <BeamRow
+        id="odd-width-shuffle"
+        label="Dotted eighth + sixteenth beamlet at odd width"
+        pattern={["de", "s", "de", "s"]}
+        columnWidth={35}
+      />
     </div>
   );
 }
