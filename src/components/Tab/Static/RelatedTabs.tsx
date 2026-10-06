@@ -47,8 +47,7 @@ function sectionHasMoreArtistTabs(
   section: RelatedTabSection<RelatedTabCandidate>,
 ) {
   return (
-    section.kind === "artist" &&
-    (section.totalCount ?? 0) > section.tabs.length
+    section.kind === "artist" && (section.totalCount ?? 0) > section.tabs.length
   );
 }
 
@@ -71,7 +70,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
     <nav
       id="related-tabs"
       aria-label="Related tabs"
-      className="baseVertFlex mt-12 w-full !items-start gap-8"
+      className="baseVertFlex mt-12 w-full !items-start gap-8 border-y bg-background py-8 shadow-lg md:rounded-xl md:border-x md:p-8"
     >
       {sections.map((section) => {
         const heading = relatedTabSectionHeading(section.kind, artistName);
@@ -89,16 +88,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
               <div className="baseVertFlex min-w-0 !items-start sm:gap-1">
                 <h2 className="m-0 text-lg font-bold tracking-tight text-foreground md:text-[1.35rem]">
                   {section.kind === "artist" && artist && artistName ? (
-                    <>
-                      Other tabs by{" "}
-                      <Link
-                        prefetch={false}
-                        href={artistTabsHref(artist)}
-                        className="underline-offset-4 hover:underline"
-                      >
-                        {artistName}
-                      </Link>
-                    </>
+                    <>Other tabs by {artistName}</>
                   ) : (
                     heading
                   )}
@@ -142,10 +132,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
               }}
               className="w-full"
             >
-              <CarouselContent
-                viewportClassName="carouselHorizontalFade"
-                className="mr-4 items-start justify-start pb-1 md:mr-0"
-              >
+              <CarouselContent className="mr-4 items-start justify-start pb-1 md:mr-0">
                 {section.tabs.map((tab) => (
                   <CarouselItem
                     key={tab.id}
@@ -161,18 +148,6 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
                 ))}
               </CarouselContent>
             </Carousel>
-
-            {showMoreArtistTabs && artist && artistName && (
-              <Button variant="link" asChild>
-                <Link
-                  prefetch={false}
-                  href={artistTabsHref(artist)}
-                  className="ml-4 !h-6 !self-start !px-0 !py-0 text-foreground sm:hidden"
-                >
-                  Browse all tabs by {artistName}
-                </Link>
-              </Button>
-            )}
           </section>
         );
       })}
