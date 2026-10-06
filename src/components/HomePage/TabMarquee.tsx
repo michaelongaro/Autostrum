@@ -131,7 +131,7 @@ function TabMarquee() {
             <MarqueeRow
               tabs={rows[0]!}
               direction="left"
-              duration="60s"
+              duration="70s"
               color={color}
               theme={theme}
               currentUser={currentUser}
@@ -140,7 +140,7 @@ function TabMarquee() {
             <MarqueeRow
               tabs={rows[1]!}
               direction="right"
-              duration="70s"
+              duration="80s"
               color={color}
               theme={theme}
               currentUser={currentUser}
@@ -149,7 +149,7 @@ function TabMarquee() {
             <MarqueeRow
               tabs={rows[2]!}
               direction="left"
-              duration="65s"
+              duration="75s"
               color={color}
               theme={theme}
               currentUser={currentUser}
@@ -163,9 +163,9 @@ function TabMarquee() {
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-background to-transparent md:w-16" />
 
         {/* Center overlay CTA */}
-        <div className="pointer-events-none absolute inset-0 z-20 baseFlex px-4">
+        <div className="baseFlex pointer-events-none absolute inset-0 z-20 px-4">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/10 via-background/55 to-background/10" />
-          <div className="pointer-events-auto relative baseVertFlex max-w-md gap-4 rounded-xl border bg-background/95 px-6 py-7 text-center shadow-lg backdrop-blur-sm md:px-10 md:py-9">
+          <div className="baseVertFlex pointer-events-auto relative max-w-md gap-4 rounded-xl border bg-background/95 px-6 py-7 text-center shadow-lg backdrop-blur-sm md:px-10 md:py-9">
             <div className="baseVertFlex gap-2">
               <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
                 Explore thousands of tabs
