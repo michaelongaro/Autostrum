@@ -343,3 +343,11 @@ kbd {
     transparent
   );
 }
+
+/* /explore carousels are inset from the card; stretch the fade so it
+   lands on the card’s left and right edges. */
+@media (min-width: 768px) {
+  .carouselHorizontalFade--card {
+    --carousel-fade-size: 2.5rem;
+  }
+}

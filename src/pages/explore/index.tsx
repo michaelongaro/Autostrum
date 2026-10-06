@@ -142,7 +142,7 @@ function Explore({ json }: { json: string }) {
               className="baseFlex w-full"
             >
               <CarouselContent
-                viewportClassName="carouselHorizontalFade [--carousel-fade-size:1.5rem] md:[--carousel-fade-size:2.5rem]"
+                viewportClassName="carouselHorizontalFade carouselHorizontalFade--card"
                 className="mr-4 pb-1 md:mr-8"
               >
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
@@ -199,7 +199,7 @@ function Explore({ json }: { json: string }) {
               className="baseFlex w-full"
             >
               <CarouselContent
-                viewportClassName="carouselHorizontalFade [--carousel-fade-size:1.5rem] md:[--carousel-fade-size:2.5rem]"
+                viewportClassName="carouselHorizontalFade carouselHorizontalFade--card"
                 className="mr-4 pb-1 md:mr-8"
               >
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
