@@ -50,6 +50,7 @@ import CountIn from "~/components/ui/icons/CountIn";
 import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 import { useRouter } from "next/router";
 import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
+import ChordName from "~/components/ui/ChordName";
 
 interface PlaybackBottomMetadata {
   tabProgressValue: number;
@@ -534,6 +535,7 @@ function MobileMenuDialog() {
     strummingPatterns,
     audioMetadata,
     previewMetadata,
+    chordDisplayMode,
     playPreview,
     pauseAudio,
   } = useTabStore((state) => ({
@@ -543,6 +545,7 @@ function MobileMenuDialog() {
     strummingPatterns: state.strummingPatterns,
     audioMetadata: state.audioMetadata,
     previewMetadata: state.previewMetadata,
+    chordDisplayMode: state.chordDisplayMode,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
   }));
@@ -650,19 +653,21 @@ function MobileMenuDialog() {
                       >
                         <div className="baseVertFlex gap-3">
                           <div className="baseFlex w-full !justify-between border-b py-2">
-                            <span
-                              style={{
-                                color:
-                                  previewMetadata.indexOfPattern === index &&
-                                  previewMetadata.playing &&
-                                  previewMetadata.type === "chord"
-                                    ? "hsl(var(--primary))"
-                                    : "hsl(var(--foreground))",
-                              }}
-                              className="px-3 font-semibold transition-colors"
-                            >
-                              {chord.name}
-                            </span>
+                            <ChordName
+                              name={chord.name}
+                              color={chord.color}
+                              truncate={false}
+                              showFullName={true}
+                              isHighlighted={
+                                chordDisplayMode === "color"
+                                  ? false
+                                  : previewMetadata.indexOfPattern === index &&
+                                      previewMetadata.playing &&
+                                      previewMetadata.type === "chord"
+                                    ? true
+                                    : false
+                              }
+                            />
 
                             {/* preview chord button */}
                             <Button
