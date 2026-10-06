@@ -323,3 +323,23 @@ kbd {
 .progressBar-paused {
   animation-play-state: paused !important;
 }
+
+/* Soften overflowing carousel cards so they dissolve into whatever sits
+   behind the viewport (page gradient on related tabs, card fill on /explore). */
+.carouselHorizontalFade {
+  --carousel-fade-size: 2rem;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--carousel-fade-size),
+    #000 calc(100% - var(--carousel-fade-size)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--carousel-fade-size),
+    #000 calc(100% - var(--carousel-fade-size)),
+    transparent
+  );
+}
