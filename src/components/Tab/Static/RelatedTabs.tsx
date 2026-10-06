@@ -31,7 +31,7 @@ function artistTabsHref(artist: RelatedArtist) {
   return `/artist/${encodeURIComponent(artist.name)}/${artist.id}/filters`;
 }
 
-function directoryLinkSection(
+function browseAllTabsSection(
   sections: RelatedTabSection<RelatedTabCandidate>[],
 ): RelatedTabSectionKind | null {
   return (
@@ -40,6 +40,15 @@ function directoryLinkSection(
     )?.kind ??
     sections[0]?.kind ??
     null
+  );
+}
+
+function sectionHasMoreArtistTabs(
+  section: RelatedTabSection<RelatedTabCandidate>,
+) {
+  return (
+    section.kind === "artist" &&
+    (section.totalCount ?? 0) > section.tabs.length
   );
 }
 
@@ -56,7 +65,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
   if (sections.length === 0) return null;
 
   const artistName = artist?.name.trim() ? artist.name.trim() : null;
-  const linkSectionKind = directoryLinkSection(sections);
+  const browseAllKind = browseAllTabsSection(sections);
 
   return (
     <nav
@@ -66,6 +75,9 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
     >
       {sections.map((section) => {
         const heading = relatedTabSectionHeading(section.kind, artistName);
+        const showMoreArtistTabs =
+          sectionHasMoreArtistTabs(section) && Boolean(artist && artistName);
+        const showBrowseAllTabs = section.kind === browseAllKind;
 
         return (
           <section
@@ -94,9 +106,9 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
                 <Separator className="w-full bg-primary" />
               </div>
 
-              {section.kind === linkSectionKind && (
+              {(showMoreArtistTabs || showBrowseAllTabs) && (
                 <div className="baseFlex shrink-0 gap-4">
-                  {artist && artistName && (
+                  {showMoreArtistTabs && artist && artistName && (
                     <Button variant="link" asChild>
                       <Link
                         prefetch={false}
@@ -108,15 +120,17 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
                     </Button>
                   )}
 
-                  <Button variant="link" asChild>
-                    <Link
-                      prefetch={false}
-                      href="/search/filters"
-                      className="!h-6 !px-0 !py-0 text-foreground"
-                    >
-                      Browse all tabs
-                    </Link>
-                  </Button>
+                  {showBrowseAllTabs && (
+                    <Button variant="link" asChild>
+                      <Link
+                        prefetch={false}
+                        href="/search/filters"
+                        className="!h-6 !px-0 !py-0 text-foreground"
+                      >
+                        Browse all tabs
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -124,12 +138,13 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
             <Carousel
               opts={{
                 dragFree: true,
+                align: "start",
               }}
-              className="baseFlex w-full"
+              className="w-full"
             >
               <CarouselContent
                 viewportClassName="carouselHorizontalFade"
-                className="mr-4 pb-1 md:mr-0"
+                className="mr-4 items-start justify-start pb-1 md:mr-0"
               >
                 {section.tabs.map((tab) => (
                   <CarouselItem
@@ -147,7 +162,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
               </CarouselContent>
             </Carousel>
 
-            {artist && artistName && (
+            {showMoreArtistTabs && artist && artistName && (
               <Button variant="link" asChild>
                 <Link
                   prefetch={false}
