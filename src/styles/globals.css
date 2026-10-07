@@ -382,9 +382,78 @@ kbd {
   animation: homepageProgressSweep 8s ease-in-out infinite;
 }
 
+/* Linear-style 3D homepage screenshot: perspective stage, primary glow,
+   tilted mockup, bottom fade, and a thin top-edge light streak. */
+.heroScreenshotStage {
+  perspective: 2000px;
+  width: min(1152px, 100%);
+  position: relative;
+  isolation: isolate;
+}
+
+.heroScreenshotStage::before {
+  content: "";
+  position: absolute;
+  inset: 8% 12%;
+  background: radial-gradient(ellipse at 50% 40%,
+      hsl(var(--primary) / 0.5),
+      transparent 70%);
+  filter: blur(64px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.heroScreenshotTilt {
+  position: relative;
+  z-index: 1;
+  transform: rotateX(25deg) rotateY(-8deg) rotateZ(4deg) scale(0.95);
+  transform-origin: center top;
+  transform-style: preserve-3d;
+  will-change: transform;
+  -webkit-mask-image: linear-gradient(to bottom, #000 48%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 48%, transparent 100%);
+}
+
+.heroScreenshotApp {
+  border-radius: 12px;
+  border: 1px solid hsl(var(--primary) / 0.22);
+  box-shadow:
+    0 0 0 1px hsl(var(--foreground) / 0.06) inset,
+    0 0 48px -10px hsl(var(--primary) / 0.32),
+    0 50px 100px -20px hsl(0 0% 0% / 0.72);
+}
+
+.heroScreenshotApp::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.22) 18%,
+      hsl(var(--primary) / 0.95) 50%,
+      hsl(var(--primary) / 0.22) 82%,
+      transparent 100%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .heroScreenshotTilt {
+    transform: rotateX(18deg) rotateY(-4deg) rotateZ(2deg) scale(0.95);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .homepageMarqueeTrack,
   .homepageProgressSweep {
     animation: none !important;
+  }
+
+  .heroScreenshotTilt {
+    transform: none;
+    will-change: auto;
   }
 }

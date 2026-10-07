@@ -1,79 +1,51 @@
 import Link from "next/link";
-import { motion } from "framer-motion";
-import Image from "next/image";
+import { useEffect, useRef } from "react";
 import HeaderLogo from "~/components/Header/HeaderLogo";
 import { Button } from "~/components/ui/button";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { api } from "~/utils/api";
-import mobileHero from "public/homepage/hero/goodMobileHero.png";
-import desktopHero from "public/homepage/hero/goodDesktopHero.png";
 
-const PROMOTED_TAB_ID = 83;
+const HERO_FLATTEN_SCROLL_PX = 500;
 
 function Hero() {
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
-  const { data: promotedTab, isFetched: promotedTabFetched } =
-    api.search.getMinimalTabById.useQuery(PROMOTED_TAB_ID);
-
-  const { data: fallbackTabs } =
-    api.search.getMostRecentAndPopularTabs.useQuery(undefined, {
-      enabled: promotedTabFetched && !promotedTab,
-    });
-
   return (
-    <section className="baseVertFlex w-full max-w-[1700px] gap-8 px-4 md:gap-10 md:px-6 lg:px-8">
-      <div className="baseVertFlex w-full gap-8 lg:flex-row lg:!items-center lg:!justify-between lg:gap-0">
-        <div className="baseVertFlex w-full max-w-xl !items-start gap-5 md:gap-6">
-          <div className="baseVertFlex !items-start gap-3 md:gap-4">
-            <h1 className="sr-only">Autostrum</h1>
-            <HeaderLogo
-              width={isAboveMediumViewportWidth ? 320 : 220}
-              height={isAboveMediumViewportWidth ? 56 : 38}
-            />
-            <p className="max-w-lg text-xl font-semibold tracking-tight md:text-2xl lg:text-[1.75rem]">
-              Create and share your riffs{" "}
-              <span className="italic text-primary underline underline-offset-2">
-                exactly
-              </span>{" "}
-              how you want them to sound
-            </p>
-            <p className="max-w-md text-sm text-foreground/80 md:text-base">
-              Keyboard-first editor, realistic guitar playback, and tools to
-              practice what you write.
-            </p>
-          </div>
-
-          <div className="baseFlex !justify-start gap-3">
-            <Button asChild className="px-5 md:px-6">
-              <Link prefetch={false} href="/create">
-                Create a tab
-              </Link>
-            </Button>
-            <Button variant="outline" asChild className="px-5 md:px-6">
-              <Link prefetch={false} href="/explore">
-                Explore tabs
-              </Link>
-            </Button>
-          </div>
+    <section className="baseVertFlex w-full max-w-[1700px] gap-10 overflow-x-hidden px-4 md:gap-14 md:px-6 lg:px-8">
+      <div className="baseVertFlex w-full max-w-xl !items-start gap-5 md:gap-6">
+        <div className="baseVertFlex !items-start gap-3 md:gap-4">
+          <h1 className="sr-only">Autostrum</h1>
+          <HeaderLogo
+            width={isAboveMediumViewportWidth ? 320 : 220}
+            height={isAboveMediumViewportWidth ? 56 : 38}
+          />
+          <p className="max-w-lg text-xl font-semibold tracking-tight md:text-2xl lg:text-[1.75rem]">
+            Create and share your riffs{" "}
+            <span className="italic text-primary underline underline-offset-2">
+              exactly
+            </span>{" "}
+            how you want them to sound
+          </p>
+          <p className="max-w-md text-sm text-foreground/80 md:text-base">
+            Keyboard-first editor, realistic guitar playback, and tools to
+            practice what you write.
+          </p>
         </div>
 
-        {/* <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.1 }}
-          className="w-full max-w-md lg:max-w-4xl"
-        >
-          <Image
-            alt={"practice modal preview"}
-            src={isAboveMediumViewportWidth ? desktopHero : mobileHero}
-            className="rounded-lg border shadow-lg"
-            priority
-          />
-        </motion.div> */}
-
-        <TablatureScreenshot />
+        <div className="baseFlex !justify-start gap-3">
+          <Button asChild className="px-5 md:px-6">
+            <Link prefetch={false} href="/create">
+              Create a tab
+            </Link>
+          </Button>
+          <Button variant="outline" asChild className="px-5 md:px-6">
+            <Link prefetch={false} href="/explore">
+              Explore tabs
+            </Link>
+          </Button>
+        </div>
       </div>
+
+      <TablatureScreenshot />
     </section>
   );
 }
@@ -162,7 +134,63 @@ const TabColumn = ({
   </div>
 );
 
+function getHeroScreenshotTilt(scrollY: number, narrow: boolean) {
+  const p = Math.min(scrollY / HERO_FLATTEN_SCROLL_PX, 1);
+  const ease = 1 - p;
+  const rotateX = (narrow ? 18 : 25) * ease;
+  const rotateY = (narrow ? -4 : -8) * ease;
+  const rotateZ = (narrow ? 2 : 4) * ease;
+  const scale = 0.95 + 0.05 * p;
+
+  return `rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg) scale(${scale})`;
+}
+
 function TablatureScreenshot() {
+  const tiltRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tilt = tiltRef.current;
+    if (!tilt) return;
+
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const narrowQuery = window.matchMedia("(max-width: 767px)");
+
+    const applyTilt = () => {
+      if (motionQuery.matches) {
+        tilt.style.transform = "none";
+        return;
+      }
+
+      tilt.style.transform = getHeroScreenshotTilt(
+        window.scrollY,
+        narrowQuery.matches,
+      );
+    };
+
+    let frame = 0;
+    const onScrollOrResize = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        applyTilt();
+      });
+    };
+
+    applyTilt();
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize, { passive: true });
+    motionQuery.addEventListener("change", applyTilt);
+    narrowQuery.addEventListener("change", applyTilt);
+
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+      motionQuery.removeEventListener("change", applyTilt);
+      narrowQuery.removeEventListener("change", applyTilt);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   // Simplified tab data without hardcoded absolute left values
   const tabData = [
     ["", "3", "", "", "", ""],
@@ -218,13 +246,11 @@ function TablatureScreenshot() {
 
   return (
     <div
-      style={{
-        // transform: "scale(0.75)",
-        // zoom: 0.5,
-        transform: "rotate3d(1,1,1,0.45)",
-      }}
-      className="baseVertFlex playbackModalGradient pointer-events-none relative h-[650px] w-screen max-w-none select-none !justify-between gap-0 overflow-hidden !rounded-none border p-0 tablet:max-w-6xl tablet:!rounded-lg"
+      className="heroScreenshotStage -mb-16 w-full md:-mb-24"
+      aria-hidden="true"
     >
+      <div ref={tiltRef} className="heroScreenshotTilt">
+        <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-[460px] w-full select-none !justify-between gap-0 overflow-hidden p-0 md:h-[580px] lg:h-[650px]">
       {/* Top Header Section */}
       <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
         <div className="baseFlex w-full !items-end !justify-start gap-2">
@@ -464,6 +490,8 @@ function TablatureScreenshot() {
       <div className="baseFlex absolute right-4 top-4 !size-5 text-foreground opacity-70">
         <X className="size-5" />
         <span className="sr-only">Close</span>
+      </div>
+        </div>
       </div>
     </div>
   );
