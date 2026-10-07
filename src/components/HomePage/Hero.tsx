@@ -1,5 +1,6 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { BsBarChartLine } from "react-icons/bs";
 import { GiMusicalScore } from "react-icons/gi";
 import { HiOutlineLightBulb } from "react-icons/hi";
@@ -165,6 +166,13 @@ function Hero() {
           </AnimatePresence>
         </div>
       </div>
+
+      <Link
+        href="/homepage-redesign"
+        className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+      >
+        Preview homepage redesign variations
+      </Link>
     </div>
   );
 }
