@@ -26,11 +26,14 @@ function FAQ() {
           >
             Why can&apos;t I hear any sounds playing on my iPhone?
           </AccordionTrigger>
-          <AccordionContent className="my-2 w-full text-sm text-foreground/75">
-            This is most likely caused by your iPhone&apos;s mute switch being
-            turned on. Apple prevents any programmatic audio from playing on the
-            web when this switch is turned on, please flip it off if you would
-            like to practice along with our realistic guitar audio-samples.
+          <AccordionContent className="w-full text-sm text-foreground/75">
+            <p className="mt-2">
+              This is most likely caused by your iPhone&apos;s mute switch being
+              turned on. Apple prevents any programmatic audio from playing on
+              the web when this switch is turned on, please flip it off if you
+              would like to practice along with our realistic guitar
+              audio-samples.
+            </p>
           </AccordionContent>
         </AccordionItem>
 
@@ -44,10 +47,12 @@ function FAQ() {
           >
             Will Autostrum ever have any ads or a premium subscription?
           </AccordionTrigger>
-          <AccordionContent className="my-2 w-full text-sm text-foreground/75">
-            We have never had the intention of running ads or offering a premium
-            subscription on our platform, however if hosting costs run too high
-            then it&apos;s possible these might be implemented.
+          <AccordionContent className="w-full text-sm text-foreground/75">
+            <p className="mt-2">
+              We have never had the intention of running ads or offering a
+              premium subscription on our platform, however if hosting costs run
+              too high then it&apos;s possible these might be implemented.
+            </p>
           </AccordionContent>
         </AccordionItem>
 
@@ -62,13 +67,15 @@ function FAQ() {
             There are some missing guitar effects that I want to include in my
             tab.
           </AccordionTrigger>
-          <AccordionContent className="my-2 w-full text-sm text-foreground/75">
-            We recognize that there are a handful of effects that are not
-            currently supported (precise bends, harmonics, tapping, certain note
-            lengths). This is because we value the ease of making a tab very
-            highly, and want to get the ergonomics right so tab creators have a
-            predicable experience. These features are planned to be added to the
-            platform.
+          <AccordionContent className="w-full text-sm text-foreground/75">
+            <p className="mt-2">
+              We recognize that there are a handful of effects that are not
+              currently supported (precise bends, harmonics, tapping, certain
+              note lengths). This is because we value the ease of making a tab
+              very highly, and want to get the ergonomics right so tab creators
+              have a predicable experience. These features are planned to be
+              added to the platform.
+            </p>
           </AccordionContent>
         </AccordionItem>
 
@@ -82,9 +89,11 @@ function FAQ() {
           >
             Where can I download the Autostrum app?
           </AccordionTrigger>
-          <AccordionContent className="my-2 w-full text-sm text-foreground/75">
-            Currently Autostrum exists solely as a web application, however we
-            are open to app development if there is enough demand.
+          <AccordionContent className="w-full text-sm text-foreground/75">
+            <p className="mt-2">
+              Currently Autostrum exists solely as a web application, however we
+              are open to app development if there is enough demand.
+            </p>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
