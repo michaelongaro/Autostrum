@@ -108,7 +108,7 @@ function MobileHeader() {
 
             <DialogContent
               renderCloseButton={false}
-              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none border-none p-0"
+              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none border-none p-0 data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100 data-[state=closed]:slide-out-to-top-[50%] data-[state=open]:slide-in-from-top-[50%]"
             >
               <SearchInput setShowMobileSearch={setShowMobileSearch} />
             </DialogContent>
