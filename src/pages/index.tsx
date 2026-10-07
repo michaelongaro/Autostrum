@@ -16,7 +16,7 @@ function Home() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex w-full gap-16 py-16 md:gap-24 md:py-24"
+      className="baseVertFlex w-full gap-16 overflow-x-clip py-16 md:gap-24 md:py-24"
     >
       <Head>
         <title>Autostrum</title>
