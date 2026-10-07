@@ -22,7 +22,7 @@ function Hero() {
     });
 
   return (
-    <section className="baseVertFlex w-full max-w-[1200px] gap-8 px-4 md:gap-10 md:px-6 lg:px-8">
+    <section className="baseVertFlex w-full max-w-[1700px] gap-8 px-4 md:gap-10 md:px-6 lg:px-8">
       <div className="baseVertFlex w-full gap-8 lg:flex-row lg:!items-center lg:!justify-between lg:gap-0">
         <div className="baseVertFlex w-full max-w-xl !items-start gap-5 md:gap-6">
           <div className="baseVertFlex !items-start gap-3 md:gap-4">
@@ -89,7 +89,15 @@ import TuningFork from "~/components/ui/icons/TuningFork";
 import { FaBook } from "react-icons/fa";
 
 // Helper component to render the repetitive tab column sections cleanly
-const TabColumn = ({ left, strings }: { left: number; strings: string[] }) => (
+const TabColumn = ({
+  left,
+  strings,
+  isHighlighted,
+}: {
+  left: number;
+  strings: string[];
+  isHighlighted: boolean;
+}) => (
   <div style={{ position: "absolute", width: 34, left }}>
     <div className="baseVertFlex relative w-[34px]">
       <div className="baseVertFlex w-full">
@@ -123,7 +131,7 @@ const TabColumn = ({ left, strings }: { left: number; strings: string[] }) => (
                 <div
                   className="baseFlex relative h-[20px]"
                   style={{
-                    color: "hsl(var(--primary))",
+                    color: isHighlighted ? "hsl(var(--primary))" : "",
                     marginTop: 0,
                     marginBottom: 0,
                   }}
@@ -335,7 +343,12 @@ function TablatureScreenshot() {
               >
                 {/* Dynamically calculate left position via idx * 34 */}
                 {tabData.map((strings, idx) => (
-                  <TabColumn key={idx} left={idx * 34} strings={strings} />
+                  <TabColumn
+                    key={idx}
+                    left={idx * 34}
+                    strings={strings}
+                    isHighlighted={idx < 16}
+                  />
                 ))}
               </div>
             </div>
