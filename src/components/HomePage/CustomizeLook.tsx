@@ -95,10 +95,6 @@ function CustomizeLook() {
         <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
           Customize your look
         </h2>
-        <p className="max-w-2xl text-sm text-foreground/80 md:text-base">
-          Nine accent colors and light, dark, or system theme — saved for you
-          when you&apos;re signed in.
-        </p>
       </div>
 
       <div className="baseVertFlex w-full gap-6 rounded-xl border bg-background p-5 shadow-md md:p-8 lg:flex-row lg:!items-start lg:gap-10">

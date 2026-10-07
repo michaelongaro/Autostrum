@@ -16,7 +16,7 @@ function SignupCTA() {
   if (isSignedIn) return null;
 
   return (
-    <section className="baseFlex w-full max-w-[1200px] !justify-between rounded-xl border bg-background shadow-md">
+    <section className="baseVertFlex w-full max-w-[1200px] !justify-between rounded-xl border bg-background shadow-md md:!flex-row">
       <div className="baseVertFlex w-full gap-5 px-6 py-10 text-center md:gap-6 md:px-12 md:py-14">
         <div className="baseVertFlex max-w-sm gap-2 md:gap-3">
           <h2 className="text-left text-2xl font-bold tracking-tight md:text-3xl">
@@ -41,30 +41,6 @@ function SignupCTA() {
           </Button>
         </div>
       </div>
-
-      {/* <div
-        // style={{
-        //   width: getDynamicWidth(),
-        //   height: getDynamicHeight(),
-        // }}
-        className="relative grid size-full grid-cols-1 grid-rows-1"
-      >
-        <Image
-          src={tabMetadataScreenshot}
-          alt={`screenshot of`}
-          // fill
-          sizes="1000px"
-          // sizes={`(max-width: 768px) 100vw, ${getDynamicWidth()}px`}
-          className="pointer-events-none col-start-1 col-end-2 row-start-1 row-end-2 rounded-r-2xl object-cover object-center !transition-all"
-        />
-
-        <div
-          // style={{
-          //   backgroundColor: "hsl(var(--screenshot-secondary) / 0.5)",
-          // }}
-          className="absolute inset-0 z-10 size-full bg-primary/50 mix-blend-color"
-        ></div>
-      </div> */}
 
       <TopRightTabMetadataPreview />
     </section>
