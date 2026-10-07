@@ -420,6 +420,17 @@ kbd {
     0 40px 80px -24px hsl(0 0% 0% / 0.65);
 }
 
+html[data-theme="light"] .heroScreenshotStage::before {
+  opacity: 0.35;
+}
+
+html[data-theme="light"] .heroScreenshotApp {
+  box-shadow:
+    0 0 0 1px hsl(var(--foreground) / 0.06) inset,
+    0 0 36px -12px hsl(var(--primary) / 0.12),
+    0 20px 48px -20px hsl(0 0% 0% / 0.16);
+}
+
 .heroScreenshotApp::before {
   content: "";
   position: absolute;
