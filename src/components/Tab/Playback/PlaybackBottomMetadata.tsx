@@ -642,7 +642,7 @@ function MobileMenuDialog() {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex flex h-dvh max-h-dvh w-full max-w-none gap-0 !justify-start overflow-hidden !rounded-none border-none p-0 pt-12">
+      <DialogContent className="baseVertFlex !flex h-dvh max-h-dvh w-full !max-w-none !gap-0 !justify-start overflow-hidden !rounded-none !border-none !px-0 !pb-0 !pt-12">
         <div className="baseFlex h-12 w-full shrink-0 !justify-start">
           <Carousel
             setApi={setCarouselApi}
