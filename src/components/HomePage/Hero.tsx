@@ -43,6 +43,7 @@ function Hero() {
           </div>
         </div>
 
+        <MobileTablatureScreenshot />
         <TablatureScreenshot />
       </div>
     </section>
@@ -58,11 +59,12 @@ import { IoColorPalette } from "react-icons/io5";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import PlayIcon from "~/components/ui/icons/PlayIcon";
-import { FaBook } from "react-icons/fa";
+import { FaBook, FaListUl } from "react-icons/fa";
+import { IoMdSettings } from "react-icons/io";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 
-// Matches main's PLAYBACK_TAB_STRINGS_HEIGHT_PX (6 strings × 21px).
-const PLAYBACK_TAB_STRINGS_HEIGHT_PX = 126;
+// Use em units so both previews share the same staff at their viewport scale.
+const PLAYBACK_TAB_STRINGS_HEIGHT = "7.875em";
 
 // Visual-only recreation of main's <PlaybackTabChord> staff (no per-string
 // bordered rows; 1px start/end staff lines; my-3 string spacing).
@@ -72,35 +74,35 @@ const TabColumn = ({
   isHighlighted,
   isFirstChordInTab,
 }: {
-  left: number;
+  left: string;
   strings: string[];
   isHighlighted: boolean;
   isFirstChordInTab?: boolean;
 }) => (
-  <div style={{ position: "absolute", width: 34, left }}>
-    <div className="baseVertFlex relative w-[34px]">
+  <div style={{ position: "absolute", width: "2.125em", left }}>
+    <div className="baseVertFlex relative w-[2.125em]">
       <div className="baseVertFlex w-full">
-        <div className="baseVertFlex mb-[-18px]">
-          <div className="baseFlex h-7 w-full"></div>
+        <div className="baseVertFlex mb-[-1.125em]">
+          <div className="baseFlex h-[1.75em] w-full"></div>
 
-          <div className="baseVertFlex relative w-[34px]">
+          <div className="baseVertFlex relative w-[2.125em]">
             {isFirstChordInTab && (
               <div
-                className="absolute left-0 top-3 w-[1px] bg-foreground/50"
-                style={{ height: PLAYBACK_TAB_STRINGS_HEIGHT_PX }}
+                className="absolute left-0 top-[0.75em] w-[0.0625em] bg-foreground/50"
+                style={{ height: PLAYBACK_TAB_STRINGS_HEIGHT }}
               ></div>
             )}
 
             {strings.map((note, idx) => (
               <div
                 key={idx}
-                className="baseFlex relative w-[34px] basis-[content]"
+                className="baseFlex relative w-[2.125em] basis-[content]"
               >
-                <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-                <div className="baseFlex w-[34px]">
-                  <div className="my-3 h-[1px] flex-[1] bg-foreground/50"></div>
+                <div className="h-[0.0625em] flex-[1] bg-foreground/50"></div>
+                <div className="baseFlex w-[2.125em]">
+                  <div className="my-[0.75em] h-[0.0625em] flex-[1] bg-foreground/50"></div>
                   <div
-                    className="baseFlex relative h-[20px]"
+                    className="baseFlex relative h-[1.25em]"
                     style={{
                       color: isHighlighted
                         ? "hsl(var(--primary))"
@@ -109,22 +111,22 @@ const TabColumn = ({
                   >
                     <div>{note}</div>
                   </div>
-                  <div className="my-3 h-[1px] flex-[1] bg-foreground/50"></div>
+                  <div className="my-[0.75em] h-[0.0625em] flex-[1] bg-foreground/50"></div>
                 </div>
-                <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                <div className="h-[0.0625em] flex-[1] bg-foreground/50"></div>
               </div>
             ))}
           </div>
 
-          <div className="baseFlex mt-1 h-4 w-full">
+          <div className="baseFlex mt-[0.25em] h-[1em] w-full">
             <div className="baseFlex relative size-full !flex-nowrap">
               <div
-                className="h-full w-[1px] rounded-md"
+                className="h-full w-[0.0625em] rounded-md"
                 style={{ backgroundColor: "currentColor" }}
               ></div>
             </div>
           </div>
-          <div className="baseFlex relative mt-2 size-5">
+          <div className="baseFlex relative mt-[0.5em] size-[1.25em]">
             <div className="size-full"></div>
           </div>
         </div>
@@ -133,62 +135,188 @@ const TabColumn = ({
   </div>
 );
 
-function TablatureScreenshot() {
-  // Simplified tab data without hardcoded absolute left values
-  const tabData = [
-    ["", "3", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "0", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "", "", "0"],
-    ["", "", "", "", "", ""],
-    ["", "", "", "", "", "0"],
-    ["", "0", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "2", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "0", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "", "0", "", ""],
-    ["", "3", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "3", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "0", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "", "", "0"],
-    ["", "", "", "", "", ""],
-    ["", "", "", "", "", "0"],
-    ["", "0", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "3", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "0", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "", "", "0"],
-    ["", "", "", "", "", ""],
-    ["", "", "", "", "", "0"],
-    ["", "", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "3", "", "", "", ""],
-    ["", "", "", "", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "0", "", ""],
-    ["", "", "0", "", "", ""],
-    ["", "", "", "", "", "0"],
-    ["", "", "", "", "", ""],
-    ["", "", "", "", "", "0"],
-  ];
+// Good Riddance is shared by the desktop and mobile landscape previews.
+const tabData = [
+  ["", "3", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "0", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "", "", "0"],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", "0"],
+  ["", "0", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "2", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "0", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "", "0", "", ""],
+  ["", "3", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "3", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "0", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "", "", "0"],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", "0"],
+  ["", "0", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "3", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "0", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "", "", "0"],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", "0"],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "3", "", "", "", ""],
+  ["", "", "", "", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "0", "", ""],
+  ["", "", "0", "", "", ""],
+  ["", "", "", "", "", "0"],
+  ["", "", "", "", "", ""],
+  ["", "", "", "", "", "0"],
+];
 
+function TablatureTrack({
+  layout = "desktop",
+}: {
+  layout?: "desktop" | "mobile";
+}) {
   return (
-    <div className="heroScreenshotStage w-full min-w-0 lg:flex-1" aria-hidden="true">
+    <div className="baseVertFlex relative min-h-0 w-full flex-1 select-none">
+      <div className="w-full overflow-hidden">
+        <div
+          className={`baseFlex relative w-full overflow-hidden ${layout === "mobile" ? "h-[15.9375em]" : "h-[315px]"}`}
+        >
+          <div className="relative flex size-full overflow-hidden">
+            <div className="baseFlex absolute left-0 top-0 size-full">
+              <div className="w-full"></div>
+              <div className="z-0 mb-[0.125em] ml-[0.25em] h-[7.75em] w-[0.125em] shrink-0 bg-primary"></div>
+              <div className="w-full"></div>
+            </div>
+            <div
+              className="relative flex items-center"
+              style={{ width: `${tabData.length * 2.125 + 6.25}em` }}
+            >
+              {tabData.map((strings, idx) => (
+                <TabColumn
+                  key={idx}
+                  left={`${idx * 2.125}em`}
+                  strings={strings}
+                  isHighlighted={idx < 16}
+                  isFirstChordInTab={idx === 0}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// A scaled 800 × 400 landscape viewport, independent of the page's orientation.
+function MobileTablatureScreenshot() {
+  return (
+    <div
+      className="heroScreenshotStage heroScreenshotMobile w-full min-w-0 max-w-[800px] lg:hidden"
+      aria-hidden="true"
+    >
+      <div className="heroScreenshotTilt">
+        <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative aspect-[2/1] w-full select-none !justify-between gap-0 overflow-hidden p-0 text-[2cqw] leading-[1.5]">
+          <div className="baseFlex w-full !justify-between px-[1em] pt-[0.5em]">
+            <div className="baseFlex !justify-start gap-[1em]">
+              <span className="whitespace-nowrap text-[1.25em] font-bold">
+                Good Riddance
+              </span>
+              <div className="h-[1.25em] w-[0.0625em] bg-foreground/50"></div>
+              <div className="baseFlex gap-[0.25em] whitespace-nowrap">
+                <QuarterNote className="h-[1.125em] w-[0.625em]" />
+                350 BPM
+              </div>
+            </div>
+            <X className="size-[1.25em] opacity-70" />
+          </div>
+
+          <TablatureTrack layout="mobile" />
+
+          <div className="baseVertFlex w-full gap-[0.5em] pb-[0.5em]">
+            {/* Landscape playback controls stay together on one row. */}
+            <div className="baseFlex w-full gap-[1em] px-[1em]">
+              <div className="baseFlex size-[2em] shrink-0">
+                <PlayIcon style={{ width: "0.75em", height: "0.75em" }} />
+              </div>
+              <div className="baseFlex gap-[0.25em]">
+                1x
+                <ChevronDown className="size-[1em] opacity-50" />
+              </div>
+              <span>0:04</span>
+              <div className="relative h-[0.5em] min-w-0 flex-1 rounded-full bg-[hsl(var(--gray)/0.5)]">
+                <div className="h-full w-1/3 rounded-full bg-primary"></div>
+                <div className="absolute left-1/3 top-1/2 size-[1.125em] -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/50 bg-primary"></div>
+              </div>
+              <span>0:16</span>
+              <div className="baseFlex size-[2em] shrink-0 rounded-md border">
+                <CgArrowsShrinkH className="size-[1.5em]" />
+              </div>
+            </div>
+
+            {/* Match the app's compact landscape metadata and settings row. */}
+            <div className="baseFlex w-full !justify-between gap-[1em] px-[1em]">
+              <div className="baseFlex gap-[1em]">
+                <div className="baseVertFlex !items-start">
+                  <span className="text-[0.875em] font-medium">Tuning</span>
+                  <span>Standard</span>
+                </div>
+                <div className="baseVertFlex !items-start">
+                  <span className="text-[0.875em] font-medium">Capo</span>
+                  <span>None</span>
+                </div>
+                <div className="baseFlex h-[2.25em] gap-[0.5em] rounded-md border px-[1em] text-[0.875em] font-medium">
+                  <TuningFork className="size-[1.125em]" />
+                  Tuner
+                </div>
+              </div>
+              <div className="baseFlex gap-[1em]">
+                <div className="baseFlex gap-[0.5em] text-[0.875em]">
+                  <span className="font-medium">Section</span>
+                  <div className="baseFlex h-[2.25em] gap-[0.5em] rounded-md border px-[0.75em]">
+                    <span className="whitespace-nowrap">Full tab</span>
+                    <ChevronDown className="size-[1.125em] opacity-50" />
+                  </div>
+                </div>
+                <div className="baseFlex size-[2.25em] rounded-md border">
+                  <IoMdSettings className="size-[1.25em]" />
+                </div>
+                <div className="baseFlex size-[2.25em] rounded-md border">
+                  <FaListUl className="size-[1em]" />
+                </div>
+                <div className="baseFlex size-[2.25em] rounded-md border">
+                  <FaBook className="size-[1em]" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TablatureScreenshot() {
+  return (
+    <div className="heroScreenshotStage hidden w-full min-w-0 lg:block lg:flex-1" aria-hidden="true">
       <div className="heroScreenshotTilt">
         <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-[460px] w-full select-none !justify-between gap-0 overflow-hidden p-0 md:h-[560px] lg:h-[650px]">
       {/* Top Header Section */}
@@ -291,34 +419,7 @@ function TablatureScreenshot() {
       </div>
 
       {/* Tablature Track Section — desktop Practice view from main PlaybackModal */}
-      <div className="baseVertFlex relative size-full select-none">
-        <div className="w-full overflow-hidden">
-          <div className="baseFlex relative h-[315px] w-full cursor-grab overflow-hidden">
-            <div className="relative flex h-[315px] w-full overflow-hidden">
-              <div className="baseFlex absolute left-0 top-0 size-full">
-                <div className="h-[150px] w-full"></div>
-                <div className="z-0 mb-[2px] ml-1 h-[124px] w-[2px] shrink-0 bg-primary"></div>
-                <div className="h-[150px] w-full"></div>
-              </div>
-
-              <div
-                className="relative flex items-center"
-                style={{ width: tabData.length * 34 + 100 }}
-              >
-                {tabData.map((strings, idx) => (
-                  <TabColumn
-                    key={idx}
-                    left={idx * 34}
-                    strings={strings}
-                    isHighlighted={idx < 16}
-                    isFirstChordInTab={idx === 0}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <TablatureTrack />
 
       <div className="baseVertFlex w-full lg:gap-2">
         {/* Desktop (non-landscape) PlaybackAudioControls */}
