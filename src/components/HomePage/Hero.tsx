@@ -10,9 +10,9 @@ function Hero() {
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   return (
-    <section className="baseVertFlex w-full max-w-[1700px] gap-10 overflow-x-hidden px-4 md:gap-14 md:px-6 lg:px-8">
-      <div className="baseVertFlex w-full max-w-xl !items-start gap-5 md:gap-6">
-        <div className="baseVertFlex !items-start gap-3 md:gap-4">
+    <section className="baseVertFlex w-full max-w-[1700px] gap-12 overflow-x-clip px-4 md:gap-16 md:px-6 lg:px-8">
+      <div className="baseVertFlex w-full max-w-2xl gap-5 text-center md:gap-6">
+        <div className="baseVertFlex gap-3 md:gap-4">
           <h1 className="sr-only">Autostrum</h1>
           <HeaderLogo
             width={isAboveMediumViewportWidth ? 320 : 220}
@@ -31,7 +31,7 @@ function Hero() {
           </p>
         </div>
 
-        <div className="baseFlex !justify-start gap-3">
+        <div className="baseFlex gap-3">
           <Button asChild className="px-5 md:px-6">
             <Link prefetch={false} href="/create">
               Create a tab
@@ -134,13 +134,16 @@ const TabColumn = ({
   </div>
 );
 
-function getHeroScreenshotTilt(scrollY: number, narrow: boolean) {
+const HERO_SCREENSHOT_WIDTH_PX = 1152;
+const HERO_SCREENSHOT_HEIGHT_PX = 650;
+
+function getHeroScreenshotTilt(scrollY: number, narrow: boolean, fit: number) {
   const p = Math.min(scrollY / HERO_FLATTEN_SCROLL_PX, 1);
   const ease = 1 - p;
   const rotateX = (narrow ? 18 : 25) * ease;
   const rotateY = (narrow ? -4 : -8) * ease;
   const rotateZ = (narrow ? 2 : 4) * ease;
-  const scale = 0.95 + 0.05 * p;
+  const scale = (0.95 + 0.05 * p) * fit;
 
   return `rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg) scale(${scale})`;
 }
@@ -156,14 +159,31 @@ function TablatureScreenshot() {
     const narrowQuery = window.matchMedia("(max-width: 767px)");
 
     const applyTilt = () => {
+      const stage = tilt.closest(".heroScreenshotStage");
+      const widthFit =
+        (stage?.clientWidth ?? HERO_SCREENSHOT_WIDTH_PX) /
+        HERO_SCREENSHOT_WIDTH_PX;
+      const fit = Math.min(1, Math.max(widthFit, 0.52));
+
+      if (stage instanceof HTMLElement) {
+        if (fit < 1) {
+          stage.style.height = `${HERO_SCREENSHOT_HEIGHT_PX * fit}px`;
+          stage.style.overflow = "hidden";
+        } else {
+          stage.style.height = "";
+          stage.style.overflow = "";
+        }
+      }
+
       if (motionQuery.matches) {
-        tilt.style.transform = "none";
+        tilt.style.transform = fit < 1 ? `scale(${fit})` : "none";
         return;
       }
 
       tilt.style.transform = getHeroScreenshotTilt(
         window.scrollY,
         narrowQuery.matches,
+        fit,
       );
     };
 
@@ -246,11 +266,11 @@ function TablatureScreenshot() {
 
   return (
     <div
-      className="heroScreenshotStage -mb-16 w-full md:-mb-24"
+      className="heroScreenshotStage -mb-8 w-full sm:-mb-12 md:-mb-24"
       aria-hidden="true"
     >
       <div ref={tiltRef} className="heroScreenshotTilt">
-        <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-[460px] w-full select-none !justify-between gap-0 overflow-hidden p-0 md:h-[580px] lg:h-[650px]">
+        <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-[650px] w-[1152px] max-w-none select-none !justify-between gap-0 overflow-hidden p-0">
       {/* Top Header Section */}
       <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
         <div className="baseFlex w-full !items-end !justify-start gap-2">

@@ -394,18 +394,22 @@ kbd {
 .heroScreenshotStage::before {
   content: "";
   position: absolute;
-  inset: 8% 12%;
-  background: radial-gradient(ellipse at 50% 40%,
-      hsl(var(--primary) / 0.5),
-      transparent 70%);
-  filter: blur(64px);
+  inset: 6% 8%;
+  background: radial-gradient(ellipse at 50% 35%,
+      hsl(var(--primary) / 0.58),
+      hsl(var(--primary) / 0.18) 42%,
+      transparent 72%);
+  filter: blur(72px);
   z-index: 0;
   pointer-events: none;
 }
 
 .heroScreenshotTilt {
   position: relative;
+  left: 50%;
   z-index: 1;
+  width: 1152px;
+  margin-left: -576px;
   transform: rotateX(25deg) rotateY(-8deg) rotateZ(4deg) scale(0.95);
   transform-origin: center top;
   transform-style: preserve-3d;
