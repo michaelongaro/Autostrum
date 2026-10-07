@@ -70,7 +70,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
     <nav
       id="related-tabs"
       aria-label="Related tabs"
-      className="baseVertFlex mt-12 w-full !items-start gap-8 border-y bg-background py-8 shadow-lg md:rounded-xl md:border-x md:p-8"
+      className="baseVertFlex mt-12 w-full !items-start gap-8 border-y bg-background py-8 shadow-lg md:rounded-xl md:border-x"
     >
       {sections.map((section) => {
         const heading = relatedTabSectionHeading(section.kind, artistName);
@@ -84,7 +84,7 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
             data-related-section={section.kind}
             className="baseVertFlex w-full !items-start gap-4"
           >
-            <div className="baseFlex w-full !items-baseline !justify-between gap-3 px-4 md:px-0">
+            <div className="baseFlex w-full !items-baseline !justify-between gap-3 px-4 md:px-8">
               <div className="baseVertFlex min-w-0 !items-start sm:gap-1">
                 <h2 className="m-0 text-lg font-bold tracking-tight text-foreground md:text-[1.35rem]">
                   {section.kind === "artist" && artist && artistName ? (
@@ -132,11 +132,11 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
               }}
               className="w-full"
             >
-              <CarouselContent className="mr-4 items-start justify-start pb-1 md:mr-0">
+              <CarouselContent className="mr-4 items-start justify-start pb-1 md:mr-8">
                 {section.tabs.map((tab) => (
                   <CarouselItem
                     key={tab.id}
-                    className="basis-auto first:ml-4 md:first:ml-0"
+                    className="basis-auto first:ml-4 md:first:ml-8"
                   >
                     <GridTabCard
                       minimalTab={tab}
