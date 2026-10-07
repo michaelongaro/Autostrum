@@ -1,7 +1,7 @@
 import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { IoChevronForward } from "react-icons/io5";
+import { IoChevronForward, IoEar } from "react-icons/io5";
 import { PiMetronome } from "react-icons/pi";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import { Button } from "~/components/ui/button";
@@ -25,28 +25,28 @@ const toolCards: ToolCard[] = [
     id: "metronome",
     title: "Metronome",
     description:
-      "Lock in your timing with BPM, time signatures, subdivisions, and click sounds.",
+      "A simple, customizable click to help you lock in your timing and play on beat.",
     href: "/tools/metronome",
     image: electronicImage,
     icon: <PiMetronome className="size-5" />,
   },
   {
-    id: "guided-tuner",
-    title: "Guided tuner",
+    id: "tuner",
+    title: "Tuner",
     description:
-      "Walk string-by-string through your tuning with a clear Regular mode target.",
+      "A quick and accurate microphone tuner to get your guitar sounding right.",
     href: "/tuner",
     image: folkImage,
-    icon: <TuningFork className="size-5" />,
+    icon: <TuningFork className="size-4" />,
   },
   {
-    id: "chromatic-tuner",
-    title: "Chromatic tuner",
+    id: "note-trainer",
+    title: "Note Trainer",
     description:
-      "Detect any pitch with a precise cents readout — switch modes in the tuner.",
-    href: "/tuner",
+      "Train your ear to recognize different notes across the fretboard.",
+    href: "/tools/note-trainer",
     image: jazzImage,
-    icon: <TuningFork className="size-5" />,
+    icon: <IoEar className="size-[18px]" />,
   },
 ];
 
@@ -57,17 +57,18 @@ function ToolsShowcase() {
 
   return (
     <section className="baseVertFlex w-full max-w-[1200px] !items-start gap-6 px-4 md:px-6 lg:px-8">
-      <div className="baseVertFlex w-full !items-start gap-2 md:!flex-row md:!items-end md:!justify-between">
-        <div className="baseVertFlex max-w-2xl !items-start gap-2">
+      <div className="baseFlex w-full !items-baseline !justify-between gap-2">
+        <div className="baseVertFlex max-w-2xl gap-2">
           <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
             Practice tools
           </h2>
-          <p className="text-sm text-foreground/80 md:text-base">
-            Everything you need to lock timing, build fretboard fluency, and
-            stay in tune — then take it back to the tab.
-          </p>
         </div>
-        <Button variant="link" asChild className="!h-auto !px-0 text-foreground">
+
+        <Button
+          variant="link"
+          asChild
+          className="!h-auto !px-0 text-foreground"
+        >
           <Link prefetch={false} href="/tools">
             View all tools
           </Link>
@@ -95,7 +96,7 @@ function ToolsShowcase() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/85 to-background/35" />
 
-            <div className="relative baseVertFlex h-full !items-start !justify-between gap-4 p-5 md:p-6">
+            <div className="baseVertFlex relative h-full !items-start !justify-between gap-4 p-5 md:p-6">
               <div className="baseFlex !justify-start gap-2 rounded-md border bg-background/80 px-2.5 py-1.5 shadow-sm backdrop-blur-sm">
                 {tool.icon}
                 <span className="text-sm font-semibold">{tool.title}</span>
