@@ -3,7 +3,7 @@ import { SignUpButton, useAuth } from "@clerk/nextjs";
 import { Button } from "~/components/ui/button";
 import Image from "next/image";
 
-import tabMetadataScreenshot from "public/homepage/signupPromo/second.png";
+import tabMetadataScreenshot from "public/homepage/signUpPromo/second.png";
 import { BsFillPlayFill } from "react-icons/bs";
 import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
 import { GiMusicalScore } from "react-icons/gi";
