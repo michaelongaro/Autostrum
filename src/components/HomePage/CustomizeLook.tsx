@@ -146,7 +146,7 @@ function CustomizeLook() {
                     onFocus={() => setHoveredColor(colorString)}
                     onBlur={() => setHoveredColor(null)}
                     onClick={() => selectColor(colorString)}
-                    className="group relative h-24 overflow-hidden rounded-lg border-gray text-left shadow-sm transition hover:brightness-105 active:brightness-100 sm:h-36"
+                    className="group relative aspect-square h-36 overflow-hidden rounded-lg border-gray text-left shadow-sm transition hover:brightness-105 active:brightness-100 sm:aspect-auto sm:h-48"
                     aria-pressed={selected}
                     aria-label={`Select ${colorString} color`}
                   >
@@ -213,10 +213,14 @@ function CustomizeLook() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-
-                            className="right-2 top-2"
+                            style={{
+                              backgroundColor:
+                                NEAR_WHITE_COLOR_VALUES[colorString],
+                              color: COLOR_HEX_VALUES[colorString],
+                            }}
+                            className="baseFlex right-2 top-2 size-4 rounded-full sm:size-[18px]"
                           >
-                            <Check className="size-4 stroke-[3px] sm:size-5" />
+                            <Check className="size-[12px] stroke-[3px] sm:size-[14px]" />
                           </motion.div>
                         )}
                       </AnimatePresence>
