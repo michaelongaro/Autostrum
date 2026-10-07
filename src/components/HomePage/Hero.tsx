@@ -80,69 +80,71 @@ function Hero() {
 
 export default Hero;
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import CountIn from "~/components/ui/icons/CountIn";
 import { IoColorPalette } from "react-icons/io5";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import TuningFork from "~/components/ui/icons/TuningFork";
+import PlayIcon from "~/components/ui/icons/PlayIcon";
 import { FaBook } from "react-icons/fa";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 
-// Helper component to render the repetitive tab column sections cleanly
+// Matches main's PLAYBACK_TAB_STRINGS_HEIGHT_PX (6 strings × 21px).
+const PLAYBACK_TAB_STRINGS_HEIGHT_PX = 126;
+
+// Visual-only recreation of main's <PlaybackTabChord> staff (no per-string
+// bordered rows; 1px start/end staff lines; my-3 string spacing).
 const TabColumn = ({
   left,
   strings,
   isHighlighted,
+  isFirstChordInTab,
 }: {
   left: number;
   strings: string[];
   isHighlighted: boolean;
+  isFirstChordInTab?: boolean;
 }) => (
   <div style={{ position: "absolute", width: 34, left }}>
     <div className="baseVertFlex relative w-[34px]">
       <div className="baseVertFlex w-full">
         <div className="baseVertFlex mb-[-18px]">
           <div className="baseFlex h-7 w-full"></div>
-          {strings.map((note, idx) => (
-            <div
-              key={idx}
-              className="baseFlex headerModalGradient relative w-[34px] basis-[content]"
-              style={{
-                borderWidth:
-                  idx === 0
-                    ? "2px medium medium"
-                    : idx === 5
-                      ? "medium medium 2px"
-                      : "medium",
-                borderStyle:
-                  idx === 0
-                    ? "solid none none"
-                    : idx === 5
-                      ? "none none solid"
-                      : "none",
-                borderColor: "currentColor",
-                paddingTop: idx === 0 ? 7 : 0,
-                paddingBottom: idx === 5 ? 7 : 0,
-              }}
-            >
-              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-              <div className="baseFlex w-[34px]">
-                <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
-                <div
-                  className="baseFlex relative h-[20px]"
-                  style={{
-                    color: isHighlighted ? "hsl(var(--primary))" : "",
-                    marginTop: 0,
-                    marginBottom: 0,
-                  }}
-                >
-                  <div>{note}</div>
+
+          <div className="baseVertFlex relative w-[34px]">
+            {isFirstChordInTab && (
+              <div
+                className="absolute left-0 top-3 w-[1px] bg-foreground/50"
+                style={{ height: PLAYBACK_TAB_STRINGS_HEIGHT_PX }}
+              ></div>
+            )}
+
+            {strings.map((note, idx) => (
+              <div
+                key={idx}
+                className="baseFlex relative w-[34px] basis-[content]"
+              >
+                <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                <div className="baseFlex w-[34px]">
+                  <div className="my-3 h-[1px] flex-[1] bg-foreground/50"></div>
+                  <div
+                    className="baseFlex relative h-[20px]"
+                    style={{
+                      color: isHighlighted
+                        ? "hsl(var(--primary))"
+                        : "hsl(var(--foreground))",
+                    }}
+                  >
+                    <div>{note}</div>
+                  </div>
+                  <div className="my-3 h-[1px] flex-[1] bg-foreground/50"></div>
                 </div>
-                <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
+                <div className="h-[1px] flex-[1] bg-foreground/50"></div>
               </div>
-              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-            </div>
-          ))}
+            ))}
+          </div>
+
           <div className="baseFlex mt-1 h-4 w-full">
             <div className="baseFlex relative size-full !flex-nowrap">
               <div
@@ -275,6 +277,7 @@ function TablatureScreenshot() {
                   <div className="baseVertFlex !items-start text-nowrap">
                     <span className="text-sm font-medium">Tempo</span>
                     <div className="baseFlex w-[79px] !justify-start gap-1">
+                      <QuarterNote />
                       350 BPM
                     </div>
                   </div>
@@ -321,33 +324,28 @@ function TablatureScreenshot() {
         </div>
       </div>
 
-      {/* Tablature Track Section */}
-      <div
-        className="baseVertFlex relative size-full select-none"
-        style={{ opacity: 1 }}
-      >
+      {/* Tablature Track Section — desktop Practice view from main PlaybackModal */}
+      <div className="baseVertFlex relative size-full select-none">
         <div className="w-full overflow-hidden">
-          <div className="baseFlex relative h-[255px] w-full overflow-hidden mobilePortrait:h-[315px]">
-            <div className="relative flex h-[255px] w-full overflow-hidden mobilePortrait:h-[315px]">
+          <div className="baseFlex relative h-[315px] w-full cursor-grab overflow-hidden">
+            <div className="relative flex h-[315px] w-full overflow-hidden">
               <div className="baseFlex absolute left-0 top-0 size-full">
-                <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
-                {/* Playback Cursor Line */}
-                <div className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary mobilePortrait:h-[165px]"></div>
-                <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
+                <div className="h-[150px] w-full"></div>
+                <div className="z-0 mb-[2px] ml-1 h-[124px] w-[2px] shrink-0 bg-primary"></div>
+                <div className="h-[150px] w-full"></div>
               </div>
 
-              {/* Removed transform: translateX() and dynamically calculating container width */}
               <div
                 className="relative flex items-center"
                 style={{ width: tabData.length * 34 + 100 }}
               >
-                {/* Dynamically calculate left position via idx * 34 */}
                 {tabData.map((strings, idx) => (
                   <TabColumn
                     key={idx}
                     left={idx * 34}
                     strings={strings}
                     isHighlighted={idx < 16}
+                    isFirstChordInTab={idx === 0}
                   />
                 ))}
               </div>
@@ -356,51 +354,116 @@ function TablatureScreenshot() {
         </div>
       </div>
 
-      {/* Bottom Control Row */}
-      <div className="baseFlex w-full px-4 py-4">
-        <div className="baseFlex w-full">
-          <div className="baseFlex w-full !items-end gap-4">
-            <div className="baseVertFlex !items-start gap-2">
-              <div className="text-sm font-medium leading-none">Instrument</div>
-              <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
-                Acoustic guitar - Steel
-                <ChevronDown className="size-4 shrink-0 opacity-50" />
+      <div className="baseVertFlex w-full lg:gap-2">
+        {/* Desktop (non-landscape) PlaybackAudioControls */}
+        <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[612px]">
+          <div
+            style={{
+              display: "flex",
+              width: "100%",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                height: "8px",
+                borderRadius: "4px",
+                alignSelf: "center",
+              }}
+              className="relative w-full bg-[hsl(var(--gray)/0.5)]"
+            >
+              <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
+                <div
+                  style={{ transform: "scaleX(0.33)" }}
+                  className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary"
+                ></div>
+              </div>
+              <div
+                style={{ left: "33%", top: "50%", transform: "translate(-50%, -50%)" }}
+                className="!z-20 absolute size-[18px] rounded-full border border-foreground/50 bg-primary"
+              ></div>
+            </div>
+          </div>
+
+          <div className="baseFlex w-full !justify-between">
+            <div className="baseFlex w-9 !justify-start self-start">0:04</div>
+
+            <div className="baseFlex gap-6">
+              <div className="baseFlex size-4 shrink-0 rounded-full bg-transparent p-0 text-sm">
+                -5s
+              </div>
+              <div className="baseFlex size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground">
+                <PlayIcon
+                  style={{
+                    width: "1rem",
+                    height: "1rem",
+                  }}
+                />
+              </div>
+              <div className="baseFlex size-4 shrink-0 rounded-full bg-transparent p-0 text-sm">
+                +5s
               </div>
             </div>
 
-            <div className="baseVertFlex !items-start gap-2">
-              <div className="text-sm font-medium leading-none">Speed</div>
-              <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
-                1x
-                <ChevronDown className="size-4 shrink-0 opacity-50" />
+            <div className="baseFlex w-9 !justify-end self-start">0:16</div>
+          </div>
+        </div>
+
+        {/* Desktop PlaybackBottomMetadata settings row */}
+        <div className="baseFlex w-full px-4 py-4">
+          <div className="baseFlex w-full">
+            <div className="baseFlex w-full !items-end gap-4">
+              <div className="baseVertFlex !items-start gap-2">
+                <div className="text-sm font-medium leading-none">
+                  Instrument
+                </div>
+                <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                  Acoustic guitar - Steel
+                  <ChevronDown className="size-4 shrink-0 opacity-50" />
+                </div>
               </div>
-            </div>
 
-            <div className="baseVertFlex !items-start gap-2">
-              <div className="text-sm font-medium leading-none">Loop delay</div>
-              <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
-                0s
-                <ChevronDown className="size-4 shrink-0 opacity-50" />
+              <div className="baseVertFlex !items-start gap-2">
+                <div className="text-sm font-medium leading-none">Speed</div>
+                <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                  1x
+                  <ChevronDown className="size-4 shrink-0 opacity-50" />
+                </div>
               </div>
-            </div>
 
-            <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-              <CgArrowsShrinkH className="size-6" />
-            </div>
+              <div className="baseVertFlex !items-start gap-2">
+                <div className="text-sm font-medium leading-none">
+                  Loop delay
+                </div>
+                <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                  0s
+                  <ChevronDown className="size-4 shrink-0 opacity-50" />
+                </div>
+              </div>
 
-            <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-              <CountIn className="size-5" />
-            </div>
+              <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                <CgArrowsShrinkH className="size-6" />
+              </div>
 
-            <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-              <IoColorPalette className="size-5" />
-            </div>
+              <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                <CountIn className="size-5" />
+              </div>
 
-            <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-              <BsFillVolumeUpFill size={"1.5rem"} className="shrink-0" />
+              <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                <IoColorPalette className="size-5" />
+              </div>
+
+              <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                <BsFillVolumeUpFill size={"1.5rem"} className="shrink-0" />
+              </div>
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="baseFlex absolute right-4 top-4 !size-5 text-foreground opacity-70">
+        <X className="size-5" />
+        <span className="sr-only">Close</span>
       </div>
     </div>
   );
