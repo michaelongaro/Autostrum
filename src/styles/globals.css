@@ -412,7 +412,7 @@ kbd {
 }
 
 .heroScreenshotApp {
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid hsl(var(--primary) / 0.22);
   box-shadow:
     0 0 0 1px hsl(var(--foreground) / 0.06) inset,
@@ -459,6 +459,7 @@ html[data-theme="light"] .heroScreenshotApp {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .homepageMarqueeTrack,
   .homepageProgressSweep {
     animation: none !important;
