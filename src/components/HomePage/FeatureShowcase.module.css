@@ -1,0 +1,116 @@
+.previewSurface {
+  background-color: hsl(var(--secondary) / 0.65);
+  background-image: radial-gradient(
+    hsl(var(--foreground) / 0.1) 0.75px,
+    transparent 0.75px
+  );
+  background-size: 16px 16px;
+}
+
+.demoButton {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 150ms ease;
+}
+
+.demoButton:hover {
+  background-color: hsl(var(--secondary));
+}
+
+.demoButton:focus-visible,
+.range:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 4px;
+}
+
+.range {
+  width: 100%;
+  height: 6px;
+  margin: 8px 0;
+  appearance: none;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.range::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  appearance: none;
+  border: 2px solid hsl(var(--background));
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.5);
+}
+
+.range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid hsl(var(--background));
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.5);
+}
+
+.key {
+  display: inline-flex;
+  min-height: 30px;
+  min-width: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--foreground) / 0.2);
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: hsl(var(--secondary) / 0.5);
+  color: hsl(var(--foreground));
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.autoscrollWindow {
+  position: relative;
+  height: 285px;
+  overflow: hidden;
+  mask-image: linear-gradient(transparent, black 10%, black 85%, transparent);
+}
+
+.autoscrollTrack {
+  transform: translateY(-40px);
+}
+
+.autoscrollPlaying {
+  animation: followTab 8s linear infinite;
+}
+
+.autoscrollMeasure {
+  height: 180px;
+}
+
+@keyframes followTab {
+  from {
+    transform: translateY(-40px);
+  }
+  to {
+    transform: translateY(-400px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .autoscrollPlaying {
+    animation: none;
+    transform: translateY(-220px);
+  }
+
+  .demoButton {
+    transition: none;
+  }
+}

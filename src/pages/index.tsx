@@ -5,6 +5,7 @@ import { BsGridFill } from "react-icons/bs";
 import GenreCards from "~/components/Explore/GenreCards";
 import CustomizeLook from "~/components/HomePage/CustomizeLook";
 import FAQ from "~/components/HomePage/FAQ";
+import FeatureShowcase from "~/components/HomePage/FeatureShowcase";
 import Hero from "~/components/HomePage/Hero";
 import SignupCTA from "~/components/HomePage/SignupCTA";
 import TabDiscovery from "~/components/HomePage/TabDiscovery";
@@ -68,6 +69,8 @@ function Home() {
           <GenreCards />
         </div>
       </div>
+
+      <FeatureShowcase />
 
       {/* <TabDiscovery /> */}
       {/* <TabMarquee /> */}
