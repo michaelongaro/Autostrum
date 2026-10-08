@@ -73,6 +73,10 @@ export interface MinimalTabRepresentation {
 }
 
 export const searchRouter = createTRPCRouter({
+  getTotalTabCount: publicProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.tab.count();
+  }),
+
   getMinimalTabById: publicProcedure
     .input(z.number())
     .query(async ({ input: tabId, ctx }) => {

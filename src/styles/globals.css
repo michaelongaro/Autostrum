@@ -323,3 +323,148 @@ kbd {
 .progressBar-paused {
   animation-play-state: paused !important;
 }
+
+/* Homepage infinite tab-card marquees */
+@keyframes homepageMarqueeLeft {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes homepageMarqueeRight {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.homepageMarqueeTrack {
+  width: max-content;
+  will-change: transform;
+}
+
+.homepageMarqueeTrack[data-direction="left"] {
+  animation: homepageMarqueeLeft var(--marquee-duration, 55s) linear infinite;
+}
+
+.homepageMarqueeTrack[data-direction="right"] {
+  animation: homepageMarqueeRight var(--marquee-duration, 55s) linear infinite;
+}
+
+.homepageMarqueeRow:hover .homepageMarqueeTrack {
+  animation-play-state: paused;
+}
+
+@keyframes homepageProgressSweep {
+  0% {
+    transform: scaleX(0.08);
+  }
+
+  50% {
+    transform: scaleX(0.72);
+  }
+
+  100% {
+    transform: scaleX(0.08);
+  }
+}
+
+.homepageProgressSweep {
+  transform-origin: left center;
+  animation: homepageProgressSweep 8s ease-in-out infinite;
+}
+
+/* Static Linear-style 3D homepage screenshot: perspective, primary glow,
+   tilted mockup, and a thin top-edge light streak. No scroll flatten. */
+.heroScreenshotStage {
+  perspective: 2000px;
+  position: relative;
+  isolation: isolate;
+}
+
+.heroScreenshotStage::before {
+  content: "";
+  position: absolute;
+  inset: 8% 6%;
+  background: radial-gradient(ellipse at 50% 45%,
+      hsl(var(--primary) / 0.55),
+      hsl(var(--primary) / 0.16) 45%,
+      transparent 72%);
+  filter: blur(64px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.heroScreenshotTilt {
+  position: relative;
+  z-index: 1;
+  transform: rotateX(18deg) rotateY(-10deg) rotateZ(3deg) scale(0.94);
+  transform-origin: center center;
+  transform-style: preserve-3d;
+}
+
+.heroScreenshotApp {
+  border-radius: 8px;
+  border: 1px solid hsl(var(--primary) / 0.22);
+  box-shadow:
+    0 0 0 1px hsl(var(--foreground) / 0.06) inset,
+    0 0 48px -10px hsl(var(--primary) / 0.32),
+    0 40px 80px -24px hsl(0 0% 0% / 0.65);
+}
+
+.heroScreenshotMobile {
+  container-type: inline-size;
+}
+
+html[data-theme="light"] .heroScreenshotStage::before {
+  opacity: 0.35;
+}
+
+html[data-theme="light"] .heroScreenshotApp {
+  box-shadow:
+    0 0 0 1px hsl(var(--foreground) / 0.06) inset,
+    0 0 36px -12px hsl(var(--primary) / 0.12),
+    0 20px 48px -20px hsl(0 0% 0% / 0.16);
+}
+
+.heroScreenshotApp::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.22) 18%,
+      hsl(var(--primary) / 0.95) 50%,
+      hsl(var(--primary) / 0.22) 82%,
+      transparent 100%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+@media (max-width: 1023px) {
+  .heroScreenshotTilt {
+    transform: rotateX(14deg) rotateY(-6deg) rotateZ(2deg) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .homepageMarqueeTrack,
+  .homepageProgressSweep {
+    animation: none !important;
+  }
+
+  .heroScreenshotTilt {
+    transform: none;
+  }
+}
