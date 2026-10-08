@@ -194,7 +194,7 @@ function CustomizeLook() {
                         backgroundColor: COLOR_HEX_VALUES[colorString],
                         color: NEAR_WHITE_COLOR_VALUES[colorString],
                       }}
-                      className="baseFlex absolute inset-x-0 bottom-0 w-3/4 !justify-between gap-2 rounded-tr-lg p-2 sm:w-32 sm:p-2.5"
+                      className="baseFlex absolute inset-x-0 bottom-0 w-3/4 !justify-between gap-2 rounded-tr-lg p-2 shadow-lg xs:w-32 sm:bottom-4 sm:rounded-r-md sm:p-2.5"
                     >
                       <span className="text-sm font-semibold drop-shadow">
                         {colorString.charAt(0).toUpperCase() +
