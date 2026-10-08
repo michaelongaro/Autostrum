@@ -86,13 +86,6 @@ const TabColumn = ({
           <div className="baseFlex h-[1.75em] w-full"></div>
 
           <div className="baseVertFlex relative w-[2.125em]">
-            {isFirstChordInTab && (
-              <div
-                className="absolute left-0 top-[0.75em] w-[0.0625em] bg-foreground/50"
-                style={{ height: PLAYBACK_TAB_STRINGS_HEIGHT }}
-              ></div>
-            )}
-
             {strings.map((note, idx) => (
               <div
                 key={idx}
