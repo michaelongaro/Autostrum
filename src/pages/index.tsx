@@ -3,8 +3,8 @@ import Head from "next/head";
 import CustomizeLook from "~/components/HomePage/CustomizeLook";
 import FAQ from "~/components/HomePage/FAQ";
 import Hero from "~/components/HomePage/Hero";
-import PillarCards from "~/components/HomePage/PillarCards";
 import SignupCTA from "~/components/HomePage/SignupCTA";
+import TabDiscovery from "~/components/HomePage/TabDiscovery";
 import TabMarquee from "~/components/HomePage/TabMarquee";
 import ToolsShowcase from "~/components/HomePage/ToolsShowcase";
 
@@ -39,7 +39,7 @@ function Home() {
       </Head>
 
       <Hero />
-      <PillarCards />
+      <TabDiscovery />
       <TabMarquee />
       <SignupCTA />
       <ToolsShowcase />
