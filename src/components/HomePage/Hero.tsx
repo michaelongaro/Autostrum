@@ -8,22 +8,22 @@ function Hero() {
 
   return (
     <section className="baseVertFlex min-h-[calc(100svh-4rem-0rem)] w-full max-w-[1700px] overflow-x-clip px-4 md:min-h-[calc(100svh-4rem-6rem)] md:px-6 lg:px-8">
-      <div className="baseVertFlex w-full gap-8 lg:flex-row lg:!items-center lg:!justify-between lg:gap-10">
-        <div className="baseVertFlex w-full max-w-xl shrink-0 !items-start gap-5 md:gap-6">
-          <div className="baseVertFlex !items-start gap-3 md:gap-4">
+      <div className="baseVertFlex w-full gap-16 lg:flex-row lg:!items-center lg:!justify-between lg:gap-10">
+        <div className="baseVertFlex w-full max-w-xl shrink-0 gap-5 md:!items-start md:gap-6">
+          <div className="baseVertFlex gap-3 md:!items-start md:gap-4">
             <h1 className="sr-only">Autostrum</h1>
             <HeaderLogo
               width={isAboveMediumViewportWidth ? 320 : 220}
               height={isAboveMediumViewportWidth ? 56 : 38}
             />
-            <p className="max-w-lg text-xl font-semibold tracking-tight md:text-2xl lg:text-[1.75rem]">
+            <p className="max-w-lg text-center text-xl font-semibold tracking-tight md:text-left md:text-2xl lg:text-[1.75rem]">
               Create and share your riffs{" "}
               <span className="italic text-primary underline underline-offset-2">
                 exactly
               </span>{" "}
               how you want them to sound
             </p>
-            <p className="max-w-md text-sm text-foreground/80 md:text-base">
+            <p className="max-w-md text-center text-sm text-foreground/80 md:text-left md:text-base">
               Keyboard-first editor, realistic guitar playback, and tools to
               practice what you write.
             </p>
