@@ -5,7 +5,7 @@ import { BsFillPlayFill } from "react-icons/bs";
 import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
 import { GiMusicalScore } from "react-icons/gi";
 import { FaEye } from "react-icons/fa6";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronsUpDown } from "lucide-react";
 
 function SignupCTA() {
   const { isSignedIn } = useAuth();
@@ -13,10 +13,10 @@ function SignupCTA() {
   if (isSignedIn) return null;
 
   return (
-    <section className="baseVertFlex w-full max-w-[1200px] !justify-between overflow-hidden rounded-xl border bg-background shadow-md md:!flex-row">
+    <section className="baseVertFlex w-full max-w-[1135px] !justify-between overflow-hidden border-y bg-background shadow-md sm:rounded-xl sm:border-x md:!flex-row">
       <MobileTabMetadataPreview />
 
-      <div className="baseVertFlex w-full gap-5 px-6 pb-10 pt-6 text-center md:gap-6 md:px-12 md:py-10">
+      <div className="baseVertFlex mt-4 w-full gap-5 px-6 pb-10 pt-6 text-center md:mt-0 md:gap-6 md:px-12 md:py-10">
         <div className="baseVertFlex max-w-sm gap-2 md:gap-3">
           <h2 className="text-left text-2xl font-bold tracking-tight md:text-3xl">
             Sign up today for free and publish your first tab
@@ -27,7 +27,7 @@ function SignupCTA() {
           </p>
         </div>
 
-        <div className="baseFlex flex-wrap gap-3">
+        <div className="baseFlex w-full max-w-sm flex-wrap !justify-start gap-3">
           <SignUpButton mode="modal">
             <Button size="lg" className="px-8">
               Sign up
@@ -52,25 +52,71 @@ function MobileTabMetadataPreview() {
   return (
     <div
       aria-hidden="true"
-      className="playbackModalGradient pointer-events-none relative h-[360px] w-full select-none overflow-hidden px-4 pt-6 [-webkit-mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] sm:px-6 md:hidden"
+      className="playbackModalGradient pointer-events-none relative h-[350px] w-full select-none overflow-hidden pt-6 [-webkit-mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] sm:px-6 md:hidden"
     >
       <div className="mx-auto max-w-sm">
-        <div className="baseFlex !justify-end gap-4 pb-4">
-          <TabPreviewIcons />
+        <div className="baseFlex !justify-between gap-4 px-4 pb-4 pt-4">
+          <p className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            Create
+          </p>
+          <div className="baseFlex mr-1">
+            <div className="relative right-[-18px] top-[3px] z-30 rotate-[-6deg] rounded-lg border bg-background p-2 shadow-sm">
+              <BsFillPlayFill className="size-6" />
+            </div>
+
+            <div className="relative right-[-12px] z-20 -rotate-3 rounded-lg border bg-background p-2 shadow-sm">
+              <QuarterNote className="size-6" />
+            </div>
+
+            <div className="relative right-[-6px] z-10 rotate-3 rounded-lg border bg-background p-2 shadow-sm">
+              <GiMusicalScore className="size-6" />
+            </div>
+
+            <div className="relative top-[3px] rotate-[6deg] rounded-lg border bg-background p-2 shadow-sm">
+              <EighthNote className="size-6" viewBox="20 170 110 210" />
+            </div>
+          </div>
         </div>
 
-        <div className="relative z-10 rounded-xl border bg-background shadow-sm">
+        <div className="relative z-10 w-full border-y bg-background shadow-sm sm:rounded-xl sm:border-x">
           <div className="baseFlex !justify-end gap-3 p-4">
             <TabPreviewActions />
           </div>
 
-          <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-4 px-4 pb-6">
-            <TabPreviewField label="Genre" value="Rock" />
-            <TabPreviewField label="Tempo" value="75" select={false} />
-            <TabPreviewField label="Tuning" value="E A D G B E" />
-            <TabPreviewField label="Capo" value="3rd fret" />
-            <TabPreviewField label="Difficulty" value="Intermediate" />
-            <TabPreviewField label="Key" value="D major" />
+          <div className="baseVertFlex mt-8 w-full gap-4 px-4 pb-6">
+            <div className="baseVertFlex w-full !items-start gap-1">
+              <div className="baseFlex gap-1 text-sm font-medium">
+                Title <span className="text-destructive">*</span>
+              </div>
+              <div className="relative h-10 w-full rounded-md border">
+                <span className="absolute left-3 top-[10px] text-sm text-foreground/50">
+                  My new tab
+                </span>
+              </div>
+            </div>
+
+            <div className="baseVertFlex w-full !items-start gap-1">
+              <div className="baseFlex text-sm font-medium">Artist</div>
+              <div className="relative h-10 w-full rounded-md border">
+                <span className="absolute left-3 top-[10px] text-sm">
+                  Select artist...
+                </span>
+                <div className="absolute right-3 top-[12px]">
+                  <ChevronsUpDown className="size-4" />
+                </div>
+              </div>
+            </div>
+
+            <div className="baseVertFlex w-full !items-start gap-1">
+              <div className="baseFlex gap-1 text-sm font-medium">
+                Title <span className="text-destructive">*</span>
+              </div>
+              <div className="relative h-10 w-full rounded-md border">
+                <span className="absolute left-3 top-[10px] text-sm text-foreground/50">
+                  My new tab
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
