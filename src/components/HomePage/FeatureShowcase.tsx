@@ -26,7 +26,6 @@ import styles from "./FeatureShowcase.module.css";
 type Feature = {
   id: FeatureId;
   title: string;
-  description: string;
   icon: LucideIcon;
 };
 type FeatureMode = "Practice" | "Editing";
@@ -35,29 +34,21 @@ const PRACTICE_FEATURES: Feature[] = [
   {
     id: "zoom",
     title: "Adjustable zoom",
-    description:
-      "See the whole phrase or get closer to each note. Find the view that feels right for you.",
     icon: ZoomIn,
   },
   {
     id: "colors",
     title: "Color-coded chords",
-    description:
-      "Give each chord a familiar color and spot changes at a glance. Switch it on whenever you need it.",
     icon: Palette,
   },
   {
     id: "speed",
     title: "Granular playback speed",
-    description:
-      "Slow down a tricky passage, then work your way up. Dial in your pace in precise 0.05× steps.",
     icon: SlidersHorizontal,
   },
   {
     id: "loop",
     title: "Loop the part you need",
-    description:
-      "Repeat a section until it clicks. Set your loop and add a little breathing room between repeats.",
     icon: Repeat2,
   },
 ];
@@ -65,29 +56,21 @@ const EDITING_FEATURES: Feature[] = [
   {
     id: "navigation",
     title: "Arrow key navigation",
-    description:
-      "Move between notes and strings without reaching for your mouse. Keep your focus on the next idea.",
     icon: Move,
   },
   {
     id: "autoscroll",
     title: "Autoscroll playback",
-    description:
-      "Hear what you’re writing while your tab scrolls with the music. Stay with every note as it plays.",
     icon: ScanLine,
   },
   {
     id: "hotkeys",
     title: "Useful hotkeys",
-    description:
-      "Insert chords, change note lengths, copy a phrase, or start playback. Useful shortcuts keep you in your flow.",
     icon: Keyboard,
   },
   {
     id: "tuning",
     title: "Advanced tuning editor",
-    description:
-      "Enter six notes for a quick custom tuning, or choose the exact note and octave for every string.",
     icon: SlidersHorizontal,
   },
 ];
@@ -131,10 +114,15 @@ function PracticeCarousel({ active }: { active: boolean }) {
     slidesToScroll: 1,
     dragFree: false,
     skipSnaps: false,
+    // Button presses clear Embla's click suppression after a carousel swipe.
+    // Sliders and the playback strip keep ownership of their own drag gestures.
     watchDrag: (_api, event) =>
       !(
         event.target instanceof Element &&
-        event.target.closest("[role='slider'], [data-feature-control]")
+        !event.target.closest("button") &&
+        event.target.closest(
+          "[role='slider'], [data-feature-control], [data-playback-strip]",
+        )
       ),
     containScroll: false,
     duration: reduceMotion ? 0 : 25,
@@ -180,12 +168,12 @@ function PracticeCarousel({ active }: { active: boolean }) {
             aria-label={`${feature.title}, ${index + 1} of ${PRACTICE_FEATURES.length}`}
             aria-hidden={selected !== index}
             inert={selected !== index}
-            className="min-w-0 flex-[0_0_84%] overflow-hidden rounded-xl border bg-background shadow-sm"
+            className="flex min-w-0 flex-[0_0_84%] flex-col overflow-hidden rounded-xl border bg-background shadow-sm"
           >
             <div
               className={cn(
                 styles.previewSurface,
-                "flex min-h-[450px] items-center justify-center border-b border-foreground/15 p-4",
+                "flex min-h-[450px] flex-1 items-center justify-center border-b border-foreground/15 p-4",
               )}
             >
               <FeaturePreview
@@ -198,9 +186,6 @@ function PracticeCarousel({ active }: { active: boolean }) {
               <h3 className="text-xl font-semibold tracking-tight">
                 {feature.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-foreground/75">
-                {feature.description}
-              </p>
             </div>
           </article>
         ))}
@@ -328,7 +313,7 @@ export default function FeatureShowcase() {
                 onClick={() => selectFeature(index)}
                 onKeyDown={(event) => handleFeatureKeys(event, index)}
                 className={cn(
-                  "group flex items-start gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:p-5",
+                  "group flex items-center gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:p-5",
                   active
                     ? "border-primary/35 bg-background shadow-sm"
                     : "border-transparent hover:bg-background/50",
@@ -355,9 +340,6 @@ export default function FeatureShowcase() {
                         active ? "opacity-100" : "opacity-0",
                       )}
                     />
-                  </span>
-                  <span className="mt-1.5 block text-xs leading-relaxed text-foreground/70 lg:text-sm">
-                    {feature.description}
                   </span>
                 </span>
               </button>

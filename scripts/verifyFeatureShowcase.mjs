@@ -267,7 +267,7 @@ try {
   await page.waitForTimeout(700);
   assert.match(await selectedSlide.getAttribute("aria-label"), /Loop the part/);
   await selectedSlide
-    .getByRole("button", { name: "Set loop range", exact: true })
+    .getByRole("button", { name: "Edit loop range", exact: true })
     .click();
   await selectedSlide.locator("[data-loop-range-node]").first().click();
   await selectedSlide.locator("[data-loop-range-node]").nth(2).click();
@@ -275,12 +275,12 @@ try {
     .getByRole("button", { name: "Save", exact: true })
     .click();
   assert.equal(
-    await selectedSlide.locator("div.opacity-50").count(),
-    1,
-    "Native range dims the omitted chord",
+    await selectedSlide.getByRole("slider").getAttribute("aria-valuemax"),
+    "2",
+    "Native playback strip compiles only the saved three-strum range",
   );
   await selectedSlide
-    .getByRole("button", { name: "Set loop range", exact: true })
+    .getByRole("button", { name: "Edit loop range", exact: true })
     .click();
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });

@@ -132,13 +132,13 @@ function CustomTuningDialog({
 
   const content = (
     <>
-      <div className="baseFlex w-full !justify-between gap-2">
-        <div className="baseFlex gap-2">
-          <IoSettingsSharp className="h-5 w-5" />
-          <p className="text-lg font-semibold">Custom tuning editor</p>
-        </div>
+      {presentation === "dialog" && (
+        <div className="baseFlex w-full !justify-between gap-2">
+          <div className="baseFlex gap-2">
+            <IoSettingsSharp className="h-5 w-5" />
+            <p className="text-lg font-semibold">Custom tuning editor</p>
+          </div>
 
-        {presentation === "dialog" && (
           <Button
             variant={"modalClose"}
             onClick={() => {
@@ -147,8 +147,8 @@ function CustomTuningDialog({
           >
             <X className="size-5" />
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="baseFlex w-full !justify-center">
         <div className="baseFlex gap-1 rounded-md border bg-secondary p-1">

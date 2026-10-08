@@ -87,6 +87,7 @@ function PlaybackScrollingContainer({
 
   return (
     <div
+      data-playback-strip
       className={`baseFlex relative w-full touch-none overflow-hidden ${
         editingLoopRange
           ? "h-[290px] mobilePortrait:h-[315px]"

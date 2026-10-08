@@ -29,8 +29,9 @@ function getNearestScrollable(el: Element | null): Element | null {
   return null;
 }
 
-function useModalScrollbarHandling(force = false) {
+function useModalScrollbarHandling(force = false, enabled = true) {
   useEffect(() => {
+    if (!enabled) return;
     // FYI: This allows scrolling to occur while modal is open on iOS,
     // but I think the tradeoff is worth it to prevent the flicker.
     if (!force && isIOS()) return;
@@ -121,7 +122,7 @@ function useModalScrollbarHandling(force = false) {
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [force]);
+  }, [force, enabled]);
 }
 
 export default useModalScrollbarHandling;

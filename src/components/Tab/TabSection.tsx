@@ -15,7 +15,14 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -124,12 +131,14 @@ interface TabSection {
   sectionIndex: number;
   subSectionIndex: number;
   presentation?: "full" | "embedded";
+  children?: ReactNode;
 }
 
 function TabSection({
   sectionIndex,
   subSectionIndex,
   presentation = "full",
+  children,
 }: TabSection) {
   const getTabData = useTabDataGetter();
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
@@ -812,6 +821,7 @@ function TabSection({
       }}
       className="baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 shadow-md"
     >
+      {children}
       {presentation === "full" && (
         <div className="baseFlex w-full !items-start">
           <div className="baseVertFlex w-5/6 !items-start gap-4 xl:!flex-row xl:!justify-start">

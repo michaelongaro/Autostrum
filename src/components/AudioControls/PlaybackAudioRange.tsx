@@ -11,6 +11,7 @@ interface PlaybackAudioRange {
   chordDurations: number[];
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
+  idPrefix?: string;
 }
 
 function PlaybackAudioRange({
@@ -18,6 +19,7 @@ function PlaybackAudioRange({
   chordDurations,
   setChordRepetitions,
   scrollPositionsLength,
+  idPrefix = "playbackSlider",
 }: PlaybackAudioRange) {
   const {
     currentChordIndex,
@@ -276,7 +278,7 @@ function PlaybackAudioRange({
               >
                 <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
                   <div
-                    id="playbackSliderTrack"
+                    id={`${idPrefix}Track`}
                     style={{
                       transform: `scaleX(${
                         mapToRange(
@@ -307,7 +309,7 @@ function PlaybackAudioRange({
               <div
                 key={key}
                 {...thumbProps}
-                id="playbackSliderThumb"
+                id={`${idPrefix}Thumb`}
                 style={{
                   ...thumbProps.style,
                   transitionProperty: "transform",

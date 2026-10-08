@@ -5,6 +5,9 @@ import {
   useMemo,
   useRef,
   useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
 } from "react";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
@@ -19,7 +22,7 @@ import {
   type PlaybackTabChord as PlaybackTabChordType,
   type PlaybackStrummedChord as PlaybackStrummedChordType,
   type PlaybackLoopDelaySpacerChord,
-  getTabStore,
+  useTabStoreApi,
   useTabStore,
   type FullNoteLengths,
 } from "~/stores/TabStore";
@@ -68,7 +71,23 @@ interface RenderVisibleChord {
   isHighlighted: boolean;
 }
 
-function PlaybackModal() {
+export interface PlaybackPracticeControls {
+  chordDurations: number[];
+  setChordRepetitions: Dispatch<SetStateAction<number[]>>;
+  scrollPositionsLength: number;
+  isGlideScrubbing: boolean;
+  loopRangePrompt: string | null;
+}
+
+type PlaybackModalProps =
+  | { presentation?: "modal" }
+  | {
+      presentation: "embedded";
+      renderControls: (controls: PlaybackPracticeControls) => ReactNode;
+    };
+
+function PlaybackModal(props: PlaybackModalProps = {}) {
+  const store = useTabStoreApi();
   const {
     currentChordIndex,
     expandedTabData,
@@ -157,7 +176,7 @@ function PlaybackModal() {
       )
     : null;
 
-  useModalScrollbarHandling(true);
+  useModalScrollbarHandling(true, props.presentation !== "embedded");
 
   useEffect(() => {
     playingRef.current = audioMetadata.playing;
@@ -168,13 +187,14 @@ function PlaybackModal() {
   }, [showPlaybackModal]);
 
   useEffect(() => {
+    if (props.presentation === "embedded") return;
     const html = document.documentElement;
     html.classList.add("disablePullToRefresh");
 
     return () => {
       html.classList.remove("disablePullToRefresh");
     };
-  }, []);
+  }, [props.presentation]);
 
   // Initialize / resync chordRepetitions when expanded tab data changes.
   // If playback is still active (e.g. loop-range recompile), re-anchor the
@@ -400,7 +420,7 @@ function PlaybackModal() {
       const {
         countInTimer: latestCountInTimer,
         setCountInTimer: setLatestCountInTimer,
-      } = getTabStore();
+      } = store.getState();
       if (latestCountInTimer.showing) {
         setLatestCountInTimer({
           ...latestCountInTimer,
@@ -522,6 +542,7 @@ function PlaybackModal() {
     playbackModalViewingState,
     pauseAudio,
     setVisiblePlaybackContainerWidth,
+    store,
   ]);
 
   // Reset all playback-modal / strip-clock state on unmount so any close path
@@ -597,6 +618,83 @@ function PlaybackModal() {
     [loopDelay],
   );
 
+  const practiceStrip = (
+    <div className="w-full overflow-hidden">
+      <PlaybackScrollingContainer
+        setChordRepetitions={setChordRepetitions}
+        chordLayoutData={chordLayoutData}
+        chordRepetitions={chordRepetitions}
+        stripRef={playbackStripRef}
+        scrubPositionRef={scrubPositionRef}
+        playheadRef={playbackPlayheadRef}
+        isGlideScrubbing={isGlideScrubbing}
+        setIsGlideScrubbing={setIsGlideScrubbing}
+      >
+        <div
+          ref={containerRef}
+          className={`relative flex w-full overflow-hidden ${
+            audioMetadata.editingLoopRange
+              ? "h-[290px] mobilePortrait:h-[315px]"
+              : "h-[255px] mobilePortrait:h-[315px]"
+          }`}
+        >
+          {!audioMetadata.editingLoopRange && (
+            <div className="baseFlex absolute left-0 top-0 size-full">
+              <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
+              {/* currently this fixes the highlight line extending past rounded borders of
+              sections, but puts it behind measure lines. maybe this is a fine tradeoff?
+              translateX is written imperatively during rubber-band overscroll so the
+              playhead stays attached to the strip. */}
+              <div
+                ref={playbackPlayheadRef}
+                className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[165px]"
+              ></div>
+              <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
+            </div>
+          )}
+
+          {chordLayoutData && expandedTabData && (
+            <PlaybackAnimatedStrip
+              chordLayoutData={chordLayoutData}
+              playing={audioMetadata.playing}
+              currentChordIndex={currentChordIndex}
+              scrollContainerTransform={scrollContainerTransform}
+              currentRepetition={currentChordRepetition}
+              initialPlaceholderWidth={initialPlaceholderWidth}
+              expandedTabData={expandedTabData}
+              chordRepetitions={chordRepetitions}
+              loopDelay={loopDelay}
+              playbackSpeed={playbackSpeed}
+              isGlideScrubbing={isGlideScrubbing}
+              scrubPositionRef={scrubPositionRef}
+              stripRef={playbackStripRef}
+              renderChord={renderVisibleChord}
+            />
+          )}
+        </div>
+      </PlaybackScrollingContainer>
+    </div>
+  );
+
+  if (props.presentation === "embedded") {
+    return (
+      <div
+        ref={modalContentRef}
+        className="playbackModalGradient w-full select-none overflow-hidden rounded-lg border"
+        data-playback-example
+      >
+        {practiceStrip}
+        {props.renderControls({
+          chordDurations: chordLayoutData?.durations ?? [],
+          setChordRepetitions,
+          scrollPositionsLength: chordLayoutData?.scrollPositions.length ?? 0,
+          isGlideScrubbing,
+          loopRangePrompt,
+        })}
+      </div>
+    );
+  }
+
   return (
     <motion.div
       key={"PlaybackModalBackdrop"}
@@ -657,61 +755,7 @@ function PlaybackModal() {
                 transition={{ duration: 0.2 }}
                 className="baseVertFlex relative size-full select-none"
               >
-                <div className="w-full overflow-hidden">
-                  <PlaybackScrollingContainer
-                    setChordRepetitions={setChordRepetitions}
-                    chordLayoutData={chordLayoutData}
-                    chordRepetitions={chordRepetitions}
-                    stripRef={playbackStripRef}
-                    scrubPositionRef={scrubPositionRef}
-                    playheadRef={playbackPlayheadRef}
-                    isGlideScrubbing={isGlideScrubbing}
-                    setIsGlideScrubbing={setIsGlideScrubbing}
-                  >
-                    <div
-                      ref={containerRef}
-                      className={`relative flex w-full overflow-hidden ${
-                        audioMetadata.editingLoopRange
-                          ? "h-[290px] mobilePortrait:h-[315px]"
-                          : "h-[255px] mobilePortrait:h-[315px]"
-                      }`}
-                    >
-                      {!audioMetadata.editingLoopRange && (
-                        <div className="baseFlex absolute left-0 top-0 size-full">
-                          <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
-                          {/* currently this fixes the highlight line extending past rounded borders of
-                          sections, but puts it behind measure lines. maybe this is a fine tradeoff?
-                          translateX is written imperatively during rubber-band overscroll so the
-                          playhead stays attached to the strip. */}
-                          <div
-                            ref={playbackPlayheadRef}
-                            className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[165px]"
-                          ></div>
-                          <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
-                        </div>
-                      )}
-
-                      {chordLayoutData && expandedTabData && (
-                        <PlaybackAnimatedStrip
-                          chordLayoutData={chordLayoutData}
-                          playing={audioMetadata.playing}
-                          currentChordIndex={currentChordIndex}
-                          scrollContainerTransform={scrollContainerTransform}
-                          currentRepetition={currentChordRepetition}
-                          initialPlaceholderWidth={initialPlaceholderWidth}
-                          expandedTabData={expandedTabData}
-                          chordRepetitions={chordRepetitions}
-                          loopDelay={loopDelay}
-                          playbackSpeed={playbackSpeed}
-                          isGlideScrubbing={isGlideScrubbing}
-                          scrubPositionRef={scrubPositionRef}
-                          stripRef={playbackStripRef}
-                          renderChord={renderVisibleChord}
-                        />
-                      )}
-                    </div>
-                  </PlaybackScrollingContainer>
-                </div>
+                {practiceStrip}
               </motion.div>
             )}
 

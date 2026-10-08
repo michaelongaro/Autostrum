@@ -41,11 +41,11 @@ const FRETS = [
 
 export const DEMO_PATTERN: StrummingPattern = {
   id: "homepage-strumming-pattern",
-  baseNoteLength: "quarter",
-  strums: CHORD_NAMES.map((_, index) => ({
+  baseNoteLength: "eighth",
+  strums: Array.from({ length: 8 }, (_, index) => ({
     palmMute: "",
     strum: index % 2 === 0 ? "v" : "^",
-    noteLength: "quarter",
+    noteLength: "eighth",
   })),
 };
 
@@ -57,7 +57,7 @@ export function createDemoData(
   let noteCount = 6;
   if (feature === "autoscroll") noteCount = 24;
   else if (feature === "zoom" || feature === "speed") {
-    noteCount = surface === "mobile" ? 4 : 8;
+    noteCount = surface === "mobile" ? 6 : 12;
   }
   const notes = Array.from({ length: noteCount }, (_, index) => {
     const frets = ["", "", "", "", "", ""];
@@ -94,7 +94,7 @@ export function createDemoData(
         strummingPattern: DEMO_PATTERN,
         bpm: -1,
         repetitions: 1,
-        data: CHORD_NAMES,
+        data: ["G", "", "C", "", "Em", "", "D", ""],
       },
     ],
   };
@@ -124,6 +124,7 @@ function createSession(
       bpm: 120,
       editing: feature !== "loop",
       looping: feature === "loop" || feature === "autoscroll",
+      showPlaybackModal: feature === "loop",
       playbackSpeed: feature === "speed" ? 0.75 : 1,
       chordDisplayMode:
         feature === "colors" || feature === "loop" ? "color" : "text",

@@ -1,39 +1,27 @@
 import { useEffect, useId, useRef, useState } from "react";
-import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  RotateCcw,
-} from "lucide-react";
+import dynamic from "next/dynamic";
+import { CgArrowsShrinkH } from "react-icons/cg";
+import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
+import type { PlaybackPracticeControls } from "~/components/Tab/Playback/PlaybackModal";
 import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
 import TabSection from "~/components/Tab/TabSection";
 import TabZoomControl from "~/components/Tab/TabZoomControl";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
-import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
 import PlaybackLoopRangeActions from "~/components/Tab/Playback/PlaybackLoopRangeActions";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+import { Toggle } from "~/components/ui/toggle";
+import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import PlayIcon from "~/components/ui/icons/PlayIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import Spinner from "~/components/ui/Spinner";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
 import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
-import FeatureDemoSession, {
-  createDemoData,
-  useFeatureDemo,
-} from "./FeatureDemoSession";
+import FeatureDemoSession, { useFeatureDemo } from "./FeatureDemoSession";
 import styles from "./FeatureShowcase.module.css";
 
 export type FeatureId =
@@ -46,7 +34,17 @@ export type FeatureId =
   | "hotkeys"
   | "tuning";
 
-function DemoPlaybackButton() {
+const EmbeddedPlaybackModal = dynamic(
+  () => import("~/components/Tab/Playback/PlaybackModal"),
+);
+
+function DemoPlaybackButton({
+  presentation = "button",
+  disabled = false,
+}: {
+  presentation?: "button" | "icon";
+  disabled?: boolean;
+} = {}) {
   const { active } = useFeatureDemo();
   const store = useTabStoreApi();
   const playing = useTabStore((state) => state.audioMetadata.playing);
@@ -78,10 +76,14 @@ function DemoPlaybackButton() {
     <div className="flex flex-col gap-1">
       <Button
         variant="audio"
-        disabled={!active || loading}
+        disabled={!active || loading || disabled}
         aria-label={playing ? "Pause example" : "Play example"}
         onClick={() => void togglePlayback()}
-        className="gap-2 px-4"
+        className={
+          presentation === "icon"
+            ? "size-10 shrink-0 rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground"
+            : "gap-2 px-4"
+        }
       >
         {loading ? (
           <Spinner className="size-4" />
@@ -90,7 +92,8 @@ function DemoPlaybackButton() {
         ) : (
           <PlayIcon className="size-4" />
         )}
-        {loading ? "Loading" : playing ? "Pause" : "Play"}
+        {presentation === "button" &&
+          (loading ? "Loading" : playing ? "Pause" : "Play")}
       </Button>
       {error && (
         <span role="status" className="text-xs">
@@ -98,28 +101,6 @@ function DemoPlaybackButton() {
         </span>
       )}
     </div>
-  );
-}
-
-function DemoReset() {
-  const store = useTabStoreApi();
-  const { sectionIndex, feature } = useFeatureDemo();
-  return (
-    <Button
-      variant="link"
-      className="h-auto gap-1 p-0 text-xs"
-      onClick={() => {
-        store.getState().pauseAudio(true);
-        store.setState({
-          tabData: createDemoData(sectionIndex, feature),
-          currentChordIndex: 0,
-          currentlyCopiedChord: null,
-        });
-      }}
-    >
-      <RotateCcw className="size-3" />
-      Reset
-    </Button>
   );
 }
 
@@ -156,7 +137,10 @@ function ZoomPreview() {
           <PracticeTab />
         </div>
       </div>
-      <div className="rounded-lg border bg-background p-4" data-feature-control>
+      <div
+        className="w-full self-center rounded-lg border bg-background p-4 md:w-3/4"
+        data-feature-control
+      >
         <TabZoomControl zoom={zoom} onZoomChange={setZoom} />
       </div>
     </div>
@@ -185,7 +169,7 @@ function ColorsPreview() {
           />
         )}
       </div>
-      <div className="flex items-center justify-between gap-3 rounded-lg border bg-background p-4">
+      <div className="flex w-full items-center justify-between gap-3 self-center rounded-lg border bg-background p-4 md:w-3/4">
         <Label htmlFor={switchId}>Color-coded chords</Label>
         <Switch
           id={switchId}
@@ -213,7 +197,7 @@ function SpeedPreview() {
       <div className={styles.practiceViewport}>
         <PracticeTab />
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-background p-4">
+      <div className="flex w-full flex-wrap items-center justify-between gap-3 self-center rounded-lg border bg-background p-4 md:w-3/4">
         <DemoPlaybackButton />
         <div className="flex items-center gap-2">
           <Label htmlFor={controlId}>Speed</Label>
@@ -233,188 +217,118 @@ function SpeedPreview() {
   );
 }
 
-function LoopPreview() {
+function LoopControls({
+  chordDurations,
+  setChordRepetitions,
+  scrollPositionsLength,
+  isGlideScrubbing,
+  loopRangePrompt,
+}: PlaybackPracticeControls) {
   const { sectionIndex } = useFeatureDemo();
-  const loopId = useId();
-  const delayId = useId();
   const store = useTabStoreApi();
-  const {
-    chords,
-    audioMetadata,
-    currentChordIndex,
-    currentlyPlayingMetadata,
-    looping,
-    setLooping,
-    loopDelay,
-    setLoopDelay,
-    pauseAudio,
-  } = useTabStore((state) => ({
-    chords: state.chords,
-    audioMetadata: state.audioMetadata,
-    currentChordIndex: state.currentChordIndex,
-    currentlyPlayingMetadata: state.currentlyPlayingMetadata,
-    looping: state.looping,
-    setLooping: state.setLooping,
-    loopDelay: state.loopDelay,
-    setLoopDelay: state.setLoopDelay,
-    pauseAudio: state.pauseAudio,
-  }));
-  const currentLocation =
-    currentlyPlayingMetadata?.[currentChordIndex]?.location;
+  const { audioMetadata, currentChordIndex, playbackMetadata } = useTabStore(
+    (state) => ({
+      audioMetadata: state.audioMetadata,
+      currentChordIndex: state.currentChordIndex,
+      playbackMetadata: state.playbackMetadata,
+    }),
+  );
   return (
-    <div className="flex w-full flex-col gap-4">
-      <div className="flex justify-center overflow-x-auto rounded-lg border bg-background p-4">
-        {chords.map((chord, index) => (
-          <PlaybackStrummedChord
-            key={chord.id}
-            chordIndex={index}
-            strum={index % 2 === 0 ? "v" : "^"}
-            chordName={chord.name}
-            chordColor={chord.color}
-            noteLength="quarter"
-            isFirstChord={index === 0}
-            isFirstChordInTab={index === 0}
-            isLastChord={index === chords.length - 1}
-            isLastChordInTab={index === chords.length - 1}
-            isHighlighted={
-              audioMetadata.playing &&
-              currentLocation?.sectionIndex === sectionIndex &&
-              currentLocation.chordIndex === index
-            }
-            isDimmed={
-              index < audioMetadata.startLoopIndex ||
-              (audioMetadata.endLoopIndex !== -1 &&
-                index > audioMetadata.endLoopIndex)
-            }
-            beatIndicator={String(index + 1)}
-            prevChordNoteLength={index === 0 ? undefined : "quarter"}
-            currentChordNoteLength="quarter"
-            nextChordNoteLength={
-              index === chords.length - 1 ? undefined : "quarter"
-            }
-            prevChordIsRest={false}
-            currentChordIsRest={false}
-            nextChordIsRest={false}
-          />
-        ))}
-      </div>
+    <div
+      className="flex w-full flex-col gap-4 px-4 pb-4 pt-2"
+      data-feature-control
+    >
+      <PlaybackAudioRange
+        disabled={isGlideScrubbing}
+        chordDurations={chordDurations}
+        setChordRepetitions={setChordRepetitions}
+        scrollPositionsLength={scrollPositionsLength}
+        idPrefix={`feature-loop-${sectionIndex}`}
+      />
       {audioMetadata.editingLoopRange ? (
-        <PlaybackLoopRangeActions presentation="embedded" />
+        <>
+          <p className="min-h-4 text-center text-xs text-foreground/70">
+            {loopRangePrompt}
+          </p>
+          <PlaybackLoopRangeActions presentation="embedded" />
+        </>
       ) : (
-        <div className="flex items-center justify-between gap-2">
-          <DemoPlaybackButton />
-          <Button
-            variant="outline"
-            disabled={audioMetadata.playing}
-            className="px-3"
-            onClick={() => {
-              const state = store.getState();
-              state.initDraftLoopRangeFromAudioMetadata();
-              state.setCurrentChordIndex(state.audioMetadata.startLoopIndex);
-              state.atomicallyUpdateAudioMetadata({ editingLoopRange: true });
-            }}
-          >
-            Set loop range
-          </Button>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <span className="text-xs tabular-nums">
+            {formatSecondsToMinutes(
+              playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
+            )}
+          </span>
+          <DemoPlaybackButton presentation="icon" disabled={isGlideScrubbing} />
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-xs tabular-nums">
+              {formatSecondsToMinutes(
+                playbackMetadata?.at(-1)?.elapsedSeconds ?? 0,
+              )}
+            </span>
+            <Toggle
+              variant="outline"
+              aria-label="Edit loop range"
+              disabled={audioMetadata.playing || isGlideScrubbing}
+              pressed={audioMetadata.editingLoopRange}
+              className="size-8 shrink-0 p-1"
+              onPressedChange={() => {
+                const state = store.getState();
+                state.initDraftLoopRangeFromAudioMetadata();
+                state.setCurrentChordIndex(state.audioMetadata.startLoopIndex);
+                state.atomicallyUpdateAudioMetadata({ editingLoopRange: true });
+              }}
+            >
+              <CgArrowsShrinkH className="size-6" />
+            </Toggle>
+          </div>
         </div>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-background p-3">
-        <div className="flex items-center gap-2">
-          <Label htmlFor={loopId}>Loop</Label>
-          <Switch
-            id={loopId}
-            checked={looping}
-            onCheckedChange={(checked) => {
-              pauseAudio();
-              setLooping(checked);
-            }}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Label htmlFor={delayId}>Delay</Label>
-          <Select
-            value={String(loopDelay)}
-            onValueChange={(value) => {
-              pauseAudio();
-              setLoopDelay(Number(value));
-            }}
-          >
-            <SelectTrigger id={delayId} className="w-[72px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[0, 1, 2, 3].map((delay) => (
-                <SelectItem key={delay} value={String(delay)}>
-                  {delay}s
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
     </div>
+  );
+}
+
+function LoopPreview() {
+  return (
+    <EmbeddedPlaybackModal
+      presentation="embedded"
+      renderControls={(controls) => <LoopControls {...controls} />}
+    />
   );
 }
 
 const HOTKEYS = [
   { keys: "Q / W", label: "Insert before / after" },
-  { keys: "Shift + ↑ / ↓", label: "Change note length" },
-  { keys: "Ctrl + C / V", label: "Copy / paste a chord" },
-  { keys: "A–G / a–g", label: "Major / minor chords" },
+  { keys: "Shift + ↑ / ↓", label: "Note length" },
+  { keys: "Ctrl + C / V", label: "Copy / paste" },
+  { keys: "A–G / a–g", label: "Major / minor" },
 ];
 
 function EditorPreview({ variant }: { variant: "navigation" | "hotkeys" }) {
   const { sectionIndex } = useFeatureDemo();
   return (
-    <div className="flex w-full flex-col gap-4">
-      {variant === "hotkeys" ? (
-        <div className="grid grid-cols-2 gap-2">
-          {HOTKEYS.map(({ keys, label }) => (
-            <div
-              key={keys}
-              className="flex flex-col items-start gap-1.5 rounded-lg border bg-background px-3 py-2"
-            >
-              <kbd>{keys}</kbd>
-              <span className="text-xs text-foreground/75">{label}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex items-center justify-between gap-3">
-          <p className="max-w-52 text-sm text-foreground/75">
-            Click a note, then use the arrow keys to move.
-          </p>
-          <div className="grid grid-cols-3 gap-1" aria-hidden="true">
-            <kbd className="col-start-2">
-              <ArrowUp className="size-3" />
-            </kbd>
-            <kbd className="row-start-2">
-              <ArrowLeft className="size-3" />
-            </kbd>
-            <kbd className="row-start-2">
-              <ArrowDown className="size-3" />
-            </kbd>
-            <kbd className="row-start-2">
-              <ArrowRight className="size-3" />
-            </kbd>
+    <div className={styles.editorViewport} data-feature-editor-scroll>
+      <TabSection
+        sectionIndex={sectionIndex}
+        subSectionIndex={0}
+        presentation="embedded"
+      >
+        {variant === "hotkeys" && (
+          <div className="grid w-full grid-cols-2 gap-2" data-feature-hotkeys>
+            {HOTKEYS.map(({ keys, label }) => (
+              <div
+                key={keys}
+                className="flex items-center gap-2 rounded-md border bg-background px-2 py-2 text-[11px]"
+              >
+                <kbd className="shrink-0 whitespace-nowrap !text-[11px]">
+                  {keys}
+                </kbd>
+                <span className="text-foreground/75">{label}</span>
+              </div>
+            ))}
           </div>
-        </div>
-      )}
-      <div className={styles.editorViewport} data-feature-editor-scroll>
-        <TabSection
-          sectionIndex={sectionIndex}
-          subSectionIndex={0}
-          presentation="embedded"
-        />
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-foreground/65">
-          {variant === "hotkeys"
-            ? "Click a note and try a shortcut."
-            : "Type a fret number to change a note."}
-        </span>
-        <DemoReset />
-      </div>
+        )}
+      </TabSection>
     </div>
   );
 }
@@ -451,9 +365,6 @@ function AutoscrollPreview() {
           presentation="embedded"
         />
       </div>
-      <p className="text-xs text-foreground/65">
-        Press play to follow the notes as they sound.
-      </p>
     </div>
   );
 }
