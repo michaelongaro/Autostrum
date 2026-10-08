@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getTabStore, useTabStore } from "~/stores/TabStore";
+import { useTabDataGetter, useTabStoreApi, useTabStore } from "~/stores/TabStore";
 import { Input } from "~/components/ui/input";
 import {
   handleTabNoteChange,
@@ -21,6 +21,8 @@ function TabNote({
   columnIndex,
   noteIndex,
 }: TabNote) {
+  const getTabStore = useTabStoreApi().getState;
+  const getTabData = useTabDataGetter();
   const setTabData = useTabStore((state) => state.setTabData);
   const setChordPulse = useTabStore((state) => state.setChordPulse);
 
@@ -73,6 +75,7 @@ function TabNote({
           } = getTabStore();
 
           handleTabNoteKeyDown(e, {
+            getTabData,
             note,
             sectionIndex,
             subSectionIndex,
@@ -88,6 +91,7 @@ function TabNote({
         }}
         onChange={(e) => {
           handleTabNoteChange(e, {
+            getTabData,
             noteIndex,
             sectionIndex,
             subSectionIndex,

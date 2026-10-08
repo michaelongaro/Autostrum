@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import scrollChordIntoView from "~/utils/scrollChordIntoView";
 
@@ -43,7 +43,10 @@ function getChordViewportMargins() {
   };
 }
 
-function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
+function useAutoscrollToCurrentChord(
+  autoscrollEnabled: boolean,
+  scrollContainerRef?: RefObject<HTMLElement | null>,
+) {
   // not my favorite hack: but is used to avoid scrolling when
   // the current chord is still visible but there is small difference
   // in height (<50px) between the current chord and the previous chord
@@ -86,6 +89,28 @@ function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
     if (!currentElement) return;
 
     const rect = currentElement.getBoundingClientRect();
+    const scrollContainer = scrollContainerRef?.current;
+    if (scrollContainer) {
+      previousChordYScrollValueRef.current = rect.y;
+      const containerRect = scrollContainer.getBoundingClientRect();
+      if (
+        rect.top < containerRect.top + 16 ||
+        rect.bottom > containerRect.bottom - 16
+      ) {
+        scrollContainer.scrollTo({
+          top:
+            scrollContainer.scrollTop +
+            rect.top -
+            containerRect.top -
+            (scrollContainer.clientHeight - rect.height) / 2,
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches
+            ? "instant"
+            : "smooth",
+        });
+      }
+      return;
+    }
     const currentChordYScrollValue = rect.y;
     const { topMargin, bottomMargin } = getChordViewportMargins();
     const { sectionIndex, chordSequenceIndex, chordIndex } =
@@ -134,6 +159,7 @@ function useAutoscrollToCurrentChord(autoscrollEnabled: boolean) {
     autoscrollEnabled,
     audioMetadata,
     interactingWithAudioProgressSlider,
+    scrollContainerRef,
   ]);
 }
 

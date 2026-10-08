@@ -77,7 +77,7 @@ function PlaybackSpeedPopover({
       <PopoverContent
         side={side}
         align={align}
-        className="baseVertFlex w-80 gap-4 p-4"
+        className="baseVertFlex w-80 max-w-[calc(100vw-2rem)] gap-4 p-4"
         onOpenAutoFocus={(event) => event.preventDefault()}
         onCloseAutoFocus={(event) => event.preventDefault()}
         // PlaybackModal's FocusTrap does not contain this portaled content.

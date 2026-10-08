@@ -1,5 +1,5 @@
 import type { Section, FullNoteLengths } from "~/stores/TabStore";
-import { getTabData } from "~/stores/TabStore";
+import { getTabData as getGlobalTabData } from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import {
   createTabNote,
@@ -129,6 +129,7 @@ function validNoteInput(input: string) {
 }
 
 export interface TabNoteHandlerParams {
+  getTabData?: () => Section[];
   note: string;
   sectionIndex: number;
   subSectionIndex: number;
@@ -162,6 +163,7 @@ export function handleTabNoteKeyDown(
   e: React.KeyboardEvent<HTMLInputElement>,
   params: TabNoteHandlerParams,
 ) {
+  const getTabData = params.getTabData ?? getGlobalTabData;
   const {
     sectionIndex,
     subSectionIndex,
@@ -488,6 +490,7 @@ export function handleTabNoteKeyDown(
 export function handleTabNoteChange(
   e: React.ChangeEvent<HTMLInputElement>,
   params: {
+    getTabData?: () => Section[];
     noteIndex: number;
     sectionIndex: number;
     subSectionIndex: number;
@@ -495,6 +498,7 @@ export function handleTabNoteChange(
     setTabData: (updater: (draft: Section[]) => void) => void;
   },
 ) {
+  const getTabData = params.getTabData ?? getGlobalTabData;
   const {
     noteIndex,
     sectionIndex,

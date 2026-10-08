@@ -1,7 +1,8 @@
 import type { Tab } from "~/generated/browser";
 import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
-import { create } from "zustand";
+import { create, useStore } from "zustand";
+import { createContext, useCallback, useContext } from "react";
 import { immer } from "zustand/middleware/immer";
 import {
   playNoteColumn,
@@ -726,7 +727,10 @@ interface TabState {
   resetStoreToInitValues: () => void;
 }
 
-const useTabStoreBase = create<TabState>()(
+export const createTabStore = (
+  initialValues: Partial<TabState> = {},
+  resetAudioRange = resetAudioRangeToStart,
+) => create<TabState>()(
   devtools(
     immer((set, get) => ({
       // used in <Tab />
@@ -1347,7 +1351,7 @@ const useTabStoreBase = create<TabState>()(
             };
           },
           setState: (partial) => set(partial),
-          resetAudioRangeToStart,
+          resetAudioRangeToStart: resetAudioRange,
           clearBreakOnNextChord: () => set({ breakOnNextChord: false }),
         });
       },
@@ -1483,7 +1487,7 @@ const useTabStoreBase = create<TabState>()(
             });
           }
 
-          resetAudioRangeToStart("editing");
+          resetAudioRange("editing");
           set({
             currentChordIndex: 0,
             playbackStartedAtAudioTime: null,
@@ -1514,7 +1518,7 @@ const useTabStoreBase = create<TabState>()(
           });
 
           if (resetToStart) {
-            resetAudioRangeToStart("editing");
+            resetAudioRange("editing");
             set({
               currentChordIndex: 0,
             });
@@ -1533,7 +1537,7 @@ const useTabStoreBase = create<TabState>()(
           });
 
           if (resetToStart) {
-            resetAudioRangeToStart("editing");
+            resetAudioRange("editing");
             set({
               currentChordIndex: 0,
             });
@@ -1633,12 +1637,27 @@ const useTabStoreBase = create<TabState>()(
 
       // reset
       resetStoreToInitValues: () => set(initialStoreState),
+      ...initialValues,
     })),
   ),
 );
 
+const useTabStoreBase = createTabStore();
+
+export const TabStoreContext = createContext<
+  ReturnType<typeof createTabStore> | null
+>(null);
+
+/** Embedded editors can share the production components with an independent session. */
+export const useTabStoreApi = () => useContext(TabStoreContext) ?? useTabStoreBase;
+
 export const useTabStore = <T>(selector: (state: TabState) => T): T => {
-  return useTabStoreBase(useShallow(selector));
+  return useStore(useTabStoreApi(), useShallow(selector));
+};
+
+export const useTabDataGetter = () => {
+  const store = useTabStoreApi();
+  return useCallback(() => store.getState().tabData, [store]);
 };
 
 /** Non-reactive store access for event handlers / imperative subscriptions. */

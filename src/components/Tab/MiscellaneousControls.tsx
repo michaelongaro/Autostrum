@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
-  getTabData,
+  useTabDataGetter,
   useTabStore,
   type ChordSection,
   type ChordSequence,
@@ -55,6 +55,7 @@ function MiscellaneousControls({
   hidePlayPauseButton,
   forSectionContainer,
 }: MiscellaneousControls) {
+  const getTabData = useTabDataGetter();
   const {
     bpm,
     sectionProgression,

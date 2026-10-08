@@ -9,7 +9,11 @@ import {
 } from "~/utils/loopRangeHelpers";
 import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 
-function PlaybackLoopRangeActions() {
+function PlaybackLoopRangeActions({
+  presentation = "full",
+}: {
+  presentation?: "full" | "embedded";
+}) {
   const {
     audioMetadata,
     setAudioMetadata,
@@ -97,11 +101,21 @@ function PlaybackLoopRangeActions() {
 
   return (
     <div
-      className={`baseFlex w-full gap-3 px-4 pb-2 ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`}
+      className={
+        presentation === "embedded"
+          ? "baseFlex w-full"
+          : `baseFlex w-full gap-3 px-4 pb-2 ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`
+      }
     >
       {viewportLabel.includes("Landscape") && <PlaybackSectionPicker />}
 
-      <div className="baseFlex mb-2 mt-2 gap-3 mobilePortrait:mt-8">
+      <div
+        className={
+          presentation === "embedded"
+            ? "baseFlex w-full flex-wrap gap-2"
+            : "baseFlex mb-2 mt-2 gap-3 mobilePortrait:mt-8"
+        }
+      >
         <Button
           variant="outline"
           onClick={handleReturn}

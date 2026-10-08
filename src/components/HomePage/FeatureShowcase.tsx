@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { cn } from "~/utils/cn";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import FeaturePreview, { type FeatureId } from "./FeaturePreviews";
 import styles from "./FeatureShowcase.module.css";
 
@@ -94,9 +95,11 @@ const EDITING_FEATURES: Feature[] = [
 function CrossfadePreview({
   feature,
   reduceMotion,
+  active,
 }: {
   feature: Feature;
   reduceMotion: boolean;
+  active: boolean;
 }) {
   const isPresent = useIsPresent();
   return (
@@ -111,16 +114,16 @@ function CrossfadePreview({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeInOut" }}
-      className="absolute inset-0 flex items-center justify-center p-6 lg:p-10"
+      className="absolute inset-0 flex items-center justify-center p-4 lg:p-6"
     >
-      <div className="w-full max-w-lg">
-        <FeaturePreview feature={feature.id} />
+      <div className="w-full max-w-[540px]">
+        <FeaturePreview feature={feature.id} active={active && isPresent} />
       </div>
     </motion.div>
   );
 }
 
-function PracticeCarousel() {
+function PracticeCarousel({ active }: { active: boolean }) {
   const reduceMotion = useReducedMotion();
   const [carouselRef, api] = useEmblaCarousel({
     align: "center",
@@ -128,6 +131,11 @@ function PracticeCarousel() {
     slidesToScroll: 1,
     dragFree: false,
     skipSnaps: false,
+    watchDrag: (_api, event) =>
+      !(
+        event.target instanceof Element &&
+        event.target.closest("[role='slider'], [data-feature-control]")
+      ),
     containScroll: false,
     duration: reduceMotion ? 0 : 25,
     breakpoints: { "(min-width: 768px)": { active: false } },
@@ -177,10 +185,14 @@ function PracticeCarousel() {
             <div
               className={cn(
                 styles.previewSurface,
-                "flex h-[380px] items-center justify-center border-b border-foreground/15 p-4",
+                "flex min-h-[450px] items-center justify-center border-b border-foreground/15 p-4",
               )}
             >
-              <FeaturePreview feature={feature.id} />
+              <FeaturePreview
+                feature={feature.id}
+                surface="mobile"
+                active={active && selected === index}
+              />
             </div>
             <div className="px-5 pb-6 pt-5">
               <h3 className="text-xl font-semibold tracking-tight">
@@ -202,6 +214,7 @@ function PracticeCarousel() {
 
 export default function FeatureShowcase() {
   const [mode, setMode] = useState<FeatureMode>("Practice");
+  const desktop = useViewportWidthBreakpoint(768);
   const [selection, setSelection] = useState({ Practice: 0, Editing: 0 });
   const reduceMotion = useReducedMotion();
   const features = mode === "Practice" ? PRACTICE_FEATURES : EDITING_FEATURES;
@@ -354,7 +367,7 @@ export default function FeatureShowcase() {
         <div
           className={cn(
             styles.previewSurface,
-            "relative min-h-[490px] overflow-hidden rounded-xl border border-foreground/20",
+            "relative min-h-[660px] overflow-hidden rounded-xl border border-foreground/20",
           )}
         >
           <AnimatePresence initial={false} mode="sync">
@@ -362,12 +375,13 @@ export default function FeatureShowcase() {
               key={activeFeature.id}
               feature={activeFeature}
               reduceMotion={Boolean(reduceMotion)}
+              active={desktop === true}
             />
           </AnimatePresence>
         </div>
       </div>
 
-      <PracticeCarousel />
+      <PracticeCarousel active={desktop === false} />
     </section>
   );
 }

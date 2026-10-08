@@ -4,11 +4,7 @@ import {
   compileSpecificChordGrouping,
   generateDefaultSectionProgression,
 } from "~/utils/chordCompilationHelpers";
-import {
-  getTabStore,
-  subscribeTabStore,
-  useTabStore,
-} from "../stores/TabStore";
+import { useTabStoreApi, useTabStore } from "../stores/TabStore";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
@@ -20,9 +16,10 @@ import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedS
  * Intentionally does NOT select `tabData` (or other large trees) through React:
  * that would re-render the host component (often `<Tab />`) on every nested
  * edit and cascade through the whole editing tree. Instead we subscribe
- * imperatively and read fresh state via `getTabStore()`.
+ * imperatively and read fresh state from the current session's store.
  */
 function useAutoCompileChords() {
+  const store = useTabStoreApi();
   const editing = useTabStore((state) => state.editing);
 
   // Keep a stable debounced runner; recreate when editing toggles delay.
@@ -48,7 +45,7 @@ function useAutoCompileChords() {
         setPlaybackMetadata,
         setSectionProgression,
         setTabIsEffectivelyEmpty,
-      } = getTabStore();
+      } = store.getState();
 
       const isEffectivelyEmpty = tabIsEffectivelyEmpty(tabData);
 
@@ -156,7 +153,7 @@ function useAutoCompileChords() {
     // Run once for current state, then on relevant store changes only.
     debouncedHandleTabLogic();
 
-    const unsubscribe = subscribeTabStore((state, prevState) => {
+    const unsubscribe = store.subscribe((state, prevState) => {
       if (
         state.tabData === prevState.tabData &&
         state.playbackSpeed === prevState.playbackSpeed &&
@@ -186,7 +183,7 @@ function useAutoCompileChords() {
       unsubscribe();
       debouncedHandleTabLogic.cancel();
     };
-  }, [editing]);
+  }, [editing, store]);
 }
 
 export default useAutoCompileChords;

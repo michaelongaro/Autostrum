@@ -5,9 +5,31 @@ function focusAndScrollIntoView(
 ) {
   if (!currentElement || !targetElement) return;
 
-  targetElement.focus();
+  const scrollContainer = targetElement.closest<HTMLElement>(
+    "[data-feature-editor-scroll]",
+  );
+  targetElement.focus({ preventScroll: Boolean(scrollContainer) });
 
   if (noScroll) return;
+
+  if (scrollContainer) {
+    const rect = targetElement.getBoundingClientRect();
+    const containerRect = scrollContainer.getBoundingClientRect();
+    if (
+      rect.top < containerRect.top + 16 ||
+      rect.bottom > containerRect.bottom - 16
+    ) {
+      scrollContainer.scrollTo({
+        top:
+          scrollContainer.scrollTop +
+          rect.top -
+          containerRect.top -
+          (scrollContainer.clientHeight - rect.height) / 2,
+        behavior: "instant",
+      });
+    }
+    return;
+  }
 
   let scrollToElement = false;
 

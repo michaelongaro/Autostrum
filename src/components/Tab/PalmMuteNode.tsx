@@ -1,6 +1,6 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
-import { getTabData, useTabStore } from "~/stores/TabStore";
+import { useTabDataGetter, useTabStore } from "~/stores/TabStore";
 import { addOrRemovePalmMuteDashes } from "~/utils/palmMuteHelpers";
 import { Button } from "~/components/ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
@@ -38,6 +38,7 @@ function PalmMuteNode({
   lastModifiedPalmMuteNode,
   setLastModifiedPalmMuteNode,
 }: PalmMuteNode) {
+  const getTabData = useTabDataGetter();
   const { setTabData } = useTabStore((state) => ({
     setTabData: state.setTabData,
   }));
