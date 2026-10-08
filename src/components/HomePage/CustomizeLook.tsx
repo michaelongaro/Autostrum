@@ -142,7 +142,7 @@ function CustomizeLook() {
                     onFocus={() => setHoveredColor(colorString)}
                     onBlur={() => setHoveredColor(null)}
                     onClick={() => selectColor(colorString)}
-                    className="group relative aspect-square h-36 overflow-hidden rounded-lg border-gray text-left shadow-sm transition hover:brightness-105 active:brightness-100 sm:aspect-auto sm:h-48"
+                    className={`group relative h-36 overflow-hidden rounded-lg border-gray text-left shadow-sm transition xs:h-48 ${selected ? "cursor-default" : "cursor-pointer hover:brightness-105 active:brightness-100"}`}
                     aria-pressed={selected}
                     aria-label={`Select ${colorString} color`}
                   >
@@ -318,7 +318,7 @@ function ThemeOption({
   icon: ReactNode;
 }) {
   return (
-    <div className="baseVertFlex w-full gap-1">
+    <div className="baseVertFlex group w-full gap-1">
       <Button
         variant="theme"
         onMouseEnter={onHoverStart}
@@ -327,11 +327,14 @@ function ThemeOption({
         onTouchEnd={onHoverEnd}
         onTouchCancel={onHoverEnd}
         onClick={onClick}
-        className="relative !size-12 !rounded-full !p-0"
+        className={`baseFlex relative size-12 gap-3 rounded-full !p-0 sm:!h-12 sm:!w-full sm:!rounded-xl ${active ? "" : "opacity-50 hover:opacity-100 active:opacity-100"}`}
         aria-pressed={active}
         aria-label={`Select ${label} theme`}
       >
         {icon}
+
+        <span className={`hidden text-base font-medium xs:block`}>{label}</span>
+
         <AnimatePresence>
           {(active || hovered) && (
             <motion.div
@@ -340,12 +343,14 @@ function ThemeOption({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="absolute inset-0 rounded-full border-2 border-foreground"
+              className="absolute inset-0 rounded-full border-2 border-foreground sm:rounded-xl"
             />
           )}
         </AnimatePresence>
       </Button>
-      <span className={`text-sm font-medium ${active ? "" : "opacity-50"}`}>
+      <span
+        className={`text-sm font-medium transition xs:hidden ${active ? "" : "opacity-50 group-active:opacity-100"}`}
+      >
         {label}
       </span>
     </div>
