@@ -142,7 +142,7 @@ function CustomizeLook() {
                     onFocus={() => setHoveredColor(colorString)}
                     onBlur={() => setHoveredColor(null)}
                     onClick={() => selectColor(colorString)}
-                    className={`group relative h-36 overflow-hidden rounded-lg border-gray text-left shadow-sm transition xs:h-48 ${selected ? "cursor-default" : "cursor-pointer hover:brightness-105 active:brightness-100"}`}
+                    className={`group relative h-36 select-none overflow-hidden rounded-lg border-gray text-left shadow-sm transition xs:h-48 ${selected ? "cursor-default" : "cursor-pointer hover:brightness-105 active:brightness-100"}`}
                     aria-pressed={selected}
                     aria-label={`Select ${colorString} color`}
                   >
@@ -151,7 +151,7 @@ function CustomizeLook() {
                       alt=""
                       fill
                       sizes="500px"
-                      className={`object-cover transition duration-300 ${selected ? "" : "group-hover:scale-[1.02]"}`}
+                      className={`pointer-events-none object-cover transition duration-300 ${selected ? "" : "group-hover:scale-[1.02]"}`}
                     />
                     {/* <div
                       className="absolute inset-0"
