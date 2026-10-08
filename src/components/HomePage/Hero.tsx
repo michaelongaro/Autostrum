@@ -7,7 +7,7 @@ function Hero() {
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   return (
-    <section className="baseVertFlex min-h-[calc(100svh-4rem-0rem)] w-full max-w-[1700px] overflow-x-clip px-4 md:min-h-[calc(100svh-4rem-12rem)] md:px-6 lg:px-8">
+    <section className="baseVertFlex min-h-[calc(100svh-4rem-0rem)] w-full max-w-[1700px] overflow-x-clip px-4 md:min-h-[calc(100svh-4rem-6rem)] md:px-6 lg:px-8">
       <div className="baseVertFlex w-full gap-8 lg:flex-row lg:!items-center lg:!justify-between lg:gap-10">
         <div className="baseVertFlex w-full max-w-xl shrink-0 !items-start gap-5 md:gap-6">
           <div className="baseVertFlex !items-start gap-3 md:gap-4">
