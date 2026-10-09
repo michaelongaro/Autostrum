@@ -339,21 +339,23 @@ function HotkeysPreview() {
         sectionIndex={sectionIndex}
         subSectionIndex={0}
         presentation="embedded"
+      ></TabSection>
+      <div
+        className="mx-auto mt-4 grid w-[450px] grid-cols-2 place-items-center gap-2 !self-center"
+        data-feature-hotkeys
       >
-        <div className="grid w-full grid-cols-2 gap-2" data-feature-hotkeys>
-          {HOTKEYS.map(({ keys, label }) => (
-            <div
-              key={label}
-              className="flex items-center gap-2 rounded-md border bg-background px-2 py-2 text-[11px]"
-            >
-              <kbd className="shrink-0 whitespace-nowrap !text-[11px]">
-                {keys}
-              </kbd>
-              <span className="text-foreground/75">{label}</span>
-            </div>
-          ))}
-        </div>
-      </TabSection>
+        {HOTKEYS.map(({ keys, label }) => (
+          <div
+            key={label}
+            className="flex w-48 items-center justify-between gap-2 rounded-md border bg-background px-2 py-2 text-[11px]"
+          >
+            <kbd className="shrink-0 whitespace-nowrap !text-[11px]">
+              {keys}
+            </kbd>
+            <span className="text-foreground/75">{label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

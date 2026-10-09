@@ -228,7 +228,7 @@ function SectionContainer({
       >
         <AccordionItem value="opened" className="baseVertFlex w-full">
           <>
-            <div className="baseFlex w-full">
+            <div className="baseFlex w-full !justify-between">
               <div
                 className={cn(
                   "baseVertFlex !items-start gap-2",
@@ -240,16 +240,13 @@ function SectionContainer({
                 <div
                   className={cn(
                     "baseFlex gap-2",
-                    presentation === "embedded" && "w-full min-w-0 pr-3",
+                    presentation === "embedded" && "min-w-0 pr-3",
                   )}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Label
                     htmlFor={`sectionTitleInput${sectionIndex}`}
-                    className={cn(
-                      "text-lg font-semibold",
-                      presentation === "embedded" && "sr-only",
-                    )}
+                    className={cn("text-lg font-semibold")}
                   >
                     Title
                   </Label>
@@ -261,7 +258,7 @@ function SectionContainer({
                     className={cn(
                       "font-semibold",
                       presentation === "embedded"
-                        ? "w-full min-w-0"
+                        ? "w-64"
                         : "w-[10rem] xs:w-[15rem]",
                     )}
                   />
