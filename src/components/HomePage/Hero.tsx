@@ -31,13 +31,13 @@ function Hero() {
 
           <div className="baseFlex !justify-start gap-3">
             <Button asChild className="px-5 md:px-6">
-              <Link prefetch={false} href="/create">
-                Create a tab
+              <Link prefetch={false} href="/explore">
+                Explore tabs
               </Link>
             </Button>
             <Button variant="outline" asChild className="px-5 md:px-6">
-              <Link prefetch={false} href="/explore">
-                Explore tabs
+              <Link prefetch={false} href="/create">
+                Create a tab
               </Link>
             </Button>
           </div>
