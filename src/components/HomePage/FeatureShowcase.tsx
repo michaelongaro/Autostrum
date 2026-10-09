@@ -54,9 +54,9 @@ const PRACTICE_FEATURES: Feature[] = [
 ];
 const EDITING_FEATURES: Feature[] = [
   {
-    id: "navigation",
-    title: "Arrow key navigation",
-    icon: Move,
+    id: "hotkeys",
+    title: "Useful hotkeys",
+    icon: Keyboard,
   },
   {
     id: "autoscroll",
@@ -64,14 +64,14 @@ const EDITING_FEATURES: Feature[] = [
     icon: ScanLine,
   },
   {
-    id: "hotkeys",
-    title: "Useful hotkeys",
-    icon: Keyboard,
-  },
-  {
     id: "tuning",
     title: "Advanced tuning editor",
     icon: SlidersHorizontal,
+  },
+  {
+    id: "reordering",
+    title: "Easy reordering",
+    icon: Move,
   },
 ];
 

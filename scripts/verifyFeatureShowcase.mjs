@@ -94,7 +94,10 @@ async function select(feature) {
 async function assertFits(locator) {
   const fits = await locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
-    const parent = element.parentElement.getBoundingClientRect();
+    const panel = element.closest('[role="tabpanel"]');
+    const parent = (
+      panel?.parentElement ?? element.parentElement
+    ).getBoundingClientRect();
     return (
       rect.left >= parent.left - 1 &&
       rect.right <= parent.right + 1 &&
@@ -113,19 +116,18 @@ try {
   const before = await prefs();
   await section.scrollIntoViewIfNeeded();
   await section.getByRole("button", { name: "Editing", exact: true }).click();
-  await select("navigation");
-  await page.locator("#input-14-0-0-1").click();
+  await select("hotkeys");
+  await page.locator("#input-16-0-0-1").click();
   await page.keyboard.press("ArrowRight");
   assert.equal(
     await page.evaluate(() => document.activeElement.id),
-    "input-14-0-1-1",
+    "input-16-0-1-1",
   );
   await page.keyboard.press("ArrowDown");
   assert.equal(
     await page.evaluate(() => document.activeElement.id),
-    "input-14-0-1-2",
+    "input-16-0-1-2",
   );
-  await select("hotkeys");
   const firstNote = page.locator("#input-16-0-0-1");
   await firstNote.click();
   await page.keyboard.press("Shift+G");
@@ -158,6 +160,57 @@ try {
   await assertFits(panel("hotkeys").locator("[data-feature-demo]"));
   await panel("hotkeys").screenshot({ path: `${artifacts}/hotkeys.png` });
   console.log("PASS: native editor navigation, hotkeys, and desktop sizing");
+
+  await select("reordering");
+  const sectionTitles = () =>
+    panel("reordering")
+      .locator('input[id^="sectionTitleInput"]')
+      .evaluateAll((inputs) => inputs.map((input) => input.value));
+  assert.deepEqual(await sectionTitles(), [
+    "Intro",
+    "Chorus",
+    "Bridge",
+    "Outro",
+  ]);
+  assert.equal(
+    await panel("reordering")
+      .locator('button[aria-label^="Toggle "][aria-expanded="false"]')
+      .count(),
+    4,
+    "Four initially collapsed sections",
+  );
+  await panel("reordering")
+    .getByRole("button", { name: "Miscellaneous controls dropdown trigger" })
+    .nth(1)
+    .click();
+  await page.getByRole("menuitem", { name: "Move up", exact: true }).click();
+  assert.deepEqual(await sectionTitles(), [
+    "Chorus",
+    "Intro",
+    "Bridge",
+    "Outro",
+  ]);
+  await panel("reordering")
+    .getByRole("button", { name: "Play section", exact: true })
+    .first()
+    .click();
+  await panel("reordering")
+    .getByRole("button", { name: "Pause section", exact: true })
+    .waitFor();
+  assert.equal(
+    await panel("reordering")
+      .locator('button[aria-label^="Toggle "][aria-expanded="true"]')
+      .count(),
+    0,
+    "Section playback keeps the reordering overview collapsed",
+  );
+  await panel("reordering")
+    .getByRole("button", { name: "Pause section", exact: true })
+    .click();
+  await assertFits(panel("reordering").locator("[data-feature-demo]"));
+  console.log(
+    "PASS: native section reordering, collapsed playback, and compact sizing",
+  );
 
   await select("tuning");
   await panel("tuning").locator("input").fill("D A D G A D");
@@ -224,7 +277,7 @@ try {
   await page.evaluate(() => {
     window.__activeDemoContext = window.__demoAudioContexts.at(-1);
   });
-  await select("navigation");
+  await select("hotkeys");
   assert.equal(
     await page.evaluate(() => window.__activeDemoContext.state),
     "closed",

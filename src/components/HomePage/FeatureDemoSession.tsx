@@ -26,7 +26,7 @@ const FEATURE_IDS: FeatureId[] = [
   "colors",
   "speed",
   "loop",
-  "navigation",
+  "reordering",
   "autoscroll",
   "hotkeys",
   "tuning",
@@ -83,6 +83,24 @@ export function createDemoData(
     baseNoteLength: "quarter",
     data: notes,
   };
+  if (feature === "reordering") {
+    // This pane uses consecutive indices so the native move controls have the
+    // same first/last boundaries as the editor. Other demos reserve indices 10+.
+    return ["Intro", "Chorus", "Bridge", "Outro"].map((title, index) => ({
+      id: `demo-${sectionIndex}-section-${index}`,
+      title,
+      data: [
+        {
+          ...tab,
+          id: `demo-${sectionIndex}-tab-${index}`,
+          data: notes.map((note, noteIndex) => ({
+            ...note,
+            id: `demo-${sectionIndex}-section-${index}-note-${noteIndex}`,
+          })),
+        },
+      ],
+    }));
+  }
   const strumming: ChordSection = {
     id: `demo-${sectionIndex}-strumming`,
     type: "chord",

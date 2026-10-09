@@ -1,10 +1,13 @@
 import { useEffect, useId, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
 import type { PlaybackPracticeControls } from "~/components/Tab/Playback/PlaybackModal";
 import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
 import TabSection from "~/components/Tab/TabSection";
+import SectionContainer from "~/components/Tab/SectionContainer";
+import AnimatedListItem from "~/components/Tab/AnimatedListItem";
 import TabZoomControl from "~/components/Tab/TabZoomControl";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
@@ -29,7 +32,7 @@ export type FeatureId =
   | "colors"
   | "speed"
   | "loop"
-  | "navigation"
+  | "reordering"
   | "autoscroll"
   | "hotkeys"
   | "tuning";
@@ -309,13 +312,26 @@ function LoopPreview() {
 }
 
 const HOTKEYS = [
-  { keys: "Q / W", label: "Insert before / after" },
+  {
+    keys: (
+      <span
+        className="flex items-center gap-0.5"
+        aria-label="Left, up, down, and right arrow keys"
+      >
+        <ArrowLeft className="size-3" aria-hidden="true" />
+        <ArrowUp className="size-3" aria-hidden="true" />
+        <ArrowDown className="size-3" aria-hidden="true" />
+        <ArrowRight className="size-3" aria-hidden="true" />
+      </span>
+    ),
+    label: "Note navigation",
+  },
   { keys: "Shift + ↑ / ↓", label: "Note length" },
   { keys: "Ctrl + C / V", label: "Copy / paste" },
   { keys: "A–G / a–g", label: "Major / minor" },
 ];
 
-function EditorPreview({ variant }: { variant: "navigation" | "hotkeys" }) {
+function HotkeysPreview() {
   const { sectionIndex } = useFeatureDemo();
   return (
     <div className={styles.editorViewport} data-feature-editor-scroll>
@@ -324,22 +340,43 @@ function EditorPreview({ variant }: { variant: "navigation" | "hotkeys" }) {
         subSectionIndex={0}
         presentation="embedded"
       >
-        {variant === "hotkeys" && (
-          <div className="grid w-full grid-cols-2 gap-2" data-feature-hotkeys>
-            {HOTKEYS.map(({ keys, label }) => (
-              <div
-                key={keys}
-                className="flex items-center gap-2 rounded-md border bg-background px-2 py-2 text-[11px]"
-              >
-                <kbd className="shrink-0 whitespace-nowrap !text-[11px]">
-                  {keys}
-                </kbd>
-                <span className="text-foreground/75">{label}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="grid w-full grid-cols-2 gap-2" data-feature-hotkeys>
+          {HOTKEYS.map(({ keys, label }) => (
+            <div
+              key={label}
+              className="flex items-center gap-2 rounded-md border bg-background px-2 py-2 text-[11px]"
+            >
+              <kbd className="shrink-0 whitespace-nowrap !text-[11px]">
+                {keys}
+              </kbd>
+              <span className="text-foreground/75">{label}</span>
+            </div>
+          ))}
+        </div>
       </TabSection>
+    </div>
+  );
+}
+
+function ReorderingPreview() {
+  const sectionIds = useTabStore((state) => state.tabData.map(({ id }) => id));
+  const [forceClose, setForceClose] = useState(false);
+  return (
+    <div className={styles.editorViewport} data-feature-editor-scroll>
+      <div className="flex w-full min-w-0 flex-col gap-3">
+        {sectionIds.map((sectionId, index) => (
+          <AnimatedListItem key={sectionId}>
+            <SectionContainer
+              key={`${sectionId}-${index}`}
+              sectionIndex={index}
+              tabDataLength={sectionIds.length}
+              forceCloseSectionAccordions={forceClose}
+              setForceCloseSectionAccordions={setForceClose}
+              presentation="embedded"
+            />
+          </AnimatedListItem>
+        ))}
+      </div>
     </div>
   );
 }
@@ -387,11 +424,7 @@ function DemoContent({ feature }: { feature: FeatureId }) {
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const root = rootRef.current;
-    if (
-      !root ||
-      !active ||
-      !["navigation", "hotkeys", "autoscroll"].includes(feature)
-    )
+    if (!root || !active || !["hotkeys", "autoscroll"].includes(feature))
       return;
     let preparingPlayback = false;
     const handleSpace = (event: KeyboardEvent) => {
@@ -434,14 +467,14 @@ function DemoContent({ feature }: { feature: FeatureId }) {
     case "loop":
       content = <LoopPreview />;
       break;
-    case "navigation":
-      content = <EditorPreview variant="navigation" />;
+    case "reordering":
+      content = <ReorderingPreview />;
       break;
     case "autoscroll":
       content = <AutoscrollPreview />;
       break;
     case "hotkeys":
-      content = <EditorPreview variant="hotkeys" />;
+      content = <HotkeysPreview />;
       break;
     case "tuning":
       content = <CustomTuningDialog presentation="inline" />;

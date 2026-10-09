@@ -16,6 +16,7 @@ import {
 import {
   useTabDataGetter,
   useTabStore,
+  useTabStoreApi,
   type ChordSection,
   type ChordSequence,
   type Section,
@@ -37,6 +38,7 @@ import {
   useSectionIsEffectivelyEmpty,
   useTabDataLength,
 } from "~/hooks/useTabDataSelectors";
+import { cn } from "~/utils/cn";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -45,6 +47,7 @@ interface MiscellaneousControls {
   chordSequenceIndex?: number;
   hidePlayPauseButton?: boolean;
   forSectionContainer?: boolean;
+  presentation?: "full" | "embedded";
 }
 
 function MiscellaneousControls({
@@ -54,8 +57,10 @@ function MiscellaneousControls({
   chordSequenceIndex,
   hidePlayPauseButton,
   forSectionContainer,
+  presentation = "full",
 }: MiscellaneousControls) {
   const getTabData = useTabDataGetter();
+  const store = useTabStoreApi();
   const {
     bpm,
     sectionProgression,
@@ -96,6 +101,40 @@ function MiscellaneousControls({
 
   const [showCopyCheckmark, setShowCopyCheckmark] = useState(false);
   const [showPasteCheckmark, setShowPasteCheckmark] = useState(false);
+  const [loadingAudio, setLoadingAudio] = useState(false);
+  const [audioError, setAudioError] = useState(false);
+  const location = {
+    sectionIndex,
+    ...(subSectionIndex !== undefined && { subSectionIndex }),
+    ...(chordSequenceIndex !== undefined && { chordSequenceIndex }),
+  };
+  const playingHere =
+    audioMetadata.playing && isEqual(audioMetadata.location, location);
+
+  async function playOnDemand() {
+    if (playingHere) {
+      pauseAudio();
+      return;
+    }
+    setAudioError(false);
+    setLoadingAudio(true);
+    try {
+      if (!isEqual(audioMetadata.location, location)) pauseAudio(true);
+      if (
+        (await store.getState().ensureAudioSystemReady()) &&
+        store.getState().tabData[sectionIndex]?.id === sectionId
+      ) {
+        void store
+          .getState()
+          .playTab({ location })
+          .catch(() => setAudioError(true));
+      }
+    } catch {
+      setAudioError(true);
+    } finally {
+      setLoadingAudio(false);
+    }
+  }
 
   function disableMoveDown() {
     if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
@@ -118,6 +157,7 @@ function MiscellaneousControls({
   }
 
   function moveUp() {
+    if (presentation === "embedded") pauseAudio(true);
     setTabData((draft) => {
       if (
         chordSequenceIndex !== undefined &&
@@ -153,6 +193,7 @@ function MiscellaneousControls({
   }
 
   function moveDown() {
+    if (presentation === "embedded") pauseAudio(true);
     setTabData((draft) => {
       if (
         chordSequenceIndex !== undefined &&
@@ -335,26 +376,34 @@ function MiscellaneousControls({
 
   return (
     <div
-      className={`baseFlex !items-end !justify-end gap-2 ${
-        forSectionContainer ? "w-2/6 sm:w-1/6 sm:!flex-row" : "w-1/6"
-      }`}
+      className={cn(
+        "baseFlex !items-end !justify-end gap-2",
+        presentation === "embedded"
+          ? "w-auto shrink-0 !flex-row"
+          : forSectionContainer
+            ? "w-2/6 sm:w-1/6 sm:!flex-row"
+            : "w-1/6",
+      )}
       onClick={(e) => e.stopPropagation()}
     >
       {!hidePlayPauseButton && (
         <Button
           variant="audio"
+          aria-label={playingHere ? "Pause section" : "Play section"}
+          title={audioError ? "Audio couldn’t load. Try again." : undefined}
           disabled={
             audioMetadata.editingLoopRange ||
             bpm === -1 ||
-            !currentInstrument ||
+            (presentation === "full" && !currentInstrument) ||
+            loadingAudio ||
             sectionIsEmpty
           }
           onClick={() => {
-            const locationIsEqual = isEqual(audioMetadata.location, {
-              sectionIndex,
-              subSectionIndex,
-              chordSequenceIndex,
-            });
+            if (presentation === "embedded") {
+              void playOnDemand();
+              return;
+            }
+            const locationIsEqual = isEqual(audioMetadata.location, location);
 
             if (audioMetadata.playing && locationIsEqual) {
               pauseAudio();
@@ -366,13 +415,7 @@ function MiscellaneousControls({
               // I think we ideally drop the setTimeout here
               setTimeout(
                 () => {
-                  void playTab({
-                    location: {
-                      sectionIndex,
-                      subSectionIndex,
-                      chordSequenceIndex,
-                    },
-                  });
+                  void playTab({ location });
                 },
                 !locationIsEqual ? 50 : 0,
               );
@@ -388,6 +431,10 @@ function MiscellaneousControls({
             sectionIndex={sectionIndex}
             subSectionIndex={subSectionIndex}
             chordSequenceIndex={chordSequenceIndex}
+            instrumentLoading={
+              presentation === "embedded" ? "on-demand" : "eager"
+            }
+            forceShowLoadingSpinner={loadingAudio}
           />
         </Button>
       )}

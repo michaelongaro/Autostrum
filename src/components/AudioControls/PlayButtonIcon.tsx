@@ -33,6 +33,7 @@ interface PlayButtonIcon {
   showCountInTimer?: boolean;
   previewType?: "strummingPattern" | "chord";
   forceShowLoadingSpinner?: boolean;
+  instrumentLoading?: "eager" | "on-demand";
   size?: string;
 }
 
@@ -48,6 +49,7 @@ function PlayButtonIcon({
   showCountInTimer,
   previewType,
   forceShowLoadingSpinner,
+  instrumentLoading = "eager",
   size = "0.75rem",
 }: PlayButtonIcon) {
   const { audioContext, masterVolumeGainNode, countInBuffer } = useTabStore(
@@ -132,7 +134,10 @@ function PlayButtonIcon({
       );
     }
 
-    if (!currentInstrument || forceShowLoadingSpinner) {
+    if (
+      (!currentInstrument && instrumentLoading === "eager") ||
+      forceShowLoadingSpinner
+    ) {
       return (
         <motion.div
           key={`${uniqueLocationKey}LoadingIcon`}
