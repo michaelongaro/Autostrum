@@ -97,9 +97,12 @@ function CrossfadePreview({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeInOut" }}
-      className="absolute inset-0 flex items-center justify-center p-4 lg:p-6"
+      className={cn(
+        "flex items-center justify-center p-4",
+        isPresent ? "relative col-start-1 row-start-1" : "absolute inset-0",
+      )}
     >
-      <div className="w-full max-w-[540px]">
+      <div className="w-full min-w-0 max-w-[540px]">
         <FeaturePreview feature={feature.id} active={active && isPresent} />
       </div>
     </motion.div>
@@ -159,7 +162,7 @@ function PracticeCarousel({ active }: { active: boolean }) {
         }
       }}
     >
-      <div className="flex touch-pan-y gap-3 py-1">
+      <div className="flex touch-pan-y py-1">
         {PRACTICE_FEATURES.map((feature, index) => (
           <article
             key={feature.id}
@@ -168,7 +171,7 @@ function PracticeCarousel({ active }: { active: boolean }) {
             aria-label={`${feature.title}, ${index + 1} of ${PRACTICE_FEATURES.length}`}
             aria-hidden={selected !== index}
             inert={selected !== index}
-            className="flex min-w-0 flex-[0_0_84%] flex-col overflow-hidden rounded-xl border bg-background shadow-sm"
+            className="mr-3 flex min-w-0 flex-[0_0_84%] flex-col overflow-hidden rounded-xl border bg-background shadow-sm"
           >
             <div
               className={cn(
@@ -243,113 +246,102 @@ export default function FeatureShowcase() {
       aria-labelledby="platform-features-heading"
       className="w-full md:max-w-[1200px] md:px-6 lg:px-8"
     >
-      <div className="mb-6 flex items-center justify-between gap-6 px-4 md:px-0">
-        <div>
-          <h2
-            id="platform-features-heading"
-            className="text-2xl font-bold tracking-tight md:text-3xl"
-          >
-            <span className="md:hidden">Practice your way</span>
-            <span className="hidden md:inline">Your tab. Your way.</span>
-          </h2>
-          <p className="mt-2 text-sm text-foreground/75 md:text-base">
-            <span className="md:hidden">
-              A few thoughtful controls. A better practice session.
-            </span>
-            <span className="hidden md:inline">
-              Thoughtful tools for learning a song and writing your own.
-            </span>
-          </p>
-        </div>
-        <div
-          role="group"
-          aria-label="Choose platform features"
-          className="hidden shrink-0 gap-1 rounded-lg border bg-background p-1 md:flex"
-        >
-          {(["Practice", "Editing"] as const).map((name) => {
-            const Icon = name === "Practice" ? Play : Keyboard;
-            return (
-              <button
-                key={name}
-                type="button"
-                aria-pressed={mode === name}
-                onClick={() => setMode(name)}
-                className={cn(
-                  "flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  mode === name
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-foreground/65 hover:bg-secondary",
-                )}
-              >
-                <Icon aria-hidden="true" className="size-4" />
-                {name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <h2
+        id="platform-features-heading"
+        className="mb-5 px-4 text-2xl font-bold tracking-tight md:px-0 md:text-3xl"
+      >
+        Features you&apos;ll love
+      </h2>
 
       <div className="hidden gap-6 md:grid md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)] lg:gap-10">
-        <div
-          role="tablist"
-          aria-label={`${mode} features`}
-          aria-orientation="vertical"
-          className="flex flex-col justify-center gap-2"
-        >
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            const active = index === selectedIndex;
-            return (
-              <button
-                key={feature.id}
-                type="button"
-                role="tab"
-                id={`feature-tab-${feature.id}`}
-                aria-selected={active}
-                aria-controls={
-                  active ? `feature-panel-${feature.id}` : undefined
-                }
-                tabIndex={active ? 0 : -1}
-                onClick={() => selectFeature(index)}
-                onKeyDown={(event) => handleFeatureKeys(event, index)}
-                className={cn(
-                  "group flex items-center gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:p-5",
-                  active
-                    ? "border-primary/35 bg-background shadow-sm"
-                    : "border-transparent hover:bg-background/50",
-                )}
-              >
-                <span
-                  aria-hidden="true"
+        <div className="flex flex-col gap-3 self-start" data-feature-navigation>
+          <div
+            role="group"
+            aria-label="Choose platform features"
+            className="flex w-fit shrink-0 gap-1 self-start rounded-lg border bg-background p-1"
+          >
+            {(["Practice", "Editing"] as const).map((name) => {
+              const Icon = name === "Practice" ? Play : Keyboard;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={mode === name}
+                  onClick={() => setMode(name)}
                   className={cn(
-                    "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg",
-                    active
-                      ? "bg-primary/10 text-primary"
-                      : "text-foreground/60",
+                    "flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    mode === name
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-foreground/65 hover:bg-secondary",
                   )}
                 >
-                  <Icon className="size-[18px]" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-center justify-between gap-2 text-sm font-semibold tracking-tight lg:text-base">
-                    <span>{feature.title}</span>
-                    <ArrowRight
-                      aria-hidden="true"
-                      className={cn(
-                        "size-4 shrink-0 text-primary transition-opacity",
-                        active ? "opacity-100" : "opacity-0",
-                      )}
-                    />
+                  <Icon aria-hidden="true" className="size-4" />
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+          <div
+            role="tablist"
+            aria-label={`${mode} features`}
+            aria-orientation="vertical"
+            className="flex flex-col justify-center gap-2"
+          >
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              const active = index === selectedIndex;
+              return (
+                <button
+                  key={feature.id}
+                  type="button"
+                  role="tab"
+                  id={`feature-tab-${feature.id}`}
+                  aria-selected={active}
+                  aria-controls={
+                    active ? `feature-panel-${feature.id}` : undefined
+                  }
+                  tabIndex={active ? 0 : -1}
+                  onClick={() => selectFeature(index)}
+                  onKeyDown={(event) => handleFeatureKeys(event, index)}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:p-5",
+                    active
+                      ? "border-primary/35 bg-background shadow-sm"
+                      : "border-transparent hover:bg-background/50",
+                  )}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg",
+                      active
+                        ? "bg-primary/10 text-primary"
+                        : "text-foreground/60",
+                    )}
+                  >
+                    <Icon className="size-[18px]" />
                   </span>
-                </span>
-              </button>
-            );
-          })}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-2 text-sm font-semibold tracking-tight lg:text-base">
+                      <span>{feature.title}</span>
+                      <ArrowRight
+                        aria-hidden="true"
+                        className={cn(
+                          "size-4 shrink-0 text-primary transition-opacity",
+                          active ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div
           className={cn(
             styles.previewSurface,
-            "relative min-h-[660px] overflow-hidden rounded-xl border border-foreground/20",
+            "relative grid min-w-0 grid-cols-1 overflow-hidden rounded-xl border border-foreground/20",
           )}
         >
           <AnimatePresence initial={false} mode="sync">

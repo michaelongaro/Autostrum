@@ -16,12 +16,14 @@ export interface StaticChordSection {
   subSectionData: ChordSectionType;
   color: COLORS;
   theme: THEME;
+  presentation?: "card" | "bare";
 }
 
 function StaticChordSection({
   subSectionData,
   color,
   theme,
+  presentation = "card",
 }: StaticChordSection) {
   const { bpm } = useTabStore((state) => ({
     bpm: state.bpm,
@@ -35,11 +37,19 @@ function StaticChordSection({
 
   return (
     <div
-      style={{
-        borderColor: "hsl(var(--screenshot-border))",
-        backgroundColor: "hsl(var(--screenshot-secondary) / 0.25)",
-      }}
-      className="baseVertFlex relative h-full !justify-start rounded-md border p-4 shadow-md md:p-8"
+      style={
+        presentation === "card"
+          ? {
+              borderColor: "hsl(var(--screenshot-border))",
+              backgroundColor: "hsl(var(--screenshot-secondary) / 0.25)",
+            }
+          : undefined
+      }
+      className={
+        presentation === "bare"
+          ? "baseVertFlex relative w-full !justify-start"
+          : "baseVertFlex relative h-full !justify-start rounded-md border p-4 shadow-md md:p-8"
+      }
     >
       <div className="baseFlex flex-wrap !items-end !justify-start gap-8">
         {subSectionData.data.map((chordSequence) => (

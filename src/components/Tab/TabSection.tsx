@@ -814,12 +814,16 @@ function TabSection({
       style={{
         padding:
           presentation === "embedded"
-            ? "0.75rem"
+            ? "0"
             : aboveMediumViewportWidth
               ? "2rem"
               : "1rem 0.5rem 1rem 0.5rem",
       }}
-      className="baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 shadow-md"
+      className={
+        presentation === "embedded"
+          ? "baseVertFlex relative w-full !justify-start gap-1"
+          : "baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 shadow-md"
+      }
     >
       {children}
       {presentation === "full" && (
@@ -1130,7 +1134,9 @@ function TabSection({
         </div>
       )}
 
-      <div className="baseFlex relative mt-4 w-full flex-wrap !items-start !justify-start gap-y-4">
+      <div
+        className={`baseFlex relative w-full flex-wrap !items-start !justify-start gap-y-4 ${presentation === "full" ? "mt-4" : ""}`}
+      >
         {editingPalmMuteNodes && (
           <p className="absolute left-[6px] top-[14px] text-sm italic">PM</p>
         )}

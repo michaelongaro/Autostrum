@@ -120,6 +120,7 @@ function PracticeTab() {
       color={color}
       theme={theme}
       overflowX
+      presentation="bare"
     />
   );
 }
@@ -127,7 +128,7 @@ function PracticeTab() {
 function ZoomPreview() {
   const [zoom, setZoom] = useState(1);
   return (
-    <div className="flex w-full flex-col gap-5">
+    <div className="flex w-full min-w-0 flex-col gap-5">
       <div
         className={styles.practiceViewport}
         tabIndex={0}
@@ -159,25 +160,35 @@ function ColorsPreview() {
       setChordDisplayMode: state.setChordDisplayMode,
     }));
   return (
-    <div className="flex w-full flex-col gap-5">
-      <div className="flex min-h-48 items-center justify-center">
+    <div className="flex w-full min-w-0 flex-col gap-5">
+      <div className="flex items-center justify-center">
         {subSection?.type === "chord" && (
           <StaticChordSection
             subSectionData={subSection}
             color={color}
             theme={theme}
+            presentation="bare"
           />
         )}
       </div>
-      <div className="flex w-full items-center justify-between gap-3 self-center rounded-lg border bg-background p-4 md:w-3/4">
-        <Label htmlFor={switchId}>Color-coded chords</Label>
+      <div
+        className="flex items-center justify-center gap-3"
+        data-feature-control
+      >
+        <Label htmlFor={switchId} className="text-foreground/70">
+          Off
+        </Label>
         <Switch
           id={switchId}
+          aria-label="Color-coded chords"
           checked={chordDisplayMode === "color"}
           onCheckedChange={(checked) =>
             setChordDisplayMode(checked ? "color" : "text")
           }
         />
+        <Label htmlFor={switchId} className="text-foreground/70">
+          On
+        </Label>
       </div>
     </div>
   );
@@ -193,7 +204,7 @@ function SpeedPreview() {
     }),
   );
   return (
-    <div className="flex w-full flex-col gap-5">
+    <div className="flex w-full min-w-0 flex-col gap-5">
       <div className={styles.practiceViewport}>
         <PracticeTab />
       </div>
@@ -340,7 +351,7 @@ function AutoscrollPreview() {
   const scrollRef = useRef<HTMLDivElement>(null);
   useAutoscrollToCurrentChord(autoscroll, scrollRef);
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex w-full min-w-0 flex-col gap-4">
       <div className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3">
         <DemoPlaybackButton />
         <div className="flex items-center gap-2">
@@ -437,7 +448,7 @@ function DemoContent({ feature }: { feature: FeatureId }) {
       break;
   }
   return (
-    <div ref={rootRef} className="flex w-full justify-center">
+    <div ref={rootRef} className="flex w-full min-w-0 justify-center">
       {content}
     </div>
   );

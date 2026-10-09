@@ -21,7 +21,7 @@
 
 .practiceViewport {
   width: 100%;
-  height: 312px;
+  max-height: 312px;
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -34,7 +34,7 @@
 }
 
 .autoscrollViewport {
-  height: 422px;
+  height: 380px;
   overflow: auto;
   overscroll-behavior: contain;
 }
