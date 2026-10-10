@@ -474,7 +474,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                       <div className="mt-1 h-[12px] w-[10px] rounded-bl-lg border border-r-0 border-t-0"></div>
                                       <div className="baseFlex ml-1.5 mt-1 gap-1.5 text-sm">
                                         {song.artist.isVerified && (
-                                          <Verified className="size-5" />
+                                          <Verified className="size-[18px]" />
                                         )}
                                         {song.artist.name}
                                       </div>
@@ -552,7 +552,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   }}
                                 >
                                   {artist.isVerified && (
-                                    <Verified className="size-5" />
+                                    <Verified className="size-[18px]" />
                                   )}
 
                                   <p className="max-w-[100%] truncate">
@@ -669,7 +669,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                     <div className="mt-1 h-[12px] w-[10px] rounded-bl-lg border border-r-0 border-t-0"></div>
                                     <div className="baseFlex ml-1.5 mt-1 gap-1.5 text-sm">
                                       {song.artistIsVerified && (
-                                        <Verified className="size-5" />
+                                        <Verified className="size-[18px]" />
                                       )}
                                       {song.artistName}
                                     </div>
@@ -763,7 +763,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 }}
                               >
                                 {artist.isVerified && (
-                                  <Verified className="size-5" />
+                                  <Verified className="size-[18px]" />
                                 )}
 
                                 <p className="max-w-[100%] truncate">
