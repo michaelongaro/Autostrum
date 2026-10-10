@@ -304,7 +304,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${isAboveLgViewportWidth ? "top-[45px] border !shadow-xl" : "top-11 border-t"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
-              <div className="baseFlex gap-3">
+              <div className="baseFlex ml-1 gap-3">
                 Searching for
                 <Button
                   variant={"secondary"}
@@ -393,7 +393,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         transition={{ duration: 0.15 }}
                         className="baseVertFlex mt-2 w-full !items-start gap-2"
                       >
-                        <p className="ml-2 font-medium">Trending Songs</p>
+                        <p className="ml-3 font-medium">Trending Songs</p>
                         <div className="baseVertFlex h-full w-full">
                           {mostPopularDailyTabsAndArtists.tabs.map(
                             (song, idx) => (
@@ -495,7 +495,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         transition={{ duration: 0.15 }}
                         className="baseVertFlex mt-2 w-full !items-start gap-2"
                       >
-                        <p className="ml-2 font-medium">Popular Artists</p>
+                        <p className="ml-3 font-medium">Popular Artists</p>
                         <div className="baseVertFlex w-full">
                           {mostPopularDailyTabsAndArtists.artists.map(
                             (artist, idx) => (
