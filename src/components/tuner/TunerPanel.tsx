@@ -345,7 +345,7 @@ function TunerPanel({
                         : "hsl(var(--background))"
                       : "hsl(var(--primary-foreground))",
                 }}
-                className="baseFlex relative h-[30px] w-[123px] gap-2 border-none sm:h-[38px] sm:w-[72px]"
+                className="baseFlex relative h-[30px] w-[123px] gap-2 border-none text-xs sm:h-[38px] sm:w-[72px] sm:text-sm"
                 onClick={() => {
                   if (mode === "guided") return;
                   setChromaticViewReady(false);
@@ -365,7 +365,7 @@ function TunerPanel({
                         : "hsl(var(--background))"
                       : "hsl(var(--primary-foreground))",
                 }}
-                className="baseFlex relative h-[30px] w-[123px] gap-2 border-none sm:h-[38px] sm:w-[93px]"
+                className="baseFlex relative h-[30px] w-[123px] gap-2 border-none text-xs sm:h-[38px] sm:w-[93px] sm:text-sm"
                 onClick={() => {
                   if (mode === "chromatic") return;
                   setChromaticViewReady(false);
@@ -381,7 +381,7 @@ function TunerPanel({
                     theme === "light"
                       ? "hsl(var(--background)"
                       : "hsl(var(--primary))",
-                  transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                  transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
                 className={`absolute inset-0 !z-[-1] ${mode === "guided" ? "w-[123px] translate-x-0 rounded-l-sm sm:w-[72px]" : "w-[123px] translate-x-[123px] rounded-r-sm sm:w-[93px] sm:translate-x-[72px]"}`}
               ></div>
