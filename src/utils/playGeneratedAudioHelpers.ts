@@ -1,6 +1,12 @@
 import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
 import {
+  playGuitarNote,
+  playGuitarPercussion,
+  stopGuitarStrings,
+  type GuitarTransition as TetheredMetadata,
+} from "~/utils/guitarEffects";
+import {
   calculateAutomaticStrumSpreadSeconds,
   chordEffectCharsForNoteAudio,
   parseCompiledStrumSpread,
@@ -13,9 +19,7 @@ export function registerScheduledPlaybackNode(
   scheduledNodes: StoppablePlaybackNode[] | undefined,
   node: StoppablePlaybackNode | null | undefined,
 ) {
-  if (scheduledNodes && node) {
-    scheduledNodes.push(node);
-  }
+  if (scheduledNodes && node) scheduledNodes.push(node);
 }
 
 export function stopAllScheduledPlaybackNodes(
@@ -36,723 +40,16 @@ export function stopActivePlaybackStrings(
     (Soundfont.Player | AudioBufferSourceNode | undefined)[] | null | undefined,
   stopTime: number,
 ) {
-  if (!activePlaybackStrings) return;
-
-  for (const activeString of activePlaybackStrings) {
-    try {
-      activeString?.stop(stopTime);
-    } catch {
-      // Node may already have stopped.
-    }
-  }
-}
-
-interface PlayNoteWithEffects {
-  note: GainNode;
-  stringIdx: number;
-  fret: number;
-  bpm: number;
-  when: number;
-  effects?: string[];
-  tetheredMetadata?: TetheredMetadata;
-  pluckBaseNote: boolean;
-  audioContext: AudioContext;
-  masterVolumeGainNode: GainNode;
-  currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
-  )[];
-  scheduledNodes?: StoppablePlaybackNode[];
-}
-
-function playNoteWithEffects({
-  note,
-  stringIdx,
-  fret,
-  bpm,
-  when,
-  effects,
-  tetheredMetadata,
-  pluckBaseNote,
-  audioContext,
-  masterVolumeGainNode,
-  currentlyPlayingStrings,
-  scheduledNodes,
-}: PlayNoteWithEffects) {
-  let noteWithEffectApplied = undefined;
-
-  if (tetheredMetadata) {
-    // "arbitrary" slides (/3, 3/, etc.) and regular bends/releases
-    if (
-      tetheredMetadata.transitionToFret !== undefined &&
-      (tetheredMetadata.effect === "b" ||
-        tetheredMetadata.effect === "r" ||
-        tetheredMetadata.effect === "arbitrarySlide")
-    ) {
-      noteWithEffectApplied = applyBendOrReleaseEffect({
-        note,
-        baseFret: fret,
-        fretToBendTo: tetheredMetadata.transitionToFret,
-        when,
-        bpm,
-        stringIdx,
-        pluckBaseNote,
-        isArbitrarySlide: tetheredMetadata.effect === "arbitrarySlide",
-        audioContext,
-        currentlyPlayingStrings,
-        scheduledNodes,
-        isPalmMuted: effects?.includes("PM"),
-      });
-    } else if (tetheredMetadata.transitionFromFret !== undefined) {
-      noteWithEffectApplied = applyTetheredEffect({
-        note,
-        currentEffects: effects,
-        currentFret: fret,
-        tetheredEffect: tetheredMetadata.effect as "h" | "p" | "/" | "\\",
-        tetheredFret: tetheredMetadata.transitionFromFret,
-        stringIdx,
-        bpm,
-        when,
-        tetheredMetadata,
-        audioContext,
-        currentlyPlayingStrings,
-        scheduledNodes,
-        isPalmMuted: effects?.includes("PM"),
-      });
-    }
-  } else if (effects) {
-    // needs to be in separate block because if the tethered note has vibrato,
-    // it gets handled from applyTetheredEffect() above
-    if (effects?.includes("~")) {
-      noteWithEffectApplied = applyVibratoEffect({
-        when: 0,
-        note,
-        bpm,
-        stringIdx,
-        pluckBaseNote,
-        audioContext,
-        currentlyPlayingStrings,
-        scheduledNodes,
-      });
-    }
-  }
-
-  if (effects?.includes("PM")) {
-    noteWithEffectApplied = applyPalmMute({
-      note: noteWithEffectApplied ?? note,
-      inlineEffects: effects,
-      audioContext,
-      isHighString: stringIdx <= 2,
-      isATetheredEffect: tetheredMetadata !== undefined,
-    });
-  }
-
-  // below conditions have to stop the note or reroute the note and need
-  // to be reconnect()'ed to the masterVolumeGainNode
-  if (
-    noteWithEffectApplied &&
-    (tetheredMetadata ||
-      !pluckBaseNote || // don't think this is necessary anymore
-      effects?.includes("PM"))
-  ) {
-    noteWithEffectApplied.connect(masterVolumeGainNode);
-    masterVolumeGainNode.connect(audioContext.destination);
-  }
-}
-
-interface ApplyBendEffect {
-  note?: GainNode;
-  copiedNote?: AudioBufferSourceNode;
-  baseFret: number;
-  fretToBendTo: number;
-  when: number;
-  bpm: number;
-  stringIdx: number;
-  pluckBaseNote?: boolean;
-  isArbitrarySlide?: boolean;
-  audioContext: AudioContext;
-  currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
-  )[];
-  isPalmMuted?: boolean;
-  scheduledNodes?: StoppablePlaybackNode[];
-}
-
-function applyBendOrReleaseEffect({
-  note,
-  copiedNote,
-  baseFret,
-  fretToBendTo,
-  when,
-  bpm,
-  stringIdx,
-  pluckBaseNote = true,
-  isArbitrarySlide = false,
-  audioContext,
-  currentlyPlayingStrings,
-  isPalmMuted,
-  scheduledNodes,
-}: ApplyBendEffect) {
-  let source: AudioBufferSourceNode | undefined = undefined;
-  let sourceGain: GainNode | undefined = undefined;
-
-  if (!pluckBaseNote && note) {
-    // @ts-expect-error TODO: fix type
-    note.source.stop(audioContext.currentTime + when);
-
-    source = audioContext.createBufferSource();
-    sourceGain = audioContext.createGain();
-
-    setTimeout(() => {
-      currentlyPlayingStrings[stringIdx]?.stop();
-      currentlyPlayingStrings[stringIdx] = source;
-    }, when * 1000);
-
-    // @ts-expect-error TODO: fix type
-    source.buffer = note.source.buffer as AudioBuffer;
-    source.start(
-      audioContext.currentTime + when,
-      0.5,
-      isPalmMuted ? 0.45 : undefined,
-    );
-    registerScheduledPlaybackNode(scheduledNodes, source);
-
-    sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
-    sourceGain.gain.linearRampToValueAtTime(
-      1.1,
-      audioContext.currentTime + when + 0.1, // maybe still need to do arbitrary stuff here?
-    );
-    source.connect(sourceGain);
-  }
-
-  const detuneValue = (fretToBendTo - baseFret) * 100;
-
-  if (source && sourceGain) {
-    source.detune.linearRampToValueAtTime(
-      detuneValue,
-      audioContext.currentTime +
-        when +
-        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5),
-    );
-    return sourceGain;
-  } else if (note) {
-    // @ts-expect-error TODO: fix type
-    note.source.detune.linearRampToValueAtTime(
-      detuneValue,
-      audioContext.currentTime +
-        when +
-        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5),
-    );
-    return note;
-  } else if (copiedNote) {
-    copiedNote.detune.linearRampToValueAtTime(
-      detuneValue,
-      audioContext.currentTime +
-        when +
-        (60 / bpm) * (isArbitrarySlide ? 0.25 : 0.5),
-    );
-    // increasing gain to match level set in applyTetheredEffect()
-    const copiedNoteGain = audioContext.createGain();
-    copiedNoteGain.gain.value = 1.35;
-    copiedNote.connect(copiedNoteGain);
-    return copiedNoteGain;
-  }
-}
-
-function mapStringAndFretToOscillatorFrequency(
-  stringIndex: number,
-  fretIndex: number,
-) {
-  // The difference between the maximum and minimum frequency defines the range.
-  const frequencyRange = 200 - 50;
-
-  // Normalize the string index to a range of [0, 1] with 0 being the highest string.
-  const normalizedStringIndex = stringIndex / 5;
-
-  // Normalize the fret index to a range of [0, 1].
-  const normalizedFretIndex = fretIndex / 22;
-
-  // Calculate the weighted reduction for both string and fret indices.
-  // String index will have a more significant influence on the frequency.
-  const weightedStringReduction = normalizedStringIndex * frequencyRange * 0.7; // 70% influence from string index.
-  const weightedFretReduction = normalizedFretIndex * frequencyRange * 0.3; // 30% influence from fret index.
-
-  // Calculate the frequency by subtracting the reductions from the max frequency.
-  const maxFrequency = 200;
-  const frequency =
-    maxFrequency - (weightedStringReduction + weightedFretReduction);
-
-  // Ensure the frequency is within the range [50, 200].
-  return Math.max(frequency, 50);
-}
-
-interface PlayDeadNote {
-  stringIdx: number;
-  fret: number;
-  accented: boolean;
-  palmMuted: boolean;
-  when: number;
-  audioContext: AudioContext;
-  masterVolumeGainNode: GainNode;
-  currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
-  )[];
-  scheduledNodes?: StoppablePlaybackNode[];
-}
-
-function playDeadNote({
-  stringIdx,
-  fret,
-  accented,
-  palmMuted,
-  when,
-  audioContext,
-  masterVolumeGainNode,
-  currentlyPlayingStrings,
-  scheduledNodes,
-}: PlayDeadNote) {
-  setTimeout(() => {
-    currentlyPlayingStrings[stringIdx]?.stop();
-  }, when * 1000);
-
-  const frequency = mapStringAndFretToOscillatorFrequency(
-    stringIdx,
-    fret === 0 ? 1 : fret,
-  );
-
-  // Create an OscillatorNode to simulate the slap sound
-  const oscillator = audioContext.createOscillator();
-  oscillator.type = "sine";
-  oscillator.frequency.value = frequency;
-
-  // Create a GainNode to control the volume
-  const gainNode = audioContext.createGain();
-
-  // had to crank these values down by a ton since they were so prominent
-  let gainTarget = 0.00875;
-
-  if (accented) gainTarget = 0.0125;
-  if (palmMuted) gainTarget = 0.005;
-
-  if (accented && palmMuted) gainTarget = 0.01;
-
-  // Dynamic Gain Compensation
-  switch (stringIdx) {
-    case 5: // Low E
-      gainTarget *= 1.7;
-      break;
-    case 4: // A
-      gainTarget *= 1.6;
-      break;
-    case 3: // D
-      gainTarget *= 1.5;
-      break;
-    case 2: // G
-      gainTarget *= 0.8;
-      break;
-    case 1: // B
-      gainTarget *= 0.7;
-      break;
-    case 0: // High E
-      gainTarget *= 0.6;
-      break;
-  }
-
-  const startTime = audioContext.currentTime + when;
-  const endTime = startTime + 0.1;
-
-  gainNode.gain.setValueAtTime(gainTarget, startTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.0001, endTime);
-
-  // Create a BiquadFilterNode for a low-pass filter
-  const highpassFilter = audioContext.createBiquadFilter();
-  highpassFilter.type = "highpass";
-  highpassFilter.frequency.value = 100; // TODO: still have to play around with this value
-
-  // Create a BiquadFilterNode for boosting the mid frequencies
-  const midBoost = audioContext.createBiquadFilter();
-  midBoost.type = "peaking";
-  midBoost.frequency.value = 1200; // Frequency to boost
-  midBoost.gain.value = 1; // Amount of boost in dB
-  midBoost.Q.value = 1; // Quality factor
-
-  // Connect the oscillator and noise to the gainNode
-  oscillator.connect(highpassFilter);
-  highpassFilter.connect(midBoost);
-  midBoost.connect(gainNode);
-
-  // // Connect the gainNode to the audioContext's destination
-  gainNode.connect(masterVolumeGainNode);
-  masterVolumeGainNode.connect(audioContext.destination);
-
-  oscillator.start(startTime);
-  oscillator.stop(endTime);
-
-  scheduledNodes?.push(oscillator);
-}
-
-interface PlaySlapSound {
-  accented: boolean;
-  stacatto?: boolean;
-  palmMuted: boolean;
-  when: number;
-  audioContext: AudioContext;
-  masterVolumeGainNode: GainNode;
-  currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
-  )[];
-  scheduledNodes?: StoppablePlaybackNode[];
-}
-
-function playSlapSound({
-  accented,
-  stacatto,
-  palmMuted,
-  when,
-  audioContext,
-  masterVolumeGainNode,
-  currentlyPlayingStrings,
-  scheduledNodes,
-}: PlaySlapSound) {
-  setTimeout(() => {
-    for (const currentlyPlayingString of currentlyPlayingStrings) {
-      currentlyPlayingString?.stop();
-    }
-  }, when * 1000);
-
-  // Create an OscillatorNode to simulate the slap sound
-  const oscillator = audioContext.createOscillator();
-  oscillator.type = "sine";
-  oscillator.frequency.value = 100;
-
-  // Create a buffer for noise
-  const noiseBuffer = audioContext.createBuffer(
-    1,
-    audioContext.sampleRate * 0.2,
-    audioContext.sampleRate,
-  );
-  const output = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < output.length; i++) {
-    output[i] = Math.random() * 2 - 1;
-  }
-
-  // Create buffer source for noise
-  const noise = audioContext.createBufferSource();
-  noise.buffer = noiseBuffer;
-
-  // Create a GainNode to control the volume
-  const gainNode = audioContext.createGain();
-
-  let gainTarget = 0.25;
-
-  if (accented) gainTarget = 0.45;
-  if (palmMuted) gainTarget = 0.1;
-
-  if (accented && palmMuted) gainTarget = 0.3;
-
-  const duration = stacatto || palmMuted ? 0.1 : 0.25;
-
-  // was too quiet for my liking, so increasing gain specifically for shorter duration slaps
-  if (stacatto || palmMuted) {
-    gainTarget *= 1.25;
-  }
-
-  const startTime = audioContext.currentTime + when;
-  const endTime = startTime + duration;
-
-  gainNode.gain.setValueAtTime(gainTarget, startTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, endTime);
-
-  // Create a BiquadFilterNode for a low-pass filter
-  const lowPassFilter = audioContext.createBiquadFilter();
-  lowPassFilter.type = "lowpass";
-  lowPassFilter.frequency.value = 2200; // TODO: still have to play around with this value
-
-  // Create a BiquadFilterNode for boosting the mid frequencies
-  const midBoost = audioContext.createBiquadFilter();
-  midBoost.type = "peaking";
-  midBoost.frequency.value = 800; // Frequency to boost
-  midBoost.gain.value = 8; // Amount of boost in dB
-  midBoost.Q.value = 1; // Quality factor
-
-  // Create a GainNode for the noise volume
-  const noiseGain = audioContext.createGain();
-  noiseGain.gain.setValueAtTime(0.2, startTime);
-  noiseGain.gain.exponentialRampToValueAtTime(0.01, endTime);
-
-  // Connect the oscillator and noise to the gainNode
-  oscillator.connect(lowPassFilter);
-  noise.connect(noiseGain);
-  noiseGain.connect(lowPassFilter);
-  lowPassFilter.connect(midBoost);
-  midBoost.connect(gainNode);
-
-  // // Connect the gainNode to the audioContext's destination
-  gainNode.connect(masterVolumeGainNode);
-  masterVolumeGainNode.connect(audioContext.destination);
-
-  oscillator.start(startTime);
-  noise.start(startTime);
-  oscillator.stop(endTime);
-  noise.stop(endTime);
-
-  scheduledNodes?.push(oscillator, noise);
-}
-
-interface ApplyPalmMute {
-  note: GainNode | AudioBufferSourceNode;
-  inlineEffects?: string[];
-  audioContext: AudioContext;
-  isHighString: boolean;
-  isATetheredEffect?: boolean;
-}
-
-function applyPalmMute({
-  note,
-  inlineEffects,
-  audioContext,
-  isHighString,
-  isATetheredEffect,
-}: ApplyPalmMute) {
-  const lowPassFilter = audioContext.createBiquadFilter();
-  const bassBoost = audioContext.createBiquadFilter();
-  const gainNode = audioContext.createGain();
-
-  // Adjust lowPassFilter based on whether it's a high or low string
-  if (isHighString) {
-    lowPassFilter.frequency.value = 500;
-  } else {
-    lowPassFilter.frequency.value = 1000;
-  }
-  lowPassFilter.type = "lowpass";
-  lowPassFilter.Q.value = 5;
-
-  // Adjust bassBoost based on whether it's a high or low string
-  if (isHighString) {
-    bassBoost.gain.value = 10;
-  } else {
-    bassBoost.gain.value = 20;
-  }
-  bassBoost.type = "peaking";
-  bassBoost.frequency.value = 120;
-  bassBoost.Q.value = 10;
-
-  let gainValue = inlineEffects?.includes(">") ? 100 : 70;
-
-  if (isATetheredEffect) {
-    gainValue = inlineEffects?.includes(">") ? 1 : 0.7;
-  }
-
-  gainNode.gain.value = gainValue;
-
-  note.connect(lowPassFilter);
-  lowPassFilter.connect(bassBoost);
-  bassBoost.connect(gainNode);
-
-  return gainNode;
-}
-
-interface ApplyTetheredEffect {
-  note: GainNode;
-  currentFret: number;
-  currentEffects?: string[];
-  tetheredFret: number;
-  tetheredEffect: "h" | "p" | "/" | "\\";
-  stringIdx: number;
-  bpm: number;
-  when: number;
-  tetheredMetadata: TetheredMetadata; // idk maybe want to refactor the props to try and go through this as much as possible?
-  audioContext: AudioContext;
-  currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
-  )[];
-  isPalmMuted?: boolean;
-  scheduledNodes?: StoppablePlaybackNode[];
-}
-
-function applyTetheredEffect({
-  note,
-  currentFret,
-  currentEffects,
-  tetheredFret,
-  tetheredEffect,
-  stringIdx,
-  bpm,
-  when,
-  tetheredMetadata,
-  audioContext,
-  currentlyPlayingStrings,
-  isPalmMuted,
-  scheduledNodes,
-}: ApplyTetheredEffect) {
-  // immediately stop current note because we don't ever want to hear the pluck on
-  // a tethered note
-  // @ts-expect-error TODO: fix type
-  note.source.stop(audioContext.currentTime + when);
-
-  const source = audioContext.createBufferSource();
-  const sourceGain = audioContext.createGain();
-
-  setTimeout(() => {
-    currentlyPlayingStrings[stringIdx]?.stop();
-    currentlyPlayingStrings[stringIdx] = source;
-  }, when * 1000);
-
-  // @ts-expect-error TODO: fix type
-  source.buffer = note.source.buffer as AudioBuffer;
-  // immediately start detune at the value of the tetheredFret
-  source.detune.setValueAtTime(
-    (tetheredFret - currentFret) * 100,
-    audioContext.currentTime + when,
-  );
-  source.start(
-    audioContext.currentTime + when,
-    tetheredEffect === "p" ? 0 : tetheredEffect === "h" ? 0.1 : 0.2,
-    isPalmMuted ? 0.45 : undefined,
-  );
-  registerScheduledPlaybackNode(scheduledNodes, source);
-
-  sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
-  sourceGain.gain.linearRampToValueAtTime(
-    tetheredEffect === "p" ? 1 : tetheredEffect === "h" ? 1.1 : 1.3,
-    audioContext.currentTime + when + 0.05,
-  );
-  source.connect(sourceGain);
-
-  let durationOfTransition = (60 / bpm) * 0.25;
-  if (tetheredEffect === "h" || tetheredEffect === "p") {
-    durationOfTransition = 0; // hammer-ons and pull-offs are instantaneous
-  }
-
-  // immediately ramping from tetheredFret to currentFret with a duration defined by durationOfTransition
-  source.detune.linearRampToValueAtTime(
-    0.001, // smallest viable value
-    audioContext.currentTime + when + durationOfTransition,
-  );
-
-  // if there is a currentEffect, we need to apply it to the note after the last ramp is finished
-  if (currentEffects) {
-    if (currentEffects.includes("~")) {
-      applyVibratoEffect({
-        copiedNote: source,
-        when: when + durationOfTransition,
-        stringIdx,
-        bpm,
-        audioContext,
-        currentlyPlayingStrings,
-        scheduledNodes,
-      });
-    } else if (
-      currentEffects.includes("b") &&
-      tetheredMetadata.transitionToFret
-    ) {
-      applyBendOrReleaseEffect({
-        copiedNote: source,
-        baseFret: currentFret,
-        fretToBendTo: tetheredMetadata.transitionToFret,
-        when: when + durationOfTransition,
-        stringIdx,
-        bpm,
-        audioContext,
-        currentlyPlayingStrings,
-        scheduledNodes,
-      });
-    }
-  }
-
-  return sourceGain;
-}
-
-interface ApplyVibratoEffect {
-  note?: GainNode;
-  copiedNote?: AudioBufferSourceNode;
-  when: number; // offset to start the effect
-  bpm: number;
-  stringIdx: number;
-  pluckBaseNote?: boolean;
-  audioContext: AudioContext;
-  currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
-  )[];
-  scheduledNodes?: StoppablePlaybackNode[];
-}
-
-function applyVibratoEffect({
-  note,
-  copiedNote,
-  when,
-  bpm,
-  stringIdx,
-  pluckBaseNote = true,
-  audioContext,
-  currentlyPlayingStrings,
-  scheduledNodes,
-}: ApplyVibratoEffect) {
-  let source: AudioBufferSourceNode | undefined = undefined;
-  let sourceGain: GainNode | undefined = undefined;
-
-  if (!pluckBaseNote && note) {
-    // @ts-expect-error TODO: fix type
-    note.source.stop(audioContext.currentTime + when);
-    source = audioContext.createBufferSource();
-    sourceGain = audioContext.createGain();
-
-    setTimeout(() => {
-      currentlyPlayingStrings[stringIdx]?.stop();
-      currentlyPlayingStrings[stringIdx] = source;
-    }, when * 1000);
-
-    // @ts-expect-error TODO: fix type
-    source.buffer = note.source.buffer as AudioBuffer;
-    source.start(audioContext.currentTime + when, 0.5);
-    registerScheduledPlaybackNode(scheduledNodes, source);
-
-    sourceGain.gain.setValueAtTime(0.01, audioContext.currentTime + when);
-    sourceGain.gain.exponentialRampToValueAtTime(
-      1.3,
-      audioContext.currentTime + when + 0.1,
-    );
-    source.connect(sourceGain);
-  }
-
-  // Create a modulation oscillator
-  const vibratoOscillator = audioContext.createOscillator();
-  vibratoOscillator.type = "sine";
-  vibratoOscillator.frequency.value = calculateRelativeVibratoFrequency(bpm); // Speed of vibrato
-
-  // Create a gain node to control the depth of the vibrato
-  const vibratoDepth = audioContext.createGain();
-  vibratoDepth.gain.value = 25; // Depth of vibrato in cents
-
-  // Connect the modulation oscillator to the gain
-  vibratoOscillator.connect(vibratoDepth);
-
-  const oscillatorDelay = (60 / bpm) * 0.15;
-  vibratoOscillator.start(audioContext.currentTime + when + oscillatorDelay);
-  registerScheduledPlaybackNode(scheduledNodes, vibratoOscillator);
-
-  if (source && sourceGain) {
-    vibratoDepth.connect(source.detune);
-    return sourceGain;
-  } else if (note) {
-    // @ts-expect-error TODO: fix type
-    vibratoDepth.connect(note.source.detune);
-    return note;
-  } else if (copiedNote) {
-    vibratoDepth.connect(copiedNote.detune);
-    // increasing gain to match level set in applyTetheredEffect
-    const copiedNoteGain = audioContext.createGain();
-    copiedNoteGain.gain.value = 1.35;
-    copiedNote.connect(copiedNoteGain);
-    return copiedNoteGain;
-  }
+  if (activePlaybackStrings) stopGuitarStrings(activePlaybackStrings, stopTime);
 }
 
 interface PlayNote {
   tuning: number[];
   stringIdx: number;
   fret: number;
+  fretted: boolean;
   bpm: number;
-  when: number;
+  startTime: number;
   effects: string[];
   tetheredMetadata?: TetheredMetadata;
   pluckBaseNote: boolean;
@@ -770,8 +67,9 @@ function playNote({
   tuning,
   stringIdx,
   fret,
+  fretted,
   bpm,
-  when,
+  startTime,
   effects,
   tetheredMetadata,
   pluckBaseNote,
@@ -782,89 +80,24 @@ function playNote({
   acousticSteelOverrideForPreview,
   scheduledNodes,
 }: PlayNote) {
-  let duration = 3;
-  let gain = 1;
-
-  if (effects.includes(">")) {
-    gain = 1.5;
-  }
-
-  // palm mute require us to basically hijack the note by almost muting it
-  // and then creating a copy of it with a delay node, and adjusting the volume/effect from there
-  // ^ TODO: wouldn't be too surprised if we can try to refactor by using the "source" prop like in
-  // tethered effects
-  if (effects.includes("PM")) {
-    gain = 0.01;
-    duration = 0.45;
-    // I think ideally sustain should be changed, not duration
-    // but it seemed like changing sustain value didn't have intended effect..
-  }
-
-  if (effects.includes(".")) {
-    // technically stacatto doesn't mean that the note should be played any louder
-    // than normal, so omitting any gain definition here
-    duration = 0.25;
-  }
-
-  // not sure exactly why this is needed right now, but bends/arbitrary slides were
-  // way too loud when being plucked
-  if (
-    pluckBaseNote &&
-    (effects.includes("b") || tetheredMetadata?.effect === "arbitrarySlide")
-  ) {
-    gain *= 0.6;
-  }
-
-  const instrumentToUse = acousticSteelOverrideForPreview || currentInstrument;
-
-  const note = instrumentToUse?.play(
-    `${tuning[stringIdx]! + fret}`,
-    audioContext.currentTime + when,
-    {
-      duration,
-      gain,
-      // slightly slower (smoother) attack for strums
-      //    -can maybe also use this for tetherd effects too, didn't realize it actually works!
-      attack: effects.includes("v") || effects.includes("^") ? 0.0125 : 0.01,
-      // TODO: might be fun/more accurate to change sustain value instead of duration for some effects
-    },
-  );
-
-  registerScheduledPlaybackNode(
+  const instrument = acousticSteelOverrideForPreview ?? currentInstrument;
+  if (!instrument) return;
+  playGuitarNote({
+    instrument,
+    midi: tuning[stringIdx]! + fret,
+    fret,
+    fretted,
+    stringIdx,
+    bpm,
+    startTime,
+    effects,
+    transition: tetheredMetadata,
+    pluckBaseNote,
+    audioContext,
+    destination: masterVolumeGainNode,
+    strings: currentlyPlayingStrings,
     scheduledNodes,
-    note as StoppablePlaybackNode | null | undefined,
-  );
-
-  if (note && (tetheredMetadata || effects.length > 0)) {
-    playNoteWithEffects({
-      note: note as unknown as GainNode,
-      stringIdx,
-      fret,
-      bpm,
-      when,
-      effects,
-      tetheredMetadata,
-      pluckBaseNote,
-      audioContext,
-      masterVolumeGainNode,
-      currentlyPlayingStrings,
-      scheduledNodes,
-    });
-  }
-
-  // I believe we needed this maybe as a timing workaround where hp/\ effects were
-  // getting .stop()'d just as they were being played, so they got handled in applyTetheredEffect()?
-  if (
-    pluckBaseNote &&
-    (!tetheredMetadata ||
-      tetheredMetadata.effect === "b" ||
-      tetheredMetadata.effect === "r")
-  ) {
-    setTimeout(() => {
-      currentlyPlayingStrings[stringIdx]?.stop();
-      currentlyPlayingStrings[stringIdx] = note;
-    }, when * 1000);
-  }
+  });
 }
 
 function columnHasNoNotes(column: string[]) {
@@ -875,19 +108,11 @@ function columnHasNoNotes(column: string[]) {
   return true;
 }
 
-function calculateRelativeVibratoFrequency(bpm: number) {
-  const distance = Math.abs((bpm > 400 ? 400 : bpm) - 400);
-  const scaleFactor = Math.min(distance / 400, 1);
-
-  // result will be between 3 and 5
-  return 3 + scaleFactor * 2;
-}
-
 function countSoundedStrumNotes(currColumn: string[]): number {
   let count = 0;
   for (let index = 1; index < 7; index++) {
     const note = currColumn[index];
-    if (!note || note === "" || note === "x") continue;
+    if (!note) continue;
     // Notes that are only tethered effect letters are skipped in the play loop
     if (
       note === "h" ||
@@ -945,13 +170,6 @@ function resolveChordDelayMultiplier({
   return totalSpreadSeconds / (soundedNotes - 1);
 }
 
-interface TetheredMetadata {
-  effect: "h" | "p" | "/" | "\\" | "b" | "r" | "arbitrarySlide";
-  pluckBaseNote: boolean; // used conditionally for b/r when they are not preceded by a tethered effect
-  transitionFromFret?: number; // used for hp/\ effects and pre-note arbitrary slides
-  transitionToFret?: number; // used for br effects and post-note arbitrary slides
-}
-
 interface PlayNoteColumn {
   tuning: number[];
   capo: number;
@@ -998,7 +216,6 @@ function playNoteColumn({
     const scheduledEndTime = scheduledStartTime + chordDuration;
     const secondsUntilScheduledEnd =
       scheduledEndTime - audioContext.currentTime;
-    const baseWhen = Math.max(0, scheduledStartTime - audioContext.currentTime);
 
     const resolveDelayMs = Math.max(0, secondsUntilScheduledEnd * 1000);
 
@@ -1016,22 +233,24 @@ function playNoteColumn({
       currColumn[7] === "r"
     ) {
       if (currColumn[7]?.includes("s")) {
-        playSlapSound({
-          accented: currColumn[7].includes(">"),
-          stacatto: currColumn[7].includes("."),
-          palmMuted: currColumn[0] !== "",
-          when: baseWhen,
-          audioContext,
-          masterVolumeGainNode,
-          currentlyPlayingStrings,
-          scheduledNodes,
-        });
+        const instrument = acousticSteelOverrideForPreview ?? currentInstrument;
+        if (instrument)
+          playGuitarPercussion({
+            instrument,
+            kind: "slap",
+            midi: tuning[5]! + capo,
+            stringIdx: 5,
+            accented: currColumn[7].includes(">"),
+            staccato: currColumn[7].includes("."),
+            palmMuted: Boolean(currColumn[0]),
+            startTime: scheduledStartTime,
+            audioContext,
+            destination: masterVolumeGainNode,
+            strings: currentlyPlayingStrings,
+            scheduledNodes,
+          });
       } else if (currColumn[7] === "r") {
-        setTimeout(() => {
-          for (const currentlyPlayingString of currentlyPlayingStrings) {
-            currentlyPlayingString?.stop();
-          }
-        }, baseWhen * 1000);
+        stopGuitarStrings(currentlyPlayingStrings, scheduledStartTime);
       }
       return;
     }
@@ -1039,7 +258,6 @@ function playNoteColumn({
     let notesPlayedSoFar = 0;
     let chordDelayMultiplier = 0;
 
-    // TODO: allow just > and or . to be present + provide handling for these cases
     if (currColumn[7]?.includes("v") || currColumn[7]?.includes("^")) {
       chordDelayMultiplier = resolveChordDelayMultiplier({
         currColumn,
@@ -1059,19 +277,28 @@ function playNoteColumn({
       const stringIdx = currColumn[7]?.includes("v") ? 7 - index : index;
       const adjustedStringIdx = stringIdx - 1; // adjusting for 0-indexing
 
-      if (currColumn[stringIdx] === "x") {
-        playDeadNote({
-          stringIdx: adjustedStringIdx,
-          fret: capo === 0 ? 1 : capo,
-          accented: currColumn[7]?.includes(">") || false,
-          palmMuted: currColumn[0] !== "",
-          when: baseWhen + chordDelayMultiplier * notesPlayedSoFar,
-          audioContext,
-          masterVolumeGainNode,
-          currentlyPlayingStrings,
-          scheduledNodes,
-        });
-
+      if (currColumn[stringIdx]?.startsWith("x")) {
+        const instrument = acousticSteelOverrideForPreview ?? currentInstrument;
+        if (instrument)
+          playGuitarPercussion({
+            instrument,
+            kind: "dead",
+            midi: tuning[adjustedStringIdx]! + capo,
+            stringIdx: adjustedStringIdx,
+            accented: Boolean(
+              currColumn[7]?.includes(">") ||
+              currColumn[stringIdx]?.includes(">"),
+            ),
+            staccato: currColumn[stringIdx]?.includes("."),
+            palmMuted: Boolean(currColumn[0]),
+            startTime:
+              scheduledStartTime + chordDelayMultiplier * notesPlayedSoFar,
+            audioContext,
+            destination: masterVolumeGainNode,
+            strings: currentlyPlayingStrings,
+            scheduledNodes,
+          });
+        notesPlayedSoFar++;
         continue;
       }
 
@@ -1083,13 +310,11 @@ function playNoteColumn({
 
       const prevNoteHadTetherEffect =
         prevNote && tetherEffects.test(prevNote.at(-1) || "");
-      const currNoteHasTetherEffect =
-        currNote && tetherEffects.test(currNote.at(-1) || "");
 
       const currNoteEffects = currNote ? currNote.match(allInlineEffects) : [];
 
       if (
-        currNote === "" ||
+        !currNote ||
         // skipping effects because next note is the one that actually gets played
         // in a "3 {effect} 5" scenario
         currNote === "h" ||
@@ -1106,7 +331,7 @@ function playNoteColumn({
       )
         continue;
 
-      let fret = 0;
+      let fret = extractNumber(currNote) + capo;
 
       let tetheredMetadata: TetheredMetadata | undefined = undefined;
 
@@ -1117,108 +342,36 @@ function playNoteColumn({
         "h" | "p" | "/" | "\\" | "b" | "r" | "arbitrarySlide" | undefined =
         undefined;
 
-      // handling bends and releases (assigning transitionToFret)
-      if (currNote && (currNote.includes("b") || currNote.includes("r"))) {
-        // baseFret = the first note of the bend/release pair, targetNote being the second
-        let baseFret = 0;
+      const lastBend = [prevNote, secondPrevNote, thirdPrevNote].find((note) =>
+        note?.includes("b"),
+      );
 
-        // need to find our baseFret of the release, which is the targetFret of the bend.
-        if (currNote === "r") {
-          baseFret = extractNumber(
-            prevNote?.includes("b") ? prevNote : secondPrevNote!,
-          );
-        } else {
-          baseFret = extractNumber(currNote);
-          // ^ might be scuffed in a "3b   5r" scenario, but deal with the implications of that when you get to them
-        }
-
-        if (currNote.includes("b")) {
-          if (nextNote && containsNumber.test(nextNote)) {
-            transitionToFret = extractNumber(nextNote) + capo; // bend to specific fret
-          } else {
-            if (baseFret >= 20) {
-              transitionToFret = 22;
-            } else {
-              transitionToFret = baseFret + capo + 2; // non-specified generic: one semitone up
-            }
-          }
-        } else {
-          if (prevNote?.includes("b")) {
-            transitionToFret = extractNumber(prevNote) + capo; // release back to original note
-          } else if (secondPrevNote?.includes("b")) {
-            transitionToFret = extractNumber(secondPrevNote) + capo; // release back to original note
-          } else {
-            if (baseFret <= 2) {
-              transitionToFret = 0;
-            } else {
-              transitionToFret = baseFret + capo - 2; // non-specified generic: one semitone down
-            }
-          }
-        }
-
-        // used to determine whether or not to pluck the base note of the bend,
-        // since in a continuous 3b 4r 3b 4r... it would be implied that it is a continuous
-        // bend -> release -> bend. but if the baseFret is different, then we need to pluck
-        // to maintain realism.
-        let baseNoteOfLastBend: number | undefined;
-
-        if (currNote.includes("b")) {
-          if (secondPrevNote?.includes("b")) {
-            baseNoteOfLastBend = extractNumber(secondPrevNote);
-          } else if (thirdPrevNote?.includes("b")) {
-            baseNoteOfLastBend = extractNumber(thirdPrevNote);
-          }
-        }
-
-        effect = currNote.includes("b") ? "b" : "r";
+      if (currNote?.includes("b")) {
+        transitionToFret =
+          nextNote && containsNumber.test(nextNote)
+            ? extractNumber(nextNote) + capo
+            : Math.min(22, extractNumber(currNote) + 2) + capo;
+        effect = "b";
         pluckBaseNote =
-          currNote.includes("b") &&
-          (!prevNote?.includes("r") ||
-            extractNumber(currNote) !== baseNoteOfLastBend);
-      }
-
-      // handling bends and releases (assigning fret)
-      if (currNote && (currNote.includes("b") || currNote.includes("r"))) {
-        // baseFret = the first note of the bend/release pair, targetNote being the second
-        let baseFret = 0;
-
-        // need to find our baseFret of the release, which is the targetFret of the bend.
-        if (currNote === "r") {
-          if (prevNote?.includes("b") && containsNumber.test(currNote)) {
-            baseFret = extractNumber(currNote);
-          } else if (secondPrevNote?.includes("b")) {
-            if (prevNote && containsNumber.test(prevNote)) {
-              baseFret = extractNumber(prevNote);
-            } else {
-              let tempBaseFret = extractNumber(currNote);
-
-              if (tempBaseFret >= 20) {
-                tempBaseFret = 22;
-              } else {
-                tempBaseFret += 2;
-              }
-
-              baseFret = tempBaseFret;
-            }
-          } else if (prevNote) {
-            let tempBaseFret = extractNumber(prevNote);
-
-            if (tempBaseFret >= 20) {
-              tempBaseFret = 22;
-            } else {
-              tempBaseFret += 2;
-            }
-
-            baseFret = tempBaseFret;
-          }
-        } else {
-          baseFret = extractNumber(currNote);
-          // ^ might be scuffed in a "3b   5r" scenario, but deal with the implications of that when you get to them
+          !prevNote?.includes("r") ||
+          !lastBend ||
+          extractNumber(currNote) !== extractNumber(lastBend);
+      } else if (currNote?.includes("r")) {
+        effect = "r";
+        pluckBaseNote = false;
+        if (currNote === "r" && lastBend) {
+          // In 3b 5 r, the numeric column is the held bend target. In 3b r,
+          // infer the whole-step target used when scheduling the bend.
+          fret =
+            secondPrevNote?.includes("b") &&
+            prevNote &&
+            containsNumber.test(prevNote)
+              ? extractNumber(prevNote) + capo
+              : Math.min(22, extractNumber(lastBend) + 2) + capo;
         }
-
-        fret = baseFret + capo;
-      } else {
-        fret = extractNumber(currNote!) + capo;
+        transitionToFret = lastBend
+          ? extractNumber(lastBend) + capo
+          : Math.max(0, extractNumber(currNote) - 2) + capo;
       }
 
       if (
@@ -1233,7 +386,7 @@ function playNoteColumn({
       }
 
       // pre-note arbitrary slide up/down
-      else if (currNote?.[0] === "/" || currNote?.[0] === "\\") {
+      else if (currNote.startsWith("/") || currNote.startsWith("\\")) {
         if (currNote.startsWith("/")) {
           let baseFret = extractNumber(currNote);
 
@@ -1256,12 +409,12 @@ function playNoteColumn({
           fret = baseFret + capo;
         }
 
-        transitionToFret = extractNumber(currNote);
+        transitionToFret = extractNumber(currNote) + capo;
         effect = "arbitrarySlide";
       }
 
       // post-note arbitrary slide up
-      else if (currNote?.at(-1) === "/" && nextNote === "") {
+      else if (currNote?.at(-1) === "/" && !nextNote) {
         let baseFret = extractNumber(currNote);
 
         if (baseFret >= 20) {
@@ -1274,7 +427,7 @@ function playNoteColumn({
         effect = "arbitrarySlide";
       }
       // post-note arbitrary slide down
-      else if (currNote?.at(-1) === "\\" && nextNote === "") {
+      else if (currNote?.at(-1) === "\\" && !nextNote) {
         let baseFret = extractNumber(currNote);
 
         if (baseFret <= 2) {
@@ -1302,9 +455,9 @@ function playNoteColumn({
         };
       }
 
-      const effects = [...(currColumn[0] !== "" ? ["PM"] : [])];
+      const effects = [...(currColumn[0] ? ["PM"] : [])];
 
-      if (currNoteEffects && !currNoteHasTetherEffect) {
+      if (currNoteEffects) {
         currNoteEffects.forEach((effect) => {
           effects.push(effect);
         });
@@ -1318,21 +471,26 @@ function playNoteColumn({
         });
       }
 
-      // this feels hacky, but it needs to be in separate state from tetheredMetadata for standalone
-      // fret + ~ scenario.
+      // Vibrato can continue a held bend without another pick attack.
       if (!currNote?.includes("b") && !currNote?.includes("r")) {
-        pluckBaseNote =
-          currNote?.includes("~") && prevNote?.includes("b") ? false : true;
+        pluckBaseNote = !(
+          currNote?.includes("~") &&
+          (prevNote?.includes("b") ||
+            (secondPrevNote?.includes("b") &&
+              prevNote &&
+              onlyHasFretNumber.test(prevNote)))
+        );
       }
 
       playNote({
         tuning,
         stringIdx: adjustedStringIdx,
         fret,
+        fretted:
+          (effect === "arbitrarySlide" ? (transitionToFret ?? fret) : fret) >
+          capo,
         bpm,
-        when: Math.max(0, baseWhen + chordDelayMultiplier * notesPlayedSoFar),
-        // ^ makes sure that the proper delay is applied to each note in a chord
-        // regardless of the number/spacing of notes in the chord
+        startTime: scheduledStartTime + chordDelayMultiplier * notesPlayedSoFar,
         effects,
         tetheredMetadata,
         pluckBaseNote,

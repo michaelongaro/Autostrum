@@ -1427,6 +1427,12 @@ const useTabStoreBase = create<TabState>()(
           undefined,
         ];
 
+        const previewScheduledNodes: { stop(when?: number): void }[] = [];
+        set({
+          activePlaybackStrings: currentlyPlayingStrings,
+          scheduledPlaybackNodes: previewScheduledNodes,
+        });
+
         const compiledChords =
           type === "chord"
             ? [
@@ -1479,6 +1485,7 @@ const useTabStoreBase = create<TabState>()(
             masterVolumeGainNode,
             currentInstrument,
             currentlyPlayingStrings,
+            scheduledNodes: previewScheduledNodes,
             acousticSteelOverrideForPreview: instruments.acoustic_guitar_steel,
             forTuningPreview: forTuningPreview === true,
           });
