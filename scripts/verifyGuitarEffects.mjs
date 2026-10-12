@@ -28,9 +28,12 @@ function moduleUrl(filename) {
 
 if (process.argv.includes("--browser")) {
   const url = moduleUrl("scripts/guitarEffectsAudioChecks.mjs");
+  const entry = process.argv.includes("--level-probe")
+    ? "measureLegatoLevels"
+    : "runAudioChecks";
   fs.writeFileSync(
     ".git/guitar-effects-audio-checks.js",
-    `import(${JSON.stringify(url)}).then(module => module.runAudioChecks())`,
+    `import(${JSON.stringify(url)}).then(module => module.${entry}())`,
   );
   console.log(
     "Browser expression ready in .git/guitar-effects-audio-checks.js",
@@ -105,6 +108,8 @@ function setup({
   duration = 4,
   name = "acoustic_guitar_steel",
   currentTime = 0,
+  decay = true,
+  decaySeconds = duration,
 } = {}) {
   const nodes = [];
   const context = {
@@ -113,8 +118,11 @@ function setup({
     createBuffer(channels, frames, sampleRate) {
       const samples = new Float32Array(frames);
       for (let i = 0; i < frames; i++)
-        samples[i] = Math.sin(i * 0.08) * Math.exp(-i / frames);
+        samples[i] = decay
+          ? Math.sin(i * 0.08) * Math.exp(-i / sampleRate / decaySeconds)
+          : 0.25;
       return {
+        numberOfChannels: channels,
         duration: frames / sampleRate,
         sampleRate,
         getChannelData: () => samples,
@@ -293,10 +301,57 @@ test("Staccato duration follows note spacing, including legato notes", () => {
   }
 });
 test("Accents cannot compound into increasing gain across a legato chain", () => {
-  const env = setup();
+  const env = setup({ decay: false });
   phrase(env, ["5>h", "7>p", "5>h", "7>"]);
   for (const node of env.nodes.filter((node) => node.kind === "gain"))
     assert.ok(node.gain.events.every((event) => event.value <= 1.1));
+});
+test("Legato levels do not progressively attenuate across repeated transitions", () => {
+  for (const [effect, expected] of [
+    ["h", 0.765],
+    ["p", 0.855],
+    ["/", 0.828],
+    ["\\", 0.828],
+  ]) {
+    const env = setup({ decay: false });
+    phrase(env, [`5${effect}`, `7${effect}`, `5${effect}`, "7"]);
+    const gain = env.nodes.find((node) => node.kind === "gain");
+    const finalLevel = gain.gain.events
+      .filter((event) => event.value > 0.001)
+      .at(-1).value;
+    assert.ok(
+      Math.abs(finalLevel - expected) < 0.000001,
+      `${effect}: final level ${finalLevel}, expected ${expected}`,
+    );
+  }
+});
+test("A prior accent does not change the level of an unaccented destination", () => {
+  const env = setup({ decay: false });
+  phrase(env, ["5>h", "7p", "5"]);
+  const gain = env.nodes.find((node) => node.kind === "gain");
+  const finalLevel = gain.gain.events
+    .filter((event) => event.value > 0.001)
+    .at(-1).value;
+  assert.ok(Math.abs(finalLevel - 0.855) < 0.000001);
+});
+test("Recorded decay is compensated without restarting an audible sample", () => {
+  const env = setup({ decaySeconds: 1 });
+  phrase(env, ["5h", "7"]);
+  assert.equal(sampleNodes(env).length, 1);
+  const gain = env.nodes.find((node) => node.kind === "gain");
+  const finalLevel = gain.gain.events
+    .filter((event) => event.value > 0.001)
+    .at(-1).value;
+  assert.ok(finalLevel > 0.9 && finalLevel <= 3.294);
+});
+test("A faded sample refreshes after the pick attack with bounded gain", () => {
+  const env = setup({ decaySeconds: 0.15 });
+  phrase(env, ["5h", "7"], { bpm: 60 });
+  assert.equal(sampleNodes(env).length, 2);
+  assert.ok(sampleNodes(env)[1].sampleOffset > 0);
+  assert.ok(Math.abs(sampleNodes(env)[0].stoppedAt - 1.212) < 0.000001);
+  for (const gain of env.nodes.filter((node) => node.kind === "gain"))
+    assert.ok(gain.gain.events.every((event) => event.value <= 3.294));
 });
 test("Dead notes and slaps use a sample plus noise without a tone oscillator", () => {
   const env = setup();
