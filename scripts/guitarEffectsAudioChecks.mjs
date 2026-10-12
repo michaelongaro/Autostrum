@@ -29,18 +29,22 @@ function assert(condition, message) {
 }
 
 function rms(buffer, start, end) {
-  const samples = buffer.getChannelData(0);
   const from = Math.floor(start * buffer.sampleRate);
-  const to = Math.min(samples.length, Math.floor(end * buffer.sampleRate));
+  const to = Math.min(buffer.length, Math.floor(end * buffer.sampleRate));
   let energy = 0;
-  for (let i = from; i < to; i++) energy += samples[i] ** 2;
-  return Math.sqrt(energy / Math.max(1, to - from));
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    const samples = buffer.getChannelData(channel);
+    for (let i = from; i < to; i++) energy += samples[i] ** 2;
+  }
+  return Math.sqrt(energy / Math.max(1, (to - from) * buffer.numberOfChannels));
 }
 
 function peak(buffer) {
   let maximum = 0;
-  for (const sample of buffer.getChannelData(0))
-    maximum = Math.max(maximum, Math.abs(sample));
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    for (const sample of buffer.getChannelData(channel))
+      maximum = Math.max(maximum, Math.abs(sample));
+  }
   return maximum;
 }
 
@@ -115,15 +119,21 @@ async function render(
   { bpm = 120, pauseAt, duration = 4.5 } = {},
 ) {
   const context = new OfflineAudioContext(
-    1,
+    2,
     Math.ceil(48000 * duration),
     48000,
   );
   const sources = [];
+  const sourceStarts = [];
   const createBufferSource = context.createBufferSource.bind(context);
   context.createBufferSource = () => {
     const source = createBufferSource();
     sources.push(source);
+    const start = source.start.bind(source);
+    source.start = (...args) => {
+      sourceStarts.push({ source, time: args[0], offset: args[1] ?? 0 });
+      start(...args);
+    };
     return source;
   };
   const strings = Array(6).fill(undefined);
@@ -154,16 +164,24 @@ async function render(
     Object.values(instrument.buffers).includes(source.buffer),
   );
   const buffer = await context.startRendering();
-  assert(
-    buffer.getChannelData(0).every(Number.isFinite),
-    "Rendered non-finite samples",
-  );
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    assert(
+      buffer.getChannelData(channel).every(Number.isFinite),
+      "Rendered non-finite samples",
+    );
+  }
   assert(peak(buffer) < 1, `Clipped audio: peak ${peak(buffer)}`);
   assert(
     scheduledNodes.length === 0,
     "Ended voices retained in cancellation registry",
   );
-  return { buffer, guitarSourceCount: guitarSources.length };
+  return {
+    buffer,
+    guitarSourceCount: guitarSources.length,
+    guitarStarts: sourceStarts.filter((event) =>
+      guitarSources.includes(event.source),
+    ),
+  };
 }
 
 function createAuditionPanel(context, renders) {
@@ -232,6 +250,66 @@ function createAuditionPanel(context, renders) {
   };
   panel.append(close);
   document.body.append(panel);
+}
+
+async function measureInstrumentLegatoLevels(instrument) {
+  const results = [];
+  const targets = {
+    5: (await render(instrument, ["5"])).buffer,
+    7: (await render(instrument, ["7"])).buffer,
+  };
+  for (const bpm of [60, 120, 240]) {
+    for (const [effect, notes, target] of [
+      ["hammer", ["5h", "7"], 7],
+      ["pull", ["7p", "5"], 5],
+      ["slide-up", ["5/", "7"], 7],
+      ["slide-down", ["7\\", "5"], 5],
+      ["hammer-pull-chain", ["5h", "7p", "5h", "7p", "5"], 5],
+      ["delayed-hammer", ["5", "h", "7"], 7],
+      ["delayed-pull", ["7", "p", "5"], 5],
+      ["delayed-slide", ["5", "/", "7"], 7],
+    ]) {
+      const { buffer, guitarSourceCount, guitarStarts } = await render(
+        instrument,
+        notes,
+        {
+          bpm,
+          duration: 0.2 + (notes.length * 60) / bpm + 3.2,
+        },
+      );
+      const targetTime = 0.2 + ((notes.length - 1) * 60) / bpm;
+      const targetRms = rms(buffer, targetTime + 0.2, targetTime + 0.3);
+      const freshRms = rms(targets[target], 0.4, 0.5);
+      results.push({
+        instrument: instrument.name,
+        bpm,
+        effect,
+        guitarSourceCount,
+        targetLevelRatio: +(targetRms / freshRms).toFixed(3),
+      });
+      assert(
+        guitarStarts.slice(1).every((event) => event.offset > 0),
+        `${instrument.name}: a refreshed legato sample replayed the pick attack`,
+      );
+    }
+  }
+  return results;
+}
+
+export async function measureLegatoLevels() {
+  const context = new AudioContext();
+  const results = [];
+  for (const name of [
+    "acoustic_guitar_nylon",
+    "acoustic_guitar_steel",
+    "electric_guitar_clean",
+    "electric_guitar_jazz",
+  ]) {
+    const instrument = await loadInstrument(context, name, "ogg");
+    results.push(...(await measureInstrumentLegatoLevels(instrument)));
+  }
+  await context.close();
+  return results;
 }
 
 export async function runAudioChecks() {
@@ -305,17 +383,24 @@ export async function runAudioChecks() {
         `${name}-${format}: scheduled audio survives pause`,
       );
       assert(
-        hammerPull.guitarSourceCount === 1,
-        `${name}-${format}: legato restarted the sample`,
+        hammerPull.guitarStarts.slice(1).every((event) => event.offset > 0),
+        `${name}-${format}: legato replayed the pick attack`,
       );
       assert(
-        slide.guitarSourceCount === 1,
-        `${name}-${format}: slide restarted the sample`,
+        slide.guitarStarts.slice(1).every((event) => event.offset > 0),
+        `${name}-${format}: slide replayed the pick attack`,
       );
       assert(
         bendRelease.guitarSourceCount === 1,
         `${name}-${format}: release restarted the sample`,
       );
+      const legatoLevels = await measureInstrumentLegatoLevels(instrument);
+      for (const level of legatoLevels) {
+        assert(
+          level.targetLevelRatio >= 0.75 && level.targetLevelRatio <= 1.15,
+          `${name}-${format}: ${level.effect} at ${level.bpm} BPM has target level ratio ${level.targetLevelRatio}`,
+        );
+      }
       assert(
         pitchErrors.every((error) => Math.abs(error) < 18),
         `${name}-${format}: incorrect pitch ${pitchErrors}`,
@@ -331,6 +416,12 @@ export async function runAudioChecks() {
         maxPitchErrorCents: +Math.max(...pitchErrors.map(Math.abs)).toFixed(2),
         palmMuteTailRms: +mutedTail.toFixed(7),
         vibratoRangeCents: +vibratoRange.toFixed(2),
+        minLegatoLevelRatio: Math.min(
+          ...legatoLevels.map((level) => level.targetLevelRatio),
+        ),
+        maxLegatoLevelRatio: Math.max(
+          ...legatoLevels.map((level) => level.targetLevelRatio),
+        ),
         maxPeak: +Math.max(
           ...[
             dry,
@@ -344,7 +435,7 @@ export async function runAudioChecks() {
             percussion,
           ].map((result) => peak(result.buffer)),
         ).toFixed(3),
-        checks: 11,
+        checks: 11 + legatoLevels.length,
       });
       if (name === "acoustic_guitar_steel" && format === "ogg") {
         Object.assign(audition, {
@@ -362,5 +453,8 @@ export async function runAudioChecks() {
   }
   createAuditionPanel(decodeContext, audition);
   window.__guitarEffectsAudioChecks = { results, audition };
-  return { passed: results.length * 11, results };
+  return {
+    passed: results.reduce((total, result) => total + result.checks, 0),
+    results,
+  };
 }

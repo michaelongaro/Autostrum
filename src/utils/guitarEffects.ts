@@ -22,7 +22,7 @@ type Voice = {
   sampleOffset: number;
   startTime: number;
   releaseAt: number;
-  level: number;
+  sampleGain: number;
   ended: boolean;
   gainPoints: Point[];
   pitchPoints: Point[];
@@ -33,9 +33,17 @@ type Voice = {
 
 const SILENCE = 0.0001;
 const RELEASE_SECONDS = 0.012;
+const MAX_LEGATO_SAMPLE_GAIN = 3;
 const voices = new WeakMap<AudioBufferSourceNode, Voice>();
 const stringVoices = new WeakMap<PlaybackStrings, Set<Voice>>();
 const attackOffsets = new WeakMap<AudioBuffer, number>();
+const sampleEnergy = new WeakMap<
+  AudioBuffer,
+  {
+    blockFrames: number;
+    prefix: Float64Array;
+  }
+>();
 const noiseBuffers = new WeakMap<BaseAudioContext, AudioBuffer>();
 
 function clamp(value: number, min: number, max: number) {
@@ -172,6 +180,73 @@ function getAttackOffset(buffer: AudioBuffer) {
   return offset;
 }
 
+function sampleRms(buffer: AudioBuffer, start: number, end: number) {
+  let energy = sampleEnergy.get(buffer);
+  if (!energy) {
+    const blockFrames = Math.max(1, Math.round(buffer.sampleRate * 0.01));
+    const frames = buffer.getChannelData(0).length;
+    const prefix = new Float64Array(Math.ceil(frames / blockFrames) + 1);
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const samples = buffer.getChannelData(channel);
+      for (let frame = 0; frame < frames; frame++) {
+        prefix[Math.floor(frame / blockFrames) + 1]! +=
+          samples[frame]! ** 2 / buffer.numberOfChannels;
+      }
+    }
+    for (let block = 1; block < prefix.length; block++) {
+      prefix[block]! += prefix[block - 1]!;
+    }
+    energy = { blockFrames, prefix };
+    sampleEnergy.set(buffer, energy);
+  }
+  const frames = buffer.getChannelData(0).length;
+  const from = clamp(start * buffer.sampleRate, 0, frames);
+  const to = clamp(end * buffer.sampleRate, from, frames);
+  const integratedEnergy = (frame: number) => {
+    const block = Math.min(
+      Math.floor(frame / energy.blockFrames),
+      energy.prefix.length - 2,
+    );
+    const fraction =
+      (frame - block * energy.blockFrames) /
+      Math.min(energy.blockFrames, frames - block * energy.blockFrames);
+    return (
+      energy.prefix[block]! +
+      fraction * (energy.prefix[block + 1]! - energy.prefix[block]!)
+    );
+  };
+  return Math.sqrt(
+    Math.max(0, integratedEnergy(to) - integratedEnergy(from)) /
+      Math.max(1, to - from),
+  );
+}
+
+function legatoSampleGain(
+  voice: Voice,
+  midi: number,
+  time: number,
+  predictPitch = false,
+) {
+  const target = getBuffer(voice.instrument, midi);
+  if (!target) return 1;
+  const consumed = consumedSampleSeconds(voice, time);
+  const rate = 2 ** ((midi - voice.sampleMidi) / 12);
+  // Compare the destination recording's body with the *remaining* body of
+  // this voice. A ringing sample has already lost energy before the gesture;
+  // multiplying its previous gain cannot restore the destination's level.
+  const desired = sampleRms(target, 0.2, 0.3);
+  const remaining = sampleRms(
+    voice.source.buffer!,
+    predictPitch
+      ? consumed + 0.2 * rate
+      : consumedSampleSeconds(voice, time + 0.2),
+    predictPitch
+      ? consumed + 0.3 * rate
+      : consumedSampleSeconds(voice, time + 0.3),
+  );
+  return desired > SILENCE ? desired / Math.max(remaining, SILENCE) : 1;
+}
+
 function consumedSampleSeconds(voice: Voice, time: number) {
   let consumed = voice.sampleOffset;
   let previous = voice.pitchPoints[0]!;
@@ -240,7 +315,7 @@ function createVoice({
     sampleOffset: legato ? getAttackOffset(buffer) : 0,
     startTime,
     releaseAt: Infinity,
-    level: 0.9,
+    sampleGain: 1,
     ended: false,
     gainPoints: [{ time: startTime, value: 0 }],
     pitchPoints: [{ time: startTime, value: 0 }],
@@ -315,7 +390,6 @@ function shapeEnvelope(
   attack: number,
 ) {
   holdAt(voice.gain.gain, voice.gainPoints, time);
-  voice.level = level;
   ramp(voice.gain.gain, voice.gainPoints, level, time + attack);
   if (palmMuted) {
     for (let index = 1; index <= 12; index++) {
@@ -394,7 +468,7 @@ export function playGuitarNote(
   let voice = previous
     ? voices.get(previous as AudioBufferSourceNode)
     : undefined;
-  const reuse =
+  let reuse =
     legato &&
     voice &&
     !voice.ended &&
@@ -402,6 +476,17 @@ export function playGuitarNote(
     voice.startTime <= time &&
     voice.releaseAt > time &&
     consumedSampleSeconds(voice, time) < voice.source.buffer!.duration - 0.02;
+  const tetheredLegato = transition?.transitionFromFret !== undefined;
+  if (
+    reuse &&
+    voice &&
+    tetheredLegato &&
+    legatoSampleGain(voice, midi, time, true) > MAX_LEGATO_SAMPLE_GAIN
+  ) {
+    // A nearly silent tail would need an excessive boost. Refresh from the
+    // destination's post-attack body and crossfade the old voice instead.
+    reuse = false;
+  }
   if (!reuse) {
     voice = createVoice({ ...args, startTime: time, legato });
   }
@@ -448,17 +533,22 @@ export function playGuitarNote(
   if (effects.includes("."))
     duration = Math.min(duration, clamp(interval * 0.45, 0.035, 0.22));
   const accent = effects.includes(">") ? 1.22 : 1;
+  if (tetheredLegato) {
+    voice.sampleGain = clamp(
+      legatoSampleGain(voice, midi, time),
+      0.25,
+      MAX_LEGATO_SAMPLE_GAIN,
+    );
+  }
   const legatoLevel =
     transition?.effect === "h"
       ? 0.85
       : transition?.effect === "p"
         ? 0.95
         : 0.92;
-  const level = Math.min(
-    0.9 * accent,
-    (reuse ? voice.level * legatoLevel : 0.9 * (legato ? legatoLevel : 1)) *
-      accent,
-  );
+  // Each articulation starts from the same musical level. Sample-decay
+  // compensation is absolute, so neither attenuation nor accents compound.
+  const level = 0.9 * (legato ? legatoLevel : 1) * accent * voice.sampleGain;
   shapeEnvelope(
     voice,
     time,
