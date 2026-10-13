@@ -1,4 +1,7 @@
-import type Soundfont from "soundfont-player";
+import type {
+  GuitarInstrument,
+  GuitarPlaybackHandle,
+} from "~/utils/guitarSampleTypes";
 import { noteLengthMultipliers, type FullNoteLengths } from "~/stores/TabStore";
 import {
   playNoteColumn,
@@ -172,9 +175,9 @@ export interface RunPlaybackSchedulerArgs {
   capo: number;
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
-  currentInstrument: Soundfont.Player | null;
+  currentInstrument: GuitarInstrument | null;
   currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
+    GuitarPlaybackHandle | AudioBufferSourceNode | undefined
   )[];
   scheduledNodes?: { stop(when?: number): void }[];
   playbackSessionId: number;

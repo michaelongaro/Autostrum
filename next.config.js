@@ -7,6 +7,19 @@ await import("./src/env.js");
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: false,
+  async headers() {
+    return [
+      {
+        source: "/sounds/guitars/v1/:bank/:hash([a-f0-9]{12}).mp3",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       {

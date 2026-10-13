@@ -1,5 +1,8 @@
 import type { Tab } from "~/generated/browser";
-import type Soundfont from "soundfont-player";
+import type {
+  GuitarInstrument,
+  GuitarPlaybackHandle,
+} from "~/utils/guitarSampleTypes";
 import { devtools } from "zustand/middleware";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
@@ -672,7 +675,7 @@ interface TabState {
   playbackSessionId: number;
   scheduledPlaybackNodes: { stop(when?: number): void }[];
   activePlaybackStrings:
-    (Soundfont.Player | AudioBufferSourceNode | undefined)[] | null;
+    (GuitarPlaybackHandle | AudioBufferSourceNode | undefined)[] | null;
   audioMetadata: AudioMetadata;
   setAudioMetadata: (audioMetadata: AudioMetadata) => void;
   /**
@@ -697,12 +700,12 @@ interface TabState {
    */
   enterPlaybackLoopRangeEditor: () => void;
   selectPlaybackLoopRangeChord: (index: number) => void;
-  instruments: Record<InstrumentNames, Soundfont.Player>;
+  instruments: Record<InstrumentNames, GuitarInstrument>;
   setInstruments: (
-    instruments: Record<InstrumentNames, Soundfont.Player>,
+    instruments: Record<InstrumentNames, GuitarInstrument>,
   ) => void;
-  currentInstrument: Soundfont.Player | null;
-  setCurrentInstrument: (currentInstrument: Soundfont.Player | null) => void;
+  currentInstrument: GuitarInstrument | null;
+  setCurrentInstrument: (currentInstrument: GuitarInstrument | null) => void;
   previewMetadata: PreviewMetadata;
   setPreviewMetadata: (previewMetadata: PreviewMetadata) => void;
   breakOnNextPreviewChord: boolean;
@@ -716,7 +719,7 @@ interface TabState {
   ensureAudioSystemReady: () => Promise<{
     audioContext: AudioContext;
     masterVolumeGainNode: GainNode;
-    currentInstrument: Soundfont.Player | null;
+    currentInstrument: GuitarInstrument | null;
     countInBuffer: AudioBuffer | null;
   } | null>;
   playTab: ({ location }: PlayTab) => Promise<void>;
@@ -1026,7 +1029,7 @@ const useTabStoreBase = create<TabState>()(
           set({ draftLoopStartIndex: index });
         }
       },
-      instruments: {} as Record<InstrumentNames, Soundfont.Player>,
+      instruments: {} as Record<InstrumentNames, GuitarInstrument>,
       setInstruments: (instruments) => set({ instruments }),
       currentInstrument: null,
       setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
@@ -1116,7 +1119,7 @@ const useTabStoreBase = create<TabState>()(
           }
         }
 
-        let nextCurrentInstrument: Soundfont.Player | null = null;
+        let nextCurrentInstrument: GuitarInstrument | null = null;
         try {
           nextCurrentInstrument = await ensureSoundfontPlayer(
             nextAudioContext,
@@ -1149,8 +1152,8 @@ const useTabStoreBase = create<TabState>()(
           instruments: nextCurrentInstrument
             ? ({
                 [currentInstrumentName]: nextCurrentInstrument,
-              } as Record<InstrumentNames, Soundfont.Player>)
-            : ({} as Record<InstrumentNames, Soundfont.Player>),
+              } as Record<InstrumentNames, GuitarInstrument>)
+            : ({} as Record<InstrumentNames, GuitarInstrument>),
           currentInstrument: nextCurrentInstrument,
           countInBuffer: nextCountInBuffer,
         });
@@ -1204,7 +1207,7 @@ const useTabStoreBase = create<TabState>()(
         }
 
         const currentlyPlayingStrings: (
-          Soundfont.Player | AudioBufferSourceNode | undefined
+          GuitarPlaybackHandle | AudioBufferSourceNode | undefined
         )[] = [
           undefined,
           undefined,
@@ -1421,7 +1424,7 @@ const useTabStoreBase = create<TabState>()(
         if (!currentInstrument) return;
 
         const currentlyPlayingStrings: (
-          Soundfont.Player | AudioBufferSourceNode | undefined
+          GuitarPlaybackHandle | AudioBufferSourceNode | undefined
         )[] = [
           undefined,
           undefined,

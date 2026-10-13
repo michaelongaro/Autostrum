@@ -1,10 +1,12 @@
 # Guitar effects: sample-based articulation
 
-Autostrum uses the existing MusyngKite guitar recordings decoded by
-`soundfont-player`. `src/utils/guitarEffects.ts` owns the per-string Web Audio
+Autostrum uses dedicated guitar multisamples described in
+[`guitar-samples.md`](guitar-samples.md), with MusyngKite as a loading fallback.
+`src/utils/guitarEffects.ts` owns the per-string Web Audio
 voices, pitch automation, damping, and cleanup. The tab parser in
 `playGeneratedAudioHelpers.ts` supplies absolute audio timestamps and transitions.
-The soundfont loader and recorded samples are unchanged.
+Each voice tracks the recording's original MIDI root so transposition and
+connected articulations also work with sparse sample mappings.
 
 ## Audit and changes
 

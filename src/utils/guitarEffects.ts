@@ -1,7 +1,10 @@
-import type Soundfont from "soundfont-player";
+import type {
+  GuitarInstrument,
+  GuitarPlaybackHandle,
+} from "~/utils/guitarSampleTypes";
 
 export type PlaybackStrings = (
-  Soundfont.Player | AudioBufferSourceNode | undefined
+  GuitarPlaybackHandle | AudioBufferSourceNode | undefined
 )[];
 
 export interface GuitarTransition {
@@ -17,7 +20,7 @@ type Voice = {
   source: AudioBufferSourceNode;
   gain: GainNode;
   filter: BiquadFilterNode;
-  instrument: Soundfont.Player;
+  instrument: GuitarInstrument;
   sampleMidi: number;
   sampleOffset: number;
   startTime: number;
@@ -138,14 +141,10 @@ export function stopGuitarStrings(strings: PlaybackStrings, time: number) {
   }
 }
 
-function getBuffer(instrument: Soundfont.Player, midi: number) {
-  // soundfont-player 0.12 exposes decoded buffers keyed by MIDI number. Its
-  // published Player type omits this property (and mis-types play's result).
+function getBuffer(instrument: GuitarInstrument, midi: number) {
   return (
-    instrument as Soundfont.Player & {
-      buffers?: Record<string, AudioBuffer>;
-    }
-  ).buffers?.[midi];
+    instrument.getReferenceSample?.(midi)?.buffer ?? instrument.buffers?.[midi]
+  );
 }
 
 function getAttackOffset(buffer: AudioBuffer) {
@@ -227,14 +226,16 @@ function legatoSampleGain(
   time: number,
   predictPitch = false,
 ) {
-  const target = getBuffer(voice.instrument, midi);
+  const reference = voice.instrument.getReferenceSample?.(midi);
+  const target = reference?.buffer ?? getBuffer(voice.instrument, midi);
   if (!target) return 1;
   const consumed = consumedSampleSeconds(voice, time);
   const rate = 2 ** ((midi - voice.sampleMidi) / 12);
   // Compare the destination recording's body with the *remaining* body of
   // this voice. A ringing sample has already lost energy before the gesture;
   // multiplying its previous gain cannot restore the destination's level.
-  const desired = sampleRms(target, 0.2, 0.3);
+  const targetRate = 2 ** ((midi - (reference?.rootMidi ?? midi)) / 12);
+  const desired = sampleRms(target, 0.2 * targetRate, 0.3 * targetRate);
   const remaining = sampleRms(
     voice.source.buffer!,
     predictPitch
@@ -270,7 +271,7 @@ function consumedSampleSeconds(voice: Voice, time: number) {
 }
 
 interface SampleArgs {
-  instrument: Soundfont.Player;
+  instrument: GuitarInstrument;
   midi: number;
   stringIdx: number;
   startTime: number;
@@ -279,6 +280,7 @@ interface SampleArgs {
   strings: PlaybackStrings;
   scheduledNodes?: { stop(when?: number): void }[];
   legato?: boolean;
+  velocity?: number;
 }
 
 function createVoice({
@@ -291,34 +293,39 @@ function createVoice({
   strings,
   scheduledNodes,
   legato,
+  velocity = 88,
 }: SampleArgs) {
-  const buffer = getBuffer(instrument, midi);
+  const sample = instrument.getSample?.(midi, velocity);
+  const buffer = sample?.buffer ?? getBuffer(instrument, midi);
   if (!buffer) return;
+  const rootMidi = sample?.rootMidi ?? midi;
+  const initialCents = (midi - rootMidi) * 100;
   const source = audioContext.createBufferSource();
   const gain = audioContext.createGain();
   const filter = audioContext.createBiquadFilter();
   source.buffer = buffer;
+  source.detune.setValueAtTime(initialCents, startTime);
   filter.type = "lowpass";
   filter.Q.value = Math.SQRT1_2;
   filter.frequency.value = audioContext.sampleRate * 0.45;
   gain.gain.value = 0;
   source.connect(filter);
   filter.connect(gain);
-  gain.connect(destination);
+  gain.connect(instrument.output ?? destination);
 
   const voice: Voice = {
     source,
     gain,
     filter,
     instrument,
-    sampleMidi: midi,
+    sampleMidi: rootMidi,
     sampleOffset: legato ? getAttackOffset(buffer) : 0,
     startTime,
     releaseAt: Infinity,
     sampleGain: 1,
     ended: false,
     gainPoints: [{ time: startTime, value: 0 }],
-    pitchPoints: [{ time: startTime, value: 0 }],
+    pitchPoints: [{ time: startTime, value: initialCents }],
     modulators: [],
     extraNodes: [],
     stopSource: source.stop.bind(source),
@@ -418,9 +425,7 @@ function applyVibrato(voice: Voice, time: number, interval: number) {
   const startTime = time + clamp(interval * 0.14, 0.075, 0.18);
   if (startTime >= voice.releaseAt - 0.025) return;
   const context = voice.source.context;
-  const nylon =
-    (voice.instrument as Soundfont.Player & { name?: string }).name ===
-    "acoustic_guitar_nylon";
+  const nylon = voice.instrument.name === "acoustic_guitar_nylon";
   const oscillator = context.createOscillator();
   oscillator.type = "sine";
   oscillator.frequency.setValueAtTime(4.8, startTime);
@@ -488,7 +493,12 @@ export function playGuitarNote(
     reuse = false;
   }
   if (!reuse) {
-    voice = createVoice({ ...args, startTime: time, legato });
+    voice = createVoice({
+      ...args,
+      startTime: time,
+      legato,
+      velocity: effects.includes(">") ? 120 : legato ? 52 : 88,
+    });
   }
   if (!voice) return;
   stopModulators(voice, time);
@@ -498,7 +508,8 @@ export function playGuitarNote(
     const slide = transition.effect === "/" || transition.effect === "\\";
     const duration = slide ? clamp(interval * 0.3, 0.025, 0.16) : 0.006;
     if (!reuse) {
-      const initialCents = (transition.transitionFromFret - fret) * 100;
+      const initialCents =
+        (midi - voice.sampleMidi + transition.transitionFromFret - fret) * 100;
       voice.source.detune.setValueAtTime(initialCents, time);
       voice.pitchPoints = [{ time, value: initialCents }];
     }
@@ -529,7 +540,11 @@ export function playGuitarNote(
   }
 
   const palmMuted = effects.includes("PM");
-  let duration = palmMuted ? clamp(interval * 0.7, 0.075, 0.28) : 3;
+  let duration = palmMuted
+    ? clamp(interval * 0.7, 0.075, 0.28)
+    : args.instrument.getSample
+      ? 6
+      : 3;
   if (effects.includes("."))
     duration = Math.min(duration, clamp(interval * 0.45, 0.035, 0.22));
   const accent = effects.includes(">") ? 1.22 : 1;
@@ -653,7 +668,7 @@ export function playGuitarPercussion(
   noise.connect(highpass);
   highpass.connect(lowpass);
   lowpass.connect(noiseGain);
-  noiseGain.connect(args.destination);
+  noiseGain.connect(args.instrument.output ?? args.destination);
   noise.start(time);
   noise.stop(time + duration);
   trackModulator(voice, noise, noiseGain);

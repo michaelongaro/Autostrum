@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useTabStore } from "~/stores/TabStore";
 import { isMobileOnly } from "react-device-detect";
-import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 export function useInitializeAudioContext() {
   const {
@@ -9,22 +8,12 @@ export function useInitializeAudioContext() {
     setAudioContext,
     masterVolumeGainNode,
     setMasterVolumeGainNode,
-    setCurrentInstrument,
-    instruments,
-    currentInstrumentName,
-    setInstruments,
-    currentInstrument,
     setCountInBuffer,
   } = useTabStore((state) => ({
     audioContext: state.audioContext,
     setAudioContext: state.setAudioContext,
     masterVolumeGainNode: state.masterVolumeGainNode,
     setMasterVolumeGainNode: state.setMasterVolumeGainNode,
-    setCurrentInstrument: state.setCurrentInstrument,
-    instruments: state.instruments,
-    currentInstrumentName: state.currentInstrumentName,
-    setInstruments: state.setInstruments,
-    currentInstrument: state.currentInstrument,
     setCountInBuffer: state.setCountInBuffer,
   }));
 
@@ -46,32 +35,7 @@ export function useInitializeAudioContext() {
     setAudioContext(newAudioContext);
     setMasterVolumeGainNode(newMasterVolumeGainNode);
 
-    // Check if the instrument is already in cache
-    if (instruments[currentInstrumentName]) {
-      setCurrentInstrument(instruments[currentInstrumentName]);
-      return;
-    }
-
-    void ensureSoundfontPlayer(
-      newAudioContext,
-      currentInstrumentName,
-      newMasterVolumeGainNode,
-    )
-      .then((player) => {
-        // Update the cache
-        const updatedInstruments = {
-          ...instruments,
-          [currentInstrumentName]: player,
-        };
-        setInstruments(updatedInstruments);
-        setCurrentInstrument(player);
-      })
-      .catch((error) => {
-        console.error(
-          `Failed to load ${currentInstrumentName} from both sources:`,
-          error,
-        );
-      });
+    // useFetchAndLoadSoundfonts owns selection/loading once this context is set.
 
     async function fetchAudioFile(path: string) {
       const response = await fetch(path);
@@ -91,11 +55,6 @@ export function useInitializeAudioContext() {
     masterVolumeGainNode,
     setAudioContext,
     setMasterVolumeGainNode,
-    setCurrentInstrument,
-    instruments,
-    currentInstrumentName,
-    setInstruments,
-    currentInstrument,
     setCountInBuffer,
   ]);
 }

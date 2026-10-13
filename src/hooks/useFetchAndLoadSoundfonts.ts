@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { getTabStore, useTabStore } from "~/stores/TabStore";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 function useFetchAndLoadSoundfonts() {
@@ -20,40 +20,41 @@ function useFetchAndLoadSoundfonts() {
   }));
 
   useEffect(() => {
-    const fetchInstrument = () => {
-      if (!audioContext || !masterVolumeGainNode) return;
-
-      // Check if the instrument is already in cache
-      if (instruments[currentInstrumentName]) {
-        setCurrentInstrument(instruments[currentInstrumentName]);
-        return;
-      }
-
-      setCurrentInstrument(null);
-
-      void ensureSoundfontPlayer(
-        audioContext,
-        currentInstrumentName,
-        masterVolumeGainNode,
-      )
-        .then((player) => {
-          // Update the cache
-          const updatedInstruments = {
-            ...instruments,
-            [currentInstrumentName]: player,
-          };
-          setInstruments(updatedInstruments);
-          setCurrentInstrument(player);
-        })
-        .catch((error) => {
-          console.error(
-            `Failed to load ${currentInstrumentName} from both sources:`,
-            error,
-          );
+    if (!audioContext || !masterVolumeGainNode) return;
+    const cached = instruments[currentInstrumentName];
+    if (cached) {
+      setCurrentInstrument(cached);
+      return;
+    }
+    let cancelled = false;
+    setCurrentInstrument(null);
+    void ensureSoundfontPlayer(
+      audioContext,
+      currentInstrumentName,
+      masterVolumeGainNode,
+    )
+      .then((player) => {
+        const latest = getTabStore();
+        if (
+          cancelled ||
+          latest.audioContext !== audioContext ||
+          latest.currentInstrumentName !== currentInstrumentName
+        )
+          return;
+        setInstruments({
+          ...latest.instruments,
+          [currentInstrumentName]: player,
         });
+        setCurrentInstrument(player);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled)
+          console.error(`Failed to load ${currentInstrumentName}:`, error);
+      });
+    // Slow network responses must not overwrite a more recent instrument choice.
+    return () => {
+      cancelled = true;
     };
-
-    void fetchInstrument();
   }, [
     masterVolumeGainNode,
     audioContext,

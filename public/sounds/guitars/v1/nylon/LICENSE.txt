@@ -1,0 +1,16 @@
+University of Iowa Musical Instrument Samples (MIS)
+Raimundo 118 classical guitar, performed by Brian Penkrot, December 11, 2011.
+Recorded by Shane Hoose and Zach Zubow, University of Iowa Electronic Music Studios.
+Project director: Lawrence Fritts.
+
+Usage permission: https://theremin.music.uiowa.edu/MIS.html
+Recording details: https://theremin.music.uiowa.edu/MISguitar.html
+
+The project's published permission states that its recordings may be downloaded
+and used for any projects, without restrictions. This is the Iowa MIS permission,
+not a claim that the source was published under Creative Commons CC0.
+
+Prepared for Autostrum: isolated notes, tuning correction, low-frequency rumble
+removal, mono conversion, peak leveling, short fades, and MP3 compression.
+Preparation script and source download/hash: decisions/guitar-samples.md.
+These conversions do not impose additional restrictions on the recordings.

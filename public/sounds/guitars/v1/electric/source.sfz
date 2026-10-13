@@ -1,0 +1,538 @@
+//+ Name: EGuitar Clean Br.
+//+ Date: 2026-08-07
+//+ URL: http://freepats.zenvoid.org/ElectricGuitar/clean-electric-guitar.html
+
+<global>
+ ampeg_release=1.1
+ width=100
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=35 hikey=38
+ hivel=92
+ pitch_keycenter=36
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/C2_s1_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/C2_s1_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/C2_s1_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/C2_s1_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=35 hikey=38
+ lovel=93
+ pitch_keycenter=36
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/C2_s1_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/C2_s1_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/C2_s1_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/C2_s1_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=39 hikey=40
+ hivel=92
+ pitch_keycenter=40
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/E2_s1_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/E2_s1_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/E2_s1_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/E2_s1_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=39 hikey=40
+ lovel=93
+ pitch_keycenter=40
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/E2_s1_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/E2_s1_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/E2_s1_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/E2_s1_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=41 hikey=42
+ hivel=92
+ pitch_keycenter=41
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/F2_s1_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/F2_s1_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/F2_s1_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/F2_s1_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=41 hikey=42
+ lovel=93
+ pitch_keycenter=41
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/F2_s1_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/F2_s1_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/F2_s1_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/F2_s1_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=43 hikey=46
+ hivel=92
+ pitch_keycenter=45
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/A2_s2_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/A2_s2_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/A2_s2_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/A2_s2_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=43 hikey=46
+ lovel=93
+ pitch_keycenter=45
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/A2_s2_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/A2_s2_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/A2_s2_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/A2_s2_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=47 hikey=49
+ hivel=92
+ pitch_keycenter=48
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/C3_s2_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/C3_s2_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/C3_s2_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/C3_s2_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=47 hikey=49
+ lovel=93
+ pitch_keycenter=48
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/C3_s2_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/C3_s2_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/C3_s2_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/C3_s2_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=50 hikey=51
+ hivel=92
+ pitch_keycenter=50
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/D3_s3_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/D3_s3_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/D3_s3_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/D3_s3_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=50 hikey=51
+ lovel=93
+ pitch_keycenter=50
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/D3_s3_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/D3_s3_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/D3_s3_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/D3_s3_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=52 hikey=53
+ hivel=92
+ pitch_keycenter=52
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/E3_s3_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/E3_s3_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/E3_s3_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/E3_s3_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=52 hikey=53
+ lovel=93
+ pitch_keycenter=52
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/E3_s3_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/E3_s3_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/E3_s3_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/E3_s3_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=54 hikey=56
+ hivel=92
+ pitch_keycenter=55
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/G3_s4_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/G3_s4_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/G3_s4_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/G3_s4_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=54 hikey=56
+ lovel=93
+ pitch_keycenter=55
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/G3_s4_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/G3_s4_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/G3_s4_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/G3_s4_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=57 hikey=59
+ hivel=92
+ pitch_keycenter=59
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/B3_s5_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/B3_s5_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/B3_s5_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/B3_s5_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=57 hikey=59
+ lovel=93
+ pitch_keycenter=59
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/B3_s5_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/B3_s5_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/B3_s5_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/B3_s5_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=60 hikey=62
+ hivel=92
+ pitch_keycenter=61
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/C#4_s5_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/C#4_s5_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/C#4_s5_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/C#4_s5_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=60 hikey=62
+ lovel=93
+ pitch_keycenter=61
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/C#4_s5_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/C#4_s5_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/C#4_s5_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/C#4_s5_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=63 hikey=65
+ hivel=92
+ pitch_keycenter=64
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/E4_s6_soft_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/E4_s6_soft_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/E4_s6_soft_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/E4_s6_soft_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=63 hikey=65
+ lovel=93
+ pitch_keycenter=64
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/E4_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/E4_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/E4_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/E4_s6_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=66 hikey=69
+ pitch_keycenter=67
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/G4_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/G4_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/G4_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/G4_s6_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=70 hikey=71
+ pitch_keycenter=71
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/B4_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/B4_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/B4_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/B4_s6_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ key=72
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/C5_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/C5_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/C5_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/C5_s6_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=73 hikey=75
+ pitch_keycenter=74
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/D5_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/D5_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/D5_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/D5_s6_soft_01.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=76 hikey=78
+ pitch_keycenter=77
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/F5_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/F5_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/F5_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/F5_s6_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=79 hikey=81
+ pitch_keycenter=80
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/G#5_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/G#5_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/G#5_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/G#5_s6_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=82 hikey=83
+ pitch_keycenter=82
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/A#5_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/A#5_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/A#5_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/A#5_s6_04.flac
+
+<group>
+ //+ RandomRegion: Yes
+ lokey=84 hikey=86
+ pitch_keycenter=85
+<region>
+ lorand=0 hirand=0.25
+ sample=samples/bridge/C#6_s6_01.flac
+<region>
+ lorand=0.25 hirand=0.5
+ sample=samples/bridge/C#6_s6_02.flac
+<region>
+ lorand=0.5 hirand=0.75
+ sample=samples/bridge/C#6_s6_03.flac
+<region>
+ lorand=0.75 hirand=1
+ sample=samples/bridge/C#6_s6_04.flac

@@ -1,5 +1,8 @@
 import extractNumber from "~/utils/extractNumber";
-import type Soundfont from "soundfont-player";
+import type {
+  GuitarInstrument,
+  GuitarPlaybackHandle,
+} from "~/utils/guitarSampleTypes";
 import {
   playGuitarNote,
   playGuitarPercussion,
@@ -38,7 +41,9 @@ export function stopAllScheduledPlaybackNodes(
 
 export function stopActivePlaybackStrings(
   activePlaybackStrings:
-    (Soundfont.Player | AudioBufferSourceNode | undefined)[] | null | undefined,
+    | (GuitarPlaybackHandle | AudioBufferSourceNode | undefined)[]
+    | null
+    | undefined,
   stopTime: number,
 ) {
   if (activePlaybackStrings) stopGuitarStrings(activePlaybackStrings, stopTime);
@@ -55,12 +60,12 @@ interface PlayNote {
   tetheredMetadata?: TetheredMetadata;
   pluckBaseNote: boolean;
   audioContext: AudioContext;
-  currentInstrument: Soundfont.Player | null;
+  currentInstrument: GuitarInstrument | null;
   masterVolumeGainNode: GainNode;
   currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
+    GuitarPlaybackHandle | AudioBufferSourceNode | undefined
   )[];
-  acousticSteelOverrideForPreview?: Soundfont.Player;
+  acousticSteelOverrideForPreview?: GuitarInstrument;
   scheduledNodes?: StoppablePlaybackNode[];
 }
 
@@ -183,11 +188,11 @@ interface PlayNoteColumn {
   nextColumn?: string[];
   audioContext: AudioContext;
   masterVolumeGainNode: GainNode;
-  currentInstrument: Soundfont.Player | null;
+  currentInstrument: GuitarInstrument | null;
   currentlyPlayingStrings: (
-    Soundfont.Player | AudioBufferSourceNode | undefined
+    GuitarPlaybackHandle | AudioBufferSourceNode | undefined
   )[];
-  acousticSteelOverrideForPreview?: Soundfont.Player;
+  acousticSteelOverrideForPreview?: GuitarInstrument;
   forTuningPreview?: boolean;
   scheduledNodes?: StoppablePlaybackNode[];
   isSessionValid?: () => boolean;

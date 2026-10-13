@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIsomorphicLayoutEffect } from "@react-hookz/web";
-import type Soundfont from "soundfont-player";
+import type { GuitarPlaybackHandle } from "~/utils/guitarSampleTypes";
 import type { ChordTrainerPreset } from "~/data/tools/chordTrainerPresets";
 import type { ChordTrainerStrummingPattern } from "~/data/tools/chordTrainerStrummingPatterns";
 import { getTabStore } from "~/stores/TabStore";
@@ -33,9 +33,7 @@ const STANDARD_TUNING = parse(DEFAULT_TUNING);
 const MIN_EDGE_OPACITY = 0.18;
 const PATTERN_SLIDE_MS = 380;
 const EMPTY_PLAYING_STRINGS: (
-  | Soundfont.Player
-  | AudioBufferSourceNode
-  | undefined
+  GuitarPlaybackHandle | AudioBufferSourceNode | undefined
 )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
 
 interface UseChordTrainerPlaybackArgs {
@@ -49,9 +47,7 @@ interface UseChordTrainerPlaybackArgs {
 
 function stopPlayingStrings(
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    GuitarPlaybackHandle | AudioBufferSourceNode | undefined
   )[],
 ) {
   const { audioContext } = getTabStore();
@@ -73,9 +69,7 @@ function playQueuedChord({
   strum: string;
   audioEnabled: boolean;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    GuitarPlaybackHandle | AudioBufferSourceNode | undefined
   )[];
 }) {
   if (!strum || !audioEnabled) return;
@@ -113,7 +107,7 @@ function useChordTrainerPlayback({
   const stageRef = useRef<HTMLDivElement | null>(null);
   const sliderContainerRef = useRef<HTMLDivElement | null>(null);
   const currentlyPlayingStringsRef = useRef<
-    (Soundfont.Player | AudioBufferSourceNode | undefined)[]
+    (GuitarPlaybackHandle | AudioBufferSourceNode | undefined)[]
   >(EMPTY_PLAYING_STRINGS.slice());
   const queueRef = useRef<ChordTrainerQueueItem[]>([]);
   const scrollXRef = useRef(0);
@@ -320,12 +314,7 @@ function useChordTrainerPlayback({
     updateStreamStyles(
       isPatternVisualizer ? visualScrollXRef.current : scrollXRef.current,
     );
-  }, [
-    isPatternVisualizer,
-    patternLength,
-    queue,
-    updateStreamStyles,
-  ]);
+  }, [isPatternVisualizer, patternLength, queue, updateStreamStyles]);
 
   useEffect(() => {
     pausePlayback();

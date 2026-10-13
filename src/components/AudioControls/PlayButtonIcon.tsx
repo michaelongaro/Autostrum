@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import type Soundfont from "soundfont-player";
+import type { GuitarInstrument } from "~/utils/guitarSampleTypes";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import PlayIcon from "~/components/ui/icons/PlayIcon";
 import StopIcon from "~/components/ui/icons/StopIcon";
@@ -24,7 +24,7 @@ const opacityAndScaleVariants = {
 type ShouldShowPauseIcon = Omit<PlayButtonIcon, "currentInstrument">;
 interface PlayButtonIcon {
   uniqueLocationKey: string;
-  currentInstrument: Soundfont.Player | null;
+  currentInstrument: GuitarInstrument | null;
   audioMetadata?: AudioMetadata;
   sectionIndex?: number;
   subSectionIndex?: number;

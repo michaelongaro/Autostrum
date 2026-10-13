@@ -1,0 +1,218 @@
+//+ Name: FSS Steel String Guitar
+//+ Date: 2020-05-21
+//+ URL: http://freepats.zenvoid.org/Guitar/steel-acoustic-guitar.html#FSS
+
+<global>
+ //+ Instrument: Steel String Guitar
+ ampeg_release=0.9
+
+<group>
+ loop_mode=no_loop
+<region>
+ lokey=39 hikey=40
+ hivel=82
+ pitch_keycenter=40
+ sample=samples/MV_40.wav
+<region>
+ lokey=39 hikey=40
+ lovel=83
+ pitch_keycenter=40
+ sample=samples/HV_40.wav
+<region>
+ key=41
+ sample=samples/HV_41.wav
+<region>
+ key=42
+ sample=samples/HV_42.wav
+<region>
+ hivel=89
+ key=43
+ sample=samples/MV_43.wav
+<region>
+ lovel=90
+ key=43
+ sample=samples/HV_43.wav
+<region>
+ key=44
+ hivel=82
+ sample=samples/MV_44.wav
+<region>
+ key=44
+ lovel=83
+ sample=samples/HV_44.wav
+<region>
+ key=45
+ hivel=99
+ sample=samples/MV_45.wav
+<region>
+ key=45
+ lovel=100
+ sample=samples/HV_45.wav
+<region>
+ key=46
+ sample=samples/HV_46.wav
+<region>
+ key=47
+ sample=samples/HV_47.wav
+<region>
+ key=48
+ sample=samples/HV_48.wav
+<region>
+ key=49
+ sample=samples/HV_49.wav
+<region>
+ key=50
+ hivel=82
+ sample=samples/MV_50.wav
+<region>
+ key=50
+ lovel=83
+ sample=samples/HV_50.wav
+<region>
+ key=51
+ hivel=82
+ sample=samples/MV_51.wav
+<region>
+ key=51
+ lovel=83
+ sample=samples/HV_51.wav
+<region>
+ key=52
+ sample=samples/HV_52.wav
+<region>
+ key=53
+ sample=samples/HV_53.wav
+<region>
+ key=54
+ sample=samples/MV_54.wav
+<region>
+ key=55
+ hivel=82
+ sample=samples/MV_55.wav
+<region>
+ key=55
+ lovel=83
+ sample=samples/HV_55.wav
+<region>
+ key=56
+ hivel=82
+ sample=samples/MV_56.wav
+<region>
+ key=56
+ lovel=83
+ sample=samples/HV_56.wav
+<region>
+ key=57
+ sample=samples/HV_57.wav
+<region>
+ key=58
+ sample=samples/HV_58.wav
+<region>
+ key=59
+ sample=samples/HV_59.wav
+<region>
+ key=60
+ sample=samples/HV_60.wav
+<region>
+ key=61
+ sample=samples/HV_61.wav
+<region>
+ key=62
+ sample=samples/HV_62.wav
+<region>
+ key=63
+ sample=samples/HV_63.wav
+<region>
+ key=64
+ sample=samples/HV_64.wav
+<region>
+ key=65
+ sample=samples/HV_65.wav
+<region>
+ key=66
+ sample=samples/HV_66.wav
+<region>
+ key=67
+ sample=samples/HV_67.wav
+<region>
+ key=68
+ sample=samples/HV_68.wav
+<region>
+ key=69
+ sample=samples/HV_69.wav
+<region>
+ key=70
+ sample=samples/HV_70.wav
+<region>
+ key=71
+ sample=samples/HV_71.wav
+<region>
+ key=72
+ hivel=82
+ sample=samples/MV_72.wav
+<region>
+ key=72
+ lovel=83
+ sample=samples/HV_72.wav
+<region>
+ key=73
+ hivel=82
+ sample=samples/MV_73.wav
+<region>
+ key=73
+ lovel=83
+ sample=samples/HV_73.wav
+<region>
+ key=74
+ sample=samples/HV_74.wav
+<region>
+ key=75
+ sample=samples/HV_75.wav
+<region>
+ key=76
+ sample=samples/HV_76.wav
+<region>
+ key=77
+ sample=samples/HV_77.wav
+<region>
+ key=78
+ hivel=93
+ sample=samples/MV_78.wav
+<region>
+ key=78
+ lovel=94
+ sample=samples/HV_78.wav
+<region>
+ key=79
+ sample=samples/HV_79.wav
+<region>
+ key=80
+ hivel=82
+ sample=samples/MV_80.wav
+<region>
+ key=80
+ lovel=83
+ sample=samples/HV_80.wav
+<region>
+ key=81
+ sample=samples/MV_81.wav
+<region>
+ key=82
+ hivel=82
+ sample=samples/MV_82.wav
+<region>
+ key=82
+ lovel=83
+ sample=samples/HV_82.wav
+<region>
+ key=83
+ hivel=94
+ sample=samples/MV_83.wav
+<region>
+ key=83
+ lovel=95
+ sample=samples/HV_83.wav
+<region>
+ lokey=84 hikey=85
+ pitch_keycenter=84
+ sample=samples/MV_84.wav
