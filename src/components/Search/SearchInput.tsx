@@ -523,7 +523,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   href={`/artist/${encodeURIComponent(
                                     artist.name,
                                   )}/${artist.id}/filters`}
-                                  className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2 transition-all"
+                                  style={{
+                                    transition: "filter 150ms linear",
+                                  }}
+                                  className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2"
                                   onClick={() => {
                                     setShowAutofillResults(false);
                                   }}
@@ -620,7 +623,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 href={`/tab/${song.id}/${encodeURIComponent(
                                   song.title,
                                 )}`}
-                                className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2 transition-all"
+                                style={{
+                                  transition: "filter 150ms linear",
+                                }}
+                                className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2"
                                 onClick={() => {
                                   setShowAutofillResults(false);
                                 }}
@@ -736,7 +742,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 href={`/artist/${encodeURIComponent(
                                   artist.name,
                                 )}/${artist.id}/filters`}
-                                className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2 transition-all"
+                                style={{
+                                  transition: "filter 150ms linear",
+                                }}
+                                className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2"
                                 onClick={() => {
                                   setShowAutofillResults(false);
                                 }}
