@@ -326,10 +326,6 @@ const tunings: Tuning[] = [
     notes: "E2 A2 D3 G3 B3 E4",
   },
   {
-    name: "E♭",
-    notes: "E♭2 A♭2 D♭3 G♭3 B♭3 E♭4",
-  },
-  {
     name: "Open A",
     notes: "E2 A2 C#3 E3 A3 E4",
   },
@@ -404,6 +400,10 @@ const tunings: Tuning[] = [
   {
     name: "Drop G#",
     notes: "G#1 D#2 G#2 C#3 F3 A#3",
+  },
+  {
+    name: "E-Flat",
+    notes: "E♭2 A♭2 D♭3 G♭3 B♭3 E♭4",
   },
   {
     name: "Math Rock",

@@ -366,14 +366,14 @@ function CustomTuningEditor() {
                 </div>
                 <div className="baseFlex mt-2 gap-2 sm:gap-6">
                   <div className="baseVertFlex gap-2">
-                    <div className="grid w-full grid-cols-3 place-items-center text-sm font-semibold">
+                    <div className="grid w-full grid-cols-3 place-items-center gap-4 text-sm font-semibold">
                       <span>A-G</span>
                       <span>(# / ♭)</span>
                       <span>0-8</span>
                     </div>
-                    <div className="grid w-full grid-cols-3 place-items-center text-xs">
+                    <div className="grid w-full grid-cols-3 place-items-center gap-4 text-xs">
                       <span>Root note</span>
-                      <span>Optional sharp / flat</span>
+                      <span>(Accidental)</span>
                       <span>Octave</span>
                     </div>
                   </div>
