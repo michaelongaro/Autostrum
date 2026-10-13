@@ -304,7 +304,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             transition={{
               duration: 0.2,
             }}
-            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${isAboveLgViewportWidth ? "top-[45px] border !shadow-xl" : "top-11 border-t"}`}
+            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${isAboveLgViewportWidth ? "top-[45px] border !shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.2)]" : "top-11 border-t"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
               <div className="baseFlex ml-1 gap-3">
