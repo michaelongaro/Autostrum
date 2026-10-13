@@ -8,6 +8,16 @@ https://github.com/michaelongaro/Autostrum/assets/35980684/0696867e-01f0-4c28-b6
 
 Autostrum is a site where guitar players can write out and share their guitar tabs. Our editor was built with convenience and speed in mind, with plenty of shortcuts and keyboard navigatable. One of the differentiating features we have is the ability to play back any tab that is created by using real guitar sound bites, taking the guesswork out of how the tab is supposed to be played. Playback speed can also be adjusted to practice at whatever tempo the user feels most comfortable playing along with. Whether you are an aspiring artist looking to share their newest hit, or just someone looking for new songs to play, Autostrum has you covered.
 
+## Local development
+
+Run `npm install`, then `npm run dev`. The app serves on port 3000 and requires
+the environment variables described in `AGENTS.md`.
+
+Development uses Next.js's supported Webpack mode. Next.js 16.4's Turbopack
+output reproduced missing module factories on the tab-view route, including
+`next/head`, even after a fresh cache and browser tab. Webpack avoids that
+failure. `npm run dev:turbo` remains available for investigating Turbopack.
+
 ## Notable technologies
 
 This project would not have been possible without these incredible technologies:

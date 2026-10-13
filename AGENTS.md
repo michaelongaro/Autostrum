@@ -5,7 +5,7 @@
 Autostrum is a single Next.js 16 (Pages Router) T3-stack app at the repo root — there is no monorepo and no local service orchestration. Dependencies install with `npm install` (its `postinstall` runs `prisma generate`).
 
 ### Services and how they run
-- **Web app (dev):** `npm run dev` (Next.js dev server on Turbopack, serves on port 3000). This is the only long-running service you start locally.
+- **Web app (dev):** `npm run dev` (Next.js dev server using Webpack, serves on port 3000). This avoids a Next.js 16.4 Turbopack missing-module-factory error on tab pages. `npm run dev:turbo` is available to investigate Turbopack. This is the only long-running service you start locally.
 - **PostgreSQL:** provided remotely via the `DATABASE_URL` secret (a hosted Railway Postgres). There is no local database to provision or start — do not install Postgres. The schema is already migrated; `npx prisma migrate status` should report "up to date".
 - **Clerk (auth), AWS S3 (screenshots), and the external screenshot server:** all external SaaS configured entirely through injected secrets. The Clerk instance is a `pk_test_` dev instance.
 
