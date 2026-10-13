@@ -7,7 +7,6 @@ import {
   CarouselContent,
   CarouselItem,
 } from "~/components/ui/carousel";
-import { Separator } from "~/components/ui/separator";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import {
@@ -91,7 +90,6 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
                     heading
                   )}
                 </h2>
-                <Separator className="w-full bg-primary" />
               </div>
 
               {(showMoreArtistTabs || showBrowseAllTabs) && (
