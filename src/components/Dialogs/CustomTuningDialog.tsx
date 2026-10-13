@@ -40,7 +40,6 @@ function CustomTuningDialog() {
     setTuning,
     showCustomTuningDialog,
     setShowCustomTuningDialog,
-    theme,
   } = useTabStore((state) => ({
     previewMetadata: state.previewMetadata,
     playPreview: state.playPreview,
@@ -48,7 +47,6 @@ function CustomTuningDialog() {
     setTuning: state.setTuning,
     showCustomTuningDialog: state.showCustomTuningDialog,
     setShowCustomTuningDialog: state.setShowCustomTuningDialog,
-    theme: state.theme,
   }));
 
   const [newTuning, setNewTuning] = useState<string[]>(
@@ -179,7 +177,7 @@ function CustomTuningDialog() {
                     ? "hsl(var(--primary-foreground))"
                     : "hsl(var(--foreground))",
               }}
-              className="baseFlex relative w-[55px] gap-2 border-none"
+              className="baseFlex relative w-[55px] gap-2 border-none text-xs xs:text-sm"
               onClick={() => {
                 setInputMode("auto");
               }}
@@ -196,7 +194,7 @@ function CustomTuningDialog() {
                     ? "hsl(var(--primary-foreground))"
                     : "hsl(var(--foreground))",
               }}
-              className="baseFlex relative w-[72px] gap-2 border-none"
+              className="baseFlex relative w-[72px] gap-2 border-none text-xs xs:text-sm"
               onClick={() => {
                 setInputMode("manual");
               }}
@@ -233,7 +231,7 @@ function CustomTuningDialog() {
                     Enter six notes and we will choose valid octaves for you.
                   </p>
                 </div>
-                <div className="baseFlex ml-1.5 px-4 text-xs text-foreground/70 sm:ml-7">
+                <div className="baseFlex ml-9 px-4 text-xs text-foreground/70 sm:ml-7">
                   <p>Leave a space between each note.</p>
                 </div>
               </div>
@@ -241,6 +239,7 @@ function CustomTuningDialog() {
               <div className="baseFlex w-72 gap-4">
                 <Input
                   placeholder="C# B E F# A# E"
+                  maxLength={17}
                   value={quickTuningInput.toUpperCase()}
                   invalid={showInvalidQuickInput}
                   onChange={(e) => {
@@ -265,7 +264,7 @@ function CustomTuningDialog() {
                 <Button
                   type="button"
                   disabled={quickTuningInput.length < 6}
-                  variant="secondary"
+                  variant="outline"
                   className="baseFlex h-10 gap-2"
                   onClick={handleConvertQuickTuningInput}
                 >
@@ -287,7 +286,7 @@ function CustomTuningDialog() {
                 <div className="baseFlex gap-4 px-4 sm:gap-2">
                   <HiOutlineInformationCircle className="size-5" />
                   <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
-                    Scientific Pitch Notation is required here.
+                    Scientific Pitch Notation is required.
                   </p>
                 </div>
                 <div className="baseFlex mt-2 gap-2 sm:gap-6">
