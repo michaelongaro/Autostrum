@@ -452,7 +452,7 @@ function ChordTrainerPage() {
             </aside>
 
             <div className="baseVertFlex relative w-full !items-start gap-4">
-              <div className="baseVertFlex sticky top-[3.75rem] z-10 w-full !items-start gap-2 bg-background pt-3 lg:hidden">
+              <div className="baseVertFlex sticky top-[64px] z-10 w-full !items-start gap-2 bg-background py-3 lg:hidden">
                 <p className="text-sm font-medium leading-none">
                   Chord presets
                 </p>
@@ -498,7 +498,7 @@ function ChordTrainerPage() {
                         "baseVertFlex gap-2 transition-opacity duration-150",
                         selected
                           ? "opacity-100"
-                          : "opacity-35 hover:opacity-80",
+                          : "opacity-35 hover:opacity-100",
                       )}
                     >
                       <Button
@@ -519,22 +519,21 @@ function ChordTrainerPage() {
                                 }
                             : undefined
                         }
-                        className="h-[112px] w-[88px] rounded-md border bg-background/80 p-1.5 text-foreground"
+                        className="baseVertFlex h-[130px] w-[100px] rounded-md bg-background/80 p-1.5 text-foreground hover:bg-background"
                         onClick={() => handleChordToggle(chord.id)}
                       >
                         <ChordDiagram originalFrets={chord.frets} />
+                        <span
+                          className="text-sm font-semibold"
+                          style={
+                            selected && showColorCoding
+                              ? { color: chord.color }
+                              : undefined
+                          }
+                        >
+                          {chord.name}
+                        </span>
                       </Button>
-
-                      <span
-                        className="text-sm font-semibold"
-                        style={
-                          selected && showColorCoding
-                            ? { color: chord.color }
-                            : undefined
-                        }
-                      >
-                        {chord.name}
-                      </span>
                     </div>
                   );
                 })}
