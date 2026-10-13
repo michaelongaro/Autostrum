@@ -1,4 +1,4 @@
-import { getTrackBackground, Range } from "react-range";
+import { getTrackBackground, Range } from "~/components/ui/Range";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -102,7 +102,7 @@ function StrumSettingsDropdown({
         </div>
 
         <div className="baseVertFlex w-full !items-start px-1 pt-1">
-          <div className="mb-2 text-xs font-medium">Strum duration</div>
+          <div className="mb-2 text-sm font-medium">Strum duration</div>
           <Range
             label="Strum duration"
             labelledBy="strum-duration"
@@ -142,13 +142,13 @@ function StrumSettingsDropdown({
                   width: "100%",
                   opacity: strumSpreadAuto ? 0.55 : 1,
                 }}
+                className="transition-all"
               >
                 <div
                   ref={props.ref}
                   style={{
                     height: "8px",
                     width: "100%",
-
                     background: getTrackBackground({
                       values: [displayValue],
                       colors: ["hsl(var(--primary))", "hsl(var(--gray) / 0.5)"],
@@ -170,7 +170,7 @@ function StrumSettingsDropdown({
               />
             )}
           />
-          <div className="baseFlex mt-1 w-full !justify-between text-[10px] text-foreground/60">
+          <div className="baseFlex mt-1 w-full !justify-between text-sm text-foreground/60">
             <span>{formatStrumSpreadDisplay(min)}</span>
             <span>{formatStrumSpreadDisplay(max)}</span>
           </div>
@@ -196,7 +196,7 @@ function StrumSettingsDropdown({
             variant="audio"
             size="sm"
             disabled={previewDisabled}
-            className="baseFlex h-8 gap-1.5 px-3"
+            className="baseFlex h-8 gap-1.5 gap-2 px-3"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

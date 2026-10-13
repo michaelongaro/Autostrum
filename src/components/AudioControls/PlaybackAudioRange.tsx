@@ -1,5 +1,5 @@
 import { type Dispatch, type SetStateAction } from "react";
-import { Range } from "react-range";
+import { Range } from "~/components/ui/Range";
 import { useTabStore } from "~/stores/TabStore";
 
 interface PlaybackAudioRange {

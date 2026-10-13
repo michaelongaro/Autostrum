@@ -51,7 +51,7 @@ import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { getTuningName } from "~/utils/tunings";
-import { Direction, getTrackBackground, Range } from "react-range";
+import { Direction, getTrackBackground, Range } from "~/components/ui/Range";
 import { IoMdSettings } from "react-icons/io";
 import { IoColorPalette } from "react-icons/io5";
 import CountIn from "~/components/ui/icons/CountIn";

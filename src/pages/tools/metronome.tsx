@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import { PiMetronome } from "react-icons/pi";
-import { getTrackBackground, Range } from "react-range";
+import { getTrackBackground, Range } from "~/components/ui/Range";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
 import { BsFillVolumeUpFill } from "react-icons/bs";

@@ -47,7 +47,7 @@ import scrollChordIntoView, {
 import { AUDIO_CONTROLS_BOTTOM_OFFSET } from "./AudioControlsStickyBounds";
 import PlayButtonIcon from "./PlayButtonIcon";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Direction, getTrackBackground, Range } from "react-range";
+import { Direction, getTrackBackground, Range } from "~/components/ui/Range";
 import { IoMdSettings } from "react-icons/io";
 
 const opacityAndScaleVariants = {

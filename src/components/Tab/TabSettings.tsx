@@ -1,6 +1,6 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import type { Dispatch, SetStateAction } from "react";
-import { getTrackBackground, Range } from "react-range";
+import { getTrackBackground, Range } from "~/components/ui/Range";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
