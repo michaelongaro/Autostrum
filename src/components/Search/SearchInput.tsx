@@ -16,6 +16,9 @@ import Verified from "~/components/ui/icons/Verified";
 import Link from "next/link";
 import Spinner from "~/components/ui/Spinner";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { PiChartLineUpBold } from "react-icons/pi";
+import { LuTrendingUp } from "react-icons/lu";
+import { IoStatsChart } from "react-icons/io5";
 
 interface SearchInput {
   setShowMobileSearch?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -393,7 +396,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         transition={{ duration: 0.15 }}
                         className="baseVertFlex mt-2 w-full !items-start gap-2"
                       >
-                        <p className="ml-3 font-medium">Trending Songs</p>
+                        <div className="baseFlex ml-3 gap-2">
+                          <LuTrendingUp className="size-4" />
+                          <p className="font-medium">Trending Songs</p>
+                        </div>
                         <div className="baseVertFlex h-full w-full">
                           {mostPopularDailyTabsAndArtists.tabs.map(
                             (song, idx) => (
@@ -495,7 +501,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         transition={{ duration: 0.15 }}
                         className="baseVertFlex mt-2 w-full !items-start gap-2"
                       >
-                        <p className="ml-3 font-medium">Popular Artists</p>
+                        <div className="baseFlex ml-3 gap-2">
+                          <IoStatsChart className="size-4" />
+                          <p className="font-medium">Popular Artists</p>
+                        </div>
                         <div className="baseVertFlex w-full">
                           {mostPopularDailyTabsAndArtists.artists.map(
                             (artist, idx) => (
