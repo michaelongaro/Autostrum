@@ -51,7 +51,7 @@ export function getEditingTuningGutterWidthPx(
   tuning: string | null | undefined,
 ): number {
   const notes = getDisplayTuningNotes(tuning);
-  const letterWidth = notes.toString().includes("#")
+  const letterWidth = notes.some((note) => /^[a-g][#b]/i.test(note))
     ? EDITING_TAB_TUNING_ACCIDENTAL_WIDTH_PX
     : EDITING_TAB_TUNING_LETTER_WIDTH_PX;
   return letterWidth + EDITING_TAB_TUNING_GAP_PX + 1;

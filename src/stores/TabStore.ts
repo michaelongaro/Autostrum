@@ -294,6 +294,8 @@ interface PlayPreview {
   customBpm?: string;
   /** When true, uses the slow fixed delay used by the custom tuning preview. */
   forTuningPreview?: boolean;
+  onTuningPreviewNote?: (noteIndex: number) => void;
+  isPreviewValid?: () => boolean;
   /** Chord-effect string for type "chord" previews (defaults to "v"). */
   chordEffects?: string;
   /** Compiled strum-spread slot value ("auto" or seconds string) for type "chord". */
@@ -1402,13 +1404,15 @@ const useTabStoreBase = create<TabState>()(
         customTuning,
         customBpm,
         forTuningPreview,
+        onTuningPreviewNote,
+        isPreviewValid,
         chordEffects,
         strumSpreadCompileValue,
       }: PlayPreview) => {
         const { capo, tuning, previewMetadata, ensureAudioSystemReady } = get();
 
         const audioSystem = await ensureAudioSystemReady();
-        if (!audioSystem) return;
+        if (!audioSystem || (isPreviewValid && !isPreviewValid())) return;
 
         const { currentInstrument, audioContext, masterVolumeGainNode } =
           audioSystem;
@@ -1431,6 +1435,7 @@ const useTabStoreBase = create<TabState>()(
         set({
           activePlaybackStrings: currentlyPlayingStrings,
           scheduledPlaybackNodes: previewScheduledNodes,
+          breakOnNextPreviewChord: false,
         });
 
         const compiledChords =
@@ -1478,7 +1483,7 @@ const useTabStoreBase = create<TabState>()(
             tuning: parse(
               type === "chord" ? (customTuning ?? tuning) : "e2 a2 d3 g3 b3 e4",
             ),
-            capo: type === "chord" ? capo : 0,
+            capo: type === "chord" && !forTuningPreview ? capo : 0,
             bpm: effectiveBpm,
             currColumn,
             audioContext,
@@ -1488,7 +1493,14 @@ const useTabStoreBase = create<TabState>()(
             scheduledNodes: previewScheduledNodes,
             acousticSteelOverrideForPreview: instruments.acoustic_guitar_steel,
             forTuningPreview: forTuningPreview === true,
+            isSessionValid: isPreviewValid,
+            onNoteStart:
+              forTuningPreview && onTuningPreviewNote
+                ? (stringIndex) => onTuningPreviewNote(5 - stringIndex)
+                : undefined,
           });
+
+          if (isPreviewValid && !isPreviewValid()) return;
 
           const { breakOnNextPreviewChord } = get();
 

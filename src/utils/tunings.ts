@@ -17,6 +17,7 @@ function toString(
   tuning: number[],
   options?: {
     pad: number;
+    sharps?: boolean;
   },
 ) {
   // parse("") returns [36], which is a C. Return spaces so that the tab
@@ -29,7 +30,7 @@ function toString(
     .map((midi) =>
       midiToNoteName(midi, {
         pitchClass: true,
-        sharps: true,
+        sharps: options?.sharps ?? true,
       }).padEnd(options?.pad ?? 0, " "),
     )
     .reverse();
@@ -48,8 +49,28 @@ function parse(notes: string) {
     .reverse();
 }
 
-const NOTE_ONLY_TOKEN_REGEX =
-  /^(?<note>A#?|B|C#?|D#?|E|F#?|G#?)(?<octave>[0-8])?$/i;
+const NOTE_ONLY_TOKEN_REGEX = /^(?<note>[A-G][#b]?)(?<octave>[0-8])?$/i;
+const SCIENTIFIC_NOTE_REGEX = /^[A-G][#b]?[0-8]$/i;
+
+function normalizeAccidentals(input: string) {
+  return input.replaceAll("♯", "#").replaceAll("♭", "b");
+}
+
+function isValidScientificTuningNote(input: string) {
+  return SCIENTIFIC_NOTE_REGEX.test(normalizeAccidentals(input));
+}
+
+function formatTuningInput(input: string) {
+  return input.replace(
+    /\S+/g,
+    (note) =>
+      `${note[0]?.toUpperCase() ?? ""}${note.slice(1).replace(/b/gi, "♭").replaceAll("♯", "#")}`,
+  );
+}
+
+function stripTuningOctaves(input: string) {
+  return input.replace(/\d/g, "");
+}
 
 const STANDARD_TUNING_MIDI = DEFAULT_TUNING_MIDI;
 
@@ -86,7 +107,10 @@ function getMidiCandidatesForString({
 }
 
 function normalizeCustomTuningInput(input: string) {
-  const tokens = input.trim().split(/\s+/).filter(Boolean);
+  const tokens = normalizeAccidentals(input)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
 
   if (tokens.length !== 6) return null;
 
@@ -101,12 +125,18 @@ function normalizeCustomTuningInput(input: string) {
     if (!match?.groups?.note) return null;
 
     parsed.push({
-      note: match.groups.note.toUpperCase(),
+      note: get(match.groups.note.toLowerCase()).pc,
       octave:
         match.groups.octave !== undefined
           ? Number(match.groups.octave)
           : undefined,
     });
+  }
+
+  // Explicit octaves also support reentrant tunings and preserve enharmonic
+  // spellings such as B#2 and Cb3 across octave boundaries.
+  if (parsed.every(({ octave }) => octave !== undefined)) {
+    return parsed.map(({ note, octave }) => `${note}${octave}`.toLowerCase());
   }
 
   const candidatesPerString: number[][] = [];
@@ -251,11 +281,14 @@ function normalizeCustomTuningInput(input: string) {
     return null;
   }
 
-  return chosenCandidateIndices.map((candidateIndex, stringIndex) =>
-    midiToNoteName(candidatesPerString[stringIndex]![candidateIndex]!, {
-      sharps: true,
-    }).toLowerCase(),
-  );
+  return chosenCandidateIndices.map((candidateIndex, stringIndex) => {
+    const midi = candidatesPerString[stringIndex]![candidateIndex]!;
+    const note = parsed[stringIndex]!.note;
+    // Recover the octave in the user's spelling, including B# and Cb.
+    const octave = (midi - get(`${note}0`).midi!) / 12;
+
+    return `${note}${octave}`.toLowerCase();
+  });
 }
 
 function normalizeTuningValue(input: string | null | undefined) {
@@ -270,6 +303,7 @@ function getDisplayTuningNotes(input: string | null | undefined) {
 
 function transposeTuningValue(input: string | null | undefined, semitones = 0) {
   const tuningNotes = getDisplayTuningNotes(input);
+  const preferFlats = tuningNotes.some((note) => get(note).acc === "b");
 
   if (semitones === 0) {
     return tuningNotes.join(" ");
@@ -280,7 +314,7 @@ function transposeTuningValue(input: string | null | undefined, semitones = 0) {
       const midi = get(note).midi ?? DEFAULT_TUNING_MIDI[index] ?? 40;
 
       return midiToNoteName(midi + semitones, {
-        sharps: true,
+        sharps: !preferFlats,
       }).toLowerCase();
     })
     .join(" ");
@@ -290,6 +324,10 @@ const tunings: Tuning[] = [
   {
     name: "Standard",
     notes: "E2 A2 D3 G3 B3 E4",
+  },
+  {
+    name: "E♭",
+    notes: "E♭2 A♭2 D♭3 G♭3 B♭3 E♭4",
   },
   {
     name: "Open A",
@@ -381,60 +419,21 @@ const tunings: Tuning[] = [
   },
 ].map((tuning) => ({
   ...tuning,
-  simpleNotes: toString(parse(tuning.notes), { pad: 2 }),
+  notes: normalizeTuningValue(tuning.notes),
+  simpleNotes: stripTuningOctaves(normalizeTuningValue(tuning.notes)),
 }));
 
-const tuningNotesToName = {
-  "e2 a2 d3 g3 b3 e4": "Standard",
-  "e2 a2 c#3 e3 a3 e4": "Open A",
-  "b1 f#2 b2 f#3 b3 d#4": "Open B",
-  "c2 g2 c3 g3 c4 e4": "Open C",
-  "d2 a2 d3 f#3 a3 d4": "Open D",
-  "e2 b2 e3 g#3 b3 e4": "Open E",
-  "c2 f2 c3 f3 a3 f4": "Open F",
-  "d2 g2 d3 g3 b3 d4": "Open G",
-  "a1 e2 a2 d3 f#3 b3": "Drop A",
-  "a#1 f2 a#2 d#3 g3 c4": "Drop A#",
-  "b1 f#2 b2 e3 g#3 c#4": "Drop B",
-  "c2 g2 c3 f3 a3 d4": "Drop C",
-  "c#2 g#2 c#3 f#3 a#3 d#4": "Drop C#",
-  "d2 a2 d3 g3 b3 e4": "Drop D",
-  "d#2 a#2 d#3 g#3 c4 f4": "Drop D#",
-  "e2 b2 e3 a3 c#4 f#4": "Drop E",
-  "f2 c3 f3 a#3 d4 g4": "Drop F",
-  "f#2 c#3 f#3 b3 d#4 g#4": "Drop F#",
-  "g1 d2 g2 c3 e3 a3": "Drop G",
-  "g#1 d#2 g#2 c#3 f3 a#3": "Drop G#",
-  "f2 a2 c3 g3 c4 e4": "Math Rock",
-  "d2 a2 d3 f#3 b3 e4": "Rondeña",
-  "d2 a2 d3 g3 a3 d4": "Irish",
-};
+const tuningNotesToName: Record<string, string> = Object.fromEntries(
+  tunings.map(({ notes, name }) => [notes, name]),
+);
 
-const tuningNotes = [
-  "e2 a2 d3 g3 b3 e4",
-  "e2 a2 c#3 e3 a3 e4",
-  "b1 f#2 b2 f#3 b3 d#4",
-  "c2 g2 c3 g3 c4 e4",
-  "d2 a2 d3 f#3 a3 d4",
-  "e2 b2 e3 g#3 b3 e4",
-  "c2 f2 c3 f3 a3 f4",
-  "d2 g2 d3 g3 b3 d4",
-  "a1 e2 a2 d3 f#3 b3",
-  "a#1 f2 a#2 d#3 g3 c4",
-  "b1 f#2 b2 e3 g#3 c#4",
-  "c2 g2 c3 f3 a3 d4",
-  "c#2 g#2 c#3 f#3 a#3 d#4",
-  "d2 a2 d3 g3 b3 e4",
-  "d#2 a#2 d#3 g#3 c4 f4",
-  "e2 b2 e3 a3 c#4 f#4",
-  "f2 c3 f3 a#3 d4 g4",
-  "f#2 c#3 f#3 b3 d#4 g#4",
-  "g1 d2 g2 c3 e3 a3",
-  "g#1 d#2 g#2 c#3 f3 a#3",
-  "f2 a2 c3 g3 c4 e4",
-  "d2 a2 d3 f#3 b3 e4",
-  "d2 a2 d3 g3 a3 d4",
-];
+const tuningNotes = tunings.map(({ notes }) => notes);
+
+function getTuningName(input: string) {
+  const normalized = normalizeCustomTuningInput(input);
+
+  return normalized ? tuningNotesToName[normalized.join(" ")] : undefined;
+}
 
 export {
   toString,
@@ -442,8 +441,12 @@ export {
   tunings,
   tuningNotes,
   tuningNotesToName,
+  getTuningName,
   getDisplayTuningNotes,
   transposeTuningValue,
   normalizeCustomTuningInput,
   normalizeTuningValue,
+  isValidScientificTuningNote,
+  formatTuningInput,
+  stripTuningOctaves,
 };

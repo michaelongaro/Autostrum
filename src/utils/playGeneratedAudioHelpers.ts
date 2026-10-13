@@ -14,6 +14,7 @@ import {
 } from "~/utils/strumEffectHelpers";
 
 export type StoppablePlaybackNode = { stop(when?: number): void };
+const TUNING_PREVIEW_NOTE_DELAY_SECONDS = 0.35;
 
 export function registerScheduledPlaybackNode(
   scheduledNodes: StoppablePlaybackNode[] | undefined,
@@ -143,7 +144,7 @@ function resolveChordDelayMultiplier({
   }
 
   if (forTuningPreview) {
-    return 0.35;
+    return TUNING_PREVIEW_NOTE_DELAY_SECONDS;
   }
 
   const compiledSpread = parseCompiledStrumSpread(currColumn[10]);
@@ -190,6 +191,7 @@ interface PlayNoteColumn {
   forTuningPreview?: boolean;
   scheduledNodes?: StoppablePlaybackNode[];
   isSessionValid?: () => boolean;
+  onNoteStart?: (stringIndex: number) => void;
 }
 
 function playNoteColumn({
@@ -209,11 +211,17 @@ function playNoteColumn({
   acousticSteelOverrideForPreview,
   forTuningPreview,
   scheduledNodes,
+  isSessionValid,
+  onNoteStart,
 }: PlayNoteColumn) {
   return new Promise<void>((resolve) => {
     const chordDuration = 60 / bpm;
     const scheduledStartTime = targetStartTime ?? audioContext.currentTime;
-    const scheduledEndTime = scheduledStartTime + chordDuration;
+    const scheduledEndTime =
+      scheduledStartTime +
+      (forTuningPreview
+        ? countSoundedStrumNotes(currColumn) * TUNING_PREVIEW_NOTE_DELAY_SECONDS
+        : chordDuration);
     const secondsUntilScheduledEnd =
       scheduledEndTime - audioContext.currentTime;
 
@@ -501,6 +509,22 @@ function playNoteColumn({
         acousticSteelOverrideForPreview,
         scheduledNodes,
       });
+
+      if (onNoteStart) {
+        const delayMs = Math.max(
+          0,
+          (scheduledStartTime +
+            chordDelayMultiplier * notesPlayedSoFar -
+            audioContext.currentTime) *
+            1000,
+        );
+
+        setTimeout(() => {
+          if (!isSessionValid || isSessionValid()) {
+            onNoteStart(adjustedStringIdx);
+          }
+        }, delayMs);
+      }
 
       notesPlayedSoFar++;
     }
