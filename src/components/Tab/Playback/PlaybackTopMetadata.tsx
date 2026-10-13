@@ -14,7 +14,7 @@ import { Separator } from "~/components/ui/separator";
 import { useTabStore, type PlaybackMetadata } from "~/stores/TabStore";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
-import { tuningNotesToName } from "~/utils/tunings";
+import { getTuningName } from "~/utils/tunings";
 import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
 
 interface PlaybackTopMetadata {
@@ -133,9 +133,9 @@ function PlaybackTopMetadata({
                     <div className="baseVertFlex !items-start">
                       <span className="text-sm font-medium">Tuning</span>
                       <div>
-                        {tuningNotesToName[
-                          tuning.toLowerCase() as keyof typeof tuningNotesToName
-                        ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                        {getTuningName(tuning) ?? (
+                          <PrettyTuning tuning={tuning} displayWithFlex />
+                        )}
                       </div>
                     </div>
 

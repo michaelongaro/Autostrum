@@ -9,7 +9,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { genreColors } from "~/utils/genreColors";
-import { tuningNotesToName } from "~/utils/tunings";
+import { getTuningName } from "~/utils/tunings";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -535,9 +535,7 @@ function StaticTabMetadata() {
 
           <div className={`${classes.tuning} baseVertFlex !items-start gap-1`}>
             <div className="font-semibold">Tuning</div>
-            {tuningNotesToName[
-              tuning.toLowerCase() as keyof typeof tuningNotesToName
-            ] ?? (
+            {getTuningName(tuning) ?? (
               <PrettyTuning
                 tuning={tuning}
                 displayWithFlex

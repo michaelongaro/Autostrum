@@ -312,9 +312,11 @@ export function useTuner({
     () => resolveTargetMidis(targetTuning, capo),
     [capo, targetTuning],
   );
+  const preferFlats = targetNotes.some((note) => note[1] === "b");
 
   const loopConfigRef = useRef({
     targetMidis,
+    preferFlats,
     toleranceCents,
     minimumClarity,
     stableHoldDurationMs,
@@ -680,7 +682,7 @@ export function useTuner({
       signalDetected: true,
       detectedFrequency: Math.round(filteredFrequency * 10) / 10,
       detectedNote: midiToNoteName(lockedMidi, {
-        sharps: true,
+        sharps: !loopConfigRef.current.preferFlats,
       }).toLowerCase(),
       detectedCents: Math.round(smoothedCents * 10) / 10,
       targetCentsOffset: Math.round(centsFromTarget * 10) / 10,
@@ -1090,11 +1092,18 @@ export function useTuner({
   useEffect(() => {
     loopConfigRef.current = {
       targetMidis,
+      preferFlats,
       toleranceCents,
       minimumClarity,
       stableHoldDurationMs,
     };
-  }, [minimumClarity, stableHoldDurationMs, targetMidis, toleranceCents]);
+  }, [
+    minimumClarity,
+    preferFlats,
+    stableHoldDurationMs,
+    targetMidis,
+    toleranceCents,
+  ]);
 
   /*
    * Pause the microphone when the tab is hidden and resume when it becomes

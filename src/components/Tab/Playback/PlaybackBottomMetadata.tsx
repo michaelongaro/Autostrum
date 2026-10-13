@@ -50,7 +50,7 @@ import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { tuningNotesToName } from "~/utils/tunings";
+import { getTuningName } from "~/utils/tunings";
 import { Direction, getTrackBackground, Range } from "react-range";
 import { IoMdSettings } from "react-icons/io";
 import { IoColorPalette } from "react-icons/io5";
@@ -123,9 +123,9 @@ function PlaybackBottomMetadata({
             <div className="baseVertFlex !items-start">
               <p className="text-sm font-medium">Tuning</p>
               <div>
-                {tuningNotesToName[
-                  tuning.toLowerCase() as keyof typeof tuningNotesToName
-                ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                {getTuningName(tuning) ?? (
+                  <PrettyTuning tuning={tuning} displayWithFlex />
+                )}
               </div>
             </div>
 

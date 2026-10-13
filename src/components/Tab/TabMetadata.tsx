@@ -31,7 +31,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, getTabData } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { genreColors } from "~/utils/genreColors";
-import { tuningNotesToName } from "~/utils/tunings";
+import { getTuningName } from "~/utils/tunings";
 import ArtistCombobox from "~/components/ui/ArtistCombobox";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { Button } from "~/components/ui/button";
@@ -1379,9 +1379,9 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 className={`${classes.tuning} baseVertFlex !items-start gap-1`}
               >
                 <div className="font-semibold">Tuning</div>
-                {tuningNotesToName[
-                  tuning.toLowerCase() as keyof typeof tuningNotesToName
-                ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                {getTuningName(tuning) ?? (
+                  <PrettyTuning tuning={tuning} displayWithFlex />
+                )}
               </div>
 
               <div
