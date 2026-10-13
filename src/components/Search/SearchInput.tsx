@@ -415,7 +415,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   href={`/tab/${song.id}/${encodeURIComponent(
                                     song.title,
                                   )}`}
-                                  className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2 transition-all"
+                                  style={{
+                                    transition: "filter 150ms linear",
+                                  }}
+                                  className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2"
                                   onClick={() => {
                                     setShowAutofillResults(false);
                                   }}

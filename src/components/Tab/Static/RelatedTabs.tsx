@@ -35,9 +35,7 @@ function browseAllTabsSection(
   sections: RelatedTabSection<RelatedTabCandidate>[],
 ): RelatedTabSectionKind | null {
   return (
-    sections.find(
-      (section) => section.kind === "similar" || section.kind === "explore",
-    )?.kind ??
+    sections.find((section) => section.kind === "similar")?.kind ??
     sections[0]?.kind ??
     null
   );
