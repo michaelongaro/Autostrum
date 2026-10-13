@@ -360,6 +360,9 @@ function useChordTrainerPlayback({
       return;
     }
 
+    const msPerStrum = (60 / tempo) * 1000 * strummingPattern.beatsPerStrum;
+    const velocity = TOTAL_CHORD_WIDTH / msPerStrum;
+
     const tick = (time: number) => {
       if (!isPlayingRef.current) return;
 
@@ -370,8 +373,6 @@ function useChordTrainerPlayback({
       const deltaTime = Math.min(time - lastFrameTimeRef.current, 32);
       lastFrameTimeRef.current = time;
 
-      const msPerChord = (60 / tempo) * 1000;
-      const velocity = TOTAL_CHORD_WIDTH / msPerChord;
       scrollXRef.current += velocity * deltaTime;
 
       const currentCenterIndex = getCenteredChordIndex(scrollXRef.current);

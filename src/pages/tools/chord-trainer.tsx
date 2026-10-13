@@ -123,7 +123,7 @@ const DEFAULT_SELECTED_CHORD_IDS =
   CHORD_SELECTION_PRESETS.find(
     (preset) => preset.id === DEFAULT_CHORD_PRESET_ID,
   )?.chordIds ?? [];
-const DEFAULT_TEMPO = 70;
+const DEFAULT_TEMPO = 130;
 const DEFAULT_STRUMMING_PATTERN_ID = NONE_CHORD_TRAINER_STRUMMING_PATTERN.id;
 const CUSTOM_CHORD_PRESET_OPTION: ChordTrainerSelectionPreset = {
   id: CUSTOM_CHORD_PRESET_ID,
@@ -332,7 +332,9 @@ function ChordTrainerPage() {
                           {pattern.showIcons && (
                             <>
                               <span className="sr-only">{pattern.label}</span>
-                              <ChordTrainerStrumPreview strums={pattern.strums} />
+                              <ChordTrainerStrumPreview
+                                strums={pattern.strums}
+                              />
                             </>
                           )}
                           {pattern.label === "None" && (
