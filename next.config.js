@@ -10,7 +10,7 @@ const config = {
   async headers() {
     return [
       {
-        source: "/sounds/guitars/v1/:bank/:hash([a-f0-9]{12}).mp3",
+        source: "/sounds/guitars/v2/:bank/:hash([a-f0-9]{12}).mp3",
         headers: [
           {
             key: "Cache-Control",

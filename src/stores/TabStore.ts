@@ -25,6 +25,7 @@ import {
   runPlaybackScheduler,
 } from "~/utils/playbackScheduler";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
+import { prepareGuitarColumns } from "~/utils/prepareGuitarPlayback";
 import {
   clampPlaybackSpeed,
   type PlaybackSpeed,
@@ -1167,6 +1168,7 @@ const useTabStoreBase = create<TabState>()(
       },
 
       playTab: async ({ location }: PlayTab = {}) => {
+        const preparationSessionId = get().playbackSessionId;
         const {
           tabData,
           audioMetadata,
@@ -1254,7 +1256,7 @@ const useTabStoreBase = create<TabState>()(
               ? rawSectionProgression
               : generateDefaultSectionProgression(tabData);
 
-        const tuning = parse(tuningNotes);
+        const tuning = parse(tuningNotes) as number[];
 
         // entire tab should be shown while editing the loop range
         const adjStartLoopIndex = audioMetadata.editingLoopRange
@@ -1294,6 +1296,18 @@ const useTabStoreBase = create<TabState>()(
                 forMetadataOnly: false,
                 forPlayback: editing ? undefined : { loopDelay },
               });
+
+        await prepareGuitarColumns(
+          currentInstrument,
+          compiledChords,
+          tuning,
+          capo ?? 0,
+        );
+        if (
+          get().playbackSessionId !== preparationSessionId ||
+          get().currentInstrument !== currentInstrument
+        )
+          return;
 
         const expandedTabData = editing
           ? null
@@ -1412,6 +1426,7 @@ const useTabStoreBase = create<TabState>()(
         chordEffects,
         strumSpreadCompileValue,
       }: PlayPreview) => {
+        const preparationSessionId = get().playbackSessionId;
         const { capo, tuning, previewMetadata, ensureAudioSystemReady } = get();
 
         const audioSystem = await ensureAudioSystemReady();
@@ -1457,6 +1472,22 @@ const useTabStoreBase = create<TabState>()(
                 strummingPattern: data as StrummingPattern,
               });
 
+        const previewTuning = parse(
+          type === "chord" ? (customTuning ?? tuning) : "e2 a2 d3 g3 b3 e4",
+        ) as number[];
+        const previewCapo = type === "chord" && !forTuningPreview ? capo : 0;
+        await prepareGuitarColumns(
+          instruments.acoustic_guitar_steel ?? currentInstrument,
+          compiledChords,
+          previewTuning,
+          previewCapo,
+        );
+        if (
+          get().playbackSessionId !== preparationSessionId ||
+          (isPreviewValid && !isPreviewValid())
+        )
+          return;
+
         for (
           let chordIndex = previewMetadata.currentChordIndex;
           chordIndex < compiledChords.length;
@@ -1483,10 +1514,8 @@ const useTabStoreBase = create<TabState>()(
           const effectiveBpm = baseBpm * (1 / noteLengthMultiplier);
 
           await playNoteColumn({
-            tuning: parse(
-              type === "chord" ? (customTuning ?? tuning) : "e2 a2 d3 g3 b3 e4",
-            ),
-            capo: type === "chord" && !forTuningPreview ? capo : 0,
+            tuning: previewTuning,
+            capo: previewCapo,
             bpm: effectiveBpm,
             currColumn,
             audioContext,

@@ -1,0 +1,620 @@
+// Meta Steel Guitar: reference SFZ map of README.md.
+//
+// MIDI channel 1 plays each pitch E2-C6 on one string: the lowest string that
+// reaches it at fret 4 or below (first position), and High E from E4 up.
+// Channels 2-7 each play a single string, Low E to High E, over that string's
+// sampled range, for parts that choose strings themselves.
+//
+// Velocity: README's 1-48 / 49-96 / 97-127, switched rather than crossfaded,
+// with 3 dB of gain across each layer. A new note on a string cuts the note
+// already ringing on it (group / off_by), across all channels, so at most six
+// notes sound at once, as on a real guitar.
+
+<global>
+ampeg_release=0.05
+pitch_random=4
+amp_random=1.5
+off_mode=normal
+
+<master> lochan=1 hichan=1
+
+<group> group=1 off_by=1 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=40 sample=INSGuitarSteel_StringLowE_Vel01_E2_01.wav
+<region> key=41 sample=INSGuitarSteel_StringLowE_Vel01_F2_01.wav
+<region> key=42 sample=INSGuitarSteel_StringLowE_Vel01_Fs2_01.wav
+<region> key=43 sample=INSGuitarSteel_StringLowE_Vel01_G2_01.wav
+<region> key=44 sample=INSGuitarSteel_StringLowE_Vel01_Gs2_01.wav
+
+<group> group=1 off_by=1 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=40 sample=INSGuitarSteel_StringLowE_Vel02_E2_01.wav
+<region> key=41 sample=INSGuitarSteel_StringLowE_Vel02_F2_01.wav
+<region> key=42 sample=INSGuitarSteel_StringLowE_Vel02_Fs2_01.wav
+<region> key=43 sample=INSGuitarSteel_StringLowE_Vel02_G2_01.wav
+<region> key=44 sample=INSGuitarSteel_StringLowE_Vel02_Gs2_01.wav
+
+<group> group=1 off_by=1 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=40 sample=INSGuitarSteel_StringLowE_Vel03_E2_01.wav
+<region> key=41 sample=INSGuitarSteel_StringLowE_Vel03_F2_01.wav
+<region> key=42 sample=INSGuitarSteel_StringLowE_Vel03_Fs2_01.wav
+<region> key=43 sample=INSGuitarSteel_StringLowE_Vel03_G2_01.wav
+<region> key=44 sample=INSGuitarSteel_StringLowE_Vel03_Gs2_01.wav
+
+<group> group=2 off_by=2 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=45 sample=INSGuitarSteel_StringA_Vel01_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringA_Vel01_As2_01.wav
+<region> key=47 sample=INSGuitarSteel_StringA_Vel01_B2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringA_Vel01_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringA_Vel01_Cs3_01.wav
+
+<group> group=2 off_by=2 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=45 sample=INSGuitarSteel_StringA_Vel02_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringA_Vel02_As2_01.wav
+<region> key=47 sample=INSGuitarSteel_StringA_Vel02_B2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringA_Vel02_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringA_Vel02_Cs3_01.wav
+
+<group> group=2 off_by=2 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=45 sample=INSGuitarSteel_StringA_Vel03_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringA_Vel03_As2_01.wav
+<region> key=47 sample=INSGuitarSteel_StringA_Vel03_B2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringA_Vel03_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringA_Vel03_Cs3_01.wav
+
+<group> group=3 off_by=3 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=50 sample=INSGuitarSteel_StringD_Vel01_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringD_Vel01_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringD_Vel01_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringD_Vel01_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringD_Vel01_Fs3_01.wav
+
+<group> group=3 off_by=3 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=50 sample=INSGuitarSteel_StringD_Vel02_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringD_Vel02_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringD_Vel02_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringD_Vel02_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringD_Vel02_Fs3_01.wav
+
+<group> group=3 off_by=3 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=50 sample=INSGuitarSteel_StringD_Vel03_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringD_Vel03_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringD_Vel03_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringD_Vel03_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringD_Vel03_Fs3_01.wav
+
+<group> group=4 off_by=4 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=55 sample=INSGuitarSteel_StringG_Vel01_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringG_Vel01_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringG_Vel01_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringG_Vel01_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringG_Vel01_B3_01.wav
+
+<group> group=4 off_by=4 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=55 sample=INSGuitarSteel_StringG_Vel02_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringG_Vel02_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringG_Vel02_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringG_Vel02_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringG_Vel02_B3_01.wav
+
+<group> group=4 off_by=4 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=55 sample=INSGuitarSteel_StringG_Vel03_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringG_Vel03_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringG_Vel03_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringG_Vel03_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringG_Vel03_B3_01.wav
+
+<group> group=5 off_by=5 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=60 sample=INSGuitarSteel_StringB_Vel01_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringB_Vel01_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringB_Vel01_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringB_Vel01_Ds4_01.wav
+
+<group> group=5 off_by=5 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=60 sample=INSGuitarSteel_StringB_Vel02_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringB_Vel02_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringB_Vel02_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringB_Vel02_Ds4_01.wav
+
+<group> group=5 off_by=5 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=60 sample=INSGuitarSteel_StringB_Vel03_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringB_Vel03_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringB_Vel03_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringB_Vel03_Ds4_01.wav
+
+<group> group=6 off_by=6 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=64 sample=INSGuitarSteel_StringHighE_Vel01_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringHighE_Vel01_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringHighE_Vel01_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringHighE_Vel01_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringHighE_Vel01_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringHighE_Vel01_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringHighE_Vel01_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringHighE_Vel01_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringHighE_Vel01_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringHighE_Vel01_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringHighE_Vel01_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringHighE_Vel01_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringHighE_Vel01_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringHighE_Vel01_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringHighE_Vel01_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringHighE_Vel01_G5_01.wav
+<region> key=80 sample=INSGuitarSteel_StringHighE_Vel01_Gs5_01.wav
+<region> key=81 sample=INSGuitarSteel_StringHighE_Vel01_A5_01.wav
+<region> key=82 sample=INSGuitarSteel_StringHighE_Vel01_As5_01.wav
+<region> key=83 sample=INSGuitarSteel_StringHighE_Vel01_B5_01.wav
+<region> key=84 sample=INSGuitarSteel_StringHighE_Vel01_C6_01.wav
+
+<group> group=6 off_by=6 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=64 sample=INSGuitarSteel_StringHighE_Vel02_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringHighE_Vel02_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringHighE_Vel02_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringHighE_Vel02_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringHighE_Vel02_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringHighE_Vel02_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringHighE_Vel02_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringHighE_Vel02_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringHighE_Vel02_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringHighE_Vel02_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringHighE_Vel02_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringHighE_Vel02_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringHighE_Vel02_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringHighE_Vel02_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringHighE_Vel02_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringHighE_Vel02_G5_01.wav
+<region> key=80 sample=INSGuitarSteel_StringHighE_Vel02_Gs5_01.wav
+<region> key=81 sample=INSGuitarSteel_StringHighE_Vel02_A5_01.wav
+<region> key=82 sample=INSGuitarSteel_StringHighE_Vel02_As5_01.wav
+<region> key=83 sample=INSGuitarSteel_StringHighE_Vel02_B5_01.wav
+<region> key=84 sample=INSGuitarSteel_StringHighE_Vel02_C6_01.wav
+
+<group> group=6 off_by=6 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=64 sample=INSGuitarSteel_StringHighE_Vel03_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringHighE_Vel03_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringHighE_Vel03_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringHighE_Vel03_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringHighE_Vel03_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringHighE_Vel03_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringHighE_Vel03_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringHighE_Vel03_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringHighE_Vel03_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringHighE_Vel03_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringHighE_Vel03_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringHighE_Vel03_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringHighE_Vel03_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringHighE_Vel03_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringHighE_Vel03_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringHighE_Vel03_G5_01.wav
+<region> key=80 sample=INSGuitarSteel_StringHighE_Vel03_Gs5_01.wav
+<region> key=81 sample=INSGuitarSteel_StringHighE_Vel03_A5_01.wav
+<region> key=82 sample=INSGuitarSteel_StringHighE_Vel03_As5_01.wav
+<region> key=83 sample=INSGuitarSteel_StringHighE_Vel03_B5_01.wav
+<region> key=84 sample=INSGuitarSteel_StringHighE_Vel03_C6_01.wav
+
+<master> lochan=2 hichan=2
+
+// B2 is the one pitch the Low E string was not recorded at, so key 47 plays A#2
+// a semitone up, within the +/-2 semitones the README allows. Channel 1 takes
+// B2 from the A string instead.
+
+<group> group=1 off_by=1 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=40 sample=INSGuitarSteel_StringLowE_Vel01_E2_01.wav
+<region> key=41 sample=INSGuitarSteel_StringLowE_Vel01_F2_01.wav
+<region> key=42 sample=INSGuitarSteel_StringLowE_Vel01_Fs2_01.wav
+<region> key=43 sample=INSGuitarSteel_StringLowE_Vel01_G2_01.wav
+<region> key=44 sample=INSGuitarSteel_StringLowE_Vel01_Gs2_01.wav
+<region> key=45 sample=INSGuitarSteel_StringLowE_Vel01_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringLowE_Vel01_As2_01.wav
+<region> lokey=47 hikey=47 pitch_keycenter=46 sample=INSGuitarSteel_StringLowE_Vel01_As2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringLowE_Vel01_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringLowE_Vel01_Cs3_01.wav
+<region> key=50 sample=INSGuitarSteel_StringLowE_Vel01_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringLowE_Vel01_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringLowE_Vel01_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringLowE_Vel01_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringLowE_Vel01_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringLowE_Vel01_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringLowE_Vel01_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringLowE_Vel01_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringLowE_Vel01_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringLowE_Vel01_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringLowE_Vel01_C4_01.wav
+
+<group> group=1 off_by=1 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=40 sample=INSGuitarSteel_StringLowE_Vel02_E2_01.wav
+<region> key=41 sample=INSGuitarSteel_StringLowE_Vel02_F2_01.wav
+<region> key=42 sample=INSGuitarSteel_StringLowE_Vel02_Fs2_01.wav
+<region> key=43 sample=INSGuitarSteel_StringLowE_Vel02_G2_01.wav
+<region> key=44 sample=INSGuitarSteel_StringLowE_Vel02_Gs2_01.wav
+<region> key=45 sample=INSGuitarSteel_StringLowE_Vel02_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringLowE_Vel02_As2_01.wav
+<region> lokey=47 hikey=47 pitch_keycenter=46 sample=INSGuitarSteel_StringLowE_Vel02_As2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringLowE_Vel02_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringLowE_Vel02_Cs3_01.wav
+<region> key=50 sample=INSGuitarSteel_StringLowE_Vel02_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringLowE_Vel02_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringLowE_Vel02_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringLowE_Vel02_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringLowE_Vel02_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringLowE_Vel02_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringLowE_Vel02_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringLowE_Vel02_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringLowE_Vel02_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringLowE_Vel02_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringLowE_Vel02_C4_01.wav
+
+<group> group=1 off_by=1 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=40 sample=INSGuitarSteel_StringLowE_Vel03_E2_01.wav
+<region> key=41 sample=INSGuitarSteel_StringLowE_Vel03_F2_01.wav
+<region> key=42 sample=INSGuitarSteel_StringLowE_Vel03_Fs2_01.wav
+<region> key=43 sample=INSGuitarSteel_StringLowE_Vel03_G2_01.wav
+<region> key=44 sample=INSGuitarSteel_StringLowE_Vel03_Gs2_01.wav
+<region> key=45 sample=INSGuitarSteel_StringLowE_Vel03_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringLowE_Vel03_As2_01.wav
+<region> lokey=47 hikey=47 pitch_keycenter=46 sample=INSGuitarSteel_StringLowE_Vel03_As2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringLowE_Vel03_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringLowE_Vel03_Cs3_01.wav
+<region> key=50 sample=INSGuitarSteel_StringLowE_Vel03_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringLowE_Vel03_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringLowE_Vel03_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringLowE_Vel03_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringLowE_Vel03_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringLowE_Vel03_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringLowE_Vel03_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringLowE_Vel03_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringLowE_Vel03_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringLowE_Vel03_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringLowE_Vel03_C4_01.wav
+
+<master> lochan=3 hichan=3
+
+<group> group=2 off_by=2 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=45 sample=INSGuitarSteel_StringA_Vel01_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringA_Vel01_As2_01.wav
+<region> key=47 sample=INSGuitarSteel_StringA_Vel01_B2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringA_Vel01_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringA_Vel01_Cs3_01.wav
+<region> key=50 sample=INSGuitarSteel_StringA_Vel01_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringA_Vel01_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringA_Vel01_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringA_Vel01_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringA_Vel01_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringA_Vel01_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringA_Vel01_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringA_Vel01_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringA_Vel01_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringA_Vel01_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringA_Vel01_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringA_Vel01_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringA_Vel01_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringA_Vel01_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringA_Vel01_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringA_Vel01_F4_01.wav
+
+<group> group=2 off_by=2 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=45 sample=INSGuitarSteel_StringA_Vel02_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringA_Vel02_As2_01.wav
+<region> key=47 sample=INSGuitarSteel_StringA_Vel02_B2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringA_Vel02_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringA_Vel02_Cs3_01.wav
+<region> key=50 sample=INSGuitarSteel_StringA_Vel02_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringA_Vel02_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringA_Vel02_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringA_Vel02_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringA_Vel02_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringA_Vel02_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringA_Vel02_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringA_Vel02_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringA_Vel02_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringA_Vel02_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringA_Vel02_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringA_Vel02_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringA_Vel02_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringA_Vel02_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringA_Vel02_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringA_Vel02_F4_01.wav
+
+<group> group=2 off_by=2 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=45 sample=INSGuitarSteel_StringA_Vel03_A2_01.wav
+<region> key=46 sample=INSGuitarSteel_StringA_Vel03_As2_01.wav
+<region> key=47 sample=INSGuitarSteel_StringA_Vel03_B2_01.wav
+<region> key=48 sample=INSGuitarSteel_StringA_Vel03_C3_01.wav
+<region> key=49 sample=INSGuitarSteel_StringA_Vel03_Cs3_01.wav
+<region> key=50 sample=INSGuitarSteel_StringA_Vel03_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringA_Vel03_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringA_Vel03_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringA_Vel03_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringA_Vel03_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringA_Vel03_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringA_Vel03_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringA_Vel03_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringA_Vel03_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringA_Vel03_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringA_Vel03_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringA_Vel03_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringA_Vel03_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringA_Vel03_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringA_Vel03_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringA_Vel03_F4_01.wav
+
+<master> lochan=4 hichan=4
+
+<group> group=3 off_by=3 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=50 sample=INSGuitarSteel_StringD_Vel01_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringD_Vel01_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringD_Vel01_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringD_Vel01_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringD_Vel01_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringD_Vel01_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringD_Vel01_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringD_Vel01_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringD_Vel01_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringD_Vel01_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringD_Vel01_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringD_Vel01_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringD_Vel01_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringD_Vel01_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringD_Vel01_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringD_Vel01_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringD_Vel01_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringD_Vel01_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringD_Vel01_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringD_Vel01_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringD_Vel01_As4_01.wav
+
+<group> group=3 off_by=3 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=50 sample=INSGuitarSteel_StringD_Vel02_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringD_Vel02_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringD_Vel02_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringD_Vel02_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringD_Vel02_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringD_Vel02_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringD_Vel02_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringD_Vel02_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringD_Vel02_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringD_Vel02_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringD_Vel02_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringD_Vel02_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringD_Vel02_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringD_Vel02_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringD_Vel02_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringD_Vel02_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringD_Vel02_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringD_Vel02_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringD_Vel02_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringD_Vel02_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringD_Vel02_As4_01.wav
+
+<group> group=3 off_by=3 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=50 sample=INSGuitarSteel_StringD_Vel03_D3_01.wav
+<region> key=51 sample=INSGuitarSteel_StringD_Vel03_Ds3_01.wav
+<region> key=52 sample=INSGuitarSteel_StringD_Vel03_E3_01.wav
+<region> key=53 sample=INSGuitarSteel_StringD_Vel03_F3_01.wav
+<region> key=54 sample=INSGuitarSteel_StringD_Vel03_Fs3_01.wav
+<region> key=55 sample=INSGuitarSteel_StringD_Vel03_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringD_Vel03_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringD_Vel03_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringD_Vel03_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringD_Vel03_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringD_Vel03_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringD_Vel03_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringD_Vel03_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringD_Vel03_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringD_Vel03_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringD_Vel03_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringD_Vel03_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringD_Vel03_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringD_Vel03_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringD_Vel03_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringD_Vel03_As4_01.wav
+
+<master> lochan=5 hichan=5
+
+<group> group=4 off_by=4 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=55 sample=INSGuitarSteel_StringG_Vel01_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringG_Vel01_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringG_Vel01_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringG_Vel01_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringG_Vel01_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringG_Vel01_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringG_Vel01_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringG_Vel01_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringG_Vel01_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringG_Vel01_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringG_Vel01_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringG_Vel01_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringG_Vel01_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringG_Vel01_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringG_Vel01_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringG_Vel01_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringG_Vel01_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringG_Vel01_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringG_Vel01_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringG_Vel01_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringG_Vel01_Ds5_01.wav
+
+<group> group=4 off_by=4 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=55 sample=INSGuitarSteel_StringG_Vel02_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringG_Vel02_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringG_Vel02_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringG_Vel02_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringG_Vel02_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringG_Vel02_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringG_Vel02_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringG_Vel02_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringG_Vel02_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringG_Vel02_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringG_Vel02_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringG_Vel02_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringG_Vel02_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringG_Vel02_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringG_Vel02_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringG_Vel02_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringG_Vel02_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringG_Vel02_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringG_Vel02_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringG_Vel02_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringG_Vel02_Ds5_01.wav
+
+<group> group=4 off_by=4 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=55 sample=INSGuitarSteel_StringG_Vel03_G3_01.wav
+<region> key=56 sample=INSGuitarSteel_StringG_Vel03_Gs3_01.wav
+<region> key=57 sample=INSGuitarSteel_StringG_Vel03_A3_01.wav
+<region> key=58 sample=INSGuitarSteel_StringG_Vel03_As3_01.wav
+<region> key=59 sample=INSGuitarSteel_StringG_Vel03_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringG_Vel03_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringG_Vel03_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringG_Vel03_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringG_Vel03_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringG_Vel03_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringG_Vel03_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringG_Vel03_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringG_Vel03_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringG_Vel03_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringG_Vel03_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringG_Vel03_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringG_Vel03_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringG_Vel03_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringG_Vel03_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringG_Vel03_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringG_Vel03_Ds5_01.wav
+
+<master> lochan=6 hichan=6
+
+<group> group=5 off_by=5 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=59 sample=INSGuitarSteel_StringB_Vel01_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringB_Vel01_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringB_Vel01_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringB_Vel01_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringB_Vel01_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringB_Vel01_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringB_Vel01_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringB_Vel01_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringB_Vel01_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringB_Vel01_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringB_Vel01_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringB_Vel01_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringB_Vel01_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringB_Vel01_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringB_Vel01_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringB_Vel01_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringB_Vel01_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringB_Vel01_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringB_Vel01_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringB_Vel01_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringB_Vel01_G5_01.wav
+
+<group> group=5 off_by=5 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=59 sample=INSGuitarSteel_StringB_Vel02_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringB_Vel02_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringB_Vel02_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringB_Vel02_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringB_Vel02_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringB_Vel02_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringB_Vel02_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringB_Vel02_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringB_Vel02_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringB_Vel02_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringB_Vel02_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringB_Vel02_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringB_Vel02_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringB_Vel02_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringB_Vel02_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringB_Vel02_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringB_Vel02_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringB_Vel02_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringB_Vel02_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringB_Vel02_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringB_Vel02_G5_01.wav
+
+<group> group=5 off_by=5 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=59 sample=INSGuitarSteel_StringB_Vel03_B3_01.wav
+<region> key=60 sample=INSGuitarSteel_StringB_Vel03_C4_01.wav
+<region> key=61 sample=INSGuitarSteel_StringB_Vel03_Cs4_01.wav
+<region> key=62 sample=INSGuitarSteel_StringB_Vel03_D4_01.wav
+<region> key=63 sample=INSGuitarSteel_StringB_Vel03_Ds4_01.wav
+<region> key=64 sample=INSGuitarSteel_StringB_Vel03_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringB_Vel03_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringB_Vel03_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringB_Vel03_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringB_Vel03_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringB_Vel03_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringB_Vel03_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringB_Vel03_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringB_Vel03_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringB_Vel03_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringB_Vel03_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringB_Vel03_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringB_Vel03_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringB_Vel03_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringB_Vel03_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringB_Vel03_G5_01.wav
+
+<master> lochan=7 hichan=7
+
+<group> group=6 off_by=6 lovel=1 hivel=48 amp_velcurve_1=0.708 amp_velcurve_48=1
+<region> key=64 sample=INSGuitarSteel_StringHighE_Vel01_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringHighE_Vel01_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringHighE_Vel01_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringHighE_Vel01_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringHighE_Vel01_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringHighE_Vel01_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringHighE_Vel01_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringHighE_Vel01_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringHighE_Vel01_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringHighE_Vel01_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringHighE_Vel01_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringHighE_Vel01_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringHighE_Vel01_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringHighE_Vel01_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringHighE_Vel01_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringHighE_Vel01_G5_01.wav
+<region> key=80 sample=INSGuitarSteel_StringHighE_Vel01_Gs5_01.wav
+<region> key=81 sample=INSGuitarSteel_StringHighE_Vel01_A5_01.wav
+<region> key=82 sample=INSGuitarSteel_StringHighE_Vel01_As5_01.wav
+<region> key=83 sample=INSGuitarSteel_StringHighE_Vel01_B5_01.wav
+<region> key=84 sample=INSGuitarSteel_StringHighE_Vel01_C6_01.wav
+
+<group> group=6 off_by=6 lovel=49 hivel=96 amp_velcurve_49=0.708 amp_velcurve_96=1
+<region> key=64 sample=INSGuitarSteel_StringHighE_Vel02_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringHighE_Vel02_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringHighE_Vel02_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringHighE_Vel02_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringHighE_Vel02_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringHighE_Vel02_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringHighE_Vel02_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringHighE_Vel02_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringHighE_Vel02_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringHighE_Vel02_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringHighE_Vel02_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringHighE_Vel02_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringHighE_Vel02_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringHighE_Vel02_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringHighE_Vel02_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringHighE_Vel02_G5_01.wav
+<region> key=80 sample=INSGuitarSteel_StringHighE_Vel02_Gs5_01.wav
+<region> key=81 sample=INSGuitarSteel_StringHighE_Vel02_A5_01.wav
+<region> key=82 sample=INSGuitarSteel_StringHighE_Vel02_As5_01.wav
+<region> key=83 sample=INSGuitarSteel_StringHighE_Vel02_B5_01.wav
+<region> key=84 sample=INSGuitarSteel_StringHighE_Vel02_C6_01.wav
+
+<group> group=6 off_by=6 lovel=97 hivel=127 amp_velcurve_97=0.708 amp_velcurve_127=1
+<region> key=64 sample=INSGuitarSteel_StringHighE_Vel03_E4_01.wav
+<region> key=65 sample=INSGuitarSteel_StringHighE_Vel03_F4_01.wav
+<region> key=66 sample=INSGuitarSteel_StringHighE_Vel03_Fs4_01.wav
+<region> key=67 sample=INSGuitarSteel_StringHighE_Vel03_G4_01.wav
+<region> key=68 sample=INSGuitarSteel_StringHighE_Vel03_Gs4_01.wav
+<region> key=69 sample=INSGuitarSteel_StringHighE_Vel03_A4_01.wav
+<region> key=70 sample=INSGuitarSteel_StringHighE_Vel03_As4_01.wav
+<region> key=71 sample=INSGuitarSteel_StringHighE_Vel03_B4_01.wav
+<region> key=72 sample=INSGuitarSteel_StringHighE_Vel03_C5_01.wav
+<region> key=73 sample=INSGuitarSteel_StringHighE_Vel03_Cs5_01.wav
+<region> key=74 sample=INSGuitarSteel_StringHighE_Vel03_D5_01.wav
+<region> key=75 sample=INSGuitarSteel_StringHighE_Vel03_Ds5_01.wav
+<region> key=76 sample=INSGuitarSteel_StringHighE_Vel03_E5_01.wav
+<region> key=77 sample=INSGuitarSteel_StringHighE_Vel03_F5_01.wav
+<region> key=78 sample=INSGuitarSteel_StringHighE_Vel03_Fs5_01.wav
+<region> key=79 sample=INSGuitarSteel_StringHighE_Vel03_G5_01.wav
+<region> key=80 sample=INSGuitarSteel_StringHighE_Vel03_Gs5_01.wav
+<region> key=81 sample=INSGuitarSteel_StringHighE_Vel03_A5_01.wav
+<region> key=82 sample=INSGuitarSteel_StringHighE_Vel03_As5_01.wav
+<region> key=83 sample=INSGuitarSteel_StringHighE_Vel03_B5_01.wav
+<region> key=84 sample=INSGuitarSteel_StringHighE_Vel03_C6_01.wav

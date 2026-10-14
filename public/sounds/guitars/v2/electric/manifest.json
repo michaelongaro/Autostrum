@@ -1,0 +1,872 @@
+{
+  "version": 2,
+  "name": "Karoryfer Emilyguitar",
+  "source": "https://github.com/sfzinstruments/karoryfer.emilyguitar",
+  "license": "CC0-1.0",
+  "zones": [
+    {
+      "rootMidi": 37,
+      "lowMidi": 33,
+      "highMidi": 38,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "4f0196e280d4.mp3",
+        "43106acbf42a.mp3",
+        "9d2de906ca4e.mp3"
+      ]
+    },
+    {
+      "rootMidi": 37,
+      "lowMidi": 33,
+      "highMidi": 38,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "f71482a2f528.mp3",
+        "b7c3af955485.mp3",
+        "8962e2d69375.mp3"
+      ]
+    },
+    {
+      "rootMidi": 37,
+      "lowMidi": 33,
+      "highMidi": 38,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "2c1434bfb33c.mp3",
+        "751fe3a03b8f.mp3",
+        "b9eff4db17c0.mp3"
+      ]
+    },
+    {
+      "rootMidi": 37,
+      "lowMidi": 33,
+      "highMidi": 38,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "504d36698202.mp3",
+        "21bc65bf8db8.mp3",
+        "8abdc813c96e.mp3"
+      ]
+    },
+    {
+      "rootMidi": 40,
+      "lowMidi": 39,
+      "highMidi": 40,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "4e53fda03a3e.mp3",
+        "9ff5b1134e40.mp3",
+        "2eb21fba49e3.mp3"
+      ]
+    },
+    {
+      "rootMidi": 40,
+      "lowMidi": 39,
+      "highMidi": 40,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "856fe35c81b0.mp3",
+        "b2d4e62b6a7d.mp3",
+        "78e2752ece99.mp3"
+      ]
+    },
+    {
+      "rootMidi": 40,
+      "lowMidi": 39,
+      "highMidi": 40,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "5dce3b38c5de.mp3",
+        "936bc7c564cb.mp3",
+        "a942e4cfe10c.mp3"
+      ]
+    },
+    {
+      "rootMidi": 40,
+      "lowMidi": 39,
+      "highMidi": 40,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "2a007d588453.mp3",
+        "2d1253dd36a5.mp3",
+        "475abbf76738.mp3"
+      ]
+    },
+    {
+      "rootMidi": 42,
+      "lowMidi": 41,
+      "highMidi": 43,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "5bc6d5634932.mp3",
+        "9d3da6296e02.mp3",
+        "3691ee64a48f.mp3"
+      ]
+    },
+    {
+      "rootMidi": 42,
+      "lowMidi": 41,
+      "highMidi": 43,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "10cd88192eb4.mp3",
+        "2fbac96559e9.mp3",
+        "7c06955905a7.mp3"
+      ]
+    },
+    {
+      "rootMidi": 42,
+      "lowMidi": 41,
+      "highMidi": 43,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "52142a97cd19.mp3",
+        "3385659465a5.mp3",
+        "0f04ec5dfc36.mp3"
+      ]
+    },
+    {
+      "rootMidi": 42,
+      "lowMidi": 41,
+      "highMidi": 43,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "9703d6665e0e.mp3",
+        "c2629debc263.mp3",
+        "733a66324a6a.mp3"
+      ]
+    },
+    {
+      "rootMidi": 45,
+      "lowMidi": 44,
+      "highMidi": 46,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "74868c30a0a7.mp3",
+        "bcfce17f1cd4.mp3",
+        "e1621ca0e09d.mp3"
+      ]
+    },
+    {
+      "rootMidi": 45,
+      "lowMidi": 44,
+      "highMidi": 46,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "90d431f61738.mp3",
+        "e56ed9b8a3a8.mp3",
+        "6035f697ca9f.mp3"
+      ]
+    },
+    {
+      "rootMidi": 45,
+      "lowMidi": 44,
+      "highMidi": 46,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "bba3e6cb50fa.mp3",
+        "1c2938da4e7b.mp3",
+        "c639b3bb082b.mp3"
+      ]
+    },
+    {
+      "rootMidi": 45,
+      "lowMidi": 44,
+      "highMidi": 46,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "3072aafc623f.mp3",
+        "55ff9a0fa2d0.mp3",
+        "a874f210cda5.mp3"
+      ]
+    },
+    {
+      "rootMidi": 48,
+      "lowMidi": 47,
+      "highMidi": 49,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "df48443aefa9.mp3",
+        "92ae045ca59d.mp3",
+        "16b9e303fd5e.mp3"
+      ]
+    },
+    {
+      "rootMidi": 48,
+      "lowMidi": 47,
+      "highMidi": 49,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "334744347f84.mp3",
+        "c6b40f343b8b.mp3",
+        "0b8804fe74bc.mp3"
+      ]
+    },
+    {
+      "rootMidi": 48,
+      "lowMidi": 47,
+      "highMidi": 49,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "60cf269b2c17.mp3",
+        "f85c600e7e31.mp3",
+        "1e283483f579.mp3"
+      ]
+    },
+    {
+      "rootMidi": 48,
+      "lowMidi": 47,
+      "highMidi": 49,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "6aa8c408aebc.mp3",
+        "d590ef914e50.mp3",
+        "3fc50b228379.mp3"
+      ]
+    },
+    {
+      "rootMidi": 51,
+      "lowMidi": 50,
+      "highMidi": 52,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "769e8f720563.mp3",
+        "e5fa768d1954.mp3",
+        "18fa363f57eb.mp3"
+      ]
+    },
+    {
+      "rootMidi": 51,
+      "lowMidi": 50,
+      "highMidi": 52,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "9fdc12de6473.mp3",
+        "2f82e77a8e66.mp3",
+        "8c836ac417a8.mp3"
+      ]
+    },
+    {
+      "rootMidi": 51,
+      "lowMidi": 50,
+      "highMidi": 52,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "25da552f3c74.mp3",
+        "b61dc67d1c6d.mp3",
+        "94f475b99006.mp3"
+      ]
+    },
+    {
+      "rootMidi": 51,
+      "lowMidi": 50,
+      "highMidi": 52,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "4d8cc0c80176.mp3",
+        "68910ba094c3.mp3",
+        "5421519c188e.mp3"
+      ]
+    },
+    {
+      "rootMidi": 54,
+      "lowMidi": 53,
+      "highMidi": 55,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "e3ba93f46cb6.mp3",
+        "5fe4e690c95b.mp3",
+        "209ad91722a3.mp3"
+      ]
+    },
+    {
+      "rootMidi": 54,
+      "lowMidi": 53,
+      "highMidi": 55,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "917c30ca884f.mp3",
+        "f45b17d7227d.mp3",
+        "56c73b0d9227.mp3"
+      ]
+    },
+    {
+      "rootMidi": 54,
+      "lowMidi": 53,
+      "highMidi": 55,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "6f65357efa1a.mp3",
+        "c3abf0e37ecd.mp3",
+        "2b0acbf5c98f.mp3"
+      ]
+    },
+    {
+      "rootMidi": 54,
+      "lowMidi": 53,
+      "highMidi": 55,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "45fec4ab9d24.mp3",
+        "fa3eb967567f.mp3",
+        "9996b2562648.mp3"
+      ]
+    },
+    {
+      "rootMidi": 57,
+      "lowMidi": 56,
+      "highMidi": 58,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "16901e5a7286.mp3",
+        "18bc5433d9b4.mp3",
+        "94e8108ab7ae.mp3"
+      ]
+    },
+    {
+      "rootMidi": 57,
+      "lowMidi": 56,
+      "highMidi": 58,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "2efdb49b9c3f.mp3",
+        "068ee351e8ac.mp3",
+        "505b992493a7.mp3"
+      ]
+    },
+    {
+      "rootMidi": 57,
+      "lowMidi": 56,
+      "highMidi": 58,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "b6ce5d175c00.mp3",
+        "ef0116bb9435.mp3",
+        "f044a4eccbe5.mp3"
+      ]
+    },
+    {
+      "rootMidi": 57,
+      "lowMidi": 56,
+      "highMidi": 58,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "95b5ceabdaaa.mp3",
+        "712b8295a3bb.mp3",
+        "3079e9cdb85f.mp3"
+      ]
+    },
+    {
+      "rootMidi": 60,
+      "lowMidi": 59,
+      "highMidi": 61,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "9c377c93d43e.mp3",
+        "cb76d4c39f46.mp3",
+        "55ceaf100cc7.mp3"
+      ]
+    },
+    {
+      "rootMidi": 60,
+      "lowMidi": 59,
+      "highMidi": 61,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "e0fe638c8329.mp3",
+        "6f969cb3d05b.mp3",
+        "1484357c679b.mp3"
+      ]
+    },
+    {
+      "rootMidi": 60,
+      "lowMidi": 59,
+      "highMidi": 61,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "bb546ecb1e93.mp3",
+        "1531f4af44dd.mp3",
+        "ed70bd7886c0.mp3"
+      ]
+    },
+    {
+      "rootMidi": 60,
+      "lowMidi": 59,
+      "highMidi": 61,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "184afd54505b.mp3",
+        "cd13e2ac6040.mp3",
+        "d1c00f5a5139.mp3"
+      ]
+    },
+    {
+      "rootMidi": 63,
+      "lowMidi": 62,
+      "highMidi": 64,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "a8b86335cdd1.mp3",
+        "b148707cd846.mp3",
+        "5d644185f792.mp3"
+      ]
+    },
+    {
+      "rootMidi": 63,
+      "lowMidi": 62,
+      "highMidi": 64,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "727dac918d26.mp3",
+        "8878af07f88c.mp3",
+        "71c466c18382.mp3"
+      ]
+    },
+    {
+      "rootMidi": 63,
+      "lowMidi": 62,
+      "highMidi": 64,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "8480c7461ee7.mp3",
+        "88c99590d66d.mp3",
+        "deb71b301355.mp3"
+      ]
+    },
+    {
+      "rootMidi": 63,
+      "lowMidi": 62,
+      "highMidi": 64,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "341c942d3fad.mp3",
+        "8742a6a86aa2.mp3",
+        "e60d7662d82d.mp3"
+      ]
+    },
+    {
+      "rootMidi": 66,
+      "lowMidi": 65,
+      "highMidi": 67,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "2615466dba43.mp3",
+        "5e23996ac2f7.mp3",
+        "9b6b2e82f220.mp3"
+      ]
+    },
+    {
+      "rootMidi": 66,
+      "lowMidi": 65,
+      "highMidi": 67,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "b4b155d828ce.mp3",
+        "5269eac61d1a.mp3",
+        "ec960788d35e.mp3"
+      ]
+    },
+    {
+      "rootMidi": 66,
+      "lowMidi": 65,
+      "highMidi": 67,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "a8196cb58225.mp3",
+        "b675b0987d3e.mp3",
+        "142617077d7f.mp3"
+      ]
+    },
+    {
+      "rootMidi": 66,
+      "lowMidi": 65,
+      "highMidi": 67,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "c559ef04dcbd.mp3",
+        "40518c116cbc.mp3",
+        "6a0b108876b2.mp3"
+      ]
+    },
+    {
+      "rootMidi": 69,
+      "lowMidi": 68,
+      "highMidi": 70,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "bbbfe08fe1b8.mp3",
+        "3e5bdb58f550.mp3",
+        "eb388ad0db06.mp3"
+      ]
+    },
+    {
+      "rootMidi": 69,
+      "lowMidi": 68,
+      "highMidi": 70,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "49d6ba4b1a8d.mp3",
+        "2bbfe070d9e5.mp3",
+        "be1cf26a9ba6.mp3"
+      ]
+    },
+    {
+      "rootMidi": 69,
+      "lowMidi": 68,
+      "highMidi": 70,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "014a853b657e.mp3",
+        "36a3be08837f.mp3",
+        "a30c47d0ba94.mp3"
+      ]
+    },
+    {
+      "rootMidi": 69,
+      "lowMidi": 68,
+      "highMidi": 70,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "f3c8ea5d58ea.mp3",
+        "e4daaba8b0f6.mp3",
+        "12147fce3418.mp3"
+      ]
+    },
+    {
+      "rootMidi": 72,
+      "lowMidi": 71,
+      "highMidi": 73,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "6785a7b8e602.mp3",
+        "c2cc84add22c.mp3",
+        "68fd282fdc6f.mp3"
+      ]
+    },
+    {
+      "rootMidi": 72,
+      "lowMidi": 71,
+      "highMidi": 73,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "889d1073cd2f.mp3",
+        "2c5d79921a47.mp3",
+        "1de6c99eb1c9.mp3"
+      ]
+    },
+    {
+      "rootMidi": 72,
+      "lowMidi": 71,
+      "highMidi": 73,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "5d657f0e649d.mp3",
+        "5360b83a144c.mp3",
+        "595e83c98e6a.mp3"
+      ]
+    },
+    {
+      "rootMidi": 72,
+      "lowMidi": 71,
+      "highMidi": 73,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "ee1f6c957902.mp3",
+        "3f908893242b.mp3",
+        "b76fbe49a968.mp3"
+      ]
+    },
+    {
+      "rootMidi": 75,
+      "lowMidi": 74,
+      "highMidi": 76,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "660e2243f086.mp3",
+        "36379ab04a2e.mp3",
+        "6599ebddcbb4.mp3"
+      ]
+    },
+    {
+      "rootMidi": 75,
+      "lowMidi": 74,
+      "highMidi": 76,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "ad0ac01f33a2.mp3",
+        "7dd884929e9a.mp3",
+        "ba3c408f40e8.mp3"
+      ]
+    },
+    {
+      "rootMidi": 75,
+      "lowMidi": 74,
+      "highMidi": 76,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "5d6ca32b8287.mp3",
+        "929ec18ef180.mp3",
+        "15413fa09677.mp3"
+      ]
+    },
+    {
+      "rootMidi": 75,
+      "lowMidi": 74,
+      "highMidi": 76,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "7ff4cda66189.mp3",
+        "9e8e8ef0e942.mp3",
+        "835b35848610.mp3"
+      ]
+    },
+    {
+      "rootMidi": 78,
+      "lowMidi": 77,
+      "highMidi": 79,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "59fb74767f82.mp3",
+        "29f56cb423f2.mp3",
+        "115c942b72ff.mp3"
+      ]
+    },
+    {
+      "rootMidi": 78,
+      "lowMidi": 77,
+      "highMidi": 79,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "3b23f0d9e2f2.mp3",
+        "346a5994580c.mp3",
+        "4d5e706a8c3d.mp3"
+      ]
+    },
+    {
+      "rootMidi": 78,
+      "lowMidi": 77,
+      "highMidi": 79,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "b3e37ebe5514.mp3",
+        "05c0c69f87e7.mp3",
+        "76f8131dd002.mp3"
+      ]
+    },
+    {
+      "rootMidi": 78,
+      "lowMidi": 77,
+      "highMidi": 79,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "4c151fd3fed5.mp3",
+        "b37c69c35ac4.mp3",
+        "67be89791b91.mp3"
+      ]
+    },
+    {
+      "rootMidi": 81,
+      "lowMidi": 80,
+      "highMidi": 82,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "cdfe61be5d98.mp3",
+        "658d58d5ca2d.mp3",
+        "3b3ba8c2c812.mp3"
+      ]
+    },
+    {
+      "rootMidi": 81,
+      "lowMidi": 80,
+      "highMidi": 82,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "ccee58eeed60.mp3",
+        "af554400a630.mp3",
+        "98e88b9807eb.mp3"
+      ]
+    },
+    {
+      "rootMidi": 81,
+      "lowMidi": 80,
+      "highMidi": 82,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "a84ad34c9d8b.mp3",
+        "41f7ab24da29.mp3",
+        "40e26c1bbeaa.mp3"
+      ]
+    },
+    {
+      "rootMidi": 81,
+      "lowMidi": 80,
+      "highMidi": 82,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "e113d92c820c.mp3",
+        "5098123e9908.mp3",
+        "8be04473f876.mp3"
+      ]
+    },
+    {
+      "rootMidi": 84,
+      "lowMidi": 83,
+      "highMidi": 84,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "1dbcb0f4fb84.mp3",
+        "31b71760b659.mp3",
+        "b80f8ae5d71e.mp3"
+      ]
+    },
+    {
+      "rootMidi": 84,
+      "lowMidi": 83,
+      "highMidi": 84,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "11ea0eda5fc1.mp3",
+        "eae7efe63323.mp3",
+        "53ccb0ae43ce.mp3"
+      ]
+    },
+    {
+      "rootMidi": 84,
+      "lowMidi": 83,
+      "highMidi": 84,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "2a11db432b58.mp3",
+        "410ae44eb4b6.mp3",
+        "4ca917c56f42.mp3"
+      ]
+    },
+    {
+      "rootMidi": 84,
+      "lowMidi": 83,
+      "highMidi": 84,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "b57e8abc3904.mp3",
+        "fdca79caa859.mp3",
+        "3c675f39faa7.mp3"
+      ]
+    },
+    {
+      "rootMidi": 86,
+      "lowMidi": 85,
+      "highMidi": 89,
+      "lowVelocity": 0,
+      "highVelocity": 40,
+      "files": [
+        "26f0cae64eae.mp3",
+        "91d566630819.mp3",
+        "3666ab9dc0c3.mp3"
+      ]
+    },
+    {
+      "rootMidi": 86,
+      "lowMidi": 85,
+      "highMidi": 89,
+      "lowVelocity": 41,
+      "highVelocity": 80,
+      "files": [
+        "de149405ee16.mp3",
+        "4bb663977f87.mp3",
+        "c4d40bba9539.mp3"
+      ]
+    },
+    {
+      "rootMidi": 86,
+      "lowMidi": 85,
+      "highMidi": 89,
+      "lowVelocity": 81,
+      "highVelocity": 120,
+      "files": [
+        "6a6cb8c74301.mp3",
+        "04c2d7bf39a1.mp3",
+        "09e72a1e9b38.mp3"
+      ]
+    },
+    {
+      "rootMidi": 86,
+      "lowMidi": 85,
+      "highMidi": 89,
+      "lowVelocity": 121,
+      "highVelocity": 127,
+      "files": [
+        "c55d8e1fd9b7.mp3",
+        "c0e9b9fb15d6.mp3",
+        "210a0a201425.mp3"
+      ]
+    }
+  ]
+}

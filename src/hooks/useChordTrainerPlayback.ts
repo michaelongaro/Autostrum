@@ -28,8 +28,9 @@ import {
   stopActivePlaybackStrings,
 } from "~/utils/playGeneratedAudioHelpers";
 import { DEFAULT_TUNING, parse } from "~/utils/tunings";
+import { prepareGuitarColumns } from "~/utils/prepareGuitarPlayback";
 
-const STANDARD_TUNING = parse(DEFAULT_TUNING);
+const STANDARD_TUNING = parse(DEFAULT_TUNING) as number[];
 const MIN_EDGE_OPACITY = 0.18;
 const PATTERN_SLIDE_MS = 380;
 const EMPTY_PLAYING_STRINGS: (
@@ -119,6 +120,7 @@ function useChordTrainerPlayback({
   const queueMutationPendingRef = useRef(false);
   const pendingTrimCountRef = useRef(0);
   const isPlayingRef = useRef(false);
+  const preparationRef = useRef({ id: 0, pending: false });
   const currentItemIndexRef = useRef(0);
 
   const [queue, setQueue] = useState<ChordTrainerQueueItem[]>([]);
@@ -207,6 +209,8 @@ function useChordTrainerPlayback({
   }, []);
 
   const pausePlayback = useCallback(() => {
+    preparationRef.current.id++;
+    preparationRef.current.pending = false;
     isPlayingRef.current = false;
     stopAnimationFrame();
     lastFrameTimeRef.current = null;
@@ -499,8 +503,11 @@ function useChordTrainerPlayback({
 
   useEffect(() => {
     const currentlyPlayingStrings = currentlyPlayingStringsRef.current;
+    const preparation = preparationRef.current;
 
     return () => {
+      preparation.id++;
+      preparation.pending = false;
       isPlayingRef.current = false;
       if (rafRef.current !== null) {
         window.cancelAnimationFrame(rafRef.current);
@@ -509,8 +516,8 @@ function useChordTrainerPlayback({
     };
   }, []);
 
-  const togglePlayback = useCallback(() => {
-    if (isPlayingRef.current) {
+  const togglePlayback = useCallback(async () => {
+    if (isPlayingRef.current || preparationRef.current.pending) {
       pausePlayback();
       return;
     }
@@ -519,9 +526,28 @@ function useChordTrainerPlayback({
       return;
     }
 
+    const preparationId = ++preparationRef.current.id;
+    preparationRef.current.pending = true;
+    try {
+      if (audioEnabled) {
+        await prepareGuitarColumns(
+          getTabStore().currentInstrument,
+          selectedChords.map((chord) => ["", ...chord.frets]),
+          STANDARD_TUNING,
+          0,
+        );
+      }
+    } catch (error) {
+      console.error("Unable to prepare chord trainer audio:", error);
+      return;
+    } finally {
+      if (preparationRef.current.id === preparationId)
+        preparationRef.current.pending = false;
+    }
+    if (preparationRef.current.id !== preparationId) return;
     isPlayingRef.current = true;
     setIsPlaying(true);
-  }, [pausePlayback, selectedChords.length]);
+  }, [audioEnabled, pausePlayback, selectedChords]);
 
   return {
     stageRef,

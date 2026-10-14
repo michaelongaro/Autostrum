@@ -6,6 +6,7 @@ import {
   stopActivePlaybackStrings,
 } from "../src/utils/playGeneratedAudioHelpers";
 import { PitchDetector } from "pitchy";
+import { prepareGuitarColumns } from "../src/utils/prepareGuitarPlayback";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -89,6 +90,7 @@ function column(note, { string = 0, pm = "", chord = "" } = {}) {
 }
 
 async function render(instrument, columns, pauseAt) {
+  await prepareGuitarColumns(instrument, columns, tuning, 0);
   const context = new OfflineAudioContext(1, 48000 * 4, 48000);
   const strings = Array(6).fill(undefined);
   const sources = [];
@@ -146,6 +148,22 @@ export async function runGuitarSampleChecks(
       context.destination,
     );
     await instrument.samplesReady;
+    if (name.startsWith("acoustic")) {
+      await instrument.prepareSamples(
+        [0, 1, 2, 3].map((stringIndex) => ({ midi: 64, stringIndex })),
+      );
+      const positions = [0, 1, 2, 3].map((stringIndex) =>
+        instrument.getSample(64, 88, stringIndex),
+      );
+      assert(
+        positions.every((sample, index) => sample.stringIndex === index),
+        `${name}: incorrect string mapping`,
+      );
+      assert(
+        new Set(positions.map((sample) => sample.buffer)).size === 4,
+        `${name}: strings reuse the same recording`,
+      );
+    }
     window.guitarSampleCheckStatus = {
       state: "running",
       stage: `${name}: rendering`,
@@ -158,10 +176,13 @@ export async function runGuitarSampleChecks(
       );
     }
     if (name.startsWith("electric")) {
+      const takes = Array.from(
+        { length: 4 },
+        () => instrument.getSample(64, 88).buffer,
+      );
       assert(
-        instrument.getSample(64, 88).buffer !==
-          instrument.getSample(64, 88).buffer,
-        "Electric repeated notes do not alternate real takes",
+        new Set(takes.slice(0, 3)).size === 3 && takes[0] === takes[3],
+        "Electric repeated notes do not cycle through three real takes",
       );
     }
     for (let midi = 28; midi <= 92; midi++) {
@@ -223,6 +244,13 @@ export async function runGuitarSampleChecks(
       ["", "0", "0", "1", "2", "2", "0", "v", "quarter", "120", "auto"],
     ]);
     assert(peak(chord.buffer) < 0.95, `${name}: six-string chord clips`);
+    const accented = await render(instrument, [
+      ["", "0", "0", "1", "2", "2", "0", "v>", "quarter", "120", "auto"],
+    ]);
+    assert(
+      peak(accented.buffer) < 0.95,
+      `${name}: accented six-string chord clips`,
+    );
     const legacy = await loadLegacyInstrument(context, name);
     const before = await render(legacy, [
       ["", "0", "0", "1", "2", "2", "0", "v", "quarter", "120", "auto"],
@@ -238,6 +266,7 @@ export async function runGuitarSampleChecks(
       loadMs: Math.round(performance.now() - started),
       pitchErrors: errors,
       chordPeak: +peak(chord.buffer).toFixed(3),
+      accentPeak: +peak(accented.buffer).toFixed(3),
       effects: "passed",
     });
   }

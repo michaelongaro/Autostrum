@@ -1,0 +1,1146 @@
+// Meta Nylon Guitar: reference SFZ map of README.md.
+//
+// Play style is chosen by keyswitch, below the playable range:
+//   C1 (24)  Auto, the default: Finger, light pick and firm pick crossfade
+//            across velocity (splits near 42 and 85), the README's ordered ramp.
+//   C#1 (25) Finger: the fingerstyle take at every velocity.
+//   D1 (26)  Pick: light pick crossfading into firm pick around velocity 64.
+// The takes are only about 5 dB apart, so velocity also scales level, by up to
+// about 8 dB, in every style.
+//
+// MIDI channel 1 plays each pitch E2-B5 on one string: the lowest string that
+// reaches it at fret 4 or below (first position), and High E from E4 up.
+// Channels 2-7 each play a single string, Low E to High E, over that string's
+// sampled range.
+//
+// Notes ring out (one-shot), as the README asks. A new note on a string cuts
+// the note already ringing on it (group / off_by), across all channels, so at
+// most six notes sound at once.
+
+<global>
+sw_lokey=24
+sw_hikey=26
+sw_default=24
+loop_mode=one_shot
+off_mode=normal
+amp_veltrack=60
+pitch_random=4
+amp_random=1.5
+
+<master> lochan=1 hichan=1
+
+<group> sw_last=24 group=1 off_by=1 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel01Finger_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel01Finger_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel01Finger_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel01Finger_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel01Finger_Gs2_01.wav
+
+<group> sw_last=24 group=1 off_by=1 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel02Pick_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel02Pick_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel02Pick_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel02Pick_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel02Pick_Gs2_01.wav
+
+<group> sw_last=24 group=1 off_by=1 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel03Pick_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel03Pick_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel03Pick_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel03Pick_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel03Pick_Gs2_01.wav
+
+<group> sw_last=25 group=1 off_by=1
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel01Finger_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel01Finger_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel01Finger_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel01Finger_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel01Finger_Gs2_01.wav
+
+<group> sw_last=26 group=1 off_by=1 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel02Pick_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel02Pick_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel02Pick_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel02Pick_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel02Pick_Gs2_01.wav
+
+<group> sw_last=26 group=1 off_by=1 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel03Pick_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel03Pick_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel03Pick_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel03Pick_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel03Pick_Gs2_01.wav
+
+<group> sw_last=24 group=2 off_by=2 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=45 sample=INSGuitarNylon_StringA_Vel01Finger_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel01Finger_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel01Finger_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel01Finger_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel01Finger_Cs3_01.wav
+
+<group> sw_last=24 group=2 off_by=2 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=45 sample=INSGuitarNylon_StringA_Vel02Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel02Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel02Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel02Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel02Pick_Cs3_01.wav
+
+<group> sw_last=24 group=2 off_by=2 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=45 sample=INSGuitarNylon_StringA_Vel03Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel03Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel03Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel03Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel03Pick_Cs3_01.wav
+
+<group> sw_last=25 group=2 off_by=2
+<region> key=45 sample=INSGuitarNylon_StringA_Vel01Finger_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel01Finger_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel01Finger_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel01Finger_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel01Finger_Cs3_01.wav
+
+<group> sw_last=26 group=2 off_by=2 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=45 sample=INSGuitarNylon_StringA_Vel02Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel02Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel02Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel02Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel02Pick_Cs3_01.wav
+
+<group> sw_last=26 group=2 off_by=2 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=45 sample=INSGuitarNylon_StringA_Vel03Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel03Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel03Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel03Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel03Pick_Cs3_01.wav
+
+<group> sw_last=24 group=3 off_by=3 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=50 sample=INSGuitarNylon_StringD_Vel01Finger_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel01Finger_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel01Finger_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel01Finger_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel01Finger_Fs3_01.wav
+
+<group> sw_last=24 group=3 off_by=3 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=50 sample=INSGuitarNylon_StringD_Vel02Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel02Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel02Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel02Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel02Pick_Fs3_01.wav
+
+<group> sw_last=24 group=3 off_by=3 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=50 sample=INSGuitarNylon_StringD_Vel03Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel03Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel03Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel03Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel03Pick_Fs3_01.wav
+
+<group> sw_last=25 group=3 off_by=3
+<region> key=50 sample=INSGuitarNylon_StringD_Vel01Finger_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel01Finger_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel01Finger_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel01Finger_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel01Finger_Fs3_01.wav
+
+<group> sw_last=26 group=3 off_by=3 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=50 sample=INSGuitarNylon_StringD_Vel02Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel02Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel02Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel02Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel02Pick_Fs3_01.wav
+
+<group> sw_last=26 group=3 off_by=3 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=50 sample=INSGuitarNylon_StringD_Vel03Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel03Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel03Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel03Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel03Pick_Fs3_01.wav
+
+<group> sw_last=24 group=4 off_by=4 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=55 sample=INSGuitarNylon_StringG_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel01Finger_B3_01.wav
+
+<group> sw_last=24 group=4 off_by=4 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=55 sample=INSGuitarNylon_StringG_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel02Pick_B3_01.wav
+
+<group> sw_last=24 group=4 off_by=4 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=55 sample=INSGuitarNylon_StringG_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel03Pick_B3_01.wav
+
+<group> sw_last=25 group=4 off_by=4
+<region> key=55 sample=INSGuitarNylon_StringG_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel01Finger_B3_01.wav
+
+<group> sw_last=26 group=4 off_by=4 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=55 sample=INSGuitarNylon_StringG_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel02Pick_B3_01.wav
+
+<group> sw_last=26 group=4 off_by=4 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=55 sample=INSGuitarNylon_StringG_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel03Pick_B3_01.wav
+
+<group> sw_last=24 group=5 off_by=5 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=60 sample=INSGuitarNylon_StringB_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel01Finger_Ds4_01.wav
+
+<group> sw_last=24 group=5 off_by=5 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=60 sample=INSGuitarNylon_StringB_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel02Pick_Ds4_01.wav
+
+<group> sw_last=24 group=5 off_by=5 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=60 sample=INSGuitarNylon_StringB_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel03Pick_Ds4_01.wav
+
+<group> sw_last=25 group=5 off_by=5
+<region> key=60 sample=INSGuitarNylon_StringB_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel01Finger_Ds4_01.wav
+
+<group> sw_last=26 group=5 off_by=5 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=60 sample=INSGuitarNylon_StringB_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel02Pick_Ds4_01.wav
+
+<group> sw_last=26 group=5 off_by=5 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=60 sample=INSGuitarNylon_StringB_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel03Pick_Ds4_01.wav
+
+<group> sw_last=24 group=6 off_by=6 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel01Finger_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel01Finger_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel01Finger_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel01Finger_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel01Finger_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel01Finger_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel01Finger_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel01Finger_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel01Finger_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel01Finger_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel01Finger_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel01Finger_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel01Finger_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel01Finger_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel01Finger_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel01Finger_B5_01.wav
+
+<group> sw_last=24 group=6 off_by=6 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel02Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel02Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel02Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel02Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel02Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel02Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel02Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel02Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel02Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel02Pick_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel02Pick_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel02Pick_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel02Pick_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel02Pick_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel02Pick_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel02Pick_B5_01.wav
+
+<group> sw_last=24 group=6 off_by=6 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel03Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel03Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel03Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel03Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel03Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel03Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel03Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel03Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel03Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel03Pick_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel03Pick_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel03Pick_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel03Pick_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel03Pick_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel03Pick_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel03Pick_B5_01.wav
+
+<group> sw_last=25 group=6 off_by=6
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel01Finger_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel01Finger_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel01Finger_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel01Finger_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel01Finger_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel01Finger_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel01Finger_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel01Finger_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel01Finger_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel01Finger_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel01Finger_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel01Finger_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel01Finger_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel01Finger_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel01Finger_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel01Finger_B5_01.wav
+
+<group> sw_last=26 group=6 off_by=6 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel02Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel02Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel02Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel02Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel02Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel02Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel02Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel02Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel02Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel02Pick_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel02Pick_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel02Pick_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel02Pick_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel02Pick_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel02Pick_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel02Pick_B5_01.wav
+
+<group> sw_last=26 group=6 off_by=6 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel03Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel03Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel03Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel03Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel03Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel03Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel03Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel03Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel03Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel03Pick_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel03Pick_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel03Pick_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel03Pick_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel03Pick_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel03Pick_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel03Pick_B5_01.wav
+
+<master> lochan=2 hichan=2
+
+<group> sw_last=24 group=1 off_by=1 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel01Finger_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel01Finger_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel01Finger_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel01Finger_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel01Finger_Gs2_01.wav
+<region> key=45 sample=INSGuitarNylon_StringLowE_Vel01Finger_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringLowE_Vel01Finger_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringLowE_Vel01Finger_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringLowE_Vel01Finger_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringLowE_Vel01Finger_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringLowE_Vel01Finger_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringLowE_Vel01Finger_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringLowE_Vel01Finger_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringLowE_Vel01Finger_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringLowE_Vel01Finger_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringLowE_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringLowE_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringLowE_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringLowE_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringLowE_Vel01Finger_B3_01.wav
+
+<group> sw_last=24 group=1 off_by=1 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel02Pick_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel02Pick_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel02Pick_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel02Pick_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel02Pick_Gs2_01.wav
+<region> key=45 sample=INSGuitarNylon_StringLowE_Vel02Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringLowE_Vel02Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringLowE_Vel02Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringLowE_Vel02Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringLowE_Vel02Pick_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringLowE_Vel02Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringLowE_Vel02Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringLowE_Vel02Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringLowE_Vel02Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringLowE_Vel02Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringLowE_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringLowE_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringLowE_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringLowE_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringLowE_Vel02Pick_B3_01.wav
+
+<group> sw_last=24 group=1 off_by=1 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel03Pick_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel03Pick_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel03Pick_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel03Pick_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel03Pick_Gs2_01.wav
+<region> key=45 sample=INSGuitarNylon_StringLowE_Vel03Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringLowE_Vel03Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringLowE_Vel03Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringLowE_Vel03Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringLowE_Vel03Pick_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringLowE_Vel03Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringLowE_Vel03Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringLowE_Vel03Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringLowE_Vel03Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringLowE_Vel03Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringLowE_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringLowE_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringLowE_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringLowE_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringLowE_Vel03Pick_B3_01.wav
+
+<group> sw_last=25 group=1 off_by=1
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel01Finger_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel01Finger_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel01Finger_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel01Finger_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel01Finger_Gs2_01.wav
+<region> key=45 sample=INSGuitarNylon_StringLowE_Vel01Finger_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringLowE_Vel01Finger_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringLowE_Vel01Finger_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringLowE_Vel01Finger_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringLowE_Vel01Finger_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringLowE_Vel01Finger_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringLowE_Vel01Finger_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringLowE_Vel01Finger_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringLowE_Vel01Finger_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringLowE_Vel01Finger_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringLowE_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringLowE_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringLowE_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringLowE_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringLowE_Vel01Finger_B3_01.wav
+
+<group> sw_last=26 group=1 off_by=1 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel02Pick_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel02Pick_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel02Pick_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel02Pick_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel02Pick_Gs2_01.wav
+<region> key=45 sample=INSGuitarNylon_StringLowE_Vel02Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringLowE_Vel02Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringLowE_Vel02Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringLowE_Vel02Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringLowE_Vel02Pick_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringLowE_Vel02Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringLowE_Vel02Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringLowE_Vel02Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringLowE_Vel02Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringLowE_Vel02Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringLowE_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringLowE_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringLowE_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringLowE_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringLowE_Vel02Pick_B3_01.wav
+
+<group> sw_last=26 group=1 off_by=1 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=40 sample=INSGuitarNylon_StringLowE_Vel03Pick_E2_01.wav
+<region> key=41 sample=INSGuitarNylon_StringLowE_Vel03Pick_F2_01.wav
+<region> key=42 sample=INSGuitarNylon_StringLowE_Vel03Pick_Fs2_01.wav
+<region> key=43 sample=INSGuitarNylon_StringLowE_Vel03Pick_G2_01.wav
+<region> key=44 sample=INSGuitarNylon_StringLowE_Vel03Pick_Gs2_01.wav
+<region> key=45 sample=INSGuitarNylon_StringLowE_Vel03Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringLowE_Vel03Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringLowE_Vel03Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringLowE_Vel03Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringLowE_Vel03Pick_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringLowE_Vel03Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringLowE_Vel03Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringLowE_Vel03Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringLowE_Vel03Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringLowE_Vel03Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringLowE_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringLowE_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringLowE_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringLowE_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringLowE_Vel03Pick_B3_01.wav
+
+<master> lochan=3 hichan=3
+
+<group> sw_last=24 group=2 off_by=2 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=45 sample=INSGuitarNylon_StringA_Vel01Finger_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel01Finger_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel01Finger_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel01Finger_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel01Finger_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringA_Vel01Finger_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringA_Vel01Finger_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringA_Vel01Finger_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringA_Vel01Finger_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringA_Vel01Finger_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringA_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringA_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringA_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringA_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringA_Vel01Finger_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringA_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringA_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringA_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringA_Vel01Finger_Ds4_01.wav
+
+<group> sw_last=24 group=2 off_by=2 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=45 sample=INSGuitarNylon_StringA_Vel02Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel02Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel02Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel02Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel02Pick_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringA_Vel02Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringA_Vel02Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringA_Vel02Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringA_Vel02Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringA_Vel02Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringA_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringA_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringA_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringA_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringA_Vel02Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringA_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringA_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringA_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringA_Vel02Pick_Ds4_01.wav
+
+<group> sw_last=24 group=2 off_by=2 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=45 sample=INSGuitarNylon_StringA_Vel03Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel03Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel03Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel03Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel03Pick_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringA_Vel03Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringA_Vel03Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringA_Vel03Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringA_Vel03Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringA_Vel03Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringA_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringA_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringA_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringA_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringA_Vel03Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringA_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringA_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringA_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringA_Vel03Pick_Ds4_01.wav
+
+<group> sw_last=25 group=2 off_by=2
+<region> key=45 sample=INSGuitarNylon_StringA_Vel01Finger_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel01Finger_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel01Finger_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel01Finger_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel01Finger_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringA_Vel01Finger_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringA_Vel01Finger_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringA_Vel01Finger_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringA_Vel01Finger_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringA_Vel01Finger_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringA_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringA_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringA_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringA_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringA_Vel01Finger_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringA_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringA_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringA_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringA_Vel01Finger_Ds4_01.wav
+
+<group> sw_last=26 group=2 off_by=2 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=45 sample=INSGuitarNylon_StringA_Vel02Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel02Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel02Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel02Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel02Pick_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringA_Vel02Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringA_Vel02Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringA_Vel02Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringA_Vel02Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringA_Vel02Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringA_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringA_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringA_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringA_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringA_Vel02Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringA_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringA_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringA_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringA_Vel02Pick_Ds4_01.wav
+
+<group> sw_last=26 group=2 off_by=2 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=45 sample=INSGuitarNylon_StringA_Vel03Pick_A2_01.wav
+<region> key=46 sample=INSGuitarNylon_StringA_Vel03Pick_As2_01.wav
+<region> key=47 sample=INSGuitarNylon_StringA_Vel03Pick_B2_01.wav
+<region> key=48 sample=INSGuitarNylon_StringA_Vel03Pick_C3_01.wav
+<region> key=49 sample=INSGuitarNylon_StringA_Vel03Pick_Cs3_01.wav
+<region> key=50 sample=INSGuitarNylon_StringA_Vel03Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringA_Vel03Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringA_Vel03Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringA_Vel03Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringA_Vel03Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringA_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringA_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringA_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringA_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringA_Vel03Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringA_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringA_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringA_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringA_Vel03Pick_Ds4_01.wav
+
+<master> lochan=4 hichan=4
+
+<group> sw_last=24 group=3 off_by=3 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=50 sample=INSGuitarNylon_StringD_Vel01Finger_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel01Finger_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel01Finger_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel01Finger_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel01Finger_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringD_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringD_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringD_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringD_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringD_Vel01Finger_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringD_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringD_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringD_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringD_Vel01Finger_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringD_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringD_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringD_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringD_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringD_Vel01Finger_Gs4_01.wav
+
+<group> sw_last=24 group=3 off_by=3 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=50 sample=INSGuitarNylon_StringD_Vel02Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel02Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel02Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel02Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel02Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringD_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringD_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringD_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringD_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringD_Vel02Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringD_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringD_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringD_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringD_Vel02Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringD_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringD_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringD_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringD_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringD_Vel02Pick_Gs4_01.wav
+
+<group> sw_last=24 group=3 off_by=3 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=50 sample=INSGuitarNylon_StringD_Vel03Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel03Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel03Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel03Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel03Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringD_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringD_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringD_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringD_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringD_Vel03Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringD_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringD_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringD_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringD_Vel03Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringD_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringD_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringD_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringD_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringD_Vel03Pick_Gs4_01.wav
+
+<group> sw_last=25 group=3 off_by=3
+<region> key=50 sample=INSGuitarNylon_StringD_Vel01Finger_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel01Finger_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel01Finger_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel01Finger_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel01Finger_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringD_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringD_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringD_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringD_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringD_Vel01Finger_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringD_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringD_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringD_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringD_Vel01Finger_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringD_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringD_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringD_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringD_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringD_Vel01Finger_Gs4_01.wav
+
+<group> sw_last=26 group=3 off_by=3 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=50 sample=INSGuitarNylon_StringD_Vel02Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel02Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel02Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel02Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel02Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringD_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringD_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringD_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringD_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringD_Vel02Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringD_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringD_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringD_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringD_Vel02Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringD_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringD_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringD_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringD_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringD_Vel02Pick_Gs4_01.wav
+
+<group> sw_last=26 group=3 off_by=3 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=50 sample=INSGuitarNylon_StringD_Vel03Pick_D3_01.wav
+<region> key=51 sample=INSGuitarNylon_StringD_Vel03Pick_Ds3_01.wav
+<region> key=52 sample=INSGuitarNylon_StringD_Vel03Pick_E3_01.wav
+<region> key=53 sample=INSGuitarNylon_StringD_Vel03Pick_F3_01.wav
+<region> key=54 sample=INSGuitarNylon_StringD_Vel03Pick_Fs3_01.wav
+<region> key=55 sample=INSGuitarNylon_StringD_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringD_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringD_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringD_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringD_Vel03Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringD_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringD_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringD_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringD_Vel03Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringD_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringD_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringD_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringD_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringD_Vel03Pick_Gs4_01.wav
+
+<master> lochan=5 hichan=5
+
+<group> sw_last=24 group=4 off_by=4 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=55 sample=INSGuitarNylon_StringG_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel01Finger_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringG_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringG_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringG_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringG_Vel01Finger_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringG_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringG_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringG_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringG_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringG_Vel01Finger_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringG_Vel01Finger_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringG_Vel01Finger_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringG_Vel01Finger_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringG_Vel01Finger_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringG_Vel01Finger_Cs5_01.wav
+
+<group> sw_last=24 group=4 off_by=4 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=55 sample=INSGuitarNylon_StringG_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel02Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringG_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringG_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringG_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringG_Vel02Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringG_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringG_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringG_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringG_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringG_Vel02Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringG_Vel02Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringG_Vel02Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringG_Vel02Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringG_Vel02Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringG_Vel02Pick_Cs5_01.wav
+
+<group> sw_last=24 group=4 off_by=4 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=55 sample=INSGuitarNylon_StringG_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel03Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringG_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringG_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringG_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringG_Vel03Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringG_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringG_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringG_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringG_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringG_Vel03Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringG_Vel03Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringG_Vel03Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringG_Vel03Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringG_Vel03Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringG_Vel03Pick_Cs5_01.wav
+
+<group> sw_last=25 group=4 off_by=4
+<region> key=55 sample=INSGuitarNylon_StringG_Vel01Finger_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel01Finger_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel01Finger_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel01Finger_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel01Finger_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringG_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringG_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringG_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringG_Vel01Finger_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringG_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringG_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringG_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringG_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringG_Vel01Finger_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringG_Vel01Finger_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringG_Vel01Finger_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringG_Vel01Finger_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringG_Vel01Finger_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringG_Vel01Finger_Cs5_01.wav
+
+<group> sw_last=26 group=4 off_by=4 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=55 sample=INSGuitarNylon_StringG_Vel02Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel02Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel02Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel02Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel02Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringG_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringG_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringG_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringG_Vel02Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringG_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringG_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringG_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringG_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringG_Vel02Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringG_Vel02Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringG_Vel02Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringG_Vel02Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringG_Vel02Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringG_Vel02Pick_Cs5_01.wav
+
+<group> sw_last=26 group=4 off_by=4 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=55 sample=INSGuitarNylon_StringG_Vel03Pick_G3_01.wav
+<region> key=56 sample=INSGuitarNylon_StringG_Vel03Pick_Gs3_01.wav
+<region> key=57 sample=INSGuitarNylon_StringG_Vel03Pick_A3_01.wav
+<region> key=58 sample=INSGuitarNylon_StringG_Vel03Pick_As3_01.wav
+<region> key=59 sample=INSGuitarNylon_StringG_Vel03Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringG_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringG_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringG_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringG_Vel03Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringG_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringG_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringG_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringG_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringG_Vel03Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringG_Vel03Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringG_Vel03Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringG_Vel03Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringG_Vel03Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringG_Vel03Pick_Cs5_01.wav
+
+<master> lochan=6 hichan=6
+
+<group> sw_last=24 group=5 off_by=5 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=59 sample=INSGuitarNylon_StringB_Vel01Finger_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringB_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel01Finger_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringB_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringB_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringB_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringB_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringB_Vel01Finger_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringB_Vel01Finger_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringB_Vel01Finger_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringB_Vel01Finger_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringB_Vel01Finger_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringB_Vel01Finger_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringB_Vel01Finger_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringB_Vel01Finger_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringB_Vel01Finger_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringB_Vel01Finger_F5_01.wav
+
+<group> sw_last=24 group=5 off_by=5 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=59 sample=INSGuitarNylon_StringB_Vel02Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringB_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel02Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringB_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringB_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringB_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringB_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringB_Vel02Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringB_Vel02Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringB_Vel02Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringB_Vel02Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringB_Vel02Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringB_Vel02Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringB_Vel02Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringB_Vel02Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringB_Vel02Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringB_Vel02Pick_F5_01.wav
+
+<group> sw_last=24 group=5 off_by=5 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=59 sample=INSGuitarNylon_StringB_Vel03Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringB_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel03Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringB_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringB_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringB_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringB_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringB_Vel03Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringB_Vel03Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringB_Vel03Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringB_Vel03Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringB_Vel03Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringB_Vel03Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringB_Vel03Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringB_Vel03Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringB_Vel03Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringB_Vel03Pick_F5_01.wav
+
+<group> sw_last=25 group=5 off_by=5
+<region> key=59 sample=INSGuitarNylon_StringB_Vel01Finger_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringB_Vel01Finger_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel01Finger_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel01Finger_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel01Finger_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringB_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringB_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringB_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringB_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringB_Vel01Finger_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringB_Vel01Finger_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringB_Vel01Finger_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringB_Vel01Finger_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringB_Vel01Finger_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringB_Vel01Finger_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringB_Vel01Finger_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringB_Vel01Finger_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringB_Vel01Finger_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringB_Vel01Finger_F5_01.wav
+
+<group> sw_last=26 group=5 off_by=5 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=59 sample=INSGuitarNylon_StringB_Vel02Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringB_Vel02Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel02Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel02Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel02Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringB_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringB_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringB_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringB_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringB_Vel02Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringB_Vel02Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringB_Vel02Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringB_Vel02Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringB_Vel02Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringB_Vel02Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringB_Vel02Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringB_Vel02Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringB_Vel02Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringB_Vel02Pick_F5_01.wav
+
+<group> sw_last=26 group=5 off_by=5 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=59 sample=INSGuitarNylon_StringB_Vel03Pick_B3_01.wav
+<region> key=60 sample=INSGuitarNylon_StringB_Vel03Pick_C4_01.wav
+<region> key=61 sample=INSGuitarNylon_StringB_Vel03Pick_Cs4_01.wav
+<region> key=62 sample=INSGuitarNylon_StringB_Vel03Pick_D4_01.wav
+<region> key=63 sample=INSGuitarNylon_StringB_Vel03Pick_Ds4_01.wav
+<region> key=64 sample=INSGuitarNylon_StringB_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringB_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringB_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringB_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringB_Vel03Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringB_Vel03Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringB_Vel03Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringB_Vel03Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringB_Vel03Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringB_Vel03Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringB_Vel03Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringB_Vel03Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringB_Vel03Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringB_Vel03Pick_F5_01.wav
+
+<master> lochan=7 hichan=7
+
+<group> sw_last=24 group=6 off_by=6 lovel=1 hivel=50 xfout_lovel=35 xfout_hivel=50
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel01Finger_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel01Finger_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel01Finger_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel01Finger_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel01Finger_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel01Finger_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel01Finger_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel01Finger_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel01Finger_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel01Finger_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel01Finger_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel01Finger_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel01Finger_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel01Finger_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel01Finger_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel01Finger_B5_01.wav
+
+<group> sw_last=24 group=6 off_by=6 lovel=35 hivel=93 xfin_lovel=35 xfin_hivel=50 xfout_lovel=78 xfout_hivel=93
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel02Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel02Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel02Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel02Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel02Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel02Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel02Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel02Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel02Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel02Pick_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel02Pick_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel02Pick_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel02Pick_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel02Pick_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel02Pick_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel02Pick_B5_01.wav
+
+<group> sw_last=24 group=6 off_by=6 lovel=78 hivel=127 xfin_lovel=78 xfin_hivel=93
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel03Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel03Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel03Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel03Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel03Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel03Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel03Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel03Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel03Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel03Pick_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel03Pick_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel03Pick_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel03Pick_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel03Pick_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel03Pick_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel03Pick_B5_01.wav
+
+<group> sw_last=25 group=6 off_by=6
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel01Finger_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel01Finger_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel01Finger_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel01Finger_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel01Finger_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel01Finger_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel01Finger_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel01Finger_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel01Finger_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel01Finger_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel01Finger_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel01Finger_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel01Finger_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel01Finger_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel01Finger_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel01Finger_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel01Finger_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel01Finger_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel01Finger_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel01Finger_B5_01.wav
+
+<group> sw_last=26 group=6 off_by=6 lovel=1 hivel=71 xfout_lovel=56 xfout_hivel=71
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel02Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel02Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel02Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel02Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel02Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel02Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel02Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel02Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel02Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel02Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel02Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel02Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel02Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel02Pick_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel02Pick_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel02Pick_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel02Pick_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel02Pick_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel02Pick_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel02Pick_B5_01.wav
+
+<group> sw_last=26 group=6 off_by=6 lovel=56 hivel=127 xfin_lovel=56 xfin_hivel=71
+<region> key=64 sample=INSGuitarNylon_StringHighE_Vel03Pick_E4_01.wav
+<region> key=65 sample=INSGuitarNylon_StringHighE_Vel03Pick_F4_01.wav
+<region> key=66 sample=INSGuitarNylon_StringHighE_Vel03Pick_Fs4_01.wav
+<region> key=67 sample=INSGuitarNylon_StringHighE_Vel03Pick_G4_01.wav
+<region> key=68 sample=INSGuitarNylon_StringHighE_Vel03Pick_Gs4_01.wav
+<region> key=69 sample=INSGuitarNylon_StringHighE_Vel03Pick_A4_01.wav
+<region> key=70 sample=INSGuitarNylon_StringHighE_Vel03Pick_As4_01.wav
+<region> key=71 sample=INSGuitarNylon_StringHighE_Vel03Pick_B4_01.wav
+<region> key=72 sample=INSGuitarNylon_StringHighE_Vel03Pick_C5_01.wav
+<region> key=73 sample=INSGuitarNylon_StringHighE_Vel03Pick_Cs5_01.wav
+<region> key=74 sample=INSGuitarNylon_StringHighE_Vel03Pick_D5_01.wav
+<region> key=75 sample=INSGuitarNylon_StringHighE_Vel03Pick_Ds5_01.wav
+<region> key=76 sample=INSGuitarNylon_StringHighE_Vel03Pick_E5_01.wav
+<region> key=77 sample=INSGuitarNylon_StringHighE_Vel03Pick_F5_01.wav
+<region> key=78 sample=INSGuitarNylon_StringHighE_Vel03Pick_Fs5_01.wav
+<region> key=79 sample=INSGuitarNylon_StringHighE_Vel03Pick_G5_01.wav
+<region> key=80 sample=INSGuitarNylon_StringHighE_Vel03Pick_Gs5_01.wav
+<region> key=81 sample=INSGuitarNylon_StringHighE_Vel03Pick_A5_01.wav
+<region> key=82 sample=INSGuitarNylon_StringHighE_Vel03Pick_As5_01.wav
+<region> key=83 sample=INSGuitarNylon_StringHighE_Vel03Pick_B5_01.wav

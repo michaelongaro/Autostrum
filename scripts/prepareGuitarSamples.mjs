@@ -1,29 +1,90 @@
-// Offline asset preparation; never runs during install, build, or playback.
-// See decisions/guitar-samples.md for source downloads and licenses.
+// Offline preparation from original WAVs; never runs during install/build/playback.
+// Download instructions and source checksums: decisions/guitar-samples.md.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { PitchDetector } from "pitchy";
 
-const sources = path.resolve(process.argv[2] ?? ".git/guitar-sample-sources");
+const execute = promisify(execFile);
+const sources = path.resolve(
+  process.argv[2] ?? ".git/guitar-sample-sources/v2",
+);
 const ffmpeg = process.env.FFMPEG_PATH ?? "ffmpeg";
-const output = path.resolve("public/sounds/guitars/v1");
+const output = path.resolve("public/sounds/guitars/v2");
 const only = process.argv
   .find((arg) => arg.startsWith("--only="))
   ?.split("=")[1];
 const rate = 12000;
+const stringIndexes = { HighE: 0, B: 1, G: 2, D: 3, A: 4, LowE: 5 };
+const pitches = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 
-function decode(file, highPass = 60) {
-  const bytes = execFileSync(
+async function parallel(items, action) {
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(4, items.length) }, async () => {
+      while (next < items.length) await action(items[next++]);
+    }),
+  );
+}
+
+function noteMidi(note) {
+  const match = /^([A-G])(s?)(-?\d+)$/.exec(note);
+  if (!match) throw new Error(`Invalid source note: ${note}`);
+  return (Number(match[3]) + 1) * 12 + pitches[match[1]] + (match[2] ? 1 : 0);
+}
+
+function sfzZones(text) {
+  let group = {};
+  const regions = [];
+  for (const [, tag, body] of text
+    .replace(/\/\/[^\n]*/g, "")
+    .matchAll(/<(group|region)>([^<]*)/g)) {
+    const fields = Object.fromEntries(
+      [...body.matchAll(/(\w+)=([^\s]+)/g)].map((m) => [m[1], m[2]]),
+    );
+    if (tag === "group") group = fields;
+    else regions.push({ ...group, ...fields });
+  }
+  return regions;
+}
+
+function tune(data, midi, onset) {
+  const detector = PitchDetector.forFloat32Array(2048);
+  detector.minVolumeDecibels = -90;
+  detector.clarityThreshold = 0.8;
+  const measured = [];
+  for (
+    let frame = Math.floor((onset + 0.12) * rate);
+    frame < (onset + 0.55) * rate && frame + 2048 < data.length;
+    frame += 240
+  ) {
+    const [hz, clarity] = detector.findPitch(
+      data.subarray(frame, frame + 2048),
+      rate,
+    );
+    if (clarity < 0.8 || hz < 50) continue;
+    const pitch = 69 + 12 * Math.log2(hz / 440);
+    const folded = pitch + 12 * Math.round((midi - pitch) / 12);
+    if (Math.abs(folded - midi) < 0.6) measured.push(folded);
+  }
+  measured.sort((a, b) => a - b);
+  return measured.length >= 4
+    ? (midi - measured[Math.floor(measured.length / 2)]) * 100
+    : 0;
+}
+
+async function analyze(recording) {
+  const { stdout } = await execute(
     ffmpeg,
     [
       "-v",
       "error",
       "-i",
-      file,
+      recording.path,
       "-af",
-      `highpass=f=${highPass}:p=2,highpass=f=${highPass}:p=2`,
+      "highpass=f=30:p=2",
       "-ac",
       "1",
       "-ar",
@@ -32,359 +93,222 @@ function decode(file, highPass = 60) {
       "f32le",
       "pipe:1",
     ],
-    { maxBuffer: 32 * 1024 * 1024 },
+    { encoding: "buffer", maxBuffer: 32 * 1024 * 1024 },
   );
-  return new Float32Array(
-    bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+  const data = new Float32Array(
+    stdout.buffer.slice(
+      stdout.byteOffset,
+      stdout.byteOffset + stdout.byteLength,
+    ),
   );
-}
-
-function peak(data, from = 0, to = data.length) {
-  let value = 0;
-  for (let i = from; i < to; i++) value = Math.max(value, Math.abs(data[i]));
-  return value;
-}
-
-function tuningCorrection(data, midi, start, description) {
-  const detector = PitchDetector.forFloat32Array(2048);
-  detector.minVolumeDecibels = -100;
-  detector.clarityThreshold = 0.75;
-  const pitches = [];
-  for (
-    let frame = Math.floor((start + 0.12) * rate);
-    frame < (start + 0.5) * rate && frame + 2048 < data.length;
-    frame += 240
-  ) {
-    const [hz, clarity] = detector.findPitch(
-      data.subarray(frame, frame + 2048),
-      rate,
-    );
-    if (clarity < 0.75 || hz < 50) continue;
-    const detected = 69 + 12 * Math.log2(hz / 440);
-    // A bright electric take can have a dominant third/fifth partial. Choose
-    // the fundamental compatible with the source's known SFZ/note mapping.
-    const candidates = [1, 3, 5].map((harmonic) => {
-      const fundamental = detected - 12 * Math.log2(harmonic);
-      return fundamental + 12 * Math.round((midi - fundamental) / 12);
-    });
-    const folded = candidates.sort(
-      (a, b) => Math.abs(a - midi) - Math.abs(b - midi),
-    )[0];
-    if (Math.abs(folded - midi) < 0.6) pitches.push(folded);
-  }
-  pitches.sort((a, b) => a - b);
-  if (!pitches.length)
-    throw new Error(`Cannot tune ${description}, MIDI ${midi}`);
-  return (midi - pitches[Math.floor(pitches.length / 2)]) * 100;
-}
-
-async function encode(
-  bank,
-  file,
-  start,
-  duration,
-  targetPeak,
-  tuneCents = 0,
-  highPass = 45,
-) {
-  const data = decode(file, highPass);
-  const from = Math.floor(start * rate);
-  const to = Math.min(data.length, Math.floor((start + duration) * rate));
-  const maximum = peak(data, from, to);
-  if (maximum < 0.00001) throw new Error(`Silent sample: ${file} at ${start}`);
-  // Trim only pre-attack silence. Keep the pick transient and the natural decay.
-  let onset = from;
-  while (onset < to && Math.abs(data[onset]) < maximum * 0.005) onset++;
-  onset = Math.max(from, onset - Math.round(rate * 0.002));
-  const seconds = Math.min(8, (to - onset) / rate);
-  if (seconds < 0.3) throw new Error(`Short sample: ${file} at ${start}`);
-  const gain = targetPeak / maximum;
-  const temporary = path.join(sources, "encoded.mp3");
-  const tuneRate = 2 ** (tuneCents / 1200);
-  const tunedDuration = seconds / tuneRate;
-  const args = [
-    "-v",
-    "error",
-    "-y",
-    "-ss",
-    String(onset / rate),
-    "-i",
-    file,
-    "-t",
-    String(seconds),
-    "-ar",
-    "44100",
-    "-af",
-    `highpass=f=${highPass}:p=2,highpass=f=${highPass}:p=2,aresample=44100,asetrate=${44100 * tuneRate},aresample=44100,volume=${gain},afade=t=in:d=0.001,afade=t=out:st=${Math.max(0, tunedDuration - 0.06)}:d=0.06`,
-    "-ac",
-    "1",
-    "-c:a",
-    "libmp3lame",
-    "-b:a",
-    "192k",
-    "-map_metadata",
-    "-1",
-    temporary,
-  ];
-  execFileSync(ffmpeg, args, { maxBuffer: 4 * 1024 * 1024 });
-  const bytes = await fs.readFile(temporary);
-  const hash = createHash("sha256").update(bytes).digest("hex").slice(0, 12);
-  const filename = `${hash}.mp3`;
-  await fs.writeFile(path.join(output, bank, filename), bytes);
-  return filename;
-}
-
-function sfzZones(text) {
-  let global = {},
-    group = {};
-  const zones = [];
-  for (const [, tag, body] of text
-    .replace(/\/\/[^\n]*/g, "")
-    .matchAll(/<(global|group|region)>([^<]*)/g)) {
-    const fields = Object.fromEntries(
-      [...body.matchAll(/(\w+)=([^\s]+)/g)].map((m) => [m[1], m[2]]),
-    );
-    if (tag === "global") global = fields;
-    else if (tag === "group") group = fields;
-    else zones.push({ ...global, ...group, ...fields });
-  }
-  return zones;
-}
-
-async function saveManifest(bank, manifest) {
-  const directory = path.join(output, bank);
-  await fs.writeFile(
-    path.join(directory, "manifest.json"),
-    JSON.stringify(manifest, null, 2) + "\n",
-  );
-  const referenced = new Set(manifest.zones.flatMap((zone) => zone.files));
-  // Only remove obsolete content-hashed files generated in this bank. Source
-  // archives, license texts, and unrelated files are preserved.
-  for (const filename of await fs.readdir(directory)) {
-    if (/^[a-f0-9]{12}\.mp3$/.test(filename) && !referenced.has(filename)) {
-      await fs.unlink(path.join(directory, filename));
-    }
-  }
-}
-
-async function prepareSfz({ bank, directory, sfz, source, license, name }) {
-  const dir = path.join(sources, directory);
-  await fs.mkdir(path.join(output, bank), { recursive: true });
-  const text = await fs.readFile(path.join(dir, sfz), "utf8");
-  const grouped = new Map();
-  for (const region of sfzZones(text)) {
-    const root = Number(region.pitch_keycenter ?? region.key);
-    const low = Number(region.lokey ?? region.key);
-    const high = Number(region.hikey ?? region.key);
-    const lowVelocity = Number(region.lovel ?? 0);
-    const highVelocity = Number(region.hivel ?? 127);
-    if (![root, low, high].every(Number.isFinite))
-      throw new Error(`Invalid SFZ region in ${sfz}`);
-    const id = `${root}:${low}:${high}:${lowVelocity}:${highVelocity}`;
-    let zone = grouped.get(id);
-    if (!zone) {
-      zone = {
-        rootMidi: root,
-        lowMidi: low,
-        highMidi: high,
-        lowVelocity,
-        highVelocity,
-        files: [],
-      };
-      grouped.set(id, zone);
-    }
-    // Two real takes retain variation while keeping the download/memory bounded.
-    if (zone.files.length >= 2) continue;
-    const file = path.join(dir, region.sample);
-    const highPass = Math.max(45, 440 * 2 ** ((root - 69) / 12) * 0.35);
-    const data = decode(file, highPass);
-    const seconds = data.length / rate;
-    const threshold = peak(data) * 0.005;
-    let onset = 0;
-    while (onset < data.length && Math.abs(data[onset]) < threshold) onset++;
-    const cents = tuningCorrection(data, root, onset / rate, file);
-    zone.files.push(
-      await encode(
-        bank,
-        file,
-        0,
-        seconds,
-        lowVelocity > 0 ? 0.24 : 0.18,
-        cents,
-        highPass,
-      ),
-    );
-  }
-  const manifest = {
-    version: 1,
-    name,
-    source,
-    license,
-    zones: [...grouped.values()],
+  let maximum = 0;
+  for (const value of data) maximum = Math.max(maximum, Math.abs(value));
+  if (maximum < 0.00001) throw new Error(`Silent sample: ${recording.path}`);
+  let first = 0,
+    last = data.length - 1;
+  while (first < last && Math.abs(data[first]) < maximum * 0.002) first++;
+  while (last > first && Math.abs(data[last]) < maximum * 0.001) last--;
+  first = Math.max(0, first - Math.round(rate * 0.003));
+  last = Math.min(data.length - 1, last + Math.round(rate * 0.12));
+  const onset = first / rate;
+  return {
+    peak: maximum,
+    onset,
+    seconds: (last - first + 1) / rate,
+    cents: tune(data, recording.rootMidi, onset),
   };
-  await saveManifest(bank, manifest);
-  await fs.copyFile(path.join(dir, sfz), path.join(output, bank, "source.sfz"));
-  await fs.copyFile(
-    path.join(dir, bank === "steel" ? "readme.txt" : "README.txt"),
-    path.join(output, bank, "README-source.txt"),
-  );
-  await fs.copyFile(
-    path.join(dir, bank === "steel" ? "gpl.txt" : "LICENSE.txt"),
-    path.join(output, bank, "LICENSE.txt"),
-  );
-  console.log(
-    `${bank}: ${manifest.zones.length} zones, ${manifest.zones.reduce((n, z) => n + z.files.length, 0)} recordings`,
-  );
 }
 
-// Iowa's AIFFs contain ascending chromatic scales. Locate each note by pitch,
-// require a stable run, then recover its attack from the preceding quiet gap.
-export function locateScale(file, first, last) {
-  const data = decode(
-    file,
-    Math.max(60, 440 * 2 ** ((first - 69) / 12) * 0.35),
-  );
-  const detector = PitchDetector.forFloat32Array(2048);
-  detector.minVolumeDecibels = -100;
-  detector.clarityThreshold = 0.75;
-  const window = new Float32Array(2048);
-  const starts = [];
-  let expected = first,
-    streak = 0,
-    stableFrame = 0;
-  const minimum = peak(data) * 0.012;
-  for (
-    let frame = 0;
-    frame + window.length < data.length && expected <= last;
-    frame += 240
-  ) {
-    window.set(data.subarray(frame, frame + window.length));
-    const [hz, clarity] = detector.findPitch(window, rate);
-    const detected = 69 + 12 * Math.log2(hz / 440);
-    const midi = detected + 12 * Math.round((expected - detected) / 12);
-    if (
-      hz > 50 &&
-      clarity > 0.75 &&
-      Math.abs(midi - expected) < 0.6 &&
-      peak(window) > minimum
-    ) {
-      if (streak++ === 0) stableFrame = frame;
-      if (streak < 3) continue;
-      // Find the last quiet 10 ms block before stable pitch appears.
-      const localPeak = peak(data, stableFrame, stableFrame + 2048);
-      let onset = Math.max(0, stableFrame - 0.25 * rate);
-      for (
-        let j = Math.max(0, stableFrame - 0.8 * rate);
-        j < stableFrame;
-        j += 120
-      ) {
-        if (peak(data, j, j + 120) < localPeak * 0.035) onset = j + 120;
-      }
-      starts.push(onset / rate);
-      if (process.argv.includes("--probe"))
-        console.log({
-          expected,
-          stable: stableFrame / rate,
-          onset: onset / rate,
-          midi,
-        });
-      expected++;
-      streak = 0;
-      frame += rate * 0.6;
-    } else streak = 0;
-  }
-  if (starts.length !== last - first + 1)
-    throw new Error(
-      `Cannot split ${file}: found ${starts.length}, expected ${last - first + 1}`,
-    );
-  return { data, starts };
-}
-
-async function prepareNylon() {
-  const bank = "nylon";
-  await fs.mkdir(path.join(output, bank), { recursive: true });
+async function prepare({ bank, name, source, prefix, sfz }) {
+  const directory = path.join(sources, bank, prefix ?? "");
+  const destination = path.join(output, bank);
+  await fs.mkdir(destination, { recursive: true });
   const zones = [];
-  // Use the lowest positions on the appropriate string, then the treble string.
-  const scales = [
-    ["sulE.E2B2", 40, 47, 40, 44],
-    ["sulA.A2B2", 45, 47, 45, 47],
-    ["sulA.C3B3", 48, 59, 48, 49],
-    ["sulD.D3B3", 50, 59, 50, 54],
-    ["sulG.G3B3", 55, 59, 55, 58],
-    ["sulB.B3", 59, 59, 59, 59],
-    ["sulB.C4B4", 60, 71, 60, 63],
-    ["sul_E.E4B4", 64, 71, 64, 71],
-    ["sul_E.C5B5", 72, 83, 72, 83],
-  ];
-  const dynamics = [
-    ["pp", 0, 55, 0.12],
-    ["mf", 56, 100, 0.18],
-    ["ff", 101, 127, 0.24],
-  ];
-  for (const [dynamic, lowVelocity, highVelocity, target] of dynamics) {
-    for (let [scale, first, last, low, high] of scales) {
-      if (dynamic === "ff" && scale === "sul_E.C5B5") {
-        scale = "sul_E.C5Bb5";
-        last = high = 82;
-      }
-      const file = path.join(
-        sources,
-        "1644stereo",
-        `Guitar.${dynamic}.${scale}.aif`,
-      );
-      const { data, starts } = locateScale(file, first, last);
-      for (let midi = low; midi <= high; midi++) {
-        const start = starts[midi - first];
-        const end = starts[midi - first + 1] ?? data.length / rate;
-        const cents = tuningCorrection(data, midi, start, file);
-        const filename = await encode(
-          bank,
-          file,
-          start,
-          Math.max(0.3, end - start - 0.1),
-          target,
-          cents,
-          Math.max(45, 440 * 2 ** ((midi - 69) / 12) * 0.35),
+  const recordings = new Map();
+  if (bank !== "electric") {
+    for (const filename of (await fs.readdir(directory)).sort()) {
+      const match =
+        /^INSGuitar(?:Steel|Nylon)_String(LowE|A|D|G|B|HighE)_Vel(\d+)(?:Finger|Pick)?_([A-G]s?-?\d+)_01\.wav$/.exec(
+          filename,
         );
-        zones.push({
-          rootMidi: midi,
-          lowMidi: midi,
-          highMidi: midi,
+      if (!match) continue;
+      const rootMidi = noteMidi(match[3]);
+      const layer = Number(match[2]);
+      const zone = {
+        rootMidi,
+        lowMidi: rootMidi,
+        highMidi: rootMidi,
+        stringIndex: stringIndexes[match[1]],
+        lowVelocity: [0, 0, 56, 101][layer],
+        highVelocity: [0, 55, 100, 127][layer],
+        files: [filename],
+      };
+      zones.push(zone);
+      recordings.set(filename, {
+        path: path.join(directory, filename),
+        rootMidi,
+        normal: layer === 2,
+      });
+    }
+    const expected = bank === "steel" ? 375 : 348;
+    if (zones.length !== expected)
+      throw new Error(
+        `${bank}: expected ${expected} source recordings, found ${zones.length}`,
+      );
+  } else {
+    const grouped = new Map();
+    for (const region of sfzZones(
+      await fs.readFile(path.join(directory, sfz), "utf8"),
+    )) {
+      // Dedicated string-contact/release samples are not pitched note regions.
+      if (!region.sample.startsWith("notes\\")) continue;
+      const rootMidi = Number(region.pitch_keycenter ?? region.key ?? 60);
+      const lowMidi = Number(region.lokey ?? region.key),
+        highMidi = Number(region.hikey ?? region.key);
+      const lowVelocity = Number(region.lovel ?? 0),
+        highVelocity = Number(region.hivel ?? 127);
+      if (
+        ![rootMidi, lowMidi, highMidi, lowVelocity, highVelocity].every(
+          Number.isFinite,
+        )
+      )
+        throw new Error(`Invalid Emilyguitar region: ${region.sample}`);
+      const id = `${rootMidi}:${lowMidi}:${highMidi}:${lowVelocity}:${highVelocity}`;
+      let zone = grouped.get(id);
+      if (!zone) {
+        zone = {
+          rootMidi,
+          lowMidi,
+          highMidi,
           lowVelocity,
           highVelocity,
-          files: [filename],
-        });
+          files: [],
+        };
+        grouped.set(id, zone);
       }
-      console.log(`nylon: ${dynamic} ${scale}`);
+      const filename = region.sample.replaceAll("\\", "/");
+      zone.files.push(filename);
+      recordings.set(filename, {
+        path: path.join(directory, filename),
+        rootMidi,
+        normal: lowVelocity === 81,
+      });
     }
+    zones.push(...grouped.values());
+    if (
+      recordings.size !== 216 ||
+      zones.length !== 72 ||
+      zones.some((zone) => zone.files.length !== 3)
+    )
+      throw new Error("Unexpected Emilyguitar mapping");
   }
-  const manifest = {
-    version: 1,
-    name: "Raimundo 118 classical guitar",
-    source: "https://theremin.music.uiowa.edu/MISguitar.html",
-    license: "University of Iowa MIS: any projects, without restrictions",
-    zones,
-  };
-  await saveManifest(bank, manifest);
+
+  console.log(`${bank}: analyzing ${recordings.size} WAV recordings`);
+  await parallel([...recordings.values()], async (recording) => {
+    Object.assign(recording, await analyze(recording));
+  });
+  const normalPeaks = [...recordings.values()]
+    .filter((recording) => recording.normal)
+    .map((recording) => recording.peak)
+    .sort((a, b) => a - b);
+  const largest = Math.max(
+    ...[...recordings.values()].map((recording) => recording.peak),
+  );
+  // One collection gain retains actual dynamics and differences between notes/takes.
+  const gain = Math.min(
+    0.23 / normalPeaks[Math.floor(normalPeaks.length * 0.9)],
+    0.65 / largest,
+  );
+  const filenames = new Map();
+  let encoded = 0;
+  await parallel([...recordings.entries()], async ([filename, recording]) => {
+    const temporary = path.join(
+      destination,
+      `encode-${createHash("sha256").update(filename).digest("hex").slice(0, 16)}.mp3`,
+    );
+    const tuneRate = 2 ** (recording.cents / 1200);
+    const duration = recording.seconds / tuneRate;
+    await execute(ffmpeg, [
+      "-v",
+      "error",
+      "-y",
+      "-ss",
+      String(recording.onset),
+      "-i",
+      recording.path,
+      "-t",
+      String(recording.seconds),
+      "-af",
+      `highpass=f=30:p=2,aresample=44100,asetrate=${44100 * tuneRate},aresample=44100,volume=${gain},afade=t=in:d=0.001,afade=t=out:st=${Math.max(0, duration - 0.06)}:d=0.06`,
+      "-ac",
+      "1",
+      "-ar",
+      "44100",
+      "-c:a",
+      "libmp3lame",
+      "-b:a",
+      "192k",
+      "-map_metadata",
+      "-1",
+      temporary,
+    ]);
+    const bytes = await fs.readFile(temporary);
+    const hash = createHash("sha256").update(bytes).digest("hex").slice(0, 12);
+    const hashed = `${hash}.mp3`;
+    await fs.rename(temporary, path.join(destination, hashed));
+    filenames.set(filename, hashed);
+    if (++encoded % 75 === 0)
+      console.log(`${bank}: ${encoded}/${recordings.size} encoded`);
+  });
+  for (const zone of zones)
+    zone.files = zone.files.map((filename) => filenames.get(filename));
+  const manifest = { version: 2, name, source, license: "CC0-1.0", zones };
+  await fs.writeFile(
+    path.join(destination, "manifest.json"),
+    JSON.stringify(manifest, null, 2) + "\n",
+  );
+  const referenced = new Set(filenames.values());
+  for (const filename of await fs.readdir(destination)) {
+    if (/^[a-f0-9]{12}\.mp3$/.test(filename) && !referenced.has(filename))
+      await fs.unlink(path.join(destination, filename));
+  }
+  await fs.copyFile(
+    path.join(directory, sfz),
+    path.join(destination, "source.sfz"),
+  );
+  await fs.copyFile(
+    path.join(directory, "LICENSE"),
+    path.join(destination, "LICENSE.txt"),
+  );
+  if (bank === "electric")
+    await fs.copyFile(
+      path.join(directory, "readme.txt"),
+      path.join(destination, "README-source.txt"),
+    );
+  console.log(
+    `${bank}: complete; ${zones.length} zones, ${recordings.size} takes, gain ${gain.toFixed(3)}, longest ${Math.max(...[...recordings.values()].map((recording) => recording.seconds)).toFixed(2)}s`,
+  );
 }
 
-if (!only || only === "steel")
-  await prepareSfz({
+const banks = [
+  {
     bank: "steel",
-    directory: "FSS-SteelStringGuitar-SFZ-20200521",
-    sfz: "FSS-SteelStringGuitar-20200521.sfz",
-    name: "Seagull steel-string acoustic",
-    source: "https://freepats.zenvoid.org/Guitar/steel-acoustic-guitar.html",
-    license: "GPL-3.0-or-later WITH FreePats composition exception",
-  });
-if (!only || only === "electric")
-  await prepareSfz({
+    name: "Meta Steel Guitar",
+    source: "https://github.com/facebookincubator/Meta-open-sound",
+    sfz: "meta-steel-guitar.sfz",
+  },
+  {
+    bank: "nylon",
+    name: "Meta Nylon Guitar",
+    source: "https://github.com/facebookincubator/Meta-open-sound",
+    sfz: "meta-nylon-guitar.sfz",
+  },
+  {
     bank: "electric",
-    directory: "EGuitarFSBS-clean SFZ+FLAC-20260807",
-    sfz: "EGuitarFSBS-clean bridge 20260807.sfz",
-    name: "Fender clean electric",
-    source:
-      "https://freepats.zenvoid.org/ElectricGuitar/clean-electric-guitar.html",
-    license: "CC0-1.0",
-  });
-if (!only || only === "nylon") await prepareNylon();
+    name: "Karoryfer Emilyguitar",
+    source: "https://github.com/sfzinstruments/karoryfer.emilyguitar",
+    prefix: "Emilyguitar",
+    sfz: "emily_clean.sfz",
+  },
+];
+for (const bank of banks) if (!only || only === bank.bank) await prepare(bank);

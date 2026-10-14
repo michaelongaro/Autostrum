@@ -6,7 +6,9 @@ import type {
   GuitarSampleZone,
 } from "~/utils/guitarSampleTypes";
 
-const SAMPLE_ROOT = "/sounds/guitars/v1";
+const SAMPLE_ROOT = "/sounds/guitars/v2";
+const CACHE_TARGET_BYTES = 192 * 1024 * 1024;
+const STANDARD_TUNING = [64, 59, 55, 50, 45, 40];
 const zoneSchema = z.object({
   rootMidi: z.number().int().min(0).max(127),
   lowMidi: z.number().int().min(0).max(127),
@@ -14,9 +16,10 @@ const zoneSchema = z.object({
   lowVelocity: z.number().int().min(0).max(127),
   highVelocity: z.number().int().min(0).max(127),
   files: z.array(z.string().regex(/^[a-f0-9]{12}\.mp3$/)).min(1),
+  stringIndex: z.number().int().min(0).max(5).optional(),
 });
 const manifestSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   name: z.string(),
   source: z.string(),
   license: z.string(),
@@ -27,6 +30,10 @@ type BankName = "steel" | "nylon" | "electric";
 type LoadedBank = {
   zones: GuitarSampleZone[];
   buffers: Map<string, AudioBuffer>;
+  pending: Map<string, Promise<void>>;
+  essential: Set<string>;
+  retained: Set<string>;
+  bytes: number;
   ready?: Promise<void>;
 };
 
@@ -55,7 +62,20 @@ function noteToMidi(note: string) {
   );
 }
 
-function zoneDistance(zone: GuitarSampleZone, midi: number, velocity: number) {
+function defaultString(midi: number) {
+  for (let index = 5; index >= 0; index--) {
+    const fret = midi - STANDARD_TUNING[index]!;
+    if (fret >= 0 && fret <= 4) return index;
+  }
+  return midi < 40 ? 5 : 0;
+}
+
+function zoneDistance(
+  zone: GuitarSampleZone,
+  midi: number,
+  velocity: number,
+  stringIndex = defaultString(midi),
+) {
   const keyDistance = Math.max(zone.lowMidi - midi, midi - zone.highMidi, 0);
   const velocityDistance = Math.max(
     zone.lowVelocity - velocity,
@@ -63,8 +83,50 @@ function zoneDistance(zone: GuitarSampleZone, midi: number, velocity: number) {
     0,
   );
   return (
-    keyDistance * 1000 + velocityDistance * 2 + Math.abs(zone.rootMidi - midi)
+    keyDistance * 1000 +
+    (zone.stringIndex !== undefined && zone.stringIndex !== stringIndex
+      ? 2000
+      : 0) +
+    velocityDistance * 2 +
+    Math.abs(zone.rootMidi - midi)
   );
+}
+
+function nearestZone(
+  zones: GuitarSampleZone[],
+  midi: number,
+  velocity: number,
+  stringIndex?: number,
+) {
+  let best = zones[0]!;
+  for (const zone of zones) {
+    if (
+      zoneDistance(zone, midi, velocity, stringIndex) <
+      zoneDistance(best, midi, velocity, stringIndex)
+    )
+      best = zone;
+  }
+  return best;
+}
+
+function touch(bank: LoadedBank, file: string) {
+  const buffer = bank.buffers.get(file);
+  if (buffer) {
+    bank.buffers.delete(file);
+    bank.buffers.set(file, buffer);
+  }
+  return buffer;
+}
+
+function prune(bank: LoadedBank) {
+  // Keep reference coverage and the current piece; discard older string positions.
+  // AudioBufferSourceNodes retain their own buffers, so playing voices stay intact.
+  for (const [file, buffer] of bank.buffers) {
+    if (bank.bytes <= CACHE_TARGET_BYTES) break;
+    if (bank.essential.has(file) || bank.retained.has(file)) continue;
+    bank.buffers.delete(file);
+    bank.bytes -= buffer.length * buffer.numberOfChannels * 4;
+  }
 }
 
 async function fetchAsset(url: string) {
@@ -95,8 +157,21 @@ async function loadFiles(
     Array.from({ length: Math.min(4, files.length) }, async () => {
       while (next < files.length) {
         const file = files[next++]!;
-        const bytes = await fetchAsset(`${SAMPLE_ROOT}/${bankName}/${file}`);
-        bank.buffers.set(file, await context.decodeAudioData(bytes));
+        if (touch(bank, file)) continue;
+        let pending = bank.pending.get(file);
+        if (!pending) {
+          pending = (async () => {
+            const bytes = await fetchAsset(
+              `${SAMPLE_ROOT}/${bankName}/${file}`,
+            );
+            const buffer = await context.decodeAudioData(bytes);
+            bank.buffers.set(file, buffer);
+            bank.bytes += buffer.length * buffer.numberOfChannels * 4;
+            prune(bank);
+          })().finally(() => bank.pending.delete(file));
+          bank.pending.set(file, pending);
+        }
+        await pending;
       }
     }),
   );
@@ -115,22 +190,32 @@ async function loadBank(context: BaseAudioContext, name: BankName) {
       const manifest = manifestSchema.parse(
         JSON.parse(new TextDecoder().decode(bytes)),
       );
-      const bank: LoadedBank = { zones: manifest.zones, buffers: new Map() };
+      const bank: LoadedBank = {
+        zones: manifest.zones,
+        buffers: new Map(),
+        pending: new Map(),
+        essential: new Set(),
+        retained: new Set(),
+        bytes: 0,
+      };
       const essential = new Set<string>();
+      const referenceFiles = new Set<string>();
       // One take of the normal picking layer across the whole recorded range.
       // Other dynamics and alternate takes arrive after playback is available.
       for (let midi = 0; midi <= 127; midi++) {
-        let best = bank.zones[0]!;
-        for (const zone of bank.zones) {
-          if (zoneDistance(zone, midi, 88) < zoneDistance(best, midi, 88))
-            best = zone;
-        }
+        const best = nearestZone(bank.zones, midi, 88);
         essential.add(best.files[0]!);
+        for (const velocity of [32, 64, 88, 124]) {
+          for (const file of nearestZone(bank.zones, midi, velocity).files)
+            referenceFiles.add(file);
+        }
       }
+      bank.essential = essential;
       await loadFiles(context, name, bank, [...essential]);
-      const optional = [
-        ...new Set(bank.zones.flatMap((zone) => zone.files)),
-      ].filter((file) => !essential.has(file));
+      // Only first-position/reference dynamics, not every recording of each string.
+      const optional = [...referenceFiles].filter(
+        (file) => !essential.has(file),
+      );
       bank.ready = loadFiles(context, name, bank, optional).catch(
         (error: unknown) => {
           console.warn(
@@ -198,6 +283,7 @@ export async function loadGuitarSamplePlayer(
     midi: number,
     velocity: number,
     advance: boolean,
+    stringIndex?: number,
   ): GuitarSample | undefined {
     if (!Number.isFinite(midi) || !Number.isFinite(velocity)) return;
     const strength = Math.max(0, Math.min(127, velocity));
@@ -206,7 +292,8 @@ export async function loadGuitarSamplePlayer(
       if (!zone.files.some((file) => bank.buffers.has(file))) continue;
       if (
         !best ||
-        zoneDistance(zone, midi, strength) < zoneDistance(best, midi, strength)
+        zoneDistance(zone, midi, strength, stringIndex) <
+          zoneDistance(best, midi, strength, stringIndex)
       )
         best = zone;
     }
@@ -215,15 +302,53 @@ export async function loadGuitarSamplePlayer(
     const take = advance ? (takes.get(best) ?? 0) : 0;
     const file = available[take % available.length]!;
     if (advance) takes.set(best, take + 1);
-    return { buffer: bank.buffers.get(file)!, rootMidi: best.rootMidi };
+    return {
+      buffer: touch(bank, file)!,
+      rootMidi: best.rootMidi,
+      stringIndex: best.stringIndex,
+    };
   }
 
   return {
     name: instrumentName,
     output,
     samplesReady: bank.ready,
-    getSample: (midi, velocity) => select(midi, velocity, true),
-    getReferenceSample: (midi) => select(midi, 88, false),
+    async prepareSamples(notes) {
+      await bank.ready;
+      const files = new Set<string>();
+      for (const { midi, stringIndex } of notes) {
+        if (
+          !Number.isFinite(midi) ||
+          !Number.isInteger(stringIndex) ||
+          stringIndex < 0 ||
+          stringIndex > 5
+        )
+          continue;
+        for (const velocity of [32, 64, 88, 124]) {
+          for (const file of nearestZone(
+            bank.zones,
+            midi,
+            velocity,
+            stringIndex,
+          ).files)
+            files.add(file);
+        }
+      }
+      bank.retained = files;
+      try {
+        await loadFiles(context, name, bank, [...files]);
+      } catch (error) {
+        console.warn(
+          `Some ${name} string recordings unavailable; using loaded samples.`,
+          error,
+        );
+      }
+      prune(bank);
+    },
+    getSample: (midi, velocity, stringIndex) =>
+      select(midi, velocity, true, stringIndex),
+    getReferenceSample: (midi, stringIndex) =>
+      select(midi, 88, false, stringIndex),
     play(note, when = context.currentTime, options = {}) {
       const midi = noteToMidi(note);
       const sample = midi === null ? undefined : select(midi, 88, true);

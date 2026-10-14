@@ -22,6 +22,7 @@ type Voice = {
   filter: BiquadFilterNode;
   instrument: GuitarInstrument;
   sampleMidi: number;
+  stringIndex: number;
   sampleOffset: number;
   startTime: number;
   releaseAt: number;
@@ -226,7 +227,10 @@ function legatoSampleGain(
   time: number,
   predictPitch = false,
 ) {
-  const reference = voice.instrument.getReferenceSample?.(midi);
+  const reference = voice.instrument.getReferenceSample?.(
+    midi,
+    voice.stringIndex,
+  );
   const target = reference?.buffer ?? getBuffer(voice.instrument, midi);
   if (!target) return 1;
   const consumed = consumedSampleSeconds(voice, time);
@@ -295,7 +299,7 @@ function createVoice({
   legato,
   velocity = 88,
 }: SampleArgs) {
-  const sample = instrument.getSample?.(midi, velocity);
+  const sample = instrument.getSample?.(midi, velocity, stringIdx);
   const buffer = sample?.buffer ?? getBuffer(instrument, midi);
   if (!buffer) return;
   const rootMidi = sample?.rootMidi ?? midi;
@@ -319,6 +323,7 @@ function createVoice({
     filter,
     instrument,
     sampleMidi: rootMidi,
+    stringIndex: stringIdx,
     sampleOffset: legato ? getAttackOffset(buffer) : 0,
     startTime,
     releaseAt: Infinity,
@@ -497,7 +502,7 @@ export function playGuitarNote(
       ...args,
       startTime: time,
       legato,
-      velocity: effects.includes(">") ? 120 : legato ? 52 : 88,
+      velocity: effects.includes(">") ? 124 : legato ? 52 : 88,
     });
   }
   if (!voice) return;
@@ -543,7 +548,12 @@ export function playGuitarNote(
   let duration = palmMuted
     ? clamp(interval * 0.7, 0.075, 0.28)
     : args.instrument.getSample
-      ? 6
+      ? clamp(
+          (voice.source.buffer!.duration - consumedSampleSeconds(voice, time)) /
+            2 ** (valueAt(voice.pitchPoints, time) / 1200),
+          0.02,
+          20,
+        )
       : 3;
   if (effects.includes("."))
     duration = Math.min(duration, clamp(interval * 0.45, 0.035, 0.22));

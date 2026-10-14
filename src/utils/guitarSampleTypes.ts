@@ -1,6 +1,12 @@
 export interface GuitarSample {
   buffer: AudioBuffer;
   rootMidi: number;
+  stringIndex?: number;
+}
+
+export interface GuitarSampleRequest {
+  midi: number;
+  stringIndex: number;
 }
 
 export interface GuitarPlaybackHandle {
@@ -15,8 +21,16 @@ export interface GuitarInstrument {
   buffers?: Record<number, AudioBuffer>;
   output?: AudioNode;
   samplesReady?: Promise<void>;
-  getSample?: (midi: number, velocity: number) => GuitarSample | undefined;
-  getReferenceSample?: (midi: number) => GuitarSample | undefined;
+  prepareSamples?: (notes: GuitarSampleRequest[]) => Promise<void>;
+  getSample?: (
+    midi: number,
+    velocity: number,
+    stringIndex?: number,
+  ) => GuitarSample | undefined;
+  getReferenceSample?: (
+    midi: number,
+    stringIndex?: number,
+  ) => GuitarSample | undefined;
   play(
     note: string,
     when?: number,
@@ -37,10 +51,11 @@ export interface GuitarSampleZone {
   lowVelocity: number;
   highVelocity: number;
   files: string[];
+  stringIndex?: number;
 }
 
 export interface GuitarSampleManifest {
-  version: 1;
+  version: 2;
   name: string;
   source: string;
   license: string;
