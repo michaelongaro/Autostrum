@@ -10,7 +10,8 @@ import Tab from "~/components/Tab/Tab";
 import superjson from "superjson";
 import { Button } from "~/components/ui/button";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
-import { useHydrateTabStore } from "~/hooks/useHydrateTabStore";
+import DraftEditor from "~/components/Tab/DraftEditor";
+import { useMemo } from "react";
 
 interface OpenGraphData {
   title: string;
@@ -25,14 +26,12 @@ interface PageData {
 }
 
 function EditIndividualTab({ json }: { json: string }) {
-  const { userAllowedToEdit, tab, openGraphData } =
-    superjson.parse<PageData>(json);
+  const { userAllowedToEdit, tab, openGraphData } = useMemo(
+    () => superjson.parse<PageData>(json),
+    [json],
+  );
 
   const { query } = useRouter();
-
-  useHydrateTabStore({
-    fetchedTab: tab,
-  });
 
   if (!tab) {
     return <TabNotFound />;
@@ -72,7 +71,9 @@ function EditIndividualTab({ json }: { json: string }) {
       </Head>
 
       <AnimatePresence mode="wait">
-        <Tab />
+        <DraftEditor fetchedTab={tab}>
+          <Tab />
+        </DraftEditor>
       </AnimatePresence>
     </motion.div>
   );
