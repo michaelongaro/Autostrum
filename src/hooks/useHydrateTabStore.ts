@@ -59,6 +59,7 @@ export function useHydrateTabStore({ fetchedTab }: UseHydrateTabStoreOptions) {
     setTabData,
     setEditing,
     setOriginalTabData,
+    clearEditorHistory,
   } = useTabStore((state) => ({
     setId: state.setId,
     setCreatedByUserId: state.setCreatedByUserId,
@@ -81,9 +82,11 @@ export function useHydrateTabStore({ fetchedTab }: UseHydrateTabStoreOptions) {
     setTabData: state.setTabData,
     setEditing: state.setEditing,
     setOriginalTabData: state.setOriginalTabData,
+    clearEditorHistory: state.clearEditorHistory,
   }));
 
   useEffect(() => {
+    clearEditorHistory();
     const localStorageTabData = localStorage.getItem("autostrum-tabData");
 
     const shouldRestoreFromLocalStorage = !fetchedTab && localStorageTabData;
@@ -143,6 +146,7 @@ export function useHydrateTabStore({ fetchedTab }: UseHydrateTabStoreOptions) {
 
       localStorage.removeItem("autostrum-tabData");
     }
+    clearEditorHistory();
   }, [
     fetchedTab,
     setId,
@@ -166,5 +170,6 @@ export function useHydrateTabStore({ fetchedTab }: UseHydrateTabStoreOptions) {
     setTabData,
     setEditing,
     setOriginalTabData,
+    clearEditorHistory,
   ]);
 }

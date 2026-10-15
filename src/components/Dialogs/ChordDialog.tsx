@@ -21,6 +21,7 @@ import {
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { AnimatePresence, motion } from "framer-motion";
+import EditorHistoryControls from "~/components/Tab/EditorHistoryControls";
 
 function ChordDialog() {
   const {
@@ -176,9 +177,15 @@ function ChordDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex w-auto min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[380px]">
+      <DialogContent
+        data-tab-editor-history="chord"
+        className="baseVertFlex w-auto min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[380px]"
+      >
         {chord && (
           <>
+            <div className="w-full">
+              <EditorHistoryControls />
+            </div>
             {/* chord title */}
             <div className="baseFlex w-full !items-start !justify-between">
               <div className="baseVertFlex !items-start gap-2">

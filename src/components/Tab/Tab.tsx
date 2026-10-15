@@ -54,6 +54,7 @@ import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
 import SectionProgressionDialog from "~/components/Dialogs/SectionProgressionDialog";
 import ChordDialog from "~/components/Dialogs/ChordDialog";
 import StrummingPatternDialog from "~/components/Dialogs/StrummingPatternDialog";
+import { useTabEditorHistory } from "~/hooks/useTabEditorHistory";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -141,6 +142,7 @@ function Tab() {
 
   useAutoCompileChords();
   useSpacebarAudioControl({ useHoveredChordLocation: true });
+  useTabEditorHistory(isPublishingOrUpdating);
 
   const { ref: tabContentRef } = useInView({
     rootMargin: "-300px 0px -300px 0px",
@@ -194,6 +196,7 @@ function Tab() {
     >
       <div
         id={"mainTabComponent"}
+        data-tab-editor-history="document"
         style={{
           transition: "filter 0.5s ease-in-out",
         }}

@@ -305,6 +305,7 @@ function TabMeasureLine({
               </Button>
             </PopoverTrigger>
             <PopoverContent
+              data-tab-editor-history="document"
               className="baseVertFlex z-40 w-52 gap-4 p-2"
               side="bottom"
             >

@@ -13,7 +13,6 @@ import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
-import { appendNewlyAddedSectionsToProgression } from "~/utils/appendNewlyAddedSectionsToProgression";
 
 /**
  * Recompiles playback metadata when tab content / playback settings change.
@@ -28,17 +27,8 @@ function useAutoCompileChords() {
 
   // Keep a stable debounced runner; recreate when editing toggles delay.
   const debouncedRef = useRef<ReturnType<typeof debounce> | null>(null);
-  // Section IDs observed by this hook. Used to append only *newly created*
-  // sections to an existing progression without re-adding ones the user
-  // intentionally removed. Cheap O(section count) set — not a content hash.
-  const knownSectionIdsRef = useRef<Set<string> | null>(null);
 
   useEffect(() => {
-    // Re-seed when the effect rebinds (e.g. editing toggle) so the first
-    // resolve initializes from current tabData without treating existing
-    // sections as brand new.
-    knownSectionIdsRef.current = null;
-
     const handleTabLogic = () => {
       const {
         editing: isEditing,
@@ -80,12 +70,13 @@ function useAutoCompileChords() {
       const isPlaybackModalSectionOverride =
         !editing && audioMetadata.location?.sectionIndex !== undefined;
 
-      let sectionProgression = isPlaybackModalSectionOverride
+      const sectionProgression = isPlaybackModalSectionOverride
         ? // just for when playing back specific section within PlaybackModal
           [
             {
               id: "",
-              sectionId: tabData[audioMetadata.location!.sectionIndex]?.id ?? "",
+              sectionId:
+                tabData[audioMetadata.location!.sectionIndex]?.id ?? "",
               title: "",
               repetitions: 1,
               startSeconds: 0,
@@ -96,25 +87,6 @@ function useAutoCompileChords() {
           rawSectionProgression.length > 0
           ? rawSectionProgression
           : generateDefaultSectionProgression(tabData);
-
-      // After the first compile, an empty progression becomes a concrete list
-      // via updateElapsedSeconds. Append only sections created since then so
-      // compileFullTab sees the longer tab — without re-adding sections the
-      // user intentionally removed from the progression.
-      if (!isPlaybackModalSectionOverride) {
-        if (knownSectionIdsRef.current === null) {
-          knownSectionIdsRef.current = new Set(tabData.map((s) => s.id));
-        } else if (rawSectionProgression.length > 0) {
-          sectionProgression = appendNewlyAddedSectionsToProgression({
-            tabData,
-            sectionProgression,
-            knownSectionIds: knownSectionIdsRef.current,
-          });
-        } else {
-          // generateDefault already includes every section; refresh known IDs.
-          knownSectionIdsRef.current = new Set(tabData.map((s) => s.id));
-        }
-      }
 
       if (isEditing && audioMetadata.location) {
         compileSpecificChordGrouping({
@@ -162,7 +134,10 @@ function useAutoCompileChords() {
           tabData,
           sectionProgression: sectionProgression,
           baselineBpm: bpm,
-          setSectionProgression,
+          // Playback timings are derived; they must not create history entries
+          // or clear redo after a document is restored.
+          setSectionProgression: (progression) =>
+            setSectionProgression(progression, { recordHistory: false }),
         });
       } else {
         const startLoopIndex = audioMetadata.editingLoopRange

@@ -35,6 +35,13 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
           Tips
         </div>
 
+        <p className="w-full text-sm">
+          Undo with <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Z</kbd>. Redo with{" "}
+          <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd>, or{" "}
+          <kbd>Ctrl</kbd> + <kbd>Y</kbd>. Dialog edits have their own history;
+          saving them creates one undo step in the tab.
+        </p>
+
         <div className="baseVertFlex w-full !items-start gap-8 xl:!flex-row">
           <div className="baseVertFlex w-full !items-start gap-8">
             {/* Tab */}
@@ -139,8 +146,8 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
                 <span>
                   Press
                   <kbd className="ml-1.5">Spacebar</kbd> to play/pause the tab.
-                  If you are hovered over a chord, the tab will start playing from
-                  there.
+                  If you are hovered over a chord, the tab will start playing
+                  from there.
                 </span>
               </div>
             </div>

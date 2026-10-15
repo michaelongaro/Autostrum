@@ -72,6 +72,7 @@ import {
 import { Badge } from "~/components/ui/badge";
 import { isMobile } from "react-device-detect";
 import Spinner from "~/components/ui/Spinner";
+import EditorHistoryControls from "~/components/Tab/EditorHistoryControls";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -524,6 +525,11 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       {editing && (
         <div className="baseVertFlex w-full gap-2">
           <div className="baseFlex w-full !justify-end gap-2 p-4 sm:gap-3">
+            <div className="mr-auto">
+              <EditorHistoryControls
+                disabled={isPublishing || isUpdating || isDeleting}
+              />
+            </div>
             {!asPath.includes("create") && (
               <DropdownMenu modal={true}>
                 <DropdownMenuTrigger asChild>
@@ -698,12 +704,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 maxLength={500}
                 value={description ?? ""}
                 className={`max-h-[350px] min-h-[122px] ${isMobile ? "text-base" : "text-sm"}`}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    // technically allows a *ton* of newlines, messing up ui, but not mission critical
-                    setDescription(description + "\n");
-                  }
-                }}
                 onChange={(e) => {
                   setDescription(e.target.value);
                 }}
