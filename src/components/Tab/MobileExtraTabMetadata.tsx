@@ -18,6 +18,7 @@ import {
   type CarouselApi,
 } from "~/components/ui/carousel";
 import ChordName from "~/components/ui/ChordName";
+import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
 
 function MobileExtraTabMetadata() {
   const {
@@ -176,6 +177,12 @@ function MobileExtraTabMetadata() {
 
         <Button
           variant={"text"}
+          aria-label={
+            tabContentExpanded
+              ? "Collapse extra tab metadata"
+              : "Expand extra tab metadata"
+          }
+          aria-expanded={tabContentExpanded}
           onClick={() => setTabContentExpanded((prev) => !prev)}
           className="baseFlex mr-[9px] !p-0"
         >
@@ -194,16 +201,9 @@ function MobileExtraTabMetadata() {
             <CarouselItem className="baseFlex basis-full">
               <AnimatePresence mode="wait" initial={false}>
                 {activeTabName === "Section progression" && (
-                  <motion.div
+                  <ExtraTabMetadataPane
                     key="sectionProgressionTab"
-                    initial={{ opacity: 0, height: "6rem" }}
-                    animate={{
-                      opacity: 1,
-                      height: tabContentExpanded ? "auto" : "6rem",
-                    }}
-                    exit={{ opacity: 0, height: "6rem" }}
-                    transition={{ duration: 0.3, opacity: { duration: 0.15 } }}
-                    className="baseVertFlex !justify-start gap-2 overflow-y-hidden"
+                    expanded={tabContentExpanded}
                   >
                     <div className="baseFlex w-full">
                       {sectionProgression.length === 0 ? (
@@ -242,7 +242,7 @@ function MobileExtraTabMetadata() {
                         </div>
                       )}
                     </div>
-                  </motion.div>
+                  </ExtraTabMetadataPane>
                 )}
               </AnimatePresence>
             </CarouselItem>
@@ -250,23 +250,10 @@ function MobileExtraTabMetadata() {
             <CarouselItem className="baseFlex basis-full">
               <AnimatePresence mode="wait" initial={false}>
                 {activeTabName === "Chords" && (
-                  <motion.div
+                  <ExtraTabMetadataPane
                     key="chordsTab"
-                    initial={{ opacity: 0, height: "6rem" }}
-                    animate={{
-                      opacity: 1,
-                      height: tabContentExpanded
-                        ? "auto"
-                        : chords.length === 0
-                          ? "6rem"
-                          : "10rem",
-                    }}
-                    exit={{
-                      opacity: 0,
-                      height: "6rem",
-                    }}
-                    transition={{ duration: 0.3, opacity: { duration: 0.15 } }}
-                    className="baseVertFlex w-full !justify-start overflow-y-hidden"
+                    expanded={tabContentExpanded}
+                    collapsedHeight={chords.length === 0 ? 96 : 160}
                   >
                     {chords.length === 0 ? (
                       <p className="baseFlex h-24 text-gray">
@@ -351,7 +338,7 @@ function MobileExtraTabMetadata() {
                         ))}
                       </div>
                     )}
-                  </motion.div>
+                  </ExtraTabMetadataPane>
                 )}
               </AnimatePresence>
             </CarouselItem>
@@ -359,20 +346,10 @@ function MobileExtraTabMetadata() {
             <CarouselItem className="baseFlex basis-full">
               <AnimatePresence mode="wait" initial={false}>
                 {activeTabName === "Strumming patterns" && (
-                  <motion.div
+                  <ExtraTabMetadataPane
                     key="strummingPatternsTab"
-                    initial={{ opacity: 0, height: "6rem" }}
-                    animate={{
-                      opacity: 1,
-                      height: tabContentExpanded
-                        ? "auto"
-                        : strummingPatterns.length === 0
-                          ? "6rem"
-                          : "10rem",
-                    }}
-                    exit={{ opacity: 0, height: "6rem" }}
-                    transition={{ duration: 0.3, opacity: { duration: 0.15 } }}
-                    className={`baseVertFlex w-full overflow-y-hidden ${strummingPatterns.length > 0 ? "!justify-start" : ""}`}
+                    expanded={tabContentExpanded}
+                    collapsedHeight={strummingPatterns.length === 0 ? 96 : 160}
                   >
                     {strummingPatterns.length === 0 ? (
                       <p className="baseFlex h-24 text-gray">
@@ -475,7 +452,7 @@ function MobileExtraTabMetadata() {
                         ))}
                       </div>
                     )}
-                  </motion.div>
+                  </ExtraTabMetadataPane>
                 )}
               </AnimatePresence>
             </CarouselItem>
