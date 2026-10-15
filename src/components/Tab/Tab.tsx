@@ -207,7 +207,7 @@ function Tab() {
         <TabMetadata setIsPublishingOrUpdating={setIsPublishingOrUpdating} />
 
         <Separator
-          className={`mt-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+          className={`mt-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:mb-4 tablet:w-[96%]"}`}
         />
 
         {editing ? (
