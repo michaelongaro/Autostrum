@@ -48,6 +48,7 @@ import Spinner from "~/components/ui/Spinner";
 import { useAuth } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import type { InfiniteQueryParams } from "~/server/api/routers/search";
+import styles from "./SearchResults.module.css";
 
 const opacityVariants = {
   expanded: {
@@ -432,9 +433,7 @@ function SearchResults({
   return (
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
       {/* tablet+ filters sidebar */}
-      <div
-        className={`baseVertFlex sticky top-16 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-accent p-4 text-primary-foreground transition-all tablet:!flex ${stickyHeaderNotActive ? "" : "rounded-t-none"}`}
-      >
+      <div className="baseVertFlex sticky top-20 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-accent p-4 text-primary-foreground tablet:!flex">
         <div className="baseFlex gap-2">
           <LuFilter className="size-5" />
           <span className="text-lg font-medium">Filters</span>
@@ -1648,207 +1647,218 @@ function SearchResults({
           </motion.div>
         ) : (
           // tablet+: # of results / view type toggle
-          <motion.div
-            initial={false}
-            animate={{
-              paddingBottom:
-                layoutType.value === "table" ? "0.25rem" : "0.75rem",
-            }}
-            transition={{ duration: 0.5, ease: "linear" }}
-            className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border bg-accent pt-3 text-primary-foreground ${stickyHeaderNotActive ? "rounded-t-lg" : "rounded-t-none"}`}
-          >
-            <AnimatePresence initial={false}>
-              <div className="baseFlex w-full !justify-between gap-2 px-4">
-                {/* # of results */}
-                <AnimatePresence mode="popLayout">
-                  <motion.div
-                    key={
-                      isFetching && !isFetchingNextPage
-                        ? "tabletSearchResultsCountSkeleton"
-                        : "tabletSearchResultsCount"
-                    }
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                    transition={{ duration: 0.3 }}
-                  >
-                    <>
-                      {isFetching && !isFetchingNextPage ? (
-                        <div className="pulseAnimation h-6 w-48 rounded-md !bg-primary-foreground/35"></div>
-                      ) : (
-                        <span>
-                          {`${searchResultsCount} tab${
-                            searchResultsCount === 1 ? "" : "s"
-                          } found`}
-                        </span>
-                      )}
-                    </>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* layout type toggle */}
-                <div className="baseFlex gap-3">
-                  <Label>Layout</Label>
-                  <div className="baseFlex relative overflow-hidden rounded-md border">
-                    <Button
-                      variant="toggle"
-                      size="sm"
-                      disabled={disableFiltersAndLayoutToggle}
-                      style={{
-                        color:
-                          theme === "light"
-                            ? layoutType.value === "grid"
-                              ? "hsl(var(--foreground))"
-                              : "hsl(var(--background))"
-                            : "hsl(var(--primary-foreground))",
-                      }}
-                      className="baseFlex relative gap-2 rounded-sm"
-                      onClick={() => {
-                        layoutType.set("grid");
-                      }}
+          <div className={styles.stickyHeader}>
+            <div
+              aria-hidden="true"
+              className={`pageBackgroundGradient ${styles.backdrop}`}
+            />
+            <motion.div
+              initial={false}
+              animate={{
+                paddingBottom:
+                  layoutType.value === "table" ? "0.25rem" : "0.75rem",
+              }}
+              transition={{ duration: 0.5, ease: "linear" }}
+              className="baseVertFlex w-full !justify-between rounded-t-lg border bg-accent pt-3 text-primary-foreground"
+            >
+              <AnimatePresence initial={false}>
+                <div className="baseFlex w-full !justify-between gap-2 px-4">
+                  {/* # of results */}
+                  <AnimatePresence mode="popLayout">
+                    <motion.div
+                      key={
+                        isFetching && !isFetchingNextPage
+                          ? "tabletSearchResultsCountSkeleton"
+                          : "tabletSearchResultsCount"
+                      }
+                      variants={opacityVariants}
+                      initial="closed"
+                      animate="expanded"
+                      exit="closed"
+                      transition={{ duration: 0.3 }}
                     >
-                      <BsGridFill className="size-4" />
-                      Grid
-                    </Button>
+                      <>
+                        {isFetching && !isFetchingNextPage ? (
+                          <div className="pulseAnimation h-6 w-48 rounded-md !bg-primary-foreground/35"></div>
+                        ) : (
+                          <span>
+                            {`${searchResultsCount} tab${
+                              searchResultsCount === 1 ? "" : "s"
+                            } found`}
+                          </span>
+                        )}
+                      </>
+                    </motion.div>
+                  </AnimatePresence>
 
-                    <Button
-                      variant="toggle"
-                      size="sm"
-                      disabled={disableFiltersAndLayoutToggle}
-                      style={{
-                        color:
-                          theme === "light"
-                            ? layoutType.value === "table"
-                              ? "hsl(var(--foreground))"
-                              : "hsl(var(--background))"
-                            : "hsl(var(--primary-foreground))",
-                      }}
-                      className="baseFlex relative gap-2 rounded-sm"
-                      onClick={() => {
-                        layoutType.set("table");
-                      }}
-                    >
-                      <CiViewTable className="size-4 stroke-[0.5px]" />
-                      Table
-                    </Button>
-
-                    <div
-                      style={{
-                        width: layoutType.value === "grid" ? "76.5px" : "83px",
-                        transform:
-                          layoutType.value === "grid"
-                            ? "translateX(0)"
-                            : "translateX(78px)",
-                        backgroundColor:
-                          theme === "light"
-                            ? "hsl(var(--background)"
-                            : "hsl(var(--primary))",
-                        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-                      }}
-                      className={`absolute inset-0 !z-[-1] ${layoutType.value === "grid" ? "rounded-l-sm" : "rounded-r-sm"}`}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-
-              {layoutType.value === "table" && (
-                <motion.div
-                  key={"tabletTableTabHeader"}
-                  initial={{ opacity: 0, marginTop: "0", height: "0" }}
-                  animate={{
-                    opacity: 1,
-                    marginTop: "1rem",
-                    height: "20px",
-                  }}
-                  exit={{ opacity: 0, marginTop: "0", height: "0" }}
-                  transition={{
-                    ease: "linear",
-                    duration: 0.5,
-                    opacity: {
-                      duration: 0.15,
-                    },
-                  }}
-                  className="w-full"
-                >
-                  <OverlayScrollbarsComponent
-                    id="tableTabHeaderOverlayScrollbar"
-                    ref={tableHeaderRef}
-                    options={{
-                      scrollbars: { autoHide: "leave", autoHideDelay: 150 },
-                    }}
-                    events={{
-                      scroll(instance) {
-                        // Only sync if this is NOT the active scroller, or if no scroller is active.
-                        // This prevents the feedback loop. We allow `null` to handle programmatic scrolls.
-                        if (activeScrollerRef.current === "body") {
-                          return;
-                        }
-
-                        const body = tableBodyRef.current
-                          ?.osInstance()
-                          ?.elements().viewport;
-                        if (!body) return;
-
-                        body.scrollLeft =
-                          instance.elements().viewport.scrollLeft;
-                      },
-                      initialized(instance) {
-                        const { viewport } = instance.elements();
-                        viewport.addEventListener("pointerdown", () =>
-                          handlePointerDown("header"),
-                        );
-                        viewport.addEventListener("pointerup", handlePointerUp);
-                      },
-                      destroyed(instance) {
-                        const { viewport } = instance.elements();
-                        viewport.removeEventListener("pointerdown", () =>
-                          handlePointerDown("header"),
-                        );
-                        viewport.removeEventListener(
-                          "pointerup",
-                          handlePointerUp,
-                        );
-                      },
-                    }}
-                    defer
-                    className="w-full"
-                  >
-                    <div className="w-full bg-accent">
-                      <div
-                        className="grid grid-rows-1 items-center text-sm font-medium text-primary-foreground/75"
+                  {/* layout type toggle */}
+                  <div className="baseFlex gap-3">
+                    <Label>Layout</Label>
+                    <div className="baseFlex relative isolate overflow-hidden rounded-md border">
+                      <Button
+                        variant="toggle"
+                        size="sm"
+                        disabled={disableFiltersAndLayoutToggle}
                         style={{
-                          gridTemplateColumns: getDynamicGridTemplateColumns(),
+                          color:
+                            theme === "light"
+                              ? layoutType.value === "grid"
+                                ? "hsl(var(--foreground))"
+                                : "hsl(var(--background))"
+                              : "hsl(var(--primary-foreground))",
+                        }}
+                        className="baseFlex relative gap-2 rounded-sm"
+                        onClick={() => {
+                          layoutType.set("grid");
                         }}
                       >
-                        {/* conditional empty header for direct /edit page button */}
-                        {asPath.includes("/profile/tabs") && (
-                          <div className="h-full px-4"></div>
-                        )}
+                        <BsGridFill className="size-4" />
+                        Grid
+                      </Button>
 
-                        <div className="px-4">Title</div>
+                      <Button
+                        variant="toggle"
+                        size="sm"
+                        disabled={disableFiltersAndLayoutToggle}
+                        style={{
+                          color:
+                            theme === "light"
+                              ? layoutType.value === "table"
+                                ? "hsl(var(--foreground))"
+                                : "hsl(var(--background))"
+                              : "hsl(var(--primary-foreground))",
+                        }}
+                        className="baseFlex relative gap-2 rounded-sm"
+                        onClick={() => {
+                          layoutType.set("table");
+                        }}
+                      >
+                        <CiViewTable className="size-4 stroke-[0.5px]" />
+                        Table
+                      </Button>
 
-                        {!asPath.includes("/artist") && (
-                          <div className="px-4">Artist</div>
-                        )}
-
-                        <div className="px-4">Rating</div>
-
-                        <div className="px-4">Difficulty</div>
-
-                        <div className="pl-8 pr-4">Genre</div>
-
-                        <div className="px-4"> Date</div>
-
-                        {/* Empty header for bookmark toggle */}
-                        <div className="h-full px-4"></div>
-                      </div>
+                      <div
+                        style={{
+                          width:
+                            layoutType.value === "grid" ? "76.5px" : "83px",
+                          transform:
+                            layoutType.value === "grid"
+                              ? "translateX(0)"
+                              : "translateX(78px)",
+                          backgroundColor:
+                            theme === "light"
+                              ? "hsl(var(--background))"
+                              : "hsl(var(--primary))",
+                          transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                        className={`absolute inset-0 !z-[-1] ${layoutType.value === "grid" ? "rounded-l-sm" : "rounded-r-sm"}`}
+                      ></div>
                     </div>
-                  </OverlayScrollbarsComponent>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+                  </div>
+                </div>
+
+                {layoutType.value === "table" && (
+                  <motion.div
+                    key={"tabletTableTabHeader"}
+                    initial={{ opacity: 0, marginTop: "0", height: "0" }}
+                    animate={{
+                      opacity: 1,
+                      marginTop: "1rem",
+                      height: "20px",
+                    }}
+                    exit={{ opacity: 0, marginTop: "0", height: "0" }}
+                    transition={{
+                      ease: "linear",
+                      duration: 0.5,
+                      opacity: {
+                        duration: 0.15,
+                      },
+                    }}
+                    className="w-full"
+                  >
+                    <OverlayScrollbarsComponent
+                      id="tableTabHeaderOverlayScrollbar"
+                      ref={tableHeaderRef}
+                      options={{
+                        scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                      }}
+                      events={{
+                        scroll(instance) {
+                          // Only sync if this is NOT the active scroller, or if no scroller is active.
+                          // This prevents the feedback loop. We allow `null` to handle programmatic scrolls.
+                          if (activeScrollerRef.current === "body") {
+                            return;
+                          }
+
+                          const body = tableBodyRef.current
+                            ?.osInstance()
+                            ?.elements().viewport;
+                          if (!body) return;
+
+                          body.scrollLeft =
+                            instance.elements().viewport.scrollLeft;
+                        },
+                        initialized(instance) {
+                          const { viewport } = instance.elements();
+                          viewport.addEventListener("pointerdown", () =>
+                            handlePointerDown("header"),
+                          );
+                          viewport.addEventListener(
+                            "pointerup",
+                            handlePointerUp,
+                          );
+                        },
+                        destroyed(instance) {
+                          const { viewport } = instance.elements();
+                          viewport.removeEventListener("pointerdown", () =>
+                            handlePointerDown("header"),
+                          );
+                          viewport.removeEventListener(
+                            "pointerup",
+                            handlePointerUp,
+                          );
+                        },
+                      }}
+                      defer
+                      className="w-full"
+                    >
+                      <div className="w-full bg-accent">
+                        <div
+                          className="grid grid-rows-1 items-center text-sm font-medium text-primary-foreground/75"
+                          style={{
+                            gridTemplateColumns:
+                              getDynamicGridTemplateColumns(),
+                          }}
+                        >
+                          {/* conditional empty header for direct /edit page button */}
+                          {asPath.includes("/profile/tabs") && (
+                            <div className="h-full px-4"></div>
+                          )}
+
+                          <div className="px-4">Title</div>
+
+                          {!asPath.includes("/artist") && (
+                            <div className="px-4">Artist</div>
+                          )}
+
+                          <div className="px-4">Rating</div>
+
+                          <div className="px-4">Difficulty</div>
+
+                          <div className="pl-8 pr-4">Genre</div>
+
+                          <div className="px-4"> Date</div>
+
+                          {/* Empty header for bookmark toggle */}
+                          <div className="h-full px-4"></div>
+                        </div>
+                      </div>
+                    </OverlayScrollbarsComponent>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
         )}
 
         {/* search results body */}

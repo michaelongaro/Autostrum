@@ -32,6 +32,7 @@ const config = {
     ];
   },
   images: {
+    unoptimized: true,
     localPatterns: [
       {
         pathname: "/api/getTabScreenshot/**",

@@ -1,21 +1,22 @@
 import { AnimatePresence, motion } from "framer-motion";
-import isEqual from "lodash.isequal";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
-import { useTabStore } from "~/stores/TabStore";
+import { getTabStore, useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { IoSettingsSharp } from "react-icons/io5";
 import { BsFillPlayFill } from "react-icons/bs";
 import { X } from "lucide-react";
 import { HiOutlineSparkles } from "react-icons/hi2";
-import { normalizeCustomTuningInput, tuningNotes } from "~/utils/tunings";
+import {
+  formatTuningInput,
+  getDisplayTuningNotes,
+  isValidScientificTuningNote,
+  normalizeCustomTuningInput,
+  normalizeTuningValue,
+  stripTuningOctaves,
+  tuningNotes,
+} from "~/utils/tunings";
 import {
   Dialog,
   DialogContent,
@@ -24,46 +25,58 @@ import {
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Label } from "~/components/ui/label";
+import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
 
-const validNotationRegex =
-  /^(A[0-7]|A#[0-7]|B[0-7]|C[1-8]|C#[1-8]|D[1-7]|D#[1-7]|E[1-7]|F[1-7]|F#[1-7]|G[1-7]|G#[1-7])$/;
-
-function isValidManualTuningInput(value: string) {
-  return validNotationRegex.test(value.toUpperCase());
-}
-
-function CustomTuningDialog() {
+function CustomTuningEditor() {
   const {
     previewMetadata,
     playPreview,
     tuning,
     setTuning,
-    showCustomTuningDialog,
     setShowCustomTuningDialog,
-    theme,
   } = useTabStore((state) => ({
     previewMetadata: state.previewMetadata,
     playPreview: state.playPreview,
     tuning: state.tuning,
     setTuning: state.setTuning,
-    showCustomTuningDialog: state.showCustomTuningDialog,
     setShowCustomTuningDialog: state.setShowCustomTuningDialog,
-    theme: state.theme,
   }));
 
-  const [newTuning, setNewTuning] = useState<string[]>(
-    tuningNotes.includes(tuning)
-      ? ["", "", "", "", "", ""]
-      : tuning.split(/\s+/).filter(Boolean),
-  );
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const previewSessionRef = useRef({ requestId: 0, playing: false });
 
-  const [quickTuningInput, setQuickTuningInput] = useState(
-    tuningNotes.includes(tuning) ? "" : tuning,
+  const [tuningDraft, setTuningDraft, history] = useEditorHistoryState<{
+    newTuning: string[];
+    quickTuningInput: string;
+    inputMode: "auto" | "manual";
+  }>(
+    () => ({
+      newTuning: tuningNotes.includes(tuning)
+        ? ["", "", "", "", "", ""]
+        : getDisplayTuningNotes(tuning),
+      quickTuningInput: tuningNotes.includes(tuning)
+        ? ""
+        : stripTuningOctaves(tuning),
+      inputMode: tuningNotes.includes(tuning) ? "auto" : "manual",
+    }),
+    () => {
+      const session = previewSessionRef.current;
+      session.requestId++;
+      if (session.playing) getTabStore().pauseAudio();
+      session.playing = false;
+      setIsPreviewing(false);
+    },
   );
-
-  const [inputMode, setInputMode] = useState<"auto" | "manual">(
-    tuningNotes.includes(tuning) ? "auto" : "manual",
-  );
+  const { newTuning, quickTuningInput, inputMode } = tuningDraft;
+  function setNewTuning(newTuning: string[]) {
+    setTuningDraft((draft) => ({ ...draft, newTuning }));
+  }
+  function setQuickTuningInput(quickTuningInput: string) {
+    setTuningDraft((draft) => ({ ...draft, quickTuningInput }));
+  }
+  function setInputMode(inputMode: "auto" | "manual") {
+    setTuningDraft((draft) => ({ ...draft, inputMode }));
+  }
 
   const placeholderNotes = ["E2", "A2", "D3", "G3", "B3", "E4"];
 
@@ -82,35 +95,48 @@ function CustomTuningDialog() {
     number | null
   >(null);
 
-  function getInvalidInputIndicies() {
-    const invalidInputs: boolean[] = [];
+  useEffect(() => {
+    const session = previewSessionRef.current;
 
-    newTuning.forEach((value) => {
-      invalidInputs.push(!isValidManualTuningInput(value));
-    });
+    return () => {
+      session.requestId++;
 
-    return invalidInputs;
-  }
+      if (session.playing) {
+        getTabStore().pauseAudio();
+        session.playing = false;
+      }
+    };
+  }, []);
+
+  const normalizedQuickTuning = normalizeCustomTuningInput(quickTuningInput);
+  const normalizedManualTuning = newTuning.every(isValidScientificTuningNote)
+    ? normalizeCustomTuningInput(newTuning.join(" "))
+    : null;
+  const activeTuning =
+    inputMode === "auto" ? normalizedQuickTuning : normalizedManualTuning;
+  const displayedQuickTuning = formatTuningInput(quickTuningInput);
+  let quickNoteIndex = -1;
+  const quickInputSegments = displayedQuickTuning
+    .split(/(\s+)/)
+    .map((text) => ({
+      text,
+      noteIndex: /^\S+$/.test(text) ? ++quickNoteIndex : null,
+    }));
 
   function handleSaveCustomTuning() {
-    const invalidInputIndicies = getInvalidInputIndicies();
-
-    if (invalidInputIndicies.includes(true)) {
-      setShowInvalidInputPerIndex(invalidInputIndicies);
-
-      return;
-    }
-
-    const normalizedTuning = normalizeCustomTuningInput(newTuning.join(" "));
-
-    if (!normalizedTuning) {
-      setShowInvalidInputPerIndex([true, true, true, true, true, true]);
+    if (!activeTuning) {
+      if (inputMode === "auto") {
+        setShowInvalidQuickInput(true);
+      } else {
+        setShowInvalidInputPerIndex(
+          newTuning.map((note) => !isValidScientificTuningNote(note)),
+        );
+      }
 
       return;
     }
 
-    const sanitizedTuning = normalizedTuning.join(" ");
-    setTuning(sanitizedTuning);
+    setTuning(activeTuning.join(" "));
     setShowCustomTuningDialog(false);
   }
 
@@ -125,32 +151,70 @@ function CustomTuningDialog() {
 
     setShowInvalidQuickInput(false);
     setNewTuning(normalizedTuning);
-    setQuickTuningInput(normalizedTuning.join(" "));
     setInputMode("manual");
   }
 
-  return (
-    <Dialog
-      onOpenChange={(open) => {
-        setShowCustomTuningDialog(open);
+  function handleInputModeChange(mode: "auto" | "manual") {
+    if (mode === inputMode) return;
 
-        if (!open) {
-          setTimeout(() => {
-            setInputMode("auto");
-          }, 175);
-        }
-      }}
-      open={showCustomTuningDialog}
-    >
+    if (mode === "auto") {
+      setQuickTuningInput(stripTuningOctaves(newTuning.join(" ")));
+      setShowInvalidQuickInput(false);
+    } else if (normalizedQuickTuning) {
+      setNewTuning(normalizedQuickTuning);
+      setShowInvalidInputPerIndex([false, false, false, false, false, false]);
+    }
+
+    setInputMode(mode);
+  }
+
+  async function handlePreviewNotes() {
+    if (!activeTuning) return;
+
+    const session = previewSessionRef.current;
+    const requestId = ++session.requestId;
+    session.playing = true;
+    setIsPreviewing(true);
+
+    try {
+      await playPreview({
+        data: ["0", "0", "0", "0", "0", "0"],
+        index: -1,
+        type: "chord",
+        customTuning: activeTuning.join(" "),
+        customBpm: "40",
+        forTuningPreview: true,
+        isPreviewValid: () => session.requestId === requestId,
+        onTuningPreviewNote: (noteIndex) => {
+          if (session.requestId === requestId) {
+            setHighlightedNoteInputIndex(noteIndex);
+          }
+        },
+      });
+    } finally {
+      if (session.requestId === requestId) {
+        session.playing = false;
+        setIsPreviewing(false);
+        setHighlightedNoteInputIndex(null);
+      }
+    }
+  }
+
+  return (
+    <>
       <VisuallyHidden>
         <DialogTitle>Custom tuning dialog</DialogTitle>
         <DialogDescription>
-          Users can quickly enter the whole notes of their desired tuning, or
-          enter the full Scientific Pitch Notation for more control.
+          Users can quickly enter the notes of their desired tuning, or enter
+          the full Scientific Pitch Notation for more control.
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96">
+      <DialogContent
+        data-tab-editor-history="local"
+        {...history.scopeProps}
+        className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96"
+      >
         <div className="baseFlex w-full !justify-between gap-2">
           <div className="baseFlex gap-2">
             <IoSettingsSharp className="h-5 w-5" />
@@ -171,6 +235,8 @@ function CustomTuningDialog() {
           <Label>Mode</Label>
           <div className="baseFlex relative overflow-y-hidden rounded-md border">
             <Button
+              disabled={isPreviewing}
+              aria-pressed={inputMode === "auto"}
               variant="toggle"
               size="sm"
               style={{
@@ -179,15 +245,17 @@ function CustomTuningDialog() {
                     ? "hsl(var(--primary-foreground))"
                     : "hsl(var(--foreground))",
               }}
-              className="baseFlex relative w-[55px] gap-2 border-none"
+              className="baseFlex relative w-[55px] gap-2 border-none text-xs xs:text-sm"
               onClick={() => {
-                setInputMode("auto");
+                handleInputModeChange("auto");
               }}
             >
               Auto
             </Button>
 
             <Button
+              disabled={isPreviewing}
+              aria-pressed={inputMode === "manual"}
               variant="toggle"
               size="sm"
               style={{
@@ -196,9 +264,9 @@ function CustomTuningDialog() {
                     ? "hsl(var(--primary-foreground))"
                     : "hsl(var(--foreground))",
               }}
-              className="baseFlex relative w-[72px] gap-2 border-none"
+              className="baseFlex relative w-[72px] gap-2 border-none text-xs xs:text-sm"
               onClick={() => {
-                setInputMode("manual");
+                handleInputModeChange("manual");
               }}
             >
               Manual
@@ -233,39 +301,70 @@ function CustomTuningDialog() {
                     Enter six notes and we will choose valid octaves for you.
                   </p>
                 </div>
-                <div className="baseFlex ml-1.5 px-4 text-xs text-foreground/70 sm:ml-7">
+                <div className="baseFlex ml-9 px-4 text-xs text-foreground/70 sm:ml-7">
                   <p>Leave a space between each note.</p>
                 </div>
               </div>
 
               <div className="baseFlex w-72 gap-4">
-                <Input
-                  placeholder="C# B E F# A# E"
-                  value={quickTuningInput.toUpperCase()}
-                  invalid={showInvalidQuickInput}
-                  onChange={(e) => {
-                    const nextValue = e.target.value.toLowerCase();
-                    setQuickTuningInput(nextValue);
+                <div className="relative min-w-0 flex-1">
+                  <Input
+                    aria-label="Auto tuning"
+                    placeholder="C# B E F# A# E"
+                    maxLength={17}
+                    value={displayedQuickTuning}
+                    invalid={showInvalidQuickInput}
+                    readOnly={isPreviewing}
+                    className={
+                      highlightedNoteInputIndex !== null
+                        ? "text-transparent caret-transparent"
+                        : undefined
+                    }
+                    onChange={(e) => {
+                      const nextValue = e.target.value.toLowerCase();
+                      setQuickTuningInput(nextValue);
 
-                    if (
-                      showInvalidQuickInput &&
-                      normalizeCustomTuningInput(nextValue)
-                    ) {
-                      setShowInvalidQuickInput(false);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleConvertQuickTuningInput();
-                    }
-                  }}
-                />
+                      if (
+                        showInvalidQuickInput &&
+                        normalizeCustomTuningInput(nextValue)
+                      ) {
+                        setShowInvalidQuickInput(false);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !isPreviewing) {
+                        e.preventDefault();
+                        handleConvertQuickTuningInput();
+                      }
+                    }}
+                  />
+
+                  {highlightedNoteInputIndex !== null && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 flex items-center overflow-hidden whitespace-pre px-3 text-base"
+                    >
+                      {quickInputSegments.map(({ text, noteIndex }, index) => (
+                        <span
+                          key={index}
+                          data-tuning-preview-note={noteIndex ?? undefined}
+                          className={
+                            noteIndex === highlightedNoteInputIndex
+                              ? "text-primary"
+                              : "text-foreground"
+                          }
+                        >
+                          {text}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 <Button
                   type="button"
-                  disabled={quickTuningInput.length < 6}
-                  variant="secondary"
+                  disabled={isPreviewing || quickTuningInput.length < 6}
+                  variant="outline"
                   className="baseFlex h-10 gap-2"
                   onClick={handleConvertQuickTuningInput}
                 >
@@ -287,43 +386,20 @@ function CustomTuningDialog() {
                 <div className="baseFlex gap-4 px-4 sm:gap-2">
                   <HiOutlineInformationCircle className="size-5" />
                   <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
-                    Scientific Pitch Notation is required here.
+                    Scientific Pitch Notation is required.
                   </p>
                 </div>
                 <div className="baseFlex mt-2 gap-2 sm:gap-6">
                   <div className="baseVertFlex gap-2">
-                    <div className="grid w-full grid-cols-3 place-items-center text-sm font-semibold">
+                    <div className="grid w-full grid-cols-3 place-items-center gap-4 text-sm font-semibold">
                       <span>A-G</span>
-                      <span>(#)</span>
-                      <span>0-7 or 1-8</span>
+                      <span>(# / ♭)</span>
+                      <span>0-8</span>
                     </div>
-                    <div className="grid w-full grid-cols-3 place-items-center text-xs">
+                    <div className="grid w-full grid-cols-3 place-items-center gap-4 text-xs">
                       <span>Root note</span>
-                      <span className="baseFlex">
-                        Optional sharp
-                        <TooltipProvider delayDuration={150}>
-                          <Tooltip>
-                            <TooltipTrigger>*</TooltipTrigger>
-                            <TooltipContent side={"bottom"}>
-                              <p>B and E notes cannot have sharps.</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </span>
-                      <span className="baseFlex">
-                        Octave
-                        <TooltipProvider delayDuration={150}>
-                          <Tooltip>
-                            <TooltipTrigger>*</TooltipTrigger>
-                            <TooltipContent side={"bottom"}>
-                              <div className="baseVertFlex z-50 gap-0">
-                                <p>Octaves 0-7 apply to all notes,</p>
-                                <p>but 1-8 apply only to the note C.</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </span>
+                      <span>(Accidental)</span>
+                      <span>Octave</span>
                     </div>
                   </div>
                 </div>
@@ -334,8 +410,11 @@ function CustomTuningDialog() {
                   <Input
                     key={index}
                     placeholder={placeholderNotes[index]}
-                    value={value.toUpperCase()}
+                    aria-label={`String ${6 - index} note`}
+                    maxLength={3}
+                    value={formatTuningInput(value)}
                     invalid={showInvalidInputPerIndex[index]}
+                    readOnly={isPreviewing}
                     style={{
                       color:
                         highlightedNoteInputIndex === index
@@ -349,11 +428,13 @@ function CustomTuningDialog() {
                       const newTuningValues = [...newTuning];
                       newTuningValues[index] = e.target.value.toLowerCase();
                       setNewTuning(newTuningValues);
-                      setQuickTuningInput(newTuningValues.join(" "));
+                      setQuickTuningInput(
+                        stripTuningOctaves(newTuningValues.join(" ")),
+                      );
 
                       if (
                         showInvalidInputPerIndex[index] &&
-                        isValidManualTuningInput(newTuningValues[index])
+                        isValidScientificTuningNote(newTuningValues[index])
                       ) {
                         setShowInvalidInputPerIndex((invalidInputs) =>
                           invalidInputs.map((invalid, inputIndex) =>
@@ -371,50 +452,10 @@ function CustomTuningDialog() {
 
         <div className="baseFlex w-full !justify-between">
           <Button
-            disabled={
-              inputMode !== "manual" ||
-              highlightedNoteInputIndex !== null ||
-              (previewMetadata.playing && previewMetadata.type === "chord") ||
-              newTuning.some((customInputValue) => customInputValue === "")
-            }
+            disabled={!activeTuning || isPreviewing || previewMetadata.playing}
             variant={"audio"}
             className="baseFlex gap-2"
-            onClick={() => {
-              setHighlightedNoteInputIndex(0);
-
-              void playPreview({
-                data: ["0", "0", "0", "0", "0", "0"],
-                index: -1,
-                type: "chord",
-                customTuning: newTuning.join(" "),
-                customBpm: "40",
-                forTuningPreview: true,
-              });
-
-              setTimeout(() => {
-                setHighlightedNoteInputIndex(1);
-              }, 345);
-
-              setTimeout(() => {
-                setHighlightedNoteInputIndex(2);
-              }, 695);
-
-              setTimeout(() => {
-                setHighlightedNoteInputIndex(3);
-              }, 1045);
-
-              setTimeout(() => {
-                setHighlightedNoteInputIndex(4);
-              }, 1395);
-
-              setTimeout(() => {
-                setHighlightedNoteInputIndex(5);
-              }, 1745);
-
-              setTimeout(() => {
-                setHighlightedNoteInputIndex(null);
-              }, 2095);
-            }}
+            onClick={() => void handlePreviewNotes()}
           >
             <BsFillPlayFill className="h-6 w-6" />
             Preview notes
@@ -422,9 +463,8 @@ function CustomTuningDialog() {
 
           <Button
             disabled={
-              inputMode !== "manual" ||
-              newTuning.some((customInputValue) => customInputValue === "") ||
-              isEqual(tuning, newTuning.join(" "))
+              !activeTuning ||
+              normalizeTuningValue(tuning) === activeTuning.join(" ")
             }
             onClick={handleSaveCustomTuning}
             className="px-8"
@@ -433,6 +473,24 @@ function CustomTuningDialog() {
           </Button>
         </div>
       </DialogContent>
+    </>
+  );
+}
+
+function CustomTuningDialog() {
+  const { showCustomTuningDialog, setShowCustomTuningDialog } = useTabStore(
+    (state) => ({
+      showCustomTuningDialog: state.showCustomTuningDialog,
+      setShowCustomTuningDialog: state.setShowCustomTuningDialog,
+    }),
+  );
+
+  return (
+    <Dialog
+      open={showCustomTuningDialog}
+      onOpenChange={setShowCustomTuningDialog}
+    >
+      {showCustomTuningDialog && <CustomTuningEditor />}
     </Dialog>
   );
 }

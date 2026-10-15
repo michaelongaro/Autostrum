@@ -1,4 +1,6 @@
-import { getTrackBackground, Range } from "react-range";
+import { getTrackBackground, Range } from "~/components/ui/Range";
+import { useRef } from "react";
+import { getTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -48,6 +50,7 @@ function StrumSettingsDropdown({
   previewDisabled = false,
   triggerClassName = "my-1 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground",
 }: StrumSettingsDropdownProps) {
+  const sliderHistoryGroup = useRef({});
   const arpeggiated = isArpeggiatedStrum(effects);
   const { min, max } = getStrumSpreadBounds(arpeggiated);
   const strumQuickly = effects.includes(">") || effects.includes(".");
@@ -78,6 +81,7 @@ function StrumSettingsDropdown({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
+        data-tab-editor-history="strum-settings"
         side="bottom"
         className="baseVertFlex w-[280px] gap-3 p-3"
         onCloseAutoFocus={(e) => e.preventDefault()}
@@ -102,7 +106,7 @@ function StrumSettingsDropdown({
         </div>
 
         <div className="baseVertFlex w-full !items-start px-1 pt-1">
-          <div className="mb-2 text-xs font-medium">Strum duration</div>
+          <div className="mb-2 text-sm font-medium">Strum duration</div>
           <Range
             label="Strum duration"
             labelledBy="strum-duration"
@@ -114,11 +118,13 @@ function StrumSettingsDropdown({
             onChange={(values) => {
               const next = values[0];
               if (next === undefined) return;
+              getTabStore().groupEditorHistoryInput(sliderHistoryGroup.current);
               onStrumSpreadAutoChange(false);
               onStrumSpreadSecondsChange(
                 remapStrumSpreadForType(next, arpeggiated),
               );
             }}
+            onFinalChange={() => getTabStore().breakEditorHistoryGroup()}
             renderMark={({ props, index }) => {
               const markValue = Number((min + index * step).toFixed(2));
               if (!markValues.some((v) => Math.abs(v - markValue) < 0.001)) {
@@ -142,13 +148,13 @@ function StrumSettingsDropdown({
                   width: "100%",
                   opacity: strumSpreadAuto ? 0.55 : 1,
                 }}
+                className="transition-all"
               >
                 <div
                   ref={props.ref}
                   style={{
                     height: "8px",
                     width: "100%",
-
                     background: getTrackBackground({
                       values: [displayValue],
                       colors: ["hsl(var(--primary))", "hsl(var(--gray) / 0.5)"],
@@ -170,7 +176,7 @@ function StrumSettingsDropdown({
               />
             )}
           />
-          <div className="baseFlex mt-1 w-full !justify-between text-[10px] text-foreground/60">
+          <div className="baseFlex mt-1 w-full !justify-between text-sm text-foreground/60">
             <span>{formatStrumSpreadDisplay(min)}</span>
             <span>{formatStrumSpreadDisplay(max)}</span>
           </div>
@@ -196,7 +202,7 @@ function StrumSettingsDropdown({
             variant="audio"
             size="sm"
             disabled={previewDisabled}
-            className="baseFlex h-8 gap-1.5 px-3"
+            className="baseFlex h-8 gap-1.5 gap-2 px-3"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

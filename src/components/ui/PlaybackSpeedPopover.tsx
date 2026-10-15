@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { getTrackBackground, Range } from "react-range";
+import { getTrackBackground, Range } from "~/components/ui/Range";
 import { Button } from "~/components/ui/button";
 import {
   Popover,

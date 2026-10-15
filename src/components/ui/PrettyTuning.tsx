@@ -17,22 +17,23 @@ function PrettyNote({
   noteClass?: string;
   accidentalClass?: string;
 }) {
-  const regex = /^(?<letter>[A-G])(?<accidental>#?)(?<octave>\d+)?$/i;
+  const regex = /^(?<letter>[A-G])(?<accidental>[#b♯♭]?)(?<octave>\d+)?$/i;
   const noteMatch = regex.exec(note);
   const letter = noteMatch?.groups?.letter ?? note[0] ?? "";
   const accidental = noteMatch?.groups?.accidental ?? "";
   const octave = showScientificPitchNotation
     ? noteMatch?.groups?.octave
     : undefined;
+  const isSharp = accidental === "#" || accidental === "♯";
 
   return (
     <div className={`baseFlex relative ${noteClass}`}>
-      <p>{letter}</p>
-      {accidental === "#" && (
+      <p>{letter.toUpperCase()}</p>
+      {accidental && (
         <div
-          className={`relative top-[-3px] italic ${displayWithFlex ? "w-[8px]" : "w-[10px]"} text-center ${accidentalClass}`}
+          className={`relative top-[-3px] ${isSharp ? "italic" : ""} ${displayWithFlex ? "w-[8px]" : "w-[10px]"} text-center ${accidentalClass}`}
         >
-          <p>#</p>
+          <p>{isSharp ? "#" : "♭"}</p>
         </div>
       )}
       {octave && <p>{octave}</p>}
@@ -69,7 +70,7 @@ function PrettyTuning({
       {notes.map((note, index) => (
         <PrettyNote
           key={`${tuning}-${index}`}
-          note={note.toUpperCase()}
+          note={note}
           displayWithFlex={displayWithFlex}
           showScientificPitchNotation={showScientificPitchNotation}
           noteClass={noteClass}
@@ -94,7 +95,7 @@ function PrettyVerticalTuning({
     <div
       style={{
         height,
-        width: notes.toString().includes("#")
+        width: notes.some((note) => /^[a-g][#b]/i.test(note))
           ? STATIC_TAB_VERTICAL_TUNING_ACCIDENTAL_WIDTH_PX
           : STATIC_TAB_VERTICAL_TUNING_WIDTH_PX,
       }}
@@ -103,7 +104,7 @@ function PrettyVerticalTuning({
       {notes.toReversed().map((note, index) => (
         <PrettyNote
           key={`${tuning}-${index}`}
-          note={note.toUpperCase()}
+          note={note}
           noteClass="text-base"
           accidentalClass="text-sm"
         />

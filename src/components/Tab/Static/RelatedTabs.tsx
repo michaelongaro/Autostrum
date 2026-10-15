@@ -7,7 +7,6 @@ import {
   CarouselContent,
   CarouselItem,
 } from "~/components/ui/carousel";
-import { Separator } from "~/components/ui/separator";
 import { useTabStore } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import {
@@ -35,9 +34,7 @@ function browseAllTabsSection(
   sections: RelatedTabSection<RelatedTabCandidate>[],
 ): RelatedTabSectionKind | null {
   return (
-    sections.find(
-      (section) => section.kind === "similar" || section.kind === "explore",
-    )?.kind ??
+    sections.find((section) => section.kind === "similar")?.kind ??
     sections[0]?.kind ??
     null
   );
@@ -93,7 +90,6 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
                     heading
                   )}
                 </h2>
-                <Separator className="w-full bg-primary" />
               </div>
 
               {(showMoreArtistTabs || showBrowseAllTabs) && (

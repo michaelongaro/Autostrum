@@ -14,16 +14,14 @@ type ChromaticPitchScrollerProps = {
   detectedNote: string | null;
   detectedCents: number | null;
   signalDetected: boolean;
+  preferFlats?: boolean;
 };
-
-function noteNameFromMidi(midi: number) {
-  return midiToNoteName(midi, { sharps: true });
-}
 
 function ChromaticPitchScroller({
   detectedNote,
   detectedCents,
   signalDetected,
+  preferFlats = false,
 }: ChromaticPitchScrollerProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [viewportWidth, setViewportWidth] = useState(0);
@@ -109,7 +107,7 @@ function ChromaticPitchScroller({
           }}
         >
           {renderMidis.map((midi) => {
-            const noteName = noteNameFromMidi(midi);
+            const noteName = midiToNoteName(midi, { sharps: !preferFlats });
             const frequency = frequencyFromMidi(midi);
             const distance = Math.abs(midi - centeredMidi);
             const emphasis = Math.max(0.35, 1 - distance * 0.55);

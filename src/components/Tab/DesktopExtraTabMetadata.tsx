@@ -12,6 +12,7 @@ import { BsMusicNoteList } from "react-icons/bs";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import Logo from "~/components/ui/icons/Logo";
 import ChordName from "~/components/ui/ChordName";
+import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
 
 function DesktopExtraTabMetadata() {
   const {
@@ -40,6 +41,7 @@ function DesktopExtraTabMetadata() {
 
   const [activeTabName, setActiveTabName] = useState("Section progression");
   const [tabContentExpanded, setTabContentExpanded] = useState(false);
+  const [hasOverflow, setHasOverflow] = useState(false);
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] = useState<
     boolean[]
@@ -107,16 +109,11 @@ function DesktopExtraTabMetadata() {
       <div className="baseVertFlex w-full overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>
           {activeTabName === "Section progression" && (
-            <motion.div
+            <ExtraTabMetadataPane
               key="sectionProgressionTab"
-              initial={{ opacity: 0, height: "6rem" }}
-              animate={{
-                opacity: 1,
-                height: tabContentExpanded ? "auto" : "6rem",
-              }}
-              exit={{ opacity: 0, height: "6rem" }}
-              transition={{ duration: 0.3, opacity: { duration: 0.15 } }}
-              className="baseVertFlex !justify-start gap-2 overflow-y-hidden"
+              expanded={tabContentExpanded}
+              desktop
+              onOverflowChange={setHasOverflow}
             >
               <div className="baseFlex w-full">
                 {sectionProgression.length === 0 ? (
@@ -151,27 +148,16 @@ function DesktopExtraTabMetadata() {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </ExtraTabMetadataPane>
           )}
 
           {activeTabName === "Chords" && (
-            <motion.div
+            <ExtraTabMetadataPane
               key="chordsTab"
-              initial={{ opacity: 0, height: "6rem" }}
-              animate={{
-                opacity: 1,
-                height: tabContentExpanded
-                  ? "auto"
-                  : chords.length === 0
-                    ? "6rem"
-                    : "10rem",
-              }}
-              exit={{
-                opacity: 0,
-                height: "6rem",
-              }}
-              transition={{ duration: 0.3, opacity: { duration: 0.15 } }}
-              className="baseVertFlex w-full !justify-start overflow-y-hidden"
+              expanded={tabContentExpanded}
+              collapsedHeight={chords.length === 0 ? 96 : 160}
+              desktop
+              onOverflowChange={setHasOverflow}
             >
               {chords.length === 0 ? (
                 <span className="baseFlex h-24 text-gray">
@@ -251,24 +237,16 @@ function DesktopExtraTabMetadata() {
                   ))}
                 </div>
               )}
-            </motion.div>
+            </ExtraTabMetadataPane>
           )}
 
           {activeTabName === "Strumming patterns" && (
-            <motion.div
+            <ExtraTabMetadataPane
               key="strummingPatternsTab"
-              initial={{ opacity: 0, height: "6rem" }}
-              animate={{
-                opacity: 1,
-                height: tabContentExpanded
-                  ? "auto"
-                  : strummingPatterns.length === 0
-                    ? "6rem"
-                    : "10rem",
-              }}
-              exit={{ opacity: 0, height: "6rem" }}
-              transition={{ duration: 0.3, opacity: { duration: 0.15 } }}
-              className={`baseVertFlex w-full overflow-y-hidden ${strummingPatterns.length > 2 ? "!justify-start" : ""}`}
+              expanded={tabContentExpanded}
+              collapsedHeight={strummingPatterns.length === 0 ? 96 : 160}
+              desktop
+              onOverflowChange={setHasOverflow}
             >
               {strummingPatterns.length === 0 ? (
                 <p className="baseFlex h-24 text-gray">
@@ -361,16 +339,12 @@ function DesktopExtraTabMetadata() {
                   ))}
                 </div>
               )}
-            </motion.div>
+            </ExtraTabMetadataPane>
           )}
         </AnimatePresence>
 
         <AnimatePresence mode="wait" initial={false}>
-          {((activeTabName === "Section progression" &&
-            sectionProgression.length > 3) ||
-            (activeTabName === "Chords" && chords.length > 6) ||
-            (activeTabName === "Strumming patterns" &&
-              strummingPatterns.length > 3)) && (
+          {hasOverflow && (
             <motion.div
               key={`expandTabContentButton`}
               initial={{ opacity: 0, height: 0 }}
@@ -381,6 +355,7 @@ function DesktopExtraTabMetadata() {
             >
               <Button
                 variant={"link"}
+                aria-expanded={tabContentExpanded}
                 onClick={() => setTabContentExpanded((prev) => !prev)}
                 className="baseFlex gap-2 !p-0"
               >

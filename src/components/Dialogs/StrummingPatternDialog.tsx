@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import { X } from "lucide-react";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
@@ -16,6 +16,7 @@ import {
 } from "~/components/ui/select";
 import {
   useTabStore,
+  subscribeTabStore,
   type ChordSequence,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
@@ -87,6 +88,15 @@ function StrummingPatternDialog() {
     useState(false);
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
+
+  useEffect(() => {
+    return subscribeTabStore((state, previous) => {
+      if (state.editorHistoryRevision === previous.editorHistoryRevision)
+        return;
+      setLastModifiedPalmMuteNode(null);
+      setEditingPalmMuteNodes(false);
+    });
+  }, []);
 
   const {
     strummingPatterns,
@@ -267,7 +277,10 @@ function StrummingPatternDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex sm:max-h-auto h-dvh w-full min-w-[370px] max-w-[100vw] !justify-between gap-4 overflow-y-auto border-0 p-4 text-foreground transition-all sm:max-h-[600px] sm:w-auto sm:max-w-[800px] sm:overflow-y-hidden sm:rounded-lg sm:border sm:shadow-sm">
+      <DialogContent
+        data-tab-editor-history="pattern"
+        className="baseVertFlex sm:max-h-auto h-dvh w-full min-w-[370px] max-w-[100vw] !justify-between gap-4 overflow-y-auto border-0 p-4 text-foreground transition-all sm:max-h-[600px] sm:w-auto sm:max-w-[800px] sm:overflow-y-hidden sm:rounded-lg sm:border sm:shadow-sm"
+      >
         {strummingPattern && (
           <>
             <Button

@@ -731,6 +731,7 @@ function TunerPanel({
                 detectedNote={detectedNote}
                 detectedCents={detectedCents}
                 signalDetected={signalDetected}
+                preferFlats={targetNotes.some((note) => note[1] === "b")}
               />
 
               {/* Shared horizontal track: labels + ticks + marker use the same % axis */}

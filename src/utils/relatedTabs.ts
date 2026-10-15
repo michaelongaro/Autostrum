@@ -1,10 +1,8 @@
 /**
- * How many related tabs to show, and the smallest set worth padding out to
- * when stronger matches run short. Google does not need a deterministic set,
- * but a stable order keeps the HTML cacheable and the recommendations testable.
+ * How many related tabs to show per carousel. A stable order keeps the HTML
+ * cacheable and the recommendations testable.
  */
 export const RELATED_TAB_LIMIT = 8;
-export const RELATED_TAB_MINIMUM = 4;
 
 /**
  * A value shared by more than half the public catalog is treated like a
@@ -15,7 +13,7 @@ const COMMON_VALUE_RATIO = 0.5;
 
 const NON_DESCRIPTIVE_GENRES = new Set(["misc.", "misc"]);
 
-export type RelatedTabSectionKind = "artist" | "similar" | "explore";
+export type RelatedTabSectionKind = "artist" | "similar";
 
 export interface RelatedTabSource {
   id: number;
@@ -82,9 +80,7 @@ export function relatedTabSectionHeading(
     return name ? `Other tabs by ${name}` : "Other tabs by this artist";
   }
 
-  if (kind === "similar") return "Similar tabs";
-
-  return "Explore more tabs";
+  return "Similar tabs";
 }
 
 export function selectRelatedTabSections<T extends RelatedTabCandidate>(
@@ -109,7 +105,7 @@ export function selectRelatedTabSections<T extends RelatedTabCandidate>(
 
   const artistTabs: T[] = [];
   const similarTabs: T[] = [];
-  const exploreTabs: T[] = [];
+  const otherArtistTabs: T[] = [];
 
   for (const candidate of ranked) {
     if (isSameArtist(source, candidate)) {
@@ -117,17 +113,21 @@ export function selectRelatedTabSections<T extends RelatedTabCandidate>(
       continue;
     }
 
+    otherArtistTabs.push(candidate);
+
     if (establishesSimilarity(source, candidate, frequencies)) {
       similarTabs.push(candidate);
-      continue;
     }
-
-    exploreTabs.push(candidate);
   }
 
   const selectedArtist = artistTabs.slice(0, RELATED_TAB_LIMIT);
-  const selectedSimilar = similarTabs.slice(0, RELATED_TAB_LIMIT);
-  const meaningfulCount = selectedArtist.length + selectedSimilar.length;
+  // Keep the similar carousel even when there are no meaningful matches.
+  // Prefer other artists; reuse same-artist tabs only if nothing else exists.
+  const similarCandidates =
+    similarTabs.length > 0 ? similarTabs : otherArtistTabs;
+  const selectedSimilar = (
+    similarCandidates.length > 0 ? similarCandidates : ranked
+  ).slice(0, RELATED_TAB_LIMIT);
 
   const sections: RelatedTabSection<T>[] = [];
 
@@ -141,18 +141,6 @@ export function selectRelatedTabSections<T extends RelatedTabCandidate>(
 
   if (selectedSimilar.length > 0) {
     sections.push({ kind: "similar", tabs: selectedSimilar });
-  }
-
-  const exploreCount =
-    meaningfulCount === 0
-      ? RELATED_TAB_LIMIT
-      : Math.max(0, RELATED_TAB_MINIMUM - meaningfulCount);
-
-  if (exploreCount > 0) {
-    const selectedExplore = exploreTabs.slice(0, exploreCount);
-    if (selectedExplore.length > 0) {
-      sections.push({ kind: "explore", tabs: selectedExplore });
-    }
   }
 
   return sections;
@@ -236,12 +224,12 @@ function attributeMatch(
 
   const sourceTuning = comparableTuning(source.tuning);
   const candidateTuning = comparableTuning(candidate.tuning);
-  const tuning =
-    sourceTuning.length > 0 && sourceTuning === candidateTuning;
+  const tuning = sourceTuning.length > 0 && sourceTuning === candidateTuning;
 
   const difficultyExact = source.difficulty === candidate.difficulty;
   const difficultyNear =
-    !difficultyExact && Math.abs(source.difficulty - candidate.difficulty) === 1;
+    !difficultyExact &&
+    Math.abs(source.difficulty - candidate.difficulty) === 1;
 
   const sourceKey = normalizeKey(source.key);
   const candidateKey = normalizeKey(candidate.key);
@@ -253,7 +241,8 @@ function attributeMatch(
     descriptiveGenre,
     looseGenre: genresMatch && !descriptiveGenre,
     tuning,
-    tuningUncommon: tuning && isUncommon(frequencies.tuning, sourceTuning, frequencies.total),
+    tuningUncommon:
+      tuning && isUncommon(frequencies.tuning, sourceTuning, frequencies.total),
     difficultyExact,
     difficultyNear,
     difficultyUncommon:
@@ -261,9 +250,12 @@ function attributeMatch(
       isUncommon(frequencies.difficulty, source.difficulty, frequencies.total),
     key,
     keyUncommon:
-      key && sourceKey != null && isUncommon(frequencies.key, sourceKey, frequencies.total),
+      key &&
+      sourceKey != null &&
+      isUncommon(frequencies.key, sourceKey, frequencies.total),
     capo,
-    capoUncommon: capo && isUncommon(frequencies.capo, source.capo, frequencies.total),
+    capoUncommon:
+      capo && isUncommon(frequencies.capo, source.capo, frequencies.total),
   };
 }
 

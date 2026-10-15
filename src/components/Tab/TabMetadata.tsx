@@ -31,7 +31,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, getTabData } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { genreColors } from "~/utils/genreColors";
-import { tuningNotesToName } from "~/utils/tunings";
+import { getTuningName } from "~/utils/tunings";
 import ArtistCombobox from "~/components/ui/ArtistCombobox";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { Button } from "~/components/ui/button";
@@ -72,6 +72,8 @@ import {
 import { Badge } from "~/components/ui/badge";
 import { isMobile } from "react-device-detect";
 import Spinner from "~/components/ui/Spinner";
+import { useDraftActions } from "~/components/Tab/DraftEditor";
+import type { DraftReference } from "~/utils/tabDocument";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -97,6 +99,7 @@ type TabMetadata = {
 };
 
 function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
+  const draftActions = useDraftActions();
   const { userId } = useAuth();
   const { push, asPath } = useRouter();
 
@@ -190,6 +193,8 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
   const { mutate: publishTab, isLoading: isPublishing } =
     api.tab.create.useMutation({
       onSuccess: (tab) => {
+        draftActions?.completePublication(tab);
+        setOriginalTabData(tab);
         setTimeout(() => {
           setSaveButtonText("");
           setOriginalTabData(tab);
@@ -206,6 +211,9 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
         }, 4000);
       },
       onError: (e) => {
+        draftActions?.publicationFailed(e);
+        setIsPublishingOrUpdating(false);
+        setSaveButtonText("Publish");
         console.error("Error publishing tab:", e);
         setPublishErrorOccurred(true);
         setPopoverContentIsForSave(true);
@@ -216,6 +224,8 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
   const { mutate: updateTab, isLoading: isUpdating } =
     api.tab.update.useMutation({
       onSuccess: (tab) => {
+        draftActions?.completePublication(tab);
+        setOriginalTabData(tab);
         setTimeout(() => {
           setSaveButtonText("");
           setOriginalTabData(tab);
@@ -232,6 +242,9 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
         }, 4000);
       },
       onError: (e) => {
+        draftActions?.publicationFailed(e);
+        setIsPublishingOrUpdating(false);
+        setSaveButtonText("Save");
         console.error("Error saving tab:", e);
         setPublishErrorOccurred(true);
         setPopoverContentIsForSave(true);
@@ -375,10 +388,23 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
     setIsPublishingOrUpdating(true);
     setSaveButtonText(asPath.includes("create") ? "Publishing" : "Saving");
 
+    let draft: DraftReference | undefined;
+    try {
+      draft = await draftActions?.preparePublication();
+    } catch {
+      setIsPublishingOrUpdating(false);
+      setSaveButtonText(asPath.includes("create") ? "Publish" : "Save");
+      setPublishErrorOccurred(true);
+      setPopoverContentIsForSave(true);
+      setPublishPopoverStatus("showPublish");
+      return;
+    }
+
     const tabData = getTabData();
 
     if (asPath.includes("create")) {
       publishTab({
+        draft,
         title,
         artistId,
         artistName,
@@ -396,6 +422,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       });
     } else {
       updateTab({
+        draft,
         id,
         title,
         artistId,
@@ -698,12 +725,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 maxLength={500}
                 value={description ?? ""}
                 className={`max-h-[350px] min-h-[122px] ${isMobile ? "text-base" : "text-sm"}`}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    // technically allows a *ton* of newlines, messing up ui, but not mission critical
-                    setDescription(description + "\n");
-                  }
-                }}
                 onChange={(e) => {
                   setDescription(e.target.value);
                 }}
@@ -1379,9 +1400,9 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 className={`${classes.tuning} baseVertFlex !items-start gap-1`}
               >
                 <div className="font-semibold">Tuning</div>
-                {tuningNotesToName[
-                  tuning.toLowerCase() as keyof typeof tuningNotesToName
-                ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                {getTuningName(tuning) ?? (
+                  <PrettyTuning tuning={tuning} displayWithFlex />
+                )}
               </div>
 
               <div

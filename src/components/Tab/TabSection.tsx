@@ -27,6 +27,7 @@ import {
 } from "~/hooks/useTabDataSelectors";
 import {
   getTabData,
+  subscribeTabStore,
   useTabStore,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
@@ -113,6 +114,14 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     useState(false);
 
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
+  useEffect(() => {
+    return subscribeTabStore((state, previous) => {
+      if (state.editorHistoryRevision === previous.editorHistoryRevision)
+        return;
+      setLastModifiedPalmMuteNode(null);
+      setEditingPalmMuteNodes(false);
+    });
+  }, []);
 
   // Meta + column identity only — note edits must not re-render this section shell.
   const subSection = useTabSubSectionMeta(sectionIndex, subSectionIndex);

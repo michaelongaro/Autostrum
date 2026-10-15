@@ -10,6 +10,8 @@ export type ChordTrainerStrummingPattern = {
   notation: string | null;
   /** When false, the visualizer hides strum icons (the "None" option). */
   showIcons: boolean;
+  /** Duration of each strum slot, measured in quarter-note beats. */
+  beatsPerStrum: number;
   strums: ChordTrainerStrum[];
 };
 
@@ -56,6 +58,7 @@ function createPattern(
     label: notation,
     notation,
     showIcons: true,
+    beatsPerStrum: 1,
     strums: parseChordTrainerStrummingNotation(notation),
   };
 }
@@ -66,6 +69,8 @@ export const NONE_CHORD_TRAINER_STRUMMING_PATTERN: ChordTrainerStrummingPattern 
     label: "None",
     notation: null,
     showIcons: false,
+    // Hold the single strum for the same four beats as a full DDDD pattern.
+    beatsPerStrum: 4,
     strums: [{ effect: "v" }],
   };
 

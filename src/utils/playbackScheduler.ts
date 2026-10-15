@@ -1,6 +1,9 @@
 import type Soundfont from "soundfont-player";
 import { noteLengthMultipliers, type FullNoteLengths } from "~/stores/TabStore";
-import { playNoteColumn } from "~/utils/playGeneratedAudioHelpers";
+import {
+  playNoteColumn,
+  stopActivePlaybackStrings,
+} from "~/utils/playGeneratedAudioHelpers";
 
 export const PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS = 2.0;
 
@@ -258,13 +261,10 @@ export async function runPlaybackScheduler({
       scheduledNodes.length = 0;
     }
 
-    for (const currentlyPlayingString of currentlyPlayingStrings) {
-      try {
-        currentlyPlayingString?.stop();
-      } catch {
-        // ignore already-stopped nodes
-      }
-    }
+    stopActivePlaybackStrings(
+      currentlyPlayingStrings,
+      audioContext.currentTime,
+    );
   };
 
   const stopPlaybackState = () => {

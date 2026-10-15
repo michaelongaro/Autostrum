@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "npm run generate:theme-tokens && prisma generate && prisma migrate deploy && next build",
-    "dev": "npm run generate:theme-tokens && next dev",
+    "dev": "npm run generate:theme-tokens && next dev --webpack",
+    "dev:turbo": "npm run generate:theme-tokens && next dev --turbopack",
     "generate:theme-tokens": "node scripts/generateThemeTokensCSS.mjs",
     "postinstall": "prisma generate",
     "lint": "eslint .",

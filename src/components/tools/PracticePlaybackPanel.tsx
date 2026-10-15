@@ -258,7 +258,9 @@ function PracticePlaybackPanel({
                 <p className="text-sm font-medium">Choose an exercise</p>
 
                 <div className="baseFlex gap-4">
-                  <span className="text-sm font-medium">Difficulty</span>
+                  <span className="text-sm font-medium text-foreground/75">
+                    Difficulty
+                  </span>
                   <div className="baseFlex gap-2">
                     {exerciseGroups.map((group) => (
                       <Button
