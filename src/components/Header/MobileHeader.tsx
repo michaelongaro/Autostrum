@@ -36,6 +36,8 @@ import { api } from "~/utils/api";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
 import HeaderLogo from "~/components/Header/HeaderLogo";
+import { getTabDocument } from "~/utils/drafts/tabDraftState";
+import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 import Spinner from "~/components/ui/Spinner";
 
 function MobileHeader() {
@@ -340,6 +342,10 @@ function MobileHeader() {
                       <Button
                         variant={"headerNavigation"}
                         className="baseFlex h-10 gap-2 px-8"
+                        onClick={() => {
+                          if (asPath.split("?")[0] === "/create")
+                            saveTabForSignIn(getTabDocument());
+                        }}
                       >
                         <FaUser className="size-4" />
                         Sign in

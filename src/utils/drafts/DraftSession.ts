@@ -40,12 +40,10 @@ interface SessionOptions {
   record: RecoveryRecord;
   needsSave: boolean;
   hasRecovery: boolean;
-  save:
-    | ((
-        input: SaveDraftInput,
-      ) => Promise<{ revision: number; updatedAt: Date }>)
-    | null;
-  onState: (state: DraftSaveState) => void;
+  save: (
+    input: SaveDraftInput,
+  ) => Promise<{ revision: number; updatedAt: Date }>;
+  onState?: (state: DraftSaveState) => void;
   onPersist?: (record: RecoveryRecord) => void;
   recovered?: RecoveryRecord;
   write?: typeof writeRecoveryRecord;
@@ -88,11 +86,7 @@ export class DraftSession {
     if (this.options.hasRecovery || this.dirty) this.persist();
     if (this.dirty) this.schedule();
     this.report(
-      this.options.save && this.record.synced
-        ? "saved"
-        : this.localSaved
-          ? "local"
-          : "idle",
+      this.record.synced ? "saved" : this.localSaved ? "local" : "idle",
     );
   }
 
@@ -111,7 +105,7 @@ export class DraftSession {
     this.dirty = true;
     this.persist();
     if (this.blocked) this.report("conflict", this.state.message);
-    else this.report(this.options.save ? "saving" : "local");
+    else this.report("saving");
     this.schedule();
   }
 
@@ -134,9 +128,7 @@ export class DraftSession {
       idle: "Your edits will be saved privately.",
       saving: "Saving private draft…",
       saved: "Private draft saved to your account.",
-      local: this.options.save
-        ? "Saved on this device. Waiting to sync to your account."
-        : "Draft saved on this device. Sign in to sync it to your account.",
+      local: "Saved on this device. Waiting to sync to your account.",
       error:
         "Account sync failed. Your recovery copy is saved on this device; autosave will retry.",
       conflict:
@@ -152,7 +144,7 @@ export class DraftSession {
       localSaved: this.localSaved,
       updatedAt: this.record.updatedAt,
     };
-    if (!this.disposed) this.options.onState(this.state);
+    if (!this.disposed) this.options.onState?.(this.state);
   }
 
   private clearTimers() {
@@ -163,8 +155,7 @@ export class DraftSession {
   }
 
   private schedule() {
-    if (!this.options.save || this.disposed || this.blocked || this.published)
-      return;
+    if (this.disposed || this.blocked || this.published) return;
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
       void this.flush();
@@ -187,14 +178,7 @@ export class DraftSession {
         await this.flush();
       return;
     }
-    if (
-      !this.options.save ||
-      !this.dirty ||
-      this.blocked ||
-      this.disposed ||
-      this.published
-    )
-      return;
+    if (!this.dirty || this.blocked || this.disposed || this.published) return;
     this.inFlight = this.savePending().finally(() => {
       this.inFlight = null;
     });
@@ -206,7 +190,7 @@ export class DraftSession {
       const snapshot = this.record;
       this.report("saving");
       try {
-        const result = await this.options.save!({
+        const result = await this.options.save({
           id: snapshot.id,
           mutationId: snapshot.mutationId,
           expectedRevision: snapshot.revision,
@@ -260,7 +244,6 @@ export class DraftSession {
   }
 
   async preparePublication(): Promise<DraftReference | undefined> {
-    if (!this.options.save) throw new Error("Sign in to publish your draft.");
     await this.flush();
     if (this.dirty || this.blocked || this.disposed || this.published) {
       throw new Error(
@@ -293,35 +276,6 @@ export class DraftSession {
         "Changes published. Further edits will be saved as a private draft.",
       );
     }
-  }
-
-  fork() {
-    this.clearTimers();
-    const previous = this.record;
-    this.record = newRecoveryRecord(previous.ownerId, previous.document);
-    this.recovered = previous;
-    this.blocked = false;
-    this.published = false;
-    this.dirty = true;
-    this.persist();
-    this.report(
-      this.options.save ? "saving" : "local",
-      "Recovered as a separate private draft.",
-    );
-    this.schedule();
-    return this.record;
-  }
-
-  replaceWithCloud(record: RecoveryRecord) {
-    // Keep this writer's unsynced copy available in the library.
-    this.clearTimers();
-    this.record = { ...record, writerId: crypto.randomUUID() };
-    this.serialized = JSON.stringify(record.document);
-    this.blocked = false;
-    this.dirty = false;
-    this.published = false;
-    this.persist();
-    this.report("saved");
   }
 
   needsUnloadWarning() {

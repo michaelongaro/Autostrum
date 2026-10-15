@@ -1,7 +1,6 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "~/components/ui/button";
 import {
   AlertDialog,
@@ -12,13 +11,11 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { api, type RouterOutputs } from "~/utils/api";
+import useDraftLibrary from "~/hooks/useDraftLibrary";
+import { draftHref, formatDraftDate } from "~/utils/drafts/draftPresentation";
 import {
-  DRAFTS_CHANGED_EVENT,
-  migrateLegacyDraft,
-  newRecoveryRecord,
   readRecoveryRecords,
   removeUnchangedRecoveryRecord,
-  writeRecoveryRecord,
   type RecoveryRecord,
 } from "~/utils/drafts/draftStorage";
 import {
@@ -35,97 +32,57 @@ type DiscardTarget =
   | { kind: "cloud"; draft: CloudDraft }
   | { kind: "local"; draft: RecoveryRecord };
 
-function draftHref(
-  draft: { id: string; sourceTabId: number | null },
-  writerId?: string,
-  copy = false,
-) {
-  const path =
-    draft.sourceTabId !== null && !copy
-      ? `/tab/${draft.sourceTabId}/edit`
-      : "/create";
-  const query = new URLSearchParams({ draft: draft.id });
-  if (writerId) query.set("recovery", writerId);
-  if (copy) query.set("copy", "1");
-  return `${path}?${query.toString()}`;
-}
-
 export default function DraftsDialog() {
   const { isLoaded, userId } = useAuth();
+
+  if (!isLoaded || !userId)
+    return (
+      <Button variant="secondary" className="ml-auto shrink-0" disabled>
+        Drafts
+      </Button>
+    );
+
+  return <AccountDraftsDialog key={userId} ownerId={userId} />;
+}
+
+function AccountDraftsDialog({ ownerId }: { ownerId: string }) {
   const [open, setOpen] = useState(false);
+  const library = useDraftLibrary(ownerId);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="ml-auto shrink-0">
+        <Button
+          variant="secondary"
+          className="ml-auto shrink-0"
+          disabled={!library.hasDrafts}
+        >
           Drafts
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-3xl flex-col gap-5 overflow-y-auto rounded-lg">
         <DialogHeader className="pr-6 text-left">
           <DialogTitle>My drafts</DialogTitle>
-          <DialogDescription>
-            Continue working on your private drafts.
-          </DialogDescription>
+          <DialogDescription>Continue working on your tabs.</DialogDescription>
         </DialogHeader>
-        {open &&
-          (isLoaded && userId ? (
-            <DraftList key={userId} ownerId={userId} />
-          ) : (
-            <p role="status">
-              {isLoaded
-                ? "Sign in to view your drafts."
-                : "Loading your drafts..."}
-            </p>
-          ))}
+        <DraftList ownerId={ownerId} library={library} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function DraftList({ ownerId }: { ownerId: string }) {
-  const router = useRouter();
+function DraftList({
+  ownerId,
+  library,
+}: {
+  ownerId: string;
+  library: ReturnType<typeof useDraftLibrary>;
+}) {
   const utils = api.useContext();
-  const cloud = api.draft.list.useQuery(
-    { ownerId },
-    {
-      retry: 1,
-      refetchOnMount: "always",
-    },
-  );
+  const { cloud, local, accountDrafts, recoveryCopies } = library;
   const discard = api.draft.discard.useMutation();
-  const [local, setLocal] = useState<ReturnType<typeof readRecoveryRecords>>({
-    records: [],
-    unreadable: 0,
-    available: true,
-  });
   const [target, setTarget] = useState<DiscardTarget | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showGuest, setShowGuest] = useState(false);
-  const [guestRecords, setGuestRecords] = useState<RecoveryRecord[]>([]);
-
-  useEffect(() => {
-    migrateLegacyDraft();
-    const refresh = () => {
-      setLocal(readRecoveryRecords(ownerId));
-      setGuestRecords(readRecoveryRecords(null).records);
-    };
-    refresh();
-    window.addEventListener("storage", refresh);
-    window.addEventListener(DRAFTS_CHANGED_EVENT, refresh);
-    window.addEventListener("focus", refresh);
-    return () => {
-      window.removeEventListener("storage", refresh);
-      window.removeEventListener(DRAFTS_CHANGED_EVENT, refresh);
-      window.removeEventListener("focus", refresh);
-    };
-  }, [ownerId]);
-
-  const accountDrafts = cloud.data ?? [];
-  const recoveryCopies = local.records.filter(
-    (record) =>
-      !record.synced || !accountDrafts.some((draft) => draft.id === record.id),
-  );
 
   async function discardSelected() {
     if (!target) return;
@@ -169,37 +126,8 @@ function DraftList({ ownerId }: { ownerId: string }) {
     }
   }
 
-  function importGuest(record: RecoveryRecord) {
-    const copy = newRecoveryRecord(ownerId, record.document);
-    if (!writeRecoveryRecord(copy)) {
-      setError(
-        "Browser storage is unavailable. Your guest draft has been kept; retry when storage is available.",
-      );
-      return;
-    }
-    void router.push(draftHref(copy, copy.writerId));
-  }
-
   return (
     <div className="flex min-h-0 flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {guestRecords.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowGuest((value) => !value)}
-          >
-            {showGuest ? "Hide" : "Show"} drafts saved while signed out
-          </Button>
-        )}
-        <Button
-          className="ml-auto"
-          size="sm"
-          onClick={() => void router.push(`/create?new=${crypto.randomUUID()}`)}
-        >
-          New draft
-        </Button>
-      </div>
       {(!local.available || local.unreadable > 0) && (
         <p role="alert" className="text-sm">
           Some browser recovery copies could not be read. They have been
@@ -230,25 +158,14 @@ function DraftList({ ownerId }: { ownerId: string }) {
       {cloud.isLoading && <p role="status">Loading your drafts...</p>}
       {accountDrafts.length > 0 && (
         <section aria-label="Account drafts" className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">Saved to your account</h2>
           {accountDrafts.map((draft) => (
             <DraftCard
               key={draft.id}
               title={draft.title}
               date={draft.updatedAt.toISOString()}
-              label={
-                draft.sourceTabId
-                  ? "Private changes to a published tab"
-                  : "Private draft"
-              }
             >
               <Button size="sm" asChild>
                 <Link href={draftHref(draft)}>Continue editing</Link>
-              </Button>
-              <Button size="sm" variant="secondary" asChild>
-                <Link href={draftHref(draft, undefined, true)}>
-                  Recover as new tab
-                </Link>
               </Button>
               <Button
                 size="sm"
@@ -266,28 +183,15 @@ function DraftList({ ownerId }: { ownerId: string }) {
           aria-label="Browser recovery copies"
           className="flex flex-col gap-3"
         >
-          <h2 className="text-lg font-semibold">On this device</h2>
-          <p className="text-sm text-foreground/70">
-            Recovery copies keep work safe through connection problems and
-            interrupted sessions.
-          </p>
           {recoveryCopies.map((draft) => (
             <DraftCard
               key={`${draft.id}:${draft.writerId}`}
               title={draft.document.title}
               date={draft.updatedAt}
-              label={
-                draft.synced ? "Saved on this device" : "Local recovery copy"
-              }
             >
               <Button size="sm" asChild>
                 <Link href={draftHref(draft, draft.writerId)}>
                   Recover draft
-                </Link>
-              </Button>
-              <Button size="sm" variant="secondary" asChild>
-                <Link href={draftHref(draft, draft.writerId, true)}>
-                  Recover as new tab
                 </Link>
               </Button>
               <Button
@@ -295,24 +199,7 @@ function DraftList({ ownerId }: { ownerId: string }) {
                 variant="ghost"
                 onClick={() => setTarget({ kind: "local", draft })}
               >
-                Discard copy
-              </Button>
-            </DraftCard>
-          ))}
-        </section>
-      )}
-      {showGuest && (
-        <section aria-label="Guest drafts" className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">Saved while signed out</h2>
-          {guestRecords.map((draft) => (
-            <DraftCard
-              key={`${draft.id}:${draft.writerId}`}
-              title={draft.document.title}
-              date={draft.updatedAt}
-              label="Guest draft on this device"
-            >
-              <Button size="sm" onClick={() => importGuest(draft)}>
-                Copy to my drafts
+                Discard
               </Button>
             </DraftCard>
           ))}
@@ -375,12 +262,10 @@ function DraftList({ ownerId }: { ownerId: string }) {
 function DraftCard({
   title,
   date,
-  label,
   children,
 }: {
   title: string;
   date: string;
-  label: string;
   children: ReactNode;
 }) {
   return (
@@ -390,8 +275,7 @@ function DraftCard({
           {title || "Untitled draft"}
         </h3>
         <p className="mt-1 text-sm text-foreground/60">
-          {label} ·{" "}
-          <time dateTime={date}>{new Date(date).toLocaleString()}</time>
+          <time dateTime={date}>{formatDraftDate(date)}</time>
         </p>
       </div>
       <div className="flex flex-wrap gap-2">{children}</div>

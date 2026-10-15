@@ -14,14 +14,9 @@ import type { Tab } from "~/generated/browser";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { getTabStore, subscribeTabStore } from "~/stores/TabStore";
 import { api, type RouterOutputs } from "~/utils/api";
-import {
-  DraftSession,
-  errorCode,
-  type DraftSaveState,
-} from "~/utils/drafts/DraftSession";
+import { DraftSession, errorCode } from "~/utils/drafts/DraftSession";
 import {
   getActiveDraft,
-  migrateLegacyDraft,
   newRecoveryRecord,
   readRecoveryRecords,
   recoveryRecordSchema,
@@ -35,6 +30,7 @@ import {
   hydratePublishedTab,
 } from "~/utils/drafts/tabDraftState";
 import { tabDocumentSchema, type DraftReference } from "~/utils/tabDocument";
+import { clearTabForSignIn, readTabForSignIn } from "~/utils/tabSignInHandoff";
 
 interface DraftActions {
   preparePublication: () => Promise<DraftReference | undefined>;
@@ -71,16 +67,16 @@ export default function DraftEditor({
 }) {
   const { isLoaded, userId } = useAuth();
   const router = useRouter();
-  if (!router.isReady)
+  if (!isLoaded || !router.isReady)
     return (
       <p className="p-6" role="status">
-        Loading private drafts…
+        Loading editor…
       </p>
     );
   return (
     <DraftEditorSession
-      key={`${isLoaded ? (userId ?? "guest") : "guest"}:${router.asPath}`}
-      ownerId={isLoaded ? (userId ?? null) : null}
+      key={`${userId ?? "guest"}:${router.asPath}`}
+      ownerId={userId ?? null}
       fetchedTab={fetchedTab}
     >
       {children}
@@ -106,46 +102,43 @@ function DraftEditorSession({
   const applying = useRef(false);
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
-  const [saveState, setSaveState] = useState<DraftSaveState | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const [resolving, setResolving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let navigating = false;
     let unsubscribe: (() => void) | undefined;
     const sourceTabId = fetchedTab?.id ?? null;
-    const route = sourceTabId
-      ? `/tab/${sourceTabId}/edit`
-      : `/create${typeof router.query.new === "string" ? `:new:${router.query.new}` : ""}`;
+    const route = sourceTabId ? `/tab/${sourceTabId}/edit` : "/create";
 
     async function initialize() {
       setLoadError(null);
       setReady(false);
       hydratePublishedTab(fetchedTab);
       getTabStore().setEditing(true);
-      const migrated = migrateLegacyDraft();
+      if (!ownerId) {
+        setReady(true);
+        return;
+      }
 
       const local = readRecoveryRecords(ownerId);
-      if (!local.available || local.unreadable)
-        setWarning(
-          "Some browser recovery data could not be read. Existing copies have been kept.",
-        );
       const requestedId =
         typeof router.query.draft === "string" ? router.query.draft : undefined;
       const requestedWriter =
         typeof router.query.recovery === "string"
           ? router.query.recovery
           : undefined;
-      const makeCopy = router.query.copy === "1";
       if (
         requestedId &&
         !recoveryRecordSchema.shape.id.safeParse(requestedId).success
       )
         throw new Error("This draft link is invalid.");
 
-      const active = getActiveDraft(route);
+      // Visiting /create always starts fresh. Only an explicit draft link or
+      // an edit route can resume an existing account draft.
+      const active = requestedId || sourceTabId ? getActiveDraft(route) : null;
+      const signInTab =
+        !requestedId && sourceTabId === null ? readTabForSignIn() : null;
       let recovered = requestedId
         ? (local.records.find(
             (record) =>
@@ -166,30 +159,6 @@ function DraftEditorSession({
             )
           : undefined;
 
-      // Only the guest draft active in this browser tab follows a sign-in redirect.
-      // A signed-out account draft is never handed to another account or a guest.
-      let guestHandoff = false;
-      if (
-        !requestedId &&
-        !recovered &&
-        ownerId &&
-        active?.ownerId === null &&
-        sourceTabId === null
-      ) {
-        recovered = readRecoveryRecords(null).records.find(
-          (record) =>
-            record.id === active.id && record.writerId === active.writerId,
-        );
-        guestHandoff = !!recovered;
-      }
-      if (
-        !requestedId &&
-        !recovered &&
-        ownerId === null &&
-        migrated &&
-        !router.query.new
-      )
-        recovered = migrated;
       if (!requestedId && !recovered && sourceTabId !== null)
         recovered = local.records.find(
           (record) => record.sourceTabId === sourceTabId,
@@ -197,24 +166,19 @@ function DraftEditorSession({
 
       let cloud: RouterOutputs["draft"]["get"] = null;
       let cloudUnavailable = false;
-      if (ownerId && !guestHandoff) {
-        try {
-          const id = requestedId ?? recovered?.id;
-          cloud = id
-            ? await utils.draft.get.fetch({ id, ownerId })
-            : sourceTabId
-              ? await utils.draft.forTab.fetch({ sourceTabId, ownerId })
-              : null;
-        } catch {
-          cloudUnavailable = true;
-          if (requestedId && !recovered)
-            throw new Error(
-              "Your account draft could not be loaded. Reconnect and retry; your saved draft has not been changed.",
-            );
-          setWarning(
-            "Account drafts are temporarily unavailable. Browser recovery will keep saving your edits while account sync retries.",
+      try {
+        const id = requestedId ?? recovered?.id;
+        cloud = id
+          ? await utils.draft.get.fetch({ id, ownerId })
+          : sourceTabId
+            ? await utils.draft.forTab.fetch({ sourceTabId, ownerId })
+            : null;
+      } catch {
+        cloudUnavailable = true;
+        if (requestedId && !recovered)
+          throw new Error(
+            "Your account draft could not be loaded. Reconnect and retry; your saved draft has not been changed.",
           );
-        }
       }
       if (cancelled) return;
 
@@ -225,11 +189,11 @@ function DraftEditorSession({
 
       let record = newRecoveryRecord(
         ownerId,
-        getTabDocument(),
+        signInTab?.document ?? getTabDocument(),
         sourceTabId,
         fetchedTab?.updatedAt.toISOString() ?? null,
       );
-      let needsSave = false;
+      let needsSave = !!signInTab;
       let conflict: string | null = null;
       let hasRecovery = !!recovered || !!cloud;
       const sameDocument =
@@ -245,13 +209,12 @@ function DraftEditorSession({
         needsSave = !recovered.synced;
         if (cloud && cloud.revision !== recovered.revision) {
           conflict =
-            "A newer account version exists. Your local edits are preserved. Load the account version or recover these edits as a separate draft.";
+            "A newer account version exists. Your local edits are preserved on this device.";
         } else if (
           !cloud &&
           !cloudUnavailable &&
           ownerId &&
-          record.revision > 0 &&
-          !makeCopy
+          record.revision > 0
         ) {
           if (record.synced) {
             // A completed/discarded draft must not silently reappear after reload.
@@ -263,25 +226,14 @@ function DraftEditorSession({
             );
             hasRecovery = false;
             needsSave = false;
-            setWarning(
-              "That draft was already published or discarded. Other recovery copies remain available in the Drafts dialog on My Tabs.",
-            );
           } else {
             conflict =
-              "This draft was published or discarded in another session. Recover your remaining edits as a separate draft.";
+              "This draft was published or discarded in another session. Your remaining edits are preserved on this device.";
           }
         }
       }
 
-      if (
-        guestHandoff ||
-        makeCopy ||
-        (record.sourceTabId !== null && sourceTabId === null && hasRecovery)
-      ) {
-        record = newRecoveryRecord(ownerId, record.document);
-        needsSave = true;
-        conflict = null;
-      } else if (sourceTabId !== null && record.sourceTabId !== sourceTabId) {
+      if (record.sourceTabId !== sourceTabId) {
         throw new Error(
           "This draft belongs to a different tab. Open it from the Drafts dialog on My Tabs.",
         );
@@ -292,7 +244,7 @@ function DraftEditorSession({
         record.baseUpdatedAt !== fetchedTab?.updatedAt.toISOString()
       ) {
         conflict =
-          "The published tab has changed since this draft began. Your draft is preserved; recover it as a new tab to keep both versions.";
+          "The published tab has changed since this draft began. Your edits are preserved on this device.";
       }
 
       applying.current = true;
@@ -302,20 +254,16 @@ function DraftEditorSession({
         record,
         needsSave,
         hasRecovery,
-        recovered:
-          record.id === recovered?.id || guestHandoff ? recovered : undefined,
-        save: ownerId ? saveDraft : null,
+        recovered: record.id === recovered?.id ? recovered : undefined,
+        save: saveDraft,
         onState: (state) => {
-          if (!cancelled)
-            setSaveState((previous) =>
-              previous?.status === state.status &&
-              previous.message === state.message &&
-              previous.localSaved === state.localSaved
-                ? previous
-                : state,
-            );
+          if (signInTab && state.status === "saved")
+            clearTabForSignIn(signInTab);
         },
-        onPersist: (snapshot) => setActiveDraft(route, snapshot),
+        onPersist: (snapshot) => {
+          setActiveDraft(route, snapshot);
+          if (signInTab) clearTabForSignIn(signInTab);
+        },
       });
       sessionRef.current = session;
       session.start();
@@ -335,6 +283,10 @@ function DraftEditorSession({
             : "Draft recovery failed. Your saved copies have been kept.",
         );
     });
+    if (!ownerId)
+      return () => {
+        cancelled = true;
+      };
     const retry = () => sessionRef.current?.retry();
     const pageHide = () => sessionRef.current?.retry();
     const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -376,60 +328,16 @@ function DraftEditorSession({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attempt]);
 
-  async function loadCloudVersion() {
-    const session = sessionRef.current;
-    if (!session || !ownerId) return;
-    setResolving(true);
-    try {
-      const draft = await utils.draft.get.fetch({
-        id: session.record.id,
-        ownerId,
-      });
-      if (!draft)
-        throw new Error(
-          "The account draft is no longer available. Recover your edits as a new draft.",
-        );
-      if (
-        fetchedTab &&
-        draft.baseUpdatedAt?.getTime() !== fetchedTab.updatedAt.getTime()
-      ) {
-        throw new Error(
-          "This draft is based on an older published tab. Recover it as a new draft, or reopen the published tab from My Tabs.",
-        );
-      }
-      applying.current = true;
-      applyTabDocument(draft.document);
-      applying.current = false;
-      session.replaceWithCloud(cloudRecord(draft));
-      setWarning(null);
-    } catch (error) {
-      setWarning(
-        error instanceof Error
-          ? error.message
-          : "The account draft could not be loaded.",
-      );
-    } finally {
-      setResolving(false);
-    }
-  }
-
-  function recoverAsCopy() {
-    const session = sessionRef.current;
-    if (!session) return;
-    const copy = session.fork();
-    void router.push(`/create?draft=${copy.id}&recovery=${copy.writerId}`);
-  }
-
   if (loadError)
     return (
       <div
         className="flex w-full flex-col items-start gap-3 rounded-xl border bg-background p-6"
         role="alert"
       >
-        <p>{loadError}</p>
+        <p>This tab could not be opened. Please try again.</p>
         <div className="flex gap-3">
           <Button onClick={() => setAttempt((value) => value + 1)}>
-            Retry recovery
+            Retry
           </Button>
           <Button variant="secondary" asChild>
             <Link href="/profile/tabs/filters">My tabs</Link>
@@ -440,9 +348,11 @@ function DraftEditorSession({
   if (!ready)
     return (
       <p className="p-6" role="status">
-        Recovering your private draft…
+        Loading editor…
       </p>
     );
+
+  if (!ownerId) return children;
 
   return (
     <DraftContext.Provider
@@ -459,70 +369,12 @@ function DraftEditorSession({
         publicationFailed: (error) => {
           if (errorCode(error) === "CONFLICT")
             sessionRef.current?.block(
-              "The draft or published tab changed in another session. Your recovery copy is preserved; recover it as a new draft to keep both versions.",
+              "The draft or published tab changed in another session. Your edits are preserved on this device.",
             );
         },
       }}
     >
       {children}
-      {(saveState?.status === "conflict" ||
-        saveState?.status === "error" ||
-        (saveState &&
-          !saveState.localSaved &&
-          saveState.status !== "idle" &&
-          saveState.status !== "saved" &&
-          saveState.status !== "published") ||
-        warning) && (
-        <div className="mt-4 flex w-full flex-col gap-3 px-4 md:px-0">
-          {saveState?.status === "conflict" && (
-            <div
-              className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/50 bg-background p-4 text-sm"
-              role="alert"
-            >
-              <p className="w-full">{saveState.message}</p>
-              {ownerId && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  disabled={resolving}
-                  onClick={loadCloudVersion}
-                >
-                  Load account version
-                </Button>
-              )}
-              <Button size="sm" disabled={resolving} onClick={recoverAsCopy}>
-                Recover my edits as a new draft
-              </Button>
-            </div>
-          )}
-          {saveState &&
-            saveState.status !== "conflict" &&
-            (saveState.status === "error" ||
-              (!saveState.localSaved &&
-                saveState.status !== "idle" &&
-                saveState.status !== "saved" &&
-                saveState.status !== "published")) && (
-              <div
-                role="alert"
-                className="flex flex-wrap items-center gap-3 text-sm"
-              >
-                <p>{saveState.message}</p>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => sessionRef.current?.retry()}
-                >
-                  Retry autosave
-                </Button>
-              </div>
-            )}
-          {warning && (
-            <p role="alert" className="text-sm text-foreground/75">
-              {warning}
-            </p>
-          )}
-        </div>
-      )}
     </DraftContext.Provider>
   );
 }

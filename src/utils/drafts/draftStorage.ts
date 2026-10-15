@@ -3,13 +3,12 @@ import { tabDocumentSchema, type TabDocument } from "~/utils/tabDocument";
 
 export const DRAFT_STORAGE_PREFIX = "autostrum:drafts:v1:";
 export const DRAFTS_CHANGED_EVENT = "autostrum:drafts-changed";
-export const LEGACY_DRAFT_KEY = "autostrum-tabData";
 
 export const recoveryRecordSchema = z.object({
   version: z.literal(1),
   id: z.string().uuid(),
   writerId: z.string().uuid(),
-  ownerId: z.string().nullable(),
+  ownerId: z.string().min(1),
   sourceTabId: z.number().int().positive().nullable(),
   baseUpdatedAt: z.string().datetime().nullable(),
   revision: z.number().int().min(0),
@@ -23,8 +22,8 @@ export type RecoveryRecord = Omit<
   "document"
 > & { document: TabDocument };
 
-function ownerPrefix(ownerId: string | null) {
-  return `${DRAFT_STORAGE_PREFIX}${encodeURIComponent(ownerId ?? "guest")}:`;
+function ownerPrefix(ownerId: string) {
+  return `${DRAFT_STORAGE_PREFIX}${encodeURIComponent(ownerId)}:`;
 }
 
 export function recoveryKey(
@@ -38,6 +37,7 @@ function notifyDraftsChanged() {
 }
 
 export function writeRecoveryRecord(record: RecoveryRecord): boolean {
+  if (!record.ownerId) return false;
   try {
     window.localStorage.setItem(recoveryKey(record), JSON.stringify(record));
     notifyDraftsChanged();
@@ -47,9 +47,10 @@ export function writeRecoveryRecord(record: RecoveryRecord): boolean {
   }
 }
 
-export function readRecoveryRecords(ownerId: string | null) {
+export function readRecoveryRecords(ownerId: string) {
   const records: RecoveryRecord[] = [];
   let unreadable = 0;
+  if (!ownerId) return { records, unreadable, available: true };
   try {
     const prefix = ownerPrefix(ownerId);
     for (let index = 0; index < window.localStorage.length; index++) {
@@ -69,16 +70,6 @@ export function readRecoveryRecords(ownerId: string | null) {
       }
     }
     records.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-    if (ownerId === null) {
-      const legacy = window.localStorage.getItem(LEGACY_DRAFT_KEY);
-      if (legacy) {
-        try {
-          tabDocumentSchema.parse(JSON.parse(legacy) as unknown);
-        } catch {
-          unreadable++;
-        }
-      }
-    }
     return { records, unreadable, available: true };
   } catch {
     return { records, unreadable, available: false };
@@ -140,11 +131,12 @@ export function getActiveDraft(
 }
 
 export function newRecoveryRecord(
-  ownerId: string | null,
+  ownerId: string,
   document: TabDocument,
   sourceTabId: number | null = null,
   baseUpdatedAt: string | null = null,
 ): RecoveryRecord {
+  if (!ownerId) throw new Error("An account is required to save a draft.");
   return {
     version: 1,
     id: crypto.randomUUID(),
@@ -158,21 +150,4 @@ export function newRecoveryRecord(
     synced: false,
     document,
   };
-}
-
-/** The old single snapshot has no owner metadata, so migrate it only as a guest. */
-export function migrateLegacyDraft() {
-  try {
-    const raw = window.localStorage.getItem(LEGACY_DRAFT_KEY);
-    if (!raw) return null;
-    const document = tabDocumentSchema.parse(JSON.parse(raw) as unknown);
-    const record = newRecoveryRecord(null, document);
-    if (writeRecoveryRecord(record)) {
-      window.localStorage.removeItem(LEGACY_DRAFT_KEY);
-      return record;
-    }
-  } catch {
-    /* Preserve the original if parsing or storage fails. */
-  }
-  return null;
 }

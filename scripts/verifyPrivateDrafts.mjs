@@ -244,6 +244,9 @@ try {
     pathToFileURL(compile(resolve(root, "src/utils/drafts/draftStorage.ts")))
       .href
   );
+  const handoff = await import(
+    pathToFileURL(compile(resolve(root, "src/utils/tabSignInHandoff.ts"))).href
+  );
   const { DraftSession } = await import(
     pathToFileURL(compile(resolve(root, "src/utils/drafts/DraftSession.ts")))
       .href
@@ -416,7 +419,16 @@ try {
   assert.equal(persistence.readRecoveryRecords("owner-a").records.length, 2);
   assert.equal(persistence.readRecoveryRecords("owner-a").unreadable, 1);
   assert.equal(persistence.readRecoveryRecords("owner-b").records.length, 0);
-  assert.equal(persistence.readRecoveryRecords(null).records.length, 0);
+  assert.throws(() => persistence.newRecoveryRecord(null, document()));
+  assert.equal(
+    persistence.writeRecoveryRecord({ ...one, ownerId: null }),
+    false,
+  );
+  assert.equal(
+    persistence.recoveryRecordSchema.safeParse({ ...one, ownerId: null })
+      .success,
+    false,
+  );
   persistence.removeUnchangedRecoveryRecord({
     ...one,
     mutationId: crypto.randomUUID(),
@@ -426,18 +438,34 @@ try {
     2,
     "do not remove a changed writer's recovery copy",
   );
-  storage.set("autostrum-tabData", JSON.stringify(document("Legacy")));
-  persistence.migrateLegacyDraft();
-  assert.equal(storage.has("autostrum-tabData"), false);
+  handoff.saveTabForSignIn(document("Before signup"));
+  const signInTab = handoff.readTabForSignIn();
+  assert.equal(signInTab.document.title, "Before signup");
+  assert.equal(storage.has("autostrum-tabData"), true);
   assert.equal(
-    persistence.readRecoveryRecords(null).records[0].document.title,
-    "Legacy",
+    [...storage.keys()].some((key) =>
+      key.startsWith("autostrum:drafts:v1:guest:"),
+    ),
+    false,
   );
+  const restored = persistence.newRecoveryRecord("owner-a", signInTab.document);
+  assert.equal(persistence.writeRecoveryRecord(restored), true);
+  handoff.clearTabForSignIn(signInTab);
+  assert.equal(handoff.readTabForSignIn(), null);
+  assert.equal(
+    persistence
+      .readRecoveryRecords("owner-a")
+      .records.find((record) => record.id === restored.id).document.title,
+    "Before signup",
+  );
+  handoff.saveTabForSignIn(document("Another sign-in"));
+  handoff.clearTabForSignIn(signInTab);
+  assert.equal(handoff.readTabForSignIn().document.title, "Another sign-in");
   storage.set("autostrum-tabData", "{broken");
-  persistence.migrateLegacyDraft();
+  assert.equal(handoff.readTabForSignIn(), null);
   assert.equal(storage.get("autostrum-tabData"), "{broken");
   console.log(
-    "PASS: separate writers, account-scoped recovery, corrupted records preserved, legacy migration",
+    "PASS: separate writers, account-only recovery, corrupted records preserved, one-time signup handoff",
   );
 
   function session(options = {}) {
@@ -541,19 +569,27 @@ try {
       throw { data: { code: "CONFLICT" } };
     },
   });
-  conflicted.instance.update(document("Keep both versions"));
+  conflicted.instance.update(document("Keep my edits"));
   await conflicted.instance.flush();
   assert.equal(conflicted.states.at(-1).status, "conflict");
   await assert.rejects(conflicted.instance.preparePublication());
   const previousId = conflicted.instance.record.id;
-  assert.notEqual(conflicted.instance.fork().id, previousId);
-  assert.equal(conflicted.instance.record.document.title, "Keep both versions");
-  const unavailable = session({ save: null, write: () => false });
+  conflicted.instance.update(document("More edits during a conflict"));
+  await conflicted.instance.flush();
+  assert.equal(conflicted.instance.record.id, previousId);
+  assert.equal(conflicted.states.at(-1).status, "conflict");
+  assert.equal(
+    JSON.parse(storage.get(persistence.recoveryKey(conflicted.instance.record)))
+      .document.title,
+    "More edits during a conflict",
+  );
+  await assert.rejects(conflicted.instance.preparePublication());
+  const unavailable = session({ write: () => false });
   unavailable.instance.update(document("Storage full"));
   assert.equal(unavailable.instance.needsUnloadWarning(), true);
   assert.match(unavailable.states.at(-1).message, /unavailable/);
   console.log(
-    "PASS: offline retry, local recovery, conflict forks, storage failure unload protection",
+    "PASS: offline retry, local recovery, conflicts preserve edits, storage failure unload protection",
   );
   console.log("All private-draft verification checks passed.");
 } finally {

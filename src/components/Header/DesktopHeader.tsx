@@ -26,6 +26,8 @@ import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
 import ThemePicker from "~/components/Header/ThemePicker";
 import HeaderLogo from "~/components/Header/HeaderLogo";
+import { getTabDocument } from "~/utils/drafts/tabDraftState";
+import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import Binoculars from "~/components/ui/icons/Binoculars";
@@ -247,6 +249,10 @@ function DesktopHeader() {
                       <Button
                         variant={"headerNavigation"}
                         className="!size-12 !rounded-full !p-0"
+                        onClick={() => {
+                          if (asPath.split("?")[0] === "/create")
+                            saveTabForSignIn(getTabDocument());
+                        }}
                       >
                         <FaUser className="size-5" />
                       </Button>
