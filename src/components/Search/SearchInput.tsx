@@ -418,7 +418,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   style={{
                                     transition: "filter 150ms linear",
                                   }}
-                                  className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2"
+                                  className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none !px-3 py-2"
                                   onClick={() => {
                                     setShowAutofillResults(false);
                                   }}
@@ -526,7 +526,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   style={{
                                     transition: "filter 150ms linear",
                                   }}
-                                  className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2"
+                                  className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none !px-3 py-2"
                                   onClick={() => {
                                     setShowAutofillResults(false);
                                   }}
@@ -626,7 +626,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 style={{
                                   transition: "filter 150ms linear",
                                 }}
-                                className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2"
+                                className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none !px-3 py-2"
                                 onClick={() => {
                                   setShowAutofillResults(false);
                                 }}
@@ -745,7 +745,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 style={{
                                   transition: "filter 150ms linear",
                                 }}
-                                className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2"
+                                className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none !px-3 py-2"
                                 onClick={() => {
                                   setShowAutofillResults(false);
                                 }}
