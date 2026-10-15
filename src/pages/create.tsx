@@ -4,15 +4,11 @@ import Tab from "~/components/Tab/Tab";
 import { GiMusicalScore } from "react-icons/gi";
 import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useHydrateTabStore } from "~/hooks/useHydrateTabStore";
+import DraftEditor from "~/components/Tab/DraftEditor";
 import { BsFillPlayFill } from "react-icons/bs";
 
 function Create() {
   const isAboveMediumViewport = useViewportWidthBreakpoint(768);
-
-  useHydrateTabStore({
-    fetchedTab: undefined,
-  });
 
   const isAboveArbitrary2xlViewport = useViewportWidthBreakpoint(1600); // 2xl breakpoint was just barely too small
 
@@ -85,7 +81,9 @@ function Create() {
           )}
         </div>
 
-        <Tab />
+        <DraftEditor>
+          <Tab />
+        </DraftEditor>
       </div>
     </motion.div>
   );
