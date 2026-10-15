@@ -9,7 +9,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { LockKeyhole } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import type { Tab } from "~/generated/browser";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
@@ -21,7 +20,6 @@ import {
   type DraftSaveState,
 } from "~/utils/drafts/DraftSession";
 import {
-  downloadRecovery,
   getActiveDraft,
   migrateLegacyDraft,
   newRecoveryRecord,
@@ -109,8 +107,6 @@ function DraftEditorSession({
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
-  const [restored, setRestored] = useState(false);
-  const [availableDraftCount, setAvailableDraftCount] = useState(0);
   const [saveState, setSaveState] = useState<DraftSaveState | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [resolving, setResolving] = useState(false);
@@ -132,10 +128,9 @@ function DraftEditorSession({
       const migrated = migrateLegacyDraft();
 
       const local = readRecoveryRecords(ownerId);
-      setAvailableDraftCount(local.records.length);
       if (!local.available || local.unreadable)
         setWarning(
-          "Some browser recovery data could not be read. Existing copies have been kept; you can export them from My drafts.",
+          "Some browser recovery data could not be read. Existing copies have been kept.",
         );
       const requestedId =
         typeof router.query.draft === "string" ? router.query.draft : undefined;
@@ -225,7 +220,7 @@ function DraftEditorSession({
 
       if (requestedId && !recovered && !cloud)
         throw new Error(
-          "This private draft is unavailable. Sign in to its owner account or open My drafts to find a recovery copy.",
+          "This private draft is unavailable. Sign in to its owner account or open Drafts from My Tabs to find a recovery copy.",
         );
 
       let record = newRecoveryRecord(
@@ -269,7 +264,7 @@ function DraftEditorSession({
             hasRecovery = false;
             needsSave = false;
             setWarning(
-              "That draft was already published or discarded. Other recovery copies remain available in My drafts.",
+              "That draft was already published or discarded. Other recovery copies remain available in the Drafts dialog on My Tabs.",
             );
           } else {
             conflict =
@@ -288,7 +283,7 @@ function DraftEditorSession({
         conflict = null;
       } else if (sourceTabId !== null && record.sourceTabId !== sourceTabId) {
         throw new Error(
-          "This draft belongs to a different tab. Open it from My drafts.",
+          "This draft belongs to a different tab. Open it from the Drafts dialog on My Tabs.",
         );
       }
       if (
@@ -325,7 +320,6 @@ function DraftEditorSession({
       sessionRef.current = session;
       session.start();
       if (conflict) session.block(conflict);
-      setRestored(hasRecovery);
       unsubscribe = subscribeTabStore((next, previous) => {
         if (!navigating && !applying.current && documentChanged(next, previous))
           session.update(getTabDocument(next));
@@ -400,7 +394,7 @@ function DraftEditorSession({
         draft.baseUpdatedAt?.getTime() !== fetchedTab.updatedAt.getTime()
       ) {
         throw new Error(
-          "This draft is based on an older published tab. Recover it as a new draft, or reopen the published tab from My drafts.",
+          "This draft is based on an older published tab. Recover it as a new draft, or reopen the published tab from My Tabs.",
         );
       }
       applying.current = true;
@@ -438,7 +432,7 @@ function DraftEditorSession({
             Retry recovery
           </Button>
           <Button variant="secondary" asChild>
-            <Link href="/drafts">My drafts</Link>
+            <Link href="/profile/tabs/filters">My tabs</Link>
           </Button>
         </div>
       </div>
@@ -470,88 +464,65 @@ function DraftEditorSession({
         },
       }}
     >
-      <div className="mb-4 flex w-full flex-col gap-3 px-4 md:px-0">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-background/80 px-4 py-3 text-sm">
-          <div
-            className="flex min-w-0 items-start gap-2"
-            role="status"
-            aria-live="polite"
-          >
-            <LockKeyhole
-              aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0"
-            />
-            <div>
-              <p>{saveState?.message}</p>
-              {restored && (
-                <p className="mt-1 text-foreground/60">
-                  Draft recovered. Your work stays private until you publish or
-                  save changes to the public tab.
-                </p>
-              )}
-              {!restored && availableDraftCount > 0 && (
-                <p className="mt-1 text-foreground/60">
-                  Saved drafts are available on this device. Open My drafts to
-                  recover earlier work.
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {(saveState?.status === "error" ||
-              (saveState &&
-                !saveState.localSaved &&
-                saveState.status !== "idle")) && (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => sessionRef.current?.retry()}
-              >
-                Retry autosave
-              </Button>
-            )}
-            <Button size="sm" variant="secondary" asChild>
-              <Link href="/drafts">My drafts</Link>
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => downloadRecovery(sessionRef.current?.record)}
-            >
-              Download backup
-            </Button>
-          </div>
-        </div>
-        {saveState?.status === "conflict" && (
-          <div
-            className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/50 bg-background p-4 text-sm"
-            role="alert"
-          >
-            <p className="w-full">
-              Both versions are kept. Choose how to continue:
-            </p>
-            {ownerId && (
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={resolving}
-                onClick={loadCloudVersion}
-              >
-                Load account version
-              </Button>
-            )}
-            <Button size="sm" disabled={resolving} onClick={recoverAsCopy}>
-              Recover my edits as a new draft
-            </Button>
-          </div>
-        )}
-        {warning && (
-          <p role="alert" className="text-sm text-foreground/75">
-            {warning}
-          </p>
-        )}
-      </div>
       {children}
+      {(saveState?.status === "conflict" ||
+        saveState?.status === "error" ||
+        (saveState &&
+          !saveState.localSaved &&
+          saveState.status !== "idle" &&
+          saveState.status !== "saved" &&
+          saveState.status !== "published") ||
+        warning) && (
+        <div className="mt-4 flex w-full flex-col gap-3 px-4 md:px-0">
+          {saveState?.status === "conflict" && (
+            <div
+              className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/50 bg-background p-4 text-sm"
+              role="alert"
+            >
+              <p className="w-full">{saveState.message}</p>
+              {ownerId && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={resolving}
+                  onClick={loadCloudVersion}
+                >
+                  Load account version
+                </Button>
+              )}
+              <Button size="sm" disabled={resolving} onClick={recoverAsCopy}>
+                Recover my edits as a new draft
+              </Button>
+            </div>
+          )}
+          {saveState &&
+            saveState.status !== "conflict" &&
+            (saveState.status === "error" ||
+              (!saveState.localSaved &&
+                saveState.status !== "idle" &&
+                saveState.status !== "saved" &&
+                saveState.status !== "published")) && (
+              <div
+                role="alert"
+                className="flex flex-wrap items-center gap-3 text-sm"
+              >
+                <p>{saveState.message}</p>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => sessionRef.current?.retry()}
+                >
+                  Retry autosave
+                </Button>
+              </div>
+            )}
+          {warning && (
+            <p role="alert" className="text-sm text-foreground/75">
+              {warning}
+            </p>
+          )}
+        </div>
+      )}
     </DraftContext.Provider>
   );
 }

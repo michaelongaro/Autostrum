@@ -147,7 +147,7 @@ export class DraftSession {
       status,
       message:
         !this.localSaved && this.dirty && status !== "saved"
-          ? "Browser recovery is unavailable. Keep this page open until your draft syncs, or download a backup."
+          ? "Browser recovery is unavailable. Keep this page open until your draft syncs."
           : (message ?? messages[status]),
       localSaved: this.localSaved,
       updatedAt: this.record.updatedAt,
