@@ -3,7 +3,6 @@ import isEqual from "lodash.isequal";
 import { X } from "lucide-react";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { useEffect, useRef, useState } from "react";
-import EditorHistoryControls from "~/components/Tab/EditorHistoryControls";
 import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
@@ -284,9 +283,6 @@ function StrummingPatternDialog() {
       >
         {strummingPattern && (
           <>
-            <div className="w-full">
-              <EditorHistoryControls />
-            </div>
             <Button
               variant={"modalClose"}
               onClick={() => {

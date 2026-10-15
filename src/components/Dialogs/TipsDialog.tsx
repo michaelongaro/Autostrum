@@ -35,13 +35,6 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
           Tips
         </div>
 
-        <p className="w-full text-sm">
-          Undo with <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Z</kbd>. Redo with{" "}
-          <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd>, or{" "}
-          <kbd>Ctrl</kbd> + <kbd>Y</kbd>. Dialog edits have their own history;
-          saving them creates one undo step in the tab.
-        </p>
-
         <div className="baseVertFlex w-full !items-start gap-8 xl:!flex-row">
           <div className="baseVertFlex w-full !items-start gap-8">
             {/* Tab */}
@@ -92,6 +85,13 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 You can navigate through inputs with your arrow keys.
+              </div>
+              <div className="baseFlex !items-start gap-2">
+                <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
+                <span>
+                  Undo (<kbd>Ctrl</kbd> <kbd>Z</kbd>) and redo (<kbd>Ctrl</kbd>{" "}
+                  <kbd>Y</kbd>) is fully supported.
+                </span>
               </div>
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />

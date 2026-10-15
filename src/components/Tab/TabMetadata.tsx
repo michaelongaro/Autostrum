@@ -72,7 +72,6 @@ import {
 import { Badge } from "~/components/ui/badge";
 import { isMobile } from "react-device-detect";
 import Spinner from "~/components/ui/Spinner";
-import EditorHistoryControls from "~/components/Tab/EditorHistoryControls";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -525,11 +524,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
       {editing && (
         <div className="baseVertFlex w-full gap-2">
           <div className="baseFlex w-full !justify-end gap-2 p-4 sm:gap-3">
-            <div className="mr-auto">
-              <EditorHistoryControls
-                disabled={isPublishing || isUpdating || isDeleting}
-              />
-            </div>
             {!asPath.includes("create") && (
               <DropdownMenu modal={true}>
                 <DropdownMenuTrigger asChild>

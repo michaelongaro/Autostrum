@@ -10,7 +10,6 @@ import {
   type SectionProgression,
 } from "~/stores/TabStore";
 import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
-import { EditorHistoryButtons } from "~/components/Tab/EditorHistoryControls";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
@@ -164,9 +163,6 @@ function SectionProgressionDialog() {
         {...history.scopeProps}
         className="baseVertFlex w-auto min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[608px]"
       >
-        <div className="w-full">
-          <EditorHistoryButtons {...history} />
-        </div>
         <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full !justify-between">
           <div className="baseFlex w-full !justify-between">
             <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">

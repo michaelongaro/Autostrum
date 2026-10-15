@@ -26,7 +26,6 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Label } from "~/components/ui/label";
 import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
-import { EditorHistoryButtons } from "~/components/Tab/EditorHistoryControls";
 
 function CustomTuningEditor() {
   const {
@@ -216,9 +215,6 @@ function CustomTuningEditor() {
         {...history.scopeProps}
         className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96"
       >
-        <div className="w-full">
-          <EditorHistoryButtons {...history} />
-        </div>
         <div className="baseFlex w-full !justify-between gap-2">
           <div className="baseFlex gap-2">
             <IoSettingsSharp className="h-5 w-5" />
