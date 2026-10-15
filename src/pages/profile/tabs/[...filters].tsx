@@ -91,6 +91,11 @@ function UserTabs() {
           </Button>
         </div>
 
+        <div className="flex w-full justify-start px-4 md:px-0">
+          <Button variant="secondary" asChild>
+            <Link href="/drafts">My private drafts</Link>
+          </Button>
+        </div>
         <SearchResults />
       </div>
     </motion.div>

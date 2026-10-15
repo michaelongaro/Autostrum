@@ -17,7 +17,6 @@ import {
 import { BsPlus } from "react-icons/bs";
 import { IoMdSettings } from "react-icons/io";
 import { IoBookmark, IoStatsChart } from "react-icons/io5";
-import { stringifyFullTabState } from "~/stores/TabStore";
 import { PiMetronome } from "react-icons/pi";
 import { IoColorPalette } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
@@ -248,14 +247,6 @@ function DesktopHeader() {
                       <Button
                         variant={"headerNavigation"}
                         className="!size-12 !rounded-full !p-0"
-                        onClick={() => {
-                          // snapshotting current tabData into localStorage for when
-                          // user is redirected back onto site
-                          localStorage.setItem(
-                            "autostrum-tabData",
-                            stringifyFullTabState(),
-                          );
-                        }}
                       >
                         <FaUser className="size-5" />
                       </Button>
