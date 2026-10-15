@@ -64,7 +64,7 @@ export function readRecoveryRecords(ownerId: string | null) {
           throw new Error("Invalid draft key");
         records.push(record);
       } catch {
-        // Leave damaged/unknown records intact so an export can still recover them.
+        // Leave damaged/unknown records intact so they remain available for recovery.
         unreadable++;
       }
     }
@@ -175,37 +175,4 @@ export function migrateLegacyDraft() {
     /* Preserve the original if parsing or storage fails. */
   }
   return null;
-}
-
-export function downloadRecovery(
-  document: unknown,
-  filename = "autostrum-draft.json",
-) {
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(document, null, 2)], { type: "application/json" }),
-  );
-  const anchor = window.document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
-
-export function exportRecoveryRecords(ownerId: string | null) {
-  const raw: Record<string, string | null> = {};
-  try {
-    for (let index = 0; index < window.localStorage.length; index++) {
-      const key = window.localStorage.key(index);
-      if (
-        key?.startsWith(ownerPrefix(ownerId)) ||
-        (ownerId === null && key === LEGACY_DRAFT_KEY)
-      ) {
-        raw[key] = window.localStorage.getItem(key);
-      }
-    }
-    downloadRecovery(raw, "autostrum-recovery-backup.json");
-  } catch {
-    return false;
-  }
-  return true;
 }

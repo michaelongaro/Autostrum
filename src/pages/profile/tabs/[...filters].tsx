@@ -1,18 +1,11 @@
-import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Link from "next/link";
 import SearchResults from "~/components/Search/SearchResults";
 import { Button } from "~/components/ui/button";
-import { api } from "~/utils/api";
+import DraftsDialog from "~/components/Dialogs/DraftsDialog";
 
 function UserTabs() {
-  const { userId } = useAuth();
-
-  const { data: currentUser } = api.user.getById.useQuery(userId!, {
-    enabled: !!userId,
-  });
-
   return (
     <motion.div
       key={"userTabs"}
@@ -46,55 +39,50 @@ function UserTabs() {
       </Head>
 
       <div className="baseVertFlex w-full gap-4">
-        <div className="baseFlex w-full !justify-start md:!hidden">
-          <span className="ml-4 text-3xl font-semibold tracking-tight !text-foreground md:text-4xl">
+        <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 md:px-0">
+          <span className="text-3xl font-semibold tracking-tight text-foreground md:hidden">
             Tabs
           </span>
-        </div>
 
-        <div className="baseFlex !hidden w-full !justify-start gap-4 md:!flex">
-          <Button variant={"text"} asChild>
-            <Link
-              prefetch={false}
-              href={"/profile/settings"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
-            >
-              Settings
-            </Link>
-          </Button>
-          <Button variant={"text"} asChild>
-            <Link
-              prefetch={false}
-              href={"/profile/statistics"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:text-foreground/75 lg:!text-4xl"
-            >
-              Statistics
-            </Link>
-          </Button>
-          <Button variant={"text"} asChild>
-            <Link
-              prefetch={false}
-              href={"/profile/tabs/filters"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
-            >
-              Tabs
-            </Link>
-          </Button>
-          <Button variant={"text"} asChild>
-            <Link
-              prefetch={false}
-              href={"/profile/bookmarks/filters"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
-            >
-              Bookmarks
-            </Link>
-          </Button>
-        </div>
-
-        <div className="flex w-full justify-start px-4 md:px-0">
-          <Button variant="secondary" asChild>
-            <Link href="/drafts">My private drafts</Link>
-          </Button>
+          <div className="baseFlex !hidden !justify-start gap-4 md:!flex">
+            <Button variant={"text"} asChild>
+              <Link
+                prefetch={false}
+                href={"/profile/settings"}
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+              >
+                Settings
+              </Link>
+            </Button>
+            <Button variant={"text"} asChild>
+              <Link
+                prefetch={false}
+                href={"/profile/statistics"}
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:text-foreground/75 lg:!text-4xl"
+              >
+                Statistics
+              </Link>
+            </Button>
+            <Button variant={"text"} asChild>
+              <Link
+                prefetch={false}
+                href={"/profile/tabs/filters"}
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+              >
+                Tabs
+              </Link>
+            </Button>
+            <Button variant={"text"} asChild>
+              <Link
+                prefetch={false}
+                href={"/profile/bookmarks/filters"}
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+              >
+                Bookmarks
+              </Link>
+            </Button>
+          </div>
+          <DraftsDialog />
         </div>
         <SearchResults />
       </div>

@@ -1,9 +1,7 @@
 import { useAuth } from "@clerk/nextjs";
-import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { LockKeyhole } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "~/components/ui/button";
 import {
   AlertDialog,
@@ -16,16 +14,21 @@ import {
 import { api, type RouterOutputs } from "~/utils/api";
 import {
   DRAFTS_CHANGED_EVENT,
-  exportRecoveryRecords,
   migrateLegacyDraft,
   newRecoveryRecord,
   readRecoveryRecords,
-  recoveryRecordSchema,
   removeUnchangedRecoveryRecord,
   writeRecoveryRecord,
   type RecoveryRecord,
 } from "~/utils/drafts/draftStorage";
-import { tabDocumentSchema } from "~/utils/tabDocument";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 
 type CloudDraft = RouterOutputs["draft"]["list"][number];
 type DiscardTarget =
@@ -47,16 +50,47 @@ function draftHref(
   return `${path}?${query.toString()}`;
 }
 
-export default function Drafts() {
+export default function DraftsDialog() {
   const { isLoaded, userId } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="secondary" className="ml-auto shrink-0">
+          Drafts
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-3xl flex-col gap-5 overflow-y-auto rounded-lg">
+        <DialogHeader className="pr-6 text-left">
+          <DialogTitle>My drafts</DialogTitle>
+          <DialogDescription>
+            Continue working on your private drafts.
+          </DialogDescription>
+        </DialogHeader>
+        {open &&
+          (isLoaded && userId ? (
+            <DraftList key={userId} ownerId={userId} />
+          ) : (
+            <p role="status">
+              {isLoaded
+                ? "Sign in to view your drafts."
+                : "Loading your drafts..."}
+            </p>
+          ))}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DraftList({ ownerId }: { ownerId: string }) {
   const router = useRouter();
-  const ownerId = isLoaded ? (userId ?? null) : null;
   const utils = api.useContext();
   const cloud = api.draft.list.useQuery(
-    { ownerId: ownerId ?? "guest" },
+    { ownerId },
     {
-      enabled: isLoaded && !!userId,
       retry: 1,
+      refetchOnMount: "always",
     },
   );
   const discard = api.draft.discard.useMutation();
@@ -67,16 +101,14 @@ export default function Drafts() {
   });
   const [target, setTarget] = useState<DiscardTarget | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [showGuest, setShowGuest] = useState(false);
   const [guestRecords, setGuestRecords] = useState<RecoveryRecord[]>([]);
-  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     migrateLegacyDraft();
     const refresh = () => {
       setLocal(readRecoveryRecords(ownerId));
-      if (ownerId) setGuestRecords(readRecoveryRecords(null).records);
+      setGuestRecords(readRecoveryRecords(null).records);
     };
     refresh();
     window.addEventListener("storage", refresh);
@@ -87,9 +119,9 @@ export default function Drafts() {
       window.removeEventListener(DRAFTS_CHANGED_EVENT, refresh);
       window.removeEventListener("focus", refresh);
     };
-  }, [isLoaded, ownerId]);
+  }, [ownerId]);
 
-  const accountDrafts = userId ? (cloud.data ?? []) : [];
+  const accountDrafts = cloud.data ?? [];
   const recoveryCopies = local.records.filter(
     (record) =>
       !record.synced || !accountDrafts.some((draft) => draft.id === record.id),
@@ -137,68 +169,11 @@ export default function Drafts() {
     }
   }
 
-  async function importBackup(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    setError(null);
-    try {
-      if (file.size > 10_000_000)
-        throw new Error("Choose a backup smaller than 10 MB.");
-      const value: unknown = JSON.parse(await file.text());
-      const values: unknown[] = [value];
-      if (typeof value === "object" && value !== null)
-        values.push(...Object.values(value as Record<string, unknown>));
-      const documents = new Map<
-        string,
-        ReturnType<typeof tabDocumentSchema.parse>
-      >();
-      for (const candidate of values) {
-        let parsed: unknown = candidate;
-        if (typeof candidate === "string") {
-          try {
-            parsed = JSON.parse(candidate) as unknown;
-          } catch {
-            continue;
-          }
-        }
-        const record = recoveryRecordSchema.safeParse(parsed);
-        const document = tabDocumentSchema.safeParse(
-          record.success ? record.data.document : parsed,
-        );
-        if (document.success)
-          documents.set(JSON.stringify(document.data), document.data);
-      }
-      if (!documents.size)
-        throw new Error(
-          "No readable Autostrum drafts were found in that backup.",
-        );
-      let imported = 0;
-      for (const document of documents.values()) {
-        if (writeRecoveryRecord(newRecoveryRecord(ownerId, document)))
-          imported++;
-      }
-      if (imported !== documents.size)
-        throw new Error(
-          `${imported} drafts imported. Browser storage is full or unavailable; keep your backup and retry after freeing space.`,
-        );
-      setNotice(
-        `${imported} draft${imported === 1 ? "" : "s"} imported as private recovery copies. Open a copy to continue editing${userId ? " and sync it to your account" : ""}.`,
-      );
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "The backup could not be imported. Keep the original file and try again.",
-      );
-    }
-  }
-
   function importGuest(record: RecoveryRecord) {
     const copy = newRecoveryRecord(ownerId, record.document);
     if (!writeRecoveryRecord(copy)) {
       setError(
-        "Browser storage is unavailable. Download a backup of the guest draft before continuing.",
+        "Browser storage is unavailable. Your guest draft has been kept; retry when storage is available.",
       );
       return;
     }
@@ -206,54 +181,9 @@ export default function Drafts() {
   }
 
   return (
-    <div className="my-12 flex min-h-[650px] w-full max-w-5xl flex-col gap-6 px-4 md:my-24 md:w-[85%] md:px-0">
-      <Head>
-        <title>My drafts | Autostrum</title>
-        <meta name="robots" content="noindex,nofollow" />
-      </Head>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight">
-            <LockKeyhole aria-hidden="true" className="size-6" />
-            My drafts
-          </h1>
-          <p className="mt-2 text-sm text-foreground/70">
-            Drafts are private. Publishing is always a separate action.
-          </p>
-        </div>
-        <Button
-          onClick={() => void router.push(`/create?new=${crypto.randomUUID()}`)}
-        >
-          New draft
-        </Button>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => fileInput.current?.click()}
-        >
-          Import backup
-        </Button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept=".json,application/json"
-          className="hidden"
-          aria-label="Import draft backup"
-          onChange={importBackup}
-        />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            if (!exportRecoveryRecords(ownerId))
-              setError("Browser backups could not be read.");
-          }}
-        >
-          Export browser backups
-        </Button>
-        {userId && guestRecords.length > 0 && (
+    <div className="flex min-h-0 flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {guestRecords.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
@@ -262,20 +192,21 @@ export default function Drafts() {
             {showGuest ? "Hide" : "Show"} drafts saved while signed out
           </Button>
         )}
+        <Button
+          className="ml-auto"
+          size="sm"
+          onClick={() => void router.push(`/create?new=${crypto.randomUUID()}`)}
+        >
+          New draft
+        </Button>
       </div>
-      {!userId && isLoaded && (
-        <p className="rounded-lg border bg-background p-4 text-sm">
-          These drafts are saved in this browser. Sign in while editing a draft
-          to sync it to your account and continue on another device.
-        </p>
-      )}
       {(!local.available || local.unreadable > 0) && (
         <p role="alert" className="text-sm">
           Some browser recovery copies could not be read. They have been
-          preserved. Export browser backups to keep the original data.
+          preserved. Retry after browser storage becomes available.
         </p>
       )}
-      {cloud.isError && userId && (
+      {cloud.isError && (
         <div
           role="alert"
           className="flex flex-wrap items-center gap-3 rounded-lg border bg-background p-4 text-sm"
@@ -296,14 +227,7 @@ export default function Drafts() {
           {error}
         </p>
       )}
-      {notice && (
-        <p role="status" className="text-sm">
-          {notice}
-        </p>
-      )}
-      {(!isLoaded || (userId && cloud.isLoading)) && (
-        <p role="status">Loading your drafts…</p>
-      )}
+      {cloud.isLoading && <p role="status">Loading your drafts...</p>}
       {accountDrafts.length > 0 && (
         <section aria-label="Account drafts" className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">Saved to your account</h2>
@@ -352,7 +276,9 @@ export default function Drafts() {
               key={`${draft.id}:${draft.writerId}`}
               title={draft.document.title}
               date={draft.updatedAt}
-              label={draft.synced ? "Browser backup" : "Local recovery copy"}
+              label={
+                draft.synced ? "Saved on this device" : "Local recovery copy"
+              }
             >
               <Button size="sm" asChild>
                 <Link href={draftHref(draft, draft.writerId)}>
@@ -375,7 +301,7 @@ export default function Drafts() {
           ))}
         </section>
       )}
-      {showGuest && userId && (
+      {showGuest && (
         <section aria-label="Guest drafts" className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">Saved while signed out</h2>
           {guestRecords.map((draft) => (
@@ -392,8 +318,7 @@ export default function Drafts() {
           ))}
         </section>
       )}
-      {isLoaded &&
-        (!userId || cloud.isSuccess) &&
+      {cloud.isSuccess &&
         accountDrafts.length === 0 &&
         recoveryCopies.length === 0 && (
           <div className="rounded-xl border bg-background p-8 text-center">
@@ -456,11 +381,11 @@ function DraftCard({
   title: string;
   date: string;
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <article className="flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-background p-4">
-      <div className="min-w-0 flex-1">
+    <article className="flex flex-col items-start gap-3 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="w-full min-w-0 sm:w-auto sm:flex-1">
         <h3 className="break-words font-semibold">
           {title || "Untitled draft"}
         </h3>

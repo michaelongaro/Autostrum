@@ -3,7 +3,8 @@
 Editing `/create` or an owned tab creates a private working copy. Incomplete
 titles, metadata, sections, and music can all be saved. Published tabs, search,
 statistics, screenshots, and public profiles change only after explicit
-publication. `/drafts` lists account drafts and browser recovery copies.
+publication. The Drafts dialog on `/profile/tabs/filters` lists account drafts
+and browser recovery copies.
 
 ## Persistence
 
@@ -29,19 +30,18 @@ publication. `/drafts` lists account drafts and browser recovery copies.
 
 Guest drafts stay in the browser. The guest draft active in the same browser tab
 is handed to the signed-in account after sign-in. Other guest drafts can be
-copied explicitly from the drafts library. Account drafts never become guest
+copied explicitly from the Drafts dialog on My Tabs. Account drafts never become guest
 drafts on sign-out or move to another account automatically.
 
-Refresh resumes the active editor's recovery copy. The library can also reopen
-copies, recover a draft as a new tab, import/export JSON backups, and discard
-individual copies. Invalid browser records are preserved for export. The old
+Refresh resumes the active editor's recovery copy. The dialog can also reopen
+copies, recover a draft as a new tab, and discard individual copies. Invalid
+browser records are preserved for recovery. The old
 `autostrum-tabData` snapshot migrates to a guest recovery record and is removed
 only after its replacement is durably written.
 
 If browser storage fails, the editor shows a warning and prevents an unnoticed
-unload until account sync succeeds. A downloadable backup remains available.
-Browser copies are lost if site storage is cleared; account sync or exported
-backups provide recovery beyond that browser.
+unload until account sync succeeds. Browser copies are lost if site storage is
+cleared; account sync provides recovery beyond that browser.
 
 ## Deployment and verification
 
@@ -55,7 +55,7 @@ storage code, save coordinator, authentication middleware, draft router, and
 publication routes. The script substitutes an in-memory database and external
 service stubs; it does not access shared services.
 
-Browser checks: edit an unfinished tab, refresh, navigate through My drafts,
+Browser checks: edit an unfinished tab, refresh, open the Drafts dialog on My Tabs,
 recover a copy and refresh its URL, create another draft, and verify that the
 original remains intact. Check narrow layouts and storage failures. With a
 migrated development database, also check cross-device recovery, sign-in
