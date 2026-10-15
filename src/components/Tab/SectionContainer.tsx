@@ -1,13 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import debounce from "lodash.debounce";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
 import {
   Accordion,
@@ -83,50 +75,6 @@ function SectionContainer({
   const subSectionTypes = useSubSectionTypes(sectionIndex);
 
   const [accordionOpen, setAccordionOpen] = useState("opened");
-  // Local while typing; store updates are debounced. Remount (new section id /
-  // index) re-initializes from the store value.
-  const [localTitle, setLocalTitle] = useState(sectionTitle);
-
-  const sectionIndexRef = useRef(sectionIndex);
-  const sectionIdRef = useRef(sectionId);
-  const sectionProgressionRef = useRef(sectionProgression);
-  sectionIndexRef.current = sectionIndex;
-  sectionIdRef.current = sectionId;
-  sectionProgressionRef.current = sectionProgression;
-
-  // One shared debounce. Creating `debounce(...)()` per keystroke scheduled a
-  // separate store write for every character, and each write walked every
-  // mounted column.
-  const commitSectionTitle = useMemo(
-    () =>
-      debounce((value: string) => {
-        const index = sectionIndexRef.current;
-        const id = sectionIdRef.current;
-
-        setTabData((draft) => {
-          const section = draft[index];
-          if (section && section.id === id) {
-            section.title = value;
-          }
-        });
-
-        const progression = sectionProgressionRef.current;
-        if (!progression.some((section) => section.sectionId === id)) return;
-
-        setSectionProgression(
-          progression.map((section) =>
-            section.sectionId === id ? { ...section, title: value } : section,
-          ),
-        );
-      }, 1000),
-    [setSectionProgression, setTabData],
-  );
-
-  useEffect(() => {
-    return () => {
-      commitSectionTitle.flush();
-    };
-  }, [commitSectionTitle]);
 
   useEffect(() => {
     if (forceCloseSectionAccordions) {
@@ -144,8 +92,22 @@ function SectionContainer({
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
 
-    setLocalTitle(e.target.value);
-    commitSectionTitle(e.target.value);
+    const value = e.target.value;
+    // Commit immediately so undo cannot race a delayed title write. The title
+    // selector keeps note edits from re-rendering this section shell.
+    setTabData((draft) => {
+      const section = draft[sectionIndex];
+      if (section?.id === sectionId) section.title = value;
+    });
+    if (sectionProgression.some((section) => section.sectionId === sectionId)) {
+      setSectionProgression(
+        sectionProgression.map((section) =>
+          section.sectionId === sectionId
+            ? { ...section, title: value }
+            : section,
+        ),
+      );
+    }
   }
 
   function generateDefaultTabSection(): TabSectionType {
@@ -264,7 +226,7 @@ function SectionContainer({
                   </Label>
                   <Input
                     id={`sectionTitleInput${sectionIndex}`}
-                    value={localTitle}
+                    value={sectionTitle}
                     placeholder="Section title"
                     onChange={updateSectionTitle}
                     className="w-[10rem] font-semibold xs:w-[15rem]"

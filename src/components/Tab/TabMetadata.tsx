@@ -725,12 +725,6 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 maxLength={500}
                 value={description ?? ""}
                 className={`max-h-[350px] min-h-[122px] ${isMobile ? "text-base" : "text-sm"}`}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    // technically allows a *ton* of newlines, messing up ui, but not mission critical
-                    setDescription(description + "\n");
-                  }
-                }}
                 onChange={(e) => {
                   setDescription(e.target.value);
                 }}

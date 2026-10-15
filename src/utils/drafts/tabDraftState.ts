@@ -75,6 +75,9 @@ export function applyTabDocument(document: TabDocument) {
     draft.splice(0, draft.length, ...document.tabData);
   });
   store.setSectionProgression(document.sectionProgression);
+  // Loading a published tab, recovery copy, or account version starts a new
+  // history session; hydration itself must not become an undoable edit.
+  store.clearEditorHistory();
 }
 
 export function hydratePublishedTab(tab?: TabWithArtistMetadata | null) {

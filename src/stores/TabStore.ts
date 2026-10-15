@@ -29,6 +29,10 @@ import {
 import { setHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 import { useShallow } from "zustand/shallow";
 import { isMobileOnly } from "react-device-detect";
+import type { Draft } from "immer";
+import isEqual from "lodash.isequal";
+import { createEditorHistory } from "~/utils/createEditorHistory";
+import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import {
   getInitialDraftLoopRange,
   mapLoopRelativeChordIndexToFullTabIndex,
@@ -455,6 +459,15 @@ const initialStoreState = {
 };
 
 interface TabState {
+  canUndo: boolean;
+  canRedo: boolean;
+  editorHistoryRevision: number;
+  undo: () => void;
+  redo: () => void;
+  clearEditorHistory: () => void;
+  groupEditorHistoryInput: (input: unknown, operation?: string) => void;
+  breakEditorHistoryGroup: () => void;
+
   // this is used to compare the current tabData to the original tabData to see if there are any
   // changes, and if so, enable the "save" button
   originalTabData: Tab | null;
@@ -513,7 +526,10 @@ interface TabState {
   editing: boolean;
   setEditing: (editing: boolean) => void;
   sectionProgression: SectionProgression[];
-  setSectionProgression: (sectionProgresstion: SectionProgression[]) => void;
+  setSectionProgression: (
+    sectionProgression: SectionProgression[],
+    options?: { recordHistory: boolean },
+  ) => void;
   currentlyCopiedData: CopiedData | null;
   setCurrentlyCopiedData: (currentlyCopiedData: CopiedData | null) => void;
   currentlyCopiedChord: string[] | null;
@@ -769,14 +785,206 @@ interface TabState {
   resetStoreToInitValues: () => void;
 }
 
+type TabDocument = Pick<
+  TabState,
+  | "title"
+  | "artistId"
+  | "artistName"
+  | "artistIsVerified"
+  | "description"
+  | "genre"
+  | "tuning"
+  | "bpm"
+  | "capo"
+  | "key"
+  | "difficulty"
+  | "chords"
+  | "strummingPatterns"
+  | "sectionProgression"
+  | "tabData"
+>;
+
+function getEditorDocument(state: TabState): TabDocument {
+  return {
+    title: state.title,
+    artistId: state.artistId,
+    artistName: state.artistName,
+    artistIsVerified: state.artistIsVerified,
+    description: state.description,
+    genre: state.genre,
+    tuning: state.tuning,
+    bpm: state.bpm,
+    capo: state.capo,
+    key: state.key,
+    difficulty: state.difficulty,
+    chords: state.chords,
+    strummingPatterns: state.strummingPatterns,
+    sectionProgression: state.sectionProgression,
+    tabData: state.tabData,
+  };
+}
+
+function editorDocumentsEqual(before: TabDocument, after: TabDocument) {
+  if (before.sectionProgression === after.sectionProgression)
+    return isEqual(before, after);
+  // Timing is recalculated after music edits; it is not an editable field.
+  const a = before.sectionProgression;
+  const b = after.sectionProgression;
+  return (
+    a.length === b.length &&
+    a.every((entry, index) => {
+      const other = b[index]!;
+      return (
+        entry.id === other.id &&
+        entry.sectionId === other.sectionId &&
+        entry.title === other.title &&
+        entry.repetitions === other.repetitions
+      );
+    }) &&
+    isEqual({ ...before, sectionProgression: b }, after)
+  );
+}
+
+// Resolve empty sequences as part of the originating edit. A React effect that
+// fills these later would create a second undo step and could overwrite redo.
+function initializeEmptyChordSequences({
+  tabData,
+  strummingPatterns,
+}: Pick<TabState, "tabData" | "strummingPatterns">) {
+  const pattern = strummingPatterns[0];
+  if (!pattern) return;
+  for (const section of tabData) {
+    for (const subSection of section.data) {
+      if (subSection.type !== "chord") continue;
+      for (const sequence of subSection.data) {
+        if (Object.keys(sequence.strummingPattern).length > 0) continue;
+        sequence.strummingPattern = pattern;
+        sequence.bpm = -1;
+        sequence.data = Array.from({ length: pattern.strums.length }, () => "");
+      }
+    }
+  }
+}
+
+const publishAvailability = (availability: {
+  canUndo: boolean;
+  canRedo: boolean;
+}) => {
+  if (
+    useTabStoreBase.getState().canUndo !== availability.canUndo ||
+    useTabStoreBase.getState().canRedo !== availability.canRedo
+  )
+    useTabStoreBase.setState(availability);
+};
+const documentHistory = createEditorHistory<TabDocument>({
+  equals: editorDocumentsEqual,
+  onChange: (availability) => {
+    if (
+      !useTabStoreBase.getState().chordBeingEdited &&
+      !useTabStoreBase.getState().strummingPatternBeingEdited
+    ) {
+      publishAvailability(availability);
+    }
+  },
+});
+const chordHistory = createEditorHistory<
+  NonNullable<TabState["chordBeingEdited"]>
+>({ equals: isEqual, onChange: publishAvailability });
+const patternHistory = createEditorHistory<
+  NonNullable<TabState["strummingPatternBeingEdited"]>
+>({ equals: isEqual, onChange: publishAvailability });
+const histories = [documentHistory, chordHistory, patternHistory];
+
+const editDocument = (
+  update: Partial<TabState> | ((draft: Draft<TabState>) => void),
+) => {
+  const before = getEditorDocument(useTabStoreBase.getState());
+  useTabStoreBase.setState(update);
+  if (useTabStoreBase.getState().editing) {
+    documentHistory.record(
+      before,
+      getEditorDocument(useTabStoreBase.getState()),
+    );
+  }
+};
+
+const restoreHistory = (direction: "undo" | "redo") => {
+  const state = useTabStoreBase.getState();
+  if (!state.editing) return;
+
+  if (state.chordBeingEdited) {
+    const chord = chordHistory[direction](state.chordBeingEdited);
+    if (chord === undefined) return;
+    state.pauseAudio();
+    useTabStoreBase.setState({
+      chordBeingEdited: chord,
+      editorHistoryRevision: state.editorHistoryRevision + 1,
+    });
+    return;
+  }
+  if (state.strummingPatternBeingEdited) {
+    const pattern = patternHistory[direction](
+      state.strummingPatternBeingEdited,
+    );
+    if (pattern === undefined) return;
+    state.pauseAudio();
+    useTabStoreBase.setState({
+      strummingPatternBeingEdited: pattern,
+      editorHistoryRevision: state.editorHistoryRevision + 1,
+    });
+    return;
+  }
+  // These dialogs keep their own local draft histories.
+  if (state.showCustomTuningDialog || state.showSectionProgressionDialog)
+    return;
+
+  const document = documentHistory[direction](getEditorDocument(state));
+  if (document === undefined) return;
+  state.pauseAudio(true, true);
+  setHoveredChordLocationValue(null);
+  useTabStoreBase.setState({
+    ...document,
+    editorHistoryRevision: state.editorHistoryRevision + 1,
+    tabIsEffectivelyEmpty: tabIsEffectivelyEmpty(document.tabData),
+    currentlyPlayingMetadata: null,
+    playbackMetadata: null,
+    expandedTabData: null,
+    currentChordIndex: 0,
+    playbackStartedAtAudioTime: null,
+    audioMetadata: { ...initialStoreState.audioMetadata },
+    previewMetadata: { ...initialStoreState.previewMetadata },
+    draftLoopStartIndex: null,
+    draftLoopEndIndex: null,
+    chordPulse: null,
+    countInTimer: { showing: false, forSectionContainer: null },
+  });
+};
+
 const useTabStoreBase = create<TabState>()(
   devtools(
     immer((set, get) => ({
+      canUndo: false,
+      canRedo: false,
+      editorHistoryRevision: 0,
+      undo: () => restoreHistory("undo"),
+      redo: () => restoreHistory("redo"),
+      clearEditorHistory: () => {
+        histories.forEach((history) => history.clear());
+      },
+      groupEditorHistoryInput: (input, operation) => {
+        histories.forEach((history) => history.groupInput(input, operation));
+      },
+      breakEditorHistoryGroup: () => {
+        histories.forEach((history) => history.breakGroup());
+      },
       // used in <Tab />
       originalTabData: null,
       setOriginalTabData: (originalTabData) => set({ originalTabData }),
       id: -1,
-      setId: (id) => set({ id }),
+      setId: (id) => {
+        if (id !== get().id) get().clearEditorHistory();
+        set({ id });
+      },
       createdByUserId: null,
       setCreatedByUserId: (createdByUserId) => set({ createdByUserId }),
       createdAt: null,
@@ -784,7 +992,7 @@ const useTabStoreBase = create<TabState>()(
       updatedAt: null,
       setUpdatedAt: (updatedAt) => set({ updatedAt }),
       title: "",
-      setTitle: (title) => set({ title }),
+      setTitle: (title) => editDocument({ title }),
 
       tabData: [
         {
@@ -794,35 +1002,42 @@ const useTabStoreBase = create<TabState>()(
         },
       ],
       setTabData: (updater) =>
-        set((draft) => {
+        editDocument((draft) => {
           updater(draft.tabData);
+          initializeEmptyChordSequences(draft);
         }),
 
       artistId: null,
-      setArtistId: (artistId) => set({ artistId }),
+      setArtistId: (artistId) => editDocument({ artistId }),
       artistName: undefined,
-      setArtistName: (artistName) => set({ artistName }),
+      setArtistName: (artistName) => editDocument({ artistName }),
       artistIsVerified: false,
-      setArtistIsVerified: (artistIsVerified) => set({ artistIsVerified }),
+      setArtistIsVerified: (artistIsVerified) =>
+        editDocument({ artistIsVerified }),
 
       description: null,
-      setDescription: (description) => set({ description }),
+      setDescription: (description) => editDocument({ description }),
       genre: "",
-      setGenre: (genre) => set({ genre }),
+      setGenre: (genre) => editDocument({ genre }),
       tuning: DEFAULT_TUNING,
-      setTuning: (tuning) => set({ tuning: normalizeTuningValue(tuning) }),
+      setTuning: (tuning) =>
+        editDocument({ tuning: normalizeTuningValue(tuning) }),
       bpm: 75,
-      setBpm: (bpm) => set({ bpm }),
+      setBpm: (bpm) => editDocument({ bpm }),
       capo: 0,
-      setCapo: (capo) => set({ capo }),
+      setCapo: (capo) => editDocument({ capo }),
       key: null,
-      setKey: (key) => set({ key }),
+      setKey: (key) => editDocument({ key }),
       difficulty: 1,
-      setDifficulty: (difficulty) => set({ difficulty }),
+      setDifficulty: (difficulty) => editDocument({ difficulty }),
       chords: [],
-      setChords: (chords) => set({ chords }),
+      setChords: (chords) => editDocument({ chords }),
       strummingPatterns: [],
-      setStrummingPatterns: (strummingPatterns) => set({ strummingPatterns }),
+      setStrummingPatterns: (strummingPatterns) =>
+        editDocument((draft) => {
+          draft.strummingPatterns = strummingPatterns;
+          initializeEmptyChordSequences(draft);
+        }),
       chordDisplayMode: "text",
       setChordDisplayMode: (chordDisplayMode) => set({ chordDisplayMode }),
       ratingsCount: 0,
@@ -832,10 +1047,15 @@ const useTabStoreBase = create<TabState>()(
       bookmarkCount: 0,
       setBookmarkCount: (bookmarkCount) => set({ bookmarkCount }),
       editing: false,
-      setEditing: (editing) => set({ editing }),
+      setEditing: (editing) => {
+        get().breakEditorHistoryGroup();
+        set({ editing });
+      },
       sectionProgression: [],
-      setSectionProgression: (sectionProgression) =>
-        set({ sectionProgression }),
+      setSectionProgression: (sectionProgression, options) => {
+        if (options?.recordHistory === false) set({ sectionProgression });
+        else editDocument({ sectionProgression });
+      },
       currentlyCopiedData: null,
       setCurrentlyCopiedData: (currentlyCopiedData) =>
         set({ currentlyCopiedData }),
@@ -1681,10 +1901,37 @@ const useTabStoreBase = create<TabState>()(
 
       // below are also used to determine if respective dialog should be showing
       chordBeingEdited: null,
-      setChordBeingEdited: (chordBeingEdited) => set({ chordBeingEdited }),
+      setChordBeingEdited: (chordBeingEdited) => {
+        const previous = get().chordBeingEdited;
+        set({ chordBeingEdited });
+        if (
+          previous !== null &&
+          chordBeingEdited !== null &&
+          previous.value.id === chordBeingEdited.value.id
+        ) {
+          chordHistory.record(previous, get().chordBeingEdited!);
+        } else {
+          chordHistory.clear();
+          if (chordBeingEdited) documentHistory.breakGroup();
+          if (!chordBeingEdited) set(documentHistory.availability());
+        }
+      },
       strummingPatternBeingEdited: null,
-      setStrummingPatternBeingEdited: (strummingPatternBeingEdited) =>
-        set({ strummingPatternBeingEdited }),
+      setStrummingPatternBeingEdited: (strummingPatternBeingEdited) => {
+        const previous = get().strummingPatternBeingEdited;
+        set({ strummingPatternBeingEdited });
+        if (
+          previous !== null &&
+          strummingPatternBeingEdited !== null &&
+          previous.value.id === strummingPatternBeingEdited.value.id
+        ) {
+          patternHistory.record(previous, get().strummingPatternBeingEdited!);
+        } else {
+          patternHistory.clear();
+          if (strummingPatternBeingEdited) documentHistory.breakGroup();
+          if (!strummingPatternBeingEdited) set(documentHistory.availability());
+        }
+      },
       showPlaybackModal: false,
       setShowPlaybackModal: (showPlaybackModal) => set({ showPlaybackModal }),
       playbackModalViewingState: "Practice",
@@ -1709,6 +1956,7 @@ const useTabStoreBase = create<TabState>()(
       resetStoreToInitValues: () => {
         setHoveredChordLocationValue(null);
         set(initialStoreState);
+        get().clearEditorHistory();
       },
     })),
   ),
@@ -1734,27 +1982,7 @@ if (typeof window !== "undefined") {
 }
 
 export const stringifyFullTabState = () => {
-  const store = useTabStoreBase.getState();
-
-  const fullTabState = {
-    title: store.title,
-    artistId: store.artistId,
-    artistName: store.artistName,
-    artistIsVerified: store.artistIsVerified,
-    description: store.description,
-    genre: store.genre,
-    tuning: store.tuning,
-    bpm: store.bpm,
-    capo: store.capo,
-    key: store.key,
-    difficulty: store.difficulty,
-    chords: store.chords,
-    strummingPatterns: store.strummingPatterns,
-    sectionProgression: store.sectionProgression,
-    tabData: store.tabData,
-  };
-
-  return JSON.stringify(fullTabState);
+  return JSON.stringify(getEditorDocument(useTabStoreBase.getState()));
 };
 
 export const getTabData = () => useTabStoreBase.getState().tabData;

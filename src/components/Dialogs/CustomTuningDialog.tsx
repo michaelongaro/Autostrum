@@ -25,6 +25,7 @@ import {
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Label } from "~/components/ui/label";
+import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
 
 function CustomTuningEditor() {
   const {
@@ -41,19 +42,41 @@ function CustomTuningEditor() {
     setShowCustomTuningDialog: state.setShowCustomTuningDialog,
   }));
 
-  const [newTuning, setNewTuning] = useState<string[]>(() =>
-    tuningNotes.includes(tuning)
-      ? ["", "", "", "", "", ""]
-      : getDisplayTuningNotes(tuning),
-  );
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const previewSessionRef = useRef({ requestId: 0, playing: false });
 
-  const [quickTuningInput, setQuickTuningInput] = useState(() =>
-    tuningNotes.includes(tuning) ? "" : stripTuningOctaves(tuning),
+  const [tuningDraft, setTuningDraft, history] = useEditorHistoryState<{
+    newTuning: string[];
+    quickTuningInput: string;
+    inputMode: "auto" | "manual";
+  }>(
+    () => ({
+      newTuning: tuningNotes.includes(tuning)
+        ? ["", "", "", "", "", ""]
+        : getDisplayTuningNotes(tuning),
+      quickTuningInput: tuningNotes.includes(tuning)
+        ? ""
+        : stripTuningOctaves(tuning),
+      inputMode: tuningNotes.includes(tuning) ? "auto" : "manual",
+    }),
+    () => {
+      const session = previewSessionRef.current;
+      session.requestId++;
+      if (session.playing) getTabStore().pauseAudio();
+      session.playing = false;
+      setIsPreviewing(false);
+    },
   );
-
-  const [inputMode, setInputMode] = useState<"auto" | "manual">(() =>
-    tuningNotes.includes(tuning) ? "auto" : "manual",
-  );
+  const { newTuning, quickTuningInput, inputMode } = tuningDraft;
+  function setNewTuning(newTuning: string[]) {
+    setTuningDraft((draft) => ({ ...draft, newTuning }));
+  }
+  function setQuickTuningInput(quickTuningInput: string) {
+    setTuningDraft((draft) => ({ ...draft, quickTuningInput }));
+  }
+  function setInputMode(inputMode: "auto" | "manual") {
+    setTuningDraft((draft) => ({ ...draft, inputMode }));
+  }
 
   const placeholderNotes = ["E2", "A2", "D3", "G3", "B3", "E4"];
 
@@ -71,8 +94,6 @@ function CustomTuningEditor() {
   const [highlightedNoteInputIndex, setHighlightedNoteInputIndex] = useState<
     number | null
   >(null);
-  const [isPreviewing, setIsPreviewing] = useState(false);
-  const previewSessionRef = useRef({ requestId: 0, playing: false });
 
   useEffect(() => {
     const session = previewSessionRef.current;
@@ -189,7 +210,11 @@ function CustomTuningEditor() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96">
+      <DialogContent
+        data-tab-editor-history="local"
+        {...history.scopeProps}
+        className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96"
+      >
         <div className="baseFlex w-full !justify-between gap-2">
           <div className="baseFlex gap-2">
             <IoSettingsSharp className="h-5 w-5" />
