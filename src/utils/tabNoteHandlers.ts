@@ -363,17 +363,27 @@ export function handleTabNoteKeyDown(
         }
       });
 
-      // Focus the next column, or previous if at end
+      // Focus the next chord, skipping measure lines, or the previous at the end.
+      const nextChordIndex = subSection.data.findIndex(
+        (column, index) => index > columnIndex && isTabNote(column),
+      );
       const nextIndex =
-        columnIndex < subSection.data.length - 1
-          ? columnIndex
-          : columnIndex - 1;
-      focusEditingTabInput({
-        currentElement: currentNote,
-        sectionIndex,
-        subSectionIndex,
-        columnIndex: nextIndex,
-        noteIndex,
+        nextChordIndex === -1
+          ? subSection.data.findLastIndex(
+              (column, index) => index < columnIndex && isTabNote(column),
+            )
+          : nextChordIndex - 1;
+      if (nextIndex < 0) return;
+
+      // Wait for React to remove the old input and reindex the remaining chords.
+      requestAnimationFrame(() => {
+        focusEditingTabInput({
+          currentElement: currentNote,
+          sectionIndex,
+          subSectionIndex,
+          columnIndex: nextIndex,
+          noteIndex: 3,
+        });
       });
     }
 
