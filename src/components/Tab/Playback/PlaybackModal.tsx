@@ -18,6 +18,7 @@ import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasure
 import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
 import { AnimatePresence, motion } from "framer-motion";
 import { FocusTrap } from "focus-trap-react";
+import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 import {
   type PlaybackTabChord as PlaybackTabChordType,
   type PlaybackStrummedChord as PlaybackStrummedChordType,
@@ -87,6 +88,7 @@ type PlaybackModalProps =
     };
 
 function PlaybackModal(props: PlaybackModalProps = {}) {
+  const soundReminderOpen = useIPhoneAudioReminderStore((state) => state.open);
   const store = useTabStoreApi();
   const {
     currentChordIndex,
@@ -716,6 +718,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
       }}
     >
       <FocusTrap
+        paused={soundReminderOpen}
         focusTrapOptions={{
           allowOutsideClick: true, // to click on the effect dialog "x"
           initialFocus: false,

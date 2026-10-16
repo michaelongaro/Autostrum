@@ -29,6 +29,7 @@ import {
 } from "~/utils/playbackSpeedControls";
 import { useShallow } from "zustand/shallow";
 import { isMobileOnly } from "react-device-detect";
+import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 
 export interface SectionProgression {
   id: string; // used to identify the section for the sorting context
@@ -1033,6 +1034,8 @@ export const createTabStore = (
         } = get();
 
         if (!audioContext || !masterVolumeGainNode) return null;
+
+        if (useIPhoneAudioReminderStore.getState().requestReminder()) return null;
 
         // Ordinary backgrounding: resume is enough.
         if (audioContext.state === "suspended") {

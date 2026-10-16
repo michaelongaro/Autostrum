@@ -28,11 +28,12 @@ function FAQ() {
           </AccordionTrigger>
           <AccordionContent className="w-full text-sm text-foreground/75">
             <p className="mt-2">
-              This is most likely caused by your iPhone&apos;s mute switch being
-              turned on. Apple prevents any programmatic audio from playing on
-              the web when this switch is turned on, please flip it off if you
-              would like to practice along with our realistic guitar
-              audio-samples.
+              Silent Mode can silence Autostrum&apos;s guitar audio in your
+              iPhone&apos;s browser, even when your volume is turned up. If your
+              iPhone has a Ring/Silent switch, flip it toward the screen so the
+              orange mark is hidden. On models with an Action button, turn off
+              Silent Mode in Control Center. Then check your volume and tap play
+              again.
             </p>
           </AccordionContent>
         </AccordionItem>

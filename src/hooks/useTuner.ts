@@ -3,6 +3,7 @@ import { get } from "@tonaljs/note";
 import { PitchDetector } from "pitchy";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTabStore } from "~/stores/TabStore";
+import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import {
   centsBetweenFrequencies,
@@ -492,6 +493,8 @@ export function useTuner({
     if (!noteName) {
       return;
     }
+
+    if (useIPhoneAudioReminderStore.getState().requestReminder()) return;
 
     const requestId = ++guidePlaybackRequestIdRef.current;
 
