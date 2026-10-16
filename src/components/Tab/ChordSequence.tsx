@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Select,
@@ -35,10 +35,6 @@ function ChordSequence({
   chordSequenceIndex,
 }: ChordSequence) {
   const [selectIsOpen, setSelectIsOpen] = useState(false);
-  const [
-    indexOfCurrentlySelectedStrummingPattern,
-    setIndexOfCurrentlySelectedStrummingPattern,
-  ] = useState(0);
 
   // this is hacky dummy state so that the <StrummingPattern /> can render the palm mute node
   // as expected without actually having access to that state. Works fine for this case because
@@ -64,46 +60,12 @@ function ChordSequence({
     chordSequenceIndex,
   );
 
-  // sets sequence's strumming pattern to first existing pattern if the current pattern is empty
-  useEffect(() => {
-    // Skip while AnimatePresence is exiting a deleted sequence/subsection.
-    if (!chordSequence) return;
-
-    if (
-      Object.keys(chordSequence.strummingPattern).length === 0 &&
-      strummingPatterns[0]
-    ) {
-      setTabData((draft) => {
-        const subSection = draft[sectionIndex]?.data[subSectionIndex];
-        if (subSection?.type !== "chord") return;
-        if (!subSection.data[chordSequenceIndex]) return;
-
-        // fill in the chord sequence with empty strings the size of the strumming pattern
-        subSection.data[chordSequenceIndex] = {
-          id: chordSequence.id,
-          repetitions: chordSequence.repetitions,
-          bpm: -1,
-          strummingPattern: strummingPatterns[0]!,
-          data: Array.from(
-            { length: strummingPatterns[0]!.strums.length },
-            () => "",
-          ),
-        };
-      });
-
-      setIndexOfCurrentlySelectedStrummingPattern(0);
-    }
-  }, [
-    strummingPatterns,
-    subSectionIndex,
-    sectionIndex,
-    chordSequence,
-    chordSequenceIndex,
-    setTabData,
-  ]);
-
   // Still mounted by AnimatePresence after delete — render nothing until unmount.
   if (!chordSequence) return null;
+
+  const indexOfCurrentlySelectedStrummingPattern = strummingPatterns.findIndex(
+    (pattern) => pattern.id === chordSequence.strummingPattern.id,
+  );
 
   const placeholderBpm =
     chordSequence.bpm !== -1
@@ -170,8 +132,6 @@ function ChordSequence({
         );
       }
     });
-
-    setIndexOfCurrentlySelectedStrummingPattern(parseInt(value));
   }
 
   return (
@@ -214,7 +174,7 @@ function ChordSequence({
       ) : (
         <div className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border bg-background p-4 shadow-sm">
           <div className="baseFlex w-full !items-start">
-            <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
+            <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start lg:gap-4">
               <div className="baseFlex gap-2">
                 <Label
                   htmlFor={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
@@ -288,11 +248,7 @@ function ChordSequence({
                   >
                     <SelectValue>
                       <StrummingPatternPreview
-                        data={
-                          strummingPatterns[
-                            indexOfCurrentlySelectedStrummingPattern
-                          ]
-                        }
+                        data={chordSequence.strummingPattern}
                       />
                     </SelectValue>
                   </SelectTrigger>

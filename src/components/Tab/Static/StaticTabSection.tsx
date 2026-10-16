@@ -16,20 +16,27 @@ import {
   type TabSection,
 } from "~/stores/TabStore";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import { beamBreaksForTabColumns } from "~/utils/noteLengthBeaming";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
+import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import {
   buildStaticTabRowLayout,
   getStaticTabLayoutWidthPx,
   getVisibleRowRangeFromBodyRect,
   getVisibleViewportWindow,
+  STATIC_TAB_END_LINE_WIDTH_PX,
   STATIC_TAB_MIN_VIRTUALIZATION_ROWS,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
   STATIC_TAB_OVERSCAN_PX,
   STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX,
   STATIC_TAB_ROW_HEIGHT_PX,
-  STATIC_TAB_TUNING_BOX_HEIGHT_PX,
+  STATIC_TAB_STAFF_BLOCK_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_INSET_PX,
+  STATIC_TAB_STAFF_LINE_WIDTH_PX,
   STATIC_TAB_TUNING_GUTTER_WIDTH_PX,
+  STATIC_TAB_TUNING_NOTE_GAP_PX,
   STATIC_TAB_VERTICAL_TUNING_HEIGHT_PX,
   type StaticTabRowLayout,
   type VisibleRowRange,
@@ -51,6 +58,7 @@ interface StaticTabSection {
   theme: THEME;
   overflowX?: boolean;
   presentation?: "card" | "bare";
+  height?: string;
   /**
    * Opt-in row-level virtualization. Only enabled from StaticTab via
    * StaticSectionContainer; every other caller keeps the full-render path.
@@ -72,15 +80,18 @@ function FullStaticTabSection({
   theme,
   overflowX,
   presentation = "card",
+  height,
 }: StaticTabSection) {
-  const { tuning } = useTabStore((state) => ({
+  const { tuning, bpm } = useTabStore((state) => ({
     tuning: state.tuning,
+    bpm: state.bpm,
   }));
 
   return (
     <SectionCard presentation={presentation}>
       <div
-        className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto" : "flex-wrap"}`}
+        data-static-tab-body=""
+        className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto overflow-y-hidden" : "flex-wrap"} ${height}`}
       >
         <TuningGutter tuning={tuning} />
         {renderColumnRange(
@@ -89,6 +100,8 @@ function FullStaticTabSection({
           subSectionData.data.length - 1,
           color,
           theme,
+          subSectionData.bpm,
+          bpm,
         )}
       </div>
     </SectionCard>
@@ -101,8 +114,9 @@ function VirtualizedStaticTabSection({
   theme,
   presentation = "card",
 }: StaticTabSection) {
-  const { tuning } = useTabStore((state) => ({
+  const { tuning, bpm } = useTabStore((state) => ({
     tuning: state.tuning,
+    bpm: state.bpm,
   }));
 
   // App zoom — triggers a remasure when the setting changes. Visible-range
@@ -265,6 +279,8 @@ function VirtualizedStaticTabSection({
           subSectionData.data.length - 1,
           color,
           theme,
+          subSectionData.bpm,
+          bpm,
         )}
       </>
     );
@@ -303,6 +319,8 @@ function VirtualizedStaticTabSection({
                 row.endIndex,
                 color,
                 theme,
+                subSectionData.bpm,
+                bpm,
               )}
             </div>
           ))}
@@ -321,6 +339,7 @@ function VirtualizedStaticTabSection({
     <SectionCard fullWidth={isVirtualized} presentation={presentation}>
       <div
         ref={bodyRef}
+        data-static-tab-body=""
         style={
           virtualizedLayout === null
             ? undefined
@@ -368,6 +387,23 @@ function SectionCard({
   );
 }
 
+const STATIC_STAFF_LINE_MARGIN_TOP_PX =
+  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX + STATIC_TAB_STAFF_LINE_INSET_PX;
+
+function StaticStaffLine() {
+  return (
+    <div
+      className="shrink-0"
+      style={{
+        width: STATIC_TAB_STAFF_LINE_WIDTH_PX,
+        height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+        marginTop: STATIC_TAB_STAFF_LINE_INSET_PX,
+        backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+      }}
+    />
+  );
+}
+
 // rendered at the start of the first row only
 function TuningGutter({ tuning }: { tuning: string }) {
   return (
@@ -375,32 +411,59 @@ function TuningGutter({ tuning }: { tuning: string }) {
       style={{
         height: STATIC_TAB_ROW_HEIGHT_PX,
         width: STATIC_TAB_TUNING_GUTTER_WIDTH_PX,
+        color: "hsl(var(--screenshot-foreground))",
       }}
-      className="baseVertFlex"
+      className="baseVertFlex !justify-start"
     >
       <div
         style={{ height: STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX }}
         className="w-full"
       ></div>
       <div
-        style={{
-          height: STATIC_TAB_TUNING_BOX_HEIGHT_PX,
-          width: STATIC_TAB_TUNING_GUTTER_WIDTH_PX,
-          borderColor: "hsl(var(--screenshot-foreground))",
-          color: "hsl(var(--screenshot-foreground))",
-          backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
-        }}
-        className="baseVertFlex relative rounded-l-2xl border-2 p-2"
+        style={{ height: STATIC_TAB_STAFF_BLOCK_HEIGHT_PX }}
+        className="baseFlex w-full !items-start !justify-end"
       >
-        <PrettyVerticalTuning
-          tuning={tuning}
-          height={`${STATIC_TAB_VERTICAL_TUNING_HEIGHT_PX}px`}
-        />
+        <div
+          style={{
+            paddingRight: STATIC_TAB_TUNING_NOTE_GAP_PX,
+          }}
+        >
+          <PrettyVerticalTuning
+            tuning={tuning}
+            height={`${STATIC_TAB_VERTICAL_TUNING_HEIGHT_PX}px`}
+          />
+        </div>
+        <StaticStaffLine />
       </div>
       <div
         style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
         className="w-full"
       ></div>
+    </div>
+  );
+}
+
+const ENDCAP_GROUP_CLASS =
+  "baseFlex w-max shrink-0 flex-nowrap !items-start !justify-start";
+
+function StaticEndStaffLine() {
+  return (
+    <div
+      data-tab-end-nut=""
+      style={{
+        height: STATIC_TAB_ROW_HEIGHT_PX,
+        width: STATIC_TAB_END_LINE_WIDTH_PX,
+      }}
+      className="shrink-0"
+    >
+      <div
+        style={{
+          width: STATIC_TAB_END_LINE_WIDTH_PX,
+          height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+          marginTop: STATIC_STAFF_LINE_MARGIN_TOP_PX,
+          backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+        }}
+      />
     </div>
   );
 }
@@ -413,30 +476,71 @@ function renderColumnRange(
   endIndex: number,
   color: COLORS,
   theme: THEME,
+  subSectionBpm: number,
+  baselineBpm: number,
 ): ReactNode[] {
   const renderedColumns: ReactNode[] = [];
+  const beamBreaks = beamBreaksForTabColumns(columns);
+  const lastColumnIndex = columns.length - 1;
 
   for (let index = startIndex; index <= endIndex; index++) {
     const column = columns[index];
     if (column === undefined) continue;
 
+    const isLastColumn = index === lastColumnIndex;
+    let columnNode: ReactNode;
+
     if (isTabMeasureLine(column)) {
-      renderedColumns.push(
-        <StaticTabMeasureLine key={column.id} columnData={column} />,
+      const { show, bpm } = getMeasureLineBpmDisplay({
+        columns,
+        measureLineIndex: index,
+        subSectionBpm,
+        baselineBpm,
+      });
+      columnNode = (
+        <StaticTabMeasureLine
+          key={column.id}
+          isInPalmMuteSection={column.isInPalmMuteSection}
+          showBpm={show}
+          bpmToShow={show ? bpm : undefined}
+        />
       );
     } else {
-      renderedColumns.push(
+      columnNode = (
         <StaticTabNotesColumn
           key={column.id}
           columnData={column}
           previousColumn={columns[index - 1]}
           nextColumn={columns[index + 1]}
-          isLastColumn={index === columns.length - 1}
+          isLastColumn={isLastColumn}
           color={color}
           theme={theme}
-        />,
+          breakBeamWithPrevious={beamBreaks[index]?.breakWithPrevious ?? true}
+          breakBeamWithNext={beamBreaks[index]?.breakWithNext ?? true}
+        />
       );
     }
+
+    // The 1px end nut is its own flex item. Grouping it with the last
+    // column keeps flex-wrap from dropping the nut onto a line by itself.
+    if (isLastColumn) {
+      renderedColumns.push(
+        <div
+          key={`${column.id}-endcap`}
+          data-tab-endcap-group=""
+          className={ENDCAP_GROUP_CLASS}
+        >
+          {columnNode}
+          <StaticEndStaffLine />
+        </div>,
+      );
+    } else {
+      renderedColumns.push(columnNode);
+    }
+  }
+
+  if (endIndex === lastColumnIndex && columns.length === 0) {
+    renderedColumns.push(<StaticEndStaffLine key="static-end-staff-line" />);
   }
 
   return renderedColumns;

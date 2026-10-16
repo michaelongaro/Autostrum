@@ -10,7 +10,6 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import TuningFork from "~/components/ui/icons/TuningFork";
-import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 import { useTuner } from "~/hooks/useTuner";
 import { useTabStore } from "~/stores/TabStore";
 
@@ -22,13 +21,12 @@ function PlaybackTunerDialog() {
   }));
 
   const [open, setOpen] = useState(false);
+  const [selectedCapo, setSelectedCapo] = useState(capo);
 
   const tuner = useTuner({
     targetTuning: tuning,
-    capo,
+    capo: selectedCapo,
   });
-
-  useScreenWakeLock(tuner.isListening);
 
   return (
     <Dialog
@@ -36,6 +34,7 @@ function PlaybackTunerDialog() {
       onOpenChange={(nextOpen) => {
         if (nextOpen) {
           pauseAudio();
+          setSelectedCapo(capo);
         } else {
           tuner.stopListening();
         }
@@ -49,11 +48,14 @@ function PlaybackTunerDialog() {
           className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
         >
           <TuningFork className="size-4" />
-          <span className="hidden sm:block">Tuner</span>
+          <span className="hidden xs:block">Tuner</span>
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="baseVertFlex h-[85dvh] max-h-[85dvh] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-x-0 border-y p-0 xs:border-y-0 sm:h-auto sm:w-[calc(100vw-4rem)]">
+      <DialogContent
+        closeButtonColor="hsl(var(--primary-foreground))"
+        className="baseVertFlex h-[85dvh] max-h-[618px] w-screen max-w-[800px] !justify-start gap-0 overflow-y-auto border-0 p-0 sm:h-auto sm:w-[calc(100vw-4rem)]"
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>Guitar Tuner</DialogTitle>
           <DialogDescription>
@@ -61,22 +63,29 @@ function PlaybackTunerDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="baseVertFlex size-full">
-          <TunerPanel
-            targetNotes={tuner.targetNotes}
-            currentTargetIndex={tuner.currentTargetIndex}
-            reading={tuner.reading}
-            isListening={tuner.isListening}
-            completed={tuner.completed}
-            error={tuner.error}
-            permissionDenied={tuner.permissionDenied}
-            onStartListening={tuner.startListening}
-            onStopListening={tuner.stopListening}
-            onResetProgress={tuner.resetProgress}
-            onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
-            forPlaybackModal={true}
-          />
-        </div>
+        <TunerPanel
+          targetNotes={tuner.targetNotes}
+          currentTargetIndex={tuner.currentTargetIndex}
+          reading={tuner.reading}
+          isListening={tuner.isListening}
+          completed={tuner.completed}
+          error={tuner.error}
+          permissionDenied={tuner.permissionDenied}
+          onStartListening={tuner.startListening}
+          onStopListening={tuner.stopListening}
+          onResetProgress={tuner.resetProgress}
+          onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
+          forPlaybackModal={true}
+          playbackCapoToggle={
+            capo > 0
+              ? {
+                  requiredCapo: capo,
+                  selectedCapo,
+                  onSelectCapo: setSelectedCapo,
+                }
+              : undefined
+          }
+        />
       </DialogContent>
     </Dialog>
   );

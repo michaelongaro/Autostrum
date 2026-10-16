@@ -14,16 +14,14 @@ type ChromaticPitchScrollerProps = {
   detectedNote: string | null;
   detectedCents: number | null;
   signalDetected: boolean;
+  preferFlats?: boolean;
 };
-
-function noteNameFromMidi(midi: number) {
-  return midiToNoteName(midi, { sharps: true });
-}
 
 function ChromaticPitchScroller({
   detectedNote,
   detectedCents,
   signalDetected,
+  preferFlats = false,
 }: ChromaticPitchScrollerProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [viewportWidth, setViewportWidth] = useState(0);
@@ -86,7 +84,7 @@ function ChromaticPitchScroller({
   return (
     <div
       ref={viewportRef}
-      className="relative mx-auto h-[76px] w-full max-w-sm overflow-hidden lg:h-[84px]"
+      className="relative mx-auto h-[76px] w-full max-w-[300px] overflow-hidden xs:max-w-sm lg:h-[84px]"
       style={{
         maskImage:
           "linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)",
@@ -109,7 +107,7 @@ function ChromaticPitchScroller({
           }}
         >
           {renderMidis.map((midi) => {
-            const noteName = noteNameFromMidi(midi);
+            const noteName = midiToNoteName(midi, { sharps: !preferFlats });
             const frequency = frequencyFromMidi(midi);
             const distance = Math.abs(midi - centeredMidi);
             const emphasis = Math.max(0.35, 1 - distance * 0.55);
@@ -136,6 +134,8 @@ function ChromaticPitchScroller({
                     note={formatNoteLabel(noteName)}
                     displayWithFlex={true}
                     showScientificPitchNotation={true}
+                    noteClass="text-lg xs:text-xl"
+                    accidentalClass="text-base xs:mr-1 xs:text-lg"
                   />
                 </div>
                 <div

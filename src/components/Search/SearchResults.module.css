@@ -1,0 +1,32 @@
+.stickyHeader {
+  position: sticky;
+  top: 4rem;
+  z-index: 20;
+  width: 100%;
+}
+
+.backdrop {
+  display: none;
+}
+
+/* Match the app's tablet breakpoint, including its minimum viewport height. */
+@media (min-width: 1024px) and (min-height: 700px) {
+  .stickyHeader {
+    margin-top: -1rem;
+    padding-top: 1rem;
+    /* Clip only the backdrop to this shell, never the scrolling results. */
+    clip-path: inset(0 -1px);
+  }
+
+  .stickyHeader .backdrop {
+    /* Reuse the page's viewport-sized gradient and texture behind the gap and
+       rounded corners. Native sticky positioning keeps them in sync on scroll. */
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100vh;
+    pointer-events: none;
+  }
+}

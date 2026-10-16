@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type Dispatch,
   type SetStateAction,
@@ -11,7 +12,17 @@ import {
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
+import { useEditingStrumPlayhead } from "~/hooks/useEditingStrumPlayhead";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
+import { createStrum } from "~/utils/tabNoteHelpers";
+import {
+  isArpeggiatedStrum,
+  isStrumEffect,
+  isValidChordEffectsInput,
+  remapStrumSpreadForType,
+  setStrumDirectionInEffects,
+  toggleArpeggioInEffects,
+} from "~/utils/strumEffectHelpers";
 import StrummingPatternStrum from "./StrummingPatternStrum";
 
 const noteLengthCycle = [
@@ -32,7 +43,24 @@ const noteLengthCycle = [
   "sixteenth double-dotted",
 ] as const;
 
+const baseNoteLengthCycle = [
+  "whole",
+  "half",
+  "quarter",
+  "eighth",
+  "sixteenth",
+] as const;
+
 type NoteLength = (typeof noteLengthCycle)[number];
+type BaseNoteLength = (typeof baseNoteLengthCycle)[number];
+
+function getBaseNoteLength(noteLength: FullNoteLengths): BaseNoteLength {
+  if (noteLength.startsWith("whole")) return "whole";
+  if (noteLength.startsWith("half")) return "half";
+  if (noteLength.startsWith("quarter")) return "quarter";
+  if (noteLength.startsWith("eighth")) return "eighth";
+  return "sixteenth";
+}
 
 interface StrummingPattern {
   data: StrummingPatternType;
@@ -43,6 +71,7 @@ interface StrummingPattern {
     | "editingChordSequence"
     | "viewingWithChordNames"
     | "viewing"
+    | "viewingWithHighlights"
     | "viewingInSelectDropdown";
   index?: number; // index of strumming pattern in strummingPatterns array (used for editing pattern)
 
@@ -76,6 +105,23 @@ function StrummingPattern({
 }: StrummingPattern) {
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
   const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
+  const strumPatternContainerRef = useRef<HTMLDivElement>(null);
+  const strumPlayheadRef = useRef<HTMLDivElement>(null);
+
+  const editingChordSequencePlayhead =
+    mode === "editingChordSequence" &&
+    sectionIndex !== undefined &&
+    subSectionIndex !== undefined &&
+    chordSequenceIndex !== undefined;
+
+  useEditingStrumPlayhead({
+    enabled: editingChordSequencePlayhead,
+    sectionIndex: sectionIndex ?? 0,
+    subSectionIndex: subSectionIndex ?? 0,
+    chordSequenceIndex: chordSequenceIndex ?? 0,
+    containerRef: strumPatternContainerRef,
+    playheadRef: strumPlayheadRef,
+  });
 
   // Intentionally omit currentChordIndex / currentlyPlayingMetadata /
   // previewMetadata: each strum subscribes with useStrumHighlight so playback
@@ -224,18 +270,32 @@ function StrummingPattern({
     e: React.KeyboardEvent<HTMLInputElement>,
     beatIndex: number,
   ) {
-    const newStrummingPattern = structuredClone(data);
+    // q/w: add a strum before/after the focused beat (parity with TabNote)
+    if (e.key.toLowerCase() === "q" || e.key.toLowerCase() === "w") {
+      e.preventDefault();
+      addNewChord(e.key.toLowerCase() === "w", beatIndex);
+      return;
+    }
 
-    // v/↓ for downstrum, ^/↑ for upstrum, s for slap, r for rest
-    if ((!e.shiftKey && e.key === "ArrowDown") || e.key.toLowerCase() === "v") {
+    const newStrummingPattern = structuredClone(data);
+    const currentEffects = data.strums[beatIndex]?.strum ?? "";
+
+    // v/↓ for downstrum, ^/↑ for upstrum, s for slap, r for rest, ~ for arpeggio
+    if (
+      (!e.shiftKey && e.key === "ArrowDown") ||
+      (!e.shiftKey && e.key.toLowerCase() === "v")
+    ) {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!,
-        strum: "v",
+        strum: setStrumDirectionInEffects(currentEffects, "v"),
       };
-    } else if ((!e.shiftKey && e.key === "ArrowUp") || e.key === "^") {
+    } else if (
+      (!e.shiftKey && e.key === "ArrowUp") ||
+      (!e.shiftKey && e.key === "^")
+    ) {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!,
-        strum: "^",
+        strum: setStrumDirectionInEffects(currentEffects, "^"),
       };
 
       // Set caret to end after React updates the value
@@ -252,12 +312,26 @@ function StrummingPattern({
     } else if (e.key.toLowerCase() === "s") {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!,
-        strum: "s",
+        strum: setStrumDirectionInEffects(currentEffects, "s"),
       };
     } else if (e.key.toLowerCase() === "r") {
       newStrummingPattern.strums[beatIndex] = {
         ...data.strums[beatIndex]!,
         strum: "r",
+      };
+    } else if (e.key === "~" && isStrumEffect(currentEffects)) {
+      e.preventDefault();
+      const wasArpeggiated = isArpeggiatedStrum(currentEffects);
+      const nextEffects = toggleArpeggioInEffects(currentEffects);
+      const currentStrum = data.strums[beatIndex]!;
+      let nextSpread = currentStrum.strumSpreadSeconds ?? null;
+      if (currentStrum.strumSpreadAuto === false && nextSpread != null) {
+        nextSpread = remapStrumSpreadForType(nextSpread, !wasArpeggiated);
+      }
+      newStrummingPattern.strums[beatIndex] = {
+        ...currentStrum,
+        strum: nextEffects,
+        strumSpreadSeconds: nextSpread,
       };
     }
 
@@ -265,17 +339,31 @@ function StrummingPattern({
     if (e.shiftKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
       e.preventDefault();
 
-      const order = noteLengthCycle;
       const current =
         newStrummingPattern.strums[beatIndex]?.noteLength ?? "quarter";
-      let idx = order.indexOf(current);
-      if (idx === -1) idx = order.indexOf("quarter");
 
-      if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
-      if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+      if (e.ctrlKey) {
+        const order = noteLengthCycle;
+        let idx = order.indexOf(current);
+        if (idx === -1) idx = order.indexOf("quarter");
 
-      const newLength: NoteLength = order[idx] ?? "quarter";
-      newStrummingPattern.strums[beatIndex]!.noteLength = newLength;
+        if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
+        if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+
+        const newLength: NoteLength = order[idx] ?? "quarter";
+        newStrummingPattern.strums[beatIndex]!.noteLength = newLength;
+      } else {
+        const order = baseNoteLengthCycle;
+        const currentBase = getBaseNoteLength(current);
+        let idx = order.indexOf(currentBase);
+        if (idx === -1) idx = order.indexOf("quarter");
+
+        if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
+        if (e.key === "ArrowDown" && idx > 0) idx -= 1; // decrease resolution
+
+        const newLength: BaseNoteLength = order[idx] ?? "quarter";
+        newStrummingPattern.strums[beatIndex]!.noteLength = newLength;
+      }
     }
 
     // arrow key navigation
@@ -332,11 +420,11 @@ function StrummingPattern({
       const strumsToAdd = Math.min(remainingSpace, 4);
 
       for (let i = 0; i < strumsToAdd; i++) {
-        newStrummingPattern.strums.push({
-          palmMute: "",
-          strum: "",
-          noteLength: data.baseNoteLength,
-        });
+        newStrummingPattern.strums.push(
+          createStrum({
+            noteLength: data.baseNoteLength,
+          }),
+        );
       }
 
       setStrummingPatternBeingEdited({
@@ -356,14 +444,27 @@ function StrummingPattern({
   ) {
     const value = e.target.value;
 
-    const chordEffects = /^[v^s]{1}(>|\.|>\.|\.>)?$/;
-    if (value !== "" && !chordEffects.test(value)) return;
+    if (value !== "" && !isValidChordEffectsInput(value)) return;
 
     const newStrummingPattern = structuredClone(data);
+    const prevEffects = data.strums[beatIndex]?.strum ?? "";
+    const prevArpeggiated = isArpeggiatedStrum(prevEffects);
+    const nextArpeggiated = isArpeggiatedStrum(value);
+    const currentStrum = data.strums[beatIndex]!;
+
+    let nextSpread = currentStrum.strumSpreadSeconds ?? null;
+    if (
+      prevArpeggiated !== nextArpeggiated &&
+      currentStrum.strumSpreadAuto === false &&
+      nextSpread != null
+    ) {
+      nextSpread = remapStrumSpreadForType(nextSpread, nextArpeggiated);
+    }
 
     newStrummingPattern.strums[beatIndex] = {
-      ...data.strums[beatIndex]!, // ! because we know it's not undefined
+      ...currentStrum,
       strum: value,
+      strumSpreadSeconds: nextSpread,
     };
 
     setStrummingPatternBeingEdited({
@@ -373,13 +474,26 @@ function StrummingPattern({
   }
 
   function addNewChord(after: boolean, atIndex: number) {
-    const newStrummingPattern = structuredClone(data);
+    if (data.strums.length >= 32) return;
 
-    newStrummingPattern.strums.splice(after ? atIndex + 1 : atIndex, 0, {
-      palmMute: "",
-      strum: "",
-      noteLength: data.baseNoteLength,
-    });
+    const newStrummingPattern = structuredClone(data);
+    const currentStrum = data.strums[atIndex];
+    const newPalmMuteValue: "" | "-" =
+      currentStrum &&
+      ((currentStrum.palmMute === "start" && after) ||
+        (currentStrum.palmMute === "end" && !after) ||
+        currentStrum.palmMute === "-")
+        ? "-"
+        : "";
+
+    newStrummingPattern.strums.splice(
+      after ? atIndex + 1 : atIndex,
+      0,
+      createStrum({
+        palmMute: newPalmMuteValue,
+        noteLength: data.baseNoteLength,
+      }),
+    );
 
     setInputIdToFocus(
       `input-strummingPatternModal-${after ? atIndex + 1 : atIndex}-1`,
@@ -391,16 +505,24 @@ function StrummingPattern({
     });
   }
 
-  function handleNoteLengthChange(
+  function handleStrumSpreadChange(
     strumIndex: number,
-    noteLength: FullNoteLengths,
+    update: {
+      strumSpreadAuto?: boolean;
+      strumSpreadSeconds?: number | null;
+    },
   ) {
     const newStrummingPattern = structuredClone(data);
+    const currentStrum = newStrummingPattern.strums[strumIndex];
+    if (!currentStrum) return;
 
-    newStrummingPattern.strums[strumIndex] = {
-      ...data.strums[strumIndex]!,
-      noteLength: noteLength,
-    };
+    if (update.strumSpreadAuto !== undefined) {
+      currentStrum.strumSpreadAuto = update.strumSpreadAuto;
+    }
+    if (update.strumSpreadSeconds !== undefined) {
+      currentStrum.strumSpreadSeconds = update.strumSpreadSeconds;
+    }
+
     setStrummingPatternBeingEdited({
       index: index ?? 0,
       value: newStrummingPattern,
@@ -414,11 +536,11 @@ function StrummingPattern({
     const strumsToAdd = Math.min(remainingSpace, 4);
 
     for (let i = 0; i < strumsToAdd; i++) {
-      newStrummingPattern.strums.push({
-        palmMute: "",
-        strum: "",
-        noteLength: data.baseNoteLength,
-      });
+      newStrummingPattern.strums.push(
+        createStrum({
+          noteLength: data.baseNoteLength,
+        }),
+      );
     }
 
     setStrummingPatternBeingEdited({
@@ -504,7 +626,10 @@ function StrummingPattern({
       }}
       className="baseFlex"
     >
-      <div className="baseFlex relative mb-1 flex-wrap !justify-start">
+      <div
+        ref={strumPatternContainerRef}
+        className="baseFlex relative mb-1 flex-wrap !justify-start"
+      >
         {mode === "editingChordSequence" && (
           <span
             style={{
@@ -538,14 +663,24 @@ function StrummingPattern({
             isLastStrum={strumIndex === data.strums.length - 1}
             onKeyDown={handleKeyDown}
             onChange={handleChange}
-            onNoteLengthChange={handleNoteLengthChange}
-            onAddStrum={addNewChord}
+            onStrumSpreadChange={handleStrumSpreadChange}
             onDeleteStrum={deleteStrum}
             onChordChange={handleChordChange}
             onExtendPatternKeyDown={handleExtendPatternButtonKeyDown}
             onExtendPatternClick={addStrumsToPattern}
           />
         ))}
+        {editingChordSequencePlayhead && (
+          <div
+            ref={strumPlayheadRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute left-0 top-0 z-10 w-[2px] bg-primary will-change-transform"
+            style={{
+              height: 0,
+              opacity: 0,
+            }}
+          />
+        )}
       </div>
     </div>
   );

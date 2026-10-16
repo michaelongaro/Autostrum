@@ -42,6 +42,7 @@ import {
   getLoopRangePrompt,
   getLoopRangeSelectionStep,
 } from "~/utils/loopRangeHelpers";
+import { beamBreaksForPlaybackIndex } from "~/utils/noteLengthBeaming";
 
 const backdropVariants = {
   expanded: {
@@ -236,6 +237,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
     expandedTabData,
     currentChordIndex,
     audioMetadata.playing,
+    audioMetadata.editingLoopRange,
     showPlaybackModal,
     setCurrentChordIndex,
     reanchorPlaybackStripAnimation,
@@ -249,7 +251,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
   }
 
   // React Compiler escape hatch: stable identity so PlaybackAnimatedStrip's
-  // custom memo and the rAF effect deps do not thrash on every parent render.
+  // custom memo and the strip animation effect do not thrash on every parent render.
   const chordLayoutData = useMemo<PlaybackChordLayoutData | null>(
     () =>
       computePlaybackChordLayoutData({
@@ -559,7 +561,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
   const currentChordRepetition = chordRepetitions[currentChordIndex] ?? 0;
 
   // Keep the inline transform at the current chord boundary.
-  // While playing, rAF owns motion. While paused, this preserves the existing settle/scrub path.
+  // While playing, WAAPI owns motion. While paused, this preserves the existing settle/scrub path.
   const scrollContainerTransform = useMemo(() => {
     if (
       !chordLayoutData ||
@@ -595,29 +597,39 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
       isLastChordInTab,
       isDimmed,
       isHighlighted,
-    }: RenderVisibleChord) => (
-      <RenderChordByType
-        key={loopDelay}
-        type={
-          chord.type === "strum"
-            ? "strum"
-            : chord.type === "tab"
-              ? chord.data.chordData.includes("|")
-                ? "measureLine"
-                : "tab"
-              : "loopDelaySpacer"
-        }
-        chordIndex={index}
-        prevChord={prevChord}
-        chord={chord}
-        nextChord={nextChord}
-        isFirstChordInTab={isFirstChordInTab}
-        isLastChordInTab={isLastChordInTab}
-        isDimmed={isDimmed}
-        isHighlighted={isHighlighted}
-      />
-    ),
-    [loopDelay],
+    }: RenderVisibleChord) => {
+      const beamBreaks = beamBreaksForPlaybackIndex(
+        expandedTabData ?? [],
+        index,
+      );
+
+      return (
+        <RenderChordByType
+          key={loopDelay}
+          type={
+            chord.type === "strum"
+              ? "strum"
+              : chord.type === "tab"
+                ? chord.data.chordData.includes("|")
+                  ? "measureLine"
+                  : "tab"
+                : "loopDelaySpacer"
+          }
+          chordIndex={index}
+          prevChord={prevChord}
+          chord={chord}
+          nextChord={nextChord}
+          isFirstChordInTab={isFirstChordInTab}
+          isLastChordInTab={isLastChordInTab}
+          isDimmed={isDimmed}
+          isHighlighted={isHighlighted}
+          editingLoopRange={audioMetadata.editingLoopRange}
+          breakBeamWithPrevious={beamBreaks.breakWithPrevious}
+          breakBeamWithNext={beamBreaks.breakWithNext}
+        />
+      );
+    },
+    [loopDelay, audioMetadata.editingLoopRange, expandedTabData],
   );
 
   const practiceStrip = (
@@ -634,24 +646,16 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
       >
         <div
           ref={containerRef}
-          className={`relative flex w-full overflow-hidden ${
-            audioMetadata.editingLoopRange
-              ? "h-[290px] mobilePortrait:h-[315px]"
-              : "h-[255px] mobilePortrait:h-[315px]"
-          }`}
+          className="relative flex h-[315px] w-full overflow-hidden"
         >
           {!audioMetadata.editingLoopRange && (
             <div className="baseFlex absolute left-0 top-0 size-full">
-              <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
-              {/* currently this fixes the highlight line extending past rounded borders of
-              sections, but puts it behind measure lines. maybe this is a fine tradeoff?
-              translateX is written imperatively during rubber-band overscroll so the
-              playhead stays attached to the strip. */}
+              <div className="h-[150px] w-full"></div>
               <div
                 ref={playbackPlayheadRef}
-                className="z-0 ml-1 h-[140px] w-[2px] shrink-0 bg-primary will-change-transform mobilePortrait:h-[165px]"
+                className="z-0 mb-[2px] ml-1 h-[124px] w-[2px] shrink-0 bg-primary will-change-transform"
               ></div>
-              <div className="h-[140px] w-full mobilePortrait:h-[165px]"></div>
+              <div className="h-[150px] w-full"></div>
             </div>
           )}
 
@@ -804,7 +808,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
 
 export default PlaybackModal;
 
-interface RenderChordByTypeProps {
+interface RenderChordByType {
   type: "tab" | "measureLine" | "strum" | "loopDelaySpacer";
   chordIndex: number;
   prevChord?:
@@ -823,6 +827,33 @@ interface RenderChordByTypeProps {
   isLastChordInTab: boolean;
   isDimmed: boolean;
   isHighlighted: boolean;
+  editingLoopRange: boolean;
+  breakBeamWithPrevious: boolean;
+  breakBeamWithNext: boolean;
+}
+
+function isPlaybackTabMeasureLine(
+  playbackChord:
+    | PlaybackTabChordType
+    | PlaybackStrummedChordType
+    | PlaybackLoopDelaySpacerChord
+    | undefined,
+): boolean {
+  return (
+    playbackChord?.type === "tab" &&
+    (playbackChord.data.chordData.includes("|") ||
+      playbackChord.data.chordData[8] === "measureLine")
+  );
+}
+
+function getTabChordNoteLength(
+  playbackChord: PlaybackTabChordType,
+): FullNoteLengths | undefined {
+  if (isPlaybackTabMeasureLine(playbackChord)) {
+    return undefined;
+  }
+
+  return playbackChord.data.chordData[8] as FullNoteLengths;
 }
 
 function RenderChordByType({
@@ -835,12 +866,15 @@ function RenderChordByType({
   isLastChordInTab,
   isDimmed,
   isHighlighted,
-}: RenderChordByTypeProps) {
+  editingLoopRange,
+  breakBeamWithPrevious,
+  breakBeamWithNext,
+}: RenderChordByType) {
   const prevChordNoteLength = prevChord
     ? prevChord.type === "strum" && !prevChord.isLastChord // don't want to have separate strumming patterns' note length guides be connected
       ? prevChord.data.noteLength
       : prevChord.type === "tab"
-        ? (prevChord.data.chordData[8] as FullNoteLengths)
+        ? getTabChordNoteLength(prevChord)
         : undefined
     : undefined;
 
@@ -848,7 +882,7 @@ function RenderChordByType({
     ? chord.type === "strum"
       ? chord.data.noteLength
       : chord.type === "tab"
-        ? (chord.data.chordData[8] as FullNoteLengths)
+        ? getTabChordNoteLength(chord)
         : undefined
     : undefined;
 
@@ -857,9 +891,22 @@ function RenderChordByType({
       (chord.type !== "strum" || !chord.isLastChord) // don't want to have separate strumming patterns' note length guides be connected
       ? nextChord.data.noteLength
       : nextChord.type === "tab"
-        ? (nextChord.data.chordData[8] as FullNoteLengths)
+        ? getTabChordNoteLength(nextChord)
         : undefined
     : undefined;
+
+  const prevIsMeasureLine = isPlaybackTabMeasureLine(prevChord);
+  const nextIsMeasureLine = isPlaybackTabMeasureLine(nextChord);
+
+  // Match StaticTabNotesColumn / useTabColumnNeighborMeta: measure lines break beam groups
+  const isFirstChord =
+    (chord.type === "tab" || chord.type === "strum"
+      ? chord.isFirstChord
+      : false) || prevIsMeasureLine;
+  const isLastChord =
+    (chord.type === "tab" || chord.type === "strum"
+      ? chord.isLastChord
+      : false) || nextIsMeasureLine;
 
   const prevChordIsRest =
     prevChord === undefined ||
@@ -881,8 +928,8 @@ function RenderChordByType({
       <PlaybackTabChord
         columnData={chord?.data.chordData}
         chordIndex={chordIndex}
-        isFirstChord={chord?.isFirstChord}
-        isLastChord={chord?.isLastChord}
+        isFirstChord={isFirstChord}
+        isLastChord={isLastChord}
         isFirstChordInTab={isFirstChordInTab}
         isLastChordInTab={isLastChordInTab}
         isHighlighted={isHighlighted}
@@ -893,6 +940,8 @@ function RenderChordByType({
         prevChordIsRest={prevChordIsRest}
         currentChordIsRest={currentChordIsRest}
         nextChordIsRest={nextChordIsRest}
+        breakBeamWithPrevious={breakBeamWithPrevious}
+        breakBeamWithNext={breakBeamWithNext}
         showBpm={chord.data.showBpm}
       />
     );
@@ -904,6 +953,8 @@ function RenderChordByType({
         columnData={chord.data.chordData}
         chordIndex={chordIndex}
         isDimmed={isDimmed}
+        showBpm={chord.data.showBpm}
+        bpmToShow={chord.data.showBpm ? chord.data.bpm : undefined}
       />
     );
   }
@@ -914,11 +965,10 @@ function RenderChordByType({
         strum={chord?.data.strum || ""}
         chordIndex={chordIndex}
         palmMute={chord?.data.palmMute || ""}
-        isFirstChord={chord?.isFirstChord}
-        isLastChord={chord?.isLastChord}
+        isFirstChord={isFirstChord}
+        isLastChord={isLastChord}
         isFirstChordInTab={isFirstChordInTab}
         isLastChordInTab={isLastChordInTab}
-        noteLength={chord?.data.noteLength || "quarter"}
         bpmToShow={chord?.data.showBpm ? chord?.data.bpm : undefined}
         chordName={chord?.data.chordName || ""}
         chordColor={chord?.data.chordColor || ""}
@@ -931,6 +981,9 @@ function RenderChordByType({
         prevChordIsRest={prevChordIsRest}
         currentChordIsRest={currentChordIsRest}
         nextChordIsRest={nextChordIsRest}
+        breakBeamWithPrevious={breakBeamWithPrevious}
+        breakBeamWithNext={breakBeamWithNext}
+        editingLoopRange={editingLoopRange}
       />
     );
   }

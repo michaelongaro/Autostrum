@@ -18,7 +18,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import { PiMetronome } from "react-icons/pi";
-import { stringifyFullTabState, useTabStore } from "~/stores/TabStore";
+import { useTabStore } from "~/stores/TabStore";
 import { IoMdSettings } from "react-icons/io";
 import { IoBookmark, IoStatsChart } from "react-icons/io5";
 import Logo from "~/components/ui/icons/Logo";
@@ -36,6 +36,8 @@ import { api } from "~/utils/api";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
 import HeaderLogo from "~/components/Header/HeaderLogo";
+import { getTabDocument } from "~/utils/drafts/tabDraftState";
+import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 import Spinner from "~/components/ui/Spinner";
 
 function MobileHeader() {
@@ -108,7 +110,7 @@ function MobileHeader() {
 
             <DialogContent
               renderCloseButton={false}
-              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none border-none p-0"
+              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none border-none p-0 data-[state=closed]:!zoom-out-100 data-[state=open]:!zoom-in-100 data-[state=closed]:!slide-out-to-top-[50%] data-[state=open]:!slide-in-from-top-[50%]"
             >
               <SearchInput setShowMobileSearch={setShowMobileSearch} />
             </DialogContent>
@@ -341,12 +343,8 @@ function MobileHeader() {
                         variant={"headerNavigation"}
                         className="baseFlex h-10 gap-2 px-8"
                         onClick={() => {
-                          // snapshotting current tabData into localStorage for when
-                          // user is redirected back onto site
-                          localStorage.setItem(
-                            "autostrum-tabData",
-                            stringifyFullTabState(),
-                          );
+                          if (asPath.split("?")[0] === "/create")
+                            saveTabForSignIn(getTabDocument());
                         }}
                       >
                         <FaUser className="size-4" />

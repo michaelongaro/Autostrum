@@ -89,8 +89,15 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <span>
-                  Copying ( <kbd>Ctrl</kbd> <kbd>C</kbd> ) & pasting ({" "}
-                  <kbd>Ctrl</kbd> <kbd>V</kbd> ) chords works as expected.
+                  Undo <kbd>Ctrl</kbd> <kbd>Z</kbd> and redo <kbd>Ctrl</kbd>{" "}
+                  <kbd>Y</kbd> is fully supported.
+                </span>
+              </div>
+              <div className="baseFlex !items-start gap-2">
+                <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
+                <span>
+                  Copying <kbd>Ctrl</kbd> <kbd>C</kbd> & pasting <kbd>Ctrl</kbd>{" "}
+                  <kbd>V</kbd> chords works as expected.
                 </span>
               </div>
               <div className="baseFlex !items-start gap-2">
@@ -137,10 +144,10 @@ function TipsDialog({ showTipsDialog, setShowTipsDialog }: TipsDialog) {
               <div className="baseFlex !items-start gap-2">
                 <div className="mt-3 h-[1px] w-2 shrink-0 bg-foreground" />
                 <span>
-                  Press the
+                  Press
                   <kbd className="ml-1.5">Spacebar</kbd> to play/pause the tab.
-                  If you hover over a chord, the tab will start playing from
-                  there.
+                  If you are hovered over a chord, the tab will start playing
+                  from there.
                 </span>
               </div>
             </div>

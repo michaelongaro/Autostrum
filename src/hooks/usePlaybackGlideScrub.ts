@@ -30,6 +30,7 @@ import {
   SCRUB_COAST_DECELERATION_RATE,
   velocityToReachIosCoastDestination,
 } from "~/utils/playbackScrubMath";
+import { parseStripPositionPx } from "~/utils/playbackStripMotion";
 
 /** Cap a single frame so backgrounding cannot fling the strip. */
 const MAX_FRAME_DELTA_MS = 32;
@@ -1070,6 +1071,20 @@ function usePlaybackGlideScrub({
     isCoastingRef.current = false;
     isSpringBackRef.current = false;
     isSnapSettlingRef.current = false;
+
+    // Playback motion is a compositor animation, so the scroll ref is only a
+    // coarse sample. Read the painted transform while the animation is still
+    // running (this handler runs before React tears it down).
+    const stripElement = stripRef.current;
+    const paintedPosition =
+      wasInertiaActive || !stripElement
+        ? null
+        : parseStripPositionPx(
+            window.getComputedStyle(stripElement).transform,
+          );
+    if (paintedPosition !== null) {
+      scrubPositionRef.current = paintedPosition;
+    }
 
     const startPosition = wasInertiaActive
       ? positionRef.current

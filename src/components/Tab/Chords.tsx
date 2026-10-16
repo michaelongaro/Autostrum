@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline } from "react-icons/md";
@@ -14,18 +13,11 @@ import { getNextChordColor } from "~/utils/chordColors";
 import { Separator } from "~/components/ui/separator";
 import ChordName from "~/components/ui/ChordName";
 import { BsMusicNoteBeamed } from "react-icons/bs";
-
-const opacityVariants = {
-  closed: {
-    opacity: 0,
-  },
-  open: {
-    opacity: 1,
-  },
-};
+import SortableMetadataList from "./SortableMetadataList";
 
 function Chords() {
   const [accordionValue, setAccordionValue] = useState("closed");
+  const [reordering, setReordering] = useState(false);
 
   const {
     chords,
@@ -71,7 +63,7 @@ function Chords() {
                 if (chordName === chordNameToBeDeleted) {
                   const section = draft[sectionIndex]!.data[subSectionIndex];
 
-                  if (!section || section.type !== "chord") continue;
+                  if (section?.type !== "chord") continue;
 
                   section.data[chordSequenceIndex]!.data[chordIndex] = "";
                 }
@@ -109,81 +101,102 @@ function Chords() {
           </AccordionTrigger>
           <AccordionContent className="w-full">
             <div className="baseVertFlex w-full !items-start gap-4 p-2 !pt-0 sm:p-4">
-              <div
-                className={`baseFlex flex-wrap !justify-start gap-4 ${chords.length > 0 ? "mt-4" : ""}`}
+              <SortableMetadataList
+                items={chords}
+                reordering={reordering}
+                onReorder={setChords}
+                onDragStart={pauseAudio}
+                getItemLabel={(chord) => `${chord.name} chord`}
+                itemClassName="baseVertFlex overflow-hidden rounded-md border-2 bg-secondary"
+                handleClassName="h-full w-full"
+                className={`baseFlex flex-wrap !justify-start gap-4 ${chords.length > 0 ? "mb-2 mt-4" : ""}`}
               >
-                {chords.map((chord, index) => (
-                  <motion.div
-                    key={chord.id}
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="open"
-                    exit="closed"
-                    className="baseVertFlex overflow-hidden rounded-md border-2"
-                  >
+                {(chord, index, handle) => (
+                  <>
                     <div className="baseFlex h-8 text-nowrap px-3">
                       <ChordName
                         name={chord.name}
                         color={chord.color}
                         truncate={false}
                         showFullName={true}
+                        hideColor={true}
                       />
                     </div>
 
-                    <div className="baseFlex h-8 w-full !justify-evenly border-t-2">
-                      {/* edit button */}
-                      <Button
-                        variant={"ghost"}
-                        size={"sm"}
-                        className="baseFlex h-full w-full min-w-[50px] gap-2 rounded-none"
-                        onClick={() => {
-                          pauseAudio();
-                          setChordBeingEdited({
-                            index,
-                            value: chord,
-                          });
-                        }}
-                      >
-                        {/* add the tooltip below for "Edit" */}
-                        <MdModeEditOutline className="size-5" />
-                      </Button>
+                    <div className="baseFlex h-8 w-full min-w-[102px] !justify-evenly border-t-2">
+                      {reordering ? (
+                        handle
+                      ) : (
+                        <>
+                          {/* edit button */}
+                          <Button
+                            variant={"ghost"}
+                            size={"sm"}
+                            aria-label={`Edit ${chord.name} chord`}
+                            className="baseFlex h-full w-full min-w-[50px] gap-2 rounded-none"
+                            onClick={() => {
+                              pauseAudio();
+                              setChordBeingEdited({
+                                index,
+                                value: chord,
+                              });
+                            }}
+                          >
+                            {/* add the tooltip below for "Edit" */}
+                            <MdModeEditOutline className="size-5" />
+                          </Button>
 
-                      <Separator
-                        orientation="vertical"
-                        className="h-full w-[2px] bg-border"
-                      />
+                          <Separator
+                            orientation="vertical"
+                            className="h-full w-[2px] bg-border"
+                          />
 
-                      {/* delete button */}
-                      <Button
-                        variant={"destructive"}
-                        size="sm"
-                        className="baseFlex h-full w-full min-w-[50px] rounded-none border-none"
-                        onClick={() => handleDeleteChord(index, chord.name)}
-                      >
-                        {/* add the tooltip below for "Delete" */}
-                        <FaTrashAlt className="size-4" />
-                      </Button>
+                          {/* delete button */}
+                          <Button
+                            variant={"destructive"}
+                            size="sm"
+                            aria-label={`Delete ${chord.name} chord`}
+                            className="baseFlex h-full w-full min-w-[50px] rounded-none border-none"
+                            onClick={() => handleDeleteChord(index, chord.name)}
+                          >
+                            {/* add the tooltip below for "Delete" */}
+                            <FaTrashAlt className="size-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
-                  </motion.div>
-                ))}
+                  </>
+                )}
+              </SortableMetadataList>
+
+              <div className="baseFlex mb-1 gap-2">
+                <Button
+                  onClick={() => {
+                    setChordBeingEdited({
+                      index: chords.length,
+                      value: {
+                        id: crypto.randomUUID(),
+                        name: "",
+                        frets: ["", "", "", "", "", ""],
+                        color: getNextChordColor(chords),
+                      },
+                    });
+                  }}
+                >
+                  Add chord
+                </Button>
+                <Button
+                  variant="outline"
+                  aria-pressed={reordering}
+                  disabled={!reordering && chords.length < 2}
+                  onClick={() => {
+                    pauseAudio();
+                    setReordering((prev) => !prev);
+                  }}
+                >
+                  {reordering ? "Done" : "Reorder"}
+                </Button>
               </div>
-
-              <Button
-                className="mb-1"
-                onClick={() => {
-                  setChordBeingEdited({
-                    index: chords.length,
-                    value: {
-                      id: crypto.randomUUID(),
-                      name: "",
-                      frets: ["", "", "", "", "", ""],
-                      color: getNextChordColor(chords),
-                    },
-                  });
-                }}
-              >
-                Add chord
-              </Button>
             </div>
           </AccordionContent>
         </AccordionItem>

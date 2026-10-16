@@ -10,12 +10,10 @@ import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
 import { Button } from "~/components/ui/button";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
-import { Toggle } from "~/components/ui/toggle";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { getTabStore, useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import { getConcreteDraftLoopRange } from "~/utils/loopRangeHelpers";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 interface PlaybackAudioControls {
@@ -46,7 +44,6 @@ function PlaybackAudioControls({
     setCurrentChordIndex,
     currentlyPlayingMetadata,
     audioMetadata,
-    setAudioMetadata,
     previewMetadata,
     currentInstrument,
     playTab,
@@ -56,12 +53,9 @@ function PlaybackAudioControls({
     countInTimer,
     setCountInTimer,
     viewportLabel,
-    playbackMetadata,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
-    draftLoopStartIndex,
-    draftLoopEndIndex,
-    initDraftLoopRangeFromAudioMetadata,
+    enterPlaybackLoopRangeEditor,
   } = useTabStore((state) => ({
     bpm: state.bpm,
     playbackSpeed: state.playbackSpeed,
@@ -70,7 +64,6 @@ function PlaybackAudioControls({
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
-    setAudioMetadata: state.setAudioMetadata,
     previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
     playTab: state.playTab,
@@ -80,20 +73,26 @@ function PlaybackAudioControls({
     countInTimer: state.countInTimer,
     setCountInTimer: state.setCountInTimer,
     viewportLabel: state.viewportLabel,
-    playbackMetadata: state.playbackMetadata,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
-    draftLoopStartIndex: state.draftLoopStartIndex,
-    draftLoopEndIndex: state.draftLoopEndIndex,
-    initDraftLoopRangeFromAudioMetadata:
-      state.initDraftLoopRangeFromAudioMetadata,
+    enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
   }));
 
-  const loopRange = getConcreteDraftLoopRange(
-    draftLoopStartIndex,
-    draftLoopEndIndex,
-    audioMetadata.fullTabMetadataLength,
-  );
+  // One compiled cycle of whatever scope the strip is showing (committed loop,
+  // or the full selected tab/section while editing the loop range). Artificial
+  // viewport duplicates are excluded so Range min/max and timestamps stay in
+  // the same coordinate system.
+  const rangeMetadataLength = currentlyPlayingMetadata?.length ?? 0;
+  const rangeChordIndex =
+    rangeMetadataLength > 0
+      ? ((currentChordIndex % rangeMetadataLength) + rangeMetadataLength) %
+        rangeMetadataLength
+      : 0;
+  const rangeStartSeconds =
+    currentlyPlayingMetadata?.[rangeChordIndex]?.elapsedSeconds ?? 0;
+  const rangeEndSeconds =
+    currentlyPlayingMetadata?.[Math.max(0, rangeMetadataLength - 1)]
+      ?.elapsedSeconds ?? 0;
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
@@ -305,64 +304,46 @@ function PlaybackAudioControls({
 
           <div className="baseFlex w-full gap-4">
             <div className="baseFlex w-9 !justify-start self-start">
-              {formatSecondsToMinutes(
-                playbackMetadata?.[
-                  audioMetadata.editingLoopRange
-                    ? loopRange[0]
-                    : currentChordIndex
-                ]?.elapsedSeconds ?? 0,
-              )}
+              {formatSecondsToMinutes(rangeStartSeconds)}
             </div>
 
             <PlaybackAudioRange
-              disabled={disablePlayButton}
+              disabled={disablePlayButton && !audioMetadata.editingLoopRange}
               chordDurations={chordDurations}
               setChordRepetitions={setChordRepetitions}
               scrollPositionsLength={scrollPositionsLength}
             />
 
             <div className="baseFlex w-9 !justify-end self-start">
-              {formatSecondsToMinutes(
-                playbackMetadata?.[
-                  audioMetadata.editingLoopRange
-                    ? loopRange[1]
-                    : playbackMetadata?.length - 1
-                ]?.elapsedSeconds ?? 0,
-              )}
+              {formatSecondsToMinutes(rangeEndSeconds)}
             </div>
           </div>
 
           {!audioMetadata.editingLoopRange && (
-            <Toggle
+            <Button
               variant={"outline"}
               aria-label="Edit loop range"
               disabled={audioMetadata.playing || countInTimer.showing}
-              pressed={audioMetadata.editingLoopRange}
               className="h-8 w-8 p-1"
-              onPressedChange={(value) => {
-                if (value) {
-                  initDraftLoopRangeFromAudioMetadata();
-                  setCurrentChordIndex(audioMetadata.startLoopIndex);
-                } else {
-                  setCurrentChordIndex(0);
-                }
-
-                setAudioMetadata({
-                  ...audioMetadata,
-                  editingLoopRange: value,
-                });
-              }}
+              onClick={() => enterPlaybackLoopRangeEditor()}
             >
-              <CgArrowsShrinkH className="h-6 w-6" />
-            </Toggle>
+              <CgArrowsShrinkH className="size-6" />
+            </Button>
           )}
         </div>
       )}
 
       {!viewportLabel.includes("Landscape") && (
         <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[612px]">
+          {audioMetadata.editingLoopRange &&
+            viewportLabel.includes("mobile") && (
+              <p className="h-0 pb-[20px] text-sm text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
+                {loopRangePrompt}
+              </p>
+            )}
+
           <PlaybackAudioRange
-            disabled={disablePlayButton}
+            disabled={disablePlayButton && !audioMetadata.editingLoopRange}
             chordDurations={chordDurations}
             setChordRepetitions={setChordRepetitions}
             scrollPositionsLength={scrollPositionsLength}
@@ -370,19 +351,17 @@ function PlaybackAudioControls({
 
           <div className="baseFlex w-full !justify-between">
             <div className="baseFlex w-9 !justify-start self-start">
-              {formatSecondsToMinutes(
-                playbackMetadata?.[
-                  audioMetadata.editingLoopRange
-                    ? loopRange[0]
-                    : currentChordIndex
-                ]?.elapsedSeconds ?? 0,
-              )}
+              {formatSecondsToMinutes(rangeStartSeconds)}
             </div>
 
             {audioMetadata.editingLoopRange ? (
-              <p className="pb-1 pt-[3px] text-xs text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
-                {loopRangePrompt}
-              </p>
+              <>
+                {viewportLabel.includes("mobile") ? null : (
+                  <p className="h-0 pb-[15px] text-xs text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
+                    {loopRangePrompt}
+                  </p>
+                )}
+              </>
             ) : (
               <div className="baseFlex gap-6">
                 <Button
@@ -504,13 +483,7 @@ function PlaybackAudioControls({
             )}
 
             <div className="baseFlex w-9 !justify-end self-start">
-              {formatSecondsToMinutes(
-                playbackMetadata?.[
-                  audioMetadata.editingLoopRange
-                    ? loopRange[1]
-                    : playbackMetadata?.length - 1
-                ]?.elapsedSeconds ?? 0,
-              )}
+              {formatSecondsToMinutes(rangeEndSeconds)}
             </div>
           </div>
         </div>

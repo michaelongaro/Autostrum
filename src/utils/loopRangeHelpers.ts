@@ -1,51 +1,7 @@
-import type { AudioMetadata, PlaybackMetadata } from "~/stores/TabStore";
+import type { AudioMetadata } from "~/stores/TabStore";
 import type { LoopRangeNodeRole } from "~/components/Tab/Playback/PlaybackLoopRangeNode";
 
 export type LoopRangeSelectionStep = "selectStart" | "selectEnd" | "complete";
-
-function isNonSelectableLoopIndex(
-  index: number,
-  playbackMetadata: PlaybackMetadata[] | null,
-): boolean {
-  const type = playbackMetadata?.[index]?.type;
-  return type === "ornamental" || type === "loopDelaySpacer";
-}
-
-/**
- * Snap a Range thumb index off measure lines / ornamental columns.
- * Prefers continuing in `moveDirection`, then searches the opposite way.
- */
-export function snapLoopRangeIndexOffOrnamental({
-  index,
-  moveDirection,
-  playbackMetadata,
-  minIndex,
-  maxIndex,
-}: {
-  index: number;
-  moveDirection: -1 | 1;
-  playbackMetadata: PlaybackMetadata[] | null;
-  minIndex: number;
-  maxIndex: number;
-}): number | null {
-  if (index < minIndex || index > maxIndex) return null;
-
-  if (!isNonSelectableLoopIndex(index, playbackMetadata)) {
-    return index;
-  }
-
-  for (const direction of [moveDirection, -moveDirection] as const) {
-    let cursor = index + direction;
-    while (cursor >= minIndex && cursor <= maxIndex) {
-      if (!isNonSelectableLoopIndex(cursor, playbackMetadata)) {
-        return cursor;
-      }
-      cursor += direction;
-    }
-  }
-
-  return null;
-}
 
 /** Store/UI sentinel: endLoopIndex -1 means "through the last chord". */
 export function getConcreteLoopEndIndex(
@@ -59,27 +15,90 @@ export function getConcreteLoopEndIndex(
 }
 
 /**
- * Concrete [start, end] for the two-thumb Range while editing.
- * Missing endpoints expand toward the tab bounds so the Range always has values.
+ * Map a playback `currentChordIndex` (relative to the committed loop strip,
+ * which may include artificial viewport duplicates + loop-delay spacers) onto
+ * the corresponding full-tab metadata index for loop-range editing.
+ *
+ * Cycle length is `(concreteEnd - start + 1) + loopDelay` — one baseline copy
+ * before artificial duplication. Indices that land on delay spacers clamp to
+ * the last real chord in the loop so the editor stays on tab content.
  */
-export function getConcreteDraftLoopRange(
-  draftStartIndex: number | null,
-  draftEndIndex: number | null,
-  fullTabMetadataLength: number,
-): [number, number] {
-  const lastIndex = Math.max(0, fullTabMetadataLength - 1);
+export function mapLoopRelativeChordIndexToFullTabIndex({
+  currentChordIndex,
+  startLoopIndex,
+  endLoopIndex,
+  fullTabMetadataLength,
+  loopDelay,
+}: {
+  currentChordIndex: number;
+  startLoopIndex: number;
+  endLoopIndex: number;
+  fullTabMetadataLength: number;
+  loopDelay: number;
+}): number {
+  const concreteEnd = getConcreteLoopEndIndex(
+    endLoopIndex,
+    fullTabMetadataLength,
+  );
+  const loopRangeLength = Math.max(1, concreteEnd - startLoopIndex + 1);
+  const cycleLength = loopRangeLength + Math.max(0, loopDelay);
 
-  if (draftStartIndex === null && draftEndIndex === null) {
-    return [0, lastIndex];
-  }
-  if (draftStartIndex !== null && draftEndIndex === null) {
-    return [draftStartIndex, lastIndex];
-  }
-  if (draftStartIndex === null && draftEndIndex !== null) {
-    return [0, draftEndIndex];
+  const relativeInCycle =
+    ((currentChordIndex % cycleLength) + cycleLength) % cycleLength;
+  const relativeInRange = Math.min(relativeInCycle, loopRangeLength - 1);
+  return startLoopIndex + relativeInRange;
+}
+
+/**
+ * A committed range that already covers every chord in the current section or
+ * tab is the default playback scope, not a user-defined loop.
+ * `endLoopIndex === -1` means "through the last chord".
+ */
+export function isStoredLoopRangeFullSpan(
+  audioMetadata: AudioMetadata,
+): boolean {
+  if (audioMetadata.startLoopIndex !== 0) return false;
+  if (audioMetadata.endLoopIndex === -1) return true;
+
+  const length = audioMetadata.fullTabMetadataLength;
+  if (length <= 0) return false;
+
+  return (
+    getConcreteLoopEndIndex(audioMetadata.endLoopIndex, length) >= length - 1
+  );
+}
+
+/**
+ * Draft shown when the loop-range editor opens. A narrowed range is seeded so
+ * the user can adjust it; a full section/tab span starts blank.
+ */
+export function getInitialDraftLoopRange(audioMetadata: AudioMetadata): {
+  startIndex: number | null;
+  endIndex: number | null;
+} {
+  const length = audioMetadata.fullTabMetadataLength;
+  if (isStoredLoopRangeFullSpan(audioMetadata) || length <= 1) {
+    return { startIndex: null, endIndex: null };
   }
 
-  return [draftStartIndex!, draftEndIndex!];
+  const concreteEnd = getConcreteLoopEndIndex(
+    audioMetadata.endLoopIndex,
+    length,
+  );
+
+  if (
+    audioMetadata.startLoopIndex < 0 ||
+    audioMetadata.startLoopIndex >= length ||
+    concreteEnd <= audioMetadata.startLoopIndex ||
+    concreteEnd >= length
+  ) {
+    return { startIndex: null, endIndex: null };
+  }
+
+  return {
+    startIndex: audioMetadata.startLoopIndex,
+    endIndex: concreteEnd,
+  };
 }
 
 export function isDraftLoopRangeEmpty(
@@ -101,11 +120,8 @@ export function isDraftLoopRangeUnchanged(
   draftEndIndex: number | null,
   audioMetadata: AudioMetadata,
 ): boolean {
-  const storeIsFullRange =
-    audioMetadata.startLoopIndex === 0 && audioMetadata.endLoopIndex === -1;
-
   if (isDraftLoopRangeEmpty(draftStartIndex, draftEndIndex)) {
-    return storeIsFullRange;
+    return isStoredLoopRangeFullSpan(audioMetadata);
   }
 
   if (!isDraftLoopRangeComplete(draftStartIndex, draftEndIndex)) {

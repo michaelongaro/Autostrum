@@ -1,33 +1,12 @@
-import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  rectIntersection,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import { restrictToParentElement } from "@dnd-kit/modifiers";
-import {
-  arrayMove,
-  rectSortingStrategy,
-  SortableContext,
-  sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
+import { type DragEndEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
+import EditingTabStaff from "./EditingTabStaff";
 import {
   Select,
   SelectContent,
@@ -46,9 +25,9 @@ import {
   useTabColumnTypes,
   useTabSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import {
   useTabDataGetter,
+  useTabStoreApi,
   useTabStore,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
@@ -69,16 +48,6 @@ import {
   setPalmMuteValue,
 } from "~/utils/tabNoteHelpers";
 import MiscellaneousControls from "./MiscellaneousControls";
-import TabMeasureLine from "./TabMeasureLine";
-import TabNotesColumn from "./TabNotesColumn";
-
-// Stable dnd-kit config: inline `{ coordinateGetter }` / `[modifier]` identities
-// change every render and force DndContext to publish new context, re-rendering
-// every useSortable column even when their props are unchanged.
-const keyboardSensorOptions = {
-  coordinateGetter: sortableKeyboardCoordinates,
-};
-const dndModifiers = [restrictToParentElement];
 
 const xVariants = {
   hidden: { scale: 0, opacity: 0 },
@@ -131,15 +100,16 @@ interface TabSection {
   sectionIndex: number;
   subSectionIndex: number;
   presentation?: "full" | "embedded";
-  children?: ReactNode;
+  className?: string;
 }
 
 function TabSection({
   sectionIndex,
   subSectionIndex,
   presentation = "full",
-  children,
+  className,
 }: TabSection) {
+  const store = useTabStoreApi();
   const getTabData = useTabDataGetter();
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
@@ -153,13 +123,14 @@ function TabSection({
     useState(false);
 
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
-
-  const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, keyboardSensorOptions),
-  );
+  useEffect(() => {
+    return store.subscribe((state, previous) => {
+      if (state.editorHistoryRevision === previous.editorHistoryRevision)
+        return;
+      setLastModifiedPalmMuteNode(null);
+      setEditingPalmMuteNodes(false);
+    });
+  }, [store]);
 
   // Meta + column identity only — note edits must not re-render this section shell.
   const subSection = useTabSubSectionMeta(sectionIndex, subSectionIndex);
@@ -167,22 +138,39 @@ function TabSection({
   const columnTypes = useTabColumnTypes(sectionIndex, subSectionIndex);
 
   useEffect(() => {
-    if (inputIdToFocus) {
+    if (!inputIdToFocus) return;
+
+    const match = /^input-(\d+)-(\d+)-(\d+)-(\d+)$/.exec(inputIdToFocus);
+    if (match) {
+      window.dispatchEvent(
+        new CustomEvent("editing-tab-reveal-column", {
+          detail: {
+            sectionIndex: Number(match[1]),
+            subSectionIndex: Number(match[2]),
+            columnIndex: Number(match[3]),
+            noteIndex: Number(match[4]),
+          },
+        }),
+      );
+    }
+
+    const frame = requestAnimationFrame(() => {
       const currentNote = document.getElementById(
         `${sectionIndex}${subSectionIndex}ExtendTabButton`,
       );
       const newNoteToFocus = document.getElementById(inputIdToFocus);
       focusAndScrollIntoView(currentNote, newNoteToFocus);
       setInputIdToFocus(null);
-    }
+    });
+
+    return () => cancelAnimationFrame(frame);
   }, [inputIdToFocus, sectionIndex, subSectionIndex]);
 
   // Intentionally omit currentChordIndex / currentlyPlayingMetadata / playback
   // fields: columns subscribe to those with fine-grained selectors so playback
   // ticks don't re-render the whole section (and invalidate DndContext).
-  const { bpm, tuning, setTabData } = useTabStore((state) => ({
+  const { bpm, setTabData } = useTabStore((state) => ({
     bpm: state.bpm,
-    tuning: state.tuning,
     setTabData: state.setTabData,
   }));
 
@@ -811,26 +799,21 @@ function TabSection({
   return (
     <div
       ref={containerRef}
-      style={{
-        padding:
-          presentation === "embedded"
-            ? "0"
-            : aboveMediumViewportWidth
-              ? "2rem"
-              : "1rem 0.5rem 1rem 0.5rem",
-      }}
-      className={
+
+      className={[
         presentation === "embedded"
-          ? "baseVertFlex relative w-full !justify-start gap-1"
-          : "baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 shadow-md"
-      }
+          ? "baseVertFlex relative w-full !justify-start"
+          : "baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 p-4 shadow-md md:p-8",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      {children}
       {presentation === "full" && (
         <div className="baseFlex w-full !items-start">
           <div className="baseVertFlex w-5/6 !items-start gap-4 xl:!flex-row xl:!justify-start">
             <div className="baseFlex gap-2">
-              <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center">
+              <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-4">
                 <div className="baseFlex gap-2">
                   <Label
                     htmlFor={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
@@ -933,7 +916,7 @@ function TabSection({
               </div>
             </div>
 
-            <div className="baseVertFlex !items-start gap-2 sm:!flex-row">
+            <div className="baseVertFlex !items-start gap-2 sm:!flex-row lg:gap-4">
               <div className="baseFlex">
                 <TooltipProvider delayDuration={0}>
                   <Tooltip>
@@ -1134,58 +1117,20 @@ function TabSection({
         </div>
       )}
 
-      <div
-        className={`baseFlex relative w-full flex-wrap !items-start !justify-start gap-y-4 ${presentation === "full" ? "mt-4" : ""}`}
-      >
-        {editingPalmMuteNodes && (
-          <p className="absolute left-[6px] top-[14px] text-sm italic">PM</p>
-        )}
-
-        <div className="baseVertFlex">
-          <div className="h-[48px]"></div>
-          <div className="baseVertFlex relative h-[258px] rounded-l-2xl border-2 border-foreground bg-background/75 p-2">
-            <PrettyVerticalTuning tuning={tuning} height={"230px"} />
-          </div>
-          <div className="h-[74px]"></div>
-        </div>
-
-        <DndContext
-          sensors={sensors}
-          modifiers={dndModifiers}
-          collisionDetection={rectIntersection}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={columnIds} strategy={rectSortingStrategy}>
-            {columnIds.map((columnId, index) => (
-              <Fragment key={columnId}>
-                {columnTypes[index] === "measureLine" ? (
-                  <TabMeasureLine
-                    sectionIndex={sectionIndex}
-                    subSectionIndex={subSectionIndex}
-                    columnIndex={index}
-                    reorderingColumns={reorderingColumns}
-                    showingDeleteColumnsButtons={showingDeleteColumnsButtons}
-                  />
-                ) : (
-                  <TabNotesColumn
-                    sectionIndex={sectionIndex}
-                    subSectionIndex={subSectionIndex}
-                    columnIndex={index}
-                    isLastColumn={index === columnIds.length - 1}
-                    pmNodeOpacity={pmNodeOpacities[index] ?? "1"}
-                    editingPalmMuteNodes={editingPalmMuteNodes}
-                    setEditingPalmMuteNodes={setEditingPalmMuteNodes}
-                    lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                    setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                    reorderingColumns={reorderingColumns}
-                    showingDeleteColumnsButtons={showingDeleteColumnsButtons}
-                  />
-                )}
-              </Fragment>
-            ))}
-          </SortableContext>
-        </DndContext>
-      </div>
+      <EditingTabStaff
+        sectionIndex={sectionIndex}
+        subSectionIndex={subSectionIndex}
+        columnIds={columnIds}
+        columnTypes={columnTypes}
+        pmNodeOpacities={pmNodeOpacities}
+        editingPalmMuteNodes={editingPalmMuteNodes}
+        setEditingPalmMuteNodes={setEditingPalmMuteNodes}
+        lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+        setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
+        reorderingColumns={reorderingColumns}
+        showingDeleteColumnsButtons={showingDeleteColumnsButtons}
+        onDragEnd={handleDragEnd}
+      />
 
       {presentation === "full" && (
         <Button

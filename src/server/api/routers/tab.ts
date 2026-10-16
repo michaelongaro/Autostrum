@@ -1,7 +1,19 @@
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { Tab } from "~/generated/client";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
+import {
+  chordSchema,
+  strummingPatternSchema,
+  sectionProgressionSchema,
+  sectionSchema,
+  draftReferenceSchema,
+} from "~/utils/tabDocument";
+import {
+  claimDraftForPublication,
+  finishDraftPublication,
+} from "~/server/api/draftPersistence";
 
 import {
   createTRPCRouter,
@@ -14,154 +26,6 @@ export interface TabWithArtistMetadata extends Tab {
   artistName?: string;
   artistIsVerified?: boolean;
 }
-
-const baseNoteLengths = z.union([
-  z.literal("whole"),
-  z.literal("half"),
-  z.literal("quarter"),
-  z.literal("eighth"),
-  z.literal("sixteenth"),
-]);
-
-const fullNoteLengths = z.union([
-  z.literal("whole"),
-  z.literal("whole dotted"),
-  z.literal("whole double-dotted"),
-  z.literal("half"),
-  z.literal("half dotted"),
-  z.literal("half double-dotted"),
-  z.literal("quarter"),
-  z.literal("quarter dotted"),
-  z.literal("quarter double-dotted"),
-  z.literal("eighth"),
-  z.literal("eighth dotted"),
-  z.literal("eighth double-dotted"),
-  z.literal("sixteenth"),
-  z.literal("sixteenth dotted"),
-  z.literal("sixteenth double-dotted"),
-]);
-
-// -----------------------------
-// Section Progression
-// -----------------------------
-const sectionProgressionSchema = z.object({
-  id: z.string(),
-  sectionId: z.string(),
-  title: z.string(),
-  repetitions: z.number(),
-  startSeconds: z.number(),
-  endSeconds: z.number(),
-});
-
-// -----------------------------
-// Chord
-// -----------------------------
-const chordSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  color: z.string(),
-  frets: z.array(z.string()), // keeping as string to match ITabSection
-});
-
-// -----------------------------
-// Strum
-// -----------------------------
-const strumSchema = z.object({
-  palmMute: z.union([
-    z.literal(""),
-    z.literal("-"),
-    z.literal("start"),
-    z.literal("end"),
-  ]),
-  strum: z.string(), // effects are v, ^, >, s, ., r
-  noteLength: fullNoteLengths,
-});
-
-// -----------------------------
-// Strumming Pattern
-// -----------------------------
-const strummingPatternSchema = z.object({
-  id: z.string(),
-  baseNoteLength: baseNoteLengths,
-  strums: z.array(strumSchema),
-});
-
-// -----------------------------
-// Chord Sequence
-// -----------------------------
-const chordSequenceSchema = z.object({
-  id: z.string(),
-  strummingPattern: strummingPatternSchema,
-  bpm: z.number(),
-  repetitions: z.number(),
-  data: z.array(z.string()), // array of chord names
-});
-
-// -----------------------------
-// Chord Section
-// -----------------------------
-const chordSectionSchema = z.object({
-  id: z.string(),
-  type: z.literal("chord"),
-  bpm: z.number(),
-  repetitions: z.number(),
-  data: z.array(chordSequenceSchema),
-});
-
-// -----------------------------
-// Tab Note
-// -----------------------------
-const tabNoteSchema = z.object({
-  type: z.literal("note"),
-  palmMute: z.union([
-    z.literal(""),
-    z.literal("-"),
-    z.literal("start"),
-    z.literal("end"),
-  ]),
-  firstString: z.string(), // low E
-  secondString: z.string(), // A
-  thirdString: z.string(), // D
-  fourthString: z.string(), // G
-  fifthString: z.string(), // B
-  sixthString: z.string(), // high E
-  chordEffects: z.string(),
-  noteLength: fullNoteLengths,
-  id: z.string(),
-});
-
-// -----------------------------
-// Tab Measure Line
-// -----------------------------
-const tabMeasureLineSchema = z.object({
-  type: z.literal("measureLine"),
-  isInPalmMuteSection: z.boolean(),
-  bpmAfterLine: z.number().nullable(),
-  id: z.string(),
-});
-
-// -----------------------------
-// Tab Section
-// -----------------------------
-const tabSectionSchema = z.object({
-  id: z.string(),
-  type: z.literal("tab"),
-  bpm: z.number(),
-  baseNoteLength: baseNoteLengths,
-  repetitions: z.number(),
-  data: z.array(
-    z.discriminatedUnion("type", [tabNoteSchema, tabMeasureLineSchema]),
-  ),
-});
-
-// -----------------------------
-// Section
-// -----------------------------
-const sectionSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  data: z.array(z.union([tabSectionSchema, chordSectionSchema])),
-});
 
 // Helper function to trigger screenshot capture
 async function triggerScreenshotCapture(
@@ -436,8 +300,24 @@ export const tabRouter = createTRPCRouter({
         });
       }
 
+      // 5) increment this tab's weekly page views (for trending songs)
+      await ctx.prisma.weeklyTabView.upsert({
+        where: {
+          tabId,
+        },
+        update: {
+          pageViews: {
+            increment: 1,
+          },
+        },
+        create: {
+          tabId,
+          pageViews: 1,
+        },
+      });
+
       if (artistId) {
-        // 5) increment the artist's totalTabViews
+        // 6) increment the artist's totalTabViews
         await ctx.prisma.artist.update({
           where: {
             id: artistId,
@@ -454,6 +334,7 @@ export const tabRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
+        draft: draftReferenceSchema.optional(),
         title: z.string().max(50),
         artistId: z.number().nullable(),
         artistName: z.string().max(60).optional(),
@@ -493,39 +374,52 @@ export const tabRouter = createTRPCRouter({
 
       const userId = ctx.auth.userId;
 
-      const tab = await ctx.prisma.tab.create({
-        data: {
-          title,
-          description,
-          genre,
-          tuning,
-          sectionProgression,
-          bpm,
-          capo,
-          key,
-          difficulty,
-          chords,
-          strummingPatterns,
-          tabData,
-          ...(userId ? { createdBy: { connect: { userId: userId } } } : {}),
-          // FYI: even though userId will always be provided, since the field is optional
-          // in our schema, prisma wants us to use the relation field.
-          ...(artistId != null
-            ? { artist: { connect: { id: artistId } } }
-            : artistName
-              ? {
-                  artist: {
-                    create: {
-                      name: artistName,
-                      isVerified: false,
-                      totalTabs: 1,
-                      totalViews: 0,
+      const { tab, replayed } = await ctx.prisma.$transaction(async (tx) => {
+        const replay = await claimDraftForPublication(
+          tx,
+          input.draft,
+          userId,
+          null,
+        );
+        if (replay) return { tab: replay, replayed: true };
+        const tab = await tx.tab.create({
+          data: {
+            title,
+            description,
+            genre,
+            tuning,
+            sectionProgression,
+            bpm,
+            capo,
+            key,
+            difficulty,
+            chords,
+            strummingPatterns,
+            tabData,
+            ...(userId ? { createdBy: { connect: { userId: userId } } } : {}),
+            // FYI: even though userId will always be provided, since the field is optional
+            // in our schema, prisma wants us to use the relation field.
+            ...(artistId != null
+              ? { artist: { connect: { id: artistId } } }
+              : artistName
+                ? {
+                    artist: {
+                      create: {
+                        name: artistName,
+                        isVerified: false,
+                        totalTabs: 1,
+                        totalViews: 0,
+                      },
                     },
-                  },
-                }
-              : {}),
-        },
+                  }
+                : {}),
+          },
+        });
+
+        await finishDraftPublication(tx, input.draft, tab.id);
+        return { tab, replayed: false };
       });
+      if (replayed) return tab;
 
       // immediately revalidate the tab's url to improve end user experience
       ctx.res
@@ -582,6 +476,7 @@ export const tabRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.number(),
+        draft: draftReferenceSchema.optional(),
         title: z.string().max(50),
         artistId: z.number().nullable(),
         artistName: z.string().max(60).optional(),
@@ -622,58 +517,88 @@ export const tabRouter = createTRPCRouter({
 
       // need to know if artistId changed, since we will then need to update the old and new
       // artist's totalTabs
-      const prevTabVersion = await ctx.prisma.tab.findUnique({
-        where: {
-          id,
-        },
-        select: {
-          artistId: true,
-          pageViews: true, // used to update the artist's totalViews
-          createdByUserId: true,
-        },
-      });
+      const { tab, prevTabVersion, replayed } = await ctx.prisma.$transaction(
+        async (tx) => {
+          const prevTabVersion = await tx.tab.findUnique({
+            where: {
+              id,
+            },
+            select: {
+              updatedAt: true,
+              artistId: true,
+              pageViews: true, // used to update the artist's totalViews
+              createdByUserId: true,
+            },
+          });
 
-      // only the tab creator can update their tab
-      if (
-        !prevTabVersion ||
-        prevTabVersion.createdByUserId !== ctx.auth.userId
-      ) {
-        throw new Error("Unable to find tab or unauthorized");
-      }
+          // only the tab creator can update their tab
+          if (prevTabVersion?.createdByUserId !== ctx.auth.userId) {
+            throw new Error("Unable to find tab or unauthorized");
+          }
 
-      const tab = await ctx.prisma.tab.update({
-        where: {
-          id,
+          const replay = await claimDraftForPublication(
+            tx,
+            input.draft,
+            ctx.auth.userId,
+            id,
+          );
+          if (replay) return { tab: replay, prevTabVersion, replayed: true };
+          const tab = await tx.tab
+            .update({
+              where: {
+                id,
+                updatedAt: prevTabVersion.updatedAt,
+              },
+              data: {
+                title,
+                description,
+                genre,
+                tuning,
+                sectionProgression,
+                bpm,
+                capo,
+                key,
+                difficulty,
+                chords,
+                strummingPatterns,
+                tabData,
+                ...(artistId !== null
+                  ? { artist: { connect: { id: artistId } } }
+                  : artistName
+                    ? {
+                        artist: {
+                          create: {
+                            name: artistName,
+                            isVerified: false,
+                            totalTabs: 1,
+                            totalViews: prevTabVersion.pageViews,
+                          },
+                        },
+                      }
+                    : { artist: { disconnect: true } }),
+              },
+            })
+            .catch((error: unknown) => {
+              if (
+                typeof error === "object" &&
+                error !== null &&
+                "code" in error &&
+                error.code === "P2025"
+              ) {
+                throw new TRPCError({
+                  code: "CONFLICT",
+                  message:
+                    "The published tab changed in another session. Your private draft has been kept.",
+                });
+              }
+              throw error;
+            });
+
+          await finishDraftPublication(tx, input.draft, tab.id);
+          return { tab, prevTabVersion, replayed: false };
         },
-        data: {
-          title,
-          description,
-          genre,
-          tuning,
-          sectionProgression,
-          bpm,
-          capo,
-          key,
-          difficulty,
-          chords,
-          strummingPatterns,
-          tabData,
-          ...(artistId !== null
-            ? { artist: { connect: { id: artistId } } }
-            : artistName
-              ? {
-                  artist: {
-                    create: {
-                      name: artistName,
-                      isVerified: false,
-                      totalTabs: 1,
-                      totalViews: prevTabVersion.pageViews,
-                    },
-                  },
-                }
-              : { artist: { disconnect: true } }),
-        },
-      });
+      );
+      if (replayed) return tab;
 
       // immediately revalidate the tab's url to improve end user experience
       // using "await" since a user immediately clicking the "View tab" button

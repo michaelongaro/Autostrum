@@ -1,6 +1,6 @@
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import StaticTabNote from "~/components/Tab/Static/StaticTabNote";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import type {
   COLORS,
   THEME,
@@ -14,13 +14,11 @@ import {
   isTabNote,
 } from "~/utils/tabNoteHelpers";
 import {
-  STATIC_TAB_END_CAP_WIDTH_PX,
-  STATIC_TAB_LAST_NOTES_COLUMN_WIDTH_PX,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
   STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
-  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX,
+  STATIC_TAB_PALM_MUTE_MARGIN_TOP_PX,
+  STATIC_TAB_PALM_MUTE_NODE_HEIGHT_PX,
   STATIC_TAB_ROW_HEIGHT_PX,
-  STATIC_TAB_TUNING_BOX_HEIGHT_PX,
 } from "~/utils/staticTabGeometry";
 
 function chordHasAtLeastOneNote(chordData: TabNoteType): boolean {
@@ -43,6 +41,8 @@ interface StaticTabNotesColumnProps {
   isLastColumn: boolean;
   color: COLORS;
   theme: THEME;
+  breakBeamWithPrevious: boolean;
+  breakBeamWithNext: boolean;
 }
 
 function StaticTabNotesColumn({
@@ -52,6 +52,8 @@ function StaticTabNotesColumn({
   isLastColumn,
   color,
   theme,
+  breakBeamWithPrevious,
+  breakBeamWithNext,
 }: StaticTabNotesColumnProps) {
   const previousColumnIsPlayable =
     previousColumn !== undefined && isTabNote(previousColumn);
@@ -83,104 +85,70 @@ function StaticTabNotesColumn({
     <div
       style={{
         height: STATIC_TAB_ROW_HEIGHT_PX,
-        width: isLastColumn
-          ? STATIC_TAB_LAST_NOTES_COLUMN_WIDTH_PX
-          : STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
+        width: STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
       }}
       className="baseFlex"
     >
-      <div className="baseVertFlex size-full">
+      <div className="baseVertFlex size-full !justify-start">
         {/* Palm Mute Node */}
         <div
-          style={{ height: STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX }}
+          style={{
+            height: STATIC_TAB_PALM_MUTE_NODE_HEIGHT_PX,
+            marginTop: STATIC_TAB_PALM_MUTE_MARGIN_TOP_PX,
+          }}
           className="baseVertFlex w-full"
         >
           <StaticPalmMuteNode value={columnData.palmMute} />
         </div>
 
-        {/* String Notes (1-6) w/ top and bottom borders */}
-        {([0, 1, 2, 3, 4, 5, 6, 7] as const).map((stringIndex) => {
-          const note =
-            stringIndex !== 0 && stringIndex !== 7
-              ? getStringValue(columnData, stringIndex)
-              : "null";
+        <div className="baseVertFlex relative">
+          <div className="absolute bottom-3 left-0 right-0 top-3 bg-background"></div>
+          {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => {
+            const note = getStringValue(columnData, stringIndex);
 
-          return (
-            <div
-              key={stringIndex}
-              style={{
-                width: STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
-                backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
-              }}
-              className="baseFlex relative shrink-0"
-            >
-              {/* top border */}
-              {stringIndex === 0 && (
-                <div className="baseVertFlex h-[8px] w-full !justify-start">
-                  <div
-                    style={{
-                      backgroundColor: "hsl(var(--screenshot-foreground))",
-                    }}
-                    className="h-[2px] w-full"
-                  ></div>
-                </div>
-              )}
+            return (
+              <div
+                key={stringIndex}
+                style={{
+                  width: STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
+                }}
+                className="baseFlex relative shrink-0"
+              >
+                <div
+                  style={{
+                    backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+                  }}
+                  className="h-[1px] w-full"
+                ></div>
 
-              {stringIndex !== 0 && stringIndex !== 7 && (
-                <>
-                  <div
-                    style={{
-                      backgroundColor:
-                        "hsl(var(--screenshot-foreground) / 0.5)",
-                    }}
-                    className="h-[1px] w-full"
-                  ></div>
-
-                  <StaticTabNote
-                    note={
-                      note.includes(">")
+                <StaticTabNote
+                  note={
+                    note.includes(">")
+                      ? note.slice(0, note.length - 1)
+                      : note.includes(".")
                         ? note.slice(0, note.length - 1)
-                        : note.includes(".")
-                          ? note.slice(0, note.length - 1)
-                          : note
-                    }
-                    isAccented={
-                      note.includes(">") ||
-                      columnData.chordEffects?.includes(">")
-                    }
-                    isStaccato={
-                      note.includes(".") &&
-                      !columnData.chordEffects?.includes(".") // felt distracting to see the staccato on every note w/in the chord
-                    }
-                    isRest={
-                      stringIndex === 4 && columnData.chordEffects === "r"
-                    }
-                  />
+                        : note
+                  }
+                  isAccented={
+                    note.includes(">") || columnData.chordEffects?.includes(">")
+                  }
+                  isStaccato={
+                    note.includes(".") &&
+                    !columnData.chordEffects?.includes(".") // felt distracting to see the staccato on every note w/in the chord
+                  }
+                  isRest={stringIndex === 4 && columnData.chordEffects === "r"}
+                />
 
-                  <div
-                    style={{
-                      backgroundColor:
-                        "hsl(var(--screenshot-foreground) / 0.5)",
-                    }}
-                    className="h-[1px] w-full"
-                  ></div>
-                </>
-              )}
-
-              {/* bottom border */}
-              {stringIndex === 7 && (
-                <div className="baseVertFlex h-[8px] w-full !justify-end">
-                  <div
-                    style={{
-                      backgroundColor: "hsl(var(--screenshot-foreground))",
-                    }}
-                    className="h-[2px] w-full"
-                  ></div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                <div
+                  style={{
+                    backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+                  }}
+                  className="h-[1px] w-full"
+                ></div>
+              </div>
+            );
+          })}
+        </div>
 
         <div
           style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
@@ -200,6 +168,8 @@ function StaticTabNotesColumn({
                 theme,
                 isFirstInGroup,
                 isLastInGroup,
+                breakBeamWithPrevious,
+                breakBeamWithNext,
               })}
             </div>
           </div>
@@ -210,32 +180,12 @@ function StaticTabNotesColumn({
               lineHeight: "16px",
               color: "hsl(var(--screenshot-foreground))",
             }}
-            className="baseVertFlex relative mt-2 h-[19px] w-[1.5rem]"
+            className="baseVertFlex relative mt-2 h-[19px] w-[1.5rem] shrink-0"
           >
             {chordHasAtLeastOneNote(columnData) &&
-              columnData.chordEffects?.includes("v") && (
-                <BsArrowDown
-                  style={{
-                    width: "19px",
-                    height: "19px",
-                  }}
-                  strokeWidth={
-                    columnData.chordEffects?.includes(">") ? "1.25px" : "0px"
-                  }
-                />
-              )}
-
-            {chordHasAtLeastOneNote(columnData) &&
-              columnData.chordEffects?.includes("^") && (
-                <BsArrowUp
-                  style={{
-                    width: "19px",
-                    height: "19px",
-                  }}
-                  strokeWidth={
-                    columnData.chordEffects?.includes(">") ? "1.25px" : "0px"
-                  }
-                />
+              (columnData.chordEffects?.includes("v") ||
+                columnData.chordEffects?.includes("^")) && (
+                <ChordStrumIcon effects={columnData.chordEffects} size="19px" />
               )}
 
             {columnData.chordEffects?.includes("s") && (
@@ -266,34 +216,6 @@ function StaticTabNotesColumn({
           </div>
         </div>
       </div>
-
-      {isLastColumn && (
-        <div
-          style={{
-            height: STATIC_TAB_ROW_HEIGHT_PX,
-            width: STATIC_TAB_END_CAP_WIDTH_PX,
-          }}
-          className="baseVertFlex"
-        >
-          <div
-            style={{ height: STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX }}
-            className="w-full"
-          ></div>
-          <div
-            style={{
-              height: STATIC_TAB_TUNING_BOX_HEIGHT_PX,
-              borderColor: "hsl(var(--screenshot-foreground))",
-              color: "hsl(var(--screenshot-foreground))",
-              backgroundColor: "hsl(var(--screenshot-background) / 0.75)",
-            }}
-            className="rounded-r-2xl border-2 p-1"
-          ></div>
-          <div
-            style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
-            className="w-full"
-          ></div>
-        </div>
-      )}
     </div>
   );
 }

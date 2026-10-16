@@ -23,10 +23,10 @@ import {
   type TabMeasureLine,
 } from "~/stores/TabStore";
 
-function note(id: string): TabNote {
+function note(id: string, palmMute: TabNote["palmMute"] = ""): TabNote {
   return {
     type: "note",
-    palmMute: "",
+    palmMute,
     firstString: "",
     secondString: "3",
     thirdString: "2",
@@ -39,11 +39,14 @@ function note(id: string): TabNote {
   };
 }
 
-function measureLine(id: string): TabMeasureLine {
+function measureLine(
+  id: string,
+  options?: { bpmAfterLine?: number | null; isInPalmMuteSection?: boolean },
+): TabMeasureLine {
   return {
     type: "measureLine",
-    isInPalmMuteSection: false,
-    bpmAfterLine: null,
+    isInPalmMuteSection: options?.isInPalmMuteSection ?? false,
+    bpmAfterLine: options?.bpmAfterLine ?? null,
     id,
   };
 }
@@ -59,6 +62,30 @@ function makeColumns(prefix: string, measures: number) {
     }
   }
   return columns;
+}
+
+function makeBpmStickyColumns(): (TabNote | TabMeasureLine)[] {
+  // notes @75 → ML 120 (show) → notes @120 → ML null (hide) →
+  // PM span with ML 140 (show) → ML null (hide)
+  return [
+    note("bpm-n0"),
+    note("bpm-n1"),
+    measureLine("bpm-m-120", { bpmAfterLine: 120 }),
+    note("bpm-n2"),
+    note("bpm-n3"),
+    measureLine("bpm-m-sticky", { bpmAfterLine: null }),
+    note("bpm-n4"),
+    note("bpm-n5", "start"),
+    note("bpm-n6", "-"),
+    measureLine("bpm-m-140", {
+      bpmAfterLine: 140,
+      isInPalmMuteSection: true,
+    }),
+    note("bpm-n7", "-"),
+    note("bpm-n8", "end"),
+    measureLine("bpm-m-after", { bpmAfterLine: null }),
+    note("bpm-n9"),
+  ];
 }
 
 function makeTabSection(id: string, measures: number) {
@@ -83,6 +110,25 @@ function buildFixture(fixture: string): Section[] {
     ];
   }
 
+  if (fixture === "bpm") {
+    return [
+      {
+        id: "bpm-section",
+        title: "BPM sticky fixture",
+        data: [
+          {
+            id: "bpm-sub",
+            type: "tab" as const,
+            bpm: -1,
+            baseNoteLength: "quarter" as const,
+            repetitions: 1,
+            data: makeBpmStickyColumns(),
+          },
+        ],
+      },
+    ];
+  }
+
   // realistic: a long tab made of many modest subsections
   return Array.from({ length: 10 }, (_, sectionIndex) => ({
     id: `section-${sectionIndex}`,
@@ -97,10 +143,11 @@ function buildFixture(fixture: string): Section[] {
 export default function DevVirtualizationHarness() {
   const { query, isReady } = useRouter();
 
-  const { setId, setTabData, color, theme, storeTabData } = useTabStore(
+  const { setId, setTabData, setBpm, color, theme, storeTabData } = useTabStore(
     (state) => ({
       setId: state.setId,
       setTabData: state.setTabData,
+      setBpm: state.setBpm,
       color: state.color,
       theme: state.theme,
       storeTabData: state.tabData,
@@ -136,10 +183,13 @@ export default function DevVirtualizationHarness() {
     }
 
     setId(1);
+    if (fixture === "bpm") {
+      setBpm(75);
+    }
     setTabData((draft) => {
       draft.splice(0, draft.length, ...tabData);
     });
-  }, [isReady, tabData, setId, setTabData, zoomParam]);
+  }, [isReady, tabData, setId, setTabData, setBpm, zoomParam, fixture]);
 
   // NODE_ENV is inlined at build time; this page only exists in dev
   if (process.env.NODE_ENV === "production") {

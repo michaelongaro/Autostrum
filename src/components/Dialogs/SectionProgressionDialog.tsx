@@ -1,10 +1,15 @@
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { BsPlus } from "react-icons/bs";
 import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
-import { useTabStore, type SectionProgression } from "~/stores/TabStore";
+import {
+  getTabStore,
+  useTabStore,
+  type SectionProgression,
+} from "~/stores/TabStore";
+import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
@@ -42,9 +47,9 @@ function SectionProgressionDialog() {
     tabData: state.tabData,
   }));
 
-  const [localSectionProgression, setLocalSectionProgression] = useState<
-    SectionProgression[]
-  >([]);
+  const [localSectionProgression, setLocalSectionProgression, history] =
+    useEditorHistoryState<SectionProgression[]>([]);
+  const resetHistory = history.reset;
 
   const scrollableSectionsRef = useRef<HTMLDivElement>(null);
   const bottomSentinelRef = useRef<HTMLDivElement>(null);
@@ -53,7 +58,7 @@ function SectionProgressionDialog() {
 
   useEffect(() => {
     if (!showSectionProgressionDialog) return;
-
+    const sectionProgression = getTabStore().sectionProgression;
     const baseSectionProgression =
       sectionProgression.length === 0
         ? [
@@ -68,8 +73,8 @@ function SectionProgressionDialog() {
           ]
         : structuredClone(sectionProgression);
 
-    setLocalSectionProgression(baseSectionProgression);
-  }, [sectionProgression, showSectionProgressionDialog]);
+    resetHistory(baseSectionProgression);
+  }, [resetHistory, showSectionProgressionDialog]);
 
   const sections = tabData.map((section) => ({
     id: section.id,
@@ -125,7 +130,7 @@ function SectionProgressionDialog() {
   }
 
   function pruneAndSanitizeSectionProgression() {
-    const newSectionProgression = [...localSectionProgression];
+    const newSectionProgression = structuredClone(localSectionProgression);
     const prunedSectionProgression = [];
 
     for (const section of newSectionProgression) {
@@ -153,7 +158,11 @@ function SectionProgressionDialog() {
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex w-auto min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[608px]">
+      <DialogContent
+        data-tab-editor-history="local"
+        {...history.scopeProps}
+        className="baseVertFlex w-auto min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[608px]"
+      >
         <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full !justify-between">
           <div className="baseFlex w-full !justify-between">
             <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
@@ -271,7 +280,7 @@ function Section({
     const indexOfSection = sections.findIndex(
       (section) => section.id === sectionId,
     );
-    const newSectionProgression = [...localSectionProgression];
+    const newSectionProgression = structuredClone(localSectionProgression);
 
     newSectionProgression[index]!.sectionId = sectionId;
     newSectionProgression[index]!.title = sections[indexOfSection]!.title;
@@ -287,7 +296,7 @@ function Section({
       sanitizedValue = parseInt(e.target.value);
     }
 
-    const newSectionProgression = [...localSectionProgression];
+    const newSectionProgression = structuredClone(localSectionProgression);
     newSectionProgression[index]!.repetitions = sanitizedValue;
     setLocalSectionProgression(newSectionProgression);
   }

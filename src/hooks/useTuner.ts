@@ -162,12 +162,14 @@ function robustSpread(values: number[]) {
   return upper - lower;
 }
 
-function resolveTargetNotes(targetTuning: string) {
-  return normalizeTuningValue(targetTuning).split(" ");
+function resolveTargetNotes(targetTuning: string, capo = 0) {
+  return normalizeTuningValue(
+    capo === 0 ? targetTuning : transposeTuningValue(targetTuning, capo),
+  ).split(" ");
 }
 
 function resolveTargetMidis(targetTuning: string, capo: number) {
-  const notes = resolveTargetNotes(transposeTuningValue(targetTuning, capo));
+  const notes = resolveTargetNotes(targetTuning, capo);
 
   const midis = notes
     .map((note) => get(note).midi)
@@ -303,17 +305,19 @@ export function useTuner({
   const masterVolumeGainNodeRef = useRef(masterVolumeGainNode);
 
   const targetNotes = useMemo(
-    () => resolveTargetNotes(targetTuning),
-    [targetTuning],
+    () => resolveTargetNotes(targetTuning, capo),
+    [capo, targetTuning],
   );
 
   const targetMidis = useMemo(
     () => resolveTargetMidis(targetTuning, capo),
     [capo, targetTuning],
   );
+  const preferFlats = targetNotes.some((note) => note[1] === "b");
 
   const loopConfigRef = useRef({
     targetMidis,
+    preferFlats,
     toleranceCents,
     minimumClarity,
     stableHoldDurationMs,
@@ -681,7 +685,7 @@ export function useTuner({
       signalDetected: true,
       detectedFrequency: Math.round(filteredFrequency * 10) / 10,
       detectedNote: midiToNoteName(lockedMidi, {
-        sharps: true,
+        sharps: !loopConfigRef.current.preferFlats,
       }).toLowerCase(),
       detectedCents: Math.round(smoothedCents * 10) / 10,
       targetCentsOffset: Math.round(centsFromTarget * 10) / 10,
@@ -1091,11 +1095,18 @@ export function useTuner({
   useEffect(() => {
     loopConfigRef.current = {
       targetMidis,
+      preferFlats,
       toleranceCents,
       minimumClarity,
       stableHoldDurationMs,
     };
-  }, [minimumClarity, stableHoldDurationMs, targetMidis, toleranceCents]);
+  }, [
+    minimumClarity,
+    preferFlats,
+    stableHoldDurationMs,
+    targetMidis,
+    toleranceCents,
+  ]);
 
   /*
    * Pause the microphone when the tab is hidden and resume when it becomes

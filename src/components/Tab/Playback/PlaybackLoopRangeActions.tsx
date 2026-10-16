@@ -104,7 +104,7 @@ function PlaybackLoopRangeActions({
       className={
         presentation === "embedded"
           ? "baseFlex w-full"
-          : `baseFlex w-full gap-3 px-4 pb-2 ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`
+          : `baseFlex w-full gap-3 px-4 mobilePortrait:pb-2 ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`
       }
     >
       {viewportLabel.includes("Landscape") && <PlaybackSectionPicker />}
@@ -119,21 +119,25 @@ function PlaybackLoopRangeActions({
         <Button
           variant="outline"
           onClick={handleReturn}
-          className="baseFlex min-w-20 pl-2"
+          className="baseFlex w-[105px] shrink-0 gap-0.5 px-2"
         >
-          <BsArrowLeftShort className="h-6 w-8" />
+          <BsArrowLeftShort className="h-6 w-8 shrink-0" />
           Return
         </Button>
         <Button
           variant="outline"
           disabled={isAlreadyEmpty}
           onClick={handleReset}
-          className="baseFlex min-w-20 gap-2"
+          className="baseFlex w-[105px] shrink-0 gap-2 px-2"
         >
-          <VscDebugRestart />
+          <VscDebugRestart className="shrink-0" />
           Reset
         </Button>
-        <Button disabled={!canSave} onClick={handleSave} className="min-w-24">
+        <Button
+          disabled={!canSave}
+          onClick={handleSave}
+          className="w-[105px] shrink-0 px-2"
+        >
           Save
         </Button>
       </div>

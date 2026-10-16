@@ -14,7 +14,7 @@ interface ScrollChordIntoView {
     chordIndex: number;
   };
   duration?: number;
-  align?: "comfortable" | "belowHeader";
+  align?: "comfortable" | "belowHeader" | "center";
 }
 
 export function getChordElement({
@@ -32,6 +32,11 @@ export function getChordElement({
   return document.getElementById(
     `section${sectionIndex}-subSection${subSectionIndex}-chord${chordIndex}`,
   );
+}
+
+/** Matches Tailwind `tablet` / `viewportLabel` tablet+: width ≥ 1024 and height ≥ 700. */
+export function isTabletOrLargerViewport(): boolean {
+  return window.innerWidth >= 1024 && window.innerHeight >= 700;
 }
 
 export function getChordViewportMargins(): {
@@ -60,6 +65,10 @@ function getComfortableChordOffset(rect: DOMRect): number {
   return Math.max(topMargin, preferredTopOffset);
 }
 
+function getCenteredChordOffset(rect: DOMRect): number {
+  return Math.round(window.innerHeight / 2 - rect.height / 2);
+}
+
 export default function scrollChordIntoView({
   location,
   duration = 500,
@@ -71,7 +80,11 @@ export default function scrollChordIntoView({
     const rect = currentElement.getBoundingClientRect();
     const { topMargin } = getChordViewportMargins();
     const offset =
-      align === "belowHeader" ? topMargin : getComfortableChordOffset(rect);
+      align === "belowHeader"
+        ? topMargin
+        : align === "center"
+          ? getCenteredChordOffset(rect)
+          : getComfortableChordOffset(rect);
 
     scroller.scrollTo(currentElement.id, {
       duration,

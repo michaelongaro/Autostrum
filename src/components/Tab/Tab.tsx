@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef } from "react";
 import { FaBook } from "react-icons/fa";
-import { useTabStore } from "~/stores/TabStore";
+import { getTabData, getTabStore, useTabStore } from "~/stores/TabStore";
 import { useSectionIds } from "~/hooks/useTabDataSelectors";
 import { Button } from "~/components/ui/button";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
@@ -40,6 +40,7 @@ import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
 import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
 import TipsDialog from "~/components/Dialogs/TipsDialog";
 import AudioControls from "~/components/AudioControls/AudioControls";
+import AudioControlsStickyBounds from "~/components/AudioControls/AudioControlsStickyBounds";
 import PinnedTabChrome, {
   getSectionScrollMarginTop,
 } from "~/components/Tab/PinnedTabChrome";
@@ -53,6 +54,7 @@ import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
 import SectionProgressionDialog from "~/components/Dialogs/SectionProgressionDialog";
 import ChordDialog from "~/components/Dialogs/ChordDialog";
 import StrummingPatternDialog from "~/components/Dialogs/StrummingPatternDialog";
+import { useTabEditorHistory } from "~/hooks/useTabEditorHistory";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
@@ -75,6 +77,7 @@ function Tab() {
     {},
   );
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const tabDataSectionRef = useRef<HTMLDivElement>(null);
 
   function measureSectionHeight(
     sectionId: string,
@@ -139,6 +142,7 @@ function Tab() {
 
   useAutoCompileChords();
   useSpacebarAudioControl({ useHoveredChordLocation: true });
+  useTabEditorHistory(isPublishingOrUpdating);
 
   const { ref: tabContentRef } = useInView({
     rootMargin: "-300px 0px -300px 0px",
@@ -149,13 +153,34 @@ function Tab() {
   });
 
   function addNewSection() {
+    const newSectionId = crypto.randomUUID();
+    const title = `Section ${getTabData().length + 1}`;
+
     setTabData((draft) => {
       draft.push({
-        id: crypto.randomUUID(),
-        title: `Section ${draft.length + 1}`,
+        id: newSectionId,
+        title,
         data: [],
       });
     });
+
+    // Mirror deleteSection: keep an existing progression in sync with tabData.
+    // Empty progression still means "all sections" via generateDefault.
+    // Read imperatively so Tab does not re-render on progression updates.
+    const { sectionProgression, setSectionProgression } = getTabStore();
+    if (sectionProgression.length > 0) {
+      setSectionProgression([
+        ...sectionProgression,
+        {
+          id: crypto.randomUUID(),
+          sectionId: newSectionId,
+          title,
+          repetitions: 1,
+          startSeconds: 0,
+          endSeconds: 0,
+        },
+      ]);
+    }
 
     setForceCloseSectionAccordions(true);
   }
@@ -171,6 +196,7 @@ function Tab() {
     >
       <div
         id={"mainTabComponent"}
+        data-tab-editor-history="document"
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
@@ -181,7 +207,7 @@ function Tab() {
         <TabMetadata setIsPublishingOrUpdating={setIsPublishingOrUpdating} />
 
         <Separator
-          className={`mt-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:w-[96%]"}`}
+          className={`mt-2 bg-border ${editing ? "w-[96%]" : "w-full tablet:mb-4 tablet:w-[96%]"}`}
         />
 
         {editing ? (
@@ -254,81 +280,86 @@ function Tab() {
             showPinnedChords={showPinnedChords}
           />
 
-          {editing ? (
-            <AnimatePresence initial={false}>
-              {sectionIds.map((sectionId, index) => (
-                <motion.div
-                  key={sectionId}
-                  layout={"position"}
-                  initial={{ height: 0 }}
-                  animate={{ height: "auto" }}
-                  exit={{ height: 0 }}
-                  transition={{
-                    height: {
-                      ease: "easeInOut",
-                      duration: 0.35,
-                    },
-                    layout: {
-                      duration: 0.35,
-                    },
-                  }}
-                  style={{
-                    overflow: "hidden",
-                  }}
-                  className="w-full"
-                >
+          <div
+            ref={tabDataSectionRef}
+            className="baseVertFlex w-full !justify-start gap-4"
+          >
+            {editing ? (
+              <AnimatePresence initial={false}>
+                {sectionIds.map((sectionId, index) => (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    key={sectionId}
+                    layout={"position"}
+                    initial={{ height: 0 }}
+                    animate={{ height: "auto" }}
+                    exit={{ height: 0 }}
                     transition={{
-                      duration: 0,
+                      height: {
+                        ease: "easeInOut",
+                        duration: 0.35,
+                      },
+                      layout: {
+                        duration: 0.35,
+                      },
                     }}
-                    style={{ transformOrigin: "center top" }}
-                    className="baseFlex w-full"
+                    style={{
+                      overflow: "hidden",
+                    }}
+                    className="w-full"
                   >
-                    <SectionContainer
-                      sectionIndex={index}
-                      forceCloseSectionAccordions={
-                        forceCloseSectionAccordions &&
-                        index !== tabDataLength - 1
-                      }
-                      setForceCloseSectionAccordions={
-                        setForceCloseSectionAccordions
-                      }
-                      tabDataLength={tabDataLength}
-                    />
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{
+                        duration: 0,
+                      }}
+                      style={{ transformOrigin: "center top" }}
+                      className="baseFlex w-full"
+                    >
+                      <SectionContainer
+                        sectionIndex={index}
+                        forceCloseSectionAccordions={
+                          forceCloseSectionAccordions &&
+                          index !== tabDataLength - 1
+                        }
+                        setForceCloseSectionAccordions={
+                          setForceCloseSectionAccordions
+                        }
+                        tabDataLength={tabDataLength}
+                      />
+                    </motion.div>
                   </motion.div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          ) : (
-            <>
-              {sectionIds.map((sectionId, index) =>
-                showPlaybackModal ? (
-                  <div
-                    key={`staticSectionWrapperFiller-${sectionId}`}
-                    style={{ height: sectionHeights[sectionId] ?? 0 }}
-                    className="w-full"
-                  />
-                ) : (
-                  <div
-                    key={`staticSectionWrapper-${sectionId}`}
-                    ref={(el) => measureSectionHeight(sectionId, el)}
-                    className="w-full"
-                  >
-                    <StaticSectionContainer
-                      sectionIndex={index}
-                      color={color}
-                      theme={theme}
-                      tabDataLength={tabDataLength}
-                      scrollMarginTop={sectionScrollMarginTop}
+                ))}
+              </AnimatePresence>
+            ) : (
+              <>
+                {sectionIds.map((sectionId, index) =>
+                  showPlaybackModal ? (
+                    <div
+                      key={`staticSectionWrapperFiller-${sectionId}`}
+                      style={{ height: sectionHeights[sectionId] ?? 0 }}
+                      className="w-full"
                     />
-                  </div>
-                ),
-              )}
-            </>
-          )}
+                  ) : (
+                    <div
+                      key={`staticSectionWrapper-${sectionId}`}
+                      ref={(el) => measureSectionHeight(sectionId, el)}
+                      className="w-full"
+                    >
+                      <StaticSectionContainer
+                        sectionIndex={index}
+                        color={color}
+                        theme={theme}
+                        tabDataLength={tabDataLength}
+                        scrollMarginTop={sectionScrollMarginTop}
+                      />
+                    </div>
+                  ),
+                )}
+              </>
+            )}
+          </div>
 
           {editing && (
             <Button onClick={addNewSection} className="mb-8 px-8">
@@ -336,7 +367,11 @@ function Tab() {
             </Button>
           )}
 
-          {editing && showingAudioControls && <AudioControls />}
+          {editing && showingAudioControls && (
+            <AudioControlsStickyBounds tabDataSectionRef={tabDataSectionRef}>
+              <AudioControls />
+            </AudioControlsStickyBounds>
+          )}
 
           {!editing && (
             <div

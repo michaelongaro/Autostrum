@@ -1,12 +1,13 @@
 import { Fragment } from "react";
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { type FullNoteLengths, useTabStore } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
+import { PLAYBACK_TAB_STRINGS_HEIGHT_PX } from "~/utils/playbackTabGeometry";
 
 interface PlaybackTabChord {
   columnData: string[];
@@ -23,6 +24,8 @@ interface PlaybackTabChord {
   prevChordIsRest: boolean;
   currentChordIsRest: boolean;
   nextChordIsRest: boolean;
+  breakBeamWithPrevious: boolean;
+  breakBeamWithNext: boolean;
   showBpm: boolean;
 }
 
@@ -41,6 +44,8 @@ function PlaybackTabChord({
   prevChordIsRest,
   currentChordIsRest,
   nextChordIsRest,
+  breakBeamWithPrevious,
+  breakBeamWithNext,
   showBpm,
 }: PlaybackTabChord) {
   const chordEffect = columnData[7] || "";
@@ -91,57 +96,55 @@ function PlaybackTabChord({
                 </div>
               )}
 
-              {index > 0 && index < 7 && (
+              {index === 1 && (
                 <div
-                  // key is just used here to force a re-render, borderRadius was glitchy
-                  key={
-                    isFirstChordInTab
-                      ? "firstRounded"
-                      : isLastChordInTab
-                        ? "lastRounded"
-                        : "regular"
-                  }
-                  style={{
-                    borderTop: `${index === 1 ? "2px solid" : "none"}`,
-                    paddingTop: `${index === 1 ? "7px" : "0"}`,
-                    borderLeft: isFirstChordInTab ? "2px solid" : "none",
-                    borderRight: isLastChordInTab ? "2px solid" : "none",
-                    borderRadius:
-                      isFirstChordInTab && index === 1
-                        ? "10px 0 0 0" // top left
-                        : isFirstChordInTab && index === 6
-                          ? "0 0 0 10px" // bottom left
-                          : isLastChordInTab && index === 1
-                            ? "0 10px 0 0" // top right
-                            : isLastChordInTab && index === 6
-                              ? "0 0 10px 0" // bottom right
-                              : "none",
-                    borderBottom: `${index === 6 ? "2px solid" : "none"}`,
-                    paddingBottom: `${index === 6 ? "7px" : "0"}`,
-                  }}
-                  className="baseFlex headerModalGradient relative w-[34px] basis-[content]"
+                  key={isFirstChordInTab ? "firstRounded" : "regular"}
+                  className="baseVertFlex relative w-[34px]"
                 >
-                  <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                  {isFirstChordInTab && (
+                    <div
+                      className="absolute left-0 top-3 w-[1px] bg-foreground/50"
+                      style={{ height: PLAYBACK_TAB_STRINGS_HEIGHT_PX }}
+                    ></div>
+                  )}
 
-                  <PlaybackTabNote
-                    note={
-                      note.includes(">")
-                        ? note.slice(0, note.length - 1)
-                        : note.includes(".")
-                          ? note.slice(0, note.length - 1)
-                          : note
-                    }
-                    isHighlighted={isHighlighted}
-                    isAccented={
-                      note.includes(">") || columnData[7]?.includes(">")
-                    }
-                    isStaccato={
-                      note.includes(".") && !columnData[7]?.includes(".") // felt distracting to see the staccato on every note w/in the chord
-                    }
-                    isRest={index === 4 && columnData[7] === "r"}
-                  />
+                  {isLastChordInTab && (
+                    <div className="absolute right-0 top-3 h-[126px] w-[1px] bg-foreground/50"></div>
+                  )}
 
-                  <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                  {columnData.slice(1, 7).map((stringNote, stringOffset) => {
+                    const stringIndex = stringOffset + 1;
+                    return (
+                      <div
+                        key={stringIndex}
+                        className="baseFlex relative w-[34px] basis-[content]"
+                      >
+                        <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+
+                        <PlaybackTabNote
+                          note={
+                            stringNote.includes(">")
+                              ? stringNote.slice(0, stringNote.length - 1)
+                              : stringNote.includes(".")
+                                ? stringNote.slice(0, stringNote.length - 1)
+                                : stringNote
+                          }
+                          isHighlighted={isHighlighted}
+                          isAccented={
+                            stringNote.includes(">") ||
+                            columnData[7]?.includes(">")
+                          }
+                          isStaccato={
+                            stringNote.includes(".") &&
+                            !columnData[7]?.includes(".")
+                          }
+                          isRest={stringIndex === 4 && columnData[7] === "r"}
+                        />
+
+                        <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
@@ -156,6 +159,8 @@ function PlaybackTabChord({
                     nextIsRestStrum: nextChordIsRest,
                     isFirstInGroup: isFirstChord,
                     isLastInGroup: isLastChord,
+                    breakBeamWithPrevious,
+                    breakBeamWithNext,
                   })}
                 </div>
               )}
@@ -163,28 +168,9 @@ function PlaybackTabChord({
               {index === 8 && (
                 <div className="baseFlex relative mt-2 size-5">
                   {chordHasAtLeastOneNote(columnData) &&
-                    chordEffect?.includes("v") && (
-                      <BsArrowDown
-                        style={{
-                          width: "19px",
-                          height: "19px",
-                        }}
-                        strokeWidth={
-                          chordEffect?.includes(">") ? "1.25px" : "0px"
-                        }
-                      />
-                    )}
-                  {chordHasAtLeastOneNote(columnData) &&
-                    chordEffect?.includes("^") && (
-                      <BsArrowUp
-                        style={{
-                          width: "19px",
-                          height: "19px",
-                        }}
-                        strokeWidth={
-                          chordEffect?.includes(">") ? "1.25px" : "0px"
-                        }
-                      />
+                    (chordEffect?.includes("v") ||
+                      chordEffect?.includes("^")) && (
+                      <ChordStrumIcon effects={chordEffect} size="19px" />
                     )}
 
                   {chordEffect?.includes("s") && (
@@ -256,7 +242,7 @@ function PlaybackTabNote({
 }: PlaybackTabNote) {
   return (
     <div className="baseFlex w-[34px]">
-      <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
+      <div className="my-3 h-[1px] flex-[1] bg-foreground/50"></div>
       <div
         style={{
           color: isHighlighted
@@ -277,7 +263,7 @@ function PlaybackTabNote({
 
         {isStaccato && <div className="relative -top-2">.</div>}
       </div>
-      <div className="my-[10px] h-[1px] flex-[1] bg-foreground/50 mobilePortrait:my-3"></div>
+      <div className="my-3 h-[1px] flex-[1] bg-foreground/50"></div>
     </div>
   );
 }

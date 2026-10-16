@@ -138,10 +138,11 @@ function Explore({ json }: { json: string }) {
             <Carousel
               opts={{
                 dragFree: true,
+                align: "start",
               }}
-              className="baseFlex w-full"
+              className="w-full"
             >
-              <CarouselContent className="mr-4 pb-1 md:mr-8">
+              <CarouselContent className="mr-4 items-start justify-start pb-1 md:mr-8">
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
                   <CarouselItem
                     key={index}
@@ -192,10 +193,11 @@ function Explore({ json }: { json: string }) {
             <Carousel
               opts={{
                 dragFree: true,
+                align: "start",
               }}
-              className="baseFlex w-full"
+              className="w-full"
             >
-              <CarouselContent className="mr-4 pb-1 md:mr-8">
+              <CarouselContent className="mr-4 items-start justify-start pb-1 md:mr-8">
                 {LENGTH_FIFTEEN_ARRAY.map((_, index) => (
                   <CarouselItem
                     key={index}

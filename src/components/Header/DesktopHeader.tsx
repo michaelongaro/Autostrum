@@ -17,7 +17,6 @@ import {
 import { BsPlus } from "react-icons/bs";
 import { IoMdSettings } from "react-icons/io";
 import { IoBookmark, IoStatsChart } from "react-icons/io5";
-import { stringifyFullTabState } from "~/stores/TabStore";
 import { PiMetronome } from "react-icons/pi";
 import { IoColorPalette } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
@@ -27,6 +26,8 @@ import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
 import ThemePicker from "~/components/Header/ThemePicker";
 import HeaderLogo from "~/components/Header/HeaderLogo";
+import { getTabDocument } from "~/utils/drafts/tabDraftState";
+import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import Binoculars from "~/components/ui/icons/Binoculars";
@@ -52,7 +53,7 @@ function DesktopHeader() {
       <div className={classes.desktopHeader}>
         <Link
           href={"/"}
-          className={`${classes.logo} shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70`}
+          className={`${classes.logo} baseFlex shrink-0 rounded-md p-1 ring-offset-background focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70`}
         >
           <HeaderLogo width={175} height={28} />
         </Link>
@@ -249,12 +250,8 @@ function DesktopHeader() {
                         variant={"headerNavigation"}
                         className="!size-12 !rounded-full !p-0"
                         onClick={() => {
-                          // snapshotting current tabData into localStorage for when
-                          // user is redirected back onto site
-                          localStorage.setItem(
-                            "autostrum-tabData",
-                            stringifyFullTabState(),
-                          );
+                          if (asPath.split("?")[0] === "/create")
+                            saveTabForSignIn(getTabDocument());
                         }}
                       >
                         <FaUser className="size-5" />

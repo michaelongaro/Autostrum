@@ -1,13 +1,14 @@
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
-import { getDynamicNoteLengthIcon, QuarterNote } from "~/utils/noteLengthIcons";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import type { FullNoteLengths } from "~/stores/TabStore";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useTabStore } from "~/stores/TabStore";
 import ChordName from "~/components/ui/ChordName";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
+import { PLAYBACK_TAB_STRINGS_HEIGHT_PX } from "~/utils/playbackTabGeometry";
 
 interface PlaybackStrummedChord {
   strum: string;
@@ -15,7 +16,6 @@ interface PlaybackStrummedChord {
   palmMute?: string;
   chordName?: string;
   chordColor?: string;
-  noteLength: FullNoteLengths;
   bpmToShow?: number;
   isFirstChord: boolean;
   isLastChord: boolean;
@@ -30,6 +30,9 @@ interface PlaybackStrummedChord {
   prevChordIsRest: boolean;
   currentChordIsRest: boolean;
   nextChordIsRest: boolean;
+  breakBeamWithPrevious: boolean;
+  breakBeamWithNext: boolean;
+  editingLoopRange: boolean;
 }
 
 function PlaybackStrummedChord({
@@ -38,7 +41,6 @@ function PlaybackStrummedChord({
   palmMute,
   chordName = "",
   chordColor = "",
-  noteLength,
   bpmToShow,
   isFirstChord,
   isLastChord,
@@ -53,6 +55,9 @@ function PlaybackStrummedChord({
   prevChordIsRest,
   currentChordIsRest,
   nextChordIsRest,
+  breakBeamWithPrevious,
+  breakBeamWithNext,
+  editingLoopRange,
 }: PlaybackStrummedChord) {
   const {
     chordDisplayMode,
@@ -69,6 +74,7 @@ function PlaybackStrummedChord({
   }));
   const showLoopNode =
     audioMetadata.editingLoopRange && typeof chordIndex === "number";
+
   const loopNodePresentation = showLoopNode
     ? getLoopRangeNodePresentation({
         index: chordIndex,
@@ -79,14 +85,35 @@ function PlaybackStrummedChord({
       })
     : null;
 
+  let bpmTopValue = "0px";
+
+  if (editingLoopRange) {
+    if (palmMute === "start") {
+      bpmTopValue = "-8px";
+    } else {
+      bpmTopValue = "16px";
+    }
+  } else {
+    if (palmMute === "start") {
+      bpmTopValue = "16px";
+    } else {
+      bpmTopValue = "40px";
+    }
+  }
+
   return (
     // Keep loop-range nodes outside the dimmed wrapper so chord dimming
     // cannot make an enabled + look disabled (or vice versa).
-    <div className="baseVertFlex relative w-[40px]">
-      <div className={`baseVertFlex w-full ${isDimmed ? "opacity-50" : ""}`}>
+    <div className="baseVertFlex relative h-[260px] w-[40px]">
+      <div
+        className={`baseVertFlex mt-[12px] w-full ${isDimmed ? "opacity-50" : ""}`}
+      >
         {bpmToShow && (
           <div
-            className={`baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground ${palmMute === "start" ? "top-[-20px]" : "top-[4px]"}`}
+            style={{
+              top: bpmTopValue,
+            }}
+            className="baseFlex absolute left-[6px] gap-[2px] text-xs text-foreground"
           >
             <QuarterNote />
             <span>{bpmToShow}</span>
@@ -102,25 +129,15 @@ function PlaybackStrummedChord({
 
         <div
           // key is just used here to force a re-render, borderRadius was glitchy
-          key={
-            isFirstChordInTab
-              ? "firstRounded"
-              : isLastChordInTab
-                ? "lastRounded"
-                : "regular"
-          }
+          key={isFirstChordInTab ? "firstRounded" : "regular"}
           style={{
-            borderLeft: isFirstChordInTab ? "2px solid" : "none",
-            borderRight: isLastChordInTab ? "2px solid" : "none",
-            borderRadius: isFirstChordInTab
-              ? "10px 0 0 10px"
-              : isLastChordInTab
-                ? "0 10px 10px 0"
-                : "none",
-            borderTop: "2px solid",
-            borderBottom: "2px solid",
+            borderLeft: isFirstChordInTab ? "1px solid" : "none",
+            borderRight: isLastChordInTab ? "1px solid" : "none",
+            borderTop: "1px solid",
+            borderBottom: "1px solid",
+            height: PLAYBACK_TAB_STRINGS_HEIGHT_PX,
           }}
-          className="baseVertFlex relative mb-[30px] h-[144px] w-[40px] pb-4 mobilePortrait:h-[168px]"
+          className="baseVertFlex relative mb-[42px] w-[40px] !border-foreground/50 pb-1"
         >
           <div className="baseFlex h-8">
             {chordName && (
@@ -150,30 +167,19 @@ function PlaybackStrummedChord({
               className="baseVertFlex relative mb-2 h-[20px] text-lg"
             >
               <div className="baseFlex">
-                {strum.includes("v") && (
-                  <BsArrowDown
+                {(strum.includes("v") || strum.includes("^")) && (
+                  <ChordStrumIcon
+                    effects={strum}
                     style={{
+                      color:
+                        chordDisplayMode === "color" && chordColor
+                          ? chordColor
+                          : "currentColor",
                       fill:
                         chordDisplayMode === "color" && chordColor
                           ? chordColor
                           : "currentColor",
-                      width: strum.includes(">") ? "18.5px" : "20px",
-                      height: strum.includes(">") ? "18.5px" : "20px",
                     }}
-                    strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
-                  />
-                )}
-                {strum.includes("^") && (
-                  <BsArrowUp
-                    style={{
-                      fill:
-                        chordDisplayMode === "color" && chordColor
-                          ? chordColor
-                          : "currentColor",
-                      width: strum.includes(">") ? "18.5px" : "20px",
-                      height: strum.includes(">") ? "18.5px" : "20px",
-                    }}
-                    strokeWidth={strum.includes(">") ? "1.25px" : "0px"}
                   />
                 )}
 
@@ -241,6 +247,8 @@ function PlaybackStrummedChord({
               nextIsRestStrum: nextChordIsRest,
               isFirstInGroup: isFirstChord,
               isLastInGroup: isLastChord,
+              breakBeamWithPrevious,
+              breakBeamWithNext,
             })}
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import {
   Popover,
   PopoverContent,
@@ -13,6 +13,7 @@ import {
 import { Button } from "~/components/ui/button";
 import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import { beamBreaksForStrums } from "~/utils/noteLengthBeaming";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
@@ -48,6 +49,7 @@ function StaticStrummingPattern({
   const beatLabels = generateBeatLabels(
     data.strums.map((strum) => strum.noteLength),
   );
+  const beamBreaks = beamBreaksForStrums(data.strums);
 
   // Compute the active chord color for each strum position (only when color mode is active)
   // Chords only appear at positions where they change, so we track the "current" chord
@@ -155,31 +157,19 @@ function StaticStrummingPattern({
                 }}
                 className="baseVertFlex relative mb-2 h-[20px] text-lg"
               >
-                {strum.strum.includes("v") && (
-                  <BsArrowDown
+                {(strum.strum.includes("v") || strum.strum.includes("^")) && (
+                  <ChordStrumIcon
+                    effects={strum.strum}
                     style={{
+                      color:
+                        chordDisplayMode === "color"
+                          ? (strumColors[strumIndex] ?? "currentColor")
+                          : "currentColor",
                       fill:
                         chordDisplayMode === "color"
                           ? (strumColors[strumIndex] ?? "currentColor")
                           : "currentColor",
-                      width: strum.strum.includes(">") ? "18.5px" : "20px",
-                      height: strum.strum.includes(">") ? "18.5px" : "20px",
                     }}
-                    strokeWidth={strum.strum.includes(">") ? "1.25px" : "0px"}
-                  />
-                )}
-
-                {strum.strum.includes("^") && (
-                  <BsArrowUp
-                    style={{
-                      fill:
-                        chordDisplayMode === "color"
-                          ? (strumColors[strumIndex] ?? "currentColor")
-                          : "currentColor",
-                      width: strum.strum.includes(">") ? "18.5px" : "20px",
-                      height: strum.strum.includes(">") ? "18.5px" : "20px",
-                    }}
-                    strokeWidth={strum.strum.includes(">") ? "1.25px" : "0px"}
                   />
                 )}
 
@@ -259,6 +249,10 @@ function StaticStrummingPattern({
                 theme,
                 isFirstInGroup: strumIndex === 0,
                 isLastInGroup: strumIndex === data.strums.length - 1,
+                breakBeamWithPrevious:
+                  beamBreaks[strumIndex]?.breakWithPrevious ?? true,
+                breakBeamWithNext:
+                  beamBreaks[strumIndex]?.breakWithNext ?? true,
               })}
             </div>
           </div>

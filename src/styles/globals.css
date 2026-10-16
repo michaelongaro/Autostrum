@@ -65,6 +65,7 @@ html:not([data-color]) .headerLogoLayer[data-logo-color="maple"] {
   }
 
   html {
+    /* Keep the root background solid so Safari overscroll doesn't reveal the page gradient. */
     @apply bg-header;
   }
 
@@ -80,18 +81,24 @@ html.disablePullToRefresh {
   overscroll-behavior: none;
 }
 
-.pageBackgroundGradient {
-  position: sticky;
-  top: 0;
-  z-index: -2;
-  width: 100%;
-  height: 100dvh;
-  margin-bottom: -100dvh;
-  pointer-events: none;
-  align-self: stretch;
+/* iOS safari overscroll shows pageBackgroundGradient if this class is applied,
+   keeping it only on non-touch devices */
+@media (pointer: fine) and (hover: hover) {
+  .pageBackgroundGradient {
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    right: 0;
+    bottom: 4rem;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    align-self: stretch;
+  }
 }
 
-/* Keep the root background solid so Safari overscroll doesn't reveal the page gradient. */
+
 .pageBackgroundGradient::before,
 .pageBackgroundGradient::after {
   content: "";
@@ -260,27 +267,19 @@ kbd {
 
 @keyframes copyAndPasteAnimation {
   0% {
-    opacity: 0;
-    scale: 0.5;
+    opacity: 1;
   }
 
   50% {
-    opacity: 1;
-    scale: 1;
+    opacity: 0.5;
   }
 
   100% {
-    opacity: 0;
-    scale: 1;
+    opacity: 1;
   }
 }
 
-.copyAndPaste::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-color: hsl(var(--primary) / 0.25);
-  border-radius: 9999px;
+.copyAndPaste {
   animation: copyAndPasteAnimation 0.35s ease-in-out;
 }
 
@@ -289,40 +288,21 @@ kbd {
    0% opacity */
 @keyframes pulseAnimation {
   0% {
-    opacity: 1.0;
-  }
-
-  50% {
     opacity: 0.25;
   }
 
-  100% {
+  50% {
     opacity: 1.0;
+  }
+
+  100% {
+    opacity: 0.25;
   }
 }
 
 .pulseAnimation {
   background-color: hsl(var(--foreground) / 0.35);
   animation: pulseAnimation 2s cubic-bezier(0.4, 0.2, 0.6, 1) infinite;
-}
-
-@keyframes progressBarGrow {
-  from {
-    transform: scaleX(0);
-  }
-
-  to {
-    transform: scaleX(1);
-  }
-}
-
-.progressBar {
-  animation: progressBarGrow linear;
-  animation-fill-mode: forwards;
-}
-
-.progressBar-paused {
-  animation-play-state: paused !important;
 }
 
 /* Homepage infinite tab-card marquees */

@@ -1,89 +1,85 @@
-**Guitar effect audio recreation methodology**  
-All guitar effects are recreated using the Web Audio API with Soundfont.js providing the base guitar samples. The implementation prioritizes realistic sound reproduction while managing memory efficiently through proper cleanup of AudioBufferSourceNodes.
+# Guitar effects: sample-based articulation
 
-- **Runtime architecture updates (performance + lifecycle)**
-  - Active source lifecycle is centralized through `attachSourceOnEndedCleanup()` and `cleanupAudioSource()`
-  - A shared timer-driven callback scheduler coordinates audio-time callbacks instead of spawning per-callback RAF polling loops
-  - Active sources are tracked in a global set for deterministic stop/pause cleanup (`stopAllActivePlaybackSources()`)
-  - String ownership is tracked separately to prevent overlapping stale handles when effects replace note sources mid-playback
-  - Soft-stop anti-pop behavior is preserved via gain ramping and source-to-gain association (`sourceSoftStopGainMap`)
-  - Frequently used effect-processing chains are pooled per `AudioContext`:
-    - Palm mute: low-pass + bass boost + gain
-    - Dead note: high-pass + mid boost + gain
-    - Slap: low-pass + mid boost + gain + noise gain
-  - Slap noise generation now uses one cached noise `AudioBuffer` per `AudioContext` (rather than random regeneration on every slap)
+Autostrum uses the existing MusyngKite guitar recordings decoded by
+`soundfont-player`. `src/utils/guitarEffects.ts` owns the per-string Web Audio
+voices, pitch automation, damping, and cleanup. The tab parser in
+`playGeneratedAudioHelpers.ts` supplies absolute audio timestamps and transitions.
+The soundfont loader and recorded samples are unchanged.
 
-- **Bends/Releases (b/r)**
-  - Uses the `detune` property on AudioBufferSourceNode to gradually change pitch
-  - Detune value calculated as `(fretToBendTo - baseFret) * 100` cents (100 cents = 1 semitone)
-  - For regular bends, transition duration is `(60 / bpm) * 0.5` seconds
-  - For arbitrary slides, duration is halved to `(60 / bpm) * 0.25` for faster movement
-  - When not plucking the base note (continuing from previous note), creates new buffer source starting at 0.5s offset with a gain ramp from 0.01 to 1.1 over 0.1s for smooth attack
-  - `linearRampToValueAtTime()` creates the smooth pitch transition characteristic of bends
+## Audit and changes
 
-- **Hammer-ons/Pull-offs (h/p)**
-  - Immediately stops the plucked note to prevent audible attack
-  - Creates new buffer source with detune preset to the tethered fret value
-  - Starts playback at different offsets: pull-offs at 0s, hammer-ons at 0.1s for subtle attack
-  - Gain ramps from 0.01 to 1.0 (pull-offs) or 1.1 (hammer-ons) over 0.05s
-  - Transition duration is 0 (instantaneous) since these are percussive techniques
-  - Immediately ramps detune back to 0.001 (smallest viable value) to simulate finger landing on target fret
+| Technique                               | Previous behavior                                                                                                                                    | Current behavior                                                                                                                                                                                                                                                                                                                                      |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hammer-on / pull-off (`h`, `p`)         | Restarted a target sample at a fixed offset; pull-offs replayed the pick transient; copied voices lost the original envelope.                        | Continues the vibrating string sample, changes pitch over 6 ms, and uses a softer level for hammer-ons than pull-offs. Compensates for recorded decay without compounding attenuation. When entering a phrase or the previous sample is exhausted or too quiet, starts beyond the target recording's transient with a short crossfade.                |
+| Bend / release (`b`, `r`)               | Linear detune ramps could start during lookahead; releases restarted a sample 0.5 s into its recording.                                              | Anchors an eased pitch curve to the note's actual timestamp and preserves the same string through bend, held target, release, and repeated bends. A short initial hold retains the picked onset. Typical bends take up to 340 ms, scaled to note spacing.                                                                                             |
+| Fretted / entry / exit slide (`/`, `\`) | Restarted the sample at 0.2 s with an arbitrary volume boost; entry targets omitted capo.                                                            | Continues the string through a 25–160 ms glide with subtle fret crossings and compensates destination levels for recorded decay. Refreshes faded samples without their pick attack. Corrects capo-relative targets and allows an exit slide at the end of the sequence.                                                                               |
+| Vibrato (`~` on a fret)                 | Full-depth modulation appeared abruptly; standalone vibrato ignored the scheduled note delay; modulation oscillators had no lifetime bound.          | Fades depth in after the note/transition, with a roughly 5 Hz hand rate independent of rhythmic subdivision. Steel/electric vibrato bends up and returns (0–46 cents); nylon vibrato is shallower and symmetric (±18 cents). Stops modulation with its voice and supports bend plus vibrato and legato combinations. Open strings remain unmodulated. |
+| Palm mute (`PM`)                        | Almost silenced the original voice, then applied 70–100× gain, resonant filtering, and up to 20 dB of bass boost; a dry path could remain connected. | Uses one signal path, a pitch-aware low-pass cutoff that darkens during the attack, and a rapid decay over 75–280 ms. Preserves the recorded pick attack without resonant gain compensation.                                                                                                                                                          |
+| Dead string (`x`)                       | Generated a pitched sine thunk unrelated to the instrument/tuning.                                                                                   | Uses the selected guitar's string attack, strongly damps its pitched sustain, and adds quiet filtered contact noise over 45–75 ms. Dead strings keep their position in a strum.                                                                                                                                                                       |
+| Percussive slap (`s`)                   | Mixed a fixed 100 Hz sine and white noise with a large mid boost.                                                                                    | Uses the tuned low-string sample for body resonance, filtered contact noise, and a 65–130 ms damped envelope. Mutes ringing strings at its scheduled timestamp.                                                                                                                                                                                       |
+| Staccato (`.`)                          | Fixed 250 ms duration plus the player's default 300 ms release; replacements sometimes bypassed it.                                                  | Shortens every articulation to 45% of its note spacing, bounded to 35–220 ms, followed by a 12 ms anti-click release.                                                                                                                                                                                                                                 |
+| Accent (`>`)                            | Several unrelated multipliers and lost accents on replacement voices.                                                                                | Consistent 1.22× level on all techniques; legato chains cannot compound accents into increasing gain.                                                                                                                                                                                                                                                 |
+| Strum / arpeggio (`v`, `^`, chord `~`)  | Custom spreads already existed, but dead strings did not advance the strum offset.                                                                   | Preserves existing spread settings and direction, with dead-string attacks included in the spread. Chord `~` remains arpeggiation; only fret `~` adds vibrato.                                                                                                                                                                                        |
+| Rest / pause                            | Timer callbacks replaced string handles later; effects could escape cancellation.                                                                    | Schedules cutoffs on the audio clock, tracks earlier sounding and future voices during lookahead, and registers chord/pattern preview voices for pause cancellation.                                                                                                                                                                                  |
 
-- **Slides (/ \\)**
-  - Similar to bends but with longer playback offset (0.2s) for more pronounced sliding sound
-  - Gain ramps to 1.3 for slightly louder volume characteristic of slides
-  - Transition duration of `(60 / bpm) * 0.25` seconds for the sliding movement
-  - Detune starts at tethered fret value and ramps to target fret
+## Voice lifecycle and sample limits
 
-- **Vibrato (~)**
-  - Creates a separate sine wave oscillator to modulate the note's detune parameter
-  - Oscillator frequency is BPM-relative: ranges from 3Hz (slow BPM) to 5Hz (fast BPM) via `calculateRelativeVibratoFrequency()`
-  - Depth is fixed at 25 cents (quarter of a semitone) via a gain node
-  - Starts after a slight delay of `(60 / bpm) * 0.15` to let the note establish
-  - For non-plucked vibratos (continuing from previous note), creates buffer source at 0.5s offset with gain ramping from 0.01 to 1.3
-  - Oscillator is connected to the source node's `detune` parameter for continuous pitch modulation
+Each voice has one recorded buffer source, a low-pass filter, and a gain envelope.
+An ending voice disconnects its graph and removes itself from the cancellation
+registry. Modulation and contact-noise sources end and disconnect independently.
+Noise buffers, analyzed attack offsets, and sample energy profiles are cached, and guitar samples never
+loop. Sample consumption accounts for pitch changes before continuing legato.
 
-- **Palm Muting (PM)**
-  - Applies aggressive low-pass filtering: 500Hz cutoff for high strings (0-2), 1000Hz for low strings (3-5)
-  - High Q value of 5 for sharp frequency rolloff
-  - Bass boost via peaking filter at 120Hz: +10dB for high strings, +20dB for low strings (Q=10)
-  - Gain multiplier of 70 (normal) or 100 (accented), reduced to 0.7/1.0 for tethered effects
-  - Note duration shortened to 0.45s for muted sustain characteristic
-  - Original note gain reduced to 0.01 with duration of 0.45s when palm muting is present
-  - Filter/gain nodes for palm muting are reused from a per-context pool to reduce per-note allocations
+### Destination-level correction
 
-- **Dead Notes (x)**
-  - Synthesized using a sine wave oscillator instead of sampled audio
-  - Frequency mapped to string/fret position via weighted calculation: 70% influenced by string index, 30% by fret
-  - Frequency range: 50Hz-200Hz, with higher strings producing higher frequencies
-  - Very short duration (0.1s) for percussive "thunk" sound
-  - Per-string gain compensation: low E (1.7x), A (1.6x), D (1.5x), G (0.8x), B (0.7x), high E (0.6x)
-  - Base gain of 0.00875, increased to 0.0125 for accented, reduced to 0.005 for palm muted
-  - Uses highpass filter at 100Hz and peaking filter at 1200Hz (+1dB, Q=1) for mid-range clarity
-  - Exponential gain ramp to 0.0001 over 0.1s for natural decay
-  - Filter/gain nodes for dead notes are reused from a per-context pool
+The first sample-based implementation had two related oversights: each connected
+note multiplied the preceding note's gain by another articulation factor, and
+that gain acted on a recording whose sustain had already decayed. Repeated
+hammer-ons, pull-offs, and slides therefore became progressively quieter.
 
-- **Slap (s)**
-  - Stops all currently playing strings to create percussive effect
-  - Combines sine oscillator (100Hz) with white noise buffer for realistic slap texture
-  - Noise buffer: 0.2s duration filled with random values between -1 and 1, cached per `AudioContext`
-  - Lowpass filter at 2200Hz to remove harsh high frequencies
-  - Peaking filter at 800Hz (+8dB, Q=1) for characteristic mid-range "snap"
-  - Base gain of 0.25, increased to 0.45 for accented, reduced to 0.1 for palm muted
-  - Duration of 0.1s for staccato/palm muted, 0.25s for normal (gain increased 1.25x for shorter duration)
-  - Both oscillator and noise use exponential decay to 0.01 over the duration
-  - Slap filter/gain processing nodes are reused from a per-context pool
+Destination levels now use a stable nominal articulation factor: 0.85 for a
+hammer-on, 0.95 for a pull-off, and 0.92 for a slide. A cached stereo RMS profile
+compares the destination recording's body at 200–300 ms with the remaining body
+of the sounding sample, accounting for scheduled pitch changes. The resulting
+sample compensation is absolute and bounded to 3×. When the tail would need more
+gain, the voice crossfades to a fresh destination sample beyond its pick attack.
+Accents apply only to the current note. Each recording still decays naturally
+while a note is held; compensation is calculated at the transition.
 
-- **Staccato (.)**
-  - Implemented at note generation level by reducing duration to 0.25s
-  - No additional audio processing, just shortened sustain
+These are approximations using picked recordings, not separately recorded
+hammer-ons, fret noises, or palm mutes. Large pitch shifts also move the sample's
+spectral character, and long phrases eventually exhaust its recorded sustain.
+The fallback starts a fresh target sample without its pick transient when the
+existing recording is exhausted or has faded too far. The chosen
+millisecond, depth, and gain settings are tuning choices, not measured claims
+about every guitar/player. No new notation or effects have been added.
 
-- **Accent (>)**
-  - Increases gain multiplier: 1.5x for regular notes, 1.25x for bends
-  - For palm muted notes, gain is 100 (vs 70 normal) or 1.0 for tethered effects (vs 0.7)
-  - Applied at note generation level before any effects processing
+The physical targets follow [Fender's technique descriptions](https://www.fender.com/articles/techniques/how-to-guitar-solo)
+and [palm-muting guidance](https://www.fender.com/articles/techniques/3-keys-to-ace-your-palm-muting).
+Scheduling, detune, and automation follow the [Web Audio specification](https://www.w3.org/TR/webaudio-1.0/).
 
-- **Effect Chaining**
-  - Tethered effects (h/p/\\/) can have subsequent effects (vibrato, bends) applied after the transition completes
-  - Palm muting is always applied last in the effect chain to properly filter the complete processed signal
-  - Effects are connected in series through the Web Audio API node graph, terminating at the master volume gain node
+## Verification
+
+- `node scripts/verifyGuitarEffects.mjs`: 22 checks against the actual production
+  parser/runtime, covering continuity, pitch targets, capo, effect combinations,
+  onset timing, dynamics, strums, cancellation, and cleanup. Regression checks
+  cover repeated attenuation, inherited accents, recorded decay, and bounded
+  gain with attack-free sample refreshes.
+- `node scripts/verifyGuitarEffects.mjs --browser`: writes a browser expression
+  to `.git/guitar-effects-audio-checks.js`. Evaluate it in the collaborative
+  preview at the running app's origin. This renders native OfflineAudioContext
+  stereo audio from all four bundled instruments in OGG and MP3, checks pitch, level,
+  decay, silence before onset/after pause, clipping, and cleanup, and adds a
+  temporary audition panel. It does not save any tabs or touch the database.
+- Native render verification passed all 280 checks, including 192 destination
+  level cases across 60, 120, and 240 BPM. These include upward/downward slides,
+  hammer-ons, pull-offs, repeated chains, and standalone transition markers.
+  Destination body RMS was 83–95% of a normally plucked target note, preserving
+  the intended articulation factors. Refreshed samples skipped the pick attack.
+  Detected sustained
+  pitch was within 10 cents of its expected target (including the recordings'
+  own tuning); accent level was 1.22×, and muted/pause tails were silent.
+- Add `--level-probe` to the browser command for detailed destination-level
+  measurements without the broader checks or audition panel.
+- The running chord trainer successfully started/stopped sample voices through
+  its normal UI with no audio exceptions or unhandled rejections.

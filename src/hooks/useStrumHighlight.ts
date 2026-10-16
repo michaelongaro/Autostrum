@@ -1,4 +1,5 @@
 import { useTabStore } from "~/stores/TabStore";
+import { playbackMetadataHasColumn } from "~/utils/playbackColumnIndex";
 
 type UseStrumHighlightArgs = {
   strumIndex: number;
@@ -35,32 +36,18 @@ export function useStrumHighlight({
       );
     }
 
-    const currentlyPlayingMetadata = state.currentlyPlayingMetadata;
-    if (!currentlyPlayingMetadata) return false;
-
-    if (state.audioMetadata.editingLoopRange) {
-      return currentlyPlayingMetadata.some((metadata) => {
-        return (
-          sectionIndex === metadata.location.sectionIndex &&
-          subSectionIndex === metadata.location.subSectionIndex &&
-          chordSequenceIndex === metadata.location.chordSequenceIndex &&
-          strumIndex === metadata.location.chordIndex
-        );
-      });
+    // Editing chord-sequence highlights match the tab playhead rules: only
+    // while audio is actively playing (preview/pattern dialog uses forPreview).
+    if (
+      !state.audioMetadata.playing ||
+      state.audioMetadata.editingLoopRange ||
+      state.showPlaybackModal
+    ) {
+      return false;
     }
 
-    const correspondingChordExists = currentlyPlayingMetadata.some(
-      (metadata) => {
-        return (
-          sectionIndex === metadata.location.sectionIndex &&
-          subSectionIndex === metadata.location.subSectionIndex &&
-          chordSequenceIndex === metadata.location.chordSequenceIndex &&
-          strumIndex === metadata.location.chordIndex
-        );
-      },
-    );
-
-    if (!correspondingChordExists) return false;
+    const currentlyPlayingMetadata = state.currentlyPlayingMetadata;
+    if (!currentlyPlayingMetadata) return false;
 
     const location =
       currentlyPlayingMetadata[state.currentChordIndex]?.location;
@@ -75,6 +62,13 @@ export function useStrumHighlight({
       return false;
     }
 
-    return true;
+    // Loop ranges can omit earlier strums that the index comparison would
+    // otherwise paint. The key set is built once per metadata array.
+    return playbackMetadataHasColumn(currentlyPlayingMetadata, {
+      sectionIndex: sectionIndex ?? -1,
+      subSectionIndex: subSectionIndex ?? -1,
+      chordSequenceIndex,
+      chordIndex: strumIndex,
+    });
   });
 }

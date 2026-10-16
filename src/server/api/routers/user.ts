@@ -9,7 +9,7 @@ import {
 } from "~/server/api/trpc";
 import { env } from "~/env";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { tuningNotesToName } from "~/utils/tunings";
+import { getTuningName, tunings as defaultTunings } from "~/utils/tunings";
 
 export interface UserMetadata extends User {
   bookmarkedTabIds: number[];
@@ -430,29 +430,7 @@ export const userRouter = createTRPCRouter({
     ]);
 
     const tunings = new Map<string, number>([
-      ["Standard", 0],
-      ["Open A", 0],
-      ["Open B", 0],
-      ["Open C", 0],
-      ["Open D", 0],
-      ["Open E", 0],
-      ["Open F", 0],
-      ["Open G", 0],
-      ["Drop A", 0],
-      ["Drop A#", 0],
-      ["Drop B", 0],
-      ["Drop C", 0],
-      ["Drop C#", 0],
-      ["Drop D", 0],
-      ["Drop D#", 0],
-      ["Drop E", 0],
-      ["Drop F", 0],
-      ["Drop F#", 0],
-      ["Drop G", 0],
-      ["Drop G#", 0],
-      ["Math Rock", 0],
-      ["Rondeña", 0],
-      ["Irish", 0],
+      ...defaultTunings.map(({ name }) => [name, 0] as const),
       ["Custom", 0],
     ]);
 
@@ -498,8 +476,7 @@ export const userRouter = createTRPCRouter({
         genres.set(stat.genre, genreCount + 1);
       }
 
-      const tuningNotesKey = stat.tuning as keyof typeof tuningNotesToName;
-      const friendlyTuningName = tuningNotesToName[tuningNotesKey] ?? "Custom";
+      const friendlyTuningName = getTuningName(stat.tuning) ?? "Custom";
 
       const tuningCount = tunings.get(friendlyTuningName);
       if (tuningCount !== undefined) {
@@ -537,7 +514,17 @@ export const userRouter = createTRPCRouter({
       }
     }
 
-    miscStats.push(genres, tunings, difficulties, capos, artists);
+    const artistsSortedByMostTabs = new Map(
+      [...artists].sort((a, b) => b[1] - a[1]),
+    );
+
+    miscStats.push(
+      genres,
+      tunings,
+      difficulties,
+      capos,
+      artistsSortedByMostTabs,
+    );
 
     return {
       ...user,

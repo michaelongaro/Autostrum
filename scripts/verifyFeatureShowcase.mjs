@@ -294,13 +294,15 @@ try {
 
   await section.getByRole("button", { name: "Practice", exact: true }).click();
   await select("colors");
-  const coloredPills = () =>
-    panel("colors").locator('[style*="background-color: rgb"]').count();
-  assert.equal(await coloredPills(), 4);
+  const coloredChordNames = () =>
+    panel("colors")
+      .locator('button[aria-haspopup="dialog"] > div[style*="color: rgb"]')
+      .count();
+  assert.equal(await coloredChordNames(), 4);
   await panel("colors")
     .getByRole("switch", { name: "Color-coded chords", exact: true })
     .click();
-  assert.equal(await coloredPills(), 0);
+  assert.equal(await coloredChordNames(), 0);
   await select("speed");
   await panel("speed").locator('button[aria-haspopup="dialog"]').click();
   const speedSlider = page.getByRole("slider", {
@@ -422,7 +424,23 @@ try {
   );
   await page.setViewportSize({ width: 1280, height: 950 });
   await page.goto(`${baseURL}/create`, { waitUntil: "networkidle" });
-  assert.equal(await page.locator("#title").inputValue(), "Unpublished riff");
+  assert.equal(
+    await page.locator("#title").inputValue(),
+    "",
+    "Main's account-based draft editor starts a new anonymous document",
+  );
+  await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem("autostrum-tabData"));
+    const store = window.__AUTOSTRUM_GET_TAB_STORE__();
+    store.setTitle(saved.title);
+    store.setTabData((draft) =>
+      draft.splice(0, draft.length, ...saved.tabData),
+    );
+    store.clearEditorHistory();
+  });
+  await page.waitForFunction(
+    () => document.querySelectorAll("#input-0-0-0-1").length === 1,
+  );
   assert.equal(await page.locator("#input-0-0-0-1").inputValue(), "7");
   await page.locator("#input-0-0-0-1").click();
   await page.keyboard.press("ArrowRight");
@@ -431,6 +449,10 @@ try {
     "input-0-0-1-1",
   );
   await page.locator("#input-0-0-1-1").fill("9");
+  assert.equal(await page.locator("#input-0-0-1-1").inputValue(), "9");
+  await page.keyboard.press("Control+z");
+  assert.equal(await page.locator("#input-0-0-1-1").inputValue(), "8");
+  await page.keyboard.press("Control+Shift+z");
   assert.equal(await page.locator("#input-0-0-1-1").inputValue(), "9");
   await page.locator("#tuning").click();
   await page
@@ -446,7 +468,7 @@ try {
   await page.keyboard.press("Escape");
   assert.deepEqual(errors, [], "Original editor has no browser runtime errors");
   console.log(
-    "PASS: original editor draft recovery, note editing, and tuning dialog",
+    "PASS: original editor note editing, undo/redo, and tuning dialog",
   );
 } finally {
   await browser.close();

@@ -67,8 +67,7 @@ function PalmMuteNode({
     );
 
     const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-    const columns =
-      tabSubSection?.type === "tab" ? tabSubSection.data : [];
+    const columns = tabSubSection?.type === "tab" ? tabSubSection.data : [];
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -155,8 +154,7 @@ function PalmMuteNode({
     nodeType: "start" | "end",
   ): number {
     const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-    const columns =
-      tabSubSection?.type === "tab" ? tabSubSection.data : [];
+    const columns = tabSubSection?.type === "tab" ? tabSubSection.data : [];
 
     if (nodeType === "start") {
       // Find the corresponding "end" node to the right
@@ -489,23 +487,44 @@ function PalmMuteNode({
         <Button
           id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-0`}
           disabled={getButtonOpacity() !== "1"}
-          size={"sm"}
           onKeyDown={handleKeyDown}
           onClick={handlePalmMuteNodeClick}
-          className="min-w-[2.25rem] rounded-full px-1 py-0 transition-all"
+          className={`h-7 w-full p-0 transition-all ${editingPalmMuteNodes ? "mx-1" : "group mx-0 bg-transparent !shadow-none"}`}
         >
           {value === "start" && (
-            <div className="baseVertFlex text-[10px]">
-              <span className="h-[12px] leading-[1.35]">PM</span>
-              <span className="h-[12px] leading-[1.35]">start</span>
+            <div className="baseFlex w-full">
+              <div
+                className={`ml-1 h-[14px] w-[1px] shrink-0 ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
+
+              <div
+                className={`h-[1px] w-[3px] shrink-0 ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
+
+              <i
+                className={`mx-[2px] text-xs ${editingPalmMuteNodes ? "text-primary-foreground" : "text-foreground group-hover:text-primary-foreground"}`}
+              >
+                PM
+              </i>
+
+              <div
+                className={`h-[1px] w-auto grow ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
             </div>
           )}
+
           {value === "end" && (
-            <div className="baseVertFlex text-[10px]">
-              <span className="h-[12px] leading-[1.35]">PM</span>
-              <span className="h-[12px] leading-[1.35]">end</span>
+            <div className="baseFlex w-full">
+              <div
+                className={`h-[1px] w-auto grow ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
+
+              <div
+                className={`mr-1 h-[14px] w-[1px] ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+              ></div>
             </div>
           )}
+
           {editingPalmMuteNodes && value === "" && (
             <BsPlus className="size-5" />
           )}

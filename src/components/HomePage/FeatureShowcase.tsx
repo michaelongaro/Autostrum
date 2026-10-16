@@ -12,13 +12,10 @@ import {
   Palette,
   Play,
   Repeat2,
-  ScanLine,
   SlidersHorizontal,
   ZoomIn,
-  type LucideIcon,
 } from "lucide-react";
 import { GiMusicalScore } from "react-icons/gi";
-import { BsArrowsVertical } from "react-icons/bs";
 import { PiMouseScroll } from "react-icons/pi";
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { cn } from "~/utils/cn";
@@ -26,10 +23,12 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import FeaturePreview, { type FeatureId } from "./FeaturePreviews";
 import styles from "./FeatureShowcase.module.css";
 
+import type { IconType } from "react-icons";
+
 type Feature = {
   id: FeatureId;
   title: string;
-  icon: LucideIcon;
+  icon: IconType;
 };
 type FeatureMode = "Practice" | "Editing";
 

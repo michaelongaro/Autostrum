@@ -1,47 +1,46 @@
+import type {
+  DraggableAttributes,
+  DraggableSyntheticListeners,
+} from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { CSS, type Transform } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Element } from "react-scroll";
-import {
-  useEffect,
-  useState,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
+import { memo, useState, type Dispatch, type SetStateAction } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { useTabStore, type FullNoteLengths } from "~/stores/TabStore";
-import { BsPlus } from "react-icons/bs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import PalmMuteNode from "./PalmMuteNode";
 import TabNote from "./TabNote";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
-import Ellipsis from "~/components/ui/icons/Ellipsis";
 import {
   useTabColumnNeighborMeta,
   useTabNoteColumnData,
 } from "~/hooks/useTabDataSelectors";
 import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
-import { NoteLengthDropdown } from "./NoteLengthDropdown";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
-  createTabNote,
   getStringValue,
   isTabNote,
 } from "~/utils/tabNoteHelpers";
+import {
+  EDITING_TAB_COLUMN_HEIGHT_PX,
+  EDITING_TAB_COLUMN_WIDTH_PX,
+  EDITING_TAB_NOTE_LENGTH_GAP_PX,
+  EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+  EDITING_TAB_STRING_ROW_HEIGHT_PX,
+} from "~/utils/editingTabGeometry";
+import {
+  encodeStrumSpreadForCompile,
+  isStrumEffect,
+} from "~/utils/strumEffectHelpers";
+import StrumSettingsDropdown from "./StrumSettingsDropdown";
 
 interface TabNotesColumnProps {
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
-  isLastColumn: boolean;
 
   pmNodeOpacity: string;
   editingPalmMuteNodes: boolean;
@@ -52,13 +51,23 @@ interface TabNotesColumnProps {
   >;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
+  drag?: ColumnDragBindings;
+}
+
+interface ColumnDragBindings {
+  setNodeRef: (element: HTMLElement | null) => void;
+  setActivatorNodeRef: (element: HTMLElement | null) => void;
+  transform: Transform | null;
+  transition: string | undefined;
+  isDragging: boolean;
+  attributes: DraggableAttributes;
+  listeners: DraggableSyntheticListeners;
 }
 
 function TabNotesColumn({
   sectionIndex,
   subSectionIndex,
   columnIndex,
-  isLastColumn,
 
   pmNodeOpacity,
   editingPalmMuteNodes,
@@ -67,17 +76,20 @@ function TabNotesColumn({
   setLastModifiedPalmMuteNode,
   reorderingColumns,
   showingDeleteColumnsButtons,
+  drag,
 }: TabNotesColumnProps) {
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
-  const [highlightChord, setHighlightChord] = useState(false);
   const [chordSettingDropdownIsOpen, setChordSettingDropdownIsOpen] =
     useState(false);
   // Local hover state avoids re-rendering every column in the section on mouse move
   const [isHovered, setIsHovered] = useState(false);
 
-  const { columnIsBeingPlayed, columnHasBeenPlayed, durationOfChord } =
-    useColumnPlaybackHighlight(sectionIndex, subSectionIndex, columnIndex);
+  const { isHighlighted } = useColumnPlaybackHighlight(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  );
 
   const columnData = useTabNoteColumnData(
     sectionIndex,
@@ -98,42 +110,40 @@ function TabNotesColumn({
     setActivatorNodeRef,
     transform,
     transition,
-    isDragging,
-  } = useSortable({
-    id: columnData?.id ?? `tab-note-${columnIndex}`,
-    disabled: !reorderingColumns, // hopefully this is a performance improvement?
-  });
+    isDragging = false,
+  } = drag ?? {};
 
-  const { pauseAudio, setTabData, setHoveredChordLocation } = useTabStore(
-    (state) => ({
-      pauseAudio: state.pauseAudio,
-      setTabData: state.setTabData,
-      setHoveredChordLocation: state.setHoveredChordLocation,
-    }),
+  const {
+    pauseAudio,
+    setTabData,
+    setHoveredChordLocation,
+    bpm,
+    playPreview,
+  } = useTabStore((state) => ({
+    pauseAudio: state.pauseAudio,
+    setTabData: state.setTabData,
+    setHoveredChordLocation: state.setHoveredChordLocation,
+    bpm: state.bpm,
+    playPreview: state.playPreview,
+  }));
+
+  const chordPreviewPlaying = useTabStore(
+    (state) =>
+      state.previewMetadata.playing && state.previewMetadata.type === "chord",
   );
-
-  // ideally don't need this and can just use prop values passed in, but need to have a
-  // [0] index special case, since when looping it would keep the [0] index at 100% width
-  // immediately, so we need this semi hacky solution
-  useEffect(() => {
-    if (columnIndex === 0) {
-      if (columnIsBeingPlayed) {
-        setHighlightChord(false);
-
-        setTimeout(() => {
-          setHighlightChord(true);
-        }, 0);
-      } else {
-        setHighlightChord(false);
-      }
-    } else {
-      setHighlightChord(columnIsBeingPlayed);
-    }
-  }, [columnIndex, columnIsBeingPlayed]);
 
   if (!columnData) {
     return null;
   }
+
+  const column = columnData;
+
+  const currentIsRestStrum = column.chordEffects === "r";
+  const showStrumSettings =
+    isStrumEffect(column.chordEffects) &&
+    !reorderingColumns &&
+    !showingDeleteColumnsButtons &&
+    (isHovered || chordSettingDropdownIsOpen);
 
   function deleteColumnButtonDisabled() {
     let disabled = false;
@@ -153,10 +163,7 @@ function TabNotesColumn({
     }
 
     // if the current chord is being flanked by two measure lines -> disable
-    if (
-      neighborMeta.previousIsMeasureLine &&
-      neighborMeta.nextIsMeasureLine
-    ) {
+    if (neighborMeta.previousIsMeasureLine && neighborMeta.nextIsMeasureLine) {
       disabled = true;
     }
 
@@ -213,61 +220,58 @@ function TabNotesColumn({
     });
   }
 
-  function addNewColumn(after: boolean) {
+  function updateStrumSpread(updater: {
+    strumSpreadAuto?: boolean;
+    strumSpreadSeconds?: number | null;
+  }) {
     setTabData((draft) => {
       const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-
       if (currentSubSection?.type !== "tab") return;
-
-      const currentColumn = currentSubSection.data[columnIndex];
-      if (!currentColumn || !isTabNote(currentColumn)) return;
-
-      const newColumnPalmMuteValue: "" | "-" =
-        (currentColumn.palmMute === "start" && after) ||
-        (currentColumn.palmMute === "end" && !after) ||
-        currentColumn.palmMute === "-"
-          ? "-"
-          : "";
-
-      const newColumnData = createTabNote({
-        palmMute: newColumnPalmMuteValue,
-        noteLength: neighborMeta.baseNoteLength,
-      });
-
-      currentSubSection.data.splice(
-        after ? columnIndex + 1 : columnIndex,
-        0,
-        newColumnData,
-      );
-    });
-  }
-
-  function handleNoteLengthChange(noteLength: FullNoteLengths) {
-    setTabData((draft) => {
-      const currentSubSection = draft[sectionIndex]?.data[subSectionIndex];
-
-      if (currentSubSection?.type !== "tab") return;
-
       const column = currentSubSection.data[columnIndex];
       if (column && isTabNote(column)) {
-        column.noteLength = noteLength;
+        if (updater.strumSpreadAuto !== undefined) {
+          column.strumSpreadAuto = updater.strumSpreadAuto;
+        }
+        if (updater.strumSpreadSeconds !== undefined) {
+          column.strumSpreadSeconds = updater.strumSpreadSeconds;
+        }
       }
     });
   }
 
-  const currentIsRestStrum = columnData.chordEffects === "r";
+  function handlePreviewStrum() {
+    void playPreview({
+      data: [
+        column.firstString,
+        column.secondString,
+        column.thirdString,
+        column.fourthString,
+        column.fifthString,
+        column.sixthString,
+      ],
+      index: -1,
+      type: "chord",
+      chordEffects: column.chordEffects,
+      strumSpreadCompileValue: encodeStrumSpreadForCompile({
+        effects: column.chordEffects,
+        strumSpreadAuto: column.strumSpreadAuto,
+        strumSpreadSeconds: column.strumSpreadSeconds,
+      }),
+      customBpm: String(bpm),
+    });
+  }
 
   return (
     <motion.div
       key={columnData.id}
-      // id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
       ref={setNodeRef}
       style={{
-        transform: CSS.Transform.toString(
-          transform && { ...transform, scaleY: 1, scaleX: 1 },
-        ),
+        transform: transform
+          ? CSS.Transform.toString({ ...transform, scaleY: 1, scaleX: 1 })
+          : undefined,
         transition,
         zIndex: isDragging ? 20 : "auto",
+        height: EDITING_TAB_COLUMN_HEIGHT_PX,
       }}
       onMouseEnter={() => {
         setIsHovered(true);
@@ -281,31 +285,22 @@ function TabNotesColumn({
         setIsHovered(false);
         setHoveredChordLocation(null);
       }}
-      className="baseVertFlex h-[380px] cursor-default"
+      className="baseVertFlex shrink-0 cursor-default"
     >
       <Element
         name={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
         id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
         className="baseFlex relative"
       >
-        {/* absolutely positioned chord highlight */}
         <div
-          style={{
-            transform:
-              highlightChord || columnHasBeenPlayed
-                ? `scaleX(${isLastColumn ? "0.8" : "1"})` // makes sure that final column "endcap" doesn't get highlighted as well
-                : "scaleX(0)",
-            transformOrigin: "left center",
-            transitionDuration: highlightChord ? `${durationOfChord}s` : "0s",
-            msTransitionProperty: "transform",
-            transitionTimingFunction: "linear",
-          }}
-          className="pointer-events-none absolute left-0 z-0 mb-[26px] h-[254px] w-full bg-primary"
-        ></div>
-
-        <div className="baseVertFlex">
+          className="baseVertFlex"
+          style={{ width: EDITING_TAB_COLUMN_WIDTH_PX }}
+        >
           {/* Palm Mute Node */}
-          <div className="baseFlex h-12 w-full">
+          <div
+            className="baseFlex w-full"
+            style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}
+          >
             <PalmMuteNode
               value={columnData.palmMute}
               columnIndex={columnIndex}
@@ -319,79 +314,70 @@ function TabNotesColumn({
             />
           </div>
 
-          {/* String Notes (1-6) */}
-          {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
-            <div
-              key={stringIndex}
-              style={{
-                borderTop: `${stringIndex === 1 ? "2px solid" : "none"}`,
-                paddingTop: `${stringIndex === 1 ? "7px" : stringIndex === 6 ? "3px" : "0px"}`,
-                borderBottom: `${stringIndex === 6 ? "2px solid" : "none"}`,
-                paddingBottom: `${stringIndex === 6 ? "7px" : stringIndex === 1 ? "3px" : "0px"}`,
-                transition: "width 0.15s ease-in-out",
-                // maybe also need "flex-basis: content" here if editing?
-              }}
-              className="baseFlex relative !h-[41px] min-h-[41px] w-12 basis-[content] bg-background/75"
-            >
-              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+          <div className="baseVertFlex relative">
+            <div className="absolute bottom-3 left-0 right-0 top-3 bg-background"></div>
+            {/* String Notes (1-6) */}
+            {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
+              <div
+                key={stringIndex}
+                style={{
+                  height: EDITING_TAB_STRING_ROW_HEIGHT_PX,
+                  minHeight: EDITING_TAB_STRING_ROW_HEIGHT_PX,
+                  width: EDITING_TAB_COLUMN_WIDTH_PX,
+                }}
+                className="baseFlex group/note relative cursor-text"
+                onMouseDown={(event) => {
+                  const input = event.currentTarget.querySelector("input");
+                  if (
+                    !(input instanceof HTMLInputElement) ||
+                    event.target === input
+                  ) {
+                    return;
+                  }
+                  // The glyphs are narrower than the cell. Keep the click on
+                  // the string row from blurring, then focus the fret input.
+                  event.preventDefault();
+                  input.focus();
+                }}
+              >
+                <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
 
-              <TabNote
-                note={getStringValue(columnData, stringIndex)}
-                sectionIndex={sectionIndex}
-                subSectionIndex={subSectionIndex}
-                columnIndex={columnIndex}
-                noteIndex={stringIndex}
-              />
-
-              <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-            </div>
-          ))}
-
-          {/* Chord Settings Dropdown */}
-          {isHovered || chordSettingDropdownIsOpen ? (
-            <DropdownMenu
-              modal={true}
-              open={chordSettingDropdownIsOpen}
-              onOpenChange={(open) => setChordSettingDropdownIsOpen(open)}
-            >
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="my-1 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
-                >
-                  <Ellipsis className="h-3 w-4 rotate-90" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent side={"bottom"}>
-                <DropdownMenuItem
-                  className="baseFlex !justify-between gap-2"
-                  onClick={() => addNewColumn(false)}
-                >
-                  Add chord before
-                  <BsPlus className="h-4 w-4" />
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="baseFlex !justify-between gap-2"
-                  onClick={() => addNewColumn(true)}
-                >
-                  Add chord after
-                  <BsPlus className="h-4 w-4" />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-primary" />
-                <NoteLengthDropdown
-                  value={columnData.noteLength}
-                  onValueChange={handleNoteLengthChange}
+                <TabNote
+                  note={getStringValue(columnData, stringIndex)}
+                  sectionIndex={sectionIndex}
+                  subSectionIndex={subSectionIndex}
+                  columnIndex={columnIndex}
+                  noteIndex={stringIndex}
+                  isHighlighted={isHighlighted}
                 />
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="my-1 h-2.5 w-5"></div>
-          )}
+
+                <div className="h-[1px] min-w-[2px] flex-[1] bg-foreground/50"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Note Length Guide */}
+          <div
+            className="baseVertFlex mb-2 h-4 w-full"
+            style={{ marginTop: EDITING_TAB_NOTE_LENGTH_GAP_PX }}
+          >
+            {renderNoteLengthGuide({
+              previousNoteLength: neighborMeta.previousNoteLength,
+              currentNoteLength: columnData.noteLength,
+              nextNoteLength: neighborMeta.nextNoteLength,
+              previousIsRestStrum: neighborMeta.previousIsRestStrum,
+              currentIsRestStrum,
+              nextIsRestStrum: neighborMeta.nextIsRestStrum,
+              isFirstInGroup: neighborMeta.isFirstInGroup,
+              isLastInGroup: neighborMeta.isLastInGroup,
+              breakBeamWithPrevious: neighborMeta.breakBeamWithPrevious,
+              breakBeamWithNext: neighborMeta.breakBeamWithNext,
+            })}
+          </div>
 
           {/* Chord Effects */}
           {!reorderingColumns && !showingDeleteColumnsButtons && (
-            <div className="h-8 w-[29px]">
+            <div className="mt-1 h-8 w-[29px]">
               <TabNote
                 note={columnData.chordEffects}
                 sectionIndex={sectionIndex}
@@ -403,14 +389,11 @@ function TabNotesColumn({
           )}
 
           {reorderingColumns && (
-            <div className="baseFlex relative h-8 w-full">
+            <div className="baseFlex relative mt-1 h-8 w-full">
               <div
                 ref={setActivatorNodeRef}
-                {...attributes}
-                {...listeners}
-                style={{
-                  left: isLastColumn ? "40%" : "50%",
-                }}
+                {...(attributes ?? {})}
+                {...(listeners ?? {})}
                 className={`hover:box-shadow-md w-[1.5rem] cursor-grab rounded-md text-foreground ${
                   isDragging ? "cursor-grabbing" : "cursor-grab"
                 }`}
@@ -437,14 +420,11 @@ function TabNotesColumn({
           )}
 
           {showingDeleteColumnsButtons && (
-            <div className="baseFlex h-8 w-full">
+            <div className="baseFlex mt-1 h-8 w-full">
               <Button
                 variant={"destructive"}
                 size="sm"
                 disabled={deleteColumnButtonDisabled()}
-                style={{
-                  left: isLastColumn ? "40%" : "50%",
-                }}
                 className="h-[1.75rem] w-[1.75rem] p-1"
                 onClick={handleDeleteChord}
               >
@@ -453,27 +433,65 @@ function TabNotesColumn({
             </div>
           )}
 
-          {/* Note Length Guide */}
-          <div className="baseVertFlex mt-2 h-4 w-full">
-            {renderNoteLengthGuide({
-              previousNoteLength: neighborMeta.previousNoteLength,
-              currentNoteLength: columnData.noteLength,
-              nextNoteLength: neighborMeta.nextNoteLength,
-              previousIsRestStrum: neighborMeta.previousIsRestStrum,
-              currentIsRestStrum,
-              nextIsRestStrum: neighborMeta.nextIsRestStrum,
-              isFirstInGroup: neighborMeta.isFirstInGroup,
-              isLastInGroup: neighborMeta.isLastInGroup,
-            })}
-          </div>
+          {/* Strum settings — only for normal / arpeggiated strums */}
+          {showStrumSettings ? (
+            <StrumSettingsDropdown
+              effects={columnData.chordEffects}
+              bpm={bpm}
+              strumSpreadAuto={columnData.strumSpreadAuto ?? true}
+              strumSpreadSeconds={columnData.strumSpreadSeconds ?? null}
+              open={chordSettingDropdownIsOpen}
+              onOpenChange={setChordSettingDropdownIsOpen}
+              onStrumSpreadAutoChange={(auto) =>
+                updateStrumSpread({ strumSpreadAuto: auto })
+              }
+              onStrumSpreadSecondsChange={(seconds) =>
+                updateStrumSpread({
+                  strumSpreadAuto: false,
+                  strumSpreadSeconds: seconds,
+                })
+              }
+              onPreview={handlePreviewStrum}
+              previewDisabled={
+                chordPreviewPlaying
+              }
+            />
+          ) : (
+            <div className="my-1 h-2.5 w-5"></div>
+          )}
         </div>
-
-        {isLastColumn && (
-          <div className="mb-[26px] h-[258px] rounded-r-2xl border-2 border-foreground bg-background/75 p-1"></div>
-        )}
       </Element>
     </motion.div>
   );
 }
 
-export default TabNotesColumn;
+const MemoTabNotesColumn = memo(TabNotesColumn);
+
+function SortableTabNotesColumn(props: TabNotesColumnProps) {
+  const columnData = useTabNoteColumnData(
+    props.sectionIndex,
+    props.subSectionIndex,
+    props.columnIndex,
+  );
+  const sortable = useSortable({
+    id: columnData?.id ?? `tab-note-${props.columnIndex}`,
+  });
+
+  return (
+    <TabNotesColumn
+      {...props}
+      drag={{
+        setNodeRef: sortable.setNodeRef,
+        setActivatorNodeRef: sortable.setActivatorNodeRef,
+        transform: sortable.transform,
+        transition: sortable.transition,
+        isDragging: sortable.isDragging,
+        attributes: sortable.attributes,
+        listeners: sortable.listeners,
+      }}
+    />
+  );
+}
+
+export { SortableTabNotesColumn };
+export default MemoTabNotesColumn;

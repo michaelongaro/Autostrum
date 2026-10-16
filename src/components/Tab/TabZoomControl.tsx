@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { getTrackBackground, Range } from "react-range";
+import { getTrackBackground, Range } from "~/components/ui/Range";
 import { Label } from "~/components/ui/label";
 
 interface TabZoomControlProps {

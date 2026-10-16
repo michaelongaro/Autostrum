@@ -15,6 +15,8 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import ArpeggiatedDownstrumIcon from "~/components/ui/icons/ArpeggiatedDownstrumIcon";
+import ArpeggiatedUpstrumIcon from "~/components/ui/icons/ArpeggiatedUpstrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -48,12 +50,12 @@ function GlossaryDialog() {
     }),
   );
 
-  const [currentPane, setCurrentPane] = useState<"effects" | "noteLengths">(
-    "effects",
+  const [currentPane, setCurrentPane] = useState<"modifiers" | "noteLengths">(
+    "modifiers",
   );
 
   const targetMinHeight =
-    currentPane === "effects" ? (editing ? "408px" : "350px") : "408px";
+    editing && currentPane === "modifiers" ? "475px" : "425px";
 
   return (
     <Dialog
@@ -62,31 +64,31 @@ function GlossaryDialog() {
 
         if (!open) {
           setTimeout(() => {
-            setCurrentPane("effects");
+            setCurrentPane("modifiers");
           }, 175);
         }
       }}
       open={showGlossaryDialog}
     >
       <VisuallyHidden>
-        <DialogTitle>Effect glossary</DialogTitle>
+        <DialogTitle>Modifier Glossary</DialogTitle>
         <DialogDescription>
-          A list of all the effects and their notations that can be used in the
-          tab editor.
+          A list of all the modifiers and their notations that can be used in
+          the tab editor.
         </DialogDescription>
       </VisuallyHidden>
 
-      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 rounded-lg p-4 transition-all xs:max-w-[420px]">
+      <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 rounded-lg p-4 transition-all xs:max-w-[445px]">
         <div className="baseFlex w-full !justify-start gap-4">
           <Button
             variant={"text"}
-            onClick={() => setCurrentPane("effects")}
+            onClick={() => setCurrentPane("modifiers")}
             className="relative h-8 px-0"
           >
             <span className="baseFlex gap-2 font-semibold">
-              Effect Glossary
+              Modifier Glossary
             </span>
-            {currentPane === "effects" && (
+            {currentPane === "modifiers" && (
               <motion.span
                 layoutId="glossaryActiveTabUnderline"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
@@ -114,26 +116,24 @@ function GlossaryDialog() {
         <motion.div
           animate={{ height: targetMinHeight }}
           transition={{ duration: 0.25, ease: "easeInOut" }}
-          className="w-full overflow-y-auto overflow-x-hidden xs:overflow-y-hidden"
+          className="w-full overflow-y-auto overflow-x-hidden md:overflow-y-hidden"
         >
           <AnimatePresence mode="wait" initial={false}>
-            {currentPane === "effects" && (
+            {currentPane === "modifiers" && (
               <motion.div
-                key={"GlossaryDialogEffectsPane"}
+                key={"GlossaryDialogmodifiersPane"}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className={`baseVertFlex w-full !justify-start gap-4 ${editing ? "h-[408px]" : "h-[350px]"}`}
+                className={`baseVertFlex w-full !justify-start gap-4 ${editing ? "h-[475px]" : "h-[425px]"}`}
               >
                 <div
                   className={`baseFlex !items-start gap-4 xs:gap-8 ${editing ? "!flex-col xs:!flex-row" : ""}`}
                 >
-                  <div
-                    className={`baseVertFlex gap-1 ${editing ? "min-w-[190px]" : "min-w-[150px]"}`}
-                  >
+                  <div className={`baseVertFlex w-full gap-1`}>
                     <span className="mt-2 text-sm font-medium">
-                      Note effects
+                      Note Modifiers
                     </span>
 
                     <Separator className="mb-2 w-full bg-primary" />
@@ -388,11 +388,24 @@ function GlossaryDialog() {
                         <span className="col-span-3">Muted note</span>
                       </div>
                     </div>
+
+                    <div className="baseVertFlex w-full gap-1">
+                      <span className="mt-4 text-sm font-medium">
+                        Section Modifiers
+                      </span>
+                      <Separator className="mb-2 w-full bg-primary" />
+                    </div>
+
+                    <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                      <span className="col-span-1">PM</span>
+                      <span className="col-span-1 ml-1">-</span>
+                      <span className="col-span-3">Palm mute</span>
+                    </div>
                   </div>
 
                   <div className="baseVertFlex w-full gap-1">
                     <span className="mt-2 text-sm font-medium">
-                      Chord effects
+                      Chord Modifiers
                     </span>
                     <Separator className="mb-2 w-full bg-primary" />
 
@@ -407,6 +420,20 @@ function GlossaryDialog() {
                           <span className="col-span-1">v</span>
                           <span className="col-span-1">-</span>
                           <span className="col-span-3">Downstrum</span>
+                        </div>
+                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                          <span className="col-span-1">^~</span>
+                          <span className="col-span-1">-</span>
+                          <span className="col-span-3">
+                            Arpeggiated upstrum
+                          </span>
+                        </div>
+                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                          <span className="col-span-1">v~</span>
+                          <span className="col-span-1">-</span>
+                          <span className="col-span-3">
+                            Arpeggiated downstrum
+                          </span>
                         </div>
                         <div className="grid w-full grid-cols-5 pl-1 text-sm">
                           <span className="col-span-1">{">"}</span>
@@ -446,6 +473,24 @@ function GlossaryDialog() {
                           <span className="col-span-3">Downstrum</span>
                         </div>
                         <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                          <span className="col-span-1 -ml-1">
+                            <ArpeggiatedUpstrumIcon className="size-4" />
+                          </span>
+                          <span className="col-span-1">-</span>
+                          <span className="col-span-3">
+                            Arpeggiated upstrum
+                          </span>
+                        </div>
+                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                          <span className="col-span-1 -ml-1">
+                            <ArpeggiatedDownstrumIcon className="size-4" />
+                          </span>
+                          <span className="col-span-1">-</span>
+                          <span className="col-span-3">
+                            Arpeggiated downstrum
+                          </span>
+                        </div>
+                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
                           <span className="col-span-1">s</span>
                           <span className="col-span-1">-</span>
                           <span className="col-span-3">Slap</span>
@@ -466,19 +511,6 @@ function GlossaryDialog() {
                         </div>
                       </div>
                     )}
-
-                    <div className="baseVertFlex w-full gap-1">
-                      <span className="mt-4 text-sm font-medium">
-                        Section effects
-                      </span>
-                      <Separator className="mb-2 w-full bg-primary" />
-                    </div>
-
-                    <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                      <span className="col-span-1">PM</span>
-                      <span className="col-span-1 ml-1">-</span>
-                      <span className="col-span-3">Palm mute</span>
-                    </div>
 
                     {editing && (
                       <>
@@ -504,7 +536,7 @@ function GlossaryDialog() {
                 <div className="baseVertFlex mt-2 w-full gap-2 xs:mt-0">
                   <Separator className="h-[1px] w-full bg-primary" />
                   <p className="text-sm">
-                    <span className="font-semibold">Bolded</span> effects are
+                    <span className="font-semibold">Bolded</span> modifiers are
                     accented.
                   </p>
                 </div>
@@ -518,12 +550,12 @@ function GlossaryDialog() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="baseVertFlex min-h-[408px] w-full !items-start gap-4 xs:gap-4"
+                className={`baseVertFlex h-[425px] w-full !items-start gap-4 xs:gap-4`}
               >
                 <div className="baseVertFlex !items-start gap-0">
                   <div className="baseVertFlex gap-1">
                     <p className="text-sm font-medium">
-                      Supported note lengths
+                      Supported Note Lengths
                     </p>
                     <Separator className="mb-2 w-full bg-primary" />
                   </div>
@@ -531,9 +563,9 @@ function GlossaryDialog() {
                   <Table className="w-[300px] xs:w-full">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="px-0">Name</TableHead>
-                        <TableHead className="px-0">Duration</TableHead>
-                        <TableHead className="px-0">Notation</TableHead>
+                        <TableHead className="h-8 px-0">Name</TableHead>
+                        <TableHead className="h-8 px-0">Duration</TableHead>
+                        <TableHead className="h-8 px-0">Notation</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

@@ -16,6 +16,9 @@ import Verified from "~/components/ui/icons/Verified";
 import Link from "next/link";
 import Spinner from "~/components/ui/Spinner";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { PiChartLineUpBold } from "react-icons/pi";
+import { LuTrendingUp } from "react-icons/lu";
+import { IoStatsChart } from "react-icons/io5";
 
 interface SearchInput {
   setShowMobileSearch?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -301,10 +304,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             transition={{
               duration: 0.2,
             }}
-            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${isAboveLgViewportWidth ? "top-[45px] border !shadow-xl" : "top-11 border-t"}`}
+            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${isAboveLgViewportWidth ? "top-[45px] border !shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.2)]" : "top-11 border-t"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
-              <div className="baseFlex gap-3">
+              <div className="baseFlex ml-1 gap-3">
                 Searching for
                 <Button
                   variant={"secondary"}
@@ -379,21 +382,24 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
               }}
               className="baseVertFlex min-h-dvh w-full !justify-start sm:min-h-[250px]"
             >
-              {/* no search input and daily popular songs/artists loaded, show popular songs/artists */}
+              {/* no search input and trending songs / popular artists loaded */}
               {searchQuery.trim() === "" &&
                 !isFetchingMostPopularDailyTabsAndArtists &&
                 mostPopularDailyTabsAndArtists && (
                   <>
                     {searchType === "songs" ? (
                       <motion.div
-                        key={"popularSongs"}
+                        key={"trendingSongs"}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
                         className="baseVertFlex mt-2 w-full !items-start gap-2"
                       >
-                        <p className="ml-2 font-medium">Popular Songs</p>
+                        <div className="baseFlex ml-3 gap-2">
+                          <LuTrendingUp className="size-4" />
+                          <p className="font-medium">Trending Songs</p>
+                        </div>
                         <div className="baseVertFlex h-full w-full">
                           {mostPopularDailyTabsAndArtists.tabs.map(
                             (song, idx) => (
@@ -409,7 +415,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   href={`/tab/${song.id}/${encodeURIComponent(
                                     song.title,
                                   )}`}
-                                  className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2 transition-all"
+                                  style={{
+                                    transition: "filter 150ms linear",
+                                  }}
+                                  className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none !px-3 py-2"
                                   onClick={() => {
                                     setShowAutofillResults(false);
                                   }}
@@ -474,7 +483,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                       <div className="mt-1 h-[12px] w-[10px] rounded-bl-lg border border-r-0 border-t-0"></div>
                                       <div className="baseFlex ml-1.5 mt-1 gap-1.5 text-sm">
                                         {song.artist.isVerified && (
-                                          <Verified className="size-5" />
+                                          <Verified className="size-[18px]" />
                                         )}
                                         {song.artist.name}
                                       </div>
@@ -495,7 +504,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                         transition={{ duration: 0.15 }}
                         className="baseVertFlex mt-2 w-full !items-start gap-2"
                       >
-                        <p className="ml-2 font-medium">Popular Artists</p>
+                        <div className="baseFlex ml-3 gap-2">
+                          <IoStatsChart className="size-4" />
+                          <p className="font-medium">Popular Artists</p>
+                        </div>
                         <div className="baseVertFlex w-full">
                           {mostPopularDailyTabsAndArtists.artists.map(
                             (artist, idx) => (
@@ -511,7 +523,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   href={`/artist/${encodeURIComponent(
                                     artist.name,
                                   )}/${artist.id}/filters`}
-                                  className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2 transition-all"
+                                  style={{
+                                    transition: "filter 150ms linear",
+                                  }}
+                                  className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none !px-3 py-2"
                                   onClick={() => {
                                     setShowAutofillResults(false);
                                   }}
@@ -552,7 +567,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                   }}
                                 >
                                   {artist.isVerified && (
-                                    <Verified className="size-5" />
+                                    <Verified className="size-[18px]" />
                                   )}
 
                                   <p className="max-w-[100%] truncate">
@@ -608,7 +623,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 href={`/tab/${song.id}/${encodeURIComponent(
                                   song.title,
                                 )}`}
-                                className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none py-2 transition-all"
+                                style={{
+                                  transition: "filter 150ms linear",
+                                }}
+                                className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none !px-3 py-2"
                                 onClick={() => {
                                   setShowAutofillResults(false);
                                 }}
@@ -669,7 +687,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                     <div className="mt-1 h-[12px] w-[10px] rounded-bl-lg border border-r-0 border-t-0"></div>
                                     <div className="baseFlex ml-1.5 mt-1 gap-1.5 text-sm">
                                       {song.artistIsVerified && (
-                                        <Verified className="size-5" />
+                                        <Verified className="size-[18px]" />
                                       )}
                                       {song.artistName}
                                     </div>
@@ -724,7 +742,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 href={`/artist/${encodeURIComponent(
                                   artist.name,
                                 )}/${artist.id}/filters`}
-                                className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none py-2 transition-all"
+                                style={{
+                                  transition: "filter 150ms linear",
+                                }}
+                                className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none !px-3 py-2"
                                 onClick={() => {
                                   setShowAutofillResults(false);
                                 }}
@@ -763,7 +784,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 }}
                               >
                                 {artist.isVerified && (
-                                  <Verified className="size-5" />
+                                  <Verified className="size-[18px]" />
                                 )}
 
                                 <p className="max-w-[100%] truncate">

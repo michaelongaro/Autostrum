@@ -1,99 +1,96 @@
 import { QuarterNote } from "~/utils/noteLengthIcons";
-import type { TabMeasureLine as TabMeasureLineType } from "~/stores/TabStore";
 import {
   STATIC_TAB_MEASURE_LINE_WIDTH_PX,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
   STATIC_TAB_ROW_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_INSET_PX,
+  STATIC_TAB_STRINGS_HEIGHT_PX,
 } from "~/utils/staticTabGeometry";
 
 interface StaticTabMeasureLineProps {
-  columnData: TabMeasureLineType;
+  /** Whether this measure line sits inside a palm-mute span. */
+  isInPalmMuteSection: boolean;
+  /**
+   * When true, render the BPM label above the staff (tempo changes across
+   * this measure line). Value is the effective post-line BPM.
+   */
+  showBpm: boolean;
+  bpmToShow?: number;
 }
 
-function StaticTabMeasureLine({ columnData }: StaticTabMeasureLineProps) {
+function StaticTabMeasureLine({
+  isInPalmMuteSection,
+  showBpm,
+  bpmToShow,
+}: StaticTabMeasureLineProps) {
   return (
     <div
       style={{
         height: STATIC_TAB_ROW_HEIGHT_PX,
         width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
       }}
-      className="baseVertFlex relative"
+      className="baseVertFlex relative !justify-start"
     >
-      {/* BPM indicator */}
+      <div
+        style={{ height: isInPalmMuteSection ? "0px" : "12px" }}
+        className="w-full shrink-0"
+      />
 
-      {columnData.bpmAfterLine !== null ? (
+      {/* BPM indicator — only when chord-before BPM ≠ chord-after BPM */}
+
+      {showBpm && bpmToShow !== undefined ? (
         <div
           style={{
             color: "hsl(var(--screenshot-foreground))",
           }}
-          className={`baseFlex shrink-0 gap-[2px] ${columnData.isInPalmMuteSection ? "h-4" : "h-8"}`}
+          className={`baseFlex shrink-0 gap-[2px] ${isInPalmMuteSection ? "h-4" : "h-8"}`}
         >
           <QuarterNote />
-          <p className="text-center text-xs">
-            {columnData.bpmAfterLine.toString()}
-          </p>
+          <p className="text-center text-xs">{bpmToShow.toString()}</p>
         </div>
       ) : (
         <div className="h-4 w-full shrink-0"></div>
       )}
 
       {/* Palm mute connecting line */}
-      {columnData.isInPalmMuteSection ? (
+      {isInPalmMuteSection ? (
         <div className="baseFlex h-4 w-full shrink-0">
           <div
             style={{
               backgroundColor: "hsl(var(--screenshot-foreground))",
             }}
-            className="relative mt-[-16px] h-[1px] w-full"
+            className="relative mt-[-8px] h-[1px] w-full"
           ></div>
         </div>
       ) : (
         <>
-          {columnData.bpmAfterLine === null && (
-            <div className="h-4 w-full shrink-0"></div>
-          )}
+          {!showBpm && <div className="h-4 w-full shrink-0"></div>}
         </>
       )}
 
-      {/* Vertical measure line segments for each string (1-6) */}
-      {([0, 1, 2, 3, 4, 5, 6, 7] as const).map((stringIndex) => (
-        <div
-          key={stringIndex}
-          style={{
-            backgroundColor: "hsl(var(--screenshot-foreground))",
-          }}
-          className="baseFlex w-full shrink-0"
-        >
-          {stringIndex === 0 && (
-            <div className="baseVertFlex h-[8px] w-full !justify-start">
-              <div
-                style={{
-                  backgroundColor: "hsl(var(--screenshot-foreground))",
-                }}
-                className="h-[2px] w-full"
-              ></div>
-            </div>
-          )}
-
-          {stringIndex !== 0 && stringIndex !== 7 && (
-            <div className="h-[24px] w-[2px]"></div>
-          )}
-
-          {stringIndex === 7 && (
-            <div className="baseVertFlex h-[8px] w-full !justify-end">
-              <div
-                style={{
-                  backgroundColor: "hsl(var(--screenshot-foreground))",
-                }}
-                className="h-[2px] w-full"
-              ></div>
-            </div>
-          )}
-        </div>
-      ))}
+      {/* Former top container border — spacer only */}
 
       <div
-        style={{ height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX }}
+        className="relative w-full shrink-0"
+        style={{ height: STATIC_TAB_STRINGS_HEIGHT_PX }}
+      >
+        <div
+          style={{
+            width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
+            height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+            marginTop: isInPalmMuteSection
+              ? STATIC_TAB_STAFF_LINE_INSET_PX
+              : "0px",
+            backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
+          }}
+        />
+      </div>
+
+      <div
+        style={{
+          height: STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
+        }}
         className="w-full"
       ></div>
     </div>

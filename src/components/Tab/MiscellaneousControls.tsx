@@ -28,7 +28,7 @@ import {
   replaceIdInTabSection,
   replaceIdInSection,
 } from "~/utils/replaceWithUniqueIdHelpers";
-import isEqual from "lodash.isequal";
+import { playbackScopesMatch } from "~/utils/playbackScope";
 import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 import { Check } from "lucide-react";
 import {
@@ -109,7 +109,8 @@ function MiscellaneousControls({
     ...(chordSequenceIndex !== undefined && { chordSequenceIndex }),
   };
   const playingHere =
-    audioMetadata.playing && isEqual(audioMetadata.location, location);
+    audioMetadata.playing &&
+    playbackScopesMatch(audioMetadata.location, location);
 
   async function playOnDemand() {
     if (playingHere) {
@@ -119,7 +120,8 @@ function MiscellaneousControls({
     setAudioError(false);
     setLoadingAudio(true);
     try {
-      if (!isEqual(audioMetadata.location, location)) pauseAudio(true);
+      if (!playbackScopesMatch(audioMetadata.location, location))
+        pauseAudio(true);
       if (
         (await store.getState().ensureAudioSystemReady()) &&
         store.getState().tabData[sectionIndex]?.id === sectionId
@@ -403,12 +405,15 @@ function MiscellaneousControls({
               void playOnDemand();
               return;
             }
-            const locationIsEqual = isEqual(audioMetadata.location, location);
+            const samePlaybackScope = playbackScopesMatch(
+              audioMetadata.location,
+              location,
+            );
 
-            if (audioMetadata.playing && locationIsEqual) {
+            if (audioMetadata.playing && samePlaybackScope) {
               pauseAudio();
             } else {
-              if (!locationIsEqual) {
+              if (!samePlaybackScope) {
                 pauseAudio(true);
               }
 
@@ -417,7 +422,7 @@ function MiscellaneousControls({
                 () => {
                   void playTab({ location });
                 },
-                !locationIsEqual ? 50 : 0,
+                !samePlaybackScope ? 50 : 0,
               );
             }
           }}

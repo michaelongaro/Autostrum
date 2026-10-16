@@ -1,5 +1,4 @@
 import { AnimatePresence } from "framer-motion";
-import debounce from "lodash.debounce";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
 import {
@@ -82,9 +81,6 @@ function SectionContainer({
   const [accordionOpen, setAccordionOpen] = useState(
     presentation === "embedded" ? "closed" : "opened",
   );
-  // Local while typing; store updates are debounced. Remount (new section id /
-  // index) re-initializes from the store value.
-  const [localTitle, setLocalTitle] = useState(sectionTitle);
 
   useEffect(() => {
     if (forceCloseSectionAccordions) {
@@ -102,22 +98,22 @@ function SectionContainer({
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
 
-    setLocalTitle(e.target.value);
-
-    // in general app slows down w/ size of tab increasing, but it's especially
-    // noticeable when updating the title of a section since it can be
-    // updated faster than the tab data (in general)
-    debounce(() => {
-      setTabData((draft) => {
-        draft[sectionIndex]!.title = e.target.value;
-      });
-
-      const newSectionProgression = sectionProgression.map((s) =>
-        s.sectionId === sectionId ? { ...s, title: e.target.value } : s,
+    const value = e.target.value;
+    // Commit immediately so undo cannot race a delayed title write. The title
+    // selector keeps note edits from re-rendering this section shell.
+    setTabData((draft) => {
+      const section = draft[sectionIndex];
+      if (section?.id === sectionId) section.title = value;
+    });
+    if (sectionProgression.some((section) => section.sectionId === sectionId)) {
+      setSectionProgression(
+        sectionProgression.map((section) =>
+          section.sectionId === sectionId
+            ? { ...section, title: value }
+            : section,
+        ),
       );
-
-      setSectionProgression(newSectionProgression);
-    }, 1000)();
+    }
   }
 
   function generateDefaultTabSection(): TabSectionType {
@@ -252,7 +248,7 @@ function SectionContainer({
                   </Label>
                   <Input
                     id={`sectionTitleInput${sectionIndex}`}
-                    value={localTitle}
+                    value={sectionTitle}
                     placeholder="Section title"
                     onChange={updateSectionTitle}
                     className={cn(

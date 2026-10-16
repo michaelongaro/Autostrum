@@ -1,14 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
-import { BsArrowDown, BsArrowUp, BsPlus } from "react-icons/bs";
+import { BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Element } from "react-scroll";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -20,36 +13,39 @@ import {
 } from "~/components/ui/select";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import Ellipsis from "~/components/ui/icons/Ellipsis";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
-import { NoteLengthDropdown } from "~/components/Tab/NoteLengthDropdown";
 import StrummingPatternPalmMuteNode from "~/components/Tab/StrummingPatternPalmMuteNode";
+import StrumSettingsDropdown from "~/components/Tab/StrumSettingsDropdown";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import { useStrumHighlight } from "~/hooks/useStrumHighlight";
 import {
   useTabStore,
   type Chord,
-  type FullNoteLengths,
   type Strum,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
+import { beamBreaksForStrums } from "~/utils/noteLengthBeaming";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
+import {
+  encodeStrumSpreadForCompile,
+  isStrumEffect,
+} from "~/utils/strumEffectHelpers";
 
 const emptyChords: Chord[] = [];
-
-type StrummingPatternMode =
-  | "editingStrummingPattern"
-  | "editingChordSequence"
-  | "viewingWithChordNames"
-  | "viewing"
-  | "viewingInSelectDropdown";
 
 interface StrummingPatternStrumProps {
   strum: Strum;
   strumIndex: number;
   data: StrummingPatternType;
   chordSequence?: string[];
-  mode: StrummingPatternMode;
+  mode:
+    | "editingStrummingPattern"
+    | "editingChordSequence"
+    | "viewingWithChordNames"
+    | "viewing"
+    | "viewingWithHighlights"
+    | "viewingInSelectDropdown";
   patternIndex?: number;
   sectionIndex?: number;
   subSectionIndex?: number;
@@ -70,8 +66,13 @@ interface StrummingPatternStrumProps {
     beatIndex: number,
   ) => void;
   onChange: (e: React.ChangeEvent<HTMLInputElement>, beatIndex: number) => void;
-  onNoteLengthChange: (strumIndex: number, noteLength: FullNoteLengths) => void;
-  onAddStrum: (after: boolean, atIndex: number) => void;
+  onStrumSpreadChange: (
+    strumIndex: number,
+    update: {
+      strumSpreadAuto?: boolean;
+      strumSpreadSeconds?: number | null;
+    },
+  ) => void;
   onDeleteStrum: (beatIndex: number) => void;
   onChordChange: (value: string, beatIndex: number) => void;
   onExtendPatternKeyDown: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
@@ -99,8 +100,7 @@ function StrummingPatternStrum({
   isLastStrum,
   onKeyDown,
   onChange,
-  onNoteLengthChange,
-  onAddStrum,
+  onStrumSpreadChange,
   onDeleteStrum,
   onChordChange,
   onExtendPatternKeyDown,
@@ -112,6 +112,12 @@ function StrummingPatternStrum({
 
   const setHoveredChordLocation = useTabStore(
     (state) => state.setHoveredChordLocation,
+  );
+  const bpm = useTabStore((state) => state.bpm);
+  const playPreview = useTabStore((state) => state.playPreview);
+  const chordPreviewPlaying = useTabStore(
+    (state) =>
+      state.previewMetadata.playing && state.previewMetadata.type === "chord",
   );
 
   const forPreview =
@@ -135,11 +141,34 @@ function StrummingPatternStrum({
     showingDeleteStrumsButtons ? state.previewMetadata.playing : false,
   );
 
-  const highlightColor = highlighted
-    ? "hsl(var(--primary))"
-    : mode === "editingStrummingPattern"
-      ? "hsl(var(--foreground))"
-      : "inherit";
+  const highlightColor =
+    highlighted && mode !== "viewing"
+      ? "hsl(var(--primary))"
+      : mode === "editingStrummingPattern"
+        ? "hsl(var(--foreground))"
+        : "inherit";
+
+  const showStrumSettings =
+    mode === "editingStrummingPattern" &&
+    isStrumEffect(strum.strum) &&
+    (isHovered || settingsOpen);
+
+  const beamBreaks = beamBreaksForStrums(data.strums)[strumIndex];
+
+  function handlePreviewStrum() {
+    void playPreview({
+      data: ["0", "1", "0", "2", "3", ""],
+      index: -1,
+      type: "chord",
+      chordEffects: strum.strum,
+      strumSpreadCompileValue: encodeStrumSpreadForCompile({
+        effects: strum.strum,
+        strumSpreadAuto: strum.strumSpreadAuto,
+        strumSpreadSeconds: strum.strumSpreadSeconds,
+      }),
+      customBpm: String(bpm || 75),
+    });
+  }
 
   return (
     <Element
@@ -154,6 +183,7 @@ function StrummingPatternStrum({
       <div
         style={{
           marginTop: mode === "editingStrummingPattern" ? "1rem" : "0",
+          width: mode === "editingStrummingPattern" ? "45px" : "auto",
         }}
         className="baseVertFlex relative"
         onMouseEnter={() => {
@@ -245,7 +275,7 @@ function StrummingPatternStrum({
           </>
         )}
 
-        <div className="baseFlex mb-1 mt-2">
+        <div data-strum-playhead-span-start="" className="baseFlex mb-1 mt-2">
           <div
             style={{
               width: mode === "editingChordSequence" ? "1.25rem" : "0.25rem",
@@ -256,17 +286,18 @@ function StrummingPatternStrum({
             <Input
               id={`input-strummingPatternModal-${strumIndex}-1`}
               type="text"
+              showFocusState={false}
               autoComplete="off"
               value={strum.strum}
               onKeyDown={(e) => onKeyDown(e, strumIndex)}
               onChange={(e) => onChange(e, strumIndex)}
               style={{
                 borderWidth: `${
-                  strum.strum.length > 0 && !isFocused ? "2px" : "1px"
+                  strum.strum.length > 0 || isFocused ? "2px" : "1px"
                 }`,
                 color: highlightColor,
               }}
-              className="h-[2.35rem] w-[2.35rem] rounded-full p-0 text-center shadow-sm"
+              className="h-[2rem] w-[35px] p-0 text-center transition-none focus-visible:outline-none"
               onFocus={(e) => {
                 setIsFocused(true);
                 e.target.setSelectionRange(
@@ -281,25 +312,10 @@ function StrummingPatternStrum({
               style={{
                 color: highlightColor,
               }}
-              className={`baseVertFlex relative mb-2 h-[20px] text-lg ${mode === "viewingInSelectDropdown" ? "" : "transition-colors"}`}
+              className="baseVertFlex relative mb-2 h-[20px] text-lg"
             >
-              {strum.strum.includes("v") && (
-                <BsArrowDown
-                  style={{
-                    width: strum.strum.includes(">") ? "18.5px" : "20px",
-                    height: strum.strum.includes(">") ? "18.5px" : "20px",
-                  }}
-                  strokeWidth={strum.strum.includes(">") ? "1.25px" : "0px"}
-                />
-              )}
-              {strum.strum.includes("^") && (
-                <BsArrowUp
-                  style={{
-                    width: strum.strum.includes(">") ? "18.5px" : "20px",
-                    height: strum.strum.includes(">") ? "18.5px" : "20px",
-                  }}
-                  strokeWidth={strum.strum.includes(">") ? "1.25px" : "0px"}
-                />
+              {(strum.strum.includes("v") || strum.strum.includes("^")) && (
+                <ChordStrumIcon effects={strum.strum} />
               )}
 
               {strum.strum.includes("s") && (
@@ -339,58 +355,12 @@ function StrummingPatternStrum({
           ></div>
         </div>
 
-        {mode === "editingStrummingPattern" && (
-          <>
-            {isHovered || settingsOpen ? (
-              <DropdownMenu
-                modal={true}
-                open={settingsOpen}
-                onOpenChange={setSettingsOpen}
-              >
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
-                  >
-                    <Ellipsis className="h-3 w-4 rotate-90" />
-                  </Button>
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent side={"bottom"}>
-                  <DropdownMenuItem
-                    className="baseFlex !justify-between gap-2"
-                    onClick={() => onAddStrum(false, strumIndex)}
-                  >
-                    Add strum before
-                    <BsPlus className="h-4 w-4" />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="baseFlex !justify-between gap-2"
-                    onClick={() => onAddStrum(true, strumIndex)}
-                  >
-                    Add strum after
-                    <BsPlus className="h-4 w-4" />
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-primary" />
-                  <NoteLengthDropdown
-                    value={strum.noteLength}
-                    onValueChange={(value) => {
-                      onNoteLengthChange(strumIndex, value);
-                    }}
-                  />
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="h-2.5"></div>
-            )}
-          </>
-        )}
-
         <p
+          data-strum-playhead-span-end=""
           style={{
             color: highlightColor,
           }}
-          className={`text-sm ${mode === "viewingInSelectDropdown" ? "" : "transition-colors"}`}
+          className={`text-sm ${mode === "editingStrummingPattern" ? "my-1" : ""}`}
         >
           {beatLabel}
         </p>
@@ -405,8 +375,41 @@ function StrummingPatternStrum({
             nextIsRestStrum: data.strums[strumIndex + 1]?.strum === "r",
             isFirstInGroup: strumIndex === 0,
             isLastInGroup: isLastStrum,
+            breakBeamWithPrevious: beamBreaks?.breakWithPrevious ?? true,
+            breakBeamWithNext: beamBreaks?.breakWithNext ?? true,
           })}
         </div>
+
+        {mode === "editingStrummingPattern" && (
+          <>
+            {showStrumSettings ? (
+              <StrumSettingsDropdown
+                effects={strum.strum}
+                bpm={bpm || 75}
+                strumSpreadAuto={strum.strumSpreadAuto ?? true}
+                strumSpreadSeconds={strum.strumSpreadSeconds ?? null}
+                open={settingsOpen}
+                onOpenChange={setSettingsOpen}
+                onStrumSpreadAutoChange={(auto) =>
+                  onStrumSpreadChange(strumIndex, { strumSpreadAuto: auto })
+                }
+                onStrumSpreadSecondsChange={(seconds) =>
+                  onStrumSpreadChange(strumIndex, {
+                    strumSpreadAuto: false,
+                    strumSpreadSeconds: seconds,
+                  })
+                }
+                onPreview={handlePreviewStrum}
+                previewDisabled={
+                  chordPreviewPlaying
+                }
+                triggerClassName="mt-2 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
+              />
+            ) : (
+              <div className="mt-2 h-2.5"></div>
+            )}
+          </>
+        )}
 
         {showingDeleteStrumsButtons && (
           <Button
@@ -425,11 +428,11 @@ function StrummingPatternStrum({
         data.strums.length < 32 && (
           <Button
             id={"strummingPatternExtendPatternButton"}
-            className="ml-2 mr-1 rounded-full px-[6px] py-0 md:px-2"
+            className="ml-2 mr-1 size-9 px-[6px] py-0 md:px-0"
             onKeyDown={onExtendPatternKeyDown}
             onClick={onExtendPatternClick}
           >
-            <BsPlus className="h-6 w-6" />
+            <BsPlus className="size-[26px]" />
           </Button>
         )}
     </Element>

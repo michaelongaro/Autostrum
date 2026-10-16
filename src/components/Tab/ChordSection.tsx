@@ -72,7 +72,7 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
     <div className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border bg-secondary-active/25 p-4 shadow-md md:p-8">
       <div className="baseFlex w-full !items-start">
         <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start">
-          <div className="baseFlex gap-2">
+          <div className="baseFlex gap-2 lg:gap-4">
             <div className="baseFlex gap-2">
               <Label
                 htmlFor={`sectionIndex${sectionIndex}subSectionIndex${subSectionIndex}bpm`}
@@ -96,9 +96,7 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
                         : bpm.toString()
                       : subSection.bpm.toString()
                   }
-                  value={
-                    subSection.bpm === -1 ? "" : subSection.bpm.toString()
-                  }
+                  value={subSection.bpm === -1 ? "" : subSection.bpm.toString()}
                   onChange={handleBpmChange}
                 />
               </div>

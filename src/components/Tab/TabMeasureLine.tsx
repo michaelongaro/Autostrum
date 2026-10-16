@@ -1,7 +1,11 @@
+import type {
+  DraggableAttributes,
+  DraggableSyntheticListeners,
+} from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { CSS, type Transform } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
 import {
@@ -13,41 +17,61 @@ import { useTabDataGetter, useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
+import { focusEditingTabInput } from "~/utils/tabNoteHandlers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
   useTabColumnNeighborMeta,
   useTabMeasureLineColumnData,
-  useTabSubSectionBpm,
+  useMeasureLineBpmDisplay,
 } from "~/hooks/useTabDataSelectors";
-import { useMeasureLineHasBeenPlayed } from "~/hooks/useColumnPlaybackHighlight";
 import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
-
-// FYI: this whole component is such a mess architecture-wise, but I don't really know
-// how to refactor it so we don't have so many magic numbers
+import {
+  EDITING_TAB_COLUMN_HEIGHT_PX,
+  EDITING_TAB_COLUMN_WIDTH_PX,
+  EDITING_TAB_FOOTER_HEIGHT_PX,
+  EDITING_TAB_NOTE_LENGTH_GAP_PX,
+  EDITING_TAB_PALM_MUTE_HEIGHT_PX,
+  EDITING_TAB_REORDER_DIM_HEIGHT_PX,
+  EDITING_TAB_REORDER_DIM_TOP_PX,
+  EDITING_TAB_REORDER_FOOTER_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+  EDITING_TAB_STAFF_LINE_INSET_PX,
+  EDITING_TAB_STRING_ROW_HEIGHT_PX,
+  EDITING_TAB_STRINGS_HEIGHT_PX,
+} from "~/utils/editingTabGeometry";
 
 interface TabMeasureLineProps {
   sectionIndex: number;
   subSectionIndex: number;
   columnIndex: number;
+  editingPalmMuteNodes: boolean;
   reorderingColumns: boolean;
   showingDeleteColumnsButtons: boolean;
+  drag?: ColumnDragBindings;
+}
+
+interface ColumnDragBindings {
+  setNodeRef: (element: HTMLElement | null) => void;
+  setActivatorNodeRef: (element: HTMLElement | null) => void;
+  transform: Transform | null;
+  transition: string | undefined;
+  isDragging: boolean;
+  attributes: DraggableAttributes;
+  listeners: DraggableSyntheticListeners;
 }
 
 function TabMeasureLine({
   sectionIndex,
   subSectionIndex,
   columnIndex,
+  editingPalmMuteNodes,
   reorderingColumns,
   showingDeleteColumnsButtons,
+  drag,
 }: TabMeasureLineProps) {
   const getTabData = useTabDataGetter();
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
-  const columnHasBeenPlayed = useMeasureLineHasBeenPlayed(
-    sectionIndex,
-    subSectionIndex,
-    columnIndex,
-  );
 
   const columnData = useTabMeasureLineColumnData(
     sectionIndex,
@@ -61,7 +85,11 @@ function TabMeasureLine({
     columnIndex,
   );
 
-  const subSectionBpm = useTabSubSectionBpm(sectionIndex, subSectionIndex);
+  const measureLineBpmDisplay = useMeasureLineBpmDisplay(
+    sectionIndex,
+    subSectionIndex,
+    columnIndex,
+  );
 
   const {
     attributes,
@@ -70,14 +98,10 @@ function TabMeasureLine({
     setActivatorNodeRef,
     transform,
     transition,
-    isDragging,
-  } = useSortable({
-    id: columnData?.id ?? `measure-line-${columnIndex}`,
-    disabled: !reorderingColumns, // hopefully this is a performance improvement?
-  });
+    isDragging = false,
+  } = drag ?? {};
 
-  const { bpm, setTabData } = useTabStore((state) => ({
-    bpm: state.bpm,
+  const { setTabData } = useTabStore((state) => ({
     setTabData: state.setTabData,
   }));
 
@@ -131,11 +155,13 @@ function TabMeasureLine({
           ? columnIndex - 2
           : columnIndex - 1;
 
-      const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`,
-      );
-
-      focusAndScrollIntoView(currentNote, newNoteToFocus);
+      focusEditingTabInput({
+        currentElement: currentNote,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: adjColumnIndex,
+        noteIndex: 7,
+      });
       return;
     } else if (e.key === "ArrowRight") {
       e.preventDefault(); // prevent cursor from moving
@@ -155,182 +181,20 @@ function TabMeasureLine({
           ? columnIndex + 2
           : columnIndex + 1;
 
-      const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-7`,
-      );
-
-      focusAndScrollIntoView(currentNote, newNoteToFocus);
+      focusEditingTabInput({
+        currentElement: currentNote,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: adjColumnIndex,
+        noteIndex: 7,
+      });
       return;
     }
   }
 
-  function renderMeasureLine(index: number) {
-    if (index === 1) {
-      return (
-        <div className="baseVertFlex w-full bg-background/75">
-          {/* top border */}
-          <div className="baseVertFlex w-full">
-            <div className="h-[2px] w-full bg-foreground"></div>
-          </div>
-
-          <div className="baseFlex w-full">
-            {/* left dummy string */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="mt-[7px] h-[1px] flex-[1] bg-foreground/50"></div>
-            )}
-
-            {/* measure line */}
-            <div
-              style={{
-                height: getHeightOfMeasureLineSubSection(index),
-              }}
-              className="w-[2px] bg-foreground"
-            ></div>
-
-            {/* right dummy string */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="mt-[7px] h-[1px] flex-[1] bg-foreground/50"></div>
-            )}
-          </div>
-        </div>
-      );
-    } else if (index === 2) {
-      return (
-        <div className="baseFlex w-full bg-background/75">
-          {/* left dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mt-[4px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          {/* measure line */}
-          <div
-            style={{
-              height: getHeightOfMeasureLineSubSection(index),
-            }}
-            className="w-[2px] bg-foreground"
-          ></div>
-          {/* right dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mt-[4px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      );
-    } else if (index === 3) {
-      return (
-        <div className="baseFlex w-full bg-background/75">
-          {/* left dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          {/* measure line */}
-          <div
-            style={{
-              height: getHeightOfMeasureLineSubSection(index),
-            }}
-            className="w-[2px] bg-foreground"
-          ></div>
-          {/* right dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      );
-    } else if (index === 4) {
-      return (
-        <div className="baseFlex w-full bg-background/75">
-          {/* left dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mb-[3px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          {/* measure line */}
-          <div
-            style={{
-              height: getHeightOfMeasureLineSubSection(index),
-            }}
-            className="w-[2px] bg-foreground"
-          ></div>
-          {/* right dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mb-[3px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      );
-    } else if (index === 5) {
-      return (
-        <div className="baseFlex w-full bg-background/75">
-          {/* left dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mb-[5px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-          {/* measure line */}
-          <div
-            style={{
-              height: getHeightOfMeasureLineSubSection(index),
-            }}
-            className="w-[2px] bg-foreground"
-          ></div>
-          {/* right dummy string */}
-          {(reorderingColumns || showingDeleteColumnsButtons) && (
-            <div className="mb-[5px] h-[1px] flex-[1] bg-foreground/50"></div>
-          )}
-        </div>
-      );
-    } else if (index === 6) {
-      return (
-        <div className="baseVertFlex w-full bg-background/75">
-          <div className="baseFlex w-full">
-            {/* left dummy string */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="mb-[7px] h-[1px] flex-[1] bg-foreground/50"></div>
-            )}
-
-            {/* measure line */}
-            <div
-              style={{
-                height: getHeightOfMeasureLineSubSection(index),
-              }}
-              className="w-[2px] bg-foreground"
-            ></div>
-
-            {/* right dummy string */}
-            {(reorderingColumns || showingDeleteColumnsButtons) && (
-              <div className="mb-[7px] h-[1px] flex-[1] bg-foreground/50"></div>
-            )}
-          </div>
-
-          {/* bottom border */}
-          <div className="baseVertFlex w-full">
-            <div className="h-[2px] w-full bg-foreground"></div>
-          </div>
-        </div>
-      );
-    }
-  }
-
-  function getHeightOfMeasureLineSubSection(index: number) {
-    let height = "0px";
-
-    if (index === 1) {
-      height = "42px";
-    } else if (index === 2) {
-      height = "43px";
-    } else if (index === 3) {
-      height = "43px";
-    } else if (index === 4) {
-      height = "42px";
-    } else if (index === 5) {
-      height = "42px";
-    } else if (index === 6) {
-      height = "42px";
-    }
-
-    return height;
-  }
-
   function inputPlaceholder() {
-    if (subSectionBpm === -1) {
-      return bpm === -1 ? "" : bpm.toString();
-    }
-    return subSectionBpm.toString();
+    // Sticky: empty input means keep the BPM already in effect before this line
+    return measureLineBpmDisplay.bpmBefore.toString();
   }
 
   return (
@@ -338,59 +202,111 @@ function TabMeasureLine({
       key={columnData.id}
       ref={setNodeRef}
       style={{
-        transform: CSS.Transform.toString(
-          transform && { ...transform, scaleY: 1, scaleX: 1 },
-        ),
+        transform: transform
+          ? CSS.Transform.toString({ ...transform, scaleY: 1, scaleX: 1 })
+          : undefined,
         // need to have same width as chords for the drag and drop algorithm
         // to behave properly without the ui breaking
         width:
-          reorderingColumns || showingDeleteColumnsButtons ? "48px" : "2px",
+          reorderingColumns || showingDeleteColumnsButtons
+            ? `${EDITING_TAB_COLUMN_WIDTH_PX}px`
+            : "1px",
+        height: EDITING_TAB_COLUMN_HEIGHT_PX,
         transition: `${transition ?? ""}, width 0.15s ease-in-out`,
         zIndex: isDragging ? 20 : "auto",
       }}
-      className="baseVertFlex relative h-[380px]"
+      className="baseVertFlex relative !justify-start"
+      id={`section${sectionIndex}-subSection${subSectionIndex}-chord${columnIndex}`}
     >
-      {/* absolutely positioned highlight */}
+      {/* Reorder/delete mode: dim past columns so the active edit target is clearer */}
       <div
         style={{
           opacity:
-            (reorderingColumns || showingDeleteColumnsButtons) &&
-            columnHasBeenPlayed
-              ? "100%"
-              : "0%",
-          transition: "opacity 0.15s ease-in-out",
+            reorderingColumns || showingDeleteColumnsButtons ? "100%" : "0%",
+          top: EDITING_TAB_REORDER_DIM_TOP_PX,
+          height: EDITING_TAB_REORDER_DIM_HEIGHT_PX,
         }}
-        className="absolute left-0 top-[177px] h-[254px] w-full -translate-y-1/2 bg-primary/25"
+        className="absolute left-0 w-full bg-background"
       ></div>
 
-      {/* Palm mute connecting line (shown when measure line is inside palm mute section) */}
-      <div className="baseFlex h-[48px] w-full shrink-0">
+      {/* Palm mute connecting line + optional BPM label above the staff */}
+      <div
+        className="baseFlex relative w-full shrink-0"
+        style={{ height: EDITING_TAB_PALM_MUTE_HEIGHT_PX }}
+      >
+        {/* conditional below is not my favorite, but the workarounds to show it
+            way above the PM node buttons did not look good, and I also didn't
+            want to increase the gap between the rows  */}
+        {measureLineBpmDisplay.show &&
+          (columnData.isInPalmMuteSection || !editingPalmMuteNodes) && (
+            <div
+              className={`baseFlex absolute left-1/2 z-10 -translate-x-1/2 gap-[2px] text-foreground ${
+                columnData.isInPalmMuteSection ? "top-0" : "top-8"
+              }`}
+            >
+              <QuarterNote className="h-4" />
+              <p className="text-center text-xs">
+                {measureLineBpmDisplay.bpm.toString()}
+              </p>
+            </div>
+          )}
+
         {columnData.isInPalmMuteSection && (
           <div className="h-[1px] w-full bg-foreground"></div>
         )}
       </div>
 
       {/* Render measure line for each string (indices 1-6) */}
-      {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
-        <div key={stringIndex} className="baseFlex w-full">
-          {renderMeasureLine(stringIndex)}
-        </div>
-      ))}
+      <div
+        className="relative w-full"
+        style={{ height: EDITING_TAB_STRINGS_HEIGHT_PX }}
+      >
+        {([1, 2, 3, 4, 5, 6] as const).map((stringIndex) => (
+          <div
+            key={stringIndex}
+            className="baseFlex w-full"
+            style={{ height: EDITING_TAB_STRING_ROW_HEIGHT_PX }}
+          >
+            {(reorderingColumns || showingDeleteColumnsButtons) && (
+              <>
+                <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+                <div className="h-[1px] flex-[1] bg-foreground/50"></div>
+              </>
+            )}
+          </div>
+        ))}
+
+        <div
+          className={`absolute w-px bg-foreground/50 ${
+            reorderingColumns || showingDeleteColumnsButtons
+              ? "left-1/2 -translate-x-1/2"
+              : "left-0"
+          }`}
+          style={{
+            top: EDITING_TAB_STAFF_LINE_INSET_PX,
+            height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
+          }}
+        ></div>
+      </div>
 
       {/* BPM popover */}
       {!reorderingColumns && !showingDeleteColumnsButtons && (
-        <div className="relative h-[86px] w-full">
+        <div
+          className="relative w-full"
+          style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}
+        >
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
-                className="absolute left-[-10px] top-1 z-10 size-5 shrink-0 rounded-full p-[0.125rem]"
+                className="absolute left-[-10px] top-[-4px] z-10 size-5 shrink-0 rounded-full p-[0.125rem]"
                 onKeyDown={handleKeyDown}
               >
                 <QuarterNote className="mr-[1px] h-[1rem]" />
               </Button>
             </PopoverTrigger>
             <PopoverContent
+              data-tab-editor-history="document"
               className="baseVertFlex z-40 w-52 gap-4 p-2"
               side="bottom"
             >
@@ -398,8 +314,8 @@ function TabMeasureLine({
                 Specify a new BPM for the following measure
               </p>
 
-              <div className="baseFlex gap-2">
-                <QuarterNote className="fill-foreground" />
+              <div className="baseFlex">
+                <QuarterNote className="size-5 fill-foreground" />
 
                 <Input
                   type="text"
@@ -421,55 +337,97 @@ function TabMeasureLine({
       )}
 
       {(reorderingColumns || showingDeleteColumnsButtons) && (
-        <div className="baseVertFlex w-full">
-          <div className="baseVertFlex relative h-[58px] w-full">
-            {reorderingColumns && (
-              <div
-                ref={setActivatorNodeRef}
-                {...attributes}
-                {...listeners}
-                className={`hover:box-shadow-md ${
-                  isDragging ? "cursor-grabbing" : "cursor-grab"
-                } absolute top-[18px] z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
-                onMouseEnter={() => setHoveringOnHandle(true)}
-                onMouseDown={() => setGrabbingHandle(true)}
-                onMouseLeave={() => {
-                  setGrabbingHandle(false);
-                  setHoveringOnHandle(false);
-                }}
-                onMouseUp={() => {
-                  setGrabbingHandle(false);
-                  setHoveringOnHandle(false);
-                }}
-              >
-                <RxDragHandleDots2 className="h-8 w-6" />
+        <div
+          className="baseVertFlex w-full"
+          style={{ height: EDITING_TAB_REORDER_FOOTER_HEIGHT_PX }}
+        >
+          <div
+            className="w-full shrink-0"
+            style={{ height: EDITING_TAB_NOTE_LENGTH_GAP_PX }}
+          ></div>
+          <div className="baseVertFlex mb-[-6px] mt-[6px] w-full">
+            <div className="baseVertFlex relative h-[58px] w-full">
+              {reorderingColumns && (
                 <div
-                  style={{
-                    opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
+                  ref={setActivatorNodeRef}
+                  {...(attributes ?? {})}
+                  {...(listeners ?? {})}
+                  className={`hover:box-shadow-md ${
+                    isDragging ? "cursor-grabbing" : "cursor-grab"
+                  } absolute top-[18px] z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
+                  onMouseEnter={() => setHoveringOnHandle(true)}
+                  onMouseDown={() => setGrabbingHandle(true)}
+                  onMouseLeave={() => {
+                    setGrabbingHandle(false);
+                    setHoveringOnHandle(false);
                   }}
-                  className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
-                ></div>
-              </div>
-            )}
+                  onMouseUp={() => {
+                    setGrabbingHandle(false);
+                    setHoveringOnHandle(false);
+                  }}
+                >
+                  <RxDragHandleDots2 className="h-8 w-6" />
+                  <div
+                    style={{
+                      opacity: hoveringOnHandle
+                        ? grabbingHandle
+                          ? 0.5
+                          : 1
+                        : 0,
+                    }}
+                    className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
+                  ></div>
+                </div>
+              )}
 
-            {showingDeleteColumnsButtons && (
-              <Button
-                variant={"destructive"}
-                size="sm"
-                disabled={audioIsPlaying}
-                className="absolute top-[20px] z-20 h-[1.75rem] w-[1.75rem] p-1"
-                onClick={handleDeleteMeasureLine}
-              >
-                <IoClose className="h-6 w-6" />
-              </Button>
-            )}
+              {showingDeleteColumnsButtons && (
+                <Button
+                  variant={"destructive"}
+                  size="sm"
+                  disabled={audioIsPlaying}
+                  className="absolute top-[20px] z-20 h-[1.75rem] w-[1.75rem] p-1"
+                  onClick={handleDeleteMeasureLine}
+                >
+                  <IoClose className="h-6 w-6" />
+                </Button>
+              )}
+            </div>
+
+            <div className="h-[12px] w-full"></div>
           </div>
-
-          <div className="h-[16px] w-full"></div>
         </div>
       )}
     </motion.div>
   );
 }
 
-export default TabMeasureLine;
+const MemoTabMeasureLine = memo(TabMeasureLine);
+
+function SortableTabMeasureLine(props: TabMeasureLineProps) {
+  const columnData = useTabMeasureLineColumnData(
+    props.sectionIndex,
+    props.subSectionIndex,
+    props.columnIndex,
+  );
+  const sortable = useSortable({
+    id: columnData?.id ?? `measure-line-${props.columnIndex}`,
+  });
+
+  return (
+    <TabMeasureLine
+      {...props}
+      drag={{
+        setNodeRef: sortable.setNodeRef,
+        setActivatorNodeRef: sortable.setActivatorNodeRef,
+        transform: sortable.transform,
+        transition: sortable.transition,
+        isDragging: sortable.isDragging,
+        attributes: sortable.attributes,
+        listeners: sortable.listeners,
+      }}
+    />
+  );
+}
+
+export { SortableTabMeasureLine };
+export default MemoTabMeasureLine;

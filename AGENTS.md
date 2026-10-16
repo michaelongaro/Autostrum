@@ -5,7 +5,7 @@
 Autostrum is a single Next.js 16 (Pages Router) T3-stack app at the repo root — there is no monorepo and no local service orchestration. Dependencies install with `npm install` (its `postinstall` runs `prisma generate`).
 
 ### Services and how they run
-- **Web app (dev):** `npm run dev` (Next.js dev server on Turbopack, serves on port 3000). This is the only long-running service you start locally.
+- **Web app (dev):** `npm run dev` (Next.js dev server on Webpack, serves on port 3000). Webpack avoids missing client module factories in Next.js 16.4.0's Turbopack output for direct tab-page loads. `npm run dev:turbo` is available to retest Turbopack after an upgrade; stop the existing dev server before switching. This is the only long-running service you start locally.
 - **PostgreSQL:** provided remotely via the `DATABASE_URL` secret (a hosted Railway Postgres). There is no local database to provision or start — do not install Postgres. The schema is already migrated; `npx prisma migrate status` should report "up to date".
 - **Clerk (auth), AWS S3 (screenshots), and the external screenshot server:** all external SaaS configured entirely through injected secrets. The Clerk instance is a `pk_test_` dev instance.
 
@@ -21,3 +21,13 @@ All env vars validated in `src/env.js` (`DATABASE_URL`, `CLERK_SECRET_KEY`, `NEX
 - `.npmrc` sets `force=true`, so `npm install` prints "Recommended protections disabled" — expected.
 - Installing with a different npm version than the committed lockfile can produce spurious `package-lock.json` diffs (e.g. removed `libc` fields); revert those rather than committing them.
 - Since the database and Clerk are shared remote/dev instances, data created during testing (tabs, users) persists remotely.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

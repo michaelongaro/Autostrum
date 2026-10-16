@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
+import { getHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 
 interface UseSpacebarAudioControlOptions {
   /**
@@ -24,7 +25,6 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     pauseAudio,
     countInTimer,
     setCountInTimer,
-    hoveredChordLocation,
     showPlaybackModal,
     editing,
   } = useTabStore((state) => ({
@@ -33,7 +33,6 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     pauseAudio: state.pauseAudio,
     countInTimer: state.countInTimer,
     setCountInTimer: state.setCountInTimer,
-    hoveredChordLocation: state.hoveredChordLocation,
     showPlaybackModal: state.showPlaybackModal,
     editing: state.editing,
   }));
@@ -61,6 +60,8 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
 
     if (useHoveredChordLocation) {
       // Editing: match AudioControls — no count-in; prefer hovered chord.
+      // Read imperatively so hovering a column does not re-render Tab.
+      const hoveredChordLocation = getHoveredChordLocationValue();
       if (hoveredChordLocation) {
         void playTab({ location: hoveredChordLocation });
       } else {
@@ -94,7 +95,6 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     audioMetadata.location,
     audioMetadata.playing,
     countInTimer,
-    hoveredChordLocation,
     pauseAudio,
     playTab,
     setCountInTimer,
@@ -107,12 +107,13 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
       if (disabled || useIPhoneAudioReminderStore.getState().open) return;
 
       if (useHoveredChordLocation) {
-        // Only while editing, and never alongside the PlaybackModal handler.
         if (!editing || showPlaybackModal) return;
 
         const target = e.target;
         if (
           target instanceof HTMLElement &&
+          // should be able to use spacebar to control audio when focused on a <TabNote>
+          !target.id.includes("input") &&
           (target.tagName === "INPUT" ||
             target.tagName === "TEXTAREA" ||
             target.tagName === "SELECT" ||

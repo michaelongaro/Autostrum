@@ -288,9 +288,7 @@ function LoopControls({
               className="size-8 shrink-0 p-1"
               onPressedChange={() => {
                 const state = store.getState();
-                state.initDraftLoopRangeFromAudioMetadata();
-                state.setCurrentChordIndex(state.audioMetadata.startLoopIndex);
-                state.atomicallyUpdateAudioMetadata({ editingLoopRange: true });
+                state.enterPlaybackLoopRangeEditor();
               }}
             >
               <CgArrowsShrinkH className="size-6" />

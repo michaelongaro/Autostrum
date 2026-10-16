@@ -8,7 +8,9 @@ import {
   type FullNoteLengths,
 } from "~/stores/TabStore";
 import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
+import { beamBreaksAtTabColumn } from "~/utils/noteLengthBeaming";
 import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
+import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
 
 /**
  * Fine-grained tabData selectors for the editing tree.
@@ -135,6 +137,35 @@ export const useTabSubSectionBpm = (
   });
 };
 
+/**
+ * Sticky measure-line BPM display: whether to show the above-staff label and
+ * the effective before/after BPMs (placeholder uses bpmBefore).
+ */
+export const useMeasureLineBpmDisplay = (
+  sectionIndex: number,
+  subSectionIndex: number,
+  columnIndex: number,
+) => {
+  return useTabStore((state) => {
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    if (sub?.type !== "tab") {
+      return {
+        show: false,
+        bpm: state.bpm,
+        bpmBefore: state.bpm,
+        bpmAfter: state.bpm,
+      };
+    }
+
+    return getMeasureLineBpmDisplay({
+      columns: sub.data,
+      measureLineIndex: columnIndex,
+      subSectionBpm: sub.bpm,
+      baselineBpm: state.bpm,
+    });
+  });
+};
+
 export const useTabColumnIds = (
   sectionIndex: number,
   subSectionIndex: number,
@@ -210,6 +241,8 @@ export const useTabColumnNeighborMeta = (
         nextIsMeasureLine: false,
         isFirstInGroup: true,
         isLastInGroup: true,
+        breakBeamWithPrevious: true,
+        breakBeamWithNext: true,
       };
     }
 
@@ -229,6 +262,7 @@ export const useTabColumnNeighborMeta = (
       nextColumn !== undefined && isTabMeasureLine(nextColumn);
 
     const isLastColumn = columnIndex === sub.data.length - 1;
+    const beamBreaks = beamBreaksAtTabColumn(sub.data, columnIndex);
 
     return {
       columnCount: sub.data.length,
@@ -247,6 +281,8 @@ export const useTabColumnNeighborMeta = (
       nextIsMeasureLine,
       isFirstInGroup: columnIndex === 0 || previousIsMeasureLine,
       isLastInGroup: isLastColumn || nextIsMeasureLine,
+      breakBeamWithPrevious: beamBreaks.breakWithPrevious,
+      breakBeamWithNext: beamBreaks.breakWithNext,
     };
   });
 };

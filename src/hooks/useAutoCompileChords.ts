@@ -64,24 +64,26 @@ function useAutoCompileChords() {
         return;
       }
 
-      const sectionProgression =
-        !editing && audioMetadata.location?.sectionIndex !== undefined
-          ? // just for when playing back specific section within PlaybackModal
-            [
-              {
-                id: "",
-                sectionId:
-                  tabData[audioMetadata.location.sectionIndex]?.id ?? "",
-                title: "",
-                repetitions: 1,
-                startSeconds: 0,
-                endSeconds: 0,
-              },
-            ]
-          : // all other use-cases
-            rawSectionProgression.length > 0
-            ? rawSectionProgression
-            : generateDefaultSectionProgression(tabData);
+      const isPlaybackModalSectionOverride =
+        !editing && audioMetadata.location?.sectionIndex !== undefined;
+
+      const sectionProgression = isPlaybackModalSectionOverride
+        ? // just for when playing back specific section within PlaybackModal
+          [
+            {
+              id: "",
+              sectionId:
+                tabData[audioMetadata.location!.sectionIndex]?.id ?? "",
+              title: "",
+              repetitions: 1,
+              startSeconds: 0,
+              endSeconds: 0,
+            },
+          ]
+        : // all other use-cases
+          rawSectionProgression.length > 0
+          ? rawSectionProgression
+          : generateDefaultSectionProgression(tabData);
 
       if (isEditing && audioMetadata.location) {
         compileSpecificChordGrouping({
@@ -92,8 +94,14 @@ function useAutoCompileChords() {
           baselineBpm: bpm,
           playbackSpeed,
           setCurrentlyPlayingMetadata,
-          startLoopIndex: audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.endLoopIndex,
+          // While editing the loop range the strip shows the full selected
+          // tab/section, so slider bounds/timestamps must match that scope.
+          startLoopIndex: audioMetadata.editingLoopRange
+            ? 0
+            : audioMetadata.startLoopIndex,
+          endLoopIndex: audioMetadata.editingLoopRange
+            ? -1
+            : audioMetadata.endLoopIndex,
           atomicallyUpdateAudioMetadata,
           forMetadataOnly: true,
         });
@@ -106,8 +114,12 @@ function useAutoCompileChords() {
           baselineBpm: bpm,
           playbackSpeed,
           setCurrentlyPlayingMetadata,
-          startLoopIndex: audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.endLoopIndex,
+          startLoopIndex: audioMetadata.editingLoopRange
+            ? 0
+            : audioMetadata.startLoopIndex,
+          endLoopIndex: audioMetadata.editingLoopRange
+            ? -1
+            : audioMetadata.endLoopIndex,
           atomicallyUpdateAudioMetadata,
           forMetadataOnly: true,
           forPlayback: isEditing ? undefined : { loopDelay },
@@ -119,9 +131,18 @@ function useAutoCompileChords() {
           tabData,
           sectionProgression: sectionProgression,
           baselineBpm: bpm,
-          setSectionProgression,
+          // Playback timings are derived; they must not create history entries
+          // or clear redo after a document is restored.
+          setSectionProgression: (progression) =>
+            setSectionProgression(progression, { recordHistory: false }),
         });
       } else {
+        const startLoopIndex = audioMetadata.editingLoopRange
+          ? 0
+          : audioMetadata.startLoopIndex;
+        const endLoopIndex = audioMetadata.editingLoopRange
+          ? -1
+          : audioMetadata.endLoopIndex;
         const expandedTabData = expandFullTab({
           tabData,
           location: audioMetadata.location,
@@ -130,12 +151,8 @@ function useAutoCompileChords() {
           baselineBpm: bpm,
           playbackSpeed,
           setPlaybackMetadata,
-          startLoopIndex: audioMetadata.editingLoopRange
-            ? 0
-            : audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.editingLoopRange
-            ? -1
-            : audioMetadata.endLoopIndex,
+          startLoopIndex,
+          endLoopIndex,
           visiblePlaybackContainerWidth,
           loopDelay,
         });

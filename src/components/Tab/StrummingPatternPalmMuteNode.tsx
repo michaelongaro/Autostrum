@@ -194,7 +194,9 @@ function StrummingPatternPalmMuteNode({
         value: {
           ...strummingPatternBeingEdited.value,
           strums: strummingPatternBeingEdited.value.strums.map((strum, i) =>
-            i >= startIdx && i <= endIdx ? { ...strum, palmMute: "" as const } : strum,
+            i >= startIdx && i <= endIdx
+              ? { ...strum, palmMute: "" as const }
+              : strum,
           ),
         },
       };
@@ -250,23 +252,44 @@ function StrummingPatternPalmMuteNode({
             <Button
               id={`input-strummingPatternModal-${beatIndex}-0`}
               disabled={getButtonOpacity() !== "1"}
-              size={"sm"}
-              className="min-w-[2.25rem] rounded-full px-1 py-0 transition-all"
               onKeyDown={handleKeyDown}
               onClick={handlePalmMuteNodeClick}
+              className={`my-1 h-7 p-0 transition-all ${editingPalmMuteNodes ? "mx-1 w-[40px]" : "group mx-0 w-full bg-transparent !shadow-none"}`}
             >
               {value === "start" && (
-                <div className="baseVertFlex text-[10px]">
-                  <span className="h-[12px] leading-[1.35]">PM</span>
-                  <span className="h-[12px] leading-[1.35]">start</span>
+                <div className="baseFlex w-full">
+                  <div
+                    className={`ml-1 h-[14px] w-[1px] shrink-0 ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+                  ></div>
+
+                  <div
+                    className={`h-[1px] w-[3px] shrink-0 ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+                  ></div>
+
+                  <i
+                    className={`mx-[2px] text-xs ${editingPalmMuteNodes ? "text-primary-foreground" : "text-foreground group-hover:text-primary-foreground"}`}
+                  >
+                    PM
+                  </i>
+
+                  <div
+                    className={`h-[1px] w-auto grow ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+                  ></div>
                 </div>
               )}
+
               {value === "end" && (
-                <div className="baseVertFlex text-[10px]">
-                  <span className="h-[12px] leading-[1.35]">PM</span>
-                  <span className="h-[12px] leading-[1.35]">end</span>
+                <div className="baseFlex w-full">
+                  <div
+                    className={`h-[1px] w-auto grow ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+                  ></div>
+
+                  <div
+                    className={`mr-1 h-[14px] w-[1px] ${editingPalmMuteNodes ? "bg-primary-foreground" : "bg-foreground group-hover:bg-primary-foreground"}`}
+                  ></div>
                 </div>
               )}
+
               {editingPalmMuteNodes && value === "" && (
                 <BsPlus className="size-5" />
               )}
@@ -278,7 +301,11 @@ function StrummingPatternPalmMuteNode({
       {value === "-" && (
         <div
           style={{
-            margin: editing ? "1.1rem 0" : "0.75rem 0",
+            margin: editing
+              ? editingPalmMuteNodes
+                ? "1.1rem 0"
+                : "1.1rem 0"
+              : "0.7rem 0",
           }}
           className={`h-[1px] w-full ${
             !editing || !editingPalmMuteNodes || getButtonOpacity() === "1"

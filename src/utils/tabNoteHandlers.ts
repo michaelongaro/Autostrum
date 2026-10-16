@@ -8,6 +8,15 @@ import {
   isTabMeasureLine,
   setStringValue,
 } from "~/utils/tabNoteHelpers";
+import {
+  isArpeggiatedStrum,
+  isStrumEffect,
+  isValidChordEffectsInput,
+  remapStrumSpreadForType,
+  setStrumDirectionInEffects,
+  toggleArpeggioInEffects,
+  CHORD_EFFECTS_REST_REGEX,
+} from "~/utils/strumEffectHelpers";
 
 const chordMappings = {
   A: ["", "0", "2", "2", "2", "0"],
@@ -82,7 +91,7 @@ function validNoteInput(input: string) {
   // "h", "p", "/", "\", "~", ">", ".", "b", "x"
   const characterPattern = /^[hp\/\\\\~>.br]$/;
 
-  if (input[0] === "/" || input[0] === "\\") {
+  if (input.startsWith("/") || input.startsWith("\\")) {
     if (input.length === 1) return true;
     // Check for "/" and "\" at the start (just one digit number after)
     else if (input.length === 2) {
@@ -128,6 +137,47 @@ function validNoteInput(input: string) {
   return false;
 }
 
+/**
+ * Focus a tab input, mounting it first when row virtualization has unmounted
+ * the target column. Retries across frames so the reveal can commit.
+ */
+export function focusEditingTabInput({
+  currentElement,
+  sectionIndex,
+  subSectionIndex,
+  columnIndex,
+  noteIndex,
+  noScroll,
+}: {
+  currentElement: HTMLElement | null;
+  sectionIndex: number;
+  subSectionIndex: number;
+  columnIndex: number;
+  noteIndex: number;
+  noScroll?: boolean;
+}) {
+  const inputId = `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`;
+
+  const tryFocus = (triesLeft: number) => {
+    const target = document.getElementById(inputId);
+    if (target instanceof HTMLElement) {
+      focusAndScrollIntoView(currentElement ?? target, target, noScroll);
+      return;
+    }
+
+    if (triesLeft <= 0) return;
+
+    window.dispatchEvent(
+      new CustomEvent("editing-tab-reveal-column", {
+        detail: { sectionIndex, subSectionIndex, columnIndex, noteIndex },
+      }),
+    );
+    requestAnimationFrame(() => tryFocus(triesLeft - 1));
+  };
+
+  tryFocus(4);
+}
+
 export interface TabNoteHandlerParams {
   getTabData?: () => Section[];
   note: string;
@@ -156,7 +206,6 @@ export interface TabNoteHandlerParams {
       type: "copy" | "paste";
     } | null,
   ) => void;
-  setIsFocused: (focused: boolean) => void;
 }
 
 export function handleTabNoteKeyDown(
@@ -176,7 +225,9 @@ export function handleTabNoteKeyDown(
   } = params;
 
   const maybeSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-  if (!maybeSubSection || maybeSubSection.type !== "tab") return;
+
+  if (maybeSubSection?.type !== "tab") return;
+
   const subSection = maybeSubSection;
 
   const currentNote = document.getElementById(
@@ -212,14 +263,14 @@ export function handleTabNoteKeyDown(
         }
       });
 
-      // Focus the newly created column
-      setTimeout(() => {
-        const newNoteToFocus = document.getElementById(
-          `input-${sectionIndex}-${subSectionIndex}-${insertionIndex}-${noteIndex}`,
-        );
-
-        focusAndScrollIntoView(currentNote, newNoteToFocus);
-      }, 0);
+      // Focus the newly created column (may still be outside the virtual window).
+      focusEditingTabInput({
+        currentElement: currentNote,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: insertionIndex,
+        noteIndex,
+      });
     }
 
     return;
@@ -238,7 +289,7 @@ export function handleTabNoteKeyDown(
 
           if (e.ctrlKey) {
             const order = noteLengthCycle;
-            let idx = order.indexOf(current as NoteLength);
+            let idx = order.indexOf(current);
             if (idx === -1) idx = order.indexOf("quarter");
 
             if (e.key === "ArrowUp" && idx < order.length - 1) idx += 1; // increase resolution
@@ -313,16 +364,17 @@ export function handleTabNoteKeyDown(
       });
 
       // Focus the next column, or previous if at end
-      setTimeout(() => {
-        const nextIndex =
-          columnIndex < subSection.data.length - 1
-            ? columnIndex
-            : columnIndex - 1;
-        const newNoteToFocus = document.getElementById(
-          `input-${sectionIndex}-${subSectionIndex}-${nextIndex}-${noteIndex}`,
-        );
-        focusAndScrollIntoView(currentNote, newNoteToFocus);
-      }, 0);
+      const nextIndex =
+        columnIndex < subSection.data.length - 1
+          ? columnIndex
+          : columnIndex - 1;
+      focusEditingTabInput({
+        currentElement: currentNote,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: nextIndex,
+        noteIndex,
+      });
     }
 
     return;
@@ -332,24 +384,24 @@ export function handleTabNoteKeyDown(
   if (e.key === "ArrowDown" && !e.shiftKey) {
     e.preventDefault(); // prevent cursor from moving
 
-    const newNoteToFocus = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${
-        noteIndex + 1
-      }`,
-    );
-
-    focusAndScrollIntoView(currentNote, newNoteToFocus);
+    focusEditingTabInput({
+      currentElement: currentNote,
+      sectionIndex,
+      subSectionIndex,
+      columnIndex,
+      noteIndex: noteIndex + 1,
+    });
     return;
   } else if (e.key === "ArrowUp" && !e.shiftKey) {
     e.preventDefault(); // prevent cursor from moving
 
-    const newNoteToFocus = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${
-        noteIndex - 1
-      }`,
-    );
-
-    focusAndScrollIntoView(currentNote, newNoteToFocus);
+    focusEditingTabInput({
+      currentElement: currentNote,
+      sectionIndex,
+      subSectionIndex,
+      columnIndex,
+      noteIndex: noteIndex - 1,
+    });
     return;
   } else if (e.key === "ArrowLeft") {
     e.preventDefault(); // prevent cursor from moving
@@ -360,11 +412,13 @@ export function handleTabNoteKeyDown(
         ? columnIndex - 2
         : columnIndex - 1;
 
-    const newNoteToFocus = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
-    );
-
-    focusAndScrollIntoView(currentNote, newNoteToFocus);
+    focusEditingTabInput({
+      currentElement: currentNote,
+      sectionIndex,
+      subSectionIndex,
+      columnIndex: adjColumnIndex,
+      noteIndex,
+    });
     return;
   } else if (e.key === "ArrowRight") {
     e.preventDefault(); // prevent cursor from moving
@@ -384,11 +438,13 @@ export function handleTabNoteKeyDown(
         ? columnIndex + 2
         : columnIndex + 1;
 
-    const newNoteToFocus = document.getElementById(
-      `input-${sectionIndex}-${subSectionIndex}-${adjColumnIndex}-${noteIndex}`,
-    );
-
-    focusAndScrollIntoView(currentNote, newNoteToFocus);
+    focusEditingTabInput({
+      currentElement: currentNote,
+      sectionIndex,
+      subSectionIndex,
+      columnIndex: adjColumnIndex,
+      noteIndex,
+    });
     return;
   }
 
@@ -475,13 +531,49 @@ export function handleTabNoteKeyDown(
         const currentColumn = subSection.data[columnIndex];
         if (currentColumn && isTabNote(currentColumn)) {
           if (e.key.toLowerCase() === "d" || e.key.toLowerCase() === "v") {
-            currentColumn.chordEffects = "v";
+            currentColumn.chordEffects = setStrumDirectionInEffects(
+              currentColumn.chordEffects,
+              "v",
+            );
           } else if (e.key.toLowerCase() === "u" || e.key === "^") {
-            currentColumn.chordEffects = "^";
+            currentColumn.chordEffects = setStrumDirectionInEffects(
+              currentColumn.chordEffects,
+              "^",
+            );
           } else if (e.key.toLowerCase() === "s") {
-            currentColumn.chordEffects = "s";
+            currentColumn.chordEffects = setStrumDirectionInEffects(
+              currentColumn.chordEffects,
+              "s",
+            );
           }
         }
+      }
+    });
+  }
+
+  // Toggle arpeggiated strum with ~
+  if (e.key === "~" && noteIndex === 7) {
+    e.preventDefault();
+    setTabData((draft) => {
+      const subSection = draft[sectionIndex]?.data[subSectionIndex];
+      if (subSection?.type !== "tab") return;
+      const currentColumn = subSection.data[columnIndex];
+      if (!currentColumn || !isTabNote(currentColumn)) return;
+      if (!isStrumEffect(currentColumn.chordEffects)) return;
+
+      const wasArpeggiated = isArpeggiatedStrum(currentColumn.chordEffects);
+      currentColumn.chordEffects = toggleArpeggioInEffects(
+        currentColumn.chordEffects,
+      );
+
+      if (
+        currentColumn.strumSpreadAuto === false &&
+        currentColumn.strumSpreadSeconds != null
+      ) {
+        currentColumn.strumSpreadSeconds = remapStrumSpreadForType(
+          currentColumn.strumSpreadSeconds,
+          !wasArpeggiated,
+        );
       }
     });
   }
@@ -499,16 +591,13 @@ export function handleTabNoteChange(
   },
 ) {
   const getTabData = params.getTabData ?? getGlobalTabData;
-  const {
-    noteIndex,
-    sectionIndex,
-    subSectionIndex,
-    columnIndex,
-    setTabData,
-  } = params;
+  const { noteIndex, sectionIndex, subSectionIndex, columnIndex, setTabData } =
+    params;
 
   const maybeSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-  if (!maybeSubSection || maybeSubSection.type !== "tab") return;
+
+  if (maybeSubSection?.type !== "tab") return;
+
   const subSection = maybeSubSection;
 
   let value = e.target.value;
@@ -591,32 +680,23 @@ export function handleTabNoteChange(
         }
       });
 
-      const newNoteToFocus = document.getElementById(
-        `input-${sectionIndex}-${subSectionIndex}-${
-          columnIndex + 1
-        }-${noteIndex}`,
-      );
-
-      newNoteToFocus?.focus();
+      focusEditingTabInput({
+        currentElement: e.target,
+        sectionIndex,
+        subSectionIndex,
+        columnIndex: columnIndex + 1,
+        noteIndex,
+      });
       return;
     }
   }
 
   // chord effects
   else {
-    const combinedEffects = /^[v^s]{1}(>|\.|>\.|\.>)?$/;
-    const justAccentedAndStaccato = /^(>|\.|>\.|\.>)$/;
-    const justRest = /^r$/;
-    if (
-      value !== "" &&
-      !combinedEffects.test(value) &&
-      !justAccentedAndStaccato.test(value) &&
-      !justRest.test(value)
-    )
-      return;
+    if (value !== "" && !isValidChordEffectsInput(value)) return;
 
     // if note is rest, clear out other note positions
-    if (justRest.test(value)) {
+    if (CHORD_EFFECTS_REST_REGEX.test(value)) {
       setTabData((draft) => {
         const subSection = draft[sectionIndex]?.data[subSectionIndex];
         if (subSection?.type === "tab") {
@@ -650,7 +730,21 @@ export function handleTabNoteChange(
         if (noteIndex >= 1 && noteIndex <= 6) {
           setStringValue(currentColumn, noteIndex, value);
         } else if (noteIndex === 7) {
+          const prevEffects = currentColumn.chordEffects;
+          const prevArpeggiated = isArpeggiatedStrum(prevEffects);
+          const nextArpeggiated = isArpeggiatedStrum(value);
           currentColumn.chordEffects = value;
+
+          if (
+            prevArpeggiated !== nextArpeggiated &&
+            currentColumn.strumSpreadAuto === false &&
+            currentColumn.strumSpreadSeconds != null
+          ) {
+            currentColumn.strumSpreadSeconds = remapStrumSpreadForType(
+              currentColumn.strumSpreadSeconds,
+              nextArpeggiated,
+            );
+          }
         }
       }
     }

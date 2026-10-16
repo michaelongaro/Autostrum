@@ -16,6 +16,8 @@ import {
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
+import { applyStickyMeasureLineBpm } from "./measureLineBpm";
+import { PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX } from "./playbackTabGeometry";
 import {
   isTabNote,
   isTabMeasureLine,
@@ -140,7 +142,7 @@ function expandFullTab({
   ) => {
     if (curr.type === "tab") {
       if (curr.data.chordData.includes("|")) {
-        return 2;
+        return PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX;
       }
       if (curr.data.chordData[0] === "-1") {
         return 16;
@@ -300,28 +302,30 @@ function expandTabSection({
 
     const prevChord = compiledChords?.at(-1);
     const prevChordIsAMeasureLine = isTabMeasureLine(data[chordIdx - 1]!); // TODO: do actual type checking here
+    const nextChordIsAMeasureLine = isTabMeasureLine(data[chordIdx + 1]!);
+
+    let showBpm =
+      compiledChords.length === 0 ||
+      (prevChord?.data.bpm !== currentBpm && !prevChordIsAMeasureLine);
+
+    if (isAMeasureLine) {
+      const bpmBefore = currentBpm;
+      currentBpm = applyStickyMeasureLineBpm(currentBpm, column.bpmAfterLine);
+      // Only show BPM above the measure line when tempo actually changes
+      showBpm = bpmBefore !== currentBpm;
+    }
 
     const chordData: PlaybackTabChord = {
       type: "tab",
-      isFirstChord: chordIdx === 0,
-      isLastChord: chordIdx === data.length - 1,
+      // Match editor/static: measure lines are beam-group boundaries
+      isFirstChord: chordIdx === 0 || prevChordIsAMeasureLine,
+      isLastChord: chordIdx === data.length - 1 || nextChordIsAMeasureLine,
       data: {
         chordData: chordArray,
         bpm: currentBpm,
-        showBpm:
-          compiledChords.length === 0 ||
-          (prevChord?.data.bpm !== currentBpm && !prevChordIsAMeasureLine),
+        showBpm,
       },
     };
-
-    if (isAMeasureLine) {
-      const newBpmPostMeasureLine = column.bpmAfterLine;
-      if (newBpmPostMeasureLine !== null) {
-        currentBpm = newBpmPostMeasureLine;
-      } else {
-        currentBpm = getBpmForChord(subSection.bpm, baselineBpm);
-      }
-    }
 
     const noteLength = isANote
       ? column.noteLength

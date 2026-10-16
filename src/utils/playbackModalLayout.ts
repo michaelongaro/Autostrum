@@ -4,6 +4,7 @@ import type {
   PlaybackStrummedChord,
   PlaybackTabChord,
 } from "~/stores/TabStore";
+import { PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX } from "~/utils/playbackTabGeometry";
 
 export interface PlaybackChordLayoutData {
   scrollPositions: number[];
@@ -33,7 +34,7 @@ function getChordWidth(chord: PlaybackChord | undefined): number {
     (chord?.type === "tab" && chord?.data.chordData[0] === "-1") ||
     (chord?.type === "strum" && chord?.data.strumIndex === -1);
 
-  if (isMeasureLine) return 2;
+  if (isMeasureLine) return PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX;
   if (isSpacerChord) return 16;
   if (chord?.type === "tab" || chord?.type === "loopDelaySpacer") return 34;
   return 40;

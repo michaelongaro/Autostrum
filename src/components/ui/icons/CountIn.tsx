@@ -17,7 +17,7 @@ const CountIn = (props: SVGProps<SVGSVGElement>) => (
     />
     <text
       x={128}
-      y={120}
+      y={130}
       textAnchor="middle"
       dominantBaseline="central"
       fontFamily="Arial, Helvetica, sans-serif"

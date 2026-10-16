@@ -1,19 +1,21 @@
+import { useRouter } from "next/router";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { type Dispatch, type SetStateAction } from "react";
 import { FaBook } from "react-icons/fa";
+import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
+import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
+import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
 import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
-import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
-import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { Separator } from "~/components/ui/separator";
 import { useTabStore, type PlaybackMetadata } from "~/stores/TabStore";
-import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
+import { getTuningName } from "~/utils/tunings";
 import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
-import { tuningNotesToName } from "~/utils/tunings";
-import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 
 interface PlaybackTopMetadata {
   tabProgressValue: number;
@@ -24,6 +26,8 @@ function PlaybackTopMetadata({
   tabProgressValue,
   setTabProgressValue,
 }: PlaybackTopMetadata) {
+  const { asPath } = useRouter();
+
   const {
     title,
     tuning,
@@ -111,12 +115,7 @@ function PlaybackTopMetadata({
                   </OverlayScrollbarsComponent>
                 </div>
 
-                {!viewportLabel.includes("mobile") && (
-                  <div className="baseFlex gap-4">
-                    <Separator className="h-6 w-[1px] bg-foreground/50" />
-                    <PlaybackSectionPicker />
-                  </div>
-                )}
+                {!viewportLabel.includes("mobile") && <PlaybackSectionPicker />}
               </div>
 
               <div className="baseFlex w-full !justify-between gap-4">
@@ -134,18 +133,22 @@ function PlaybackTopMetadata({
                     <div className="baseVertFlex !items-start">
                       <span className="text-sm font-medium">Tuning</span>
                       <div>
-                        {tuningNotesToName[
-                          tuning.toLowerCase() as keyof typeof tuningNotesToName
-                        ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                        {getTuningName(tuning) ?? (
+                          <PrettyTuning tuning={tuning} displayWithFlex />
+                        )}
                       </div>
                     </div>
 
-                    <div className="baseVertFlex !items-start">
+                    <div className="baseVertFlex !items-start text-nowrap">
                       <span className="text-sm font-medium">Capo</span>
                       {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
                     </div>
 
-                    <PlaybackTunerDialog />
+                    {viewportLabel.includes("mobile") ? (
+                      <PlaybackTunerDrawer />
+                    ) : (
+                      <PlaybackTunerDialog />
+                    )}
 
                     {!viewportLabel.includes("mobile") && (
                       <Button
@@ -196,7 +199,8 @@ function PlaybackTopMetadata({
                   )}
                 </div>
 
-                {!viewportLabel.includes("mobile") && <Menu />}
+                {!viewportLabel.includes("mobile") &&
+                  !asPath.includes("/tools") && <Menu />}
               </div>
             </div>
           </div>

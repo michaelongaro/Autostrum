@@ -36,7 +36,6 @@ function PlaybackLoopRangeNode({
   return (
     <Button
       type="button"
-      size="sm"
       disabled={isDisabled}
       data-loop-range-node="true"
       onPointerDown={(e) => {
@@ -57,15 +56,15 @@ function PlaybackLoopRangeNode({
         ["--loop-node-opacity" as string]: opacity,
       }}
       // Inline opacity must win over the shared Button `disabled:opacity-50`.
-      className="relative z-20 h-7 min-w-[1.75rem] rounded-full px-1 py-0 !transition-none disabled:!opacity-[var(--loop-node-opacity)]"
+      className="relative z-20 h-6 min-w-[1.75rem] px-1 py-0 !transition-none disabled:!opacity-[var(--loop-node-opacity)]"
     >
       {role === "start" && (
-        <div className="baseVertFlex text-[9px] leading-[1.1]">
+        <div className="baseVertFlex text-[10px] leading-[1.1]">
           <span>Start</span>
         </div>
       )}
       {role === "end" && (
-        <div className="baseVertFlex text-[9px] leading-[1.1]">
+        <div className="baseVertFlex text-[10px] leading-[1.1]">
           <span>End</span>
         </div>
       )}

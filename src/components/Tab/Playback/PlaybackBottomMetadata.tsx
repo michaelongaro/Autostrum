@@ -7,6 +7,8 @@ import {
   BsFillVolumeDownFill,
   BsFillVolumeMuteFill,
   BsFillVolumeUpFill,
+  BsMusicNoteBeamed,
+  BsMusicNoteList,
 } from "react-icons/bs";
 import {
   Tooltip,
@@ -19,9 +21,15 @@ import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
-import AnimatedTabs from "~/components/ui/AnimatedTabs";
 import { Button } from "~/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "~/components/ui/carousel";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import Logo from "~/components/ui/icons/Logo";
 import { Label } from "~/components/ui/label";
 import {
   Popover,
@@ -38,18 +46,19 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
-import { Toggle } from "~/components/ui/toggle";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { tuningNotesToName } from "~/utils/tunings";
-import { Direction, getTrackBackground, Range } from "react-range";
+import { getTuningName } from "~/utils/tunings";
+import { Direction, getTrackBackground, Range } from "~/components/ui/Range";
 import { IoMdSettings } from "react-icons/io";
-import PlaybackTunerDialog from "~/components/Tab/Playback/PlaybackTunerDialog";
 import { IoColorPalette } from "react-icons/io5";
 import CountIn from "~/components/ui/icons/CountIn";
 import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
+import { useRouter } from "next/router";
+import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
+import ChordName from "~/components/ui/ChordName";
 
 interface PlaybackBottomMetadata {
   tabProgressValue: number;
@@ -64,6 +73,8 @@ function PlaybackBottomMetadata({
   showBackgroundBlur,
   setShowBackgroundBlur,
 }: PlaybackBottomMetadata) {
+  const { asPath } = useRouter();
+
   const {
     capo,
     tuning,
@@ -71,11 +82,9 @@ function PlaybackBottomMetadata({
     playbackMetadata,
     viewportLabel,
     setShowGlossaryDialog,
-    setAudioMetadata,
     countInTimer,
-    setCurrentChordIndex,
     pauseAudio,
-    initDraftLoopRangeFromAudioMetadata,
+    enterPlaybackLoopRangeEditor,
   } = useTabStore((state) => ({
     capo: state.capo,
     tuning: state.tuning,
@@ -83,12 +92,9 @@ function PlaybackBottomMetadata({
     playbackMetadata: state.playbackMetadata,
     viewportLabel: state.viewportLabel,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
-    setAudioMetadata: state.setAudioMetadata,
     countInTimer: state.countInTimer,
-    setCurrentChordIndex: state.setCurrentChordIndex,
     pauseAudio: state.pauseAudio,
-    initDraftLoopRangeFromAudioMetadata:
-      state.initDraftLoopRangeFromAudioMetadata,
+    enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
   }));
 
   // Close settings popover on device orientation change
@@ -117,9 +123,9 @@ function PlaybackBottomMetadata({
             <div className="baseVertFlex !items-start">
               <p className="text-sm font-medium">Tuning</p>
               <div>
-                {tuningNotesToName[
-                  tuning.toLowerCase() as keyof typeof tuningNotesToName
-                ] ?? <PrettyTuning tuning={tuning} displayWithFlex />}
+                {getTuningName(tuning) ?? (
+                  <PrettyTuning tuning={tuning} displayWithFlex />
+                )}
               </div>
             </div>
 
@@ -128,7 +134,7 @@ function PlaybackBottomMetadata({
               {capo === 0 ? "None" : `${getOrdinalSuffix(capo)} fret`}
             </div>
 
-            <PlaybackTunerDialog />
+            <PlaybackTunerDrawer />
           </div>
 
           <div className="baseFlex gap-4">
@@ -139,7 +145,7 @@ function PlaybackBottomMetadata({
               setShowBackgroundBlur={setShowBackgroundBlur}
             />
 
-            <MobileMenuDialog />
+            {!asPath.includes("/tools") && <MobileMenuDialog />}
 
             <Button
               variant={"outline"}
@@ -162,30 +168,17 @@ function PlaybackBottomMetadata({
                 setShowBackgroundBlur={setShowBackgroundBlur}
               />
 
-              <MobileMenuDialog />
+              {!asPath.includes("/tools") && <MobileMenuDialog />}
 
-              <Toggle
+              <Button
                 variant={"outline"}
                 aria-label="Edit loop range"
                 disabled={audioMetadata.playing || countInTimer.showing}
-                pressed={audioMetadata.editingLoopRange}
                 className="size-9 p-1"
-                onPressedChange={(value) => {
-                  if (value) {
-                    initDraftLoopRangeFromAudioMetadata();
-                    setCurrentChordIndex(audioMetadata.startLoopIndex);
-                  } else {
-                    setCurrentChordIndex(0);
-                  }
-
-                  setAudioMetadata({
-                    ...audioMetadata,
-                    editingLoopRange: value,
-                  });
-                }}
+                onClick={() => enterPlaybackLoopRangeEditor()}
               >
                 <CgArrowsShrinkH className="h-6 w-6" />
-              </Toggle>
+              </Button>
 
               <Button
                 variant={"outline"}
@@ -542,6 +535,14 @@ function MobileSettingsPopover({
   );
 }
 
+function PracticeMenuPane({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="h-full w-full overflow-y-auto">
+      <div className="baseVertFlex min-h-full w-full px-4 py-4">{children}</div>
+    </div>
+  );
+}
+
 function MobileMenuDialog() {
   const {
     sectionProgression,
@@ -550,6 +551,7 @@ function MobileMenuDialog() {
     strummingPatterns,
     audioMetadata,
     previewMetadata,
+    chordDisplayMode,
     playPreview,
     pauseAudio,
   } = useTabStore((state) => ({
@@ -559,6 +561,7 @@ function MobileMenuDialog() {
     strummingPatterns: state.strummingPatterns,
     audioMetadata: state.audioMetadata,
     previewMetadata: state.previewMetadata,
+    chordDisplayMode: state.chordDisplayMode,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
   }));
@@ -566,6 +569,10 @@ function MobileMenuDialog() {
   const [activeTabName, setActiveTabName] = useState<
     "Section progression" | "Chords" | "Strumming patterns"
   >("Section progression");
+
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [carouselContentApi, setCarouselContentApi] =
+    useState<CarouselApi | null>(null);
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] = useState<
     boolean[]
@@ -575,6 +582,49 @@ function MobileMenuDialog() {
   // we are only ever rendering the static palm mute data visually and never modifying it.
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
+
+  useEffect(() => {
+    if (!carouselApi || !carouselContentApi) return;
+
+    function handleContentSelect() {
+      if (!carouselApi || !carouselContentApi) return;
+
+      const currentIndex = carouselContentApi.selectedScrollSnap();
+
+      switch (currentIndex) {
+        case 0:
+          carouselApi.scrollTo(0);
+          setActiveTabName("Section progression");
+          break;
+        case 1:
+          carouselApi.scrollTo(1);
+          setActiveTabName("Chords");
+          break;
+        case 2:
+          carouselApi.scrollTo(2);
+          setActiveTabName("Strumming patterns");
+          break;
+        default:
+          carouselApi.scrollTo(0);
+          setActiveTabName("Section progression");
+      }
+    }
+
+    carouselContentApi.on("select", handleContentSelect);
+
+    return () => {
+      carouselContentApi.off("select", handleContentSelect);
+    };
+  }, [carouselApi, carouselContentApi]);
+
+  function selectPracticeMenuPane(index: number) {
+    if (audioMetadata.playing || previewMetadata.playing) {
+      pauseAudio();
+    }
+
+    carouselApi?.scrollTo(index);
+    carouselContentApi?.scrollTo(index);
+  }
 
   return (
     <Dialog>
@@ -592,264 +642,323 @@ function MobileMenuDialog() {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex size-full max-h-dvh max-w-none !justify-start !rounded-none border-none pb-0">
-        <AnimatedTabs
-          activeTabName={activeTabName}
-          setActiveTabName={
-            setActiveTabName as Dispatch<SetStateAction<string>>
-          }
-          tabNames={["Section progression", "Chords", "Strumming patterns"]}
-        />
+      <DialogContent className="baseVertFlex !flex h-dvh max-h-dvh w-full !max-w-none !gap-0 !justify-start overflow-hidden !rounded-none !border-none !px-0 !pb-0 !pt-12">
+        <div className="baseFlex h-12 w-full shrink-0 !justify-start">
+          <Carousel
+            setApi={setCarouselApi}
+            opts={{
+              dragFree: true,
+            }}
+            className="baseFlex w-full"
+          >
+            <CarouselContent className="pl-3">
+              <CarouselItem className="baseFlex basis-auto">
+                <Button
+                  variant={"text"}
+                  onClick={() => selectPracticeMenuPane(0)}
+                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
+                >
+                  <BsMusicNoteList className="size-4" />
+                  Section progression
+                  {activeTabName === "Section progression" && (
+                    <motion.span
+                      layoutId="mobilePracticeMenuActiveTabUnderline"
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.6,
+                      }}
+                      className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
+                    />
+                  )}
+                </Button>
+              </CarouselItem>
 
-        <AnimatePresence mode="popLayout">
-          {activeTabName === "Section progression" && (
-            <motion.div
-              key="Section progression"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="baseVertFlex h-full max-h-[calc(100dvh-6rem)] w-full gap-2 overflow-y-auto"
-            >
-              {sectionProgression.length === 0 ? (
-                <p className="text-lg font-semibold text-gray">
-                  No section progression found.
-                </p>
-              ) : (
-                <div className="baseVertFlex gap-2">
-                  {sectionProgression.map((section) => (
-                    <div
-                      key={section.id}
-                      className="baseFlex w-full !justify-start gap-2"
-                    >
-                      <div className="baseFlex w-24 gap-2">
-                        <span className="text-gray">
-                          {formatSecondsToMinutes(section.startSeconds)}
-                        </span>
-                        <span className="text-gray">-</span>
-                        <span className="text-gray">
-                          {formatSecondsToMinutes(section.endSeconds)}
-                        </span>
-                      </div>
+              <CarouselItem className="baseFlex basis-auto">
+                <Button
+                  variant={"text"}
+                  onClick={() => selectPracticeMenuPane(1)}
+                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
+                >
+                  <BsMusicNoteBeamed className="size-4" />
+                  Chords
+                  {activeTabName === "Chords" && (
+                    <motion.span
+                      layoutId="mobilePracticeMenuActiveTabUnderline"
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.6,
+                      }}
+                      className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
+                    />
+                  )}
+                </Button>
+              </CarouselItem>
 
-                      <div className="baseFlex gap-2">
-                        <span className="text-nowrap font-semibold">
-                          {section.title}
-                        </span>
-                        {section.repetitions > 1 && (
-                          <p>({section.repetitions}x)</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          )}
+              <CarouselItem className="baseFlex basis-auto">
+                <Button
+                  variant={"text"}
+                  onClick={() => selectPracticeMenuPane(2)}
+                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
+                >
+                  <Logo className="z-0 size-4" />
+                  Strumming patterns
+                  {activeTabName === "Strumming patterns" && (
+                    <motion.span
+                      layoutId="mobilePracticeMenuActiveTabUnderline"
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.6,
+                      }}
+                      className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
+                    />
+                  )}
+                </Button>
+              </CarouselItem>
+            </CarouselContent>
+          </Carousel>
+        </div>
 
-          {activeTabName === "Chords" && (
-            <motion.div
-              key="Chords"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="baseVertFlex size-full overflow-y-hidden py-0"
-            >
-              {chords.length > 0 ? (
-                <div className="baseFlex my-4 max-h-[calc(100dvh-6rem)] w-full flex-wrap gap-8 overflow-y-scroll px-8">
-                  <>
-                    {chords.map((chord, index) => (
-                      <div
-                        key={chord.id}
-                        className="baseFlex w-full max-w-[175px]"
-                      >
-                        <div className="baseVertFlex gap-3">
-                          <div className="baseFlex w-full !justify-between border-b py-2">
-                            <span
-                              style={{
-                                color:
-                                  previewMetadata.indexOfPattern === index &&
-                                  previewMetadata.playing &&
-                                  previewMetadata.type === "chord"
-                                    ? "hsl(var(--primary))"
-                                    : "hsl(var(--foreground))",
-                              }}
-                              className="px-3 font-semibold transition-colors"
-                            >
-                              {chord.name}
+        <div className="min-h-0 w-full flex-1 overflow-hidden">
+          <Carousel
+            setApi={setCarouselContentApi}
+            opts={{
+              align: "start",
+            }}
+            className="h-full w-full"
+          >
+            <CarouselContent className="ml-0 h-full">
+              <CarouselItem className="h-full min-h-0 basis-full overflow-hidden pl-0">
+                <PracticeMenuPane>
+                  {sectionProgression.length === 0 ? (
+                    <p className="text-lg font-semibold text-gray">
+                      No section progression found.
+                    </p>
+                  ) : (
+                    <div className="baseVertFlex w-fit max-w-full gap-2">
+                      {sectionProgression.map((section) => (
+                        <div
+                          key={section.id}
+                          className="baseFlex w-full !justify-start gap-2"
+                        >
+                          <div className="baseFlex w-24 gap-2">
+                            <span className="text-gray">
+                              {formatSecondsToMinutes(section.startSeconds)}
                             </span>
+                            <span className="text-gray">-</span>
+                            <span className="text-gray">
+                              {formatSecondsToMinutes(section.endSeconds)}
+                            </span>
+                          </div>
 
-                            {/* preview chord button */}
+                          <div className="baseFlex gap-2">
+                            <span className="text-nowrap font-semibold">
+                              {section.title}
+                            </span>
+                            {section.repetitions > 1 && (
+                              <p>({section.repetitions}x)</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </PracticeMenuPane>
+              </CarouselItem>
+
+              <CarouselItem className="h-full min-h-0 basis-full overflow-hidden pl-0">
+                <PracticeMenuPane>
+                  {chords.length > 0 ? (
+                    <div className="baseFlex w-full flex-wrap gap-8">
+                      {chords.map((chord, index) => (
+                        <div key={chord.id} className="baseFlex">
+                          <div className="baseVertFlex gap-3">
+                            <div className="baseFlex w-full !justify-between border-b py-2">
+                              <ChordName
+                                name={chord.name}
+                                color={chord.color}
+                                truncate={false}
+                                showFullName={true}
+                                isHighlighted={
+                                  chordDisplayMode === "color"
+                                    ? false
+                                    : previewMetadata.indexOfPattern ===
+                                          index &&
+                                        previewMetadata.playing &&
+                                        previewMetadata.type === "chord"
+                                      ? true
+                                      : false
+                                }
+                              />
+
+                              {/* preview chord button */}
+                              <Button
+                                variant={"audio"}
+                                disabled={
+                                  !currentInstrument ||
+                                  (previewMetadata.indexOfPattern === index &&
+                                    previewMetadata.playing &&
+                                    previewMetadata.type === "chord")
+                                }
+                                size={"sm"}
+                                onClick={() => {
+                                  if (
+                                    audioMetadata.playing ||
+                                    previewMetadata.playing
+                                  ) {
+                                    pauseAudio();
+                                  }
+
+                                  setTimeout(
+                                    () => {
+                                      void playPreview({
+                                        data: chord.frets,
+                                        index,
+                                        type: "chord",
+                                      });
+                                    },
+                                    audioMetadata.playing ||
+                                      previewMetadata.playing
+                                      ? 50
+                                      : 0,
+                                  );
+                                }}
+                                className="baseFlex mr-3 h-6 w-10 rounded-sm"
+                              >
+                                <PlayButtonIcon
+                                  uniqueLocationKey={`chordPreview${index}`}
+                                  currentInstrument={currentInstrument}
+                                  previewMetadata={previewMetadata}
+                                  indexOfPattern={index}
+                                  previewType="chord"
+                                />
+                              </Button>
+                            </div>
+
+                            <div className="h-36">
+                              <ChordDiagram originalFrets={chord.frets} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      No chords were specified for this tab.
+                    </div>
+                  )}
+                </PracticeMenuPane>
+              </CarouselItem>
+
+              <CarouselItem className="h-full min-h-0 basis-full overflow-hidden pl-0">
+                <PracticeMenuPane>
+                  {strummingPatterns.length > 0 ? (
+                    <div className="baseVertFlex gap-10">
+                      {strummingPatterns.map((pattern, index) => (
+                        <div key={pattern.id} className="shrink-0 overflow-hidden">
+                          <div className="baseVertFlex !items-start">
                             <Button
                               variant={"audio"}
+                              size={"sm"}
                               disabled={
                                 !currentInstrument ||
-                                (previewMetadata.indexOfPattern === index &&
-                                  previewMetadata.playing &&
-                                  previewMetadata.type === "chord")
+                                artificalPlayButtonTimeout[index]
                               }
-                              size={"sm"}
                               onClick={() => {
                                 if (
-                                  audioMetadata.playing ||
-                                  previewMetadata.playing
+                                  previewMetadata.playing &&
+                                  index === previewMetadata.indexOfPattern &&
+                                  previewMetadata.type === "strummingPattern"
                                 ) {
                                   pauseAudio();
-                                }
+                                  setArtificalPlayButtonTimeout((prev) => {
+                                    const prevArtificalPlayButtonTimeout = [
+                                      ...prev,
+                                    ];
+                                    prevArtificalPlayButtonTimeout[index] =
+                                      true;
+                                    return prevArtificalPlayButtonTimeout;
+                                  });
 
-                                setTimeout(
-                                  () => {
-                                    void playPreview({
-                                      data: chord.frets,
-                                      index,
-                                      type: "chord",
+                                  setTimeout(() => {
+                                    setArtificalPlayButtonTimeout((prev) => {
+                                      const prevArtificalPlayButtonTimeout = [
+                                        ...prev,
+                                      ];
+                                      prevArtificalPlayButtonTimeout[index] =
+                                        false;
+                                      return prevArtificalPlayButtonTimeout;
                                     });
-                                  },
-                                  audioMetadata.playing ||
+                                  }, 300);
+                                } else {
+                                  if (
+                                    audioMetadata.playing ||
                                     previewMetadata.playing
-                                    ? 50
-                                    : 0,
-                                );
+                                  ) {
+                                    pauseAudio();
+                                  }
+
+                                  setTimeout(
+                                    () => {
+                                      void playPreview({
+                                        data: pattern,
+                                        index,
+                                        type: "strummingPattern",
+                                      });
+                                    },
+                                    audioMetadata.playing ||
+                                      previewMetadata.playing
+                                      ? 50
+                                      : 0,
+                                  );
+                                }
                               }}
-                              className="baseFlex mr-3 h-6 w-10 rounded-sm"
+                              className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
                             >
+                              <p>
+                                {previewMetadata.playing &&
+                                index === previewMetadata.indexOfPattern &&
+                                previewMetadata.type === "strummingPattern"
+                                  ? "Stop"
+                                  : "Play"}
+                              </p>
                               <PlayButtonIcon
-                                uniqueLocationKey={`chordPreview${index}`}
+                                uniqueLocationKey={`strummingPatternPreview${index}`}
                                 currentInstrument={currentInstrument}
                                 previewMetadata={previewMetadata}
                                 indexOfPattern={index}
-                                previewType="chord"
+                                previewType="strummingPattern"
                               />
                             </Button>
-                          </div>
-
-                          <div className="h-36">
-                            <ChordDiagram originalFrets={chord.frets} />
+                            <div className="baseFlex border-b-none rounded-md border-2">
+                              <StrummingPattern
+                                data={pattern}
+                                mode="viewingWithHighlights"
+                                index={index}
+                                lastModifiedPalmMuteNode={
+                                  lastModifiedPalmMuteNode
+                                }
+                                setLastModifiedPalmMuteNode={
+                                  setLastModifiedPalmMuteNode
+                                }
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </>
-                </div>
-              ) : (
-                <div className="text-center">
-                  No chords were specified for this tab.
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {activeTabName === "Strumming patterns" && (
-            <motion.div
-              key="Strumming patterns"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="baseVertFlex h-full max-h-[calc(100dvh-6rem)]"
-            >
-              {strummingPatterns.length > 0 ? (
-                <div className="baseVertFlex h-full w-full !justify-start gap-10 overflow-y-auto py-8">
-                  {strummingPatterns.map((pattern, index) => (
-                    <div
-                      key={pattern.id}
-                      className="shrink-0 self-start overflow-hidden"
-                    >
-                      <div className="baseVertFlex !items-start">
-                        <Button
-                          variant={"audio"}
-                          size={"sm"}
-                          disabled={
-                            !currentInstrument ||
-                            artificalPlayButtonTimeout[index]
-                          }
-                          onClick={() => {
-                            if (
-                              previewMetadata.playing &&
-                              index === previewMetadata.indexOfPattern &&
-                              previewMetadata.type === "strummingPattern"
-                            ) {
-                              pauseAudio();
-                              setArtificalPlayButtonTimeout((prev) => {
-                                const prevArtificalPlayButtonTimeout = [
-                                  ...prev,
-                                ];
-                                prevArtificalPlayButtonTimeout[index] = true;
-                                return prevArtificalPlayButtonTimeout;
-                              });
-
-                              setTimeout(() => {
-                                setArtificalPlayButtonTimeout((prev) => {
-                                  const prevArtificalPlayButtonTimeout = [
-                                    ...prev,
-                                  ];
-                                  prevArtificalPlayButtonTimeout[index] = false;
-                                  return prevArtificalPlayButtonTimeout;
-                                });
-                              }, 300);
-                            } else {
-                              if (
-                                audioMetadata.playing ||
-                                previewMetadata.playing
-                              ) {
-                                pauseAudio();
-                              }
-
-                              setTimeout(
-                                () => {
-                                  void playPreview({
-                                    data: pattern,
-                                    index,
-                                    type: "strummingPattern",
-                                  });
-                                },
-                                audioMetadata.playing || previewMetadata.playing
-                                  ? 50
-                                  : 0,
-                              );
-                            }
-                          }}
-                          className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
-                        >
-                          <p>
-                            {previewMetadata.playing &&
-                            index === previewMetadata.indexOfPattern &&
-                            previewMetadata.type === "strummingPattern"
-                              ? "Stop"
-                              : "Play"}
-                          </p>
-                          <PlayButtonIcon
-                            uniqueLocationKey={`strummingPatternPreview${index}`}
-                            currentInstrument={currentInstrument}
-                            previewMetadata={previewMetadata}
-                            indexOfPattern={index}
-                            previewType="strummingPattern"
-                          />
-                        </Button>
-                        <div className="baseFlex border-b-none rounded-md border-2">
-                          <StrummingPattern
-                            data={pattern}
-                            mode="viewing"
-                            index={index}
-                            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                            setLastModifiedPalmMuteNode={
-                              setLastModifiedPalmMuteNode
-                            }
-                          />
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="w-48 text-center xs:w-auto">
-                  No strumming patterns were specified for this tab.
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  ) : (
+                    <div className="text-center">
+                      No strumming patterns were specified for this tab.
+                    </div>
+                  )}
+                </PracticeMenuPane>
+              </CarouselItem>
+            </CarouselContent>
+          </Carousel>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -869,29 +978,24 @@ function DesktopSettings({
     setCurrentInstrumentName,
     playbackSpeed,
     setPlaybackSpeed,
-    setCurrentChordIndex,
     audioMetadata,
-    setAudioMetadata,
     pauseAudio,
     countInTimer,
     loopDelay,
     setLoopDelay,
-    initDraftLoopRangeFromAudioMetadata,
+    enterPlaybackLoopRangeEditor,
     updateMasterVolumeGainNode,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
     playbackSpeed: state.playbackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
-    setCurrentChordIndex: state.setCurrentChordIndex,
     audioMetadata: state.audioMetadata,
-    setAudioMetadata: state.setAudioMetadata,
     pauseAudio: state.pauseAudio,
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
-    initDraftLoopRangeFromAudioMetadata:
-      state.initDraftLoopRangeFromAudioMetadata,
+    enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
     updateMasterVolumeGainNode: state.updateMasterVolumeGainNode,
   }));
 
@@ -1000,21 +1104,14 @@ function DesktopSettings({
           <TooltipTrigger asChild>
             <Button
               variant={"outline"}
-              size="icon"
               aria-label="Enter the loop range editor"
               disabled={audioMetadata.playing || countInTimer.showing}
-              className="baseFlex gap-2"
+              className="baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
               onClick={() => {
-                initDraftLoopRangeFromAudioMetadata();
-                setCurrentChordIndex(audioMetadata.startLoopIndex);
-
-                setAudioMetadata({
-                  ...audioMetadata,
-                  editingLoopRange: true,
-                });
+                enterPlaybackLoopRangeEditor();
               }}
             >
-              <CgArrowsShrinkH className="h-6 w-6" />
+              <CgArrowsShrinkH className="size-6" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side={"bottom"}>
@@ -1030,7 +1127,7 @@ function DesktopSettings({
               variant={"outline"}
               aria-label="Toggle count-in"
               disabled={audioMetadata.playing || countInTimer.showing}
-              className={`baseFlex size-10 gap-2 p-0 ${countIn ? "bg-secondary" : ""}`}
+              className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${countIn ? "bg-accent/90 text-primary-foreground" : ""}`}
               onClick={() => {
                 localStorageCountIn.set(String(!countIn));
               }}
@@ -1050,7 +1147,7 @@ function DesktopSettings({
             <Button
               variant={"outline"}
               aria-label="Toggle color-coded chords"
-              className={`baseFlex size-10 gap-2 p-0 ${colorCodedChords ? "bg-secondary" : ""}`}
+              className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${colorCodedChords ? "bg-accent/90 text-primary-foreground" : ""}`}
               onClick={() => {
                 localStorageColorCodedChords.set(String(!colorCodedChords));
               }}
@@ -1075,7 +1172,10 @@ function DesktopSettings({
                 onOpenChange={setVolumePopoverIsOpen}
               >
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="size-10 !p-0">
+                  <Button
+                    variant="outline"
+                    className="size-10 !p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
+                  >
                     <AnimatePresence mode="popLayout" initial={false}>
                       {volume === 0 && (
                         <motion.div
