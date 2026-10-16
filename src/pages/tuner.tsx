@@ -55,7 +55,7 @@ function Tuner() {
           <ToolRouteHeader
             icon={<TuningFork className="mr-1 w-[12px]" />}
             title="Guitar Tuner"
-            description="A quick and accurate microphone tuner to get your guitar sounding right."
+            description="Get in tune quickly and accurately using your microphone."
           />
         </div>
 

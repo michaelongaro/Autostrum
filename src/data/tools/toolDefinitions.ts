@@ -32,7 +32,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "chord-trainer",
     title: "Chord Trainer",
     description:
-      "Pick a chord set, or make your own, and practice smoother transitions between shapes.",
+      "Build smoother chord changes with ready-made sets or create your own.",
     category: "Practice",
     href: "/tools/chord-trainer",
     status: "available",
@@ -41,7 +41,7 @@ export const toolDefinitions: ToolDefinition[] = [
     id: "metronome",
     title: "Metronome",
     description:
-      "A simple, customizable click to help you lock in your timing and play on beat.",
+      "Find your rhythm and stay on beat with a simple, customizable click.",
     category: "Rhythm",
     href: "/tools/metronome",
     status: "available",
@@ -58,8 +58,7 @@ export const toolDefinitions: ToolDefinition[] = [
   {
     id: "tuner",
     title: "Guitar Tuner",
-    description:
-      "A quick and accurate microphone tuner to get your guitar sounding right.",
+    description: "Get in tune quickly and accurately using your microphone.",
     category: "Tuning",
     href: "/tuner",
     status: "available",

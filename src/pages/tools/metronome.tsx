@@ -226,7 +226,10 @@ function MetronomeToolPage() {
   }
 
   function toggleRunning() {
-    if (!isRunning && useIPhoneAudioReminderStore.getState().requestReminder()) {
+    if (
+      !isRunning &&
+      useIPhoneAudioReminderStore.getState().requestReminder()
+    ) {
       return;
     }
 
@@ -377,7 +380,7 @@ function MetronomeToolPage() {
       <ToolRouteHeader
         icon={<PiMetronome className="size-6" />}
         title="Metronome"
-        description="A simple, customizable click to help you lock in your timing and play on beat."
+        description="Find your rhythm and stay on beat with a simple, customizable click."
       />
 
       <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">

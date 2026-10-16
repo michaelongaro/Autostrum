@@ -11,9 +11,9 @@ import { useTabStore } from "~/stores/TabStore";
 const toolIcons: Record<string, ReactNode> = {
   warmups: <IoMusicalNotes className="size-5" />,
   scales: <GiMusicalScore className="size-6" />,
-  "chord-trainer": <Logo className="size-5" />,
+  "chord-trainer": <Logo className="size-[18px]" />,
   metronome: <PiMetronome className="size-6" />,
-  "note-trainer": <IoEar className="size-5" />,
+  "note-trainer": <IoEar className="size-[18px]" />,
   tuner: <TuningFork className="mr-[3px] w-[10px]" />,
 };
 

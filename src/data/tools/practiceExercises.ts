@@ -37,7 +37,6 @@ export const PRACTICE_TUNING = DEFAULT_TUNING;
 export type PracticeExercise = {
   id: string;
   title: string;
-  description: string;
   level: PracticeLevel;
   section: Section;
 };
@@ -105,10 +104,7 @@ function upAndDown(notes: TabNote[]): TabNote[] {
   return [...notes, ...reverseNotes(notes).slice(1)];
 }
 
-function fromShape(
-  shape: FretShape,
-  noteLength?: FullNoteLengths,
-): TabNote[] {
+function fromShape(shape: FretShape, noteLength?: FullNoteLengths): TabNote[] {
   const notes: TabNote[] = [];
   shape.forEach((frets, stringOffset) => {
     const stringIndex = (stringOffset + 1) as GuitarString;
@@ -354,10 +350,7 @@ function createExerciseSection({
 
     if (!isEndOfMeasure) return [column];
 
-    return [
-      column,
-      { ...createTabMeasureLine(), id: `${id}-ml-${index}` },
-    ];
+    return [column, { ...createTabMeasureLine(), id: `${id}-ml-${index}` }];
   });
 
   return {
@@ -379,7 +372,6 @@ function createExerciseSection({
 function exercise({
   id,
   title,
-  description,
   level,
   bpm,
   notesPerMeasure,
@@ -387,7 +379,6 @@ function exercise({
 }: {
   id: string;
   title: string;
-  description: string;
   level: PracticeLevel;
   bpm: number;
   notesPerMeasure?: number;
@@ -396,7 +387,6 @@ function exercise({
   return {
     id,
     title,
-    description,
     level,
     section: createExerciseSection({
       id,
@@ -483,8 +473,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "open-string-picking",
     title: "Open String Alternate Picking",
-    description:
-      "Pick across the open strings to settle your right hand before fretting.",
     level: "beginner",
     bpm: 60,
     notes: upAndDown(acrossStrings([0])),
@@ -492,8 +480,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "chromatic-ladder",
     title: "1-2-3-4 Chromatic Ladder",
-    description:
-      "One finger per fret on every string, ascending and descending.",
     level: "beginner",
     bpm: 72,
     notes: upAndDown(acrossStrings([1, 2, 3, 4])),
@@ -501,8 +487,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "chromatic-reverse",
     title: "4-3-2-1 Chromatic Reverse",
-    description:
-      "Start on the pinky and walk backwards — the weaker direction for most players.",
     level: "beginner",
     bpm: 72,
     notes: upAndDown(acrossStrings([4, 3, 2, 1])),
@@ -510,8 +494,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "one-string-chromatic",
     title: "Single-String Chromatic",
-    description:
-      "Walk 0–12 on the low E, then back down. Repeat the idea on every string.",
     level: "beginner",
     bpm: 70,
     notes: upAndDown(fretRun(1, 0, 12)),
@@ -519,8 +501,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "hammer-on-ladder",
     title: "Hammer-On Ladder",
-    description:
-      "Fret 5, then hammer 7 with the ring finger on each string.",
     level: "beginner",
     bpm: 70,
     notesPerMeasure: 4,
@@ -529,8 +509,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "spider-crawl",
     title: "Classic Spider Crawl",
-    description:
-      "Stagger 1-2-3-4 across adjacent strings, then reverse the crawl.",
     level: "intermediate",
     bpm: 70,
     notes: classicSpiderCrawl(),
@@ -538,8 +516,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "spider-walk",
     title: "Offset Spider Walk",
-    description:
-      "Wider string jumps to challenge left-hand independence and accuracy.",
     level: "intermediate",
     bpm: 72,
     notes: [
@@ -564,8 +540,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "stretch-1245",
     title: "1-2-4-5 Stretch",
-    description:
-      "Index–middle–pinky with a one-fret gap. Keep the wrist relaxed.",
     level: "intermediate",
     bpm: 66,
     notes: upAndDown(acrossStrings([1, 2, 4, 5])),
@@ -573,8 +547,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "finger-permutation-1324",
     title: "1-3-2-4 Finger Independence",
-    description:
-      "The classic permutation: index, ring, middle, pinky on every string.",
     level: "intermediate",
     bpm: 76,
     notes: upAndDown(acrossStrings([1, 3, 2, 4])),
@@ -582,8 +554,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "pinky-strength",
     title: "Pinky Strength Builder",
-    description:
-      "Index and pinky only (5–8) so the fourth finger stops flying off the neck.",
     level: "intermediate",
     bpm: 80,
     notes: upAndDown(acrossStrings([5, 8])),
@@ -591,8 +561,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "pull-off-ladder",
     title: "Pull-Off Ladder",
-    description:
-      "Fret 7, then pull off to 5 on each string. Keep both notes even.",
     level: "intermediate",
     bpm: 70,
     notes: pullOffLadderNotes,
@@ -600,7 +568,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "position-shift-chromatic",
     title: "Shifting Chromatic Box",
-    description: "Move the 1-2-3-4 box up the G string, one fret at a time.",
     level: "intermediate",
     bpm: 80,
     notes: shiftingChromaticBox(4, 1, 9),
@@ -608,8 +575,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "string-skipping-warmup",
     title: "String Skipping Workout",
-    description:
-      "Skip one string at a time with a 5–7 box to tighten picking accuracy.",
     level: "intermediate",
     bpm: 88,
     notes: [
@@ -634,8 +599,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "legato-trills",
     title: "Legato Trills",
-    description:
-      "Hammer-on/pull-off bursts on the D string, first 2nd–3rd then 2nd–4th fingers.",
     level: "advanced",
     bpm: 75,
     notesPerMeasure: 8,
@@ -644,8 +607,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "three-nps-chromatic",
     title: "3-Note-Per-String Chromatic",
-    description:
-      "Three-finger chromatic rows for economy picking and even leftover motion.",
     level: "advanced",
     bpm: 88,
     notesPerMeasure: 3,
@@ -654,8 +615,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "sweep-picking-prep",
     title: "Sweep Picking Primer",
-    description:
-      "Em triad on the top three strings, rolling the right hand through adjacent strings.",
     level: "advanced",
     bpm: 96,
     notesPerMeasure: 4,
@@ -673,8 +632,6 @@ export const warmupExercises: PracticeExercise[] = [
   exercise({
     id: "wide-string-skipping",
     title: "Wide String Skipping",
-    description:
-      "Skip two strings (E–G, A–B, D–high E) to lock in pick-hand targeting.",
     level: "advanced",
     bpm: 90,
     notes: [
@@ -698,8 +655,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "e-minor-pentatonic-open",
     title: "E Minor Pentatonic (Open)",
-    description:
-      "The first box most guitarists learn — open-position rock and blues vocabulary.",
     level: "beginner",
     bpm: 72,
     notesPerMeasure: 2,
@@ -719,7 +674,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-minor-pentatonic-position-1",
     title: "A Minor Pentatonic (Position 1)",
-    description: "The classic 5th-fret box, ascending and descending.",
     level: "beginner",
     bpm: 80,
     notesPerMeasure: 2,
@@ -732,8 +686,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "e-blues-open",
     title: "E Blues Scale (Open)",
-    description:
-      "E minor pentatonic plus the blue note (Bb) in the open position.",
     level: "beginner",
     bpm: 78,
     notesPerMeasure: 4,
@@ -753,8 +705,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "g-major-pentatonic-position-1",
     title: "G Major Pentatonic (Position 1)",
-    description:
-      "The major-pentatonic box with the root on the 3rd-fret low E.",
     level: "beginner",
     bpm: 80,
     notesPerMeasure: 2,
@@ -774,8 +724,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "g-major-open",
     title: "G Major (Open Position)",
-    description:
-      "Open-position G major — campfire key and the relative major of E minor.",
     level: "beginner",
     bpm: 72,
     notesPerMeasure: 3,
@@ -795,7 +743,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "e-natural-minor",
     title: "E Natural Minor (Open Position)",
-    description: "Open E Aeolian. Same notes as G major, starting on E.",
     level: "beginner",
     bpm: 72,
     notesPerMeasure: 3,
@@ -815,8 +762,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "c-major-open",
     title: "C Major (Open Position)",
-    description:
-      "The C major scale in open position, two octaves from the low E.",
     level: "beginner",
     bpm: 72,
     notesPerMeasure: 3,
@@ -836,8 +781,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-minor-pentatonic-position-2",
     title: "A Minor Pentatonic (Position 2)",
-    description:
-      "The 7th/8th-fret box. Connects Position 1 toward the 12th fret.",
     level: "intermediate",
     bpm: 84,
     notesPerMeasure: 2,
@@ -857,8 +800,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-minor-pentatonic-position-3",
     title: "A Minor Pentatonic (Position 3)",
-    description:
-      "The 9th/10th-fret box — great for connecting licks across CAGED shapes.",
     level: "intermediate",
     bpm: 84,
     notesPerMeasure: 2,
@@ -878,7 +819,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-minor-pentatonic-position-4",
     title: "A Minor Pentatonic (Position 4)",
-    description: "The 12th-fret box. Same pattern as Position 1, one octave up.",
     level: "intermediate",
     bpm: 84,
     notesPerMeasure: 2,
@@ -898,8 +838,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-minor-pentatonic-position-5",
     title: "A Minor Pentatonic (Position 5)",
-    description:
-      "The 3rd-fret box that wraps back into Position 1. Completes the five CAGED pentatonic shapes.",
     level: "intermediate",
     bpm: 84,
     notesPerMeasure: 2,
@@ -919,8 +857,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-blues-position-1",
     title: "A Blues Scale (Position 1)",
-    description:
-      "A minor pentatonic plus the b5 (Eb) in the home box — the essential blues/rock scale.",
     level: "intermediate",
     bpm: 82,
     notesPerMeasure: 4,
@@ -940,8 +876,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-natural-minor-5th",
     title: "A Natural Minor (5th Position)",
-    description:
-      "Full Aeolian around the pentatonic box. Add the 2nd and b6 to Position 1.",
     level: "intermediate",
     bpm: 84,
     notesPerMeasure: 3,
@@ -961,8 +895,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "c-major-e-shape",
     title: "C Major (E-shape / 8th Fret)",
-    description:
-      "Moveable E-form major scale. Same fingering as open E, barred at the 8th fret.",
     level: "intermediate",
     bpm: 86,
     notesPerMeasure: 3,
@@ -982,8 +914,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "g-major-3nps",
     title: "G Major (3 Notes Per String)",
-    description:
-      "Three-notes-per-string G major for legato, economy picking, and even timing.",
     level: "intermediate",
     bpm: 88,
     notesPerMeasure: 3,
@@ -1003,8 +933,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "d-dorian-mode",
     title: "D Dorian Mode",
-    description:
-      "The Santana/funk minor sound — C major starting on D, 5th-position box.",
     level: "intermediate",
     bpm: 90,
     notesPerMeasure: 3,
@@ -1024,7 +952,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-mixolydian",
     title: "A Mixolydian (5th Position)",
-    description: "Dominant / rock-and-roll scale over A7. Major with a b7.",
     level: "intermediate",
     bpm: 90,
     notesPerMeasure: 3,
@@ -1044,8 +971,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "e-mixolydian-open",
     title: "E Mixolydian (Open Position)",
-    description:
-      "Open E7 vocabulary — the scale behind countless blues and southern-rock intros.",
     level: "intermediate",
     bpm: 84,
     notesPerMeasure: 3,
@@ -1065,8 +990,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-harmonic-minor",
     title: "A Harmonic Minor",
-    description:
-      "Natural minor with a raised 7th (G#). Neoclassical, flamenco, and metal staple.",
     level: "advanced",
     bpm: 92,
     notesPerMeasure: 4,
@@ -1086,8 +1009,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "e-phrygian-dominant",
     title: "E Phrygian Dominant",
-    description:
-      "5th mode of A harmonic minor. The Spanish/metal sound over E.",
     level: "advanced",
     bpm: 92,
     notesPerMeasure: 3,
@@ -1107,8 +1028,6 @@ export const scaleExercises: PracticeExercise[] = [
   exercise({
     id: "a-minor-pentatonic-in-3s",
     title: "A Minor Pentatonic Sequences (3s)",
-    description:
-      "Position 1 grouped in threes. The sequence players use to turn the box into lead lines.",
     level: "advanced",
     bpm: 88,
     notesPerMeasure: 3,

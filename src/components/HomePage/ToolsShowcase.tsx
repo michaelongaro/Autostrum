@@ -21,15 +21,14 @@ const toolCards: ToolCard[] = [
     id: "metronome",
     title: "Metronome",
     description:
-      "A simple, customizable click to help you lock in your timing and play on beat.",
+      "Find your rhythm and stay on beat with a simple, customizable click.",
     href: "/tools/metronome",
     illustration: <MetronomeIllustration />,
   },
   {
     id: "tuner",
     title: "Tuner",
-    description:
-      "A quick and accurate microphone tuner to get your guitar sounding right.",
+    description: "Get in tune quickly and accurately using your microphone.",
     href: "/tuner",
     illustration: <TunerIllustration />,
   },

@@ -272,14 +272,14 @@ function ChordTrainerPage() {
         <title>Chord Trainer | Autostrum</title>
         <meta
           name="description"
-          content="Practice chord changes with a continuous randomized stream of chord diagrams and optional guitar playback."
+          content="Build smoother chord changes with ready-made sets or create your own."
         />
       </Head>
 
       <ToolRouteHeader
         icon={<Logo className="size-5" />}
         title="Chord Trainer"
-        description="Pick a chord set, or make your own, and practice smoother transitions between shapes."
+        description="Build smoother chord changes with ready-made sets or create your own."
       />
 
       <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
