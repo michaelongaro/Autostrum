@@ -6,7 +6,6 @@ import { HiMiniComputerDesktop } from "react-icons/hi2";
 import { IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore, type COLORS } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { Check } from "lucide-react";
@@ -52,7 +51,6 @@ const COLOR_IMAGES: Record<COLORS, StaticImageData> = {
 
 function CustomizeLook() {
   const { userId } = useAuth();
-  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   const {
     color,
@@ -107,32 +105,6 @@ function CustomizeLook() {
                 const selected = color === colorString;
                 const showRing = selected || hoveredColor === colorString;
 
-                // <div
-                //   key={colorString}
-                //   style={{
-                //     backgroundColor: COLOR_HEX_VALUES[colorString],
-                //   }}
-                //   className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:p-6`}
-                // >
-                //   <div
-                //     style={{
-                //       backgroundColor: COLOR_HEX_VALUES[colorString],
-                //     }}
-                //     className="absolute inset-0 z-10 size-full overflow-hidden opacity-40 lg:hidden"
-                //   ></div>
-
-                //   {/* z-index as fallback just in case for weird safari positioning */}
-                //   <p className="z-10 text-lg font-semibold drop-shadow-xl lg:drop-shadow-none">
-                //     {`${colorString.charAt(0).toUpperCase()}${colorString.slice(1)}`}
-                //   </p>
-
-                //   <Image
-                //     src={COLOR_IMAGES[colorString]}
-                //     alt={`${colorString} `}
-                //     // had to do some magic number positioning/width/clip-path to reduce visible 1px of bg color on right side of desktop card
-                //     className="pointer-events-none absolute bottom-0 right-[-1px] h-full w-[calc(100%+1px)] max-w-none select-none rounded-lg object-cover object-center opacity-75 lg:rounded-none lg:[clip-path:polygon(50%_0%,101%_0%,101%_100%,40%_100%)]"
-                //   />
-                // </div>
                 return (
                   <button
                     key={colorString}
@@ -153,42 +125,6 @@ function CustomizeLook() {
                       sizes="500px"
                       className={`pointer-events-none object-cover transition duration-300 ${selected ? "" : "group-hover:scale-[1.02]"}`}
                     />
-                    {/* <div
-                      className="absolute inset-0"
-                      style={{
-                        background: `linear-gradient(to top, ${COLOR_HEX_VALUES[colorString]}cc, ${COLOR_HEX_VALUES[colorString]}15 45%, transparent)`,
-                      }}
-                    /> */}
-                    {/* <div className="baseFlex absolute inset-x-0 bottom-0 !justify-between gap-2 p-2.5">
-                      <span className="text-sm font-semibold text-white drop-shadow">
-                        {colorString.charAt(0).toUpperCase() +
-                          colorString.slice(1)}
-                      </span>
-                      <span
-                        className="relative size-5 rounded-full border border-white/70 shadow-sm"
-                        style={{
-                          backgroundColor: COLOR_HEX_VALUES[colorString],
-                        }}
-                      >
-                        <AnimatePresence>
-                          {showRing && (
-                            <motion.div
-                              key={`ring-${colorString}`}
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              style={{
-                                borderColor:
-                                  NEAR_WHITE_COLOR_VALUES[colorString],
-                              }}
-                              className="absolute inset-0 rounded-full border-2"
-                            />
-                          )}
-                        </AnimatePresence>
-                      </span>
-                    </div> */}
-
                     <div
                       style={{
                         backgroundColor: COLOR_HEX_VALUES[colorString],
