@@ -17,15 +17,11 @@ function Hero() {
               height={isAboveMediumViewportWidth ? 56 : 38}
             />
             <p className="max-w-lg text-center text-xl font-semibold tracking-tight md:text-left md:text-2xl lg:text-[1.75rem]">
-              Create and share your riffs{" "}
-              <span className="italic text-primary underline underline-offset-2">
-                exactly
-              </span>{" "}
-              how you want them to sound
+              Your next favorite song to play.
             </p>
             <p className="max-w-md text-center text-sm text-foreground/80 md:text-left md:text-base">
-              Keyboard-first editor, realistic guitar playback, and tools to
-              practice what you write.
+              Discover guitar tabs, hear how they sound, and learn at your own
+              pace.
             </p>
           </div>
 
