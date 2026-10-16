@@ -31,6 +31,7 @@ interface AccordionTriggerProps extends React.ComponentPropsWithoutRef<
   showUnderline?: boolean;
   editingSectionContainer?: boolean;
   viewingSectionContainer?: boolean;
+  forFAQ?: boolean;
   extraTabMetadata?: boolean;
 }
 
@@ -44,6 +45,7 @@ const AccordionTrigger = React.forwardRef<
       showUnderline = true,
       editingSectionContainer,
       viewingSectionContainer,
+      forFAQ,
       extraTabMetadata,
       className,
       children,
@@ -70,7 +72,7 @@ const AccordionTrigger = React.forwardRef<
       >
         {children}
         <ChevronDown
-          className={`absolute ${
+          className={`${forFAQ ? "relative" : "absolute"} ${
             viewingSectionContainer
               ? "bottom-4 right-1"
               : editingSectionContainer

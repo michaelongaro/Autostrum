@@ -1,6 +1,6 @@
 import { getTrackBackground, Range } from "~/components/ui/Range";
 import { useRef } from "react";
-import { getTabStore } from "~/stores/TabStore";
+import { useTabStoreApi } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -50,6 +50,7 @@ function StrumSettingsDropdown({
   previewDisabled = false,
   triggerClassName = "my-1 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground",
 }: StrumSettingsDropdownProps) {
+  const store = useTabStoreApi();
   const sliderHistoryGroup = useRef({});
   const arpeggiated = isArpeggiatedStrum(effects);
   const { min, max } = getStrumSpreadBounds(arpeggiated);
@@ -118,13 +119,15 @@ function StrumSettingsDropdown({
             onChange={(values) => {
               const next = values[0];
               if (next === undefined) return;
-              getTabStore().groupEditorHistoryInput(sliderHistoryGroup.current);
+              store
+                .getState()
+                .groupEditorHistoryInput(sliderHistoryGroup.current);
               onStrumSpreadAutoChange(false);
               onStrumSpreadSecondsChange(
                 remapStrumSpreadForType(next, arpeggiated),
               );
             }}
-            onFinalChange={() => getTabStore().breakEditorHistoryGroup()}
+            onFinalChange={() => store.getState().breakEditorHistoryGroup()}
             renderMark={({ props, index }) => {
               const markValue = Number((min + index * step).toFixed(2));
               if (!markValues.some((v) => Math.abs(v - markValue) < 0.001)) {

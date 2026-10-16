@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore } from "~/stores/TabStore";
+import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 import { getHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 
 interface UseSpacebarAudioControlOptions {
@@ -52,6 +53,11 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
       return;
     }
 
+    if (useIPhoneAudioReminderStore.getState().requestReminder()) {
+      isPlayingStateLocked.current = false;
+      return;
+    }
+
     if (useHoveredChordLocation) {
       // Editing: match AudioControls — no count-in; prefer hovered chord.
       // Read imperatively so hovering a column does not re-render Tab.
@@ -98,7 +104,7 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (disabled) return;
+      if (disabled || useIPhoneAudioReminderStore.getState().open) return;
 
       if (useHoveredChordLocation) {
         if (!editing || showPlaybackModal) return;

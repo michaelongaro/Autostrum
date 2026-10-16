@@ -1,5 +1,5 @@
 import { useEffect, useRef, type RefObject } from "react";
-import { getTabStore, useTabStore, type Metadata } from "~/stores/TabStore";
+import { useTabStoreApi, useTabStore, type Metadata } from "~/stores/TabStore";
 import {
   findPlaybackSegmentIndex,
   getPlaybackCumulativeSeconds,
@@ -220,6 +220,7 @@ export function useEditingStrumPlayhead({
   containerRef: RefObject<HTMLElement | null>;
   playheadRef: RefObject<HTMLDivElement | null>;
 }) {
+  const store = useTabStoreApi();
   const playing = useTabStore((state) => state.audioMetadata.playing);
   const showPlaybackModal = useTabStore((state) => state.showPlaybackModal);
   const editingLoopRange = useTabStore(
@@ -256,7 +257,7 @@ export function useEditingStrumPlayhead({
     }
 
     if (!playing) {
-      const state = getTabStore();
+      const state = store.getState();
       const container = containerRef.current;
       if (!container || !state.currentlyPlayingMetadata) {
         hide();
@@ -299,7 +300,7 @@ export function useEditingStrumPlayhead({
 
     const tick = () => {
       rafId = null;
-      const state = getTabStore();
+      const state = store.getState();
       const container = containerRef.current;
       const {
         currentlyPlayingMetadata,
@@ -560,5 +561,6 @@ export function useEditingStrumPlayhead({
     chordSequenceIndex,
     containerRef,
     playheadRef,
+    store,
   ]);
 }

@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import { getTabStore, useTabStore } from "~/stores/TabStore";
+import { useTabStoreApi, useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { IoSettingsSharp } from "react-icons/io5";
@@ -27,7 +27,12 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Label } from "~/components/ui/label";
 import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
 
-function CustomTuningEditor() {
+function CustomTuningEditor({
+  presentation = "dialog",
+}: {
+  presentation?: "dialog" | "inline";
+}) {
+  const store = useTabStoreApi();
   const {
     previewMetadata,
     playPreview,
@@ -62,7 +67,7 @@ function CustomTuningEditor() {
     () => {
       const session = previewSessionRef.current;
       session.requestId++;
-      if (session.playing) getTabStore().pauseAudio();
+      if (session.playing) store.getState().pauseAudio();
       session.playing = false;
       setIsPreviewing(false);
     },
@@ -102,11 +107,11 @@ function CustomTuningEditor() {
       session.requestId++;
 
       if (session.playing) {
-        getTabStore().pauseAudio();
+        store.getState().pauseAudio();
         session.playing = false;
       }
     };
-  }, []);
+  }, [store]);
 
   const normalizedQuickTuning = normalizeCustomTuningInput(quickTuningInput);
   const normalizedManualTuning = newTuning.every(isValidScientificTuningNote)
@@ -200,21 +205,9 @@ function CustomTuningEditor() {
     }
   }
 
-  return (
+  const content = (
     <>
-      <VisuallyHidden>
-        <DialogTitle>Custom tuning dialog</DialogTitle>
-        <DialogDescription>
-          Users can quickly enter the notes of their desired tuning, or enter
-          the full Scientific Pitch Notation for more control.
-        </DialogDescription>
-      </VisuallyHidden>
-
-      <DialogContent
-        data-tab-editor-history="local"
-        {...history.scopeProps}
-        className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96"
-      >
+      {presentation === "dialog" && (
         <div className="baseFlex w-full !justify-between gap-2">
           <div className="baseFlex gap-2">
             <IoSettingsSharp className="h-5 w-5" />
@@ -230,260 +223,297 @@ function CustomTuningEditor() {
             <X className="size-5" />
           </Button>
         </div>
+      )}
 
-        <div className="baseFlex gap-3">
-          <Label>Mode</Label>
-          <div className="baseFlex relative overflow-y-hidden rounded-md border">
-            <Button
-              disabled={isPreviewing}
-              aria-pressed={inputMode === "auto"}
-              variant="toggle"
-              size="sm"
-              style={{
-                color:
-                  inputMode === "auto"
-                    ? "hsl(var(--primary-foreground))"
-                    : "hsl(var(--foreground))",
-              }}
-              className="baseFlex relative w-[55px] gap-2 border-none text-xs xs:text-sm"
-              onClick={() => {
-                handleInputModeChange("auto");
-              }}
-            >
-              Auto
-            </Button>
+      <div className="baseFlex gap-3">
+        <Label>Mode</Label>
+        <div className="baseFlex relative overflow-y-hidden rounded-md border">
+          <Button
+            disabled={isPreviewing}
+            aria-pressed={inputMode === "auto"}
+            variant="toggle"
+            size="sm"
+            style={{
+              color:
+                inputMode === "auto"
+                  ? "hsl(var(--primary-foreground))"
+                  : "hsl(var(--foreground))",
+            }}
+            className="baseFlex relative w-[55px] gap-2 border-none text-xs xs:text-sm"
+            onClick={() => {
+              handleInputModeChange("auto");
+            }}
+          >
+            Auto
+          </Button>
 
-            <Button
-              disabled={isPreviewing}
-              aria-pressed={inputMode === "manual"}
-              variant="toggle"
-              size="sm"
-              style={{
-                color:
-                  inputMode === "manual"
-                    ? "hsl(var(--primary-foreground))"
-                    : "hsl(var(--foreground))",
-              }}
-              className="baseFlex relative w-[72px] gap-2 border-none text-xs xs:text-sm"
-              onClick={() => {
-                handleInputModeChange("manual");
-              }}
-            >
-              Manual
-            </Button>
+          <Button
+            disabled={isPreviewing}
+            aria-pressed={inputMode === "manual"}
+            variant="toggle"
+            size="sm"
+            style={{
+              color:
+                inputMode === "manual"
+                  ? "hsl(var(--primary-foreground))"
+                  : "hsl(var(--foreground))",
+            }}
+            className="baseFlex relative w-[72px] gap-2 border-none text-xs xs:text-sm"
+            onClick={() => {
+              handleInputModeChange("manual");
+            }}
+          >
+            Manual
+          </Button>
 
-            <div
-              style={{
-                width: inputMode === "auto" ? "55px" : "72px",
-                transform:
-                  inputMode === "auto" ? "translateX(0)" : "translateX(55px)",
-                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-              }}
-              className={`absolute inset-0 !z-[-1] bg-primary ${inputMode === "auto" ? "rounded-l-sm" : "rounded-r-sm"}`}
-            ></div>
-          </div>
+          <div
+            style={{
+              width: inputMode === "auto" ? "55px" : "72px",
+              transform:
+                inputMode === "auto" ? "translateX(0)" : "translateX(55px)",
+              transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+            className={`absolute inset-0 !z-[-1] bg-primary ${inputMode === "auto" ? "rounded-l-sm" : "rounded-r-sm"}`}
+          ></div>
         </div>
+      </div>
 
-        <AnimatePresence mode="wait" initial={false}>
-          {inputMode === "auto" ? (
-            <motion.div
-              key={"CustomTuningDialog-Auto"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="baseVertFlex h-[170px] w-[332px] gap-8"
-            >
-              <div className="baseVertFlex max-w-[23rem] !items-start gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
-                <div className="baseFlex !items-start gap-4 px-4 sm:gap-2">
-                  <HiOutlineInformationCircle className="mt-1 size-5" />
-                  <p className="max-w-[14rem]">
-                    Enter six notes and we will choose valid octaves for you.
-                  </p>
-                </div>
-                <div className="baseFlex ml-9 px-4 text-xs text-foreground/70 sm:ml-7">
-                  <p>Leave a space between each note.</p>
-                </div>
+      <AnimatePresence mode="wait" initial={false}>
+        {inputMode === "auto" ? (
+          <motion.div
+            key={"CustomTuningDialog-Auto"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="baseVertFlex h-[170px] w-[332px] gap-8"
+          >
+            <div className="baseVertFlex max-w-[23rem] !items-start gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
+              <div className="baseFlex !items-start gap-4 px-4 sm:gap-2">
+                <HiOutlineInformationCircle className="mt-1 size-5" />
+                <p className="max-w-[14rem]">
+                  Enter six notes and we will choose valid octaves for you.
+                </p>
               </div>
+              <div className="baseFlex ml-9 px-4 text-xs text-foreground/70 sm:ml-7">
+                <p>Leave a space between each note.</p>
+              </div>
+            </div>
 
-              <div className="baseFlex w-72 gap-4">
-                <div className="relative min-w-0 flex-1">
-                  <Input
-                    aria-label="Auto tuning"
-                    placeholder="C# B E F# A# E"
-                    maxLength={17}
-                    value={displayedQuickTuning}
-                    invalid={showInvalidQuickInput}
-                    readOnly={isPreviewing}
-                    className={
-                      highlightedNoteInputIndex !== null
-                        ? "text-transparent caret-transparent"
-                        : undefined
+            <div className="baseFlex w-72 gap-4">
+              <div className="relative min-w-0 flex-1">
+                <Input
+                  aria-label="Auto tuning"
+                  placeholder="C# B E F# A# E"
+                  maxLength={17}
+                  value={displayedQuickTuning}
+                  invalid={showInvalidQuickInput}
+                  readOnly={isPreviewing}
+                  className={
+                    highlightedNoteInputIndex !== null
+                      ? "text-transparent caret-transparent"
+                      : undefined
+                  }
+                  onChange={(e) => {
+                    const nextValue = e.target.value.toLowerCase();
+                    setQuickTuningInput(nextValue);
+
+                    if (
+                      showInvalidQuickInput &&
+                      normalizeCustomTuningInput(nextValue)
+                    ) {
+                      setShowInvalidQuickInput(false);
                     }
-                    onChange={(e) => {
-                      const nextValue = e.target.value.toLowerCase();
-                      setQuickTuningInput(nextValue);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isPreviewing) {
+                      e.preventDefault();
+                      handleConvertQuickTuningInput();
+                    }
+                  }}
+                />
 
-                      if (
-                        showInvalidQuickInput &&
-                        normalizeCustomTuningInput(nextValue)
-                      ) {
-                        setShowInvalidQuickInput(false);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !isPreviewing) {
-                        e.preventDefault();
-                        handleConvertQuickTuningInput();
-                      }
-                    }}
-                  />
-
-                  {highlightedNoteInputIndex !== null && (
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 flex items-center overflow-hidden whitespace-pre px-3 text-base"
-                    >
-                      {quickInputSegments.map(({ text, noteIndex }, index) => (
-                        <span
-                          key={index}
-                          data-tuning-preview-note={noteIndex ?? undefined}
-                          className={
-                            noteIndex === highlightedNoteInputIndex
-                              ? "text-primary"
-                              : "text-foreground"
-                          }
-                        >
-                          {text}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Button
-                  type="button"
-                  disabled={isPreviewing || quickTuningInput.length < 6}
-                  variant="outline"
-                  className="baseFlex h-10 gap-2"
-                  onClick={handleConvertQuickTuningInput}
-                >
-                  <HiOutlineSparkles />
-                  Convert
-                </Button>
+                {highlightedNoteInputIndex !== null && (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 flex items-center overflow-hidden whitespace-pre px-3 text-base"
+                  >
+                    {quickInputSegments.map(({ text, noteIndex }, index) => (
+                      <span
+                        key={index}
+                        data-tuning-preview-note={noteIndex ?? undefined}
+                        className={
+                          noteIndex === highlightedNoteInputIndex
+                            ? "text-primary"
+                            : "text-foreground"
+                        }
+                      >
+                        {text}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key={"CustomTuningDialog-Manual"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="baseVertFlex h-[170px] w-[332px] gap-8"
-            >
-              <div className="baseVertFlex max-w-[23rem] gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
-                <div className="baseFlex gap-4 px-4 sm:gap-2">
-                  <HiOutlineInformationCircle className="size-5" />
-                  <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
-                    Scientific Pitch Notation is required.
-                  </p>
-                </div>
-                <div className="baseFlex mt-2 gap-2 sm:gap-6">
-                  <div className="baseVertFlex gap-2">
-                    <div className="grid w-full grid-cols-3 place-items-center gap-4 text-sm font-semibold">
-                      <span>A-G</span>
-                      <span>(# / ♭)</span>
-                      <span>0-8</span>
-                    </div>
-                    <div className="grid w-full grid-cols-3 place-items-center gap-4 text-xs">
-                      <span>Root note</span>
-                      <span>(Accidental)</span>
-                      <span>Octave</span>
-                    </div>
+
+              <Button
+                type="button"
+                disabled={isPreviewing || quickTuningInput.length < 6}
+                variant="outline"
+                className="baseFlex h-10 gap-2"
+                onClick={handleConvertQuickTuningInput}
+              >
+                <HiOutlineSparkles />
+                Convert
+              </Button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key={"CustomTuningDialog-Manual"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="baseVertFlex h-[170px] w-[332px] gap-8"
+          >
+            <div className="baseVertFlex max-w-[23rem] gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm sm:max-w-[30rem]">
+              <div className="baseFlex gap-4 px-4 sm:gap-2">
+                <HiOutlineInformationCircle className="size-5" />
+                <p className="max-w-[14rem] sm:max-w-[20rem] sm:text-center">
+                  Scientific Pitch Notation is required.
+                </p>
+              </div>
+              <div className="baseFlex mt-2 gap-2 sm:gap-6">
+                <div className="baseVertFlex gap-2">
+                  <div className="grid w-full grid-cols-3 place-items-center gap-4 text-sm font-semibold">
+                    <span>A-G</span>
+                    <span>(# / ♭)</span>
+                    <span>0-8</span>
+                  </div>
+                  <div className="grid w-full grid-cols-3 place-items-center gap-4 text-xs">
+                    <span>Root note</span>
+                    <span>(Accidental)</span>
+                    <span>Octave</span>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="baseFlex gap-1 xs:gap-2">
-                {newTuning.map((value, index) => (
-                  <Input
-                    key={index}
-                    placeholder={placeholderNotes[index]}
-                    aria-label={`String ${6 - index} note`}
-                    maxLength={3}
-                    value={formatTuningInput(value)}
-                    invalid={showInvalidInputPerIndex[index]}
-                    readOnly={isPreviewing}
-                    style={{
-                      color:
-                        highlightedNoteInputIndex === index
-                          ? "hsl(var(--primary))"
-                          : "hsl(var(--foreground))",
-                    }}
-                    className="w-[52px] p-2 text-center"
-                    onChange={(e) => {
-                      if (e.target.value.length > 3) return;
+            <div className="baseFlex gap-1 xs:gap-2">
+              {newTuning.map((value, index) => (
+                <Input
+                  key={index}
+                  placeholder={placeholderNotes[index]}
+                  aria-label={`String ${6 - index} note`}
+                  maxLength={3}
+                  value={formatTuningInput(value)}
+                  invalid={showInvalidInputPerIndex[index]}
+                  readOnly={isPreviewing}
+                  style={{
+                    color:
+                      highlightedNoteInputIndex === index
+                        ? "hsl(var(--primary))"
+                        : "hsl(var(--foreground))",
+                  }}
+                  className="w-[52px] p-2 text-center"
+                  onChange={(e) => {
+                    if (e.target.value.length > 3) return;
 
-                      const newTuningValues = [...newTuning];
-                      newTuningValues[index] = e.target.value.toLowerCase();
-                      setNewTuning(newTuningValues);
-                      setQuickTuningInput(
-                        stripTuningOctaves(newTuningValues.join(" ")),
+                    const newTuningValues = [...newTuning];
+                    newTuningValues[index] = e.target.value.toLowerCase();
+                    setNewTuning(newTuningValues);
+                    setQuickTuningInput(
+                      stripTuningOctaves(newTuningValues.join(" ")),
+                    );
+
+                    if (
+                      showInvalidInputPerIndex[index] &&
+                      isValidScientificTuningNote(newTuningValues[index])
+                    ) {
+                      setShowInvalidInputPerIndex((invalidInputs) =>
+                        invalidInputs.map((invalid, inputIndex) =>
+                          inputIndex === index ? false : invalid,
+                        ),
                       );
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-                      if (
-                        showInvalidInputPerIndex[index] &&
-                        isValidScientificTuningNote(newTuningValues[index])
-                      ) {
-                        setShowInvalidInputPerIndex((invalidInputs) =>
-                          invalidInputs.map((invalid, inputIndex) =>
-                            inputIndex === index ? false : invalid,
-                          ),
-                        );
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className="baseFlex w-full !justify-between">
+        <Button
+          disabled={!activeTuning || isPreviewing || previewMetadata.playing}
+          variant={"audio"}
+          className="baseFlex gap-2"
+          onClick={() => void handlePreviewNotes()}
+        >
+          <BsFillPlayFill className="h-6 w-6" />
+          Preview notes
+        </Button>
 
-        <div className="baseFlex w-full !justify-between">
-          <Button
-            disabled={!activeTuning || isPreviewing || previewMetadata.playing}
-            variant={"audio"}
-            className="baseFlex gap-2"
-            onClick={() => void handlePreviewNotes()}
-          >
-            <BsFillPlayFill className="h-6 w-6" />
-            Preview notes
-          </Button>
+        <Button
+          disabled={
+            !activeTuning ||
+            normalizeTuningValue(tuning) === activeTuning.join(" ")
+          }
+          onClick={handleSaveCustomTuning}
+          className="px-8"
+        >
+          Save
+        </Button>
+      </div>
+    </>
+  );
+  if (presentation === "inline") {
+    return (
+      <div
+        data-tab-editor-history="local"
+        {...history.scopeProps}
+        className="baseVertFlex w-full max-w-sm gap-8 rounded-lg border bg-background p-4 shadow-sm"
+      >
+        {content}
+      </div>
+    );
+  }
 
-          <Button
-            disabled={
-              !activeTuning ||
-              normalizeTuningValue(tuning) === activeTuning.join(" ")
-            }
-            onClick={handleSaveCustomTuning}
-            className="px-8"
-          >
-            Save
-          </Button>
-        </div>
+  return (
+    <>
+      <VisuallyHidden>
+        <DialogTitle>Custom tuning dialog</DialogTitle>
+        <DialogDescription>
+          Users can quickly enter the notes of their desired tuning, or enter
+          the full Scientific Pitch Notation for more control.
+        </DialogDescription>
+      </VisuallyHidden>
+      <DialogContent
+        data-tab-editor-history="local"
+        {...history.scopeProps}
+        className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96"
+      >
+        {content}
       </DialogContent>
     </>
   );
 }
 
-function CustomTuningDialog() {
+function CustomTuningDialog({
+  presentation = "dialog",
+}: {
+  presentation?: "dialog" | "inline";
+}) {
   const { showCustomTuningDialog, setShowCustomTuningDialog } = useTabStore(
     (state) => ({
       showCustomTuningDialog: state.showCustomTuningDialog,
       setShowCustomTuningDialog: state.setShowCustomTuningDialog,
     }),
   );
+
+  if (presentation === "inline")
+    return <CustomTuningEditor presentation="inline" />;
 
   return (
     <Dialog

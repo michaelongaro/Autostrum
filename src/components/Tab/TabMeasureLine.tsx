@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { getTabData, useTabStore } from "~/stores/TabStore";
+import { useTabDataGetter, useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
@@ -69,6 +69,7 @@ function TabMeasureLine({
   showingDeleteColumnsButtons,
   drag,
 }: TabMeasureLineProps) {
+  const getTabData = useTabDataGetter();
   const [hoveringOnHandle, setHoveringOnHandle] = useState(false);
   const [grabbingHandle, setGrabbingHandle] = useState(false);
 

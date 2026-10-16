@@ -26,8 +26,8 @@ import {
   useTabSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
 import {
-  getTabData,
-  subscribeTabStore,
+  useTabDataGetter,
+  useTabStoreApi,
   useTabStore,
   type TabSection as TabSectionType,
 } from "~/stores/TabStore";
@@ -99,9 +99,18 @@ export interface LastModifiedPalmMuteNodeLocation {
 interface TabSection {
   sectionIndex: number;
   subSectionIndex: number;
+  presentation?: "full" | "embedded";
+  className?: string;
 }
 
-function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
+function TabSection({
+  sectionIndex,
+  subSectionIndex,
+  presentation = "full",
+  className,
+}: TabSection) {
+  const store = useTabStoreApi();
+  const getTabData = useTabDataGetter();
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
@@ -115,13 +124,13 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
 
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
   useEffect(() => {
-    return subscribeTabStore((state, previous) => {
+    return store.subscribe((state, previous) => {
       if (state.editorHistoryRevision === previous.editorHistoryRevision)
         return;
       setLastModifiedPalmMuteNode(null);
       setEditingPalmMuteNodes(false);
     });
-  }, []);
+  }, [store]);
 
   // Meta + column identity only — note edits must not re-render this section shell.
   const subSection = useTabSubSectionMeta(sectionIndex, subSectionIndex);
@@ -272,7 +281,7 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     }
 
     return newOpacities;
-  }, [sectionIndex, subSectionIndex, lastModifiedPalmMuteNode]);
+  }, [sectionIndex, subSectionIndex, lastModifiedPalmMuteNode, getTabData]);
 
   useEffect(() => {
     if (editingPalmMuteNodes) {
@@ -791,313 +800,322 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
     <div
       ref={containerRef}
 
-      className="baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 p-4 shadow-md md:p-8"
+      className={[
+        presentation === "embedded"
+          ? "baseVertFlex relative w-full !justify-start"
+          : "baseVertFlex relative w-full !justify-start gap-1 rounded-md rounded-tl-md border bg-secondary-active/25 p-4 shadow-md md:p-8",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      <div className="baseFlex w-full !items-start">
-        <div className="baseVertFlex w-5/6 !items-start gap-4 xl:!flex-row xl:!justify-start">
-          <div className="baseFlex gap-2">
-            <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-4">
-              <div className="baseFlex gap-2">
-                <Label
-                  htmlFor={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
-                >
-                  Note length
-                </Label>
-                <Select
-                  value={subSection.baseNoteLength}
-                  onValueChange={handleBaseNoteLengthChange}
-                >
-                  <SelectTrigger
-                    id={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
-                    className="w-[135px]"
+      {presentation === "full" && (
+        <div className="baseFlex w-full !items-start">
+          <div className="baseVertFlex w-5/6 !items-start gap-4 xl:!flex-row xl:!justify-start">
+            <div className="baseFlex gap-2">
+              <div className="baseVertFlex !items-start gap-2 sm:!flex-row sm:!items-center lg:gap-4">
+                <div className="baseFlex gap-2">
+                  <Label
+                    htmlFor={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
                   >
-                    <SelectValue placeholder="Select a length" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60 overflow-y-auto">
-                    <SelectItem value="whole">
-                      <div className="baseFlex gap-2">
-                        <WholeNote />
-                        Whole
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="half">
-                      <div className="baseFlex gap-2">
-                        <HalfNote />
-                        Half
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="quarter">
-                      <div className="baseFlex gap-2">
-                        <QuarterNote />
-                        Quarter
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="eighth">
-                      <div className="baseFlex gap-2">
-                        <EighthNote />
-                        Eighth
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="sixteenth">
-                      <div className="baseFlex gap-2">
-                        <SixteenthNote />
-                        Sixteenth
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                    Note length
+                  </Label>
+                  <Select
+                    value={subSection.baseNoteLength}
+                    onValueChange={handleBaseNoteLengthChange}
+                  >
+                    <SelectTrigger
+                      id={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
+                      className="w-[135px]"
+                    >
+                      <SelectValue placeholder="Select a length" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      <SelectItem value="whole">
+                        <div className="baseFlex gap-2">
+                          <WholeNote />
+                          Whole
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="half">
+                        <div className="baseFlex gap-2">
+                          <HalfNote />
+                          Half
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="quarter">
+                        <div className="baseFlex gap-2">
+                          <QuarterNote />
+                          Quarter
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="eighth">
+                        <div className="baseFlex gap-2">
+                          <EighthNote />
+                          Eighth
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="sixteenth">
+                        <div className="baseFlex gap-2">
+                          <SixteenthNote />
+                          Sixteenth
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="baseFlex gap-2">
-                <Label htmlFor={`${sectionIndex}${subSectionIndex}bpmInput`}>
-                  BPM
-                </Label>
-                <div className="baseFlex">
-                  <QuarterNote className="-ml-1 size-5" />
+                <div className="baseFlex gap-2">
+                  <Label htmlFor={`${sectionIndex}${subSectionIndex}bpmInput`}>
+                    BPM
+                  </Label>
+                  <div className="baseFlex">
+                    <QuarterNote className="-ml-1 size-5" />
 
-                  <Input
-                    id={`${sectionIndex}${subSectionIndex}bpmInput`}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="w-[52px] px-2.5"
-                    placeholder={bpm === -1 ? "" : bpm.toString()}
-                    value={
-                      subSection.bpm === -1 ? "" : subSection.bpm.toString()
-                    }
-                    onChange={handleBpmChange}
-                  />
+                    <Input
+                      id={`${sectionIndex}${subSectionIndex}bpmInput`}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-[52px] px-2.5"
+                      placeholder={bpm === -1 ? "" : bpm.toString()}
+                      value={
+                        subSection.bpm === -1 ? "" : subSection.bpm.toString()
+                      }
+                      onChange={handleBpmChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="baseFlex gap-2">
+                  <Label
+                    htmlFor={`${sectionIndex}${subSectionIndex}repetitionsInput`}
+                  >
+                    Repetitions
+                  </Label>
+                  <div className="relative w-12">
+                    <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
+                      x
+                    </span>
+                    <Input
+                      id={`${sectionIndex}${subSectionIndex}repetitionsInput`}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-[45px] px-2 pl-4"
+                      placeholder="1"
+                      value={
+                        subSection.repetitions === -1
+                          ? ""
+                          : subSection.repetitions.toString()
+                      }
+                      onChange={handleRepetitionsChange}
+                    />
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="baseFlex gap-2">
-                <Label
-                  htmlFor={`${sectionIndex}${subSectionIndex}repetitionsInput`}
-                >
-                  Repetitions
-                </Label>
-                <div className="relative w-12">
-                  <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
-                    x
-                  </span>
-                  <Input
-                    id={`${sectionIndex}${subSectionIndex}repetitionsInput`}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="w-[45px] px-2 pl-4"
-                    placeholder="1"
-                    value={
-                      subSection.repetitions === -1
-                        ? ""
-                        : subSection.repetitions.toString()
-                    }
-                    onChange={handleRepetitionsChange}
-                  />
-                </div>
+            <div className="baseVertFlex !items-start gap-2 sm:!flex-row lg:gap-4">
+              <div className="baseFlex">
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        disabled={editingPalmMuteNodes}
+                        style={{
+                          borderRadius: editingPalmMuteNodes
+                            ? "0.375rem 0 0 0.375rem"
+                            : "0.375rem",
+                          transitionDelay: "0.1s",
+                        }}
+                        onClick={toggleEditingPalmMuteNodes}
+                      >
+                        PM Editor
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side={"bottom"}>
+                      <p>
+                        Toggle: <kbd className="ml-1">Alt</kbd> <kbd>p</kbd>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <AnimatePresence>
+                  {editingPalmMuteNodes && (
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      transition={{
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <Button
+                        className="rounded-l-none rounded-r-md px-2 py-0"
+                        onClick={toggleEditingPalmMuteNodes}
+                      >
+                        <motion.div
+                          variants={xVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          transition={{
+                            ease: "easeInOut",
+                          }}
+                        >
+                          <IoClose className="h-6 w-6" />
+                        </motion.div>
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="baseFlex">
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        disabled={reorderingColumns}
+                        style={{
+                          borderRadius: reorderingColumns
+                            ? "0.375rem 0 0 0.375rem"
+                            : "0.375rem",
+                          transitionDelay: "0.1s",
+                        }}
+                        onClick={() => {
+                          setReorderingColumns(!reorderingColumns);
+                          setShowingDeleteColumnsButtons(false);
+                        }}
+                      >
+                        Reorder chords
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side={"bottom"}>
+                      <p>
+                        Toggle: <kbd className="ml-1">Alt</kbd> <kbd>r</kbd>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <AnimatePresence>
+                  {reorderingColumns && (
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      transition={{
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <Button
+                        className="rounded-l-none rounded-r-md px-2 py-0"
+                        onClick={() => {
+                          setReorderingColumns(!reorderingColumns);
+                          setShowingDeleteColumnsButtons(false);
+                        }}
+                      >
+                        <motion.div
+                          variants={xVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          transition={{
+                            ease: "easeInOut",
+                          }}
+                        >
+                          <IoClose className="h-6 w-6" />
+                        </motion.div>
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="baseFlex">
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={"destructive"}
+                        disabled={showingDeleteColumnsButtons}
+                        style={{
+                          borderRadius: showingDeleteColumnsButtons
+                            ? "0.375rem 0 0 0.375rem"
+                            : "0.375rem",
+                          transitionDelay: "0.1s",
+                        }}
+                        className="baseFlex"
+                        onClick={() => {
+                          setShowingDeleteColumnsButtons(
+                            !showingDeleteColumnsButtons,
+                          );
+                          setReorderingColumns(false);
+                        }}
+                      >
+                        Delete chords
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side={"bottom"}>
+                      <p>
+                        Toggle: <kbd className="ml-1">Alt</kbd> <kbd>d</kbd>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <AnimatePresence>
+                  {showingDeleteColumnsButtons && (
+                    <motion.div
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      transition={{
+                        ease: "easeInOut",
+                      }}
+                    >
+                      <Button
+                        variant={"destructive"}
+                        className="rounded-l-none rounded-r-md px-2 py-0"
+                        onClick={() => {
+                          setShowingDeleteColumnsButtons(
+                            !showingDeleteColumnsButtons,
+                          );
+                          setReorderingColumns(false);
+                        }}
+                      >
+                        <motion.div
+                          variants={xVariants}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          transition={{
+                            ease: "easeInOut",
+                          }}
+                        >
+                          <IoClose className="h-6 w-6" />
+                        </motion.div>
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
 
-          <div className="baseVertFlex !items-start gap-2 sm:!flex-row lg:gap-4">
-            <div className="baseFlex">
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      disabled={editingPalmMuteNodes}
-                      style={{
-                        borderRadius: editingPalmMuteNodes
-                          ? "0.375rem 0 0 0.375rem"
-                          : "0.375rem",
-                        transitionDelay: "0.1s",
-                      }}
-                      onClick={toggleEditingPalmMuteNodes}
-                    >
-                      PM Editor
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side={"bottom"}>
-                    <p>
-                      Toggle: <kbd className="ml-1">Alt</kbd> <kbd>p</kbd>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <AnimatePresence>
-                {editingPalmMuteNodes && (
-                  <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    transition={{
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <Button
-                      className="rounded-l-none rounded-r-md px-2 py-0"
-                      onClick={toggleEditingPalmMuteNodes}
-                    >
-                      <motion.div
-                        variants={xVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        transition={{
-                          ease: "easeInOut",
-                        }}
-                      >
-                        <IoClose className="h-6 w-6" />
-                      </motion.div>
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="baseFlex">
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      disabled={reorderingColumns}
-                      style={{
-                        borderRadius: reorderingColumns
-                          ? "0.375rem 0 0 0.375rem"
-                          : "0.375rem",
-                        transitionDelay: "0.1s",
-                      }}
-                      onClick={() => {
-                        setReorderingColumns(!reorderingColumns);
-                        setShowingDeleteColumnsButtons(false);
-                      }}
-                    >
-                      Reorder chords
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side={"bottom"}>
-                    <p>
-                      Toggle: <kbd className="ml-1">Alt</kbd> <kbd>r</kbd>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <AnimatePresence>
-                {reorderingColumns && (
-                  <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    transition={{
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <Button
-                      className="rounded-l-none rounded-r-md px-2 py-0"
-                      onClick={() => {
-                        setReorderingColumns(!reorderingColumns);
-                        setShowingDeleteColumnsButtons(false);
-                      }}
-                    >
-                      <motion.div
-                        variants={xVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        transition={{
-                          ease: "easeInOut",
-                        }}
-                      >
-                        <IoClose className="h-6 w-6" />
-                      </motion.div>
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="baseFlex">
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={"destructive"}
-                      disabled={showingDeleteColumnsButtons}
-                      style={{
-                        borderRadius: showingDeleteColumnsButtons
-                          ? "0.375rem 0 0 0.375rem"
-                          : "0.375rem",
-                        transitionDelay: "0.1s",
-                      }}
-                      className="baseFlex"
-                      onClick={() => {
-                        setShowingDeleteColumnsButtons(
-                          !showingDeleteColumnsButtons,
-                        );
-                        setReorderingColumns(false);
-                      }}
-                    >
-                      Delete chords
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side={"bottom"}>
-                    <p>
-                      Toggle: <kbd className="ml-1">Alt</kbd> <kbd>d</kbd>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <AnimatePresence>
-                {showingDeleteColumnsButtons && (
-                  <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    transition={{
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <Button
-                      variant={"destructive"}
-                      className="rounded-l-none rounded-r-md px-2 py-0"
-                      onClick={() => {
-                        setShowingDeleteColumnsButtons(
-                          !showingDeleteColumnsButtons,
-                        );
-                        setReorderingColumns(false);
-                      }}
-                    >
-                      <motion.div
-                        variants={xVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        transition={{
-                          ease: "easeInOut",
-                        }}
-                      >
-                        <IoClose className="h-6 w-6" />
-                      </motion.div>
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
+          <MiscellaneousControls
+            type={"tab"}
+            sectionIndex={sectionIndex}
+            subSectionIndex={subSectionIndex}
+          />
         </div>
-
-        <MiscellaneousControls
-          type={"tab"}
-          sectionIndex={sectionIndex}
-          subSectionIndex={subSectionIndex}
-        />
-      </div>
+      )}
 
       <EditingTabStaff
         sectionIndex={sectionIndex}
@@ -1114,14 +1132,16 @@ function TabSection({ sectionIndex, subSectionIndex }: TabSection) {
         onDragEnd={handleDragEnd}
       />
 
-      <Button
-        id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
-        onKeyDown={handleExtendTabButtonKeyDown}
-        onClick={addNewColumns}
-        className="mt-8 px-4"
-      >
-        Extend tab
-      </Button>
+      {presentation === "full" && (
+        <Button
+          id={`${sectionIndex}${subSectionIndex}ExtendTabButton`}
+          onKeyDown={handleExtendTabButtonKeyDown}
+          onClick={addNewColumns}
+          className="mt-8 px-4"
+        >
+          Extend tab
+        </Button>
+      )}
     </div>
   );
 }

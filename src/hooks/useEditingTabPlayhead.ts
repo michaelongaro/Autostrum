@@ -1,5 +1,5 @@
 import { useEffect, useRef, type RefObject } from "react";
-import { getTabStore, useTabStore, type Metadata } from "~/stores/TabStore";
+import { useTabStoreApi, useTabStore, type Metadata } from "~/stores/TabStore";
 import {
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
@@ -174,6 +174,7 @@ export function useEditingTabPlayhead({
   containerRef: RefObject<HTMLElement | null>;
   playheadRef: RefObject<HTMLDivElement | null>;
 }) {
+  const store = useTabStoreApi();
   const playing = useTabStore((state) => state.audioMetadata.playing);
   const showPlaybackModal = useTabStore((state) => state.showPlaybackModal);
 
@@ -206,7 +207,7 @@ export function useEditingTabPlayhead({
     }
 
     if (!playing) {
-      const state = getTabStore();
+      const state = store.getState();
       const container = containerRef.current;
       if (!container || !state.currentlyPlayingMetadata) {
         hide();
@@ -242,7 +243,7 @@ export function useEditingTabPlayhead({
 
     const tick = () => {
       rafId = null;
-      const state = getTabStore();
+      const state = store.getState();
       const container = containerRef.current;
       const {
         currentlyPlayingMetadata,
@@ -508,6 +509,7 @@ export function useEditingTabPlayhead({
     subSectionIndex,
     containerRef,
     playheadRef,
+    store,
   ]);
 }
 

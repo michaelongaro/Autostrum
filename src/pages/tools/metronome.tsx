@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { useTabStore } from "~/stores/TabStore";
+import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 
 type Subdivision = 1 | 2 | 4;
 
@@ -225,6 +226,10 @@ function MetronomeToolPage() {
   }
 
   function toggleRunning() {
+    if (!isRunning && useIPhoneAudioReminderStore.getState().requestReminder()) {
+      return;
+    }
+
     setIsRunning((currentlyRunning) => {
       const nextRunningState = !currentlyRunning;
 

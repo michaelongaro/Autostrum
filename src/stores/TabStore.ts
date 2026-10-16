@@ -1,7 +1,8 @@
 import type { Tab } from "~/generated/browser";
 import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
-import { create } from "zustand";
+import { create, useStore } from "zustand";
+import { createContext, useCallback, useContext } from "react";
 import { immer } from "zustand/middleware/immer";
 import {
   playNoteColumn,
@@ -29,6 +30,7 @@ import {
 import { setHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 import { useShallow } from "zustand/shallow";
 import { isMobileOnly } from "react-device-detect";
+import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 import type { Draft } from "immer";
 import isEqual from "lodash.isequal";
 import { createEditorHistory } from "~/utils/createEditorHistory";
@@ -866,1104 +868,1142 @@ function initializeEmptyChordSequences({
   }
 }
 
-const publishAvailability = (availability: {
-  canUndo: boolean;
-  canRedo: boolean;
-}) => {
-  if (
-    useTabStoreBase.getState().canUndo !== availability.canUndo ||
-    useTabStoreBase.getState().canRedo !== availability.canRedo
-  )
-    useTabStoreBase.setState(availability);
-};
-const documentHistory = createEditorHistory<TabDocument>({
-  equals: editorDocumentsEqual,
-  onChange: (availability) => {
-    if (
-      !useTabStoreBase.getState().chordBeingEdited &&
-      !useTabStoreBase.getState().strummingPatternBeingEdited
-    ) {
-      publishAvailability(availability);
-    }
-  },
-});
-const chordHistory = createEditorHistory<
-  NonNullable<TabState["chordBeingEdited"]>
->({ equals: isEqual, onChange: publishAvailability });
-const patternHistory = createEditorHistory<
-  NonNullable<TabState["strummingPatternBeingEdited"]>
->({ equals: isEqual, onChange: publishAvailability });
-const histories = [documentHistory, chordHistory, patternHistory];
-
-const editDocument = (
-  update: Partial<TabState> | ((draft: Draft<TabState>) => void),
+export const createTabStore = (
+  initialValues: Partial<TabState> = {},
+  resetAudioRange = resetAudioRangeToStart,
 ) => {
-  const before = getEditorDocument(useTabStoreBase.getState());
-  useTabStoreBase.setState(update);
-  if (useTabStoreBase.getState().editing) {
-    documentHistory.record(
-      before,
-      getEditorDocument(useTabStoreBase.getState()),
-    );
-  }
-};
-
-const restoreHistory = (direction: "undo" | "redo") => {
-  const state = useTabStoreBase.getState();
-  if (!state.editing) return;
-
-  if (state.chordBeingEdited) {
-    const chord = chordHistory[direction](state.chordBeingEdited);
-    if (chord === undefined) return;
-    state.pauseAudio();
-    useTabStoreBase.setState({
-      chordBeingEdited: chord,
-      editorHistoryRevision: state.editorHistoryRevision + 1,
-    });
-    return;
-  }
-  if (state.strummingPatternBeingEdited) {
-    const pattern = patternHistory[direction](
-      state.strummingPatternBeingEdited,
-    );
-    if (pattern === undefined) return;
-    state.pauseAudio();
-    useTabStoreBase.setState({
-      strummingPatternBeingEdited: pattern,
-      editorHistoryRevision: state.editorHistoryRevision + 1,
-    });
-    return;
-  }
-  // These dialogs keep their own local draft histories.
-  if (state.showCustomTuningDialog || state.showSectionProgressionDialog)
-    return;
-
-  const document = documentHistory[direction](getEditorDocument(state));
-  if (document === undefined) return;
-  state.pauseAudio(true, true);
-  setHoveredChordLocationValue(null);
-  useTabStoreBase.setState({
-    ...document,
-    editorHistoryRevision: state.editorHistoryRevision + 1,
-    tabIsEffectivelyEmpty: tabIsEffectivelyEmpty(document.tabData),
-    currentlyPlayingMetadata: null,
-    playbackMetadata: null,
-    expandedTabData: null,
-    currentChordIndex: 0,
-    playbackStartedAtAudioTime: null,
-    audioMetadata: { ...initialStoreState.audioMetadata },
-    previewMetadata: { ...initialStoreState.previewMetadata },
-    draftLoopStartIndex: null,
-    draftLoopEndIndex: null,
-    chordPulse: null,
-    countInTimer: { showing: false, forSectionContainer: null },
+  const publishAvailability = (availability: {
+    canUndo: boolean;
+    canRedo: boolean;
+  }) => {
+    if (
+      useTabStoreBase.getState().canUndo !== availability.canUndo ||
+      useTabStoreBase.getState().canRedo !== availability.canRedo
+    )
+      useTabStoreBase.setState(availability);
+  };
+  const documentHistory = createEditorHistory<TabDocument>({
+    equals: editorDocumentsEqual,
+    onChange: (availability) => {
+      if (
+        !useTabStoreBase.getState().chordBeingEdited &&
+        !useTabStoreBase.getState().strummingPatternBeingEdited
+      ) {
+        publishAvailability(availability);
+      }
+    },
   });
-};
+  const chordHistory = createEditorHistory<
+    NonNullable<TabState["chordBeingEdited"]>
+  >({ equals: isEqual, onChange: publishAvailability });
+  const patternHistory = createEditorHistory<
+    NonNullable<TabState["strummingPatternBeingEdited"]>
+  >({ equals: isEqual, onChange: publishAvailability });
+  const histories = [documentHistory, chordHistory, patternHistory];
 
-const useTabStoreBase = create<TabState>()(
-  devtools(
-    immer((set, get) => ({
-      canUndo: false,
-      canRedo: false,
-      editorHistoryRevision: 0,
-      undo: () => restoreHistory("undo"),
-      redo: () => restoreHistory("redo"),
-      clearEditorHistory: () => {
-        histories.forEach((history) => history.clear());
-      },
-      groupEditorHistoryInput: (input, operation) => {
-        histories.forEach((history) => history.groupInput(input, operation));
-      },
-      breakEditorHistoryGroup: () => {
-        histories.forEach((history) => history.breakGroup());
-      },
-      // used in <Tab />
-      originalTabData: null,
-      setOriginalTabData: (originalTabData) => set({ originalTabData }),
-      id: -1,
-      setId: (id) => {
-        if (id !== get().id) get().clearEditorHistory();
-        set({ id });
-      },
-      createdByUserId: null,
-      setCreatedByUserId: (createdByUserId) => set({ createdByUserId }),
-      createdAt: null,
-      setCreatedAt: (createdAt) => set({ createdAt }),
-      updatedAt: null,
-      setUpdatedAt: (updatedAt) => set({ updatedAt }),
-      title: "",
-      setTitle: (title) => editDocument({ title }),
+  const editDocument = (
+    update: Partial<TabState> | ((draft: Draft<TabState>) => void),
+  ) => {
+    const before = getEditorDocument(useTabStoreBase.getState());
+    useTabStoreBase.setState(update);
+    if (useTabStoreBase.getState().editing) {
+      documentHistory.record(
+        before,
+        getEditorDocument(useTabStoreBase.getState()),
+      );
+    }
+  };
 
-      tabData: [
-        {
-          id: crypto.randomUUID(),
-          title: "Section 1",
-          data: [],
-        },
-      ],
-      setTabData: (updater) =>
-        editDocument((draft) => {
-          updater(draft.tabData);
-          initializeEmptyChordSequences(draft);
-        }),
+  const restoreHistory = (direction: "undo" | "redo") => {
+    const state = useTabStoreBase.getState();
+    if (!state.editing) return;
 
-      artistId: null,
-      setArtistId: (artistId) => editDocument({ artistId }),
-      artistName: undefined,
-      setArtistName: (artistName) => editDocument({ artistName }),
-      artistIsVerified: false,
-      setArtistIsVerified: (artistIsVerified) =>
-        editDocument({ artistIsVerified }),
+    if (state.chordBeingEdited) {
+      const chord = chordHistory[direction](state.chordBeingEdited);
+      if (chord === undefined) return;
+      state.pauseAudio();
+      useTabStoreBase.setState({
+        chordBeingEdited: chord,
+        editorHistoryRevision: state.editorHistoryRevision + 1,
+      });
+      return;
+    }
+    if (state.strummingPatternBeingEdited) {
+      const pattern = patternHistory[direction](
+        state.strummingPatternBeingEdited,
+      );
+      if (pattern === undefined) return;
+      state.pauseAudio();
+      useTabStoreBase.setState({
+        strummingPatternBeingEdited: pattern,
+        editorHistoryRevision: state.editorHistoryRevision + 1,
+      });
+      return;
+    }
+    // These dialogs keep their own local draft histories.
+    if (state.showCustomTuningDialog || state.showSectionProgressionDialog)
+      return;
 
-      description: null,
-      setDescription: (description) => editDocument({ description }),
-      genre: "",
-      setGenre: (genre) => editDocument({ genre }),
-      tuning: DEFAULT_TUNING,
-      setTuning: (tuning) =>
-        editDocument({ tuning: normalizeTuningValue(tuning) }),
-      bpm: 75,
-      setBpm: (bpm) => editDocument({ bpm }),
-      capo: 0,
-      setCapo: (capo) => editDocument({ capo }),
-      key: null,
-      setKey: (key) => editDocument({ key }),
-      difficulty: 1,
-      setDifficulty: (difficulty) => editDocument({ difficulty }),
-      chords: [],
-      setChords: (chords) => editDocument({ chords }),
-      strummingPatterns: [],
-      setStrummingPatterns: (strummingPatterns) =>
-        editDocument((draft) => {
-          draft.strummingPatterns = strummingPatterns;
-          initializeEmptyChordSequences(draft);
-        }),
-      chordDisplayMode: "text",
-      setChordDisplayMode: (chordDisplayMode) => set({ chordDisplayMode }),
-      ratingsCount: 0,
-      setRatingsCount: (ratingsCount) => set({ ratingsCount }),
-      averageRating: 0.0,
-      setAverageRating: (averageRating) => set({ averageRating }),
-      bookmarkCount: 0,
-      setBookmarkCount: (bookmarkCount) => set({ bookmarkCount }),
-      editing: false,
-      setEditing: (editing) => {
-        get().breakEditorHistoryGroup();
-        set({ editing });
-      },
-      sectionProgression: [],
-      setSectionProgression: (sectionProgression, options) => {
-        if (options?.recordHistory === false) set({ sectionProgression });
-        else editDocument({ sectionProgression });
-      },
-      currentlyCopiedData: null,
-      setCurrentlyCopiedData: (currentlyCopiedData) =>
-        set({ currentlyCopiedData }),
-      currentlyCopiedChord: null,
-      setCurrentlyCopiedChord: (currentlyCopiedChord) =>
-        set({ currentlyCopiedChord }),
-      fetchingFullTabData: false,
-      setFetchingFullTabData: (fetchingFullTabData) =>
-        set({ fetchingFullTabData }),
-      chordPulse: null,
-      setChordPulse: (chordPulse) => set({ chordPulse }),
-      countInTimer: {
-        showing: false,
-        forSectionContainer: null,
-      },
-      setCountInTimer: (countInTimer) => set({ countInTimer }),
-      countInBuffer: null,
-      setCountInBuffer: (countInBuffer) => set({ countInBuffer }),
-
-      tabIsEffectivelyEmpty: true,
-      setTabIsEffectivelyEmpty: (tabIsEffectivelyEmpty) =>
-        set({ tabIsEffectivelyEmpty }),
-
-      atomicallyUpdateAudioMetadata: (newFields: Partial<AudioMetadata>) => {
-        const { audioMetadata } = get();
-
-        set({
-          audioMetadata: {
-            ...audioMetadata,
-            ...newFields,
-          },
-        });
-      },
-
-      // related to sound generation/playing
-      audioContext: null,
-      setAudioContext: (audioContext) => set({ audioContext }),
-      breakOnNextChord: false,
-      setBreakOnNextChord: (breakOnNextChord) => set({ breakOnNextChord }),
-      masterVolumeGainNode: null,
-      setMasterVolumeGainNode: (masterVolumeGainNode) =>
-        set({ masterVolumeGainNode }),
-      showingAudioControls: false,
-      setShowingAudioControls: (showingAudioControls) =>
-        set({ showingAudioControls }),
+    const document = documentHistory[direction](getEditorDocument(state));
+    if (document === undefined) return;
+    state.pauseAudio(true, true);
+    if (useTabStoreBase.getState() === getTabStore()) {
+      setHoveredChordLocationValue(null);
+    }
+    useTabStoreBase.setState({
+      ...document,
+      editorHistoryRevision: state.editorHistoryRevision + 1,
+      tabIsEffectivelyEmpty: tabIsEffectivelyEmpty(document.tabData),
       currentlyPlayingMetadata: null,
-      setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
-        set({ currentlyPlayingMetadata }),
-
       playbackMetadata: null,
-      setPlaybackMetadata: (playbackMetadata) => set({ playbackMetadata }),
-      visiblePlaybackContainerWidth: 0,
-      setVisiblePlaybackContainerWidth: (visiblePlaybackContainerWidth) =>
-        set({ visiblePlaybackContainerWidth }),
-
-      currentInstrumentName: "acoustic_guitar_steel",
-      setCurrentInstrumentName: (currentInstrumentName) =>
-        set({ currentInstrumentName }),
-      looping: false,
-      setLooping: (looping) => set({ looping }),
-      loopDelay: 0,
-      setLoopDelay: (loopDelay) => set({ loopDelay }),
-      playbackSpeed: 1,
-      setPlaybackSpeed: (playbackSpeed) =>
-        set({ playbackSpeed: clampPlaybackSpeed(playbackSpeed) }),
+      expandedTabData: null,
       currentChordIndex: 0,
-      setCurrentChordIndex: (currentChordIndex) => {
-        set({ currentChordIndex });
-      },
       playbackStartedAtAudioTime: null,
-      playbackSessionId: 0,
-      scheduledPlaybackNodes: [],
-      activePlaybackStrings: null,
-      audioMetadata: {
-        playing: false,
-        location: null,
-        startLoopIndex: 0,
-        endLoopIndex: -1,
-        editingLoopRange: false,
-        fullTabMetadataLength: -1,
-      },
-      setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
+      audioMetadata: { ...initialStoreState.audioMetadata },
+      previewMetadata: { ...initialStoreState.previewMetadata },
       draftLoopStartIndex: null,
       draftLoopEndIndex: null,
-      setDraftLoopStartIndex: (draftLoopStartIndex) =>
-        set({ draftLoopStartIndex }),
-      setDraftLoopEndIndex: (draftLoopEndIndex) => set({ draftLoopEndIndex }),
-      setDraftLoopRange: ({ startIndex, endIndex }) =>
-        set({
-          draftLoopStartIndex: startIndex,
-          draftLoopEndIndex: endIndex,
-        }),
-      enterPlaybackLoopRangeEditor: () => {
-        const { audioMetadata, currentChordIndex, loopDelay } = get();
+      chordPulse: null,
+      countInTimer: { showing: false, forSectionContainer: null },
+    });
+  };
 
-        const mappedChordIndex = mapLoopRelativeChordIndexToFullTabIndex({
-          currentChordIndex,
-          startLoopIndex: audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.endLoopIndex,
-          fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
-          loopDelay,
-        });
+  const useTabStoreBase = create<TabState>()(
+    devtools(
+      immer((set, get) => ({
+        canUndo: false,
+        canRedo: false,
+        editorHistoryRevision: 0,
+        undo: () => restoreHistory("undo"),
+        redo: () => restoreHistory("redo"),
+        clearEditorHistory: () => {
+          histories.forEach((history) => history.clear());
+        },
+        groupEditorHistoryInput: (input, operation) => {
+          histories.forEach((history) => history.groupInput(input, operation));
+        },
+        breakEditorHistoryGroup: () => {
+          histories.forEach((history) => history.breakGroup());
+        },
+        // used in <Tab />
+        originalTabData: null,
+        setOriginalTabData: (originalTabData) => set({ originalTabData }),
+        id: -1,
+        setId: (id) => {
+          if (id !== get().id) get().clearEditorHistory();
+          set({ id });
+        },
+        createdByUserId: null,
+        setCreatedByUserId: (createdByUserId) => set({ createdByUserId }),
+        createdAt: null,
+        setCreatedAt: (createdAt) => set({ createdAt }),
+        updatedAt: null,
+        setUpdatedAt: (updatedAt) => set({ updatedAt }),
+        title: "",
+        setTitle: (title) => editDocument({ title }),
 
-        const initialDraft = getInitialDraftLoopRange(audioMetadata);
-
-        set({
-          draftLoopStartIndex: initialDraft.startIndex,
-          draftLoopEndIndex: initialDraft.endIndex,
-          currentChordIndex: mappedChordIndex,
-          audioMetadata: {
-            ...audioMetadata,
-            editingLoopRange: true,
+        tabData: [
+          {
+            id: crypto.randomUUID(),
+            title: "Section 1",
+            data: [],
           },
-        });
-      },
-      selectPlaybackLoopRangeChord: (index) => {
-        const {
-          audioMetadata,
-          playbackMetadata,
-          draftLoopStartIndex,
-          draftLoopEndIndex,
-        } = get();
-
-        const fullLength = audioMetadata.fullTabMetadataLength;
-        if (fullLength <= 1 || index < 0 || index >= fullLength) return;
-
-        const metadataType = playbackMetadata?.[index]?.type;
-        if (
-          metadataType === "ornamental" ||
-          metadataType === "loopDelaySpacer"
-        ) {
-          return;
-        }
-
-        const lastIndex = fullLength - 1;
-        const start = draftLoopStartIndex;
-        const end = draftLoopEndIndex;
-
-        // Completed range: clicking an endpoint deselects only that endpoint.
-        if (start !== null && end !== null) {
-          if (index === start) {
-            set({ draftLoopStartIndex: null });
-            return;
-          }
-          if (index === end) {
-            set({ draftLoopEndIndex: null });
-            return;
-          }
-
-          // Clicking + elsewhere starts a new range from that chord.
-          if (index === lastIndex) return;
-          set({
-            draftLoopStartIndex: index,
-            draftLoopEndIndex: null,
-          });
-
-          return;
-        }
-
-        // Start selected, awaiting end.
-        if (start !== null && end === null) {
-          if (index === start) {
-            set({ draftLoopStartIndex: null });
-            return;
-          }
-          if (index <= start || Math.abs(index - start) < 1) return;
-
-          set({ draftLoopEndIndex: index });
-
-          return;
-        }
-
-        // End selected (or neither), awaiting start.
-        if (start === null) {
-          if (end !== null && index === end) {
-            set({ draftLoopEndIndex: null });
-            return;
-          }
-
-          if (end !== null) {
-            if (index >= end || Math.abs(end - index) < 1) return;
-            set({ draftLoopStartIndex: index });
-
-            return;
-          }
-
-          if (index === lastIndex) return;
-          set({ draftLoopStartIndex: index });
-        }
-      },
-      instruments: {} as Record<InstrumentNames, Soundfont.Player>,
-      setInstruments: (instruments) => set({ instruments }),
-      currentInstrument: null,
-      setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
-      previewMetadata: {
-        indexOfPattern: -1,
-        currentChordIndex: 0,
-        type: "chord",
-        playing: false,
-      },
-      setPreviewMetadata: (previewMetadata) => set({ previewMetadata }),
-      breakOnNextPreviewChord: false,
-      setBreakOnNextPreviewChord: (breakOnNextPreviewChord) =>
-        set({ breakOnNextPreviewChord }),
-      interactingWithAudioProgressSlider: false,
-      setInteractingWithAudioProgressSlider: (
-        interactingWithAudioProgressSlider,
-      ) => set({ interactingWithAudioProgressSlider }),
-      countInTimerEnabled: true,
-      setCountInTimerEnabled: (countInTimerEnabled) =>
-        set({ countInTimerEnabled }),
-      hoveredChordLocation: null,
-      // Module-level, not `set()`: mouseenter must not notify every column.
-      setHoveredChordLocation: (hoveredChordLocation) => {
-        setHoveredChordLocationValue(hoveredChordLocation);
-      },
-
-      // this function is needed because react doesn't want you to directly
-      // update a property of a value returned from a hook
-      updateMasterVolumeGainNode: (newVolume: number) => {
-        const { masterVolumeGainNode } = get();
-
-        if (!masterVolumeGainNode) return;
-
-        masterVolumeGainNode.gain.value = newVolume;
-      },
-
-      // playing/pausing sound functions
-      ensureAudioSystemReady: async () => {
-        const {
-          audioContext,
-          masterVolumeGainNode,
-          currentInstrumentName,
-          currentInstrument,
-          countInBuffer,
-        } = get();
-
-        if (!audioContext || !masterVolumeGainNode) return null;
-
-        // Ordinary backgrounding: resume is enough.
-        if (audioContext.state === "suspended") {
-          try {
-            await audioContext.resume();
-          } catch {
-            // Fall through to full recreate below.
-          }
-        }
-
-        if (audioContext.state === "running") {
-          return {
-            audioContext,
-            masterVolumeGainNode,
-            currentInstrument,
-            countInBuffer,
-          };
-        }
-
-        // iOS "interrupted" (and failed resumes) need a full recreate.
-        const previousVolume = masterVolumeGainNode.gain.value;
-        try {
-          await audioContext.close();
-        } catch {
-          // Best-effort cleanup only.
-        }
-
-        const nextAudioContext = new AudioContext();
-        const nextMasterVolumeGainNode = nextAudioContext.createGain();
-        nextMasterVolumeGainNode.gain.value = isMobileOnly
-          ? 1.25
-          : previousVolume;
-        nextMasterVolumeGainNode.connect(nextAudioContext.destination);
-
-        if (nextAudioContext.state === "suspended") {
-          try {
-            await nextAudioContext.resume();
-          } catch {
-            // Playback may still unlock on the next user gesture.
-          }
-        }
-
-        let nextCurrentInstrument: Soundfont.Player | null = null;
-        try {
-          nextCurrentInstrument = await ensureSoundfontPlayer(
-            nextAudioContext,
-            currentInstrumentName,
-            nextMasterVolumeGainNode,
-          );
-        } catch (error) {
-          console.error(
-            `Failed to reload ${currentInstrumentName} after AudioContext recovery:`,
-            error,
-          );
-        }
-
-        let nextCountInBuffer: AudioBuffer | null = null;
-        try {
-          const response = await fetch("/sounds/countIn.wav");
-          const arrayBuffer = await response.arrayBuffer();
-          nextCountInBuffer =
-            await nextAudioContext.decodeAudioData(arrayBuffer);
-        } catch (error) {
-          console.error(
-            "Failed to reload count-in audio after AudioContext recovery:",
-            error,
-          );
-        }
-
-        set({
-          audioContext: nextAudioContext,
-          masterVolumeGainNode: nextMasterVolumeGainNode,
-          instruments: nextCurrentInstrument
-            ? ({
-                [currentInstrumentName]: nextCurrentInstrument,
-              } as Record<InstrumentNames, Soundfont.Player>)
-            : ({} as Record<InstrumentNames, Soundfont.Player>),
-          currentInstrument: nextCurrentInstrument,
-          countInBuffer: nextCountInBuffer,
-        });
-
-        return {
-          audioContext: nextAudioContext,
-          masterVolumeGainNode: nextMasterVolumeGainNode,
-          currentInstrument: nextCurrentInstrument,
-          countInBuffer: nextCountInBuffer,
-        };
-      },
-
-      playTab: async ({ location }: PlayTab = {}) => {
-        const {
-          tabData,
-          audioMetadata,
-          editing,
-          sectionProgression: rawSectionProgression,
-          tuning: tuningNotes,
-          bpm: baselineBpm,
-          capo,
-          chords,
-          strummingPatterns,
-          playbackSpeed,
-          currentChordIndex,
-          setCurrentlyPlayingMetadata,
-          visiblePlaybackContainerWidth,
-          setPlaybackMetadata,
-          loopDelay,
-          ensureAudioSystemReady,
-          atomicallyUpdateAudioMetadata,
-        } = get();
-
-        const audioSystem = await ensureAudioSystemReady();
-        if (!audioSystem) return;
-
-        const { currentInstrument, audioContext, masterVolumeGainNode } =
-          audioSystem;
-
-        // iOS: never mark playing / seed the strip clock while AudioContext is
-        // still suspended — rAF would sit at the chord boundary with no motion.
-        if (audioContext.state !== "running") {
-          try {
-            await audioContext.resume();
-          } catch {
-            return;
-          }
-        }
-        if (audioContext.state !== "running") {
-          return;
-        }
-
-        const currentlyPlayingStrings: (
-          Soundfont.Player | AudioBufferSourceNode | undefined
-        )[] = [
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-        ];
-
-        // Omit `location` to resume the current scope; pass null for the whole tab.
-        const locationWasProvided = location !== undefined;
-        const requestedLocation: PlayTabLocation | null = locationWasProvided
-          ? location
-          : audioMetadata.location;
-
-        const locationForAudioMetadata = requestedLocation
-          ? {
-              sectionIndex: requestedLocation.sectionIndex,
-              ...(requestedLocation.subSectionIndex !== undefined && {
-                subSectionIndex: requestedLocation.subSectionIndex,
-              }),
-              ...(requestedLocation.chordSequenceIndex !== undefined && {
-                chordSequenceIndex: requestedLocation.chordSequenceIndex,
-              }),
-            }
-          : null;
-
-        const sectionProgression =
-          !editing && locationForAudioMetadata?.sectionIndex !== undefined
-            ? // just for when playing back specific section within PlaybackModal
-              [
-                {
-                  id: "",
-                  sectionId:
-                    tabData[locationForAudioMetadata.sectionIndex]?.id ?? "",
-                  title: "",
-                  repetitions: 1,
-                  startSeconds: 0,
-                  endSeconds: 0,
-                },
-              ]
-            : // all other use-cases
-              rawSectionProgression.length > 0
-              ? rawSectionProgression
-              : generateDefaultSectionProgression(tabData);
-
-        const tuning = parse(tuningNotes);
-
-        // entire tab should be shown while editing the loop range
-        const adjStartLoopIndex = audioMetadata.editingLoopRange
-          ? 0
-          : audioMetadata.startLoopIndex;
-
-        const adjEndLoopIndex = audioMetadata.editingLoopRange
-          ? -1
-          : audioMetadata.endLoopIndex;
-
-        const compiledChords =
-          editing && locationForAudioMetadata
-            ? compileSpecificChordGrouping({
-                tabData,
-                location: locationForAudioMetadata,
-                chords,
-                strummingPatterns,
-                baselineBpm,
-                playbackSpeed,
-                setCurrentlyPlayingMetadata,
-                startLoopIndex: adjStartLoopIndex,
-                endLoopIndex: adjEndLoopIndex,
-                atomicallyUpdateAudioMetadata,
-                forMetadataOnly: false,
-              })
-            : compileFullTab({
-                tabData,
-                sectionProgression,
-                chords,
-                strummingPatterns,
-                baselineBpm,
-                playbackSpeed,
-                setCurrentlyPlayingMetadata,
-                startLoopIndex: adjStartLoopIndex,
-                endLoopIndex: adjEndLoopIndex,
-                atomicallyUpdateAudioMetadata,
-                forMetadataOnly: false,
-                forPlayback: editing ? undefined : { loopDelay },
-              });
-
-        const expandedTabData = editing
-          ? null
-          : expandFullTab({
-              tabData,
-              location: locationForAudioMetadata,
-              sectionProgression,
-              chords,
-              baselineBpm,
-              playbackSpeed,
-              setPlaybackMetadata,
-              startLoopIndex: adjStartLoopIndex,
-              endLoopIndex: adjEndLoopIndex,
-              loopDelay,
-              visiblePlaybackContainerWidth,
-            });
-
-        // note: technically you could have similar duplication logic in regular compilationHelper
-        // function, however I think it's cleaner to just augment the loop here range with the
-        // % operator to achieve the same effect
-        const adjChordCount =
-          compiledChords.length *
-          (expandedTabData === null
-            ? 1
-            : expandedTabData.artificialLoopsNecessary);
-
-        const latestMetadata = get().currentlyPlayingMetadata;
-        let startChordIndex = currentChordIndex;
-
-        if (
-          locationWasProvided &&
-          requestedLocation?.chordIndex !== undefined &&
-          latestMetadata
-        ) {
-          const hoveredChordIndex = requestedLocation.chordIndex;
-          const matchedIndex = latestMetadata.findIndex(
-            (entry) =>
-              entry.location.sectionIndex === requestedLocation.sectionIndex &&
-              entry.location.subSectionIndex ===
-                requestedLocation.subSectionIndex &&
-              entry.location.chordSequenceIndex ===
-                requestedLocation.chordSequenceIndex &&
-              entry.location.chordIndex === hoveredChordIndex,
-          );
-          startChordIndex = matchedIndex >= 0 ? matchedIndex : 0;
-        } else if (startChordIndex >= adjChordCount) {
-          startChordIndex = 0;
-        }
-
-        // Web Audio is most reliable when you schedule sounds slightly ahead of audioContext.currentTime
-        const nextPlaybackSessionId = get().playbackSessionId + 1;
-        const scheduledPlaybackNodes: { stop(when?: number): void }[] = [];
-
-        const nextChordStartTime =
-          audioContext.currentTime + PLAYBACK_START_EPSILON_SECONDS;
-
-        set({
-          audioMetadata: {
-            ...audioMetadata,
-            location: locationWasProvided
-              ? locationForAudioMetadata
-              : audioMetadata.location,
-            playing: true,
-          },
-          currentChordIndex: startChordIndex,
-          playbackStartedAtAudioTime: nextChordStartTime,
-          playbackSessionId: nextPlaybackSessionId,
-          scheduledPlaybackNodes,
-          activePlaybackStrings: currentlyPlayingStrings,
-          breakOnNextChord: false,
-        });
-
-        const activeSessionId = nextPlaybackSessionId;
-
-        await runPlaybackScheduler({
-          compiledChords,
-          adjChordCount,
-          startChordIndex,
-          playbackStartTime: nextChordStartTime,
-          playbackSpeed,
-          tuning,
-          capo: capo ?? 0,
-          audioContext,
-          masterVolumeGainNode,
-          currentInstrument,
-          currentlyPlayingStrings,
-          scheduledNodes: scheduledPlaybackNodes,
-          playbackSessionId: activeSessionId,
-          editing,
-          isSessionValid: () => get().playbackSessionId === activeSessionId,
-          getState: () => {
-            const state = get();
-            return {
-              breakOnNextChord: state.breakOnNextChord,
-              looping: state.looping,
-              showPlaybackModal: state.showPlaybackModal,
-              audioMetadata: state.audioMetadata,
-              currentChordIndex: state.currentChordIndex,
-            };
-          },
-          setState: (partial) => set(partial),
-          resetAudioRangeToStart,
-          clearBreakOnNextChord: () => set({ breakOnNextChord: false }),
-        });
-      },
-
-      playPreview: async ({
-        data,
-        index,
-        type,
-        customTuning,
-        customBpm,
-        forTuningPreview,
-        onTuningPreviewNote,
-        isPreviewValid,
-        chordEffects,
-        strumSpreadCompileValue,
-      }: PlayPreview) => {
-        const { capo, tuning, previewMetadata, ensureAudioSystemReady } = get();
-
-        const audioSystem = await ensureAudioSystemReady();
-        if (!audioSystem || (isPreviewValid && !isPreviewValid())) return;
-
-        const { currentInstrument, audioContext, masterVolumeGainNode } =
-          audioSystem;
-        const { instruments } = get();
-
-        if (!currentInstrument) return;
-
-        const currentlyPlayingStrings: (
-          Soundfont.Player | AudioBufferSourceNode | undefined
-        )[] = [
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-        ];
-
-        const previewScheduledNodes: { stop(when?: number): void }[] = [];
-        set({
-          activePlaybackStrings: currentlyPlayingStrings,
-          scheduledPlaybackNodes: previewScheduledNodes,
-          breakOnNextPreviewChord: false,
-        });
-
-        const compiledChords =
-          type === "chord"
-            ? [
-                [
-                  "",
-                  ...(data as string[]),
-                  chordEffects ?? "v",
-                  "quarter",
-                  customBpm ?? "58",
-                  strumSpreadCompileValue ?? "auto",
-                ],
-              ]
-            : compileStrummingPatternPreview({
-                strummingPattern: data as StrummingPattern,
-              });
-
-        for (
-          let chordIndex = previewMetadata.currentChordIndex;
-          chordIndex < compiledChords.length;
-          chordIndex++
-        ) {
-          set({
-            previewMetadata: {
-              playing: true,
-              indexOfPattern: index,
-              currentChordIndex: chordIndex,
-              type,
-            },
-          });
-          // ^^ doing this here because didn't update in time with one that was above the loop
-
-          const currColumn = compiledChords[chordIndex];
-
-          if (currColumn === undefined) continue;
-
-          // Calculate the altered BPM using the provided formula
-          const noteLengthMultiplier =
-            noteLengthMultipliers[currColumn[8] as FullNoteLengths];
-          const baseBpm = Number(currColumn[9]);
-          const effectiveBpm = baseBpm * (1 / noteLengthMultiplier);
-
-          await playNoteColumn({
-            tuning: parse(
-              type === "chord" ? (customTuning ?? tuning) : "e2 a2 d3 g3 b3 e4",
-            ),
-            capo: type === "chord" && !forTuningPreview ? capo : 0,
-            bpm: effectiveBpm,
-            currColumn,
-            audioContext,
-            masterVolumeGainNode,
-            currentInstrument,
-            currentlyPlayingStrings,
-            scheduledNodes: previewScheduledNodes,
-            acousticSteelOverrideForPreview: instruments.acoustic_guitar_steel,
-            forTuningPreview: forTuningPreview === true,
-            isSessionValid: isPreviewValid,
-            onNoteStart:
-              forTuningPreview && onTuningPreviewNote
-                ? (stringIndex) => onTuningPreviewNote(5 - stringIndex)
-                : undefined,
-          });
-
-          if (isPreviewValid && !isPreviewValid()) return;
-
-          const { breakOnNextPreviewChord } = get();
-
-          if (breakOnNextPreviewChord) {
-            set({
-              breakOnNextPreviewChord: false,
-            });
-            return;
-          }
-
-          if (chordIndex === compiledChords.length - 1) {
-            if (type === "strummingPattern") {
-              chordIndex = -1;
-            }
-
-            set({
-              previewMetadata: {
-                ...previewMetadata,
-                indexOfPattern: -1,
-                currentChordIndex: 0,
-                playing: type === "strummingPattern",
-              },
-            });
-          }
-        }
-      },
-
-      pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
-        const {
-          audioMetadata,
-          previewMetadata,
-          currentInstrument,
-          scheduledPlaybackNodes,
-          activePlaybackStrings,
-          audioContext,
-        } = get();
-
-        const stopTime = audioContext?.currentTime ?? 0;
-
-        stopAllScheduledPlaybackNodes(scheduledPlaybackNodes, stopTime);
-        stopActivePlaybackStrings(activePlaybackStrings, stopTime);
-        currentInstrument?.stop(stopTime);
-
-        const nextPlaybackSessionId = get().playbackSessionId + 1;
-
-        if (
-          !audioMetadata.playing &&
-          !previewMetadata.playing &&
-          resetToStart
-        ) {
-          if (resetCurrentlyPlayingMetadata) {
-            set({
-              currentlyPlayingMetadata: null,
-            });
-          }
-
-          resetAudioRangeToStart("editing");
-          set({
-            currentChordIndex: 0,
-            playbackStartedAtAudioTime: null,
-            playbackSessionId: nextPlaybackSessionId,
-            scheduledPlaybackNodes: [],
-            activePlaybackStrings: null,
-          });
-          return;
-        }
-
-        if (audioMetadata.playing) {
-          if (resetCurrentlyPlayingMetadata) {
-            set({
-              currentlyPlayingMetadata: null,
-            });
-          }
+        ],
+        setTabData: (updater) =>
+          editDocument((draft) => {
+            updater(draft.tabData);
+            initializeEmptyChordSequences(draft);
+          }),
+
+        artistId: null,
+        setArtistId: (artistId) => editDocument({ artistId }),
+        artistName: undefined,
+        setArtistName: (artistName) => editDocument({ artistName }),
+        artistIsVerified: false,
+        setArtistIsVerified: (artistIsVerified) =>
+          editDocument({ artistIsVerified }),
+
+        description: null,
+        setDescription: (description) => editDocument({ description }),
+        genre: "",
+        setGenre: (genre) => editDocument({ genre }),
+        tuning: DEFAULT_TUNING,
+        setTuning: (tuning) =>
+          editDocument({ tuning: normalizeTuningValue(tuning) }),
+        bpm: 75,
+        setBpm: (bpm) => editDocument({ bpm }),
+        capo: 0,
+        setCapo: (capo) => editDocument({ capo }),
+        key: null,
+        setKey: (key) => editDocument({ key }),
+        difficulty: 1,
+        setDifficulty: (difficulty) => editDocument({ difficulty }),
+        chords: [],
+        setChords: (chords) => editDocument({ chords }),
+        strummingPatterns: [],
+        setStrummingPatterns: (strummingPatterns) =>
+          editDocument((draft) => {
+            draft.strummingPatterns = strummingPatterns;
+            initializeEmptyChordSequences(draft);
+          }),
+        chordDisplayMode: "text",
+        setChordDisplayMode: (chordDisplayMode) => set({ chordDisplayMode }),
+        ratingsCount: 0,
+        setRatingsCount: (ratingsCount) => set({ ratingsCount }),
+        averageRating: 0.0,
+        setAverageRating: (averageRating) => set({ averageRating }),
+        bookmarkCount: 0,
+        setBookmarkCount: (bookmarkCount) => set({ bookmarkCount }),
+        editing: false,
+        setEditing: (editing) => {
+          get().breakEditorHistoryGroup();
+          set({ editing });
+        },
+        sectionProgression: [],
+        setSectionProgression: (sectionProgression, options) => {
+          if (options?.recordHistory === false) set({ sectionProgression });
+          else editDocument({ sectionProgression });
+        },
+        currentlyCopiedData: null,
+        setCurrentlyCopiedData: (currentlyCopiedData) =>
+          set({ currentlyCopiedData }),
+        currentlyCopiedChord: null,
+        setCurrentlyCopiedChord: (currentlyCopiedChord) =>
+          set({ currentlyCopiedChord }),
+        fetchingFullTabData: false,
+        setFetchingFullTabData: (fetchingFullTabData) =>
+          set({ fetchingFullTabData }),
+        chordPulse: null,
+        setChordPulse: (chordPulse) => set({ chordPulse }),
+        countInTimer: {
+          showing: false,
+          forSectionContainer: null,
+        },
+        setCountInTimer: (countInTimer) => set({ countInTimer }),
+        countInBuffer: null,
+        setCountInBuffer: (countInBuffer) => set({ countInBuffer }),
+
+        tabIsEffectivelyEmpty: true,
+        setTabIsEffectivelyEmpty: (tabIsEffectivelyEmpty) =>
+          set({ tabIsEffectivelyEmpty }),
+
+        atomicallyUpdateAudioMetadata: (newFields: Partial<AudioMetadata>) => {
+          const { audioMetadata } = get();
 
           set({
             audioMetadata: {
               ...audioMetadata,
-              playing: false,
+              ...newFields,
             },
-            playbackStartedAtAudioTime: null,
-            breakOnNextChord: true,
-            playbackSessionId: nextPlaybackSessionId,
-            scheduledPlaybackNodes: [],
-            activePlaybackStrings: null,
+          });
+        },
+
+        // related to sound generation/playing
+        audioContext: null,
+        setAudioContext: (audioContext) => set({ audioContext }),
+        breakOnNextChord: false,
+        setBreakOnNextChord: (breakOnNextChord) => set({ breakOnNextChord }),
+        masterVolumeGainNode: null,
+        setMasterVolumeGainNode: (masterVolumeGainNode) =>
+          set({ masterVolumeGainNode }),
+        showingAudioControls: false,
+        setShowingAudioControls: (showingAudioControls) =>
+          set({ showingAudioControls }),
+        currentlyPlayingMetadata: null,
+        setCurrentlyPlayingMetadata: (currentlyPlayingMetadata) =>
+          set({ currentlyPlayingMetadata }),
+
+        playbackMetadata: null,
+        setPlaybackMetadata: (playbackMetadata) => set({ playbackMetadata }),
+        visiblePlaybackContainerWidth: 0,
+        setVisiblePlaybackContainerWidth: (visiblePlaybackContainerWidth) =>
+          set({ visiblePlaybackContainerWidth }),
+
+        currentInstrumentName: "acoustic_guitar_steel",
+        setCurrentInstrumentName: (currentInstrumentName) =>
+          set({ currentInstrumentName }),
+        looping: false,
+        setLooping: (looping) => set({ looping }),
+        loopDelay: 0,
+        setLoopDelay: (loopDelay) => set({ loopDelay }),
+        playbackSpeed: 1,
+        setPlaybackSpeed: (playbackSpeed) =>
+          set({ playbackSpeed: clampPlaybackSpeed(playbackSpeed) }),
+        currentChordIndex: 0,
+        setCurrentChordIndex: (currentChordIndex) => {
+          set({ currentChordIndex });
+        },
+        playbackStartedAtAudioTime: null,
+        playbackSessionId: 0,
+        scheduledPlaybackNodes: [],
+        activePlaybackStrings: null,
+        audioMetadata: {
+          playing: false,
+          location: null,
+          startLoopIndex: 0,
+          endLoopIndex: -1,
+          editingLoopRange: false,
+          fullTabMetadataLength: -1,
+        },
+        setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
+        draftLoopStartIndex: null,
+        draftLoopEndIndex: null,
+        setDraftLoopStartIndex: (draftLoopStartIndex) =>
+          set({ draftLoopStartIndex }),
+        setDraftLoopEndIndex: (draftLoopEndIndex) => set({ draftLoopEndIndex }),
+        setDraftLoopRange: ({ startIndex, endIndex }) =>
+          set({
+            draftLoopStartIndex: startIndex,
+            draftLoopEndIndex: endIndex,
+          }),
+        enterPlaybackLoopRangeEditor: () => {
+          const { audioMetadata, currentChordIndex, loopDelay } = get();
+
+          const mappedChordIndex = mapLoopRelativeChordIndexToFullTabIndex({
+            currentChordIndex,
+            startLoopIndex: audioMetadata.startLoopIndex,
+            endLoopIndex: audioMetadata.endLoopIndex,
+            fullTabMetadataLength: audioMetadata.fullTabMetadataLength,
+            loopDelay,
           });
 
-          if (resetToStart) {
-            resetAudioRangeToStart("editing");
-            set({
-              currentChordIndex: 0,
-            });
-          }
-        } else if (previewMetadata.playing) {
+          const initialDraft = getInitialDraftLoopRange(audioMetadata);
+
           set({
-            previewMetadata: {
-              ...previewMetadata,
-              currentChordIndex: 0,
-              playing: false,
+            draftLoopStartIndex: initialDraft.startIndex,
+            draftLoopEndIndex: initialDraft.endIndex,
+            currentChordIndex: mappedChordIndex,
+            audioMetadata: {
+              ...audioMetadata,
+              editingLoopRange: true,
             },
-            breakOnNextPreviewChord: true,
-            playbackSessionId: nextPlaybackSessionId,
-            scheduledPlaybackNodes: [],
-            activePlaybackStrings: null,
           });
+        },
+        selectPlaybackLoopRangeChord: (index) => {
+          const {
+            audioMetadata,
+            playbackMetadata,
+            draftLoopStartIndex,
+            draftLoopEndIndex,
+          } = get();
 
-          if (resetToStart) {
-            resetAudioRangeToStart("editing");
-            set({
-              currentChordIndex: 0,
-            });
+          const fullLength = audioMetadata.fullTabMetadataLength;
+          if (fullLength <= 1 || index < 0 || index >= fullLength) return;
+
+          const metadataType = playbackMetadata?.[index]?.type;
+          if (
+            metadataType === "ornamental" ||
+            metadataType === "loopDelaySpacer"
+          ) {
+            return;
           }
-        } else {
-          set({
-            playbackSessionId: nextPlaybackSessionId,
-            scheduledPlaybackNodes: [],
-            activePlaybackStrings: null,
-          });
-        }
-      },
 
-      reanchorPlaybackStripAnimation: () => {
-        const { audioContext, audioMetadata } = get();
+          const lastIndex = fullLength - 1;
+          const start = draftLoopStartIndex;
+          const end = draftLoopEndIndex;
 
-        if (!audioContext || !audioMetadata.playing) return;
+          // Completed range: clicking an endpoint deselects only that endpoint.
+          if (start !== null && end !== null) {
+            if (index === start) {
+              set({ draftLoopStartIndex: null });
+              return;
+            }
+            if (index === end) {
+              set({ draftLoopEndIndex: null });
+              return;
+            }
 
-        set({
-          playbackStartedAtAudioTime:
-            audioContext.currentTime + PLAYBACK_START_EPSILON_SECONDS,
-        });
-      },
+            // Clicking + elsewhere starts a new range from that chord.
+            if (index === lastIndex) return;
+            set({
+              draftLoopStartIndex: index,
+              draftLoopEndIndex: null,
+            });
 
-      resetPlaybackModalSession: () => {
-        get().pauseAudio();
+            return;
+          }
 
-        const latest = get();
-        set({
-          showPlaybackModal: false,
-          playbackStartedAtAudioTime: null,
+          // Start selected, awaiting end.
+          if (start !== null && end === null) {
+            if (index === start) {
+              set({ draftLoopStartIndex: null });
+              return;
+            }
+            if (index <= start || Math.abs(index - start) < 1) return;
+
+            set({ draftLoopEndIndex: index });
+
+            return;
+          }
+
+          // End selected (or neither), awaiting start.
+          if (start === null) {
+            if (end !== null && index === end) {
+              set({ draftLoopEndIndex: null });
+              return;
+            }
+
+            if (end !== null) {
+              if (index >= end || Math.abs(end - index) < 1) return;
+              set({ draftLoopStartIndex: index });
+
+              return;
+            }
+
+            if (index === lastIndex) return;
+            set({ draftLoopStartIndex: index });
+          }
+        },
+        instruments: {} as Record<InstrumentNames, Soundfont.Player>,
+        setInstruments: (instruments) => set({ instruments }),
+        currentInstrument: null,
+        setCurrentInstrument: (currentInstrument) => set({ currentInstrument }),
+        previewMetadata: {
+          indexOfPattern: -1,
           currentChordIndex: 0,
-          playbackModalViewingState: "Practice",
-          visiblePlaybackContainerWidth: 0,
-          countInTimer: {
-            ...latest.countInTimer,
-            showing: false,
-          },
-          audioMetadata: {
-            ...latest.audioMetadata,
-            location: null,
-            playing: false,
-            editingLoopRange: false,
-            startLoopIndex: 0,
-            endLoopIndex: -1,
-          },
-          draftLoopStartIndex: null,
-          draftLoopEndIndex: null,
-        });
-      },
+          type: "chord",
+          playing: false,
+        },
+        setPreviewMetadata: (previewMetadata) => set({ previewMetadata }),
+        breakOnNextPreviewChord: false,
+        setBreakOnNextPreviewChord: (breakOnNextPreviewChord) =>
+          set({ breakOnNextPreviewChord }),
+        interactingWithAudioProgressSlider: false,
+        setInteractingWithAudioProgressSlider: (
+          interactingWithAudioProgressSlider,
+        ) => set({ interactingWithAudioProgressSlider }),
+        countInTimerEnabled: true,
+        setCountInTimerEnabled: (countInTimerEnabled) =>
+          set({ countInTimerEnabled }),
+        hoveredChordLocation: null,
+        // Module-level, not `set()`: mouseenter must not notify every column.
+        setHoveredChordLocation: (hoveredChordLocation) => {
+          if (get() === getTabStore()) {
+            setHoveredChordLocationValue(hoveredChordLocation);
+          }
+        },
 
-      expandedTabData: null,
-      setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
+        // this function is needed because react doesn't want you to directly
+        // update a property of a value returned from a hook
+        updateMasterVolumeGainNode: (newVolume: number) => {
+          const { masterVolumeGainNode } = get();
 
-      // modals
-      showSectionProgressionDialog: false,
-      setShowSectionProgressionDialog: (showSectionProgressionDialog) =>
-        set({ showSectionProgressionDialog }),
-      showGlossaryDialog: false,
-      setShowGlossaryDialog: (showGlossaryDialog) =>
-        set({ showGlossaryDialog }),
-      showDeleteAccountModal: false,
-      setShowDeleteAccountModal: (showDeleteAccountModal) =>
-        set({ showDeleteAccountModal }),
-      showCustomTuningDialog: false,
-      setShowCustomTuningDialog: (showCustomTuningDialog) =>
-        set({ showCustomTuningDialog }),
-      showMobileHeaderModal: false,
-      setShowMobileHeaderModal: (showMobileHeaderModal) =>
-        set({ showMobileHeaderModal }),
+          if (!masterVolumeGainNode) return;
 
-      // below are also used to determine if respective dialog should be showing
-      chordBeingEdited: null,
-      setChordBeingEdited: (chordBeingEdited) => {
-        const previous = get().chordBeingEdited;
-        set({ chordBeingEdited });
-        if (
-          previous !== null &&
-          chordBeingEdited !== null &&
-          previous.value.id === chordBeingEdited.value.id
-        ) {
-          chordHistory.record(previous, get().chordBeingEdited!);
-        } else {
-          chordHistory.clear();
-          if (chordBeingEdited) documentHistory.breakGroup();
-          if (!chordBeingEdited) set(documentHistory.availability());
-        }
-      },
-      strummingPatternBeingEdited: null,
-      setStrummingPatternBeingEdited: (strummingPatternBeingEdited) => {
-        const previous = get().strummingPatternBeingEdited;
-        set({ strummingPatternBeingEdited });
-        if (
-          previous !== null &&
-          strummingPatternBeingEdited !== null &&
-          previous.value.id === strummingPatternBeingEdited.value.id
-        ) {
-          patternHistory.record(previous, get().strummingPatternBeingEdited!);
-        } else {
-          patternHistory.clear();
-          if (strummingPatternBeingEdited) documentHistory.breakGroup();
-          if (!strummingPatternBeingEdited) set(documentHistory.availability());
-        }
-      },
-      showPlaybackModal: false,
-      setShowPlaybackModal: (showPlaybackModal) => set({ showPlaybackModal }),
-      playbackModalViewingState: "Practice",
-      setPlaybackModalViewingState: (playbackModalViewingState) =>
-        set({ playbackModalViewingState }),
+          masterVolumeGainNode.gain.value = newVolume;
+        },
 
-      isLoadingARoute: false,
-      setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),
-      viewportLabel: "mobile",
-      setViewportLabel: (viewportLabel) => set({ viewportLabel }),
+        // playing/pausing sound functions
+        ensureAudioSystemReady: async () => {
+          const {
+            audioContext,
+            masterVolumeGainNode,
+            currentInstrumentName,
+            currentInstrument,
+            countInBuffer,
+          } = get();
 
-      // theme
-      color: "maple",
-      setColor: (color) => set({ color }),
-      theme: "light",
-      setTheme: (theme) => set({ theme }),
-      followsDeviceTheme: true,
-      setFollowsDeviceTheme: (followsDeviceTheme) =>
-        set({ followsDeviceTheme }),
+          if (!audioContext || !masterVolumeGainNode) return null;
 
-      // reset
-      resetStoreToInitValues: () => {
-        setHoveredChordLocationValue(null);
-        set(initialStoreState);
-        get().clearEditorHistory();
-      },
-    })),
-  ),
-);
+          if (useIPhoneAudioReminderStore.getState().requestReminder())
+            return null;
+
+          // Ordinary backgrounding: resume is enough.
+          if (audioContext.state === "suspended") {
+            try {
+              await audioContext.resume();
+            } catch {
+              // Fall through to full recreate below.
+            }
+          }
+
+          if (audioContext.state === "running") {
+            return {
+              audioContext,
+              masterVolumeGainNode,
+              currentInstrument,
+              countInBuffer,
+            };
+          }
+
+          // iOS "interrupted" (and failed resumes) need a full recreate.
+          const previousVolume = masterVolumeGainNode.gain.value;
+          try {
+            await audioContext.close();
+          } catch {
+            // Best-effort cleanup only.
+          }
+
+          const nextAudioContext = new AudioContext();
+          const nextMasterVolumeGainNode = nextAudioContext.createGain();
+          nextMasterVolumeGainNode.gain.value = isMobileOnly
+            ? 1.25
+            : previousVolume;
+          nextMasterVolumeGainNode.connect(nextAudioContext.destination);
+
+          if (nextAudioContext.state === "suspended") {
+            try {
+              await nextAudioContext.resume();
+            } catch {
+              // Playback may still unlock on the next user gesture.
+            }
+          }
+
+          let nextCurrentInstrument: Soundfont.Player | null = null;
+          try {
+            nextCurrentInstrument = await ensureSoundfontPlayer(
+              nextAudioContext,
+              currentInstrumentName,
+              nextMasterVolumeGainNode,
+            );
+          } catch (error) {
+            console.error(
+              `Failed to reload ${currentInstrumentName} after AudioContext recovery:`,
+              error,
+            );
+          }
+
+          let nextCountInBuffer: AudioBuffer | null = null;
+          try {
+            const response = await fetch("/sounds/countIn.wav");
+            const arrayBuffer = await response.arrayBuffer();
+            nextCountInBuffer =
+              await nextAudioContext.decodeAudioData(arrayBuffer);
+          } catch (error) {
+            console.error(
+              "Failed to reload count-in audio after AudioContext recovery:",
+              error,
+            );
+          }
+
+          set({
+            audioContext: nextAudioContext,
+            masterVolumeGainNode: nextMasterVolumeGainNode,
+            instruments: nextCurrentInstrument
+              ? ({
+                  [currentInstrumentName]: nextCurrentInstrument,
+                } as Record<InstrumentNames, Soundfont.Player>)
+              : ({} as Record<InstrumentNames, Soundfont.Player>),
+            currentInstrument: nextCurrentInstrument,
+            countInBuffer: nextCountInBuffer,
+          });
+
+          return {
+            audioContext: nextAudioContext,
+            masterVolumeGainNode: nextMasterVolumeGainNode,
+            currentInstrument: nextCurrentInstrument,
+            countInBuffer: nextCountInBuffer,
+          };
+        },
+
+        playTab: async ({ location }: PlayTab = {}) => {
+          const {
+            tabData,
+            audioMetadata,
+            editing,
+            sectionProgression: rawSectionProgression,
+            tuning: tuningNotes,
+            bpm: baselineBpm,
+            capo,
+            chords,
+            strummingPatterns,
+            playbackSpeed,
+            currentChordIndex,
+            setCurrentlyPlayingMetadata,
+            visiblePlaybackContainerWidth,
+            setPlaybackMetadata,
+            loopDelay,
+            ensureAudioSystemReady,
+            atomicallyUpdateAudioMetadata,
+          } = get();
+
+          const audioSystem = await ensureAudioSystemReady();
+          if (!audioSystem) return;
+
+          const { currentInstrument, audioContext, masterVolumeGainNode } =
+            audioSystem;
+
+          // iOS: never mark playing / seed the strip clock while AudioContext is
+          // still suspended — rAF would sit at the chord boundary with no motion.
+          if (audioContext.state !== "running") {
+            try {
+              await audioContext.resume();
+            } catch {
+              return;
+            }
+          }
+          if (audioContext.state !== "running") {
+            return;
+          }
+
+          const currentlyPlayingStrings: (
+            Soundfont.Player | AudioBufferSourceNode | undefined
+          )[] = [
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+          ];
+
+          // Omit `location` to resume the current scope; pass null for the whole tab.
+          const locationWasProvided = location !== undefined;
+          const requestedLocation: PlayTabLocation | null = locationWasProvided
+            ? location
+            : audioMetadata.location;
+
+          const locationForAudioMetadata = requestedLocation
+            ? {
+                sectionIndex: requestedLocation.sectionIndex,
+                ...(requestedLocation.subSectionIndex !== undefined && {
+                  subSectionIndex: requestedLocation.subSectionIndex,
+                }),
+                ...(requestedLocation.chordSequenceIndex !== undefined && {
+                  chordSequenceIndex: requestedLocation.chordSequenceIndex,
+                }),
+              }
+            : null;
+
+          const sectionProgression =
+            !editing && locationForAudioMetadata?.sectionIndex !== undefined
+              ? // just for when playing back specific section within PlaybackModal
+                [
+                  {
+                    id: "",
+                    sectionId:
+                      tabData[locationForAudioMetadata.sectionIndex]?.id ?? "",
+                    title: "",
+                    repetitions: 1,
+                    startSeconds: 0,
+                    endSeconds: 0,
+                  },
+                ]
+              : // all other use-cases
+                rawSectionProgression.length > 0
+                ? rawSectionProgression
+                : generateDefaultSectionProgression(tabData);
+
+          const tuning = parse(tuningNotes);
+
+          // entire tab should be shown while editing the loop range
+          const adjStartLoopIndex = audioMetadata.editingLoopRange
+            ? 0
+            : audioMetadata.startLoopIndex;
+
+          const adjEndLoopIndex = audioMetadata.editingLoopRange
+            ? -1
+            : audioMetadata.endLoopIndex;
+
+          const compiledChords =
+            editing && locationForAudioMetadata
+              ? compileSpecificChordGrouping({
+                  tabData,
+                  location: locationForAudioMetadata,
+                  chords,
+                  strummingPatterns,
+                  baselineBpm,
+                  playbackSpeed,
+                  setCurrentlyPlayingMetadata,
+                  startLoopIndex: adjStartLoopIndex,
+                  endLoopIndex: adjEndLoopIndex,
+                  atomicallyUpdateAudioMetadata,
+                  forMetadataOnly: false,
+                })
+              : compileFullTab({
+                  tabData,
+                  sectionProgression,
+                  chords,
+                  strummingPatterns,
+                  baselineBpm,
+                  playbackSpeed,
+                  setCurrentlyPlayingMetadata,
+                  startLoopIndex: adjStartLoopIndex,
+                  endLoopIndex: adjEndLoopIndex,
+                  atomicallyUpdateAudioMetadata,
+                  forMetadataOnly: false,
+                  forPlayback: editing ? undefined : { loopDelay },
+                });
+
+          const expandedTabData = editing
+            ? null
+            : expandFullTab({
+                tabData,
+                location: locationForAudioMetadata,
+                sectionProgression,
+                chords,
+                baselineBpm,
+                playbackSpeed,
+                setPlaybackMetadata,
+                startLoopIndex: adjStartLoopIndex,
+                endLoopIndex: adjEndLoopIndex,
+                loopDelay,
+                visiblePlaybackContainerWidth,
+              });
+
+          // note: technically you could have similar duplication logic in regular compilationHelper
+          // function, however I think it's cleaner to just augment the loop here range with the
+          // % operator to achieve the same effect
+          const adjChordCount =
+            compiledChords.length *
+            (expandedTabData === null
+              ? 1
+              : expandedTabData.artificialLoopsNecessary);
+
+          const latestMetadata = get().currentlyPlayingMetadata;
+          let startChordIndex = currentChordIndex;
+
+          if (
+            locationWasProvided &&
+            requestedLocation?.chordIndex !== undefined &&
+            latestMetadata
+          ) {
+            const hoveredChordIndex = requestedLocation.chordIndex;
+            const matchedIndex = latestMetadata.findIndex(
+              (entry) =>
+                entry.location.sectionIndex ===
+                  requestedLocation.sectionIndex &&
+                entry.location.subSectionIndex ===
+                  requestedLocation.subSectionIndex &&
+                entry.location.chordSequenceIndex ===
+                  requestedLocation.chordSequenceIndex &&
+                entry.location.chordIndex === hoveredChordIndex,
+            );
+            startChordIndex = matchedIndex >= 0 ? matchedIndex : 0;
+          } else if (startChordIndex >= adjChordCount) {
+            startChordIndex = 0;
+          }
+
+          // Web Audio is most reliable when you schedule sounds slightly ahead of audioContext.currentTime
+          const nextPlaybackSessionId = get().playbackSessionId + 1;
+          const scheduledPlaybackNodes: { stop(when?: number): void }[] = [];
+
+          const nextChordStartTime =
+            audioContext.currentTime + PLAYBACK_START_EPSILON_SECONDS;
+
+          set({
+            audioMetadata: {
+              ...audioMetadata,
+              location: locationWasProvided
+                ? locationForAudioMetadata
+                : audioMetadata.location,
+              playing: true,
+            },
+            currentChordIndex: startChordIndex,
+            playbackStartedAtAudioTime: nextChordStartTime,
+            playbackSessionId: nextPlaybackSessionId,
+            scheduledPlaybackNodes,
+            activePlaybackStrings: currentlyPlayingStrings,
+            breakOnNextChord: false,
+          });
+
+          const activeSessionId = nextPlaybackSessionId;
+
+          await runPlaybackScheduler({
+            compiledChords,
+            adjChordCount,
+            startChordIndex,
+            playbackStartTime: nextChordStartTime,
+            playbackSpeed,
+            tuning,
+            capo: capo ?? 0,
+            audioContext,
+            masterVolumeGainNode,
+            currentInstrument,
+            currentlyPlayingStrings,
+            scheduledNodes: scheduledPlaybackNodes,
+            playbackSessionId: activeSessionId,
+            editing,
+            isSessionValid: () => get().playbackSessionId === activeSessionId,
+            getState: () => {
+              const state = get();
+              return {
+                breakOnNextChord: state.breakOnNextChord,
+                looping: state.looping,
+                showPlaybackModal: state.showPlaybackModal,
+                audioMetadata: state.audioMetadata,
+                currentChordIndex: state.currentChordIndex,
+              };
+            },
+            setState: (partial) => set(partial),
+            resetAudioRangeToStart: resetAudioRange,
+            clearBreakOnNextChord: () => set({ breakOnNextChord: false }),
+          });
+        },
+
+        playPreview: async ({
+          data,
+          index,
+          type,
+          customTuning,
+          customBpm,
+          forTuningPreview,
+          onTuningPreviewNote,
+          isPreviewValid,
+          chordEffects,
+          strumSpreadCompileValue,
+        }: PlayPreview) => {
+          const { capo, tuning, previewMetadata, ensureAudioSystemReady } =
+            get();
+
+          const audioSystem = await ensureAudioSystemReady();
+          if (!audioSystem || (isPreviewValid && !isPreviewValid())) return;
+
+          const { currentInstrument, audioContext, masterVolumeGainNode } =
+            audioSystem;
+          const { instruments } = get();
+
+          if (!currentInstrument) return;
+
+          const currentlyPlayingStrings: (
+            Soundfont.Player | AudioBufferSourceNode | undefined
+          )[] = [
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+          ];
+
+          const previewScheduledNodes: { stop(when?: number): void }[] = [];
+          set({
+            activePlaybackStrings: currentlyPlayingStrings,
+            scheduledPlaybackNodes: previewScheduledNodes,
+            breakOnNextPreviewChord: false,
+          });
+
+          const compiledChords =
+            type === "chord"
+              ? [
+                  [
+                    "",
+                    ...(data as string[]),
+                    chordEffects ?? "v",
+                    "quarter",
+                    customBpm ?? "58",
+                    strumSpreadCompileValue ?? "auto",
+                  ],
+                ]
+              : compileStrummingPatternPreview({
+                  strummingPattern: data as StrummingPattern,
+                });
+
+          for (
+            let chordIndex = previewMetadata.currentChordIndex;
+            chordIndex < compiledChords.length;
+            chordIndex++
+          ) {
+            set({
+              previewMetadata: {
+                playing: true,
+                indexOfPattern: index,
+                currentChordIndex: chordIndex,
+                type,
+              },
+            });
+            // ^^ doing this here because didn't update in time with one that was above the loop
+
+            const currColumn = compiledChords[chordIndex];
+
+            if (currColumn === undefined) continue;
+
+            // Calculate the altered BPM using the provided formula
+            const noteLengthMultiplier =
+              noteLengthMultipliers[currColumn[8] as FullNoteLengths];
+            const baseBpm = Number(currColumn[9]);
+            const effectiveBpm = baseBpm * (1 / noteLengthMultiplier);
+
+            await playNoteColumn({
+              tuning: parse(
+                type === "chord"
+                  ? (customTuning ?? tuning)
+                  : "e2 a2 d3 g3 b3 e4",
+              ),
+              capo: type === "chord" && !forTuningPreview ? capo : 0,
+              bpm: effectiveBpm,
+              currColumn,
+              audioContext,
+              masterVolumeGainNode,
+              currentInstrument,
+              currentlyPlayingStrings,
+              scheduledNodes: previewScheduledNodes,
+              acousticSteelOverrideForPreview:
+                instruments.acoustic_guitar_steel,
+              forTuningPreview: forTuningPreview === true,
+              isSessionValid: isPreviewValid,
+              onNoteStart:
+                forTuningPreview && onTuningPreviewNote
+                  ? (stringIndex) => onTuningPreviewNote(5 - stringIndex)
+                  : undefined,
+            });
+
+            if (isPreviewValid && !isPreviewValid()) return;
+
+            const { breakOnNextPreviewChord } = get();
+
+            if (breakOnNextPreviewChord) {
+              set({
+                breakOnNextPreviewChord: false,
+              });
+              return;
+            }
+
+            if (chordIndex === compiledChords.length - 1) {
+              if (type === "strummingPattern") {
+                chordIndex = -1;
+              }
+
+              set({
+                previewMetadata: {
+                  ...previewMetadata,
+                  indexOfPattern: -1,
+                  currentChordIndex: 0,
+                  playing: type === "strummingPattern",
+                },
+              });
+            }
+          }
+        },
+
+        pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
+          const {
+            audioMetadata,
+            previewMetadata,
+            currentInstrument,
+            scheduledPlaybackNodes,
+            activePlaybackStrings,
+            audioContext,
+          } = get();
+
+          const stopTime = audioContext?.currentTime ?? 0;
+
+          stopAllScheduledPlaybackNodes(scheduledPlaybackNodes, stopTime);
+          stopActivePlaybackStrings(activePlaybackStrings, stopTime);
+          currentInstrument?.stop(stopTime);
+
+          const nextPlaybackSessionId = get().playbackSessionId + 1;
+
+          if (
+            !audioMetadata.playing &&
+            !previewMetadata.playing &&
+            resetToStart
+          ) {
+            if (resetCurrentlyPlayingMetadata) {
+              set({
+                currentlyPlayingMetadata: null,
+              });
+            }
+
+            resetAudioRange("editing");
+            set({
+              currentChordIndex: 0,
+              playbackStartedAtAudioTime: null,
+              playbackSessionId: nextPlaybackSessionId,
+              scheduledPlaybackNodes: [],
+              activePlaybackStrings: null,
+            });
+            return;
+          }
+
+          if (audioMetadata.playing) {
+            if (resetCurrentlyPlayingMetadata) {
+              set({
+                currentlyPlayingMetadata: null,
+              });
+            }
+
+            set({
+              audioMetadata: {
+                ...audioMetadata,
+                playing: false,
+              },
+              playbackStartedAtAudioTime: null,
+              breakOnNextChord: true,
+              playbackSessionId: nextPlaybackSessionId,
+              scheduledPlaybackNodes: [],
+              activePlaybackStrings: null,
+            });
+
+            if (resetToStart) {
+              resetAudioRange("editing");
+              set({
+                currentChordIndex: 0,
+              });
+            }
+          } else if (previewMetadata.playing) {
+            set({
+              previewMetadata: {
+                ...previewMetadata,
+                currentChordIndex: 0,
+                playing: false,
+              },
+              breakOnNextPreviewChord: true,
+              playbackSessionId: nextPlaybackSessionId,
+              scheduledPlaybackNodes: [],
+              activePlaybackStrings: null,
+            });
+
+            if (resetToStart) {
+              resetAudioRange("editing");
+              set({
+                currentChordIndex: 0,
+              });
+            }
+          } else {
+            set({
+              playbackSessionId: nextPlaybackSessionId,
+              scheduledPlaybackNodes: [],
+              activePlaybackStrings: null,
+            });
+          }
+        },
+
+        reanchorPlaybackStripAnimation: () => {
+          const { audioContext, audioMetadata } = get();
+
+          if (!audioContext || !audioMetadata.playing) return;
+
+          set({
+            playbackStartedAtAudioTime:
+              audioContext.currentTime + PLAYBACK_START_EPSILON_SECONDS,
+          });
+        },
+
+        resetPlaybackModalSession: () => {
+          get().pauseAudio();
+
+          const latest = get();
+          set({
+            showPlaybackModal: false,
+            playbackStartedAtAudioTime: null,
+            currentChordIndex: 0,
+            playbackModalViewingState: "Practice",
+            visiblePlaybackContainerWidth: 0,
+            countInTimer: {
+              ...latest.countInTimer,
+              showing: false,
+            },
+            audioMetadata: {
+              ...latest.audioMetadata,
+              location: null,
+              playing: false,
+              editingLoopRange: false,
+              startLoopIndex: 0,
+              endLoopIndex: -1,
+            },
+            draftLoopStartIndex: null,
+            draftLoopEndIndex: null,
+          });
+        },
+
+        expandedTabData: null,
+        setExpandedTabData: (expandedTabData) => set({ expandedTabData }),
+
+        // modals
+        showSectionProgressionDialog: false,
+        setShowSectionProgressionDialog: (showSectionProgressionDialog) =>
+          set({ showSectionProgressionDialog }),
+        showGlossaryDialog: false,
+        setShowGlossaryDialog: (showGlossaryDialog) =>
+          set({ showGlossaryDialog }),
+        showDeleteAccountModal: false,
+        setShowDeleteAccountModal: (showDeleteAccountModal) =>
+          set({ showDeleteAccountModal }),
+        showCustomTuningDialog: false,
+        setShowCustomTuningDialog: (showCustomTuningDialog) =>
+          set({ showCustomTuningDialog }),
+        showMobileHeaderModal: false,
+        setShowMobileHeaderModal: (showMobileHeaderModal) =>
+          set({ showMobileHeaderModal }),
+
+        // below are also used to determine if respective dialog should be showing
+        chordBeingEdited: null,
+        setChordBeingEdited: (chordBeingEdited) => {
+          const previous = get().chordBeingEdited;
+          set({ chordBeingEdited });
+          if (
+            previous !== null &&
+            chordBeingEdited !== null &&
+            previous.value.id === chordBeingEdited.value.id
+          ) {
+            chordHistory.record(previous, get().chordBeingEdited!);
+          } else {
+            chordHistory.clear();
+            if (chordBeingEdited) documentHistory.breakGroup();
+            if (!chordBeingEdited) set(documentHistory.availability());
+          }
+        },
+        strummingPatternBeingEdited: null,
+        setStrummingPatternBeingEdited: (strummingPatternBeingEdited) => {
+          const previous = get().strummingPatternBeingEdited;
+          set({ strummingPatternBeingEdited });
+          if (
+            previous !== null &&
+            strummingPatternBeingEdited !== null &&
+            previous.value.id === strummingPatternBeingEdited.value.id
+          ) {
+            patternHistory.record(previous, get().strummingPatternBeingEdited!);
+          } else {
+            patternHistory.clear();
+            if (strummingPatternBeingEdited) documentHistory.breakGroup();
+            if (!strummingPatternBeingEdited)
+              set(documentHistory.availability());
+          }
+        },
+        showPlaybackModal: false,
+        setShowPlaybackModal: (showPlaybackModal) => set({ showPlaybackModal }),
+        playbackModalViewingState: "Practice",
+        setPlaybackModalViewingState: (playbackModalViewingState) =>
+          set({ playbackModalViewingState }),
+
+        isLoadingARoute: false,
+        setIsLoadingARoute: (isLoadingARoute) => set({ isLoadingARoute }),
+        viewportLabel: "mobile",
+        setViewportLabel: (viewportLabel) => set({ viewportLabel }),
+
+        // theme
+        color: "maple",
+        setColor: (color) => set({ color }),
+        theme: "light",
+        setTheme: (theme) => set({ theme }),
+        followsDeviceTheme: true,
+        setFollowsDeviceTheme: (followsDeviceTheme) =>
+          set({ followsDeviceTheme }),
+
+        // reset
+        resetStoreToInitValues: () => {
+          if (useTabStoreBase.getState() === getTabStore()) {
+            setHoveredChordLocationValue(null);
+          }
+          set(initialStoreState);
+          get().clearEditorHistory();
+        },
+        ...initialValues,
+      })),
+    ),
+  );
+
+  return useTabStoreBase;
+};
+
+const useTabStoreBase = createTabStore();
+
+export const TabStoreContext = createContext<ReturnType<
+  typeof createTabStore
+> | null>(null);
+
+/** Embedded editors can share the production components with an independent session. */
+export const useTabStoreApi = () =>
+  useContext(TabStoreContext) ?? useTabStoreBase;
 
 export const useTabStore = <T>(selector: (state: TabState) => T): T => {
-  return useTabStoreBase(useShallow(selector));
+  return useStore(useTabStoreApi(), useShallow(selector));
+};
+
+export const useTabDataGetter = () => {
+  const store = useTabStoreApi();
+  return useCallback(() => store.getState().tabData, [store]);
 };
 
 /** Non-reactive store access for event handlers / imperative subscriptions. */

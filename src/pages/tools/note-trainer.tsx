@@ -16,6 +16,7 @@ import {
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
 import { useTabStore } from "~/stores/TabStore";
+import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 import Spinner from "~/components/ui/Spinner";
 import { PrettyNote } from "~/components/ui/PrettyTuning";
 
@@ -136,6 +137,8 @@ function NoteTrainerPage() {
   }
 
   async function playNote(note: string) {
+    if (useIPhoneAudioReminderStore.getState().requestReminder()) return;
+
     const requestId = playbackRequestIdRef.current + 1;
     playbackRequestIdRef.current = requestId;
 

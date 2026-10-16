@@ -1,0 +1,164 @@
+.animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bell {
+  width: 24px;
+  height: 24px;
+  color: #ff3b30;
+  transform-origin: 50% 12.5%;
+  animation:
+    enableSound 2s ease-in-out forwards,
+    ringBell 2s ease-in-out forwards;
+}
+
+.bell svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.labels {
+  display: grid;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.labels span {
+  grid-area: 1 / 1;
+}
+
+.slash {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: retractSlash 2s ease-in-out forwards;
+}
+
+.silentLabel {
+  animation: hideSilentMode 2s ease-in-out forwards;
+}
+
+/* Both the slash and its cutout retract toward the path's top-left start. */
+@keyframes retractSlash {
+
+  0%,
+  35% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  57% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+
+  58%,
+  100% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+}
+
+/* Ring from the crown, with each swing smaller than the last. */
+@keyframes ringBell {
+
+  0%,
+  65% {
+    transform: rotate(0deg);
+  }
+
+  71% {
+    transform: rotate(-14deg);
+  }
+
+  77% {
+    transform: rotate(11deg);
+  }
+
+  83% {
+    transform: rotate(-8deg);
+  }
+
+  89% {
+    transform: rotate(5deg);
+  }
+
+  95% {
+    transform: rotate(-2deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.soundLabel {
+  opacity: 0;
+  animation: showSound 3.2s ease-in-out forwards;
+}
+
+/* Demonstrate the change once, then hold the unmuted bell. */
+@keyframes enableSound {
+
+  0%,
+  35% {
+    color: #ff3b30;
+  }
+
+  65%,
+  100% {
+    color: hsl(var(--foreground));
+  }
+}
+
+@keyframes hideSilentMode {
+
+  0%,
+  35% {
+    opacity: 1;
+  }
+
+  60%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes showSound {
+
+  0%,
+  45% {
+    opacity: 0;
+  }
+
+  65%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bell {
+    animation: none;
+    color: hsl(var(--foreground));
+    transform: none;
+  }
+
+  .slash,
+  .silentLabel {
+    animation: none;
+    opacity: 0;
+  }
+
+  .slash {
+    stroke-dashoffset: 1;
+  }
+
+  .soundLabel {
+    animation: none;
+    opacity: 1;
+  }
+}

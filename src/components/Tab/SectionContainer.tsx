@@ -12,7 +12,7 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import {
   useTabStore,
-  getTabData,
+  useTabDataGetter,
   type ChordSection as ChordSectionType,
   type StrummingPattern,
   type TabSection as TabSectionType,
@@ -30,12 +30,14 @@ import {
   useSubSectionTypes,
 } from "~/hooks/useTabDataSelectors";
 import { createTabNote } from "~/utils/tabNoteHelpers";
+import { cn } from "~/utils/cn";
 
 interface SectionContainer {
   sectionIndex: number;
   forceCloseSectionAccordions: boolean;
   setForceCloseSectionAccordions: Dispatch<SetStateAction<boolean>>;
   tabDataLength: number;
+  presentation?: "full" | "embedded";
 }
 
 function SectionContainer({
@@ -43,7 +45,9 @@ function SectionContainer({
   forceCloseSectionAccordions,
   setForceCloseSectionAccordions,
   tabDataLength,
+  presentation = "full",
 }: SectionContainer) {
+  const getTabData = useTabDataGetter();
   const {
     bpm,
     strummingPatterns,
@@ -74,7 +78,9 @@ function SectionContainer({
   const subSectionIds = useSubSectionIds(sectionIndex);
   const subSectionTypes = useSubSectionTypes(sectionIndex);
 
-  const [accordionOpen, setAccordionOpen] = useState("opened");
+  const [accordionOpen, setAccordionOpen] = useState(
+    presentation === "embedded" ? "closed" : "opened",
+  );
 
   useEffect(() => {
     if (forceCloseSectionAccordions) {
@@ -84,10 +90,10 @@ function SectionContainer({
   }, [forceCloseSectionAccordions, setForceCloseSectionAccordions]);
 
   useEffect(() => {
-    if (shouldOpenAccordionForPlayback) {
+    if (shouldOpenAccordionForPlayback && presentation === "full") {
       setAccordionOpen("opened");
     }
-  }, [shouldOpenAccordionForPlayback]);
+  }, [shouldOpenAccordionForPlayback, presentation]);
 
   function updateSectionTitle(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.value.length > 25) return;
@@ -197,9 +203,15 @@ function SectionContainer({
   return (
     <div
       style={{
-        paddingBottom: sectionIndex === tabDataLength - 1 ? "2rem" : 0,
+        paddingBottom:
+          presentation === "full" && sectionIndex === tabDataLength - 1
+            ? "2rem"
+            : 0,
       }}
-      className="baseVertFlex w-full gap-4 px-2 md:px-7"
+      className={cn(
+        "baseVertFlex w-full min-w-0 gap-4",
+        presentation === "full" && "px-2 md:px-7",
+      )}
     >
       <Accordion
         type="single"
@@ -212,15 +224,25 @@ function SectionContainer({
       >
         <AccordionItem value="opened" className="baseVertFlex w-full">
           <>
-            <div className="baseFlex w-full">
-              <div className="baseVertFlex w-4/6 !items-start gap-2 sm:w-5/6 sm:!flex-row sm:!justify-start">
+            <div className="baseFlex w-full !justify-between">
+              <div
+                className={cn(
+                  "baseVertFlex !items-start gap-2",
+                  presentation === "embedded"
+                    ? "min-w-0 flex-1"
+                    : "w-4/6 sm:w-5/6 sm:!flex-row sm:!justify-start",
+                )}
+              >
                 <div
-                  className="baseFlex gap-2"
+                  className={cn(
+                    "baseFlex gap-2",
+                    presentation === "embedded" && "min-w-0 pr-3",
+                  )}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Label
                     htmlFor={`sectionTitleInput${sectionIndex}`}
-                    className="text-lg font-semibold"
+                    className={cn("text-lg font-semibold")}
                   >
                     Title
                   </Label>
@@ -229,7 +251,12 @@ function SectionContainer({
                     value={sectionTitle}
                     placeholder="Section title"
                     onChange={updateSectionTitle}
-                    className="w-[10rem] font-semibold xs:w-[15rem]"
+                    className={cn(
+                      "font-semibold",
+                      presentation === "embedded"
+                        ? "w-64"
+                        : "w-[10rem] xs:w-[15rem]",
+                    )}
                   />
                 </div>
               </div>
@@ -238,6 +265,7 @@ function SectionContainer({
                 type={"section"}
                 sectionIndex={sectionIndex}
                 forSectionContainer={true}
+                presentation={presentation}
               />
             </div>
           </>
@@ -247,6 +275,7 @@ function SectionContainer({
             editingSectionContainer={true}
             viewingSectionContainer={false}
             className="w-full"
+            aria-label={`Toggle ${sectionTitle} section`}
           ></AccordionTrigger>
 
           <AccordionContent animated={true} className="w-full pt-4">
@@ -270,6 +299,7 @@ function SectionContainer({
                       <TabSection
                         sectionIndex={sectionIndex}
                         subSectionIndex={index}
+                        presentation={presentation}
                       />
                     )}
                   </AnimatedListItem>

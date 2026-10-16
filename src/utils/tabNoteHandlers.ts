@@ -1,5 +1,5 @@
 import type { Section, FullNoteLengths } from "~/stores/TabStore";
-import { getTabData } from "~/stores/TabStore";
+import { getTabData as getGlobalTabData } from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import {
   createTabNote,
@@ -179,6 +179,7 @@ export function focusEditingTabInput({
 }
 
 export interface TabNoteHandlerParams {
+  getTabData?: () => Section[];
   note: string;
   sectionIndex: number;
   subSectionIndex: number;
@@ -211,6 +212,7 @@ export function handleTabNoteKeyDown(
   e: React.KeyboardEvent<HTMLInputElement>,
   params: TabNoteHandlerParams,
 ) {
+  const getTabData = params.getTabData ?? getGlobalTabData;
   const {
     sectionIndex,
     subSectionIndex,
@@ -363,7 +365,9 @@ export function handleTabNoteKeyDown(
 
       // Focus the next column, or previous if at end
       const nextIndex =
-        columnIndex < subSection.data.length - 1 ? columnIndex : columnIndex - 1;
+        columnIndex < subSection.data.length - 1
+          ? columnIndex
+          : columnIndex - 1;
       focusEditingTabInput({
         currentElement: currentNote,
         sectionIndex,
@@ -578,6 +582,7 @@ export function handleTabNoteKeyDown(
 export function handleTabNoteChange(
   e: React.ChangeEvent<HTMLInputElement>,
   params: {
+    getTabData?: () => Section[];
     noteIndex: number;
     sectionIndex: number;
     subSectionIndex: number;
@@ -585,6 +590,7 @@ export function handleTabNoteChange(
     setTabData: (updater: (draft: Section[]) => void) => void;
   },
 ) {
+  const getTabData = params.getTabData ?? getGlobalTabData;
   const { noteIndex, sectionIndex, subSectionIndex, columnIndex, setTabData } =
     params;
 

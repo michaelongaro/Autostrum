@@ -57,6 +57,7 @@ interface StaticTabSection {
   color: COLORS;
   theme: THEME;
   overflowX?: boolean;
+  presentation?: "card" | "bare";
   height?: string;
   /**
    * Opt-in row-level virtualization. Only enabled from StaticTab via
@@ -78,6 +79,7 @@ function FullStaticTabSection({
   color,
   theme,
   overflowX,
+  presentation = "card",
   height,
 }: StaticTabSection) {
   const { tuning, bpm } = useTabStore((state) => ({
@@ -86,7 +88,7 @@ function FullStaticTabSection({
   }));
 
   return (
-    <SectionCard>
+    <SectionCard presentation={presentation}>
       <div
         data-static-tab-body=""
         className={`baseFlex relative w-full !justify-start ${overflowX ? "overflow-x-auto overflow-y-hidden" : "flex-wrap"} ${height}`}
@@ -110,6 +112,7 @@ function VirtualizedStaticTabSection({
   subSectionData,
   color,
   theme,
+  presentation = "card",
 }: StaticTabSection) {
   const { tuning, bpm } = useTabStore((state) => ({
     tuning: state.tuning,
@@ -333,7 +336,7 @@ function VirtualizedStaticTabSection({
     // that virtualizes always packs more than one row, meaning its wrapped
     // content already spanned the full container width, so pinning the card
     // to w-full is visually identical and keeps the measured width stable.
-    <SectionCard fullWidth={isVirtualized}>
+    <SectionCard fullWidth={isVirtualized} presentation={presentation}>
       <div
         ref={bodyRef}
         data-static-tab-body=""
@@ -356,18 +359,28 @@ function VirtualizedStaticTabSection({
 
 function SectionCard({
   fullWidth = false,
+  presentation = "card",
   children,
 }: {
   fullWidth?: boolean;
+  presentation?: "card" | "bare";
   children: ReactNode;
 }) {
   return (
     <div
-      style={{
-        borderColor: "hsl(var(--screenshot-border))",
-        backgroundColor: "hsl(var(--screenshot-secondary) / 0.25)",
-      }}
-      className={`baseVertFlex relative h-full !justify-start rounded-md border px-4 py-4 shadow-md md:px-8 ${fullWidth ? "w-full" : ""}`}
+      style={
+        presentation === "card"
+          ? {
+              borderColor: "hsl(var(--screenshot-border))",
+              backgroundColor: "hsl(var(--screenshot-secondary) / 0.25)",
+            }
+          : undefined
+      }
+      className={
+        presentation === "bare"
+          ? "baseVertFlex relative w-full !justify-start"
+          : `baseVertFlex relative h-full !justify-start rounded-md border px-4 py-4 shadow-md md:px-8 ${fullWidth ? "w-full" : ""}`
+      }
     >
       {children}
     </div>
