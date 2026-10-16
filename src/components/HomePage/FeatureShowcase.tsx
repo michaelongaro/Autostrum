@@ -17,6 +17,9 @@ import {
   ZoomIn,
   type LucideIcon,
 } from "lucide-react";
+import { GiMusicalScore } from "react-icons/gi";
+import { BsArrowsVertical } from "react-icons/bs";
+import { PiMouseScroll } from "react-icons/pi";
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { cn } from "~/utils/cn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -61,7 +64,7 @@ const EDITING_FEATURES: Feature[] = [
   {
     id: "autoscroll",
     title: "Autoscroll playback",
-    icon: ScanLine,
+    icon: PiMouseScroll,
   },
   {
     id: "tuning",
@@ -261,7 +264,6 @@ export default function FeatureShowcase() {
             className="flex w-fit shrink-0 gap-1 self-start rounded-lg border bg-background p-1"
           >
             {(["Practice", "Editing"] as const).map((name) => {
-              const Icon = name === "Practice" ? Play : Keyboard;
               return (
                 <button
                   key={name}
@@ -275,7 +277,12 @@ export default function FeatureShowcase() {
                       : "text-foreground/65 hover:bg-secondary",
                   )}
                 >
-                  <Icon aria-hidden="true" className="size-4" />
+                  {name === "Practice" ? (
+                    <Play className="size-4" />
+                  ) : (
+                    <GiMusicalScore className="size-[18px]" />
+                  )}
+
                   {name}
                 </button>
               );
