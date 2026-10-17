@@ -1,6 +1,5 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check } from "lucide-react";
 import { useRouter } from "next/router";
 import {
   OverlayScrollbarsComponent,
@@ -9,19 +8,18 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState, Fragment } from "react";
 import { BsGridFill, BsPlus } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
-import { GoChevronRight } from "react-icons/go";
 import { LuFilter } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
 import {
   Drawer,
   DrawerTrigger,
   DrawerContent,
-  DrawerPortal,
   DrawerTitle,
   DrawerDescription,
 } from "~/components/ui/drawer";
 import Render404Page from "~/components/Search/Render404Page";
 import { Button } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import { Label } from "~/components/ui/label";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
@@ -39,6 +37,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { genreColors } from "~/utils/genreColors";
 import { tunings } from "~/utils/tunings";
 import GridTabView from "./GridTabView";
+import SearchFilterCarousel from "./SearchFilterCarousel";
 import TableTabView from "./TableTabView";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import Link from "next/link";
@@ -56,38 +55,6 @@ const opacityVariants = {
   },
   closed: {
     opacity: 0,
-  },
-};
-
-// TODO: rename these to be more descriptive
-
-const baseDrawerVariants = {
-  initial: {
-    opacity: 0,
-    x: "-100%",
-  },
-  animate: {
-    opacity: 1,
-    x: 0,
-  },
-  exit: {
-    opacity: 0,
-    x: "-100%",
-  },
-};
-
-const individualDrawerVariants = {
-  initial: {
-    opacity: 0,
-    x: "100%",
-  },
-  animate: {
-    opacity: 1,
-    x: 0,
-  },
-  exit: {
-    opacity: 0,
-    x: "100%",
   },
 };
 
@@ -129,9 +96,6 @@ function SearchResults({
   }));
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerView, setDrawerView] = useState<
-    "Search filters" | "Genre" | "Tuning" | "Capo" | "Difficulty" | "Sort by"
-  >("Search filters");
 
   const [gateUntilWindowIsAvailable, setGateUntilWindowIsAvailable] =
     useState(true);
@@ -375,7 +339,6 @@ function SearchResults({
     }
 
     setDrawerOpen(false);
-    setDrawerView("Search filters");
 
     void push(
       {
@@ -861,689 +824,153 @@ function SearchResults({
                   </div>
 
                   {/* filter drawer trigger */}
-                  <Drawer
-                    open={drawerOpen}
-                    onOpenChange={(open) => {
-                      setDrawerOpen(open);
-                    }}
-                    onClose={() => {
-                      setDrawerView("Search filters");
-                    }}
-                  >
+                  <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
                     <DrawerTrigger asChild>
                       <Button
-                        variant={"outline"}
+                        variant="outline"
+                        aria-label="Search filters"
+                        disabled={disableFiltersAndLayoutToggle}
                         className="baseFlex w-9 text-primary-foreground"
                       >
                         <LuFilter className="size-4 shrink-0" />
                       </Button>
                     </DrawerTrigger>
-                    <DrawerPortal>
-                      <DrawerContent className="baseVertFlex !items-start !justify-start">
-                        <VisuallyHidden>
-                          <DrawerTitle>Search filters</DrawerTitle>
-                          <DrawerDescription>
-                            Use the search filters to narrow down your results.
-                          </DrawerDescription>
-                        </VisuallyHidden>
+                    <DrawerContent className="max-h-[calc(100dvh-1rem)] !items-start !justify-start">
+                      <VisuallyHidden>
+                        <DrawerDescription>
+                          Use the search filters to narrow down your results.
+                        </DrawerDescription>
+                      </VisuallyHidden>
 
-                        <div className="baseFlex w-full !justify-between px-3">
-                          <AnimatePresence mode="popLayout">
-                            {drawerView === "Search filters" ? (
-                              <motion.div
-                                key={"resetFiltersButton"}
-                                variants={opacityVariants}
-                                initial="closed"
-                                animate="expanded"
-                                exit="closed"
-                                transition={{ duration: 0.25 }}
-                                className="w-[56px]"
-                              >
-                                <Button
-                                  variant="drawerNavigation"
-                                  disabled={disableResetFiltersButton()}
-                                  onClick={() => resetSearchFilters()}
-                                  className="h-9 !p-0 font-normal"
-                                >
-                                  Reset
-                                </Button>
-                              </motion.div>
-                            ) : (
-                              <motion.div
-                                key={"returnToAllFiltersButton"}
-                                variants={opacityVariants}
-                                initial="closed"
-                                animate="expanded"
-                                exit="closed"
-                                transition={{ duration: 0.25 }}
-                                className="baseFlex -ml-1 !justify-start"
-                              >
-                                <Button
-                                  variant="drawerNavigation"
-                                  onClick={() =>
-                                    setDrawerView("Search filters")
-                                  }
-                                  className="h-5 !p-0 font-normal"
-                                >
-                                  <GoChevronRight className="size-5 rotate-180" />
-                                  Filters
-                                </Button>
-                              </motion.div>
-                            )}
+                      <div className="baseFlex w-full shrink-0 !justify-between px-4">
+                        <Button
+                          variant="drawerNavigation"
+                          disabled={disableResetFiltersButton()}
+                          onClick={resetSearchFilters}
+                          className="h-10 w-12 !p-0 font-normal"
+                        >
+                          Reset
+                        </Button>
+                        <DrawerTitle className="baseFlex gap-2 text-base font-medium tracking-normal">
+                          <LuFilter className="size-4" />
+                          Search filters
+                        </DrawerTitle>
+                        <Button
+                          variant="drawerNavigation"
+                          disabled={disableApplyFiltersButton()}
+                          onClick={applyFilters}
+                          className="h-10 w-12 !p-0"
+                        >
+                          Apply
+                        </Button>
+                      </div>
 
-                            {/* drawer title */}
-                            {drawerView === "Search filters" ? (
-                              <motion.div
-                                key={"baseDrawerTitle"}
-                                variants={opacityVariants}
-                                initial="closed"
-                                animate="expanded"
-                                exit="closed"
-                                transition={{ duration: 0.25 }}
-                                className="baseFlex gap-2 whitespace-nowrap text-nowrap font-medium"
-                              >
-                                <LuFilter className="size-4" />
-                                <span>Search filters</span>
-                              </motion.div>
-                            ) : (
-                              <motion.div
-                                key={"drawerTitle"}
-                                variants={opacityVariants}
-                                initial="closed"
-                                animate="expanded"
-                                exit="closed"
-                                transition={{ duration: 0.25 }}
-                                className="baseFlex gap-2 whitespace-nowrap text-nowrap font-medium"
-                              >
-                                <span>{drawerView}</span>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                      <Separator className="mt-1 w-full shrink-0 bg-gray" />
 
-                          <div className="baseFlex w-[56px] !justify-end">
-                            <Button
-                              variant="drawerNavigation"
-                              disabled={disableApplyFiltersButton()}
-                              onClick={() => applyFilters()}
-                              className="h-9 !p-0"
-                            >
-                              Apply
-                            </Button>
-                          </div>
-                        </div>
-
-                        <Separator className="mt-1 h-[1px] w-full bg-gray" />
-
-                        {/* Main body content */}
-                        <div className="baseVertFlex h-[391px] w-full !justify-start overflow-y-auto">
-                          <AnimatePresence mode="popLayout" initial={false}>
-                            {/* All filters */}
-                            {drawerView === "Search filters" && (
-                              <motion.div
-                                key={"allFilters"}
-                                variants={baseDrawerVariants}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                transition={{ duration: 0.25 }}
-                                className="baseVertFlex w-full"
-                              >
-                                <Button
-                                  variant={"drawer"}
-                                  disabled={disableFiltersAndLayoutToggle}
-                                  onClick={() => setDrawerView("Genre")}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                >
-                                  <div className="baseFlex">
-                                    <span className="w-[75px] text-left font-semibold">
-                                      Genre
-                                    </span>
-
-                                    {localFilters.genre === undefined ? (
-                                      <span>All genres</span>
-                                    ) : (
-                                      <div className="baseFlex gap-2">
-                                        <div
-                                          style={{
-                                            backgroundColor: localFilters.genre
-                                              ? genreColors.get(
-                                                  localFilters.genre,
-                                                )
-                                              : "gray",
-                                            boxShadow:
-                                              "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                          }}
-                                          className="h-3 w-3 rounded-full"
-                                        ></div>
-                                        {localFilters.genre}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <GoChevronRight className="size-4" />
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  disabled={disableFiltersAndLayoutToggle}
-                                  onClick={() => setDrawerView("Tuning")}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                >
-                                  <div className="baseFlex">
-                                    <span className="w-[75px] text-left font-semibold">
-                                      Tuning
-                                    </span>
-                                    <div className="baseFlex gap-2">
-                                      {localFilters.tuning ? (
-                                        localFilters.tuning === "custom" ? (
-                                          "Custom"
-                                        ) : (
-                                          <PrettyTuning
-                                            tuning={localFilters.tuning}
-                                            displayWithFlex={true}
-                                          />
-                                        )
-                                      ) : (
-                                        "All tunings"
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <GoChevronRight className="size-4" />
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  disabled={disableFiltersAndLayoutToggle}
-                                  onClick={() => setDrawerView("Capo")}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                >
-                                  <div className="baseFlex">
-                                    <span className="w-[75px] text-left font-semibold">
-                                      Capo
-                                    </span>
-                                    <div className="baseFlex gap-2">
-                                      {localFilters.capo === true
-                                        ? "With capo"
-                                        : localFilters.capo === false
-                                          ? "Without capo"
-                                          : "Capo + Non-capo"}
-                                    </div>
-                                  </div>
-
-                                  <GoChevronRight className="size-4" />
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  disabled={disableFiltersAndLayoutToggle}
-                                  onClick={() => setDrawerView("Difficulty")}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                >
-                                  <div className="baseFlex">
-                                    <span className="w-[75px] text-left font-semibold">
-                                      Difficulty
-                                    </span>
-                                    <div className="baseFlex gap-2">
-                                      {localFilters.difficulty ? (
-                                        <div className="baseFlex gap-2">
-                                          <DifficultyBars
-                                            difficulty={
-                                              localFilters.difficulty ?? 5
-                                            }
-                                          />
-                                          {
-                                            DIFFICULTIES[
-                                              (localFilters.difficulty ?? 5) - 1
-                                            ]
-                                          }
-                                        </div>
-                                      ) : (
-                                        "All difficulties"
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <GoChevronRight className="size-4" />
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  disabled={disableFiltersAndLayoutToggle}
-                                  onClick={() => setDrawerView("Sort by")}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                >
-                                  <div className="baseFlex">
-                                    <span className="w-[75px] text-left font-semibold">
-                                      Sort by
-                                    </span>
-                                    <div className="baseFlex gap-2">
-                                      {localFilters.sortBy === "relevance" &&
-                                      searchQuery
-                                        ? "Relevance"
-                                        : localFilters.sortBy === "newest"
-                                          ? "Newest"
-                                          : localFilters.sortBy === "oldest"
-                                            ? "Oldest"
-                                            : localFilters.sortBy ===
-                                                "mostPopular"
-                                              ? "Most popular"
-                                              : localFilters.sortBy ===
-                                                  "leastPopular"
-                                                ? "Least popular"
-                                                : ""}
-                                    </div>
-                                  </div>
-
-                                  <GoChevronRight className="size-4" />
-                                </Button>
-                              </motion.div>
-                            )}
-
-                            {/* Genre */}
-                            {drawerView === "Genre" && (
-                              <motion.div
-                                key={"genreDrawer"}
-                                variants={individualDrawerVariants}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                transition={{ duration: 0.25 }}
-                                className="baseVertFlex w-full !justify-start"
-                              >
-                                <Button
-                                  variant={"drawer"}
-                                  value={"allGenres"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() => {
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      genre: undefined,
-                                    }));
-                                  }}
-                                >
-                                  <span>All genres</span>
-
-                                  {localFilters.genre === undefined && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                {[...genreColors.entries()].map(
-                                  ([name, color]) => {
-                                    return (
-                                      <Button
-                                        key={name}
-                                        variant={"drawer"}
-                                        value={name}
-                                        className="baseFlex w-full !justify-between gap-2"
-                                        onClick={() =>
-                                          setLocalFilters((prev) => ({
-                                            ...prev,
-                                            genre: name,
-                                          }))
-                                        }
-                                      >
-                                        <div className="baseFlex gap-2">
-                                          <div
-                                            style={{
-                                              backgroundColor: color,
-                                              boxShadow:
-                                                "0 1px 1px hsla(336, 84%, 17%, 0.9)",
-                                            }}
-                                            className="h-3 w-3 rounded-full"
-                                          ></div>
-
-                                          {name}
-                                        </div>
-
-                                        {localFilters.genre === name && (
-                                          <Check className="size-4" />
-                                        )}
-                                      </Button>
-                                    );
-                                  },
-                                )}
-                              </motion.div>
-                            )}
-
-                            {/* Tuning */}
-                            {drawerView === "Tuning" && (
-                              <motion.div
-                                key={"tuningDrawer"}
-                                variants={individualDrawerVariants}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                transition={{ duration: 0.25 }}
-                                className="baseVertFlex w-full !justify-start"
-                              >
-                                <Button
-                                  variant={"drawer"}
-                                  value={"all"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() => {
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      tuning: undefined,
-                                    }));
-                                  }}
-                                >
-                                  <div className="baseFlex gap-2">
-                                    All tunings
-                                  </div>
-
-                                  {localFilters.tuning === undefined && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                {tunings.map((tuningObj) => (
-                                  <Button
-                                    key={tuningObj.simpleNotes}
-                                    variant={"drawer"}
-                                    value={tuningObj.notes.toLowerCase()}
-                                    onClick={() =>
-                                      setLocalFilters((prev) => ({
-                                        ...prev,
-                                        tuning: tuningObj.notes.toLowerCase(),
-                                      }))
-                                    }
-                                    className="baseFlex w-full !justify-between gap-2"
+                      <div className="min-h-0 w-full overflow-y-auto overscroll-contain pb-2 pt-3">
+                        <SearchFilterCarousel
+                          label="Genre"
+                          value={
+                            localFilters.genre === "allGenres"
+                              ? undefined
+                              : localFilters.genre
+                          }
+                          onValueChange={(genre) =>
+                            setLocalFilters((prev) => ({ ...prev, genre }))
+                          }
+                          options={[
+                            { value: undefined, label: "All genres" },
+                            ...[...genreColors.entries()].map(
+                              ([name, color]) => ({
+                                value: name,
+                                label: (
+                                  <Badge
+                                    style={{
+                                      backgroundColor: color.replace(
+                                        /\)$/,
+                                        " / 0.7)",
+                                      ),
+                                      borderColor: color,
+                                    }}
+                                    className="text-primary-foreground"
                                   >
-                                    <div className="baseFlex w-[235px] !justify-between">
-                                      <span className="font-medium">
-                                        {tuningObj.name}
-                                      </span>
-                                      <PrettyTuning
-                                        tuning={tuningObj.simpleNotes}
-                                        width="w-36"
-                                      />
-                                    </div>
-
-                                    {localFilters.tuning ===
-                                      tuningObj.notes.toLowerCase() && (
-                                      <Check className="size-4" />
-                                    )}
-                                  </Button>
-                                ))}
-
-                                <Button
-                                  variant={"drawer"}
-                                  value={"custom"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() => {
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      tuning: "custom",
-                                    }));
-                                  }}
-                                >
-                                  <div className="baseFlex gap-2">Custom</div>
-
-                                  {localFilters.tuning === "custom" && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-                              </motion.div>
-                            )}
-
-                            {/* Capo */}
-                            {drawerView === "Capo" && (
-                              <motion.div
-                                key={"capoDrawer"}
-                                variants={individualDrawerVariants}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                transition={{ duration: 0.25 }}
-                                className="baseVertFlex w-full !justify-start"
-                              >
-                                <Button
-                                  variant={"drawer"}
-                                  value={"all"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() => {
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      capo: undefined,
-                                    }));
-                                  }}
-                                >
-                                  <div className="baseFlex gap-2">
-                                    Capo + Non-capo
-                                  </div>
-
-                                  {localFilters.capo === undefined && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  value={"true"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() => {
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      capo: true,
-                                    }));
-                                  }}
-                                >
-                                  <div className="baseFlex gap-2">
-                                    With capo
-                                  </div>
-
-                                  {localFilters.capo === true && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  value={"false"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() => {
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      capo: false,
-                                    }));
-                                  }}
-                                >
-                                  <div className="baseFlex gap-2">
-                                    Without capo
-                                  </div>
-
-                                  {localFilters.capo === false && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-                              </motion.div>
-                            )}
-
-                            {/* Difficulty */}
-                            {drawerView === "Difficulty" && (
-                              <motion.div
-                                key={"difficultyDrawer"}
-                                variants={individualDrawerVariants}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                transition={{ duration: 0.25 }}
-                                className="baseVertFlex w-full !justify-start"
-                              >
-                                <Button
-                                  variant={"drawer"}
-                                  value={"all"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() => {
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      difficulty: undefined,
-                                    }));
-                                  }}
-                                >
-                                  <div className="baseFlex gap-2">
-                                    All difficulties
-                                  </div>
-
-                                  {localFilters.difficulty === undefined && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                {DIFFICULTIES.map((difficultyName, index) => {
-                                  return (
-                                    <Button
-                                      key={index + 1}
-                                      variant={"drawer"}
-                                      value={(index + 1).toString()}
-                                      className="baseFlex !h-[85px] w-full !justify-between gap-2"
-                                      onClick={() => {
-                                        setLocalFilters((prev) => ({
-                                          ...prev,
-                                          difficulty: index + 1,
-                                        }));
-                                      }}
-                                    >
-                                      <div className="baseVertFlex !items-start gap-1">
-                                        <div className="baseFlex gap-2">
-                                          <DifficultyBars
-                                            difficulty={index + 1}
-                                          />
-                                          <span className="font-medium">
-                                            {difficultyName}
-                                          </span>
-                                        </div>
-                                        <p className="text-left text-sm opacity-75">
-                                          {difficultyDescriptions[index]}
-                                        </p>
-                                      </div>
-
-                                      {localFilters.difficulty ===
-                                        index + 1 && (
-                                        <Check className="size-4" />
-                                      )}
-                                    </Button>
-                                  );
-                                })}
-                              </motion.div>
-                            )}
-
-                            {/* Sort by */}
-                            {drawerView === "Sort by" && (
-                              <motion.div
-                                key={"sortByDrawer"}
-                                variants={individualDrawerVariants}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                transition={{ duration: 0.25 }}
-                                className="baseVertFlex w-full !justify-start"
-                              >
-                                <Button
-                                  variant={"drawer"}
-                                  value={"relevance"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() =>
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      sortBy: "relevance",
-                                    }))
-                                  }
-                                >
-                                  <div className="baseFlex gap-2">
-                                    Relevance
-                                  </div>
-
-                                  {localFilters.sortBy === "relevance" && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  value={"newest"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() =>
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      sortBy: "newest",
-                                    }))
-                                  }
-                                >
-                                  <div className="baseFlex gap-2">Newest</div>
-
-                                  {localFilters.sortBy === "newest" && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  value={"oldest"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() =>
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      sortBy: "oldest",
-                                    }))
-                                  }
-                                >
-                                  <div className="baseFlex gap-2">Oldest</div>
-
-                                  {localFilters.sortBy === "oldest" && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  value={"mostPopular"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() =>
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      sortBy: "mostPopular",
-                                    }))
-                                  }
-                                >
-                                  <div className="baseFlex gap-2">
-                                    Most popular
-                                  </div>
-
-                                  {localFilters.sortBy === "mostPopular" && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-
-                                <Button
-                                  variant={"drawer"}
-                                  value={"leastPopular"}
-                                  className="baseFlex w-full !justify-between gap-2"
-                                  onClick={() =>
-                                    setLocalFilters((prev) => ({
-                                      ...prev,
-                                      sortBy: "leastPopular",
-                                    }))
-                                  }
-                                >
-                                  <div className="baseFlex gap-2">
-                                    Least popular
-                                  </div>
-
-                                  {localFilters.sortBy === "leastPopular" && (
-                                    <Check className="size-4" />
-                                  )}
-                                </Button>
-                              </motion.div>
-                            )}
-
-                            {/* Layout */}
-                          </AnimatePresence>
-                        </div>
-                      </DrawerContent>
-                    </DrawerPortal>
+                                    {name}
+                                  </Badge>
+                                ),
+                              }),
+                            ),
+                          ]}
+                        />
+                        <SearchFilterCarousel
+                          label="Tuning"
+                          value={localFilters.tuning}
+                          onValueChange={(tuning) =>
+                            setLocalFilters((prev) => ({ ...prev, tuning }))
+                          }
+                          options={[
+                            { value: undefined, label: "All tunings" },
+                            ...tunings.map((tuning) => ({
+                              value: tuning.notes.toLowerCase(),
+                              label: (
+                                <>
+                                  <span>{tuning.name}</span>
+                                </>
+                              ),
+                            })),
+                            { value: "custom", label: "Custom tunings" },
+                          ]}
+                        />
+                        <SearchFilterCarousel
+                          label="Capo"
+                          value={localFilters.capo}
+                          onValueChange={(capo) =>
+                            setLocalFilters((prev) => ({ ...prev, capo }))
+                          }
+                          options={[
+                            { value: undefined, label: "Any" },
+                            { value: true, label: "With capo" },
+                            { value: false, label: "Without capo" },
+                          ]}
+                        />
+                        <SearchFilterCarousel
+                          label="Difficulty"
+                          value={localFilters.difficulty}
+                          onValueChange={(difficulty) =>
+                            setLocalFilters((prev) => ({ ...prev, difficulty }))
+                          }
+                          options={[
+                            { value: undefined, label: "All difficulties" },
+                            ...DIFFICULTIES.map((name, index) => ({
+                              value: index + 1,
+                              label: (
+                                <>
+                                  <DifficultyBars difficulty={index + 1} />
+                                  {name}
+                                </>
+                              ),
+                            })),
+                          ]}
+                        />
+                        <SearchFilterCarousel<typeof sortBy>
+                          label="Sort by"
+                          value={localFilters.sortBy}
+                          onValueChange={(sortBy) =>
+                            setLocalFilters((prev) => ({ ...prev, sortBy }))
+                          }
+                          options={[
+                            {
+                              value: "relevance",
+                              label: "Relevance",
+                              disabled: !searchQuery,
+                            },
+                            { value: "newest", label: "Newest" },
+                            { value: "oldest", label: "Oldest" },
+                            { value: "mostPopular", label: "Most popular" },
+                            { value: "leastPopular", label: "Least popular" },
+                          ]}
+                        />
+                      </div>
+                    </DrawerContent>
                   </Drawer>
                 </div>
               </div>
