@@ -4,6 +4,7 @@ import Link from "next/link";
 import SearchResults from "~/components/Search/SearchResults";
 import { Button } from "~/components/ui/button";
 import DraftsDialog from "~/components/Dialogs/DraftsDialog";
+import { getSignedInPageProps } from "~/server/auth";
 
 function UserTabs() {
   return (
@@ -91,3 +92,5 @@ function UserTabs() {
 }
 
 export default UserTabs;
+
+export const getServerSideProps = getSignedInPageProps;

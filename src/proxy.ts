@@ -1,11 +1,19 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-
-const isProfileRoute = createRouteMatcher(["/profile(.*)"]);
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  // Restrict profile routes to signed in users
-  if (isProfileRoute(req)) {
-    await auth.protect();
+  // Early sign-in redirect for navigation; each profile page also checks auth.
+  const pathname = req.nextUrl.pathname;
+  const isNavigation =
+    req.headers.get("accept")?.includes("text/html") ||
+    ["document", "iframe"].includes(req.headers.get("sec-fetch-dest") ?? "") ||
+    req.headers.has("x-nextjs-data");
+
+  if (
+    isNavigation &&
+    (pathname === "/profile" || pathname.startsWith("/profile/"))
+  ) {
+    const { isAuthenticated, redirectToSignIn } = await auth();
+    if (!isAuthenticated) return redirectToSignIn();
   }
 });
 

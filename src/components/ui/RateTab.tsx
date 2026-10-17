@@ -475,15 +475,7 @@ function RateTabDrawer({
               </span>
 
               <div className="baseFlex">
-                <SignInButton
-                  mode="modal"
-                  // afterSignUpUrl={`${
-                  //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                  // }/postSignUpRegistration`}
-                  // afterSignInUrl={`${
-                  //   process.env.NEXT_PUBLIC_DOMAIN_URL ?? ""
-                  // }${asPath}`}
-                >
+                <SignInButton mode="modal">
                   <Button className="baseFlex gap-2 px-8">
                     <FaUser className="size-4" />
                     Sign in

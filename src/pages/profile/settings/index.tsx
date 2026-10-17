@@ -32,6 +32,7 @@ import {
 } from "~/utils/updateCSSThemeVars";
 import { useTabStore } from "~/stores/TabStore";
 import Spinner from "~/components/ui/Spinner";
+import { getSignedInPageProps } from "~/server/auth";
 
 const EditImageModal = dynamic(
   () => import("~/components/modals/EditImageModal"),
@@ -1047,3 +1048,5 @@ function UserSettings() {
 }
 
 export default UserSettings;
+
+export const getServerSideProps = getSignedInPageProps;

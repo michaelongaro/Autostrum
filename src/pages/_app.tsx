@@ -9,7 +9,7 @@ import "~/styles/globals.css";
 import "overlayscrollbars/overlayscrollbars.css";
 import { useTabStore } from "~/stores/TabStore";
 import { COLOR_HEX_VALUES } from "~/utils/updateCSSThemeVars";
-import { dark } from "@clerk/themes";
+import { dark } from "@clerk/ui/themes";
 
 // might in some way mess with t3 bootstrapping, be wary
 type ComponentWithPageLayout = AppProps & {
@@ -29,7 +29,10 @@ function App({ Component, pageProps }: ComponentWithPageLayout) {
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       appearance={{
-        baseTheme: theme === "dark" ? dark : undefined,
+        theme: theme === "dark" ? dark : undefined,
+        options: {
+          showOptionalFields: true,
+        },
       }}
       {...pageProps}
     >

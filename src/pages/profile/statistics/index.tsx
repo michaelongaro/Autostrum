@@ -32,6 +32,7 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import Spinner from "~/components/ui/Spinner";
 import Logo from "~/components/ui/icons/Logo";
+import { getSignedInPageProps } from "~/server/auth";
 
 function UserStatistics() {
   const { data: currentUser, isFetching: isFetchingCurrentUser } =
@@ -783,3 +784,5 @@ function UserStatistics() {
 }
 
 export default UserStatistics;
+
+export const getServerSideProps = getSignedInPageProps;

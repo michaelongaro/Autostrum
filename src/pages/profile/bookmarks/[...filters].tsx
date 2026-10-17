@@ -5,6 +5,7 @@ import Link from "next/link";
 import SearchResults from "~/components/Search/SearchResults";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
+import { getSignedInPageProps } from "~/server/auth";
 
 function UserBookmarks() {
   const { userId } = useAuth();
@@ -98,3 +99,5 @@ function UserBookmarks() {
 }
 
 export default UserBookmarks;
+
+export const getServerSideProps = getSignedInPageProps;
