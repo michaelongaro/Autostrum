@@ -19,7 +19,6 @@ import {
 } from "~/components/ui/drawer";
 import Render404Page from "~/components/Search/Render404Page";
 import { Button } from "~/components/ui/button";
-import { Badge } from "~/components/ui/badge";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import { Label } from "~/components/ui/label";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
@@ -842,7 +841,7 @@ function SearchResults({
                         </DrawerDescription>
                       </VisuallyHidden>
 
-                      <div className="baseFlex w-full shrink-0 !justify-between px-4">
+                      <div className="baseFlex w-full shrink-0 !justify-between px-2">
                         <Button
                           variant="drawerNavigation"
                           disabled={disableResetFiltersButton()}
@@ -865,8 +864,6 @@ function SearchResults({
                         </Button>
                       </div>
 
-                      <Separator className="mt-1 w-full shrink-0 bg-gray" />
-
                       <div className="min-h-0 w-full overflow-y-auto overscroll-contain pb-2 pt-3">
                         <SearchFilterCarousel
                           label="Genre"
@@ -883,20 +880,8 @@ function SearchResults({
                             ...[...genreColors.entries()].map(
                               ([name, color]) => ({
                                 value: name,
-                                label: (
-                                  <Badge
-                                    style={{
-                                      backgroundColor: color.replace(
-                                        /\)$/,
-                                        " / 0.7)",
-                                      ),
-                                      borderColor: color,
-                                    }}
-                                    className="text-primary-foreground"
-                                  >
-                                    {name}
-                                  </Badge>
-                                ),
+                                label: name,
+                                badgeColor: color,
                               }),
                             ),
                           ]}
