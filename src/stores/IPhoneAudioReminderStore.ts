@@ -6,7 +6,7 @@ export const IPHONE_SOUND_REMINDER_DISMISSED_KEY =
 interface IPhoneAudioReminderState {
   open: boolean;
   hasPrompted: boolean;
-  /** Returns true when playback should wait for the reminder to be dismissed. */
+  /** Only request after an actual playback recovery failure. */
   requestReminder: () => boolean;
   dismissReminder: (permanently?: boolean) => void;
 }
@@ -38,8 +38,7 @@ export const useIPhoneAudioReminderStore = create<IPhoneAudioReminderState>(
         // The reminder still works when browser storage is unavailable.
       }
 
-      // AudioContext.state cannot identify Silent Mode: a muted context can
-      // still be running, while "interrupted" also covers calls/backgrounding.
+      // This is troubleshooting after a failed recovery, never mute detection.
       set({ open: true, hasPrompted: true });
       return true;
     },

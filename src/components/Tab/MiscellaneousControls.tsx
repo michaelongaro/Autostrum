@@ -70,7 +70,6 @@ function MiscellaneousControls({
     currentInstrument,
     currentlyCopiedData,
     setCurrentlyCopiedData,
-    playTab,
     pauseAudio,
     setTabData,
   } = useTabStore((state) => ({
@@ -82,7 +81,6 @@ function MiscellaneousControls({
     currentInstrument: state.currentInstrument,
     currentlyCopiedData: state.currentlyCopiedData,
     setCurrentlyCopiedData: state.setCurrentlyCopiedData,
-    playTab: state.playTab,
     pauseAudio: state.pauseAudio,
     setTabData: state.setTabData,
   }));
@@ -396,36 +394,10 @@ function MiscellaneousControls({
           disabled={
             audioMetadata.editingLoopRange ||
             bpm === -1 ||
-            (presentation === "full" && !currentInstrument) ||
             loadingAudio ||
             sectionIsEmpty
           }
-          onClick={() => {
-            if (presentation === "embedded") {
-              void playOnDemand();
-              return;
-            }
-            const samePlaybackScope = playbackScopesMatch(
-              audioMetadata.location,
-              location,
-            );
-
-            if (audioMetadata.playing && samePlaybackScope) {
-              pauseAudio();
-            } else {
-              if (!samePlaybackScope) {
-                pauseAudio(true);
-              }
-
-              // I think we ideally drop the setTimeout here
-              setTimeout(
-                () => {
-                  void playTab({ location });
-                },
-                !samePlaybackScope ? 50 : 0,
-              );
-            }
-          }}
+          onClick={() => void playOnDemand()}
         >
           <PlayButtonIcon
             uniqueLocationKey={`miscControls${sectionIndex}${
@@ -436,9 +408,7 @@ function MiscellaneousControls({
             sectionIndex={sectionIndex}
             subSectionIndex={subSectionIndex}
             chordSequenceIndex={chordSequenceIndex}
-            instrumentLoading={
-              presentation === "embedded" ? "on-demand" : "eager"
-            }
+            instrumentLoading="on-demand"
             forceShowLoadingSpinner={loadingAudio}
           />
         </Button>

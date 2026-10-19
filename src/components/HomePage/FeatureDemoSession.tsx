@@ -17,7 +17,7 @@ import {
 } from "~/stores/TabStore";
 import { getColorForChordName } from "~/utils/chordColors";
 import { createTabNote } from "~/utils/tabNoteHelpers";
-import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
+import { useAudioContextRecovery } from "~/hooks/useAudioContextRecovery";
 import type { FeatureId } from "./FeaturePreviews";
 import styles from "./FeatureShowcase.module.css";
 
@@ -160,8 +160,6 @@ function createSession(
     },
   );
   let enabled = false;
-  let loadingInstrument: ReturnType<typeof ensureSoundfontPlayer> | null = null;
-  const emptyInstruments = store.getState().instruments;
   const ensureAudioSystemReady = store.getState().ensureAudioSystemReady;
   store.setState({
     ensureAudioSystemReady: async () => {
@@ -170,55 +168,9 @@ function createSession(
       if (audibleDemoStore && audibleDemoStore !== store)
         audibleDemoStore.getState().pauseAudio();
       audibleDemoStore = store;
-      let state = store.getState();
-      if (!state.audioContext || state.audioContext.state === "closed") {
-        const audioContext = new AudioContext();
-        const masterVolumeGainNode = audioContext.createGain();
-        masterVolumeGainNode.connect(audioContext.destination);
-        store.setState({
-          audioContext,
-          masterVolumeGainNode,
-          currentInstrument: null,
-          instruments: emptyInstruments,
-        });
-        loadingInstrument = null;
-        state = store.getState();
-      }
-      const { audioContext, masterVolumeGainNode, currentInstrumentName } =
-        state;
-      if (!audioContext || !masterVolumeGainNode) return null;
-      // Resume within the user gesture; load the real guitar only on demand.
-      if (audioContext.state === "suspended") await audioContext.resume();
-      if (!state.currentInstrument) {
-        loadingInstrument ??= ensureSoundfontPlayer(
-          audioContext,
-          currentInstrumentName,
-          masterVolumeGainNode,
-        );
-        try {
-          const player = await loadingInstrument;
-          if (
-            !enabled ||
-            audibleDemoStore !== store ||
-            audioContext.state === "closed"
-          ) {
-            if (audioContext.state !== "closed") await audioContext.close();
-            return null;
-          }
-          store.setState({
-            currentInstrument: player,
-            instruments: {
-              ...emptyInstruments,
-              [currentInstrumentName]: player,
-            },
-          });
-        } catch (error) {
-          loadingInstrument = null;
-          throw error;
-        }
-      }
+      const ready = await ensureAudioSystemReady();
       if (!enabled || audibleDemoStore !== store) return null;
-      return ensureAudioSystemReady();
+      return ready;
     },
   });
   return {
@@ -261,6 +213,7 @@ export default function FeatureDemoSession({
   const [session] = useState(() =>
     createSession(sectionIndex, feature, parentStore, surface),
   );
+  useAudioContextRecovery(session.store);
 
   useEffect(() => {
     session.store.setState({ color, theme });

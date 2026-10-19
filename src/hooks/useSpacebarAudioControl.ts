@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 import { getHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 
@@ -16,6 +16,7 @@ interface UseSpacebarAudioControlOptions {
 }
 
 function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
+  const store = useTabStoreApi();
   const useHoveredChordLocation = options?.useHoveredChordLocation ?? false;
   const disabled = options?.disabled ?? false;
 
@@ -39,21 +40,18 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
 
   const isSpacebarPressed = useRef(false);
   const isPlayingStateLocked = useRef(false); // Prevents concurrent executions
+  const playRequestIdRef = useRef(0);
+  const countInTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const countIn = useGetLocalStorageValues().countIn;
 
   // React Compiler escape hatch: identity is a keydown effect dependency.
-  const toggleAudioPlayingState = useCallback(() => {
+  const toggleAudioPlayingState = useCallback(async () => {
     if (isPlayingStateLocked.current) return; // If already in progress, ignore
     isPlayingStateLocked.current = true;
 
     if (audioMetadata.playing) {
       pauseAudio();
-      isPlayingStateLocked.current = false;
-      return;
-    }
-
-    if (useIPhoneAudioReminderStore.getState().requestReminder()) {
       isPlayingStateLocked.current = false;
       return;
     }
@@ -72,12 +70,28 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     }
 
     if (countIn) {
+      const requestId = ++playRequestIdRef.current;
+      // Start inside keydown, before the count-in timeout loses activation.
+      const ready = await store.getState().ensureAudioSystemReady();
+      if (!ready || requestId !== playRequestIdRef.current) {
+        isPlayingStateLocked.current = false;
+        return;
+      }
       setCountInTimer({
         ...countInTimer,
         showing: true,
       });
 
-      setTimeout(() => {
+      countInTimeoutRef.current = setTimeout(() => {
+        countInTimeoutRef.current = null;
+        if (
+          requestId !== playRequestIdRef.current ||
+          !store.getState().countInTimer.showing ||
+          document.visibilityState === "hidden"
+        ) {
+          isPlayingStateLocked.current = false;
+          return;
+        }
         void playTab({ location: audioMetadata.location });
 
         setCountInTimer({
@@ -100,7 +114,30 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     setCountInTimer,
     useHoveredChordLocation,
     countIn,
+    store,
   ]);
+
+  useEffect(() => {
+    const cancelPendingPlay = () => {
+      playRequestIdRef.current += 1;
+      if (countInTimeoutRef.current !== null) {
+        clearTimeout(countInTimeoutRef.current);
+        countInTimeoutRef.current = null;
+      }
+      isPlayingStateLocked.current = false;
+      isSpacebarPressed.current = false;
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") cancelPendingPlay();
+    };
+    window.addEventListener("pagehide", cancelPendingPlay);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      cancelPendingPlay();
+      window.removeEventListener("pagehide", cancelPendingPlay);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -132,7 +169,7 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
         if (useHoveredChordLocation) {
           e.preventDefault();
         }
-        toggleAudioPlayingState();
+        void toggleAudioPlayingState();
       }
     }
 

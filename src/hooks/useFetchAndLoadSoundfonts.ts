@@ -1,67 +1,54 @@
 import { useEffect } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 function useFetchAndLoadSoundfonts() {
-  const {
-    audioContext,
-    masterVolumeGainNode,
-    currentInstrumentName,
-    instruments,
-    setInstruments,
-    setCurrentInstrument,
-  } = useTabStore((state) => ({
-    audioContext: state.audioContext,
-    masterVolumeGainNode: state.masterVolumeGainNode,
-    currentInstrumentName: state.currentInstrumentName,
-    instruments: state.instruments,
-    setInstruments: state.setInstruments,
-    setCurrentInstrument: state.setCurrentInstrument,
-  }));
+  const store = useTabStoreApi();
+  const { audioContext, masterVolumeGainNode, currentInstrumentName } =
+    useTabStore((state) => ({
+      audioContext: state.audioContext,
+      masterVolumeGainNode: state.masterVolumeGainNode,
+      currentInstrumentName: state.currentInstrumentName,
+    }));
 
   useEffect(() => {
-    const fetchInstrument = () => {
-      if (!audioContext || !masterVolumeGainNode) return;
+    if (
+      !audioContext ||
+      !masterVolumeGainNode ||
+      audioContext.state === "closed"
+    )
+      return;
 
-      // Check if the instrument is already in cache
-      if (instruments[currentInstrumentName]) {
-        setCurrentInstrument(instruments[currentInstrumentName]);
-        return;
-      }
+    const cached = store.getState().instruments[currentInstrumentName];
+    if (cached) {
+      store.setState({ currentInstrument: cached });
+      return;
+    }
 
-      setCurrentInstrument(null);
-
-      void ensureSoundfontPlayer(
-        audioContext,
-        currentInstrumentName,
-        masterVolumeGainNode,
-      )
-        .then((player) => {
-          // Update the cache
-          const updatedInstruments = {
-            ...instruments,
+    store.setState({ currentInstrument: null });
+    void ensureSoundfontPlayer(
+      audioContext,
+      currentInstrumentName,
+      masterVolumeGainNode,
+    )
+      .then((player) => {
+        const latest = store.getState();
+        // A replaced context's players cannot connect to the new audio graph.
+        if (latest.audioContext !== audioContext) return;
+        store.setState({
+          instruments: {
+            ...latest.instruments,
             [currentInstrumentName]: player,
-          };
-          setInstruments(updatedInstruments);
-          setCurrentInstrument(player);
-        })
-        .catch((error) => {
-          console.error(
-            `Failed to load ${currentInstrumentName} from both sources:`,
-            error,
-          );
+          },
+          ...(latest.currentInstrumentName === currentInstrumentName && {
+            currentInstrument: player,
+          }),
         });
-    };
-
-    void fetchInstrument();
-  }, [
-    masterVolumeGainNode,
-    audioContext,
-    currentInstrumentName,
-    instruments,
-    setCurrentInstrument,
-    setInstruments,
-  ]);
+      })
+      .catch((error) => {
+        console.error(`Failed to load ${currentInstrumentName}:`, error);
+      });
+  }, [audioContext, masterVolumeGainNode, currentInstrumentName, store]);
 }
 
 export default useFetchAndLoadSoundfonts;

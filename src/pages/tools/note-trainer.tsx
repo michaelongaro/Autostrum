@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Head from "next/head";
 import { IoEar } from "react-icons/io5";
@@ -15,8 +15,7 @@ import {
 } from "~/components/ui/select";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Label } from "~/components/ui/label";
-import { useTabStore } from "~/stores/TabStore";
-import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
+import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import Spinner from "~/components/ui/Spinner";
 import { PrettyNote } from "~/components/ui/PrettyTuning";
 
@@ -100,20 +99,33 @@ function getRandomNote(notePool: readonly string[]) {
 }
 
 function NoteTrainerPage() {
-  const {
-    audioContext,
-    instruments,
-    currentInstrument,
-    setCurrentInstrumentName,
-  } = useTabStore((state) => ({
-    audioContext: state.audioContext,
+  const store = useTabStoreApi();
+  const { instruments, setCurrentInstrumentName } = useTabStore((state) => ({
     instruments: state.instruments,
-    currentInstrument: state.currentInstrument,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
   }));
 
   const currentPlaybackRef = useRef<PlaybackHandle>(null);
   const playbackRequestIdRef = useRef(0);
+
+  useEffect(() => {
+    const stop = () => {
+      playbackRequestIdRef.current += 1;
+      currentPlaybackRef.current?.stop?.();
+      currentPlaybackRef.current = null;
+      store.getState().currentInstrument?.stop();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") stop();
+    };
+    window.addEventListener("pagehide", stop);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      stop();
+      window.removeEventListener("pagehide", stop);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [store]);
 
   const [audioSource, setAudioSource] = useState<AudioSource>("generated");
   const [noteSet, setNoteSet] = useState<NoteSet>("standard");
@@ -131,22 +143,22 @@ function NoteTrainerPage() {
 
   function stopCurrentPlayback() {
     currentPlaybackRef.current?.stop?.();
-    currentInstrument?.stop();
+    store.getState().currentInstrument?.stop();
 
     currentPlaybackRef.current = null;
   }
 
   async function playNote(note: string) {
-    if (useIPhoneAudioReminderStore.getState().requestReminder()) return;
-
     const requestId = playbackRequestIdRef.current + 1;
     playbackRequestIdRef.current = requestId;
 
     stopCurrentPlayback();
 
-    if (!audioContext || playbackRequestIdRef.current !== requestId) {
+    const ready = await store.getState().ensureAudioSystemReady();
+    if (!ready || playbackRequestIdRef.current !== requestId) {
       return;
     }
+    const { audioContext, currentInstrument: readyInstrument } = ready;
 
     if (audioSource === "generated") {
       const frequency = get(note).freq;
@@ -189,10 +201,11 @@ function NoteTrainerPage() {
       oscillator.start();
       oscillator.stop(audioContext.currentTime + 0.82);
     } else {
-      currentInstrument?.play(note, 0, {
-        duration: 1.5,
-        gain: 3,
-      });
+      currentPlaybackRef.current =
+        readyInstrument?.play(note, 0, {
+          duration: 1.5,
+          gain: 3,
+        }) ?? null;
     }
   }
 

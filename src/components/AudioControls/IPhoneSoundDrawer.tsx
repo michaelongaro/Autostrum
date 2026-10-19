@@ -45,24 +45,24 @@ export default function IPhoneSoundDrawer() {
           <div className="mb-4 mt-3 text-center">
             <DrawerTitle className="baseFlex gap-2 text-[22px] leading-tight">
               <IPhoneSilentModeAnimation />
-              Turn off Silent Mode
+              Having trouble with audio?
             </DrawerTitle>
             <DrawerDescription className="mx-auto mt-3 max-w-[320px] text-sm leading-relaxed">
-              Silent Mode can mute Autostrum&apos;s audio even when your volume
-              is turned up.
+              Audio could not start. Check your volume and try playing again.
+              Silent Mode can also mute audio on iPhone.
             </DrawerDescription>
           </div>
 
           <div className="flex flex-col gap-4 rounded-xl border border-foreground/10 bg-secondary/35 p-4 text-left">
             <div>
-              <p className="text-xs font-semibold">iPhone 16 and newer</p>
+              <p className="text-xs font-semibold">With an Action button</p>
               <p className="mt-1.5 text-xs leading-relaxed text-foreground/75">
                 Swipe down from the top-right corner to open Control Center. Tap
                 the crossed-out bell to turn Silent Mode off.
               </p>
             </div>
             <div className="border-t border-foreground/10 pt-4">
-              <p className="text-xs font-semibold">iPhone 15 and older</p>
+              <p className="text-xs font-semibold">With a Ring/Silent switch</p>
               <p className="mt-1.5 text-xs leading-relaxed text-foreground/75">
                 Flip the Ring/Silent switch on the left side toward the screen
                 so the orange mark is hidden.

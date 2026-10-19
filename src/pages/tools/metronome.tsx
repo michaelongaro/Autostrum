@@ -13,8 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { useTabStore } from "~/stores/TabStore";
-import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
+import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 
 type Subdivision = 1 | 2 | 4;
 
@@ -225,12 +224,14 @@ function MetronomeToolPage() {
     oscillator.stop(now + decay + 0.01);
   }
 
-  function toggleRunning() {
-    if (
-      !isRunning &&
-      useIPhoneAudioReminderStore.getState().requestReminder()
-    ) {
-      return;
+  const store = useTabStoreApi();
+  const playRequestIdRef = useRef(0);
+
+  async function toggleRunning() {
+    const requestId = ++playRequestIdRef.current;
+    if (!isRunning) {
+      const ready = await store.getState().ensureAudioSystemReady();
+      if (!ready || requestId !== playRequestIdRef.current) return;
     }
 
     setIsRunning((currentlyRunning) => {
@@ -253,7 +254,22 @@ function MetronomeToolPage() {
   }
 
   useEffect(() => {
+    const stopForBackground = () => {
+      playRequestIdRef.current += 1;
+      setIsRunning(false);
+      setCurrentBeat(1);
+      currentStepRef.current = 0;
+      barCountRef.current = 0;
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") stopForBackground();
+    };
+    window.addEventListener("pagehide", stopForBackground);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     return () => {
+      playRequestIdRef.current += 1;
+      window.removeEventListener("pagehide", stopForBackground);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
@@ -279,6 +295,10 @@ function MetronomeToolPage() {
     async function runMetronomeLoop() {
       const executeTick = () => {
         if (isCancelled || !audioContext) return;
+        if (audioContext.state !== "running") {
+          setIsRunning(false);
+          return;
+        }
 
         const currentBpm = liveBpmRef.current;
         const millisecondsPerSubdivision =
@@ -392,7 +412,7 @@ function MetronomeToolPage() {
                 type="button"
                 onClick={() => {
                   setMode("regular");
-                  if (isRunning) toggleRunning();
+                  if (isRunning) void toggleRunning();
                 }}
                 className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
               >
@@ -402,7 +422,7 @@ function MetronomeToolPage() {
                 type="button"
                 onClick={() => {
                   setMode("speed-trainer");
-                  if (isRunning) toggleRunning();
+                  if (isRunning) void toggleRunning();
                 }}
                 className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "speed-trainer" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
               >

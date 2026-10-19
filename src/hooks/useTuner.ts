@@ -2,9 +2,9 @@ import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
 import { PitchDetector } from "pitchy";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTabStore } from "~/stores/TabStore";
-import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
+import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
+import { resumeAudioContext } from "~/utils/audioContextRecovery";
 import {
   centsBetweenFrequencies,
   frequencyFromMidi,
@@ -253,13 +253,8 @@ export function useTuner({
   stableHoldDurationMs = TUNER_DEFAULTS.stableHoldDurationMs,
   minimumClarity = TUNER_DEFAULTS.minimumClarity,
 }: UseTunerParams): UseTunerResult {
-  const { audioContext, masterVolumeGainNode, instruments, setInstruments } =
-    useTabStore((state) => ({
-      audioContext: state.audioContext,
-      masterVolumeGainNode: state.masterVolumeGainNode,
-      instruments: state.instruments,
-      setInstruments: state.setInstruments,
-    }));
+  const store = useTabStoreApi();
+  const audioContext = useTabStore((state) => state.audioContext);
 
   const [isListening, setIsListening] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -300,9 +295,7 @@ export function useTuner({
   const guidePlaybackRequestIdRef = useRef(0);
   const guideSuppressUntilRef = useRef(0);
 
-  const instrumentsRef = useRef(instruments);
   const audioContextRef = useRef(audioContext);
-  const masterVolumeGainNodeRef = useRef(masterVolumeGainNode);
 
   const targetNotes = useMemo(
     () => resolveTargetNotes(targetTuning, capo),
@@ -482,11 +475,10 @@ export function useTuner({
   }
 
   async function playReferenceNote(targetIndex: number) {
-    const ctx = audioContextRef.current;
     const midis = loopConfigRef.current.targetMidis;
     const targetMidi = midis[targetIndex] ?? midis[0];
 
-    if (targetMidi === undefined || !ctx) {
+    if (targetMidi === undefined) {
       return;
     }
 
@@ -498,13 +490,20 @@ export function useTuner({
       return;
     }
 
-    if (useIPhoneAudioReminderStore.getState().requestReminder()) return;
-
     const requestId = ++guidePlaybackRequestIdRef.current;
 
     clearGuideSuppression();
     stopGuidePlayback(guidePlaybackHandleRef.current);
     guidePlaybackHandleRef.current = null;
+
+    const ready = await store.getState().ensureAudioSystemReady();
+    if (!ready) return;
+    const ctx = ready.audioContext;
+    if (
+      guidePlaybackRequestIdRef.current !== requestId ||
+      store.getState().audioContext !== ctx
+    )
+      return;
 
     const play = (player: {
       play: (
@@ -517,7 +516,11 @@ export function useTuner({
         },
       ) => GuidePlaybackHandle;
     }) => {
-      if (guidePlaybackRequestIdRef.current !== requestId) {
+      if (
+        guidePlaybackRequestIdRef.current !== requestId ||
+        store.getState().audioContext !== ctx ||
+        ctx.state !== "running"
+      ) {
         return;
       }
 
@@ -533,7 +536,7 @@ export function useTuner({
       guideSuppressUntilRef.current = performance.now() + GUIDE_SUPPRESSION_MS;
     };
 
-    const cached = instrumentsRef.current[GUIDE_INSTRUMENT_NAME];
+    const cached = store.getState().instruments[GUIDE_INSTRUMENT_NAME];
 
     if (cached) {
       play(cached);
@@ -544,16 +547,16 @@ export function useTuner({
       const guideInstrument = await ensureSoundfontPlayer(
         ctx,
         GUIDE_INSTRUMENT_NAME,
-        masterVolumeGainNodeRef.current ?? ctx.destination,
+        ready.masterVolumeGainNode,
       );
 
       const nextInstruments = {
-        ...instrumentsRef.current,
+        ...store.getState().instruments,
         [GUIDE_INSTRUMENT_NAME]: guideInstrument,
       };
 
-      instrumentsRef.current = nextInstruments;
-      setInstruments(nextInstruments);
+      if (store.getState().audioContext !== ctx) return;
+      store.setState({ instruments: nextInstruments });
       play(guideInstrument);
     } catch (caughtError) {
       if (guidePlaybackRequestIdRef.current === requestId) {
@@ -957,6 +960,8 @@ export function useTuner({
   }
 
   async function startListening() {
+    // getUserMedia's permission prompt can outlive the activating tap.
+    const audioReady = store.getState().ensureAudioSystemReady();
     shouldBeListeningRef.current = true;
 
     if (startPromiseRef.current) {
@@ -1006,21 +1011,30 @@ export function useTuner({
           return;
         }
 
-        const ctx = audioContextRef.current;
+        const ready = await audioReady;
+        const ctx = ready?.audioContext;
 
         if (!ctx) {
+          for (const track of stream.getTracks()) track.stop();
           setError("Could not initialize audio context.");
           teardownListening();
           return;
         }
 
-        if (ctx.state === "suspended") {
-          try {
-            await ctx.resume();
-          } catch {
-            // Detection can still run; resume is best-effort.
-          }
+        if (!(await resumeAudioContext(ctx))) {
+          for (const track of stream.getTracks()) track.stop();
+          setError("Audio could not start. Try enabling the tuner again.");
+          teardownListening();
+          return;
         }
+        if (
+          !shouldBeListeningRef.current ||
+          store.getState().audioContext !== ctx
+        ) {
+          for (const track of stream.getTracks()) track.stop();
+          return;
+        }
+        audioContextRef.current = ctx;
 
         streamRef.current = stream;
 
@@ -1081,16 +1095,8 @@ export function useTuner({
   }
 
   useEffect(() => {
-    instrumentsRef.current = instruments;
-  }, [instruments]);
-
-  useEffect(() => {
     audioContextRef.current = audioContext;
   }, [audioContext]);
-
-  useEffect(() => {
-    masterVolumeGainNodeRef.current = masterVolumeGainNode;
-  }, [masterVolumeGainNode]);
 
   useEffect(() => {
     loopConfigRef.current = {
@@ -1148,15 +1154,25 @@ export function useTuner({
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("pagehide", onPageHide);
     window.addEventListener("focus", onFocus);
+    const unsubscribe = store.subscribe((state, previous) => {
+      if (state.audioContext === previous.audioContext) return;
+      audioContextRef.current = state.audioContext;
+      // A replacement context also needs a new microphone source/analyser.
+      if (shouldBeListeningRef.current && streamRef.current) {
+        teardownListening({ preserveIntent: true });
+        void startListening();
+      }
+    });
 
     return () => {
+      unsubscribe();
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("pagehide", onPageHide);
       window.removeEventListener("focus", onFocus);
     };
     // Handlers read the latest state through refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [store]);
 
   /*
    * Reset string progress when the tuning or capo changes.

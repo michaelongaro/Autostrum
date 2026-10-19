@@ -185,7 +185,8 @@ function PlaybackAudioControls({
         function playCountInSound(index: number) {
           if (
             playRequestIdRef.current !== playRequestId ||
-            !readyAudioContext ||
+            !getTabStore().countInTimer.showing ||
+            readyAudioContext?.state !== "running" ||
             !readyMasterVolumeGainNode ||
             !readyCountInBuffer
           ) {
@@ -203,7 +204,7 @@ function PlaybackAudioControls({
           source.connect(gainNode);
 
           gainNode.connect(readyMasterVolumeGainNode);
-          setTimeout(() => source.start(), 190);
+          source.start(readyAudioContext.currentTime + 0.19);
         }
 
         setTimeout(() => playCountInSound(3), 115);

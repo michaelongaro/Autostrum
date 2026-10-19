@@ -8,6 +8,6 @@ const IPhoneSoundDrawer = dynamic(() => import("./IPhoneSoundDrawer"), {
 export default function IPhoneSoundReminder() {
   const hasPrompted = useIPhoneAudioReminderStore((state) => state.hasPrompted);
 
-  // Load the animation and Drawer only after an iPhone playback request.
+  // Load troubleshooting only after playback recovery fails on an iPhone.
   return hasPrompted ? <IPhoneSoundDrawer /> : null;
 }

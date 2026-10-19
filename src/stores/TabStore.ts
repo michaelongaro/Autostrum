@@ -24,6 +24,11 @@ import {
 } from "~/utils/playbackScheduler";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import {
+  isAudioPageHidden,
+  loadCountInBuffer,
+  resumeAudioContext,
+} from "~/utils/audioContextRecovery";
+import {
   clampPlaybackSpeed,
   type PlaybackSpeed,
 } from "~/utils/playbackSpeedControls";
@@ -731,6 +736,7 @@ interface TabState {
   ) => void;
 
   // playing/pausing sound functions
+  initializeAudioSystem: (replace?: boolean) => AudioContext | null;
   ensureAudioSystemReady: () => Promise<{
     audioContext: AudioContext;
     masterVolumeGainNode: GainNode;
@@ -872,6 +878,13 @@ export const createTabStore = (
   initialValues: Partial<TabState> = {},
   resetAudioRange = resetAudioRangeToStart,
 ) => {
+  let audioPreparation: ReturnType<TabState["ensureAudioSystemReady"]> | null =
+    null;
+  let audioPreparationContext: AudioContext | null = null;
+  let audioPreparationPauseId = 0;
+  let audioPauseRequestId = 0;
+  let audioStartRequestId = 0;
+
   const publishAvailability = (availability: {
     canUndo: boolean;
     canRedo: boolean;
@@ -1294,109 +1307,181 @@ export const createTabStore = (
         },
 
         // playing/pausing sound functions
-        ensureAudioSystemReady: async () => {
-          const {
-            audioContext,
-            masterVolumeGainNode,
-            currentInstrumentName,
-            currentInstrument,
-            countInBuffer,
-          } = get();
+        initializeAudioSystem: (replace = false) => {
+          const { audioContext, masterVolumeGainNode } = get();
+          if (
+            !replace &&
+            audioContext &&
+            audioContext.state !== "closed" &&
+            masterVolumeGainNode?.context === audioContext
+          )
+            return audioContext;
 
-          if (!audioContext || !masterVolumeGainNode) return null;
-
-          if (useIPhoneAudioReminderStore.getState().requestReminder())
+          let context: AudioContext;
+          try {
+            context = new AudioContext();
+          } catch (error) {
+            console.error(
+              "Could not create the playback audio context:",
+              error,
+            );
             return null;
-
-          // Ordinary backgrounding: resume is enough.
-          if (audioContext.state === "suspended") {
-            try {
-              await audioContext.resume();
-            } catch {
-              // Fall through to full recreate below.
-            }
           }
-
-          if (audioContext.state === "running") {
-            return {
-              audioContext,
-              masterVolumeGainNode,
-              currentInstrument,
-              countInBuffer,
-            };
-          }
-
-          // iOS "interrupted" (and failed resumes) need a full recreate.
-          const previousVolume = masterVolumeGainNode.gain.value;
-          try {
-            await audioContext.close();
-          } catch {
-            // Best-effort cleanup only.
-          }
-
-          const nextAudioContext = new AudioContext();
-          const nextMasterVolumeGainNode = nextAudioContext.createGain();
-          nextMasterVolumeGainNode.gain.value = isMobileOnly
+          const gain = context.createGain();
+          gain.gain.value = isMobileOnly
             ? 1.25
-            : previousVolume;
-          nextMasterVolumeGainNode.connect(nextAudioContext.destination);
-
-          if (nextAudioContext.state === "suspended") {
+            : (masterVolumeGainNode?.gain.value ?? 1);
+          gain.connect(context.destination);
+          if (isMobileOnly) {
             try {
-              await nextAudioContext.resume();
+              localStorage.setItem("autostrum-volume", "1.25");
             } catch {
-              // Playback may still unlock on the next user gesture.
+              // Audio must work even when browser storage is unavailable.
             }
           }
-
-          let nextCurrentInstrument: Soundfont.Player | null = null;
-          try {
-            nextCurrentInstrument = await ensureSoundfontPlayer(
-              nextAudioContext,
-              currentInstrumentName,
-              nextMasterVolumeGainNode,
-            );
-          } catch (error) {
-            console.error(
-              `Failed to reload ${currentInstrumentName} after AudioContext recovery:`,
-              error,
-            );
-          }
-
-          let nextCountInBuffer: AudioBuffer | null = null;
-          try {
-            const response = await fetch("/sounds/countIn.wav");
-            const arrayBuffer = await response.arrayBuffer();
-            nextCountInBuffer =
-              await nextAudioContext.decodeAudioData(arrayBuffer);
-          } catch (error) {
-            console.error(
-              "Failed to reload count-in audio after AudioContext recovery:",
-              error,
-            );
-          }
-
+          // Publish before any async work so the next gesture can unlock it.
           set({
-            audioContext: nextAudioContext,
-            masterVolumeGainNode: nextMasterVolumeGainNode,
-            instruments: nextCurrentInstrument
-              ? ({
-                  [currentInstrumentName]: nextCurrentInstrument,
-                } as Record<InstrumentNames, Soundfont.Player>)
-              : ({} as Record<InstrumentNames, Soundfont.Player>),
-            currentInstrument: nextCurrentInstrument,
-            countInBuffer: nextCountInBuffer,
+            audioContext: context,
+            masterVolumeGainNode: gain,
+            currentInstrument: null,
+            instruments: {} as Record<InstrumentNames, Soundfont.Player>,
           });
+          if (audioContext && audioContext.state !== "closed")
+            void audioContext.close().catch(() => undefined);
+          return context;
+        },
+        ensureAudioSystemReady: () => {
+          const initialContext = get().initializeAudioSystem();
+          if (!initialContext) {
+            if (!isAudioPageHidden())
+              useIPhoneAudioReminderStore.getState().requestReminder();
+            return Promise.resolve(null);
+          }
+          // Issue resume before either awaiting or joining existing recovery.
+          const initialResume = resumeAudioContext(initialContext);
+          if (
+            audioPreparation &&
+            audioPreparationContext === initialContext &&
+            audioPreparationPauseId === audioPauseRequestId
+          )
+            return audioPreparation;
+          audioPreparationContext = initialContext;
+          const pauseRequestId = audioPauseRequestId;
+          audioPreparationPauseId = pauseRequestId;
 
-          return {
-            audioContext: nextAudioContext,
-            masterVolumeGainNode: nextMasterVolumeGainNode,
-            currentInstrument: nextCurrentInstrument,
-            countInBuffer: nextCountInBuffer,
-          };
+          const preparation = (async () => {
+            let context = initialContext;
+            if (!(await initialResume)) {
+              if (
+                get().audioContext !== context ||
+                pauseRequestId !== audioPauseRequestId ||
+                isAudioPageHidden()
+              )
+                return null;
+              // Both suspended and interrupted contexts get a bounded resume
+              // attempt first. Only a failed attempt requires a new graph.
+              const replacement = get().initializeAudioSystem(true);
+              if (!replacement) {
+                useIPhoneAudioReminderStore.getState().requestReminder();
+                return null;
+              }
+              context = replacement;
+              audioPreparationContext = context;
+              if (!(await resumeAudioContext(context))) {
+                if (
+                  get().audioContext === context &&
+                  pauseRequestId === audioPauseRequestId &&
+                  !isAudioPageHidden()
+                )
+                  useIPhoneAudioReminderStore.getState().requestReminder();
+                return null;
+              }
+            }
+
+            const { masterVolumeGainNode, currentInstrumentName } = get();
+            if (
+              !masterVolumeGainNode ||
+              get().audioContext !== context ||
+              pauseRequestId !== audioPauseRequestId
+            )
+              return null;
+
+            // Soundfonts are cached per context. A load from an abandoned graph
+            // must never overwrite the current instrument or its cache.
+            try {
+              const [player, countInBuffer] = await Promise.all([
+                ensureSoundfontPlayer(
+                  context,
+                  currentInstrumentName,
+                  masterVolumeGainNode,
+                ),
+                get().countInBuffer
+                  ? Promise.resolve(get().countInBuffer)
+                  : loadCountInBuffer(context).catch((error) => {
+                      console.error("Failed to load count-in audio:", error);
+                      return null;
+                    }),
+              ]);
+              const latest = get();
+              if (
+                latest.audioContext !== context ||
+                pauseRequestId !== audioPauseRequestId ||
+                latest.currentInstrumentName !== currentInstrumentName ||
+                isAudioPageHidden()
+              )
+                return null;
+              set({
+                instruments: {
+                  ...latest.instruments,
+                  [currentInstrumentName]: player,
+                },
+                currentInstrument: player,
+                countInBuffer,
+              });
+              // Loading can span a phone call or app switch. Check again before
+              // either full playback, count-in, or a preview can mark playing.
+              if (!(await resumeAudioContext(context))) {
+                if (
+                  pauseRequestId === audioPauseRequestId &&
+                  !isAudioPageHidden()
+                )
+                  useIPhoneAudioReminderStore.getState().requestReminder();
+                return null;
+              }
+              if (
+                get().audioContext !== context ||
+                pauseRequestId !== audioPauseRequestId ||
+                get().currentInstrumentName !== currentInstrumentName ||
+                isAudioPageHidden()
+              )
+                return null;
+              return {
+                audioContext: context,
+                masterVolumeGainNode,
+                currentInstrument: player,
+                countInBuffer,
+              };
+            } catch (error) {
+              console.error("Failed to prepare playback audio:", error);
+              return null;
+            }
+          })()
+            .catch((error) => {
+              console.error("Failed to recover playback audio:", error);
+              return null;
+            })
+            .finally(() => {
+              if (audioPreparation === preparation) {
+                audioPreparation = null;
+                audioPreparationContext = null;
+              }
+            });
+          audioPreparation = preparation;
+          return preparation;
         },
 
         playTab: async ({ location }: PlayTab = {}) => {
+          const startRequestId = ++audioStartRequestId;
           const {
             tabData,
             audioMetadata,
@@ -1418,23 +1503,12 @@ export const createTabStore = (
           } = get();
 
           const audioSystem = await ensureAudioSystemReady();
-          if (!audioSystem) return;
+          if (!audioSystem || startRequestId !== audioStartRequestId) return;
 
           const { currentInstrument, audioContext, masterVolumeGainNode } =
             audioSystem;
 
-          // iOS: never mark playing / seed the strip clock while AudioContext is
-          // still suspended — rAF would sit at the chord boundary with no motion.
-          if (audioContext.state !== "running") {
-            try {
-              await audioContext.resume();
-            } catch {
-              return;
-            }
-          }
-          if (audioContext.state !== "running") {
-            return;
-          }
+          if (audioContext.state !== "running") return;
 
           const currentlyPlayingStrings: (
             Soundfont.Player | AudioBufferSourceNode | undefined
@@ -1643,17 +1717,23 @@ export const createTabStore = (
           chordEffects,
           strumSpreadCompileValue,
         }: PlayPreview) => {
+          const startRequestId = ++audioStartRequestId;
           const { capo, tuning, previewMetadata, ensureAudioSystemReady } =
             get();
 
           const audioSystem = await ensureAudioSystemReady();
-          if (!audioSystem || (isPreviewValid && !isPreviewValid())) return;
+          if (
+            !audioSystem ||
+            startRequestId !== audioStartRequestId ||
+            (isPreviewValid && !isPreviewValid())
+          )
+            return;
 
           const { currentInstrument, audioContext, masterVolumeGainNode } =
             audioSystem;
           const { instruments } = get();
 
-          if (!currentInstrument) return;
+          if (!currentInstrument || audioContext.state !== "running") return;
 
           const currentlyPlayingStrings: (
             Soundfont.Player | AudioBufferSourceNode | undefined
@@ -1767,6 +1847,8 @@ export const createTabStore = (
         },
 
         pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
+          audioStartRequestId += 1;
+          audioPauseRequestId += 1;
           const {
             audioMetadata,
             previewMetadata,

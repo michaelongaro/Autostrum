@@ -33,9 +33,7 @@ const STANDARD_TUNING = parse(DEFAULT_TUNING);
 const MIN_EDGE_OPACITY = 0.18;
 const PATTERN_SLIDE_MS = 380;
 const EMPTY_PLAYING_STRINGS: (
-  | Soundfont.Player
-  | AudioBufferSourceNode
-  | undefined
+  Soundfont.Player | AudioBufferSourceNode | undefined
 )[] = [undefined, undefined, undefined, undefined, undefined, undefined];
 
 interface UseChordTrainerPlaybackArgs {
@@ -49,9 +47,7 @@ interface UseChordTrainerPlaybackArgs {
 
 function stopPlayingStrings(
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[],
 ) {
   const { audioContext } = getTabStore();
@@ -73,9 +69,7 @@ function playQueuedChord({
   strum: string;
   audioEnabled: boolean;
   currentlyPlayingStrings: (
-    | Soundfont.Player
-    | AudioBufferSourceNode
-    | undefined
+    Soundfont.Player | AudioBufferSourceNode | undefined
   )[];
 }) {
   if (!strum || !audioEnabled) return;
@@ -83,7 +77,12 @@ function playQueuedChord({
   const { audioContext, masterVolumeGainNode, currentInstrument } =
     getTabStore();
 
-  if (!audioContext || !masterVolumeGainNode || !currentInstrument) return;
+  if (
+    audioContext?.state !== "running" ||
+    !masterVolumeGainNode ||
+    !currentInstrument
+  )
+    return;
 
   void playNoteColumn({
     tuning: STANDARD_TUNING,
@@ -125,6 +124,7 @@ function useChordTrainerPlayback({
   const queueMutationPendingRef = useRef(false);
   const pendingTrimCountRef = useRef(0);
   const isPlayingRef = useRef(false);
+  const playRequestIdRef = useRef(0);
   const currentItemIndexRef = useRef(0);
 
   const [queue, setQueue] = useState<ChordTrainerQueueItem[]>([]);
@@ -213,6 +213,7 @@ function useChordTrainerPlayback({
   }, []);
 
   const pausePlayback = useCallback(() => {
+    playRequestIdRef.current += 1;
     isPlayingRef.current = false;
     stopAnimationFrame();
     lastFrameTimeRef.current = null;
@@ -246,6 +247,7 @@ function useChordTrainerPlayback({
   }, []);
 
   const resetQueue = useCallback(() => {
+    playRequestIdRef.current += 1;
     isPlayingRef.current = false;
     stopAnimationFrame();
     resetPlaybackHead();
@@ -259,6 +261,7 @@ function useChordTrainerPlayback({
 
   const rebuildQueue = useCallback(
     (chords: ChordTrainerPreset[], pattern: ChordTrainerStrummingPattern) => {
+      playRequestIdRef.current += 1;
       isPlayingRef.current = false;
       stopAnimationFrame();
       resetPlaybackHead();
@@ -320,12 +323,7 @@ function useChordTrainerPlayback({
     updateStreamStyles(
       isPatternVisualizer ? visualScrollXRef.current : scrollXRef.current,
     );
-  }, [
-    isPatternVisualizer,
-    patternLength,
-    queue,
-    updateStreamStyles,
-  ]);
+  }, [isPatternVisualizer, patternLength, queue, updateStreamStyles]);
 
   useEffect(() => {
     pausePlayback();
@@ -365,6 +363,10 @@ function useChordTrainerPlayback({
 
     const tick = (time: number) => {
       if (!isPlayingRef.current) return;
+      if (audioEnabled && getTabStore().audioContext?.state !== "running") {
+        pausePlayback();
+        return;
+      }
 
       if (lastFrameTimeRef.current === null) {
         lastFrameTimeRef.current = time;
@@ -501,6 +503,7 @@ function useChordTrainerPlayback({
     isPatternVisualizer,
     isPlaying,
     patternLength,
+    pausePlayback,
     selectedChords,
     stopAnimationFrame,
     strummingPattern,
@@ -512,6 +515,7 @@ function useChordTrainerPlayback({
     const currentlyPlayingStrings = currentlyPlayingStringsRef.current;
 
     return () => {
+      playRequestIdRef.current += 1;
       isPlayingRef.current = false;
       if (rafRef.current !== null) {
         window.cancelAnimationFrame(rafRef.current);
@@ -520,7 +524,19 @@ function useChordTrainerPlayback({
     };
   }, []);
 
-  const togglePlayback = useCallback(() => {
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") pausePlayback();
+    };
+    window.addEventListener("pagehide", pausePlayback);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("pagehide", pausePlayback);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [pausePlayback]);
+
+  const togglePlayback = useCallback(async () => {
     if (isPlayingRef.current) {
       pausePlayback();
       return;
@@ -530,9 +546,15 @@ function useChordTrainerPlayback({
       return;
     }
 
+    const requestId = ++playRequestIdRef.current;
+    if (audioEnabled) {
+      const ready = await getTabStore().ensureAudioSystemReady();
+      if (!ready || requestId !== playRequestIdRef.current) return;
+    }
+
     isPlayingRef.current = true;
     setIsPlaying(true);
-  }, [pausePlayback, selectedChords.length]);
+  }, [audioEnabled, pausePlayback, selectedChords.length]);
 
   return {
     stageRef,
