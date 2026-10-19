@@ -9,8 +9,6 @@ import {
   type CarouselApi,
 } from "~/components/ui/carousel";
 
-const carouselInset = 16;
-
 function resizeWithoutScrolling(
   api: NonNullable<CarouselApi>,
   entries: ResizeObserverEntry[],
@@ -57,8 +55,9 @@ function resizeWithoutScrolling(
 }
 
 const carouselOptions = {
-  align: "start",
-  containScroll: "trimSnaps",
+  // Match the legend's px-4 inset without scrolling past the content edges.
+  align: () => 16,
+  containScroll: "keepSnaps",
   dragFree: true,
   watchResize: resizeWithoutScrolling,
 } as const;
@@ -82,38 +81,26 @@ function SearchFilterCarousel<T>({
   onValueChange,
 }: SearchFilterCarouselProps<T>) {
   const [api, setApi] = useState<CarouselApi>();
-  const [scrollEdges, setScrollEdges] = useState({ start: false, end: false });
 
   useEffect(() => {
     if (!api) return;
 
-    function updateScrollEdges() {
-      if (!api) return;
+    const slides = api.slideNodes();
+    const viewport = api.rootNode().getBoundingClientRect();
+    const allOptionsVisible = slides.every((slide) => {
+      const { left, right } = slide.getBoundingClientRect();
+      return left >= viewport.left - 1 && right <= viewport.right + 1;
+    });
 
-      const viewport = api.rootNode().getBoundingClientRect();
-      const slides = api.slideNodes();
-      const firstSlide = slides[0]?.getBoundingClientRect();
-      const lastSlide = slides[slides.length - 1]?.getBoundingClientRect();
-      const start =
-        !!firstSlide && firstSlide.left < viewport.left + carouselInset - 1;
-      const end =
-        !!lastSlide && lastSlide.right > viewport.right - carouselInset + 1;
+    if (allOptionsVisible) return;
 
-      setScrollEdges((previous) =>
-        previous.start === start && previous.end === end
-          ? previous
-          : { start, end },
-      );
-    }
+    // Each row mounts when the drawer opens. Reveal its current selection once,
+    // without snapping again as the user selects pills or drags the carousel.
+    const selectedSlide = slides.findIndex((slide) =>
+      slide.querySelector('[aria-pressed="true"]'),
+    );
 
-    updateScrollEdges();
-    api.on("scroll", updateScrollEdges);
-    api.on("reInit", updateScrollEdges);
-
-    return () => {
-      api.off("scroll", updateScrollEdges);
-      api.off("reInit", updateScrollEdges);
-    };
+    if (selectedSlide !== -1) api.scrollTo(selectedSlide, true);
   }, [api]);
 
   return (
@@ -156,10 +143,10 @@ function SearchFilterCarousel<T>({
                   aria-pressed={selected}
                   disabled={option.disabled}
                   onClick={() => onValueChange(option.value)}
-                  className={`gap-0 whitespace-nowrap rounded-full ${
+                  className={`gap-0 whitespace-nowrap rounded-full active:scale-95 motion-reduce:transform-none ${
                     option.badgeColor
-                      ? "border-0 bg-transparent p-0 shadow-none hover:bg-transparent"
-                      : `px-3 ${selected ? "border-primary bg-primary/10" : "border-gray/50"}`
+                      ? "border-0 bg-transparent p-0 shadow-none hover:bg-transparent active:brightness-75"
+                      : `px-3 active:bg-primary/20 ${selected ? "border-primary bg-primary/10" : "border-gray/50"}`
                   }`}
                 >
                   {option.badgeColor ? (
@@ -182,14 +169,6 @@ function SearchFilterCarousel<T>({
             );
           })}
         </CarouselContent>
-        <div
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-background to-transparent transition-opacity duration-200 motion-reduce:transition-none ${scrollEdges.start ? "opacity-100" : "opacity-0"}`}
-        />
-        <div
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent transition-opacity duration-200 motion-reduce:transition-none ${scrollEdges.end ? "opacity-100" : "opacity-0"}`}
-        />
       </Carousel>
     </fieldset>
   );

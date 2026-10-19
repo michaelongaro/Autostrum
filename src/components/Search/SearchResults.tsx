@@ -666,11 +666,11 @@ function SearchResults({
               setLocalFilters((prev) => ({
                 ...prev,
                 sortBy: value as
-                  | "relevance"
                   | "newest"
                   | "oldest"
                   | "mostPopular"
-                  | "leastPopular",
+                  | "leastPopular"
+                  | "relevance",
               }))
             }
           >
@@ -681,13 +681,13 @@ function SearchResults({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="relevance" disabled={!searchQuery}>
-                Relevance
-              </SelectItem>
               <SelectItem value="newest">Newest</SelectItem>
               <SelectItem value="oldest">Oldest</SelectItem>
               <SelectItem value="mostPopular">Most popular</SelectItem>
               <SelectItem value="leastPopular">Least popular</SelectItem>
+              <SelectItem value="relevance" disabled={!searchQuery}>
+                Relevance
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -829,7 +829,7 @@ function SearchResults({
                         variant="outline"
                         aria-label="Search filters"
                         disabled={disableFiltersAndLayoutToggle}
-                        className="baseFlex w-9 text-primary-foreground"
+                        className="baseFlex w-9 text-primary-foreground active:scale-95 motion-reduce:transform-none"
                       >
                         <LuFilter className="size-4 shrink-0" />
                       </Button>
@@ -846,7 +846,7 @@ function SearchResults({
                           variant="drawerNavigation"
                           disabled={disableResetFiltersButton()}
                           onClick={resetSearchFilters}
-                          className="h-10 w-12 !p-0 font-normal"
+                          className="h-10 w-12 !p-0 font-normal active:scale-95 motion-reduce:transform-none"
                         >
                           Reset
                         </Button>
@@ -858,7 +858,7 @@ function SearchResults({
                           variant="drawerNavigation"
                           disabled={disableApplyFiltersButton()}
                           onClick={applyFilters}
-                          className="h-10 w-12 !p-0"
+                          className="h-10 w-12 !p-0 active:scale-95 motion-reduce:transform-none"
                         >
                           Apply
                         </Button>
@@ -943,15 +943,15 @@ function SearchResults({
                             setLocalFilters((prev) => ({ ...prev, sortBy }))
                           }
                           options={[
+                            { value: "newest", label: "Newest" },
+                            { value: "oldest", label: "Oldest" },
+                            { value: "mostPopular", label: "Most popular" },
+                            { value: "leastPopular", label: "Least popular" },
                             {
                               value: "relevance",
                               label: "Relevance",
                               disabled: !searchQuery,
                             },
-                            { value: "newest", label: "Newest" },
-                            { value: "oldest", label: "Oldest" },
-                            { value: "mostPopular", label: "Most popular" },
-                            { value: "leastPopular", label: "Least popular" },
                           ]}
                         />
                       </div>

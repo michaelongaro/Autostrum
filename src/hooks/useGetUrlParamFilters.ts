@@ -23,7 +23,7 @@ interface UrlParamFilters {
   tuning?: string;
   capo?: boolean;
   difficulty?: number;
-  sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
+  sortBy: "newest" | "oldest" | "mostPopular" | "leastPopular" | "relevance";
 }
 
 function useGetUrlParamFilters() {
@@ -141,11 +141,7 @@ function useGetUrlParamFilters() {
         : undefined,
       sortBy: query.sortBy
         ? (query.sortBy as
-            | "relevance"
-            | "newest"
-            | "oldest"
-            | "mostPopular"
-            | "leastPopular")
+            "newest" | "oldest" | "mostPopular" | "leastPopular" | "relevance")
         : query.search
           ? "relevance"
           : "newest",

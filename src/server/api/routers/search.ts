@@ -41,7 +41,7 @@ export interface InfiniteQueryParams {
   tuning: string | undefined;
   capo: boolean | undefined;
   difficulty: number | undefined;
-  sortBy: "relevance" | "newest" | "oldest" | "mostPopular" | "leastPopular";
+  sortBy: "newest" | "oldest" | "mostPopular" | "leastPopular" | "relevance";
   usernameToSelectFrom: string | undefined;
   artistIdToSelectFrom: number | undefined;
   bookmarkedByUserId: string | undefined;
@@ -447,11 +447,11 @@ export const searchRouter = createTRPCRouter({
         difficulty: z.number().int().min(1).max(5).optional(),
         capo: z.boolean().optional(),
         sortBy: z.enum([
-          "relevance", // Only valid if searchQuery is present
           "newest",
           "oldest",
           "mostPopular",
           "leastPopular",
+          "relevance", // Only valid if searchQuery is present
         ]),
         usernameToSelectFrom: z.string().optional(), // Filter by creator's username
         artistIdToSelectFrom: z.number().optional(), // Filter by artist
