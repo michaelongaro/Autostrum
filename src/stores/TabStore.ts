@@ -35,7 +35,6 @@ import {
 import { setHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 import { useShallow } from "zustand/shallow";
 import { isMobileOnly } from "react-device-detect";
-import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
 import type { Draft } from "immer";
 import isEqual from "lodash.isequal";
 import { createEditorHistory } from "~/utils/createEditorHistory";
@@ -1353,8 +1352,6 @@ export const createTabStore = (
         ensureAudioSystemReady: () => {
           const initialContext = get().initializeAudioSystem();
           if (!initialContext) {
-            if (!isAudioPageHidden())
-              useIPhoneAudioReminderStore.getState().requestReminder();
             return Promise.resolve(null);
           }
           // Issue resume before either awaiting or joining existing recovery.
@@ -1382,18 +1379,11 @@ export const createTabStore = (
               // attempt first. Only a failed attempt requires a new graph.
               const replacement = get().initializeAudioSystem(true);
               if (!replacement) {
-                useIPhoneAudioReminderStore.getState().requestReminder();
                 return null;
               }
               context = replacement;
               audioPreparationContext = context;
               if (!(await resumeAudioContext(context))) {
-                if (
-                  get().audioContext === context &&
-                  pauseRequestId === audioPauseRequestId &&
-                  !isAudioPageHidden()
-                )
-                  useIPhoneAudioReminderStore.getState().requestReminder();
                 return null;
               }
             }
@@ -1441,11 +1431,6 @@ export const createTabStore = (
               // Loading can span a phone call or app switch. Check again before
               // either full playback, count-in, or a preview can mark playing.
               if (!(await resumeAudioContext(context))) {
-                if (
-                  pauseRequestId === audioPauseRequestId &&
-                  !isAudioPageHidden()
-                )
-                  useIPhoneAudioReminderStore.getState().requestReminder();
                 return null;
               }
               if (

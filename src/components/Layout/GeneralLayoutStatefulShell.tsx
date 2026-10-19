@@ -14,7 +14,7 @@ import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 import useColorAndThemeController from "~/hooks/useColorAndThemeController";
 import PostSignupDialog from "~/components/Dialogs/PostSignupDialog";
 import MobileHeaderModal from "~/components/modals/MobileHeaderModal";
-import IPhoneSoundReminder from "~/components/AudioControls/IPhoneSoundReminder";
+import IPhoneSoundDrawerController from "~/components/AudioControls/IPhoneSoundDrawerController";
 
 // I had quite a bit of reactive logic in the GeneralLayout component, so I
 // moved it to this component to contain the rerenders to this component (+ children) only
@@ -110,7 +110,7 @@ function GeneralLayoutStatefulShell() {
       </AnimatePresence>
 
       <PostSignupDialog />
-      <IPhoneSoundReminder />
+      <IPhoneSoundDrawerController />
     </>
   );
 }

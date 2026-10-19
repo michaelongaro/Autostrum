@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import Head from "next/head";
 import Link from "next/link";
 import { BsGridFill } from "react-icons/bs";
-import IPhoneSoundDrawer from "~/components/AudioControls/IPhoneSoundDrawer";
 import GenreCards from "~/components/Explore/GenreCards";
 import CustomizeLook from "~/components/HomePage/CustomizeLook";
 import FAQ from "~/components/HomePage/FAQ";

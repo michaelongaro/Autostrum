@@ -6,21 +6,18 @@ import {
   DrawerDescription,
   DrawerTitle,
 } from "~/components/ui/drawer";
-import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
+import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
 import IPhoneSilentModeAnimation from "./IPhoneSilentModeAnimation";
 
 export default function IPhoneSoundDrawer() {
-  const playbackTriggerRef = useRef<HTMLElement | null>(null);
-  const open = useIPhoneAudioReminderStore((state) => state.open);
-  const dismissReminder = useIPhoneAudioReminderStore(
-    (state) => state.dismissReminder,
-  );
+  const settingsTriggerRef = useRef<HTMLElement | null>(null);
+  const { open, returnFocusTo, closeDrawer } = useIPhoneSoundDrawerStore();
 
   return (
     <Drawer
       open={open}
       onOpenChange={(nextOpen) => {
-        if (!nextOpen) dismissReminder();
+        if (!nextOpen) closeDrawer();
       }}
       shouldScaleBackground={false}
       autoFocus
@@ -28,15 +25,12 @@ export default function IPhoneSoundDrawer() {
       <DrawerContent
         className="max-h-[calc(100dvh-24px)] px-5 pb-[max(0.5rem,env(safe-area-inset-bottom))] motion-reduce:!animate-none motion-reduce:!transition-none"
         onOpenAutoFocus={() => {
-          playbackTriggerRef.current =
-            document.activeElement instanceof HTMLElement
-              ? document.activeElement
-              : null;
+          settingsTriggerRef.current = returnFocusTo;
         }}
         onCloseAutoFocus={(event) => {
-          if (playbackTriggerRef.current?.isConnected) {
+          if (settingsTriggerRef.current?.isConnected) {
             event.preventDefault();
-            playbackTriggerRef.current.focus({ preventScroll: true });
+            settingsTriggerRef.current.focus({ preventScroll: true });
           }
         }}
       >
@@ -45,11 +39,11 @@ export default function IPhoneSoundDrawer() {
           <div className="mb-4 mt-3 text-center">
             <DrawerTitle className="baseFlex gap-2 text-[22px] leading-tight">
               <IPhoneSilentModeAnimation />
-              Having trouble with audio?
+              No sound on iPhone?
             </DrawerTitle>
             <DrawerDescription className="mx-auto mt-3 max-w-[320px] text-sm leading-relaxed">
-              Audio could not start. Check your volume and try playing again.
-              Silent Mode can also mute audio on iPhone.
+              Silent Mode can mute Autostrum even when your volume is turned up.
+              Turn off Silent Mode, then check your volume.
             </DrawerDescription>
           </div>
 
@@ -79,17 +73,9 @@ export default function IPhoneSoundDrawer() {
               type="button"
               size="lg"
               className="w-full"
-              onClick={() => dismissReminder()}
+              onClick={closeDrawer}
             >
               Got it
-            </Button>
-            <Button
-              type="button"
-              variant="link"
-              className="min-h-11 underline underline-offset-4"
-              onClick={() => dismissReminder(true)}
-            >
-              Do not show this again
             </Button>
           </div>
         </div>

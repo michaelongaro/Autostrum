@@ -1,6 +1,13 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import { FaBook, FaListUl } from "react-icons/fa";
 import {
@@ -59,6 +66,7 @@ import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPick
 import { useRouter } from "next/router";
 import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
 import ChordName from "~/components/ui/ChordName";
+import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
 
 interface PlaybackBottomMetadata {
   tabProgressValue: number;
@@ -212,10 +220,26 @@ interface MobileSettingsPopover {
   setShowBackgroundBlur: Dispatch<SetStateAction<boolean>>;
 }
 
+// The user agent is static; the server snapshot keeps hydration consistent.
+const subscribeToDevice = () => () => undefined;
+const getIsIPhone = () => /iPhone/i.test(navigator.userAgent);
+const getServerIsIPhone = () => false;
+
 function MobileSettingsPopover({
   showBackgroundBlur,
   setShowBackgroundBlur,
 }: MobileSettingsPopover) {
+  const isIPhone = useSyncExternalStore(
+    subscribeToDevice,
+    getIsIPhone,
+    getServerIsIPhone,
+  );
+  const settingsTriggerRef = useRef<HTMLButtonElement>(null);
+  const openSoundDrawerAfterCloseRef = useRef(false);
+  const openSoundDrawer = useIPhoneSoundDrawerStore(
+    (state) => state.openDrawer,
+  );
+
   const {
     currentInstrumentName,
     setCurrentInstrumentName,
@@ -262,7 +286,9 @@ function MobileSettingsPopover({
     <Popover open={open}>
       <PopoverTrigger asChild>
         <Button
+          ref={settingsTriggerRef}
           variant="outline"
+          aria-label="Playback settings"
           onClick={() => {
             setOpen((prev) => !prev);
             setShowBackgroundBlur((prev) => !prev);
@@ -281,10 +307,40 @@ function MobileSettingsPopover({
       </PopoverTrigger>
       <PopoverContent
         side={viewportLabel.includes("Landscape") ? "left" : "top"}
-        className="baseVertFlex size-full w-[450px] gap-4 mobilePortrait:w-[300px]"
+        className="baseVertFlex max-h-[calc(100dvh-32px)] w-[450px] gap-4 overflow-y-auto mobilePortrait:w-[300px]"
+        onCloseAutoFocus={(event) => {
+          if (openSoundDrawerAfterCloseRef.current) {
+            event.preventDefault();
+            openSoundDrawerAfterCloseRef.current = false;
+            // Hand off focus only after the settings popover has closed.
+            openSoundDrawer(settingsTriggerRef.current);
+          }
+        }}
       >
         <div className="baseVertFlex w-full !items-start gap-2">
-          <span className="text-sm font-medium">Instrument</span>
+          <div className="baseFlex w-full !justify-between gap-2">
+            <span className="text-sm font-medium">Instrument</span>
+
+            {isIPhone && (
+              <Button
+                type="button"
+                variant="link"
+                className="shrink-0 !p-0 text-xs font-normal underline underline-offset-4"
+                aria-haspopup="dialog"
+                onKeyDown={(event) => {
+                  // Activating help with Space must not toggle player playback.
+                  if (event.code === "Space") event.stopPropagation();
+                }}
+                onClick={() => {
+                  openSoundDrawerAfterCloseRef.current = true;
+                  setOpen(false);
+                  setShowBackgroundBlur(false);
+                }}
+              >
+                No sound?
+              </Button>
+            )}
+          </div>
 
           <div className="grid w-full grid-cols-2 grid-rows-2 gap-2 mobilePortrait:grid-cols-1 mobilePortrait:grid-rows-4">
             <Button
@@ -642,7 +698,7 @@ function MobileMenuDialog() {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="baseVertFlex !flex h-dvh max-h-dvh w-full !max-w-none !gap-0 !justify-start overflow-hidden !rounded-none !border-none !px-0 !pb-0 !pt-12">
+      <DialogContent className="baseVertFlex !flex h-dvh max-h-dvh w-full !max-w-none !justify-start !gap-0 overflow-hidden !rounded-none !border-none !px-0 !pb-0 !pt-12">
         <div className="baseFlex h-12 w-full shrink-0 !justify-start">
           <Carousel
             setApi={setCarouselApi}
@@ -857,7 +913,10 @@ function MobileMenuDialog() {
                   {strummingPatterns.length > 0 ? (
                     <div className="baseVertFlex gap-10">
                       {strummingPatterns.map((pattern, index) => (
-                        <div key={pattern.id} className="shrink-0 overflow-hidden">
+                        <div
+                          key={pattern.id}
+                          className="shrink-0 overflow-hidden"
+                        >
                           <div className="baseVertFlex !items-start">
                             <Button
                               variant={"audio"}

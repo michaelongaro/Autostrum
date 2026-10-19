@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
-import { useIPhoneAudioReminderStore } from "~/stores/IPhoneAudioReminderStore";
+import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
 import { getHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 
 interface UseSpacebarAudioControlOptions {
@@ -141,7 +141,7 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (disabled || useIPhoneAudioReminderStore.getState().open) return;
+      if (disabled || useIPhoneSoundDrawerStore.getState().open) return;
 
       if (useHoveredChordLocation) {
         if (!editing || showPlaybackModal) return;

@@ -51,8 +51,8 @@ registerHooks({
 const { createTabStore } = await import("../src/stores/TabStore.ts");
 const { resumeAudioContext, watchAudioContext, loadCountInBuffer } =
   await import("../src/utils/audioContextRecovery.ts");
-const { useIPhoneAudioReminderStore: reminder } =
-  await import("../src/stores/IPhoneAudioReminderStore.ts");
+const { useIPhoneSoundDrawerStore: soundDrawer } =
+  await import("../src/stores/IPhoneSoundDrawerStore.ts");
 
 const documentTarget = new EventTarget();
 documentTarget.visibilityState = "visible";
@@ -131,8 +131,8 @@ function setup(mode = "run") {
   );
   return { store, context, gain };
 }
-function resetReminder() {
-  reminder.setState({ open: false, hasPrompted: false });
+function resetSoundDrawer() {
+  soundDrawer.setState({ open: false, hasOpened: false, returnFocusTo: null });
   storage.clear();
 }
 
@@ -181,7 +181,7 @@ console.log(
 );
 
 {
-  resetReminder();
+  resetSoundDrawer();
   const { store, context } = setup();
   context.state = "interrupted";
   const ready = await store.getState().ensureAudioSystemReady();
@@ -193,7 +193,7 @@ console.log(
   assert.equal(ready.currentInstrument.context, context);
   assert.equal(context.closeCalls, 0);
   assert.equal(
-    reminder.getState().open,
+    soundDrawer.getState().open,
     false,
     "Healthy iPhone playback has no drawer",
   );
@@ -238,22 +238,34 @@ console.log(
   assert.ok(await readyPromise);
 }
 {
-  resetReminder();
+  resetSoundDrawer();
   const { store } = setup("reject");
   nextMode = "reject";
   assert.equal(await store.getState().ensureAudioSystemReady(), null);
   assert.equal(
-    reminder.getState().open,
-    true,
-    "Drawer follows a real recovery failure",
+    soundDrawer.getState().open,
+    false,
+    "Recovery failure must not automatically open help",
   );
-  reminder.getState().dismissReminder();
+  soundDrawer.getState().openDrawer(null);
   store.getState().audioContext.mode = "run";
   assert.ok(
     await store.getState().ensureAudioSystemReady(),
-    "Dismissed drawer never gates retry",
+    "Manual help never gates audio recovery",
   );
-  assert.equal(reminder.getState().open, false);
+  assert.equal(
+    soundDrawer.getState().open,
+    true,
+    "Recovery does not dismiss manual help",
+  );
+  soundDrawer.getState().closeDrawer();
+  soundDrawer.getState().openDrawer(null);
+  assert.equal(
+    soundDrawer.getState().open,
+    true,
+    "Manual help can be reopened",
+  );
+  soundDrawer.getState().closeDrawer();
   nextMode = "run";
 }
 {
@@ -262,7 +274,7 @@ console.log(
   assert.ok(ready, "Hung resume falls back to a fresh working context");
 }
 console.log(
-  "PASS: cold/closed creation, resume before replacement, concurrency, failed recovery drawer, retry",
+  "PASS: cold/closed creation, resume before replacement, concurrency, manual-only help, retry",
 );
 
 {
@@ -376,7 +388,7 @@ console.log(
   assert.equal(store.getState().currentInstrument.context, replacement);
 }
 {
-  resetReminder();
+  resetSoundDrawer();
   const store = createTabStore({}, () => {});
   globalThis.AudioContext = class {
     constructor() {
@@ -387,7 +399,11 @@ console.log(
   try {
     console.error = () => {};
     assert.equal(await store.getState().ensureAudioSystemReady(), null);
-    assert.equal(reminder.getState().open, true);
+    assert.equal(
+      soundDrawer.getState().open,
+      false,
+      "Allocation failure must not open help",
+    );
   } finally {
     console.error = originalError;
     globalThis.AudioContext = FakeAudioContext;
