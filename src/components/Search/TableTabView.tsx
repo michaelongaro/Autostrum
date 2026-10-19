@@ -1,12 +1,11 @@
 import type { InfiniteData } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
   OverlayScrollbarsComponent,
   type OverlayScrollbarsComponentRef,
 } from "overlayscrollbars-react";
 import { type RefObject } from "react";
 import { useInView } from "react-intersection-observer";
-import Spinner from "~/components/ui/Spinner";
 import { Table, TableBody } from "~/components/ui/table";
 import type {
   InfiniteQueryParams,
@@ -15,6 +14,7 @@ import type {
 import type { UserMetadata } from "~/server/api/routers/user";
 import NoResultsFound from "./NoResultsFound";
 import TableTabRow from "./TableTabRow";
+import SearchResultsSpinner from "./SearchResultsSpinner";
 
 interface TableTabView {
   searchQuery?: string;
@@ -60,7 +60,7 @@ function TableTabView({
   const { ref } = useInView({
     threshold: 0.25,
     onChange: (inView) => {
-      if (inView && hasNextPage) {
+      if (inView && hasNextPage && !isFetching) {
         void fetchNextPage();
       }
     },
@@ -70,7 +70,7 @@ function TableTabView({
   // because <OverlayScrollbarsComponent> needs to be a direct child of the DOM element I guess?
 
   return (
-    <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full !justify-start gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]">
+    <div className="baseVertFlex relative min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full !justify-start gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]">
       {tabResults && tabResults.pages[0]?.count !== 0 && (
         <OverlayScrollbarsComponent
           ref={tableBodyRef}
@@ -171,29 +171,14 @@ function TableTabView({
         </OverlayScrollbarsComponent>
       )}
 
-      <AnimatePresence mode="popLayout">
-        {/* loading spinner when fetching tabs */}
-        {isFetching && (
-          <motion.div
-            key={"tableTabViewSpinner"}
-            initial={{ opacity: 0, marginTop: "0", marginBottom: "0" }}
-            animate={{
-              opacity: 1,
-              marginTop:
-                tabResults && tabResults.pages.length !== 0 ? "1.75rem" : "0",
-              marginBottom:
-                tabResults && tabResults.pages.length !== 0 ? "1.75rem" : "0",
-            }}
-            exit={{ opacity: 0 }} // FYI: not sure if this is correct,
-            // but omitting exit margin animations because it looks off to see the spinner
-            // slide back up when it's really supposed to just fade out.
-            transition={{ duration: 0.25 }}
-            className={`${isFetching && !isFetchingNextPage ? "baseFlex grow" : ""}`}
-          >
-            <Spinner className={tabResults ? "size-6" : "size-8"} />
-          </motion.div>
-        )}
+      <SearchResultsSpinner
+        hasResults={Boolean(tabResults?.pages[0]?.data.tabs.length)}
+        hasNextPage={hasNextPage}
+        isFetching={isFetching}
+        isFetchingNextPage={isFetchingNextPage}
+      />
 
+      <AnimatePresence mode="popLayout">
         {/* no results */}
         {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
           <div className="baseFlex grow">

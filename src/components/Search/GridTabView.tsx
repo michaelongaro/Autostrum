@@ -1,7 +1,6 @@
 import type { InfiniteData } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import Spinner from "~/components/ui/Spinner";
 import type {
   InfiniteQueryParams,
   MinimalTabRepresentation,
@@ -10,6 +9,7 @@ import type { UserMetadata } from "~/server/api/routers/user";
 import type { COLORS, THEME } from "~/stores/TabStore";
 import GridTabCard from "./GridTabCard";
 import NoResultsFound from "./NoResultsFound";
+import SearchResultsSpinner from "./SearchResultsSpinner";
 
 interface GridTabView {
   searchQuery?: string;
@@ -47,14 +47,14 @@ function GridTabView({
   const { ref } = useInView({
     threshold: 0.75,
     onChange: (inView) => {
-      if (inView && hasNextPage) {
+      if (inView && hasNextPage && !isFetching) {
         void fetchNextPage();
       }
     },
   });
 
   return (
-    <div className="baseVertFlex size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] !justify-start @container md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]">
+    <div className="baseVertFlex relative size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] !justify-start @container md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]">
       <AnimatePresence mode="popLayout">
         {tabResults && tabResults.pages[0]?.count !== 0 && (
           <div
@@ -81,27 +81,12 @@ function GridTabView({
           </div>
         )}
 
-        {/* loading spinner when fetching tabs */}
-        {isFetching && (
-          <motion.div
-            key={"gridTabViewSpinner"}
-            initial={{ opacity: 0, marginTop: "0", marginBottom: "0" }}
-            animate={{
-              opacity: 1,
-              marginTop:
-                tabResults && tabResults.pages.length !== 0 ? "1.75rem" : "0",
-              marginBottom:
-                tabResults && tabResults.pages.length !== 0 ? "1.75rem" : "0",
-            }}
-            exit={{ opacity: 0 }} // FYI: not sure if this is correct,
-            // but omitting exit margin animations because it looks off to see the spinner
-            // slide back up when it's really supposed to just fade out.
-            transition={{ duration: 0.25 }}
-            className={`${isFetching && !isFetchingNextPage ? "baseFlex grow" : ""}`}
-          >
-            <Spinner className={tabResults ? "size-6" : "size-8"} />
-          </motion.div>
-        )}
+        <SearchResultsSpinner
+          hasResults={Boolean(tabResults?.pages[0]?.data.tabs.length)}
+          hasNextPage={hasNextPage}
+          isFetching={isFetching}
+          isFetchingNextPage={isFetchingNextPage}
+        />
 
         {/* no results */}
         {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
