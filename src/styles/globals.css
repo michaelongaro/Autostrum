@@ -81,21 +81,28 @@ html.disablePullToRefresh {
   overscroll-behavior: none;
 }
 
-/* iOS safari overscroll shows pageBackgroundGradient if this class is applied,
-   keeping it only on non-touch devices */
-@media (pointer: fine) and (hover: hover) {
-  .pageBackgroundGradient {
-    position: fixed;
-    top: 4rem;
-    left: 0;
-    right: 0;
-    bottom: 4rem;
-    z-index: -2;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    align-self: stretch;
-  }
+/* The clip scrolls with the page, keeping the fixed gradient out of iOS
+   overscroll and leaving the solid header/footer background visible there.
+   Clip only this decorative layer so sticky headers and modals are unaffected. */
+.pageBackgroundClip {
+  position: absolute;
+  inset: 4rem 0;
+  z-index: -2;
+  clip-path: inset(0);
+  pointer-events: none;
+}
+
+.pageBackgroundGradient {
+  position: fixed;
+  top: 4rem;
+  left: 0;
+  right: 0;
+  bottom: 4rem;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  align-self: stretch;
 }
 
 

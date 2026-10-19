@@ -23,7 +23,9 @@ function GeneralLayout({ children }: GeneralLayout) {
     >
       <GeneralLayoutStatefulShell />
 
-      <div aria-hidden="true" className="pageBackgroundGradient"></div>
+      <div aria-hidden="true" className="pageBackgroundClip">
+        <div className="pageBackgroundGradient" />
+      </div>
 
       <AnimatePresence mode="wait">{children}</AnimatePresence>
 
