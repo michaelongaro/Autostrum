@@ -154,7 +154,8 @@ function PracticeCarousel({ active }: { active: boolean }) {
       aria-roledescription="carousel"
       aria-label="Practice features. Swipe or use left and right arrow keys to explore."
       tabIndex={0}
-      className="w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring md:hidden"
+      // Contain Radix's hidden inputs before Embla adds a transform on hydration.
+      className="relative w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring md:hidden"
       onKeyDown={(event) => {
         if (event.target !== event.currentTarget) return;
         if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
