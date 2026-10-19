@@ -5,7 +5,7 @@ import { cn } from "~/utils/cn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm shadow-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/70 disabled:pointer-events-none disabled:opacity-50 select-none",
+  "inline-flex items-center justify-center rounded-md text-sm shadow-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground disabled:pointer-events-none disabled:opacity-50 select-none",
   {
     // might want to make separate variants for "primaryOutline" and "primaryGhost" so you don't need the "!"
     variants: {
@@ -76,7 +76,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         style={{
           ...props.style,
           transition:
-            "opacity 0.15s linear, transform 0.15s linear, filter 0.15s linear, background-color 0.15s linear, color 0.15s linear",
+            "opacity 0.15s linear, transform 0.15s linear, filter 0.15s linear, background-color 0.15s linear, color 0.15s linear, box-shadow 0.15s ease-out",
         }}
       />
     );
