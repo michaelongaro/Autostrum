@@ -163,7 +163,7 @@ function CustomTuningEditor({
     if (mode === inputMode) return;
 
     if (mode === "auto") {
-      setQuickTuningInput(stripTuningOctaves(newTuning.join(" ")));
+      setQuickTuningInput(stripTuningOctaves(newTuning.join(" ")).trim());
       setShowInvalidQuickInput(false);
     } else if (normalizedQuickTuning) {
       setNewTuning(normalizedQuickTuning);
@@ -423,7 +423,7 @@ function CustomTuningEditor({
                     newTuningValues[index] = e.target.value.toLowerCase();
                     setNewTuning(newTuningValues);
                     setQuickTuningInput(
-                      stripTuningOctaves(newTuningValues.join(" ")),
+                      stripTuningOctaves(newTuningValues.join(" ")).trim(),
                     );
 
                     if (
@@ -468,35 +468,18 @@ function CustomTuningEditor({
       </div>
     </>
   );
-  if (presentation === "inline") {
-    return (
-      <div
-        data-tab-editor-history="local"
-        {...history.scopeProps}
-        className="baseVertFlex w-full max-w-sm gap-8 rounded-lg border bg-background p-4 shadow-sm"
-      >
-        {content}
-      </div>
-    );
-  }
-
   return (
-    <>
-      <VisuallyHidden>
-        <DialogTitle>Custom tuning dialog</DialogTitle>
-        <DialogDescription>
-          Users can quickly enter the notes of their desired tuning, or enter
-          the full Scientific Pitch Notation for more control.
-        </DialogDescription>
-      </VisuallyHidden>
-      <DialogContent
-        data-tab-editor-history="local"
-        {...history.scopeProps}
-        className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96"
-      >
-        {content}
-      </DialogContent>
-    </>
+    <div
+      data-tab-editor-history="local"
+      {...history.scopeProps}
+      className={
+        presentation === "inline"
+          ? "baseVertFlex w-full max-w-sm gap-8 rounded-lg border bg-background p-4 shadow-sm"
+          : "baseVertFlex w-full gap-8"
+      }
+    >
+      {content}
+    </div>
   );
 }
 
@@ -520,7 +503,16 @@ function CustomTuningDialog({
       open={showCustomTuningDialog}
       onOpenChange={setShowCustomTuningDialog}
     >
-      {showCustomTuningDialog && <CustomTuningEditor />}
+      <DialogContent className="baseVertFlex max-w-[95vw] gap-8 rounded-lg border p-4 shadow-sm xl:w-96">
+        <VisuallyHidden>
+          <DialogTitle>Custom tuning dialog</DialogTitle>
+          <DialogDescription>
+            Users can quickly enter the notes of their desired tuning, or enter
+            the full Scientific Pitch Notation for more control.
+          </DialogDescription>
+        </VisuallyHidden>
+        <CustomTuningEditor />
+      </DialogContent>
     </Dialog>
   );
 }
