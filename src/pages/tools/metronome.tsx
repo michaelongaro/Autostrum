@@ -125,8 +125,9 @@ const TAP_RESET_MS = 2000;
 const MAX_TAP_INTERVALS = 8;
 
 function MetronomeToolPage() {
-  const { audioContext } = useTabStore((state) => ({
+  const { audioContext, theme } = useTabStore((state) => ({
     audioContext: state.audioContext,
+    theme: state.theme,
   }));
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -407,27 +408,62 @@ function MetronomeToolPage() {
         <div className="baseVertFlex w-full gap-6 border-y bg-background p-4 shadow-md sm:rounded-lg sm:border-x sm:p-6">
           <div className="baseFlex w-full gap-4 sm:!justify-between">
             {/* Mode toggle */}
-            <div className="col-span-2 grid w-full grid-cols-2 gap-1 rounded-md border p-1 sm:col-span-1 sm:w-[300px]">
-              <button
+            <div
+              role="group"
+              aria-label="Metronome mode"
+              className={`baseFlex relative z-10 w-full overflow-hidden rounded-md border sm:w-[300px] ${theme === "light" ? "bg-background" : "bg-accent"}`}
+            >
+              <Button
                 type="button"
+                variant="toggle"
+                aria-pressed={mode === "regular"}
+                style={{
+                  color:
+                    theme === "light"
+                      ? mode === "regular"
+                        ? "hsl(var(--background))"
+                        : "hsl(var(--foreground))"
+                      : "hsl(var(--primary-foreground))",
+                }}
                 onClick={() => {
                   setMode("regular");
                   if (isRunning) void toggleRunning();
                 }}
-                className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "regular" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+                className="baseFlex relative h-[30px] w-1/2 gap-2 border-none px-2 text-xs sm:h-[38px] sm:text-sm"
               >
                 Regular
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="toggle"
+                aria-pressed={mode === "speed-trainer"}
+                style={{
+                  color:
+                    theme === "light"
+                      ? mode === "speed-trainer"
+                        ? "hsl(var(--background))"
+                        : "hsl(var(--foreground))"
+                      : "hsl(var(--primary-foreground))",
+                }}
                 onClick={() => {
                   setMode("speed-trainer");
                   if (isRunning) void toggleRunning();
                 }}
-                className={`rounded-sm px-2 py-1.5 text-xs font-semibold transition-colors ${mode === "speed-trainer" ? "bg-primary text-primary-foreground" : "text-foreground/80"}`}
+                className="baseFlex relative h-[30px] w-1/2 gap-2 border-none px-2 text-xs sm:h-[38px] sm:text-sm"
               >
                 Speed Trainer
-              </button>
+              </Button>
+              <div
+                aria-hidden="true"
+                style={{
+                  backgroundColor:
+                    theme === "light"
+                      ? "hsl(var(--accent))"
+                      : "hsl(var(--primary))",
+                  transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+                className={`absolute inset-0 -z-10 w-1/2 ${mode === "regular" ? "translate-x-0 rounded-l-sm" : "translate-x-full rounded-r-sm"}`}
+              />
             </div>
 
             {/* Desktop Start/Stop + Sound selector */}

@@ -19,6 +19,8 @@ import { GiMusicalScore } from "react-icons/gi";
 import { PiMouseScroll } from "react-icons/pi";
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { cn } from "~/utils/cn";
+import { Button } from "~/components/ui/button";
+import { useTabStore } from "~/stores/TabStore";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import FeaturePreview, { type FeatureId } from "./FeaturePreviews";
 import styles from "./FeatureShowcase.module.css";
@@ -204,6 +206,7 @@ function PracticeCarousel({ active }: { active: boolean }) {
 }
 
 export default function FeatureShowcase() {
+  const theme = useTabStore((state) => state.theme);
   const [mode, setMode] = useState<FeatureMode>("Practice");
   const desktop = useViewportWidthBreakpoint(768);
   const [selection, setSelection] = useState({ Practice: 0, Editing: 0 });
@@ -261,21 +264,25 @@ export default function FeatureShowcase() {
           <div
             role="group"
             aria-label="Choose platform features"
-            className="flex w-fit shrink-0 gap-1 self-start rounded-lg border bg-background p-1"
+            className={`relative z-10 mb-4 grid w-fit shrink-0 grid-cols-2 self-start overflow-hidden rounded-md border ${theme === "light" ? "bg-background" : "bg-accent"}`}
           >
             {(["Practice", "Editing"] as const).map((name) => {
               return (
-                <button
+                <Button
                   key={name}
                   type="button"
+                  variant="toggle"
                   aria-pressed={mode === name}
                   onClick={() => setMode(name)}
-                  className={cn(
-                    "flex h-10 items-center gap-2 rounded-md px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    mode === name
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-foreground/65 hover:bg-secondary",
-                  )}
+                  style={{
+                    color:
+                      theme === "light"
+                        ? mode === name
+                          ? "hsl(var(--background))"
+                          : "hsl(var(--foreground))"
+                        : "hsl(var(--primary-foreground))",
+                  }}
+                  className="baseFlex relative h-[38px] gap-2 border-none px-4 text-sm"
                 >
                   {name === "Practice" ? (
                     <Play className="size-4" />
@@ -284,10 +291,24 @@ export default function FeatureShowcase() {
                   )}
 
                   {name}
-                </button>
+                </Button>
               );
             })}
+            <div
+              aria-hidden="true"
+              style={{
+                backgroundColor:
+                  theme === "light"
+                    ? "hsl(var(--accent))"
+                    : "hsl(var(--primary))",
+                transition: reduceMotion
+                  ? "none"
+                  : "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+              className={`absolute inset-0 -z-10 w-1/2 ${mode === "Practice" ? "translate-x-0 rounded-l-sm" : "translate-x-full rounded-r-sm"}`}
+            />
           </div>
+
           <div
             role="tablist"
             aria-label={`${mode} features`}
