@@ -119,6 +119,7 @@ function parkPlayheadAtMetadataIndex({
   sectionIndex,
   subSectionIndex,
   pausedOffset,
+  measurePosition,
 }: {
   container: HTMLElement;
   playhead: HTMLDivElement;
@@ -127,6 +128,7 @@ function parkPlayheadAtMetadataIndex({
   sectionIndex: number;
   subSectionIndex: number;
   pausedOffset: boolean;
+  measurePosition: typeof measureChordPosition;
 }) {
   const currMeta = metadata[metadataIndex];
   if (
@@ -137,7 +139,7 @@ function parkPlayheadAtMetadataIndex({
     return;
   }
 
-  const pos = measureChordPosition(
+  const pos = measurePosition(
     container,
     sectionIndex,
     subSectionIndex,
@@ -168,11 +170,14 @@ export function useEditingTabPlayhead({
   subSectionIndex,
   containerRef,
   playheadRef,
+  measurePosition = measureChordPosition,
 }: {
   sectionIndex: number;
   subSectionIndex: number;
   containerRef: RefObject<HTMLElement | null>;
   playheadRef: RefObject<HTMLDivElement | null>;
+  /** Override column geometry when reusing the playback clock on a static staff. */
+  measurePosition?: typeof measureChordPosition;
 }) {
   const store = useTabStoreApi();
   const playing = useTabStore((state) => state.audioMetadata.playing);
@@ -222,6 +227,7 @@ export function useEditingTabPlayhead({
         sectionIndex,
         subSectionIndex,
         pausedOffset: true,
+        measurePosition,
       });
       return;
     }
@@ -282,6 +288,7 @@ export function useEditingTabPlayhead({
             sectionIndex,
             subSectionIndex,
             pausedOffset: true,
+            measurePosition,
           });
         } else {
           hide();
@@ -347,6 +354,7 @@ export function useEditingTabPlayhead({
           sectionIndex,
           subSectionIndex,
           pausedOffset: false,
+          measurePosition,
         });
         rafId = requestAnimationFrame(tick);
         return;
@@ -361,6 +369,7 @@ export function useEditingTabPlayhead({
           sectionIndex,
           subSectionIndex,
           pausedOffset: false,
+          measurePosition,
         });
         rafId = requestAnimationFrame(tick);
         return;
@@ -407,12 +416,13 @@ export function useEditingTabPlayhead({
           sectionIndex,
           subSectionIndex,
           pausedOffset: false,
+          measurePosition,
         });
         rafId = requestAnimationFrame(tick);
         return;
       }
 
-      const currPos = measureChordPosition(
+      const currPos = measurePosition(
         container,
         sectionIndex,
         subSectionIndex,
@@ -427,6 +437,7 @@ export function useEditingTabPlayhead({
           sectionIndex,
           subSectionIndex,
           pausedOffset: false,
+          measurePosition,
         });
         rafId = requestAnimationFrame(tick);
         return;
@@ -451,7 +462,7 @@ export function useEditingTabPlayhead({
       );
       const nextPos =
         nextIndex !== null
-          ? measureChordPosition(
+          ? measurePosition(
               container,
               sectionIndex,
               subSectionIndex,
@@ -509,6 +520,7 @@ export function useEditingTabPlayhead({
     subSectionIndex,
     containerRef,
     playheadRef,
+    measurePosition,
     store,
   ]);
 }

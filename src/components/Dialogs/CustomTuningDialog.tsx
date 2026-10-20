@@ -227,7 +227,7 @@ function CustomTuningEditor({
 
       <div className="baseFlex gap-3">
         <Label>Mode</Label>
-        <div className="baseFlex relative overflow-y-hidden rounded-md border">
+        <div className="baseFlex relative isolate overflow-y-hidden rounded-md border">
           <Button
             disabled={isPreviewing}
             aria-pressed={inputMode === "auto"}

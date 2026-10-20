@@ -59,6 +59,8 @@ interface StaticTabSection {
   overflowX?: boolean;
   presentation?: "card" | "bare";
   height?: string;
+  /** Last column in the live playback highlight trail; -1 clears the trail. */
+  highlightedThroughColumn?: number;
   /**
    * Opt-in row-level virtualization. Only enabled from StaticTab via
    * StaticSectionContainer; every other caller keeps the full-render path.
@@ -81,6 +83,7 @@ function FullStaticTabSection({
   overflowX,
   presentation = "card",
   height,
+  highlightedThroughColumn = -1,
 }: StaticTabSection) {
   const { tuning, bpm } = useTabStore((state) => ({
     tuning: state.tuning,
@@ -102,6 +105,7 @@ function FullStaticTabSection({
           theme,
           subSectionData.bpm,
           bpm,
+          highlightedThroughColumn,
         )}
       </div>
     </SectionCard>
@@ -113,6 +117,7 @@ function VirtualizedStaticTabSection({
   color,
   theme,
   presentation = "card",
+  highlightedThroughColumn = -1,
 }: StaticTabSection) {
   const { tuning, bpm } = useTabStore((state) => ({
     tuning: state.tuning,
@@ -281,6 +286,7 @@ function VirtualizedStaticTabSection({
           theme,
           subSectionData.bpm,
           bpm,
+          highlightedThroughColumn,
         )}
       </>
     );
@@ -321,6 +327,7 @@ function VirtualizedStaticTabSection({
                 theme,
                 subSectionData.bpm,
                 bpm,
+                highlightedThroughColumn,
               )}
             </div>
           ))}
@@ -478,6 +485,7 @@ function renderColumnRange(
   theme: THEME,
   subSectionBpm: number,
   baselineBpm: number,
+  highlightedThroughColumn = -1,
 ): ReactNode[] {
   const renderedColumns: ReactNode[] = [];
   const beamBreaks = beamBreaksForTabColumns(columns);
@@ -509,6 +517,8 @@ function renderColumnRange(
       columnNode = (
         <StaticTabNotesColumn
           key={column.id}
+          columnIndex={index}
+          isHighlighted={index <= highlightedThroughColumn}
           columnData={column}
           previousColumn={columns[index - 1]}
           nextColumn={columns[index + 1]}

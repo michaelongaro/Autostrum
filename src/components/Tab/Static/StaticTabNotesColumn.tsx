@@ -33,7 +33,9 @@ function chordHasAtLeastOneNote(chordData: TabNoteType): boolean {
 }
 
 interface StaticTabNotesColumnProps {
+  columnIndex: number;
   columnData: TabNoteType;
+  isHighlighted?: boolean;
   // neighbors are resolved by the row renderer in StaticTabSection so that
   // offscreen (virtualized) columns hold no store subscriptions
   previousColumn: TabNoteType | TabMeasureLineType | undefined;
@@ -46,7 +48,9 @@ interface StaticTabNotesColumnProps {
 }
 
 function StaticTabNotesColumn({
+  columnIndex,
   columnData,
+  isHighlighted = false,
   previousColumn,
   nextColumn,
   isLastColumn,
@@ -83,6 +87,8 @@ function StaticTabNotesColumn({
 
   return (
     <div
+      data-static-tab-column={columnIndex}
+      data-playback-highlighted={isHighlighted || undefined}
       style={{
         height: STATIC_TAB_ROW_HEIGHT_PX,
         width: STATIC_TAB_NOTES_COLUMN_WIDTH_PX,
@@ -122,6 +128,7 @@ function StaticTabNotesColumn({
                 ></div>
 
                 <StaticTabNote
+                  isHighlighted={isHighlighted}
                   note={
                     note.includes(">")
                       ? note.slice(0, note.length - 1)

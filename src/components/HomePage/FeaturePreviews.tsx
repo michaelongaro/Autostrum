@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import dynamic from "next/dynamic";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { CgArrowsShrinkH } from "react-icons/cg";
@@ -23,7 +23,13 @@ import PauseIcon from "~/components/ui/icons/PauseIcon";
 import Spinner from "~/components/ui/Spinner";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
+import { useEditingTabPlayhead } from "~/hooks/useEditingTabPlayhead";
 import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
+import {
+  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_HEIGHT_PX,
+  STATIC_TAB_STAFF_LINE_INSET_PX,
+} from "~/utils/staticTabGeometry";
 import FeatureDemoSession, { useFeatureDemo } from "./FeatureDemoSession";
 import styles from "./FeatureShowcase.module.css";
 
@@ -107,8 +113,74 @@ function DemoPlaybackButton({
   );
 }
 
-function PracticeTab() {
+function measurePracticeChordPosition(
+  container: HTMLElement,
+  _sectionIndex: number,
+  _subSectionIndex: number,
+  chordIndex: number,
+) {
+  const column = container.querySelector(
+    `[data-static-tab-column="${chordIndex}"]`,
+  );
+  if (!column) return null;
+
+  const containerRect = container.getBoundingClientRect();
+  const rect = column.getBoundingClientRect();
+  return {
+    x: rect.left - containerRect.left + rect.width / 2,
+    y:
+      rect.top -
+      containerRect.top +
+      STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX +
+      STATIC_TAB_STAFF_LINE_INSET_PX,
+    width: rect.width,
+  };
+}
+
+function PracticeTabPlayhead({
+  containerRef,
+}: {
+  containerRef: RefObject<HTMLDivElement | null>;
+}) {
   const { sectionIndex } = useFeatureDemo();
+  const playheadRef = useRef<HTMLDivElement>(null);
+  useEditingTabPlayhead({
+    sectionIndex,
+    subSectionIndex: 0,
+    containerRef,
+    playheadRef,
+    measurePosition: measurePracticeChordPosition,
+  });
+
+  return (
+    <div
+      ref={playheadRef}
+      data-practice-tab-playhead
+      aria-hidden="true"
+      className="pointer-events-none absolute left-0 top-0 z-10 w-[2px] bg-primary will-change-transform"
+      style={{ height: STATIC_TAB_STAFF_LINE_HEIGHT_PX, opacity: 0 }}
+    />
+  );
+}
+
+function PracticeTab({ showPlayhead = false }: { showPlayhead?: boolean }) {
+  const { sectionIndex } = useFeatureDemo();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const highlightedThroughColumn = useTabStore((state) => {
+    if (!showPlayhead || state.audioMetadata.editingLoopRange) return -1;
+
+    const current = state.currentlyPlayingMetadata?.[state.currentChordIndex];
+    if (
+      current?.location.sectionIndex !== sectionIndex ||
+      current.location.subSectionIndex !== 0
+    ) {
+      return -1;
+    }
+
+    // Match the modal: keep played notes colored on pause, and clear the
+    // trail when playback resets to column zero with no active chord.
+    return current.location.chordIndex - (state.audioMetadata.playing ? 0 : 1);
+  });
   const { subSection, color, theme } = useTabStore((state) => ({
     subSection: state.tabData[sectionIndex]?.data[0],
     color: state.color,
@@ -116,15 +188,19 @@ function PracticeTab() {
   }));
   if (subSection?.type !== "tab") return null;
   return (
-    <StaticTabSection
-      subSectionData={subSection}
-      sectionIndex={sectionIndex}
-      subSectionIndex={0}
-      color={color}
-      theme={theme}
-      overflowX
-      presentation="bare"
-    />
+    <div ref={containerRef} className="relative w-full overflow-hidden">
+      <StaticTabSection
+        subSectionData={subSection}
+        sectionIndex={sectionIndex}
+        subSectionIndex={0}
+        color={color}
+        theme={theme}
+        highlightedThroughColumn={highlightedThroughColumn}
+        overflowX
+        presentation="bare"
+      />
+      {showPlayhead && <PracticeTabPlayhead containerRef={containerRef} />}
+    </div>
   );
 }
 
@@ -209,7 +285,7 @@ function SpeedPreview() {
   return (
     <div className="flex w-full min-w-0 flex-col gap-5">
       <div className={styles.practiceViewport}>
-        <PracticeTab />
+        <PracticeTab showPlayhead />
       </div>
       <div className="flex w-full flex-wrap items-center justify-between gap-3 self-center rounded-lg border bg-background p-4 md:w-3/4">
         <DemoPlaybackButton />

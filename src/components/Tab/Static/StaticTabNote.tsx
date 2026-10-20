@@ -2,6 +2,7 @@ import PauseIcon from "~/components/ui/icons/PauseIcon";
 
 interface StaticTabNote {
   note: string;
+  isHighlighted?: boolean;
   isAccented?: boolean;
   isStaccato?: boolean;
   isRest?: boolean;
@@ -9,6 +10,7 @@ interface StaticTabNote {
 
 function StaticTabNote({
   note,
+  isHighlighted = false,
   isAccented,
   isStaccato,
   isRest,
@@ -29,7 +31,9 @@ function StaticTabNote({
         style={{
           marginTop: note === "x" ? "-2px" : "0px",
           marginBottom: note === "x" ? "2px" : "0px",
-          color: "hsl(var(--screenshot-foreground))",
+          color: isHighlighted
+            ? "hsl(var(--primary))"
+            : "hsl(var(--screenshot-foreground))",
         }}
         className={`baseFlex relative ${isAccented ? "font-bold" : ""}`}
       >
