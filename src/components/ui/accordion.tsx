@@ -80,7 +80,7 @@ const AccordionTrigger = React.forwardRef<
                 : extraTabMetadata
                   ? "right-4"
                   : "right-0"
-          } size-[18px] shrink-0 rounded-md transition-all duration-200 group-data-[state=open]:rotate-180 md:size-5`}
+          } size-5 shrink-0 rounded-md transition-all duration-200 group-data-[state=open]:rotate-180`}
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
