@@ -55,7 +55,7 @@ function PinnedTabList({
               setSortBy(value as "Newest" | "Oldest" | "Most popular");
             }}
           >
-            <SelectTrigger id="sortBy" className="w-40">
+            <SelectTrigger id="sortBy" className="w-[140px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -83,12 +83,7 @@ function PinnedTabList({
 
       {/* table headers */}
       <div className="w-full bg-accent">
-        <div
-          className="grid h-8 grid-rows-1 items-center text-sm font-medium text-primary-foreground/70"
-          style={{
-            gridTemplateColumns: "50px auto 100px",
-          }}
-        >
+        <div className="grid h-8 grid-cols-[50px_auto_110px] grid-rows-1 items-center text-sm font-medium text-primary-foreground/70 sm:grid-cols-[50px_auto_150px]">
           {/* "radio" selection status column */}
           <div className="h-full px-4"></div>
 
@@ -157,7 +152,7 @@ function PinnedTabList({
                     {/* Title */}
                     <col className="w-auto" />
                     {/* Views / Date */}
-                    <col className="w-[100px]" />
+                    <col className="w-[110px] sm:w-[150px]" />
                   </colgroup>
 
                   <AnimatePresence mode="popLayout">
@@ -203,7 +198,7 @@ function PinnedTabList({
                               transition={{ duration: 1.25 }}
                               className="w-full"
                             >
-                              <p className="max-w-[230px] truncate sm:max-w-[300px]">
+                              <p className="max-w-[230px] truncate font-medium sm:max-w-[300px]">
                                 {tab.title}
                               </p>
                             </motion.div>
@@ -215,7 +210,7 @@ function PinnedTabList({
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 1.25 }}
-                              className="w-full"
+                              className="w-full font-medium"
                             >
                               {sortBy.includes("popular")
                                 ? formatNumber(tab.pageViews)
