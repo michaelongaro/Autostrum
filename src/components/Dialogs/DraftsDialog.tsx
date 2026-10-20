@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import { MdModeEditOutline } from "react-icons/md";
 
 type CloudDraft = RouterOutputs["draft"]["list"][number];
 type DiscardTarget =
@@ -37,7 +38,7 @@ export default function DraftsDialog() {
 
   if (!isLoaded || !userId)
     return (
-      <Button variant="secondary" className="ml-auto shrink-0" disabled>
+      <Button variant="link" className="ml-auto shrink-0" disabled>
         Drafts
       </Button>
     );
@@ -53,11 +54,12 @@ function AccountDraftsDialog({ ownerId }: { ownerId: string }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="secondary"
-          className="ml-auto shrink-0"
+          variant="link"
+          className="baseFlex ml-auto !h-5 shrink-0 gap-2 !self-end !py-0"
           disabled={!library.hasDrafts}
         >
           Drafts
+          <MdModeEditOutline />
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-3xl flex-col gap-5 overflow-y-auto rounded-lg">

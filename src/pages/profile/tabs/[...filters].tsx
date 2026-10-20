@@ -83,6 +83,7 @@ function UserTabs() {
               </Link>
             </Button>
           </div>
+
           <DraftsDialog />
         </div>
         <SearchResults />
