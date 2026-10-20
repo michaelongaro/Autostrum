@@ -1,0 +1,446 @@
+[
+  {
+    "path": "public/apple-icon.png",
+    "sha256": "8c7adf8713c3c21a3e6abc4724fe66a480be081db1e1aaf343237ee5cf1cc896",
+    "originalBytes": 3672,
+    "bytes": 3672
+  },
+  {
+    "path": "public/explore/header.jpg",
+    "sha256": "da53089d66c2469019825db9552800fcbf8d2c19fa3fac88901996fff6bfdfb4",
+    "originalBytes": 658954,
+    "originalWidth": 5184,
+    "originalHeight": 515,
+    "width": 2899,
+    "height": 288,
+    "bytes": 78808
+  },
+  {
+    "path": "public/favicon-96x96.png",
+    "sha256": "fd0dd4193fdc3e71316bc875e9249729fe529c052e33d364e7906437d5e82f04",
+    "originalBytes": 2445,
+    "bytes": 2445
+  },
+  {
+    "path": "public/favicon.ico",
+    "sha256": "b14f31a6ab9b6f06a5cd5ebaf8c629061dc2b3b5a2782eabf796436e6028f896",
+    "originalBytes": 15086,
+    "bytes": 15086
+  },
+  {
+    "path": "public/favicon.svg",
+    "sha256": "97a0f47f6aeeb739a30f8e31be97129522f6465b19e4cf7c018af514c8100ef0",
+    "originalBytes": 3738,
+    "bytes": 3738
+  },
+  {
+    "path": "public/genreThumbnails/blues.webp",
+    "sha256": "dce638f9e5cb677b8fa2d72bb33a31dd584ee6638325bd40050091e282c7f49d",
+    "originalBytes": 298408,
+    "originalWidth": 2576,
+    "originalHeight": 2435,
+    "width": 1000,
+    "height": 945,
+    "bytes": 73254
+  },
+  {
+    "path": "public/genreThumbnails/classical.webp",
+    "sha256": "1e4c057b7c536a3434b1a6aadb9ef6c5d32da7ddc76c8f30f97797bd01a8f7a2",
+    "originalBytes": 1597472,
+    "originalWidth": 5472,
+    "originalHeight": 2058,
+    "width": 1000,
+    "height": 376,
+    "bytes": 15648
+  },
+  {
+    "path": "public/genreThumbnails/country.webp",
+    "sha256": "2ac07313828bf23e105d9351391f5dd720f87ea22264143f5112c522f44089e1",
+    "originalBytes": 1195476,
+    "originalWidth": 3888,
+    "originalHeight": 3060,
+    "width": 1000,
+    "height": 787,
+    "bytes": 37396
+  },
+  {
+    "path": "public/genreThumbnails/electronic.webp",
+    "sha256": "fe96e755ffd2e2db7c78ac584f2ce467a0f298ef28fe3706ab77b80b9fdee9d4",
+    "originalBytes": 3917104,
+    "originalWidth": 7720,
+    "originalHeight": 2962,
+    "width": 1000,
+    "height": 384,
+    "bytes": 25606
+  },
+  {
+    "path": "public/genreThumbnails/folk.webp",
+    "sha256": "f75f1aedba107af7bba7bda65790021296650861201c0f90fb8345f420c09168",
+    "originalBytes": 393350,
+    "originalWidth": 3888,
+    "originalHeight": 1609,
+    "width": 1000,
+    "height": 414,
+    "bytes": 55496
+  },
+  {
+    "path": "public/genreThumbnails/hiphop.webp",
+    "sha256": "b6f5c4569cd353e57654c716768187ad30ad7353b06bdaa954a494017267ef4c",
+    "originalBytes": 1133016,
+    "originalWidth": 2268,
+    "originalHeight": 2193,
+    "width": 1000,
+    "height": 967,
+    "bytes": 145224
+  },
+  {
+    "path": "public/genreThumbnails/indie.webp",
+    "sha256": "70c84152c45d7173073c9aea867861d45e84d342d379118045673018a0753e2c",
+    "originalBytes": 228590,
+    "originalWidth": 5184,
+    "originalHeight": 2008,
+    "width": 1000,
+    "height": 387,
+    "bytes": 14128
+  },
+  {
+    "path": "public/genreThumbnails/jazz.webp",
+    "sha256": "b0f642090d555675e87ebde87c01c1893bff647dbf19a6901c350dad316840c3",
+    "originalBytes": 597142,
+    "originalWidth": 2624,
+    "originalHeight": 3005,
+    "width": 1000,
+    "height": 1145,
+    "bytes": 114950
+  },
+  {
+    "path": "public/genreThumbnails/metal.webp",
+    "sha256": "e07a7b74c170db3f99b638da62a47c993212d5f6d3f674b164f6d7fd513089ff",
+    "originalBytes": 642582,
+    "originalWidth": 4000,
+    "originalHeight": 3769,
+    "width": 1000,
+    "height": 942,
+    "bytes": 40538
+  },
+  {
+    "path": "public/genreThumbnails/misc.webp",
+    "sha256": "31ac90df0a3c35a209d16d21ae97563c0109ce5063451712a3f009dd949ec6bd",
+    "originalBytes": 891978,
+    "originalWidth": 3888,
+    "originalHeight": 1721,
+    "width": 1000,
+    "height": 443,
+    "bytes": 39114
+  },
+  {
+    "path": "public/genreThumbnails/pop.webp",
+    "sha256": "7cc36ba5ebbca72ab5729434aa20e080824f3d35a2f06bd8f29c055c1a01c21d",
+    "originalBytes": 409072,
+    "originalWidth": 3623,
+    "originalHeight": 2082,
+    "width": 1000,
+    "height": 575,
+    "bytes": 25308
+  },
+  {
+    "path": "public/genreThumbnails/rock.webp",
+    "sha256": "fde54271fb065af76b0481d6f6afbfa0753205102c74d12703a4243fc588faf9",
+    "originalBytes": 1916384,
+    "originalWidth": 4000,
+    "originalHeight": 3547,
+    "width": 1000,
+    "height": 887,
+    "bytes": 68036
+  },
+  {
+    "path": "public/homepage/guitars/amethyst.jpg",
+    "sha256": "89536f2ef6d51b858e5552c3ca7dceb7b7b3e08d8799a859647ca63048a77392",
+    "originalBytes": 1872988,
+    "originalWidth": 3522,
+    "originalHeight": 3485,
+    "width": 768,
+    "height": 760,
+    "bytes": 81543
+  },
+  {
+    "path": "public/homepage/guitars/aqua.jpg",
+    "sha256": "2a71029eda9317bce154123a08fd3b88449bb9260c01a1dbfe6b23d6697964f7",
+    "originalBytes": 4534553,
+    "originalWidth": 4000,
+    "originalHeight": 6000,
+    "width": 768,
+    "height": 1152,
+    "bytes": 132239
+  },
+  {
+    "path": "public/homepage/guitars/coral.jpg",
+    "sha256": "bce32aa2f16a65abb6294503372f696cf8c9fdc445a0b18f760bfe0369469fb1",
+    "originalBytes": 3317899,
+    "originalWidth": 4000,
+    "originalHeight": 5633,
+    "width": 768,
+    "height": 1081,
+    "bytes": 70854
+  },
+  {
+    "path": "public/homepage/guitars/maple.jpg",
+    "sha256": "a2482bd1e0141411e0517addc52dba41ef044cf3bf91f4d1baf7be16ba49f8fb",
+    "originalBytes": 1259143,
+    "originalWidth": 4736,
+    "originalHeight": 8293,
+    "width": 768,
+    "height": 1345,
+    "bytes": 52680
+  },
+  {
+    "path": "public/homepage/guitars/peony.jpg",
+    "sha256": "c7b0f9988f3604939f7767b575061302355521ddc8cadf4903eb0fd54efe6556",
+    "originalBytes": 2217597,
+    "originalWidth": 3712,
+    "originalHeight": 5568,
+    "width": 768,
+    "height": 1152,
+    "bytes": 54123
+  },
+  {
+    "path": "public/homepage/guitars/pistachio.jpg",
+    "sha256": "b62bfe965fe32ce0ef3d9c14ce54203ed2cb5c464d7873f9511c216f5164b1d0",
+    "originalBytes": 3867520,
+    "originalWidth": 5333,
+    "originalHeight": 4000,
+    "width": 768,
+    "height": 576,
+    "bytes": 45384
+  },
+  {
+    "path": "public/homepage/guitars/saffron.jpg",
+    "sha256": "c6e9eb97bb99480f947487558976fd61d7c63d8c69af8594e208fc615ef142b1",
+    "originalBytes": 3663627,
+    "originalWidth": 4338,
+    "originalHeight": 3048,
+    "width": 768,
+    "height": 540,
+    "bytes": 105387
+  },
+  {
+    "path": "public/homepage/guitars/sapphire.jpg",
+    "sha256": "cc6f9a72c1dd4d40834e407ed1671ca03210a44dc989f44de1cdcea0a732aafe",
+    "originalBytes": 177702,
+    "originalWidth": 853,
+    "originalHeight": 960,
+    "width": 768,
+    "height": 864,
+    "bytes": 92949
+  },
+  {
+    "path": "public/homepage/guitars/verdant.jpg",
+    "sha256": "6770671e4805dcf2cdffa0c3d398c68a44c4ff6726a8d9f726d31fb6abe51ce5",
+    "originalBytes": 765145,
+    "originalWidth": 3778,
+    "originalHeight": 3338,
+    "width": 768,
+    "height": 679,
+    "bytes": 25950
+  },
+  {
+    "path": "public/homepage/hero/goodDesktopHero.png",
+    "sha256": "2220453fb6141caae70e2763dc583c3abb93860b934663b7dca6ffc7bf8801ab",
+    "originalBytes": 1106437,
+    "originalWidth": 2304,
+    "originalHeight": 1300,
+    "width": 1920,
+    "height": 1083,
+    "bytes": 613944
+  },
+  {
+    "path": "public/homepage/hero/goodDesktopHero2.png",
+    "sha256": "dfa60e15114a51f2b1e2a3a94ae68346c8789de4f941f41a42cfb8b4e5414a85",
+    "originalBytes": 1315562,
+    "originalWidth": 3760,
+    "originalHeight": 1648,
+    "width": 1920,
+    "height": 842,
+    "bytes": 341902
+  },
+  {
+    "path": "public/homepage/hero/goodMobileHero.png",
+    "sha256": "742a678d4fcf261c77b2562216f3cfa437e5abf6cc3b6aa19831e638d3cc7747",
+    "originalBytes": 397746,
+    "bytes": 397746
+  },
+  {
+    "path": "public/homepage/hero/goodMobileHero2.png",
+    "sha256": "abdf2c5b8ca78df57deb78c061751ea4e3fdfe12a46b4a482458ce11469b01fd",
+    "originalBytes": 428867,
+    "bytes": 428867
+  },
+  {
+    "path": "public/homepage/signUpPromo/first.png",
+    "sha256": "d0b98c0b7c44e77fdcc696ca92ff3c49612afed1cfd764e0c77338d2ffa2e383",
+    "originalBytes": 54091,
+    "bytes": 54091
+  },
+  {
+    "path": "public/homepage/signUpPromo/second.png",
+    "sha256": "9de8094758be962128f3d215d44d8e8558333e811d7e5660d9909590c9ffb285",
+    "originalBytes": 74592,
+    "bytes": 74592
+  },
+  {
+    "path": "public/icon0.svg",
+    "sha256": "d9cebb4680bc28d6cf540c5ce67f043db9218c1738257a494ad276436f56d952",
+    "originalBytes": 3466,
+    "bytes": 3466
+  },
+  {
+    "path": "public/icon1.png",
+    "sha256": "fd0dd4193fdc3e71316bc875e9249729fe529c052e33d364e7906437d5e82f04",
+    "originalBytes": 2445,
+    "bytes": 2445
+  },
+  {
+    "path": "public/logo.svg",
+    "sha256": "3c28f30f7e65bb5cd8ddf8ee2649d2ccb62a2205adc121cb0c49b4ad28316af8",
+    "originalBytes": 3061,
+    "bytes": 3061
+  },
+  {
+    "path": "public/logoWithTitle.svg",
+    "sha256": "ef99ebe11917d40b4e126773d560a52e90650523523596d899bdd22f7d136e41",
+    "originalBytes": 13460,
+    "bytes": 13460
+  },
+  {
+    "path": "public/logos/withTitle/amethyst.svg",
+    "sha256": "9380e59cfaa38728d78808a76a688028948359c26a9019a60ef094766e502b76",
+    "originalBytes": 10007,
+    "bytes": 10007
+  },
+  {
+    "path": "public/logos/withTitle/aqua.svg",
+    "sha256": "cd618b622fc1ca4aa80a62872c8f9b9a46262735fc4cd5764c3b4d46475b7cbc",
+    "originalBytes": 10007,
+    "bytes": 10007
+  },
+  {
+    "path": "public/logos/withTitle/coral.svg",
+    "sha256": "5561f071863b81b37745ac83780b0df6d630d01febfedb4cda8920e1c06a12aa",
+    "originalBytes": 10007,
+    "bytes": 10007
+  },
+  {
+    "path": "public/logos/withTitle/maple.svg",
+    "sha256": "6dcffe62b9ffc8a164253ca2b8752011eb4d00681893c6589b629a6dc65f9af2",
+    "originalBytes": 10007,
+    "bytes": 10007
+  },
+  {
+    "path": "public/logos/withTitle/peony.svg",
+    "sha256": "48771a79bcc36033a3e63ee988c97ecadd167ee3e23ad3833554f9fda4333b78",
+    "originalBytes": 10007,
+    "bytes": 10007
+  },
+  {
+    "path": "public/logos/withTitle/pistachio.svg",
+    "sha256": "b96cab79833d3de9b89c7fa2fe7c9315c2085019c36976a7bbe9b44c34f61b5a",
+    "originalBytes": 10007,
+    "bytes": 10007
+  },
+  {
+    "path": "public/logos/withTitle/saffron.svg",
+    "sha256": "ee6467d009054e80920deae5f1f9fd4b591da922a7cffda17ba28bb140d72380",
+    "originalBytes": 10009,
+    "bytes": 10009
+  },
+  {
+    "path": "public/logos/withTitle/sapphire.svg",
+    "sha256": "62574509a1d0ca20945dec3ed04788691dbe1d33dc1917039f7c8927d3650294",
+    "originalBytes": 10010,
+    "bytes": 10010
+  },
+  {
+    "path": "public/logos/withTitle/verdant.svg",
+    "sha256": "489ce817a6af2f95905e6d639b3ad20b7ead4239d7bf13f059fcab74f4dbea7a",
+    "originalBytes": 10007,
+    "bytes": 10007
+  },
+  {
+    "path": "public/logos/withoutTitle/amethyst.svg",
+    "sha256": "87ca2ce51fe445d6947ea8b99a618de50d7604f134855c3daa49d776ab3a212c",
+    "originalBytes": 3724,
+    "bytes": 3724
+  },
+  {
+    "path": "public/logos/withoutTitle/aqua.svg",
+    "sha256": "2530ea73c6311d7e1897944969a896f05c5fce947e95041d0e1b2c0fd3be5ad7",
+    "originalBytes": 3723,
+    "bytes": 3723
+  },
+  {
+    "path": "public/logos/withoutTitle/coral.svg",
+    "sha256": "4914a916d325a207741eb7d34ff85acbbb2ad9932e81cb6e5a15c02772a4dfa5",
+    "originalBytes": 3723,
+    "bytes": 3723
+  },
+  {
+    "path": "public/logos/withoutTitle/maple.svg",
+    "sha256": "f9a72dddca60cced8cfa3e4eb959b1c0937ce793db8f711eb68c95e6fb9be26d",
+    "originalBytes": 3723,
+    "bytes": 3723
+  },
+  {
+    "path": "public/logos/withoutTitle/peony.svg",
+    "sha256": "aab46b1461661bf9ab2c27bd75054cf8eb6f85b7b2786ce9663ec70f194d7471",
+    "originalBytes": 3724,
+    "bytes": 3724
+  },
+  {
+    "path": "public/logos/withoutTitle/pistachio.svg",
+    "sha256": "d18195564d318b17f50c882c1fd06321a71e24d064f851cdb33568ded0f4b3e0",
+    "originalBytes": 3724,
+    "bytes": 3724
+  },
+  {
+    "path": "public/logos/withoutTitle/saffron.svg",
+    "sha256": "798bf9d512f1dc4fd18eea6a6867f41ef877b57c0e675974f568bebf1b11e112",
+    "originalBytes": 3723,
+    "bytes": 3723
+  },
+  {
+    "path": "public/logos/withoutTitle/sapphire.svg",
+    "sha256": "fafd22843cec7b6b531d6fb4bb34373d5f69580f36fd74263d29dca4a779a634",
+    "originalBytes": 3726,
+    "bytes": 3726
+  },
+  {
+    "path": "public/logos/withoutTitle/verdant.svg",
+    "sha256": "47dbbc1e77bd1e4febc44df6ed377531733c15619522d6e5e0605426b213d89c",
+    "originalBytes": 3724,
+    "bytes": 3724
+  },
+  {
+    "path": "public/opengraphScreenshots/homepage.png",
+    "sha256": "f1d98b3b042170b4905b3d5ffd18e508d25297fb796f465c69b7be323088e838",
+    "originalBytes": 474607,
+    "bytes": 474607
+  },
+  {
+    "path": "public/ui/noise.svg",
+    "sha256": "991d48d3ddf0425eb083642a1b257902aa1b566edbcb72cb8be19e990a0f5754",
+    "originalBytes": 1143,
+    "bytes": 1143
+  },
+  {
+    "path": "public/web-app-manifest-192x192.png",
+    "sha256": "81d5d42876059e6812e7a206d38227689e1297a71b14d98c20f1351bd55aca93",
+    "originalBytes": 4128,
+    "bytes": 4128
+  },
+  {
+    "path": "public/web-app-manifest-512x512.png",
+    "sha256": "ee6b61477c95725aab34e976fe785ba0cb408ba7341d868a8a06824cede0afa1",
+    "originalBytes": 15325,
+    "bytes": 15325
+  }
+]
