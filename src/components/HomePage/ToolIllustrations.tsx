@@ -126,51 +126,88 @@ export function TunerIllustration() {
 export function NoteTrainerIllustration() {
   return (
     <svg {...illustrationProps}>
-      <circle cx="157" cy="90" r="67" className="fill-primary/5" />
-      <g transform="rotate(-8 160 100)">
-        <rect
-          x="54"
-          y="60"
-          width="212"
-          height="82"
-          rx="10"
-          className="fill-background stroke-foreground/70"
-          strokeWidth="2.5"
-        />
-        <path d="M66 61h36v80H66z" className="fill-primary/10" />
-        <path
-          d="M102 61v80m41-80v80m41-80v80m41-80v80"
-          className="stroke-foreground/25"
-          strokeWidth="2"
-        />
-        <path d="M65 62v78" className="stroke-foreground/70" strokeWidth="4" />
-        <path
-          d="M67 71h198M67 83h198M67 95h198M67 107h198M67 119h198M67 131h198"
-          className="stroke-foreground/30"
-          strokeWidth="1.5"
-        />
-        <circle cx="123" cy="101" r="2.5" className="fill-foreground/20" />
-        <circle cx="205" cy="101" r="2.5" className="fill-foreground/20" />
-        <circle cx="84" cy="119" r="8" className="fill-primary/30" />
-        <circle cx="124" cy="95" r="8" className="fill-primary" />
-        <circle cx="164" cy="83" r="8" className="fill-primary/30" />
-      </g>
-      <circle
-        cx="239"
-        cy="48"
-        r="27"
+      <circle cx="156" cy="89" r="67" className="fill-primary/5" />
+      <ellipse cx="161" cy="156" rx="94" ry="6" className="fill-foreground/5" />
+      <path
+        d="M80 76V62a38 38 0 0 1 76 0c0 17-9 28-19 39-7 7-9 13-11 23-2 12-10 20-22 20-14 0-24-12-24-27"
         className="fill-background stroke-foreground/70"
         strokeWidth="2.5"
       />
       <path
-        d="M237 57V36l14-3v21m-14-12 14-3"
+        d="M98 62a20 20 0 0 1 40 0c0 9-5 15-12 22-8 7-12 13-12 22a10 10 0 0 1-20 0v-7a13 13 0 0 1 13-13h5"
+        className="stroke-primary"
+        strokeWidth="3"
+      />
+      <path
+        d="M170 57a22 22 0 0 1 0 28m10-38a36 36 0 0 1 0 48"
+        className="stroke-primary/60"
+        strokeWidth="2.5"
+      />
+      <circle cx="232" cy="60" r="29" className="fill-primary/10" />
+      <path
+        d="M234 68V43l13 5v0"
+        className="stroke-primary"
+        strokeWidth="2.5"
+      />
+      <ellipse
+        cx="229"
+        cy="69"
+        rx="6"
+        ry="4.5"
+        transform="rotate(-20 228 69)"
+        className="fill-primary"
+      />
+      <rect
+        x="150"
+        y="111"
+        width="34"
+        height="34"
+        rx="8"
+        className="fill-background stroke-foreground/25"
+        strokeWidth="2"
+      />
+      <rect
+        x="192"
+        y="107"
+        width="38"
+        height="38"
+        rx="9"
+        className="fill-primary/15 stroke-primary"
+        strokeWidth="2.5"
+      />
+      <rect
+        x="238"
+        y="111"
+        width="34"
+        height="34"
+        rx="8"
+        className="fill-background stroke-foreground/25"
+        strokeWidth="2"
+      />
+      <path
+        d="M172 122a7 7 0 1 0 0 12m88-13h-10v14h10m-10-7h8"
+        className="stroke-foreground/50"
+        strokeWidth="2"
+      />
+      <path
+        d="M206 119h4a7 7 0 0 1 0 14h-4z"
         className="stroke-foreground"
         strokeWidth="2.5"
       />
-      <ellipse cx="233" cy="58" rx="5" ry="3.5" className="fill-primary" />
-      <ellipse cx="247" cy="55" rx="5" ry="3.5" className="fill-primary" />
+      <circle
+        cx="230"
+        cy="107"
+        r="9"
+        className="fill-primary stroke-background"
+        strokeWidth="2.5"
+      />
       <path
-        d="M47 38h12m-6-6v12m230 87h10m-5-5v10"
+        d="m226 107 3 3 5-6"
+        className="stroke-primary-foreground"
+        strokeWidth="2"
+      />
+      <path
+        d="M52 69h12m-6-6v12m210 17h10m-5-5v10"
         className="stroke-primary/60"
         strokeWidth="2"
       />
