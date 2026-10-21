@@ -192,7 +192,7 @@ function ChordDialog() {
                     placeholder="(e.g. Em, Cmaj7)"
                     value={chord.value.name}
                     onChange={handleChordNameChange}
-                    className="w-[150px]"
+                    className="w-[150px] placeholder:pb-px"
                   />
                 </div>
 
