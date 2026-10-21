@@ -110,7 +110,7 @@ const TabColumn = ({
             ))}
           </div>
 
-          <div className="baseFlex mt-[0.25em] h-[1em] w-full">
+          <div className="baseFlex mt-[0.25em] h-[1em] w-full text-foreground">
             <div className="relative size-full">
               <div className="absolute left-1/2 h-full w-[0.0625em] bg-current" />
               {Array.from({ length: beamCount }, (_, idx) => (
