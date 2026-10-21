@@ -38,7 +38,7 @@ export function MetronomeIllustration() {
         strokeWidth="3.5"
       />
       <path
-        d="m129 67 15-6 6 16-15 6z"
+        d="m127 67 15-6 6 16-15 6z"
         className="fill-primary stroke-foreground/70"
         strokeWidth="2"
       />
