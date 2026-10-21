@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   ZoomIn,
 } from "lucide-react";
+import { BsSpeedometer2 } from "react-icons/bs";
 import { GiMusicalScore } from "react-icons/gi";
 import { PiMouseScroll } from "react-icons/pi";
 import { useEffect, useState, type KeyboardEvent } from "react";
@@ -32,7 +33,7 @@ type Feature = {
   title: string;
   icon: IconType;
 };
-type FeatureMode = "Practice" | "Editing";
+type FeatureMode = "Practice" | "Compose";
 
 const PRACTICE_FEATURES: Feature[] = [
   {
@@ -48,7 +49,7 @@ const PRACTICE_FEATURES: Feature[] = [
   {
     id: "speed",
     title: "Granular playback speed",
-    icon: SlidersHorizontal,
+    icon: BsSpeedometer2,
   },
   {
     id: "loop",
@@ -209,7 +210,7 @@ export default function FeatureShowcase() {
   const theme = useTabStore((state) => state.theme);
   const [mode, setMode] = useState<FeatureMode>("Practice");
   const desktop = useViewportWidthBreakpoint(768);
-  const [selection, setSelection] = useState({ Practice: 0, Editing: 0 });
+  const [selection, setSelection] = useState({ Practice: 0, Compose: 0 });
   const reduceMotion = useReducedMotion();
   const features = mode === "Practice" ? PRACTICE_FEATURES : EDITING_FEATURES;
   const selectedIndex = selection[mode];
@@ -266,7 +267,7 @@ export default function FeatureShowcase() {
             aria-label="Choose platform features"
             className={`relative z-10 mb-4 grid w-fit shrink-0 grid-cols-2 self-start overflow-hidden rounded-md border ${theme === "light" ? "bg-background" : "bg-accent"}`}
           >
-            {(["Practice", "Editing"] as const).map((name) => {
+            {(["Practice", "Compose"] as const).map((name) => {
               return (
                 <Button
                   key={name}
