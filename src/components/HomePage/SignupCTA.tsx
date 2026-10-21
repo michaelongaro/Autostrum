@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { type ReactNode } from "react";
 import { SignUpButton, useAuth } from "@clerk/nextjs";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
+import DifficultyBars from "~/components/ui/DifficultyBars";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import { BsFillPlayFill } from "react-icons/bs";
 import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
+import { genreColors } from "~/utils/genreColors";
 import { GiMusicalScore } from "react-icons/gi";
-import { FaEye } from "react-icons/fa6";
+import { FaEye } from "react-icons/fa";
 import { ChevronDown, ChevronsUpDown } from "lucide-react";
 
 function SignupCTA() {
@@ -134,23 +138,60 @@ function TopRightTabMetadataPreview() {
         <TabPreviewIcons />
       </div>
 
-      <div className="baseVertFlex relative z-10 size-full rounded-tr-xl border-r border-t bg-background">
+      <div className="absolute bottom-0 left-0 right-16 top-[100px] z-10 rounded-tr-xl border-r border-t bg-background">
         <div className="baseFlex absolute right-4 top-4 gap-3">
           <TabPreviewActions />
         </div>
 
-        <div className="baseVertFlex gap-4 pr-32">
-          <div className="baseFlex gap-8">
-            <TabPreviewField label="Genre" value="Rock" />
-            <TabPreviewField label="Tuning" value="E A D G B E" />
-            <TabPreviewField label="Capo" value="3rd fret" />
-          </div>
+        {/* Keep the wide desktop editor's columns at full size inside the crop. */}
+        <div className="absolute right-16 top-24 grid grid-cols-[183px_143px_112px] items-start gap-4">
+          <TabPreviewField label="Genre" required>
+            <TabPreviewSelect className="w-[180px]">
+              <div className="baseFlex gap-2">
+                <div
+                  className="size-3 rounded-full"
+                  style={{
+                    backgroundColor: genreColors.get("Rock"),
+                    boxShadow: "0 1px 1px hsla(336, 84%, 17%, 0.9)",
+                  }}
+                />
+                Rock
+              </div>
+            </TabPreviewSelect>
+          </TabPreviewField>
 
-          <div className="baseFlex gap-8">
-            <TabPreviewField label="Difficulty" value="Intermediate" />
-            <TabPreviewField label="Tempo" value="75" select={false} />
-            <TabPreviewField label="Key" value="D major" />
-          </div>
+          <TabPreviewField label="Tuning" required>
+            <TabPreviewSelect className="w-[135px]">
+              <PrettyTuning tuning="e2 a2 d3 g3 b3 e4" displayWithFlex />
+            </TabPreviewSelect>
+          </TabPreviewField>
+
+          <TabPreviewField label="Capo">
+            <TabPreviewSelect className="w-28">3rd fret</TabPreviewSelect>
+          </TabPreviewField>
+
+          <TabPreviewField label="Difficulty" required>
+            <TabPreviewSelect className="w-[180px]">
+              <div className="baseFlex gap-2">
+                <DifficultyBars difficulty={3} />
+                Intermediate
+              </div>
+            </TabPreviewSelect>
+          </TabPreviewField>
+
+          <TabPreviewField label="Tempo" required>
+            <div className="baseFlex">
+              <QuarterNote className="-ml-1 size-5" />
+              <div className="border-input flex h-10 w-[53px] items-center rounded-md border bg-transparent px-3 py-2 text-base">
+                115
+              </div>
+              <span className="ml-1">BPM</span>
+            </div>
+          </TabPreviewField>
+
+          <TabPreviewField label="Key">
+            <TabPreviewSelect>D major</TabPreviewSelect>
+          </TabPreviewField>
         </div>
       </div>
     </div>
@@ -174,11 +215,13 @@ function TabPreviewIcons() {
 function TabPreviewActions() {
   return (
     <>
-      <div className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground !shadow-primaryButton">
+      <div
+        className={buttonVariants({ variant: "secondary", className: "gap-2" })}
+      >
         <FaEye className="size-4" />
         Preview
       </div>
-      <div className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground !shadow-primaryButton">
+      <div className={buttonVariants({ className: "md:w-[132px]" })}>
         Publish
       </div>
     </>
@@ -187,20 +230,37 @@ function TabPreviewActions() {
 
 function TabPreviewField({
   label,
-  value,
-  select = true,
+  required = false,
+  children,
 }: {
   label: string;
-  value: string;
-  select?: boolean;
+  required?: boolean;
+  children: ReactNode;
 }) {
   return (
-    <div className="baseVertFlex min-w-0 !items-start gap-2">
-      <div className="text-xs font-medium leading-none md:text-sm">{label}</div>
-      <div className="border-input flex h-10 w-full items-center justify-between gap-2 text-nowrap rounded-md border bg-transparent py-2 pl-3 pr-2 text-xs md:text-sm">
-        {value}
-        {select ? <ChevronDown className="size-4 shrink-0 opacity-50" /> : null}
+    <div className="baseVertFlex !items-start gap-1.5">
+      <div className="text-sm font-medium leading-none">
+        {label}
+        {required && <span className="text-destructive"> *</span>}
       </div>
+      {children}
+    </div>
+  );
+}
+
+function TabPreviewSelect({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`border-input flex h-10 items-center justify-between gap-2 whitespace-nowrap rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm ${className}`}
+    >
+      {children}
+      <ChevronDown className="size-4 shrink-0 opacity-50" />
     </div>
   );
 }
