@@ -16,7 +16,8 @@ import {
   type TabSection,
 } from "~/stores/TabStore";
 import { getColorForChordName } from "~/utils/chordColors";
-import { createTabNote } from "~/utils/tabNoteHelpers";
+import { createTabMeasureLine, createTabNote } from "~/utils/tabNoteHelpers";
+import { DEFAULT_TUNING } from "~/utils/tunings";
 import { useAudioContextRecovery } from "~/hooks/useAudioContextRecovery";
 import type { FeatureId } from "./FeaturePreviews";
 import styles from "./FeatureShowcase.module.css";
@@ -39,6 +40,183 @@ const FRETS = [
   ["", "", "0", "2", "3", "2"],
 ];
 
+const PRACTICE_CHORDS = [
+  // Frets follow the rendered string rows, from highest to lowest pitch.
+  { name: "G", frets: ["3", "0", "0", "0", "2", "3"] },
+  { name: "Cadd9", frets: ["3", "3", "0", "2", "3", ""] },
+  { name: "D", frets: ["2", "3", "2", "0", "", ""] },
+  { name: "Cmaj7", frets: ["0", "0", "0", "2", "3", ""] },
+  { name: "Em7/B", frets: ["0", "3", "0", "2", "2", ""] },
+  { name: "Fmaj7(#11)", frets: ["0", "0", "2", "3", "3", "1"] },
+  { name: "Fmaj7", frets: ["0", "1", "2", "3", "", ""] },
+  { name: "G6", frets: ["0", "0", "0", "0", "2", "3"] },
+];
+
+function createPattern(
+  id: string,
+  noteLength: "eighth" | "sixteenth",
+  directions: string[],
+): StrummingPattern {
+  return {
+    id,
+    baseNoteLength: noteLength,
+    strums: directions.map((strum) => ({
+      palmMute: "",
+      strum,
+      noteLength,
+    })),
+  };
+}
+
+const COLOR_PATTERN = createPattern("homepage-color-pattern", "sixteenth", [
+  "v",
+  "",
+  "v",
+  "",
+  "v",
+  "^",
+  "v",
+  "^",
+  "",
+  "^",
+  "v",
+  "",
+  "v",
+  "^",
+  "v",
+  "^",
+]);
+const LOOP_INTRO_PATTERN = createPattern(
+  "homepage-loop-intro-pattern",
+  "eighth",
+  ["v", "", "v", "", "v", "^", "v", "^", "", "^", "v", "^", "", "^", "v", "^"],
+);
+const LOOP_PATTERN = createPattern(
+  "homepage-loop-pattern",
+  "eighth",
+  Array.from({ length: 16 }, (_, index) => (index % 2 === 0 ? "v" : "^")),
+);
+
+// Only the visible columns in the reference screenshots are transcribed here.
+// Tab-note string fields follow the displayed rows, highest to lowest.
+const ZOOM_MEASURES: NonNullable<Parameters<typeof createTabNote>[0]>[][] = [
+  [
+    { thirdString: "0", secondString: "3p", noteLength: "eighth" },
+    { secondString: "2" },
+    { fifthString: "2" },
+    { fourthString: "0" },
+    { fifthString: "2", noteLength: "eighth" },
+  ],
+  [
+    { thirdString: "0", noteLength: "eighth" },
+    { fourthString: "0", noteLength: "eighth" },
+    { secondString: "0", noteLength: "eighth" },
+    { fifthString: "0" },
+    { fourthString: "0", noteLength: "eighth" },
+    { thirdString: "0", noteLength: "eighth" },
+    { sixthString: "4", noteLength: "eighth" },
+  ],
+  [
+    { noteLength: "eighth" },
+    { thirdString: "0", secondString: "3p", noteLength: "eighth" },
+    { secondString: "2", noteLength: "eighth" },
+    { sixthString: "5" },
+    { fourthString: "0" },
+    { sixthString: "5", noteLength: "eighth" },
+  ],
+];
+const SPEED_MEASURES: NonNullable<Parameters<typeof createTabNote>[0]>[][] = [
+  [
+    { sixthString: "3" },
+    { secondString: "0" },
+    { thirdString: "2p" },
+    { thirdString: "0" },
+  ],
+  [
+    { fifthString: "2" },
+    { thirdString: "0" },
+    { fourthString: "4" },
+    { thirdString: "0" },
+  ],
+  [
+    { fifthString: "3" },
+    { thirdString: "0" },
+    { fourthString: "4" },
+    { thirdString: "0" },
+  ],
+  [
+    { secondString: "0" },
+    { thirdString: "2p" },
+    { thirdString: "0" },
+    { fourthString: "4" },
+  ],
+];
+
+function createPracticeTab(
+  sectionIndex: number,
+  feature: "zoom" | "speed",
+): TabSection {
+  const measures = feature === "zoom" ? ZOOM_MEASURES : SPEED_MEASURES;
+  return {
+    id: `demo-${sectionIndex}-tab`,
+    type: "tab",
+    bpm: feature === "speed" ? 200 : -1,
+    repetitions: feature === "speed" ? 2 : 1,
+    baseNoteLength: "quarter",
+    data: measures.flatMap((measure, measureIndex) => [
+      ...(measureIndex === 0
+        ? []
+        : [
+            {
+              ...createTabMeasureLine(),
+              id: `demo-${sectionIndex}-measure-${measureIndex}`,
+            },
+          ]),
+      ...measure.map((options, noteIndex) => ({
+        ...createTabNote(options),
+        id: `demo-${sectionIndex}-measure-${measureIndex}-note-${noteIndex}`,
+      })),
+    ]),
+  };
+}
+
+function createPracticeChords(
+  sectionIndex: number,
+  feature: "colors" | "loop",
+): ChordSection {
+  const sequences: {
+    pattern: StrummingPattern;
+    changes: Record<number, string>;
+  }[] =
+    feature === "colors"
+      ? [
+          { pattern: COLOR_PATTERN, changes: { 0: "G" } },
+          { pattern: COLOR_PATTERN, changes: { 0: "Cadd9", 7: "D" } },
+        ]
+      : [
+          {
+            pattern: LOOP_INTRO_PATTERN,
+            changes: { 0: "Cmaj7", 7: "Em7/B", 11: "Em7/B" },
+          },
+          { pattern: LOOP_PATTERN, changes: { 0: "Fmaj7(#11)", 7: "Fmaj7" } },
+          { pattern: LOOP_PATTERN, changes: { 0: "Cmaj7", 7: "Em7/B" } },
+          { pattern: LOOP_PATTERN, changes: { 0: "Fmaj7", 13: "G6" } },
+        ];
+  return {
+    id: `demo-${sectionIndex}-strumming`,
+    type: "chord",
+    bpm: feature === "colors" ? 80 : 125,
+    repetitions: feature === "colors" ? 2 : 1,
+    data: sequences.map(({ pattern, changes }, sequenceIndex) => ({
+      id: `demo-${sectionIndex}-sequence-${sequenceIndex}`,
+      strummingPattern: pattern,
+      bpm: -1,
+      repetitions: 1,
+      data: pattern.strums.map((_, index) => changes[index] ?? ""),
+    })),
+  };
+}
+
 export const DEMO_PATTERN: StrummingPattern = {
   id: "homepage-strumming-pattern",
   baseNoteLength: "eighth",
@@ -52,13 +230,8 @@ export const DEMO_PATTERN: StrummingPattern = {
 export function createDemoData(
   sectionIndex: number,
   feature: FeatureId,
-  surface: "desktop" | "mobile" = "desktop",
 ): Section[] {
-  let noteCount = 6;
-  if (feature === "autoscroll") noteCount = 24;
-  else if (feature === "zoom" || feature === "speed") {
-    noteCount = surface === "mobile" ? 6 : 12;
-  }
+  const noteCount = feature === "autoscroll" ? 24 : 6;
   const notes = Array.from({ length: noteCount }, (_, index) => {
     const frets = ["", "", "", "", "", ""];
     frets[index % 6] = ["3", "2", "0", "0", "0", "3"][index % 6] ?? "0";
@@ -101,30 +274,17 @@ export function createDemoData(
       ],
     }));
   }
-  const strumming: ChordSection = {
-    id: `demo-${sectionIndex}-strumming`,
-    type: "chord",
-    bpm: -1,
-    repetitions: 1,
-    data: [
-      {
-        id: `demo-${sectionIndex}-sequence`,
-        strummingPattern: DEMO_PATTERN,
-        bpm: -1,
-        repetitions: 1,
-        data: ["G", "", "C", "", "Em", "", "D", ""],
-      },
-    ],
-  };
+  let subSection: TabSection | ChordSection = tab;
+  if (feature === "zoom" || feature === "speed")
+    subSection = createPracticeTab(sectionIndex, feature);
+  else if (feature === "colors" || feature === "loop")
+    subSection = createPracticeChords(sectionIndex, feature);
   // Existing editor focus IDs include sectionIndex. Reserve a distinct index
   // for each demo, including the outgoing crossfade and mobile neighbors.
   return Array.from({ length: sectionIndex + 1 }, (_, index) => ({
     id: `demo-${sectionIndex}-section-${index}`,
     title: "Verse",
-    data:
-      index === sectionIndex
-        ? [feature === "colors" || feature === "loop" ? strumming : tab]
-        : [],
+    data: index === sectionIndex ? [subSection] : [],
   }));
 }
 
@@ -134,25 +294,39 @@ function createSession(
   sectionIndex: number,
   feature: FeatureId,
   parentStore: ReturnType<typeof createTabStore>,
-  surface: "desktop" | "mobile",
 ) {
+  const tabData = createDemoData(sectionIndex, feature);
+  const subSection = tabData[sectionIndex]?.data[0];
+  const practiceChords = feature === "colors" || feature === "loop";
   const store = createTabStore(
     {
-      tabData: createDemoData(sectionIndex, feature, surface),
-      bpm: 120,
+      tabData,
+      bpm: subSection && subSection.bpm !== -1 ? subSection.bpm : 120,
+      tuning: feature === "zoom" ? "d2 a2 d3 f#3 b3 d4" : DEFAULT_TUNING,
       editing: feature !== "loop",
       looping: feature === "loop" || feature === "autoscroll",
       showPlaybackModal: feature === "loop",
       playbackSpeed: feature === "speed" ? 0.75 : 1,
       chordDisplayMode:
         feature === "colors" || feature === "loop" ? "color" : "text",
-      chords: CHORD_NAMES.map((name, index) => ({
+      chords: (practiceChords
+        ? PRACTICE_CHORDS
+        : CHORD_NAMES.map((name, index) => ({
+            name,
+            frets: FRETS[index] ?? [],
+          }))
+      ).map(({ name, frets }, index) => ({
         id: `demo-chord-${index}`,
         name,
         color: getColorForChordName(name) ?? "#46A758",
-        frets: FRETS[index] ?? [],
+        frets,
       })),
-      strummingPatterns: [DEMO_PATTERN],
+      strummingPatterns:
+        feature === "colors"
+          ? [COLOR_PATTERN]
+          : feature === "loop"
+            ? [LOOP_INTRO_PATTERN, LOOP_PATTERN]
+            : [DEMO_PATTERN],
       viewportLabel: "desktop",
     },
     () => {
@@ -211,7 +385,7 @@ export default function FeatureDemoSession({
   const sectionIndex =
     (surface === "desktop" ? 10 : 30) + FEATURE_IDS.indexOf(feature);
   const [session] = useState(() =>
-    createSession(sectionIndex, feature, parentStore, surface),
+    createSession(sectionIndex, feature, parentStore),
   );
   useAudioContextRecovery(session.store);
 

@@ -1,5 +1,13 @@
-import { useEffect, useId, useRef, useState, type RefObject } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import dynamic from "next/dynamic";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
@@ -17,6 +25,7 @@ import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Toggle } from "~/components/ui/toggle";
+import { Separator } from "~/components/ui/separator";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import PlayIcon from "~/components/ui/icons/PlayIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
@@ -25,7 +34,13 @@ import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
 import { useEditingTabPlayhead } from "~/hooks/useEditingTabPlayhead";
 import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
+import type {
+  ChordSection,
+  TabSection as TabSectionData,
+} from "~/stores/TabStore";
+import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import {
+  STATIC_STRUMMING_PATTERN_STRUM_WIDTH_PX,
   STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX,
   STATIC_TAB_STAFF_LINE_HEIGHT_PX,
   STATIC_TAB_STAFF_LINE_INSET_PX,
@@ -57,6 +72,7 @@ function DemoPlaybackButton({
   const { active } = useFeatureDemo();
   const store = useTabStoreApi();
   const playing = useTabStore((state) => state.audioMetadata.playing);
+  const reduceMotion = useReducedMotion();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -86,23 +102,43 @@ function DemoPlaybackButton({
       <Button
         variant="audio"
         disabled={!active || loading || disabled}
-        aria-label={playing ? "Pause example" : "Play example"}
+        aria-label={
+          loading
+            ? "Loading example"
+            : playing
+              ? "Pause example"
+              : "Play example"
+        }
+        aria-busy={loading}
         onClick={() => void togglePlayback()}
         className={
           presentation === "icon"
             ? "size-10 shrink-0 rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground"
-            : "gap-2 px-4"
+            : "w-28 shrink-0 px-4"
         }
       >
-        {loading ? (
-          <Spinner className="size-4" />
-        ) : playing ? (
-          <PauseIcon className="size-4" />
-        ) : (
-          <PlayIcon className="size-4" />
-        )}
-        {presentation === "button" &&
-          (loading ? "Loading" : playing ? "Pause" : "Play")}
+        <span aria-hidden="true" className="grid place-items-center">
+          <AnimatePresence initial={false}>
+            <motion.span
+              key={loading ? "loading" : playing ? "pause" : "play"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.3 }}
+              className="col-start-1 row-start-1 inline-flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <Spinner className="size-4" />
+              ) : playing ? (
+                <PauseIcon className="size-4" />
+              ) : (
+                <PlayIcon className="size-4" />
+              )}
+              {presentation === "button" &&
+                (loading ? "Loading" : playing ? "Pause" : "Play")}
+            </motion.span>
+          </AnimatePresence>
+        </span>
       </Button>
       {error && (
         <span role="status" className="text-xs">
@@ -163,8 +199,42 @@ function PracticeTabPlayhead({
   );
 }
 
+function PracticeSection({
+  subSection,
+  children,
+}: {
+  subSection: ChordSection | TabSectionData;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex w-full min-w-0 flex-col items-start">
+      <div className="ml-4 flex items-center gap-3 rounded-t-md border border-b-0 bg-secondary/25 px-2 py-1 text-sm">
+        <span className="flex items-center gap-1">
+          {getDynamicNoteLengthIcon({
+            noteLength:
+              subSection.type === "tab"
+                ? "quarter"
+                : (subSection.data[0]?.strummingPattern.baseNoteLength ??
+                  "quarter"),
+          })}
+          {subSection.bpm} BPM
+        </span>
+        {subSection.repetitions > 1 && (
+          <>
+            <Separator orientation="vertical" className="h-4" />
+            <span>Repeat {subSection.repetitions}x</span>
+          </>
+        )}
+      </div>
+      <div className="w-full min-w-0 rounded-md border bg-secondary/25 p-3">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function PracticeTab({ showPlayhead = false }: { showPlayhead?: boolean }) {
-  const { sectionIndex } = useFeatureDemo();
+  const { feature, sectionIndex } = useFeatureDemo();
   const containerRef = useRef<HTMLDivElement>(null);
   const highlightedThroughColumn = useTabStore((state) => {
     if (!showPlayhead || state.audioMetadata.editingLoopRange) return -1;
@@ -187,7 +257,7 @@ function PracticeTab({ showPlayhead = false }: { showPlayhead?: boolean }) {
     theme: state.theme,
   }));
   if (subSection?.type !== "tab") return null;
-  return (
+  const content = (
     <div ref={containerRef} className="relative w-full overflow-hidden">
       <StaticTabSection
         subSectionData={subSection}
@@ -202,6 +272,11 @@ function PracticeTab({ showPlayhead = false }: { showPlayhead?: boolean }) {
       {showPlayhead && <PracticeTabPlayhead containerRef={containerRef} />}
     </div>
   );
+  return feature === "zoom" ? (
+    content
+  ) : (
+    <PracticeSection subSection={subSection}>{content}</PracticeSection>
+  );
 }
 
 function ZoomPreview() {
@@ -212,6 +287,7 @@ function ZoomPreview() {
         className={styles.practiceViewport}
         tabIndex={0}
         aria-label="Tab preview"
+        data-feature-control
       >
         <div style={{ zoom }}>
           <PracticeTab />
@@ -240,16 +316,37 @@ function ColorsPreview() {
     }));
   return (
     <div className="flex w-full min-w-0 flex-col gap-5">
-      <div className="flex items-center justify-center">
-        {subSection?.type === "chord" && (
-          <StaticChordSection
-            subSectionData={subSection}
-            color={color}
-            theme={theme}
-            presentation="bare"
-          />
-        )}
-      </div>
+      {subSection?.type === "chord" && (
+        <PracticeSection subSection={subSection}>
+          <div
+            className={styles.practiceViewport}
+            tabIndex={0}
+            aria-label="Scrollable chord example"
+            data-feature-control
+          >
+            <div
+              style={{
+                width:
+                  Math.max(
+                    ...subSection.data.map(
+                      ({ strummingPattern }) => strummingPattern.strums.length,
+                    ),
+                  ) *
+                    STATIC_STRUMMING_PATTERN_STRUM_WIDTH_PX +
+                  10,
+                minWidth: "100%",
+              }}
+            >
+              <StaticChordSection
+                subSectionData={subSection}
+                color={color}
+                theme={theme}
+                presentation="bare"
+              />
+            </div>
+          </div>
+        </PracticeSection>
+      )}
       <div
         className="flex items-center justify-center gap-3"
         data-feature-control
@@ -284,7 +381,7 @@ function SpeedPreview() {
   );
   return (
     <div className="flex w-full min-w-0 flex-col gap-5">
-      <div className={styles.practiceViewport}>
+      <div className={styles.practiceViewport} data-feature-control>
         <PracticeTab showPlayhead />
       </div>
       <div className="flex w-full flex-wrap items-center justify-between gap-3 self-center rounded-lg border bg-background p-4 md:w-3/4">
