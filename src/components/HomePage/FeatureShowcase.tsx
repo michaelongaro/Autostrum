@@ -169,35 +169,40 @@ function PracticeCarousel({ active }: { active: boolean }) {
       }}
     >
       <div className="flex touch-pan-y py-1">
-        {PRACTICE_FEATURES.map((feature, index) => (
-          <article
-            key={feature.id}
-            role="group"
-            aria-roledescription="slide"
-            aria-label={`${feature.title}, ${index + 1} of ${PRACTICE_FEATURES.length}`}
-            aria-hidden={selected !== index}
-            inert={selected !== index}
-            className="mr-3 flex min-w-0 flex-[0_0_84%] flex-col overflow-hidden rounded-xl border bg-background shadow-sm"
-          >
-            <div
-              className={cn(
-                styles.previewSurface,
-                "flex min-h-[450px] flex-1 items-center justify-center border-b border-foreground/15 p-4",
-              )}
+        {PRACTICE_FEATURES.map((feature, index) => {
+          const Icon = feature.icon;
+
+          return (
+            <article
+              key={feature.id}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`${feature.title}, ${index + 1} of ${PRACTICE_FEATURES.length}`}
+              aria-hidden={selected !== index}
+              inert={selected !== index}
+              className="mr-3 flex min-w-0 flex-[0_0_84%] flex-col overflow-hidden rounded-xl border bg-background shadow-sm"
             >
-              <FeaturePreview
-                feature={feature.id}
-                surface="mobile"
-                active={active && selected === index}
-              />
-            </div>
-            <div className="px-5 pb-6 pt-5">
-              <h3 className="text-xl font-semibold tracking-tight">
-                {feature.title}
-              </h3>
-            </div>
-          </article>
-        ))}
+              <div
+                className={cn(
+                  styles.previewSurface,
+                  "flex min-h-[450px] flex-1 items-center justify-center border-b border-foreground/15 p-4",
+                )}
+              >
+                <FeaturePreview
+                  feature={feature.id}
+                  surface="mobile"
+                  active={active && selected === index}
+                />
+              </div>
+              <div className="px-5 pb-6 pt-5">
+                <h3 className="baseFlex !justify-start gap-2 text-xl font-semibold tracking-tight">
+                  <Icon className="size-[18px]" />
+                  {feature.title}
+                </h3>
+              </div>
+            </article>
+          );
+        })}
       </div>
       <span className="sr-only" aria-live="polite" aria-atomic="true">
         {PRACTICE_FEATURES[selected]?.title}
