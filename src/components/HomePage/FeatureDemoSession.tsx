@@ -46,10 +46,10 @@ const PRACTICE_CHORDS = [
   { name: "Cadd9", frets: ["3", "3", "0", "2", "3", ""] },
   { name: "D", frets: ["2", "3", "2", "0", "", ""] },
   { name: "Cmaj7", frets: ["0", "0", "0", "2", "3", ""] },
-  { name: "Em7/B", frets: ["0", "3", "0", "2", "2", ""] },
+  { name: "Em7/B", frets: ["0", "0", "0", "0", "2", ""] },
   { name: "Fmaj7(#11)", frets: ["0", "0", "2", "3", "3", "1"] },
-  { name: "Fmaj7", frets: ["0", "1", "2", "3", "", ""] },
-  { name: "G6", frets: ["0", "0", "0", "0", "2", "3"] },
+  { name: "Fmaj7", frets: ["0", "1", "2", "3", "3", "1"] },
+  { name: "G6", frets: ["0", "3", "4", "5", "5", "3"] },
 ];
 
 function createPattern(
@@ -86,16 +86,31 @@ const COLOR_PATTERN = createPattern("homepage-color-pattern", "sixteenth", [
   "v",
   "^",
 ]);
+// Each reference row spans eight beats (16 eighth-note slots).
 const LOOP_INTRO_PATTERN = createPattern(
   "homepage-loop-intro-pattern",
   "eighth",
   ["v", "", "v", "", "v", "^", "v", "^", "", "^", "v", "^", "", "^", "v", "^"],
 );
-const LOOP_PATTERN = createPattern(
-  "homepage-loop-pattern",
-  "eighth",
-  Array.from({ length: 16 }, (_, index) => (index % 2 === 0 ? "v" : "^")),
-);
+// The other rows alternate down/up, accenting downstrokes on beats 1, 3, 5, 7.
+const LOOP_PATTERN = createPattern("homepage-loop-pattern", "eighth", [
+  "v>",
+  "^",
+  "v",
+  "^",
+  "v>",
+  "^",
+  "v",
+  "^",
+  "v>",
+  "^",
+  "v",
+  "^",
+  "v>",
+  "^",
+  "v",
+  "^",
+]);
 
 // Only the visible columns in the reference screenshots are transcribed here.
 // Tab-note string fields follow the displayed rows, highest to lowest.
