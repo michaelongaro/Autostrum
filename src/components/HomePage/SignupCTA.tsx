@@ -56,10 +56,10 @@ function MobileTabMetadataPreview() {
   return (
     <div
       aria-hidden="true"
-      className="playbackModalGradient pointer-events-none relative h-[350px] w-full select-none overflow-hidden pt-6 [-webkit-mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] sm:px-6 md:hidden"
+      className="heroScreenshotStage playbackModalGradient pointer-events-none relative h-[350px] w-full select-none overflow-hidden px-4 pt-6 [-webkit-mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] sm:px-6 md:hidden"
     >
-      <div className="mx-auto max-w-sm">
-        <div className="baseFlex !justify-between gap-4 px-4 pb-4 pt-4">
+      <div className="heroScreenshotTilt mx-auto max-w-sm">
+        <div className="baseFlex !justify-between gap-2 px-1 pb-4 pt-4 xs:gap-4 xs:px-4">
           <p className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             Create
           </p>
@@ -82,7 +82,7 @@ function MobileTabMetadataPreview() {
           </div>
         </div>
 
-        <div className="relative z-10 w-full border-y bg-background shadow-sm sm:rounded-xl sm:border-x">
+        <div className="heroScreenshotApp relative z-10 w-full bg-background">
           <div className="baseFlex !justify-end gap-3 p-4">
             <TabPreviewActions />
           </div>
@@ -216,12 +216,15 @@ function TabPreviewActions() {
   return (
     <>
       <div
-        className={buttonVariants({ variant: "secondary", className: "gap-2" })}
+        className={buttonVariants({
+          variant: "secondary",
+          className: "gap-2",
+        })}
       >
-        <FaEye className="size-4" />
+        <FaEye className="size-4 shrink-0" />
         Preview
       </div>
-      <div className={buttonVariants({ className: "md:w-[132px]" })}>
+      <div className={buttonVariants({ className: "w-[124px] md:w-[132px]" })}>
         Publish
       </div>
     </>
