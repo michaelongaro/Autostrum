@@ -114,7 +114,7 @@ function DemoPlaybackButton({
         className={
           presentation === "icon"
             ? "size-10 shrink-0 rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground"
-            : "w-28 shrink-0 px-4"
+            : "w-24 shrink-0 px-4"
         }
       >
         <span aria-hidden="true" className="grid place-items-center">
@@ -130,12 +130,13 @@ function DemoPlaybackButton({
               {loading ? (
                 <Spinner className="size-4" />
               ) : playing ? (
-                <PauseIcon className="size-4" />
+                <PauseIcon className="size-[14px]" />
               ) : (
-                <PlayIcon className="size-4" />
+                <PlayIcon className="size-[14px]" />
               )}
               {presentation === "button" &&
-                (loading ? "Loading" : playing ? "Pause" : "Play")}
+                !loading &&
+                (playing ? "Pause" : "Play")}
             </motion.span>
           </AnimatePresence>
         </span>
