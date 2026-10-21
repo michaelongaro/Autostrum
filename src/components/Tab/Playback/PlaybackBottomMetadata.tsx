@@ -827,10 +827,13 @@ function MobileMenuDialog() {
               <CarouselItem className="h-full min-h-0 basis-full overflow-hidden pl-0">
                 <PracticeMenuPane>
                   {chords.length > 0 ? (
-                    <div className="baseFlex w-full flex-wrap gap-8">
+                    <div className="grid w-full grid-cols-2 items-start justify-items-center gap-8 sm:flex sm:flex-wrap sm:justify-center">
                       {chords.map((chord, index) => (
-                        <div key={chord.id} className="baseFlex">
-                          <div className="baseVertFlex gap-3">
+                        <div
+                          key={chord.id}
+                          className="baseFlex min-w-0 max-w-full"
+                        >
+                          <div className="baseVertFlex min-w-0 max-w-full gap-3">
                             <div className="baseFlex w-full !justify-between border-b py-2">
                               <ChordName
                                 name={chord.name}
@@ -893,7 +896,7 @@ function MobileMenuDialog() {
                               </Button>
                             </div>
 
-                            <div className="h-36">
+                            <div className="h-36 max-w-full">
                               <ChordDiagram originalFrets={chord.frets} />
                             </div>
                           </div>

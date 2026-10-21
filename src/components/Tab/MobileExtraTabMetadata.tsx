@@ -260,13 +260,13 @@ function MobileExtraTabMetadata() {
                         No chords specified
                       </p>
                     ) : (
-                      <div className="baseFlex flex-wrap !items-start gap-8">
+                      <div className="grid w-full grid-cols-2 items-start justify-items-center gap-8 sm:flex sm:flex-wrap sm:justify-center">
                         {chords.map((chord, index) => (
                           <div
                             key={chord.id}
-                            className="baseFlex max-w-[175px]"
+                            className="baseFlex min-w-0 max-w-full sm:max-w-[175px]"
                           >
-                            <div className="baseVertFlex gap-3">
+                            <div className="baseVertFlex min-w-0 max-w-full gap-3">
                               <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
                                 <ChordName
                                   name={chord.name}
@@ -330,7 +330,7 @@ function MobileExtraTabMetadata() {
                                 </Button>
                               </div>
 
-                              <div className="h-[118px]">
+                              <div className="h-[118px] max-w-full">
                                 <ChordDiagram originalFrets={chord.frets} />
                               </div>
                             </div>

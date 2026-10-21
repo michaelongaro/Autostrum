@@ -167,8 +167,11 @@ function ChordDiagram({ originalFrets }: ChordDiagram) {
   return (
     <svg
       viewBox={`10 0 150 ${svgHeight}`}
-      width="100%"
-      height="100%"
+      // Definite dimensions keep intrinsic sizing consistent across browsers
+      // when a chord card's width is calculated by flex or grid.
+      width={150}
+      height={svgHeight}
+      className="mx-auto h-full w-auto max-w-full"
       role="img"
       aria-label={`Guitar chord diagram for frets: ${frets.join(", ")}`}
     >
