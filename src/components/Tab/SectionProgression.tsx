@@ -10,6 +10,7 @@ import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { useState } from "react";
 import { BsMusicNoteList } from "react-icons/bs";
 import { motion } from "framer-motion";
+import { MdModeEditOutline } from "react-icons/md";
 
 const opacityVariants = {
   closed: {
@@ -86,10 +87,11 @@ function SectionProgression() {
               </div>
 
               <Button
-                className="mb-1"
+                className="baseFlex mb-1 gap-2"
                 onClick={() => setShowSectionProgressionDialog(true)}
               >
-                {sectionProgression.length === 0 ? "Add section" : "Edit"}
+                Edit
+                <MdModeEditOutline className="size-4" />
               </Button>
             </div>
           </AccordionContent>

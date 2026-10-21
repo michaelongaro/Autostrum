@@ -12,7 +12,7 @@ import { Button } from "~/components/ui/button";
 import { getNextChordColor } from "~/utils/chordColors";
 import { Separator } from "~/components/ui/separator";
 import ChordName from "~/components/ui/ChordName";
-import { BsMusicNoteBeamed } from "react-icons/bs";
+import { BsMusicNoteBeamed, BsPlus } from "react-icons/bs";
 import SortableMetadataList from "./SortableMetadataList";
 
 function Chords() {
@@ -182,8 +182,10 @@ function Chords() {
                       },
                     });
                   }}
+                  className="baseFlex gap-0.5"
                 >
-                  Add chord
+                  <BsPlus className="size-5" />
+                  Chord
                 </Button>
                 <Button
                   variant="outline"

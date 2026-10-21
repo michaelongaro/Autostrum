@@ -21,6 +21,7 @@ import {
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import Logo from "~/components/ui/icons/Logo";
 import SortableMetadataList from "./SortableMetadataList";
+import { BsPlus } from "react-icons/bs";
 
 function StrummingPatterns() {
   const [accordionValue, setAccordionValue] = useState("closed");
@@ -276,8 +277,10 @@ function StrummingPatterns() {
                         },
                       });
                     }}
+                    className="baseFlex gap-0.5"
                   >
-                    Add strumming pattern
+                    <BsPlus className="size-5" />
+                    Strumming pattern
                   </Button>
                   <Button
                     variant="outline"
