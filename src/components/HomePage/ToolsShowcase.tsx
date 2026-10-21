@@ -80,7 +80,7 @@ function ToolsShowcase() {
             className="group flex h-full flex-col overflow-hidden rounded-xl border bg-background shadow-sm transition-[border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
           >
             <div className="flex h-44 items-center justify-center border-b border-foreground/30 bg-secondary/60 p-3">
-              <div className="h-full w-full max-w-[320px] motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-visible:-translate-y-1">
+              <div className="h-full w-full max-w-[320px] motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-visible:-translate-y-1 motion-safe:group-active:-translate-y-1">
                 {tool.illustration}
               </div>
             </div>
@@ -95,7 +95,7 @@ function ToolsShowcase() {
                 </h3>
                 <span
                   aria-hidden="true"
-                  className="flex size-8 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground/70 transition-colors group-hover:bg-primary group-hover:text-primary-foreground group-focus-visible:bg-primary group-focus-visible:text-primary-foreground"
+                  className="flex size-8 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground/70 transition-colors group-hover:bg-primary group-hover:text-primary-foreground group-focus-visible:bg-primary group-focus-visible:text-primary-foreground group-active:bg-primary group-active:text-primary-foreground"
                 >
                   <IoArrowForward className="size-4" />
                 </span>
