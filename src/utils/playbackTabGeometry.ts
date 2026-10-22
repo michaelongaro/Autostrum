@@ -14,13 +14,17 @@ export const PLAYBACK_TAB_STRINGS_HEIGHT_PX =
 export const PLAYBACK_TAB_STRINGS_HEIGHT_PORTRAIT_PX =
   PLAYBACK_TAB_STRING_ROW_HEIGHT_PORTRAIT_PX * PLAYBACK_TAB_STRING_COUNT;
 
+/** Loop controls sit just below the staff, measured from each column's center. */
+export const PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX =
+  PLAYBACK_TAB_STRINGS_HEIGHT_PX / 2 + 12;
+
 /** 1px measure lines and start/end staff lines. */
 export const PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX = 1;
 
 /**
  * Measure-line column height. Tuned so a centered 126px/150px string span
- * lines up with tab/chord staffs, and so loop-range nodes stay aligned
- * (`mt-6` on chords vs `mt-1` on measure lines).
+ * lines up with tab/chord staffs. Loop-range controls use a shared offset
+ * from the column center instead of adding to its height.
  */
 export const PLAYBACK_TAB_MEASURE_LINE_HEIGHT_PX = 202;
 export const PLAYBACK_TAB_MEASURE_LINE_HEIGHT_PORTRAIT_PX = 222;

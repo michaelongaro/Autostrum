@@ -580,13 +580,12 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
           isLastChordInTab={isLastChordInTab}
           isDimmed={isDimmed}
           isHighlighted={isHighlighted}
-          editingLoopRange={audioMetadata.editingLoopRange}
           breakBeamWithPrevious={beamBreaks.breakWithPrevious}
           breakBeamWithNext={beamBreaks.breakWithNext}
         />
       );
     },
-    [loopDelay, audioMetadata.editingLoopRange, expandedTabData],
+    [loopDelay, expandedTabData],
   );
 
   const practiceStrip = (
@@ -784,7 +783,6 @@ interface RenderChordByType {
   isLastChordInTab: boolean;
   isDimmed: boolean;
   isHighlighted: boolean;
-  editingLoopRange: boolean;
   breakBeamWithPrevious: boolean;
   breakBeamWithNext: boolean;
 }
@@ -823,7 +821,6 @@ function RenderChordByType({
   isLastChordInTab,
   isDimmed,
   isHighlighted,
-  editingLoopRange,
   breakBeamWithPrevious,
   breakBeamWithNext,
 }: RenderChordByType) {
@@ -940,7 +937,6 @@ function RenderChordByType({
         nextChordIsRest={nextChordIsRest}
         breakBeamWithPrevious={breakBeamWithPrevious}
         breakBeamWithNext={breakBeamWithNext}
-        editingLoopRange={editingLoopRange}
       />
     );
   }

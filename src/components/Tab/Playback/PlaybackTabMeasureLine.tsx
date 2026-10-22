@@ -3,6 +3,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
+  PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX,
   PLAYBACK_TAB_MEASURE_LINE_HEIGHT_PORTRAIT_PX,
   PLAYBACK_TAB_MEASURE_LINE_WIDTH_PX,
   PLAYBACK_TAB_PALM_MUTE_CONNECTOR_TOP_PX,
@@ -47,7 +48,7 @@ function PlaybackTabMeasureLine({
       : null;
 
   return (
-    <div className="baseVertFlex">
+    <div className="baseVertFlex relative">
       <div
         style={{
           opacity: isDimmed ? 0.5 : 1,
@@ -67,7 +68,9 @@ function PlaybackTabMeasureLine({
                     }`}
                   >
                     <QuarterNote />
-                    <p className="text-center text-xs">{bpmToShow.toString()}</p>
+                    <p className="text-center text-xs">
+                      {bpmToShow.toString()}
+                    </p>
                   </div>
                 )}
 
@@ -100,9 +103,12 @@ function PlaybackTabMeasureLine({
       </div>
 
       {editingLoopRange && (
-        <div className="baseFlex mt-6 h-7 w-full">
+        <div
+          style={{ top: `calc(50% + ${PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX}px)` }}
+          className="baseFlex absolute h-7 w-full"
+        >
           {loopNodePresentation?.role === "middle" ? (
-            <div className="mb-4 h-px w-full bg-foreground" />
+            <div className="h-px w-full bg-foreground" />
           ) : null}
         </div>
       )}

@@ -39,7 +39,6 @@ function PlaybackScrollingContainer({
     currentChordIndex,
     setCurrentChordIndex,
     countInTimer,
-    editingLoopRange,
     visiblePlaybackContainerWidth,
   } = useTabStore((state) => ({
     playing: state.audioMetadata.playing,
@@ -47,7 +46,6 @@ function PlaybackScrollingContainer({
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     countInTimer: state.countInTimer,
-    editingLoopRange: state.audioMetadata.editingLoopRange,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
   }));
 
@@ -88,11 +86,7 @@ function PlaybackScrollingContainer({
   return (
     <div
       data-playback-strip
-      className={`baseFlex relative w-full touch-none overflow-hidden ${
-        editingLoopRange
-          ? "h-[290px] mobilePortrait:h-[315px]"
-          : "h-[255px] mobilePortrait:h-[315px]"
-      } ${countInTimer.showing ? "pointer-events-none" : "cursor-grab active:cursor-grabbing"}`}
+      className={`baseFlex relative h-[255px] w-full touch-none overflow-hidden mobilePortrait:h-[315px] ${countInTimer.showing ? "pointer-events-none" : "cursor-grab active:cursor-grabbing"}`}
       onPointerDown={glideScrub.handlePointerDown}
       onPointerMove={glideScrub.handlePointerMove}
       onPointerUp={glideScrub.handlePointerEnd}

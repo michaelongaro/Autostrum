@@ -8,7 +8,10 @@ import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { useTabStore } from "~/stores/TabStore";
 import ChordName from "~/components/ui/ChordName";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
-import { PLAYBACK_TAB_STRINGS_HEIGHT_PX } from "~/utils/playbackTabGeometry";
+import {
+  PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX,
+  PLAYBACK_TAB_STRINGS_HEIGHT_PX,
+} from "~/utils/playbackTabGeometry";
 
 interface PlaybackStrummedChord {
   strum: string;
@@ -32,7 +35,6 @@ interface PlaybackStrummedChord {
   nextChordIsRest: boolean;
   breakBeamWithPrevious: boolean;
   breakBeamWithNext: boolean;
-  editingLoopRange: boolean;
 }
 
 function PlaybackStrummedChord({
@@ -57,7 +59,6 @@ function PlaybackStrummedChord({
   nextChordIsRest,
   breakBeamWithPrevious,
   breakBeamWithNext,
-  editingLoopRange,
 }: PlaybackStrummedChord) {
   const {
     chordDisplayMode,
@@ -85,21 +86,7 @@ function PlaybackStrummedChord({
       })
     : null;
 
-  let bpmTopValue = "0px";
-
-  if (editingLoopRange) {
-    if (palmMute === "start") {
-      bpmTopValue = "-8px";
-    } else {
-      bpmTopValue = "16px";
-    }
-  } else {
-    if (palmMute === "start") {
-      bpmTopValue = "16px";
-    } else {
-      bpmTopValue = "40px";
-    }
-  }
+  const bpmTopValue = palmMute === "start" ? "16px" : "40px";
 
   return (
     // Keep loop-range nodes outside the dimmed wrapper so chord dimming
@@ -255,7 +242,10 @@ function PlaybackStrummedChord({
       </div>
 
       {loopNodePresentation && typeof chordIndex === "number" && (
-        <div className="baseFlex mt-6 h-7 w-full">
+        <div
+          style={{ top: `calc(50% + ${PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX}px)` }}
+          className="baseFlex absolute h-7 w-full"
+        >
           <PlaybackLoopRangeNode
             role={loopNodePresentation.role}
             opacity={loopNodePresentation.opacity}

@@ -134,7 +134,7 @@ function PlaybackAudioControls({
   return (
     <>
       {viewportLabel.includes("Landscape") && (
-        <div className="baseFlex w-full gap-4 px-4">
+        <div className="baseFlex h-10 w-full shrink-0 gap-4 px-4">
           {/* audio source, instrument, speed selects*/}
 
           {/* play/pause button*/}
@@ -205,10 +205,11 @@ function PlaybackAudioControls({
       )}
 
       {!viewportLabel.includes("Landscape") && (
-        <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[612px]">
+        // Reserve the playback controls' height when loop editing hides them.
+        <div className="baseVertFlex relative h-14 w-full max-w-[85vw] shrink-0 gap-2 sm:max-w-[612px]">
           {audioMetadata.editingLoopRange &&
             viewportLabel.includes("mobile") && (
-              <p className="h-0 pb-[20px] text-sm text-gray xs:pb-6 xs:pt-0.5 xs:text-sm">
+              <p className="absolute bottom-full mb-2 text-center text-sm text-gray">
                 {loopRangePrompt}
               </p>
             )}

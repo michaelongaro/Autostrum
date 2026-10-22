@@ -7,7 +7,10 @@ import { type FullNoteLengths, useTabStore } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
-import { PLAYBACK_TAB_STRINGS_HEIGHT_PX } from "~/utils/playbackTabGeometry";
+import {
+  PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX,
+  PLAYBACK_TAB_STRINGS_HEIGHT_PX,
+} from "~/utils/playbackTabGeometry";
 
 interface PlaybackTabChord {
   columnData: string[];
@@ -150,18 +153,19 @@ function PlaybackTabChord({
 
               {index === 7 && (
                 <div className="baseFlex mt-1 h-4 w-full">
-                  {renderNoteLengthGuide({
-                    previousNoteLength: prevChordNoteLength,
-                    currentNoteLength: currentChordNoteLength,
-                    nextNoteLength: nextChordNoteLength,
-                    previousIsRestStrum: prevChordIsRest,
-                    currentIsRestStrum: currentChordIsRest,
-                    nextIsRestStrum: nextChordIsRest,
-                    isFirstInGroup: isFirstChord,
-                    isLastInGroup: isLastChord,
-                    breakBeamWithPrevious,
-                    breakBeamWithNext,
-                  })}
+                  {!audioMetadata.editingLoopRange &&
+                    renderNoteLengthGuide({
+                      previousNoteLength: prevChordNoteLength,
+                      currentNoteLength: currentChordNoteLength,
+                      nextNoteLength: nextChordNoteLength,
+                      previousIsRestStrum: prevChordIsRest,
+                      currentIsRestStrum: currentChordIsRest,
+                      nextIsRestStrum: nextChordIsRest,
+                      isFirstInGroup: isFirstChord,
+                      isLastInGroup: isLastChord,
+                      breakBeamWithPrevious,
+                      breakBeamWithNext,
+                    })}
                 </div>
               )}
 
@@ -206,7 +210,10 @@ function PlaybackTabChord({
       </div>
 
       {loopNodePresentation && typeof chordIndex === "number" && (
-        <div className="baseFlex mt-6 h-7 w-full">
+        <div
+          style={{ top: `calc(50% + ${PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX}px)` }}
+          className="baseFlex absolute h-7 w-full"
+        >
           <PlaybackLoopRangeNode
             role={loopNodePresentation.role}
             opacity={loopNodePresentation.opacity}
