@@ -222,7 +222,10 @@ function PracticeSection({
         </span>
         {subSection.repetitions > 1 && (
           <>
-            <Separator orientation="vertical" className="h-4" />
+            <Separator
+              orientation="vertical"
+              className="h-4 w-[1px] bg-foreground"
+            />
             <span>Repeat {subSection.repetitions}x</span>
           </>
         )}

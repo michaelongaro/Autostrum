@@ -338,7 +338,7 @@ export default function FeatureShowcase() {
                   onClick={() => selectFeature(index)}
                   onKeyDown={(event) => handleFeatureKeys(event, index)}
                   className={cn(
-                    "group flex items-center gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:p-5",
+                    "group flex w-96 items-center gap-3 rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:p-5",
                     active
                       ? "border-primary/35 bg-background shadow-sm"
                       : "border-transparent hover:bg-background/50",
