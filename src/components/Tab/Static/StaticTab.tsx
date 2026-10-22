@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { FaBook } from "react-icons/fa";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { useTabStore, useTabStoreApi, type Section } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
 import {
   Tooltip,
@@ -48,6 +48,7 @@ const PlaybackModal = dynamic(
 );
 
 function StaticTab() {
+  const store = useTabStoreApi();
   const { asPath } = useRouter();
 
   const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
@@ -245,7 +246,7 @@ function StaticTab() {
                     onClick={() => {
                       // Unlock AudioContext + preload the modal chunk inside this
                       // gesture so the first Play is not blocked on Safari resume/lazy JS.
-                      primePlaybackUserGesture();
+                      primePlaybackUserGesture(store.getState());
                       setShowPlaybackModal(true);
                     }}
                   >

@@ -2,9 +2,9 @@ import { midiToNoteName } from "@tonaljs/midi";
 import { get } from "@tonaljs/note";
 import { PitchDetector } from "pitchy";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
+import { useTabStoreApi } from "~/stores/TabStore";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
-import { resumeAudioContext } from "~/utils/audioContextRecovery";
+import { isAudioPageHidden } from "~/utils/audioContextRecovery";
 import {
   centsBetweenFrequencies,
   frequencyFromMidi,
@@ -254,7 +254,6 @@ export function useTuner({
   minimumClarity = TUNER_DEFAULTS.minimumClarity,
 }: UseTunerParams): UseTunerResult {
   const store = useTabStoreApi();
-  const audioContext = useTabStore((state) => state.audioContext);
 
   const [isListening, setIsListening] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -295,7 +294,7 @@ export function useTuner({
   const guidePlaybackRequestIdRef = useRef(0);
   const guideSuppressUntilRef = useRef(0);
 
-  const audioContextRef = useRef(audioContext);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const targetNotes = useMemo(
     () => resolveTargetNotes(targetTuning, capo),
@@ -441,6 +440,7 @@ export function useTuner({
     guidePlaybackHandleRef.current = null;
 
     streamGenerationRef.current += 1;
+    startPromiseRef.current = null;
 
     if (rafRef.current !== null) {
       window.cancelAnimationFrame(rafRef.current);
@@ -496,7 +496,7 @@ export function useTuner({
     stopGuidePlayback(guidePlaybackHandleRef.current);
     guidePlaybackHandleRef.current = null;
 
-    const ready = await store.getState().ensureAudioSystemReady();
+    const ready = await store.getState().ensureAudioContextReady();
     if (!ready) return;
     const ctx = ready.audioContext;
     if (
@@ -707,7 +707,14 @@ export function useTuner({
     const buffer = bufferRef.current;
     const detector = detectorRef.current;
 
-    if (!ctx || !analyser || !buffer || !detector) {
+    if (
+      !ctx ||
+      !analyser ||
+      !buffer ||
+      !detector ||
+      ctx.state !== "running" ||
+      analyser.context !== ctx
+    ) {
       return;
     }
 
@@ -960,143 +967,101 @@ export function useTuner({
   }
 
   async function startListening() {
-    // getUserMedia's permission prompt can outlive the activating tap.
-    const audioReady = store.getState().ensureAudioSystemReady();
+    // Unlock before getUserMedia's permission prompt can outlive the tap.
+    const audioReady = store.getState().ensureAudioContextReady();
+    if (isAudioPageHidden()) return;
     shouldBeListeningRef.current = true;
-
-    if (startPromiseRef.current) {
-      await startPromiseRef.current;
-      return;
-    }
-
-    if (isListeningRef.current) {
+    if (startPromiseRef.current) return startPromiseRef.current;
+    if (
+      isListeningRef.current &&
+      audioContextRef.current === store.getState().audioContext
+    ) {
       const tracks = streamRef.current?.getAudioTracks() ?? [];
-
-      const streamAlive = tracks.some(
-        (track) => track.readyState === "live" && track.enabled && !track.muted,
-      );
-
-      if (streamAlive) {
+      if (
+        tracks.some(
+          (track) =>
+            track.readyState === "live" && track.enabled && !track.muted,
+        )
+      )
         return;
-      }
     }
-
     if (!navigator.mediaDevices?.getUserMedia) {
       setError("Microphone access is not supported in this browser.");
       shouldBeListeningRef.current = false;
       return;
     }
-
+    if (streamRef.current || isListeningRef.current)
+      teardownListening({ preserveIntent: true });
+    const generation = ++streamGenerationRef.current;
+    const isCurrent = () =>
+      shouldBeListeningRef.current &&
+      streamGenerationRef.current === generation &&
+      !isAudioPageHidden();
     const startPromise = (async () => {
-      if (streamRef.current || isListeningRef.current) {
-        teardownListening({
-          preserveIntent: true,
-        });
-      }
-
+      let acquiredStream: MediaStream | null = null;
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        acquiredStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             autoGainControl: false,
             noiseSuppression: false,
             echoCancellation: false,
           },
         });
-
-        if (!shouldBeListeningRef.current) {
-          for (const track of stream.getTracks()) {
-            track.stop();
-          }
-
+        if (!isCurrent()) return;
+        await audioReady;
+        if (!isCurrent()) return;
+        // Opening the mic can interrupt/change Safari's audio session. Check the
+        // current graph again after permission, without loading any soundfonts.
+        const ready = await store.getState().ensureAudioContextReady();
+        if (!isCurrent()) return;
+        if (!ready) {
+          setError("Audio could not start. Tap Start to try again.");
           return;
         }
-
-        const ready = await audioReady;
-        const ctx = ready?.audioContext;
-
-        if (!ctx) {
-          for (const track of stream.getTracks()) track.stop();
-          setError("Could not initialize audio context.");
-          teardownListening();
-          return;
-        }
-
-        if (!(await resumeAudioContext(ctx))) {
-          for (const track of stream.getTracks()) track.stop();
-          setError("Audio could not start. Try enabling the tuner again.");
-          teardownListening();
-          return;
-        }
-        if (
-          !shouldBeListeningRef.current ||
-          store.getState().audioContext !== ctx
-        ) {
-          for (const track of stream.getTracks()) track.stop();
-          return;
-        }
+        const ctx = ready.audioContext;
         audioContextRef.current = ctx;
-
-        streamRef.current = stream;
-
-        const micSourceNode = ctx.createMediaStreamSource(stream);
-
+        streamRef.current = acquiredStream;
+        const micSourceNode = ctx.createMediaStreamSource(acquiredStream);
+        micSourceNodeRef.current = micSourceNode;
         const analyser = ctx.createAnalyser();
+        analyserRef.current = analyser;
         analyser.fftSize = 2048;
         micSourceNode.connect(analyser);
-
         const inputBuffer = new Float32Array(analyser.fftSize);
-
-        const detector = PitchDetector.forFloat32Array(inputBuffer.length);
-
-        const streamGeneration = ++streamGenerationRef.current;
-
-        micSourceNodeRef.current = micSourceNode;
-        analyserRef.current = analyser;
         bufferRef.current = inputBuffer;
-        detectorRef.current = detector;
-
-        for (const track of stream.getAudioTracks()) {
+        detectorRef.current = PitchDetector.forFloat32Array(inputBuffer.length);
+        for (const track of acquiredStream.getAudioTracks()) {
           track.addEventListener("ended", () => {
-            if (
-              !shouldBeListeningRef.current ||
-              streamGenerationRef.current !== streamGeneration
-            ) {
-              return;
-            }
-
-            teardownListening({
-              preserveIntent: true,
-            });
-
+            if (!isCurrent()) return;
+            teardownListening({ preserveIntent: true });
             void startListening();
           });
         }
-
         isListeningRef.current = true;
         setIsListening(true);
         setError(null);
         setPermissionDenied(false);
-
         rafRef.current = window.requestAnimationFrame(runDetectionLoop);
       } catch (caughtError) {
+        if (!isCurrent()) return;
         const resolved = resolveGetUserMediaError(caughtError);
-
         setPermissionDenied(resolved.permissionDenied);
         setError(resolved.message);
         teardownListening();
+      } finally {
+        // A stopped/unmounted request may resolve after a newer permission
+        // request. Release only its own stream, never the new session's stream.
+        if (acquiredStream && (!isCurrent() || !isListeningRef.current)) {
+          for (const track of acquiredStream.getTracks()) track.stop();
+        }
       }
     })();
-
-    startPromiseRef.current = startPromise.finally(() => {
-      startPromiseRef.current = null;
+    const tracked = startPromise.finally(() => {
+      if (startPromiseRef.current === tracked) startPromiseRef.current = null;
     });
-
-    await startPromiseRef.current;
+    startPromiseRef.current = tracked;
+    return tracked;
   }
-
-  useEffect(() => {
-    audioContextRef.current = audioContext;
-  }, [audioContext]);
 
   useEffect(() => {
     loopConfigRef.current = {
@@ -1114,63 +1079,45 @@ export function useTuner({
     toleranceCents,
   ]);
 
-  /*
-   * Pause the microphone when the tab is hidden and resume when it becomes
-   * visible again.
-   */
   useEffect(() => {
-    const onVisibilityChange = () => {
-      if (!shouldBeListeningRef.current) {
-        return;
-      }
-
-      if (document.visibilityState === "hidden") {
-        teardownListening({
-          preserveIntent: true,
-        });
-        return;
-      }
-
-      void startListening();
-    };
-
-    const onPageHide = () => {
-      if (shouldBeListeningRef.current) {
-        teardownListening({
-          preserveIntent: true,
-        });
-      }
-    };
-
-    const onFocus = () => {
+    const unsubscribeLifecycle = store
+      .getState()
+      .subscribeAudioLifecycle((event) => {
+        if (event === "ready" || event === "foreground") {
+          if (
+            shouldBeListeningRef.current &&
+            !isListeningRef.current &&
+            !startPromiseRef.current
+          )
+            void startListening();
+        } else {
+          // Opening the mic can itself interrupt Safari's output. Let that
+          // acquisition revalidate after permission instead of reacquiring the
+          // mic on each transition and causing another interruption.
+          if (
+            event === "interrupted" &&
+            startPromiseRef.current &&
+            !isListeningRef.current
+          )
+            return;
+          teardownListening({ preserveIntent: event !== "disposed" });
+        }
+      });
+    const unsubscribeStore = store.subscribe((state, previous) => {
       if (
-        shouldBeListeningRef.current &&
-        document.visibilityState === "visible"
-      ) {
-        void startListening();
-      }
-    };
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("pagehide", onPageHide);
-    window.addEventListener("focus", onFocus);
-    const unsubscribe = store.subscribe((state, previous) => {
-      if (state.audioContext === previous.audioContext) return;
-      audioContextRef.current = state.audioContext;
-      // A replacement context also needs a new microphone source/analyser.
-      if (shouldBeListeningRef.current && streamRef.current) {
-        teardownListening({ preserveIntent: true });
-        void startListening();
-      }
+        state.audioContext === previous.audioContext ||
+        !isListeningRef.current
+      )
+        return;
+      // An analyser belongs to its original context; never just change its clock ref.
+      teardownListening({ preserveIntent: true });
+      // The controller emits ready after the replacement is unlocked.
     });
-
     return () => {
-      unsubscribe();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("pagehide", onPageHide);
-      window.removeEventListener("focus", onFocus);
+      unsubscribeLifecycle();
+      unsubscribeStore();
     };
-    // Handlers read the latest state through refs.
+    // Handlers read intent and request generations through refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store]);
 

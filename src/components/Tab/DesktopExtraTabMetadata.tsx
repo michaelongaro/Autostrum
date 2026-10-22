@@ -189,10 +189,9 @@ function DesktopExtraTabMetadata() {
                           <Button
                             variant={"audio"}
                             disabled={
-                              !currentInstrument ||
-                              (previewMetadata.indexOfPattern === index &&
-                                previewMetadata.playing &&
-                                previewMetadata.type === "chord")
+                              previewMetadata.indexOfPattern === index &&
+                              previewMetadata.playing &&
+                              previewMetadata.type === "chord"
                             }
                             size={"sm"}
                             onClick={() => {
@@ -259,10 +258,7 @@ function DesktopExtraTabMetadata() {
                       <Button
                         variant={"audio"}
                         size={"sm"}
-                        disabled={
-                          !currentInstrument ||
-                          artificalPlayButtonTimeout[index]
-                        }
+                        disabled={artificalPlayButtonTimeout[index]}
                         onClick={() => {
                           if (
                             previewMetadata.playing &&

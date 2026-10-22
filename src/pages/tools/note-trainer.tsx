@@ -100,10 +100,12 @@ function getRandomNote(notePool: readonly string[]) {
 
 function NoteTrainerPage() {
   const store = useTabStoreApi();
-  const { instruments, setCurrentInstrumentName } = useTabStore((state) => ({
-    instruments: state.instruments,
-    setCurrentInstrumentName: state.setCurrentInstrumentName,
-  }));
+  const { audioPreparationPending, setCurrentInstrumentName } = useTabStore(
+    (state) => ({
+      audioPreparationPending: state.audioPreparationPending,
+      setCurrentInstrumentName: state.setCurrentInstrumentName,
+    }),
+  );
 
   const currentPlaybackRef = useRef<PlaybackHandle>(null);
   const playbackRequestIdRef = useRef(0);
@@ -115,15 +117,12 @@ function NoteTrainerPage() {
       currentPlaybackRef.current = null;
       store.getState().currentInstrument?.stop();
     };
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") stop();
-    };
-    window.addEventListener("pagehide", stop);
-    document.addEventListener("visibilitychange", onVisibilityChange);
+    const unsubscribe = store.getState().subscribeAudioLifecycle((event) => {
+      if (event !== "ready" && event !== "foreground") stop();
+    });
     return () => {
       stop();
-      window.removeEventListener("pagehide", stop);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+      unsubscribe();
     };
   }, [store]);
 
@@ -154,11 +153,14 @@ function NoteTrainerPage() {
 
     stopCurrentPlayback();
 
-    const ready = await store.getState().ensureAudioSystemReady();
+    const ready = await (audioSource === "generated"
+      ? store.getState().ensureAudioContextReady()
+      : store.getState().ensureAudioSystemReady());
     if (!ready || playbackRequestIdRef.current !== requestId) {
       return;
     }
-    const { audioContext, currentInstrument: readyInstrument } = ready;
+    const { audioContext } = ready;
+    const readyInstrument = store.getState().currentInstrument;
 
     if (audioSource === "generated") {
       const frequency = get(note).freq;
@@ -193,6 +195,8 @@ function NoteTrainerPage() {
       currentPlaybackRef.current = playbackHandle;
 
       oscillator.onended = () => {
+        oscillator.disconnect();
+        gainNode.disconnect();
         if (currentPlaybackRef.current === playbackHandle) {
           currentPlaybackRef.current = null;
         }
@@ -248,7 +252,7 @@ function NoteTrainerPage() {
     roundsPlayed === 0 ? 0 : Math.round((correctGuesses / roundsPlayed) * 100);
 
   const isSoundfontLoading =
-    audioSource !== "generated" && !instruments[audioSource];
+    audioSource !== "generated" && audioPreparationPending;
 
   const feedbackMessage = selectedGuess ? (
     lastGuessCorrect ? (

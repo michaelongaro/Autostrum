@@ -46,6 +46,11 @@ function useFetchAndLoadSoundfonts() {
         });
       })
       .catch((error) => {
+        if (
+          store.getState().audioContext !== audioContext ||
+          audioContext.state === "closed"
+        )
+          return;
         console.error(`Failed to load ${currentInstrumentName}:`, error);
       });
   }, [audioContext, masterVolumeGainNode, currentInstrumentName, store]);

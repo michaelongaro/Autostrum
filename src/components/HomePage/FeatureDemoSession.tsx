@@ -18,7 +18,6 @@ import {
 import { getColorForChordName } from "~/utils/chordColors";
 import { createTabMeasureLine, createTabNote } from "~/utils/tabNoteHelpers";
 import { DEFAULT_TUNING } from "~/utils/tunings";
-import { useAudioContextRecovery } from "~/hooks/useAudioContextRecovery";
 import type { FeatureId } from "./FeaturePreviews";
 import styles from "./FeatureShowcase.module.css";
 
@@ -402,7 +401,6 @@ export default function FeatureDemoSession({
   const [session] = useState(() =>
     createSession(sectionIndex, feature, parentStore),
   );
-  useAudioContextRecovery(session.store);
 
   useEffect(() => {
     session.store.setState({ color, theme });
@@ -411,10 +409,7 @@ export default function FeatureDemoSession({
     session.setEnabled(active);
     return () => {
       session.setEnabled(false);
-      session.store.getState().pauseAudio();
-      const context = session.store.getState().audioContext;
-      if (context && context.state !== "closed")
-        void context.close().catch(() => undefined);
+      session.store.getState().disposeAudioSystem();
       if (audibleDemoStore === session.store) audibleDemoStore = null;
     };
   }, [session, active]);

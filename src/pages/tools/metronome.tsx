@@ -221,6 +221,10 @@ function MetronomeToolPage() {
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      gainNode.disconnect();
+    };
     oscillator.start(now);
     oscillator.stop(now + decay + 0.01);
   }
@@ -231,7 +235,7 @@ function MetronomeToolPage() {
   async function toggleRunning() {
     const requestId = ++playRequestIdRef.current;
     if (!isRunning) {
-      const ready = await store.getState().ensureAudioSystemReady();
+      const ready = await store.getState().ensureAudioContextReady();
       if (!ready || requestId !== playRequestIdRef.current) return;
     }
 
@@ -262,15 +266,12 @@ function MetronomeToolPage() {
       currentStepRef.current = 0;
       barCountRef.current = 0;
     };
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") stopForBackground();
-    };
-    window.addEventListener("pagehide", stopForBackground);
-    document.addEventListener("visibilitychange", onVisibilityChange);
+    const unsubscribe = store.getState().subscribeAudioLifecycle((event) => {
+      if (event !== "ready" && event !== "foreground") stopForBackground();
+    });
     return () => {
       playRequestIdRef.current += 1;
-      window.removeEventListener("pagehide", stopForBackground);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+      unsubscribe();
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
@@ -279,7 +280,7 @@ function MetronomeToolPage() {
         clearTimeout(tapResetTimerRef.current);
       }
     };
-  }, []);
+  }, [store]);
 
   useEffect(() => {
     if (!isRunning) {

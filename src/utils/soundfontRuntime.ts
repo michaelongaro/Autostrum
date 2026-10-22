@@ -1,5 +1,6 @@
 import Soundfont, { type InstrumentName } from "soundfont-player";
 import { isIOS, isSafari } from "react-device-detect";
+import { withAudioLoadTimeout } from "~/utils/audioContextRecovery";
 
 type InstrumentCache = Map<InstrumentName, Promise<Soundfont.Player>>;
 
@@ -103,10 +104,9 @@ export async function ensureSoundfontPlayer(
     return await cachedLoad;
   }
 
-  const loadPromise = loadSoundfontWithFallback(
-    audioContext,
-    instrumentName,
-    destination,
+  const loadPromise = withAudioLoadTimeout(
+    loadSoundfontWithFallback(audioContext, instrumentName, destination),
+    "Instrument audio",
   ).catch((error) => {
     contextCache.delete(instrumentName);
     throw error;

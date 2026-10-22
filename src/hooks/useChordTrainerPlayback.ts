@@ -3,7 +3,7 @@ import { useIsomorphicLayoutEffect } from "@react-hookz/web";
 import type Soundfont from "soundfont-player";
 import type { ChordTrainerPreset } from "~/data/tools/chordTrainerPresets";
 import type { ChordTrainerStrummingPattern } from "~/data/tools/chordTrainerStrummingPatterns";
-import { getTabStore } from "~/stores/TabStore";
+import { getTabStore, useTabStoreApi } from "~/stores/TabStore";
 import {
   APPEND_CHUNK_SIZE,
   CHORD_ITEM_WIDTH,
@@ -105,6 +105,7 @@ function useChordTrainerPlayback({
   audioEnabled,
   colorCoded,
 }: UseChordTrainerPlaybackArgs) {
+  const store = useTabStoreApi();
   // Remaining refs are the imperative playback engine: DOM nodes, rAF, and
   // the scroll/queue values that rAF mutates between React commits. Config
   // is not mirrored into refs because changing it pauses and parks on the
@@ -524,17 +525,13 @@ function useChordTrainerPlayback({
     };
   }, []);
 
-  useEffect(() => {
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") pausePlayback();
-    };
-    window.addEventListener("pagehide", pausePlayback);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      window.removeEventListener("pagehide", pausePlayback);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [pausePlayback]);
+  useEffect(
+    () =>
+      store.getState().subscribeAudioLifecycle((event) => {
+        if (event !== "ready" && event !== "foreground") pausePlayback();
+      }),
+    [store, pausePlayback],
+  );
 
   const togglePlayback = useCallback(async () => {
     if (isPlayingRef.current) {

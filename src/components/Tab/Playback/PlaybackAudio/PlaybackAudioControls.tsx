@@ -1,10 +1,4 @@
-import {
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
@@ -12,7 +6,7 @@ import { Button } from "~/components/ui/button";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { getTabStore, useTabStore } from "~/stores/TabStore";
+import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
@@ -36,6 +30,7 @@ function PlaybackAudioControls({
   isGlideScrubbing = false,
   loopRangePrompt,
 }: PlaybackAudioControls) {
+  const store = useTabStoreApi();
   const {
     bpm,
     playbackSpeed,
@@ -44,14 +39,11 @@ function PlaybackAudioControls({
     setCurrentChordIndex,
     currentlyPlayingMetadata,
     audioMetadata,
-    previewMetadata,
     currentInstrument,
-    playTab,
+    playTabWithCountIn,
     pauseAudio,
-    ensureAudioSystemReady,
     fetchingFullTabData,
     countInTimer,
-    setCountInTimer,
     viewportLabel,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
@@ -64,14 +56,11 @@ function PlaybackAudioControls({
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     audioMetadata: state.audioMetadata,
-    previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
-    playTab: state.playTab,
+    playTabWithCountIn: state.playTabWithCountIn,
     pauseAudio: state.pauseAudio,
-    ensureAudioSystemReady: state.ensureAudioSystemReady,
     fetchingFullTabData: state.fetchingFullTabData,
     countInTimer: state.countInTimer,
-    setCountInTimer: state.setCountInTimer,
     viewportLabel: state.viewportLabel,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
@@ -96,10 +85,6 @@ function PlaybackAudioControls({
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] =
     useState(false);
-  // Invalidates delayed count-in → playTab work after app switch / pause so
-  // iOS cannot start playback without a fresh user gesture.
-  const playRequestIdRef = useRef(0);
-
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
   useSpacebarAudioControl({ disabled: isGlideScrubbing });
@@ -110,140 +95,26 @@ function PlaybackAudioControls({
     }
   }, [currentChordIndex, setTabProgressValue]);
 
-  useEffect(() => {
-    function cancelPendingPlayStart() {
-      playRequestIdRef.current += 1;
-      const { countInTimer: latestCountInTimer, setCountInTimer: setTimer } =
-        getTabStore();
-      if (latestCountInTimer.showing) {
-        setTimer({
-          ...latestCountInTimer,
-          showing: false,
-        });
-      }
-    }
-
-    function handleBackground() {
-      if (document.visibilityState === "hidden") {
-        cancelPendingPlayStart();
-      }
-    }
-
-    document.addEventListener("visibilitychange", handleBackground);
-    window.addEventListener("pagehide", cancelPendingPlayStart);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleBackground);
-      window.removeEventListener("pagehide", cancelPendingPlayStart);
-    };
-  }, []);
-
   function handlePlayPointerDown() {
     // Stay inside the gesture stack before any await/setTimeout (count-in).
     // iOS Safari otherwise leaves AudioContext suspended until too late for
     // the strip writer on the first Play after a cold reload.
     if (!audioMetadata.playing) {
-      primePlaybackUserGesture();
+      primePlaybackUserGesture(store.getState());
     }
   }
 
   function handlePlayButtonClick() {
-    const delayPlayStart = countInTimerEnabled ? 3000 : 0;
-
     if (audioMetadata.playing) {
-      playRequestIdRef.current += 1;
       pauseAudio();
       setArtificalPlayButtonTimeout(true);
       setTimeout(() => setArtificalPlayButtonTimeout(false), 300);
       return;
     }
-
-    // Sync unlock again on click — pointerdown may have been skipped for
-    // keyboard / some assistive paths.
-    primePlaybackUserGesture();
-
-    const playRequestId = playRequestIdRef.current + 1;
-    playRequestIdRef.current = playRequestId;
-
-    void (async () => {
-      // Count-in runs before playTab, so recover here too.
-      const audioSystem = await ensureAudioSystemReady();
-      if (!audioSystem || playRequestIdRef.current !== playRequestId) return;
-
-      const {
-        audioContext: readyAudioContext,
-        masterVolumeGainNode: readyMasterVolumeGainNode,
-        countInBuffer: readyCountInBuffer,
-      } = audioSystem;
-
-      if (countInTimerEnabled) {
-        setCountInTimer({
-          ...countInTimer,
-          showing: true,
-        });
-
-        function playCountInSound(index: number) {
-          if (
-            playRequestIdRef.current !== playRequestId ||
-            !getTabStore().countInTimer.showing ||
-            readyAudioContext?.state !== "running" ||
-            !readyMasterVolumeGainNode ||
-            !readyCountInBuffer
-          ) {
-            return;
-          }
-
-          const source = readyAudioContext.createBufferSource();
-          source.buffer = readyCountInBuffer;
-
-          const gainNode = readyAudioContext.createGain();
-          gainNode.gain.value = 0.25;
-
-          source.detune.value = index === 3 ? 0 : index === 2 ? -50 : 0;
-
-          source.connect(gainNode);
-
-          gainNode.connect(readyMasterVolumeGainNode);
-          source.start(readyAudioContext.currentTime + 0.19);
-        }
-
-        setTimeout(() => playCountInSound(3), 115);
-
-        setTimeout(() => {
-          setTimeout(() => playCountInSound(2), 115);
-
-          setTimeout(() => {
-            setTimeout(() => playCountInSound(1), 115);
-          }, 1000);
-        }, 1000);
-      }
-
-      if (previewMetadata.playing) pauseAudio();
-
-      const startPlayback = () => {
-        if (playRequestIdRef.current !== playRequestId) return;
-
-        void playTab({
-          location: audioMetadata.location,
-        });
-
-        if (countInTimerEnabled) {
-          setCountInTimer({
-            ...countInTimer,
-            showing: false,
-          });
-        }
-      };
-
-      // Avoid setTimeout(0) when there is no count-in — it breaks the iOS user
-      // gesture chain and leaves AudioContext suspended on the first Play after
-      // a cold reload (strip then never advances).
-      if (delayPlayStart === 0) {
-        startPlayback();
-      } else {
-        setTimeout(startPlayback, delayPlayStart);
-      }
-    })();
+    void playTabWithCountIn({
+      location: audioMetadata.location,
+      countIn: countInTimerEnabled,
+    });
   }
 
   const disablePlayButton =
@@ -255,7 +126,6 @@ function PlaybackAudioControls({
     bpm === -1 ||
     currentlyPlayingMetadata === null ||
     currentlyPlayingMetadata.length === 0 ||
-    !currentInstrument ||
     // idk why this last condition is going over my head right now, make sure it makes sense before commit
     // maybe doesn't hurt anything, but could be covering some of the statements above,
     // so maybe try to leverage it's "complete"ness of its check through the tab?

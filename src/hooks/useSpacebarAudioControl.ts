@@ -25,7 +25,7 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     playTab,
     pauseAudio,
     countInTimer,
-    setCountInTimer,
+    playTabWithCountIn,
     showPlaybackModal,
     editing,
   } = useTabStore((state) => ({
@@ -33,26 +33,28 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
     playTab: state.playTab,
     pauseAudio: state.pauseAudio,
     countInTimer: state.countInTimer,
-    setCountInTimer: state.setCountInTimer,
+    playTabWithCountIn: state.playTabWithCountIn,
     showPlaybackModal: state.showPlaybackModal,
     editing: state.editing,
   }));
 
   const isSpacebarPressed = useRef(false);
-  const isPlayingStateLocked = useRef(false); // Prevents concurrent executions
-  const playRequestIdRef = useRef(0);
-  const countInTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () =>
+      store.getState().subscribeAudioLifecycle((event) => {
+        if (event !== "ready" && event !== "foreground")
+          isSpacebarPressed.current = false;
+      }),
+    [store],
+  );
 
   const countIn = useGetLocalStorageValues().countIn;
 
   // React Compiler escape hatch: identity is a keydown effect dependency.
-  const toggleAudioPlayingState = useCallback(async () => {
-    if (isPlayingStateLocked.current) return; // If already in progress, ignore
-    isPlayingStateLocked.current = true;
-
+  const toggleAudioPlayingState = useCallback(() => {
     if (audioMetadata.playing) {
       pauseAudio();
-      isPlayingStateLocked.current = false;
       return;
     }
 
@@ -65,79 +67,19 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
       } else {
         void playTab({});
       }
-      isPlayingStateLocked.current = false;
       return;
     }
 
-    if (countIn) {
-      const requestId = ++playRequestIdRef.current;
-      // Start inside keydown, before the count-in timeout loses activation.
-      const ready = await store.getState().ensureAudioSystemReady();
-      if (!ready || requestId !== playRequestIdRef.current) {
-        isPlayingStateLocked.current = false;
-        return;
-      }
-      setCountInTimer({
-        ...countInTimer,
-        showing: true,
-      });
-
-      countInTimeoutRef.current = setTimeout(() => {
-        countInTimeoutRef.current = null;
-        if (
-          requestId !== playRequestIdRef.current ||
-          !store.getState().countInTimer.showing ||
-          document.visibilityState === "hidden"
-        ) {
-          isPlayingStateLocked.current = false;
-          return;
-        }
-        void playTab({ location: audioMetadata.location });
-
-        setCountInTimer({
-          ...countInTimer,
-          showing: false,
-        });
-
-        isPlayingStateLocked.current = false; // Unlock after play
-      }, 3000);
-    } else {
-      void playTab({ location: audioMetadata.location });
-      isPlayingStateLocked.current = false; // Unlock after play
-    }
+    void playTabWithCountIn({ location: audioMetadata.location, countIn });
   }, [
     audioMetadata.location,
     audioMetadata.playing,
-    countInTimer,
     pauseAudio,
     playTab,
-    setCountInTimer,
+    playTabWithCountIn,
     useHoveredChordLocation,
     countIn,
-    store,
   ]);
-
-  useEffect(() => {
-    const cancelPendingPlay = () => {
-      playRequestIdRef.current += 1;
-      if (countInTimeoutRef.current !== null) {
-        clearTimeout(countInTimeoutRef.current);
-        countInTimeoutRef.current = null;
-      }
-      isPlayingStateLocked.current = false;
-      isSpacebarPressed.current = false;
-    };
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") cancelPendingPlay();
-    };
-    window.addEventListener("pagehide", cancelPendingPlay);
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      cancelPendingPlay();
-      window.removeEventListener("pagehide", cancelPendingPlay);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, []);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {

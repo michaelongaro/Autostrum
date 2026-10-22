@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { PlaybackStripDriver } from "~/hooks/playbackStripDriver";
 import usePlaybackStripAnimation from "~/hooks/usePlaybackStripAnimation";
+import { createAudioContextController } from "~/utils/audioContextRecovery";
 import {
   getAbsoluteScrollPositionPx,
   getPlaybackStripMotionModel,
@@ -63,6 +64,9 @@ export default function DevPlaybackStripHarness() {
   const driverRef = useRef<PlaybackStripDriver | null>(null);
   const extraAudioSecondsRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const audioControllerRef = useRef<ReturnType<
+    typeof createAudioContextController
+  > | null>(null);
 
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -138,11 +142,15 @@ export default function DevPlaybackStripHarness() {
 
     let cancelled = false;
     let jumpTimer: number | null = null;
-    const context = new AudioContext();
-    audioContextRef.current = context;
-
-    void context.resume().then(() => {
-      if (cancelled) return;
+    const controller = (audioControllerRef.current ??=
+      createAudioContextController({
+        onContextChange: (context) => {
+          audioContextRef.current = context;
+        },
+        onUnavailable: () => setPlaying(false),
+      }));
+    void controller.ensureRunning().then((context) => {
+      if (cancelled || !context) return;
       setAudioContext(context);
       const startAt = context.currentTime + leadMs / 1000;
       setStartedAt(startAt);
@@ -162,6 +170,14 @@ export default function DevPlaybackStripHarness() {
     };
   }, [autostart, booted, isReady, jumpAtMs, jumpMs, leadMs, mode]);
 
+  useEffect(
+    () => () => {
+      audioControllerRef.current?.dispose();
+      audioControllerRef.current = null;
+    },
+    [],
+  );
+
   useEffect(() => {
     const publish = () => {
       window.__playbackStripHarness = {
@@ -173,16 +189,15 @@ export default function DevPlaybackStripHarness() {
         readPositionPx: () => {
           const strip = stripRef.current;
           if (!strip) return null;
-          return parseStripPositionPx(
-            window.getComputedStyle(strip).transform,
-          );
+          return parseStripPositionPx(window.getComputedStyle(strip).transform);
         },
         getSnapshot: () => driverRef.current?.getSnapshot() ?? null,
         expectedPositionPx: (elapsedMs: number) => {
           if (!model) return null;
           const anchorStart =
             model.cumulativeChordTimesMs[
-              ((anchor % model.chordCount) + model.chordCount) % model.chordCount
+              ((anchor % model.chordCount) + model.chordCount) %
+                model.chordCount
             ] ?? 0;
           return getAbsoluteScrollPositionPx({
             model,

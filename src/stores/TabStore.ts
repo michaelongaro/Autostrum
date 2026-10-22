@@ -25,8 +25,8 @@ import {
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 import {
   isAudioPageHidden,
-  loadCountInBuffer,
-  resumeAudioContext,
+  createAudioContextController,
+  type AudioLifecycleEvent,
 } from "~/utils/audioContextRecovery";
 import {
   clampPlaybackSpeed,
@@ -658,11 +658,9 @@ interface TabState {
 
   // related to sound generation/playing
   audioContext: AudioContext | null;
-  setAudioContext: (audioContext: AudioContext | null) => void;
   breakOnNextChord: boolean;
   setBreakOnNextChord: (breakOnNextChord: boolean) => void;
   masterVolumeGainNode: GainNode | null;
-  setMasterVolumeGainNode: (masterVolumeGainNode: GainNode | null) => void;
   showingAudioControls: boolean;
   setShowingAudioControls: (showingAudioControls: boolean) => void;
   // TODO: might be a good idea to add below as a prop under audioMetadata
@@ -735,7 +733,19 @@ interface TabState {
   ) => void;
 
   // playing/pausing sound functions
-  initializeAudioSystem: (replace?: boolean) => AudioContext | null;
+  initializeAudioSystem: () => AudioContext | null;
+  disposeAudioSystem: () => void;
+  subscribeAudioLifecycle: (
+    listener: (event: AudioLifecycleEvent) => void,
+  ) => () => void;
+  ensureAudioContextReady: () => Promise<{
+    audioContext: AudioContext;
+    masterVolumeGainNode: GainNode;
+  } | null>;
+  playTabWithCountIn: (
+    options?: PlayTab & { countIn?: boolean },
+  ) => Promise<void>;
+  audioPreparationPending: boolean;
   ensureAudioSystemReady: () => Promise<{
     audioContext: AudioContext;
     masterVolumeGainNode: GainNode;
@@ -880,9 +890,30 @@ export const createTabStore = (
   let audioPreparation: ReturnType<TabState["ensureAudioSystemReady"]> | null =
     null;
   let audioPreparationContext: AudioContext | null = null;
+  let audioPreparationInstrument = "";
   let audioPreparationPauseId = 0;
   let audioPauseRequestId = 0;
   let audioStartRequestId = 0;
+
+  let countInTimeout: ReturnType<typeof setTimeout> | undefined;
+  const audioController = createAudioContextController({
+    onContextChange: (context) => {
+      const previousGain = useTabStoreBase.getState().masterVolumeGainNode;
+      const gain = context?.createGain() ?? null;
+      if (context && gain) {
+        gain.gain.value = previousGain?.gain.value ?? (isMobileOnly ? 1.25 : 1);
+        gain.connect(context.destination);
+      }
+      useTabStoreBase.setState({
+        audioContext: context,
+        masterVolumeGainNode: gain,
+        currentInstrument: null,
+        instruments: {} as Record<InstrumentNames, Soundfont.Player>,
+        countInBuffer: null,
+      });
+    },
+    onUnavailable: () => useTabStoreBase.getState().pauseAudio(),
+  });
 
   const publishAvailability = (availability: {
     canUndo: boolean;
@@ -1112,12 +1143,9 @@ export const createTabStore = (
 
         // related to sound generation/playing
         audioContext: null,
-        setAudioContext: (audioContext) => set({ audioContext }),
         breakOnNextChord: false,
         setBreakOnNextChord: (breakOnNextChord) => set({ breakOnNextChord }),
         masterVolumeGainNode: null,
-        setMasterVolumeGainNode: (masterVolumeGainNode) =>
-          set({ masterVolumeGainNode }),
         showingAudioControls: false,
         setShowingAudioControls: (showingAudioControls) =>
           set({ showingAudioControls }),
@@ -1306,87 +1334,47 @@ export const createTabStore = (
         },
 
         // playing/pausing sound functions
-        initializeAudioSystem: (replace = false) => {
-          const { audioContext, masterVolumeGainNode } = get();
-          if (
-            !replace &&
-            audioContext &&
-            audioContext.state !== "closed" &&
-            masterVolumeGainNode?.context === audioContext
-          )
-            return audioContext;
-
-          let context: AudioContext;
-          try {
-            context = new AudioContext();
-          } catch (error) {
-            console.error(
-              "Could not create the playback audio context:",
-              error,
-            );
-            return null;
-          }
-          const gain = context.createGain();
-          gain.gain.value = isMobileOnly
-            ? 1.25
-            : (masterVolumeGainNode?.gain.value ?? 1);
-          gain.connect(context.destination);
-          if (isMobileOnly) {
-            try {
-              localStorage.setItem("autostrum-volume", "1.25");
-            } catch {
-              // Audio must work even when browser storage is unavailable.
-            }
-          }
-          // Publish before any async work so the next gesture can unlock it.
-          set({
-            audioContext: context,
-            masterVolumeGainNode: gain,
-            currentInstrument: null,
-            instruments: {} as Record<InstrumentNames, Soundfont.Player>,
+        initializeAudioSystem: () => audioController.initialize(),
+        disposeAudioSystem: () => audioController.dispose(),
+        subscribeAudioLifecycle: (listener) =>
+          audioController.subscribe(listener),
+        ensureAudioContextReady: () => {
+          const readiness = audioController.ensureRunning();
+          return readiness.then((context) => {
+            const { audioContext, masterVolumeGainNode } = get();
+            if (
+              !context ||
+              context !== audioContext ||
+              !masterVolumeGainNode ||
+              isAudioPageHidden()
+            )
+              return null;
+            return { audioContext: context, masterVolumeGainNode };
           });
-          if (audioContext && audioContext.state !== "closed")
-            void audioContext.close().catch(() => undefined);
-          return context;
         },
+        audioPreparationPending: false,
         ensureAudioSystemReady: () => {
-          const initialContext = get().initializeAudioSystem();
-          if (!initialContext) {
-            return Promise.resolve(null);
-          }
-          // Issue resume before either awaiting or joining existing recovery.
-          const initialResume = resumeAudioContext(initialContext);
+          // Resource-free readiness starts resume synchronously in the gesture.
+          const contextReady = get().ensureAudioContextReady();
+          const initialContext = get().audioContext;
+          if (!initialContext) return Promise.resolve(null);
           if (
             audioPreparation &&
             audioPreparationContext === initialContext &&
+            audioPreparationInstrument === get().currentInstrumentName &&
             audioPreparationPauseId === audioPauseRequestId
           )
             return audioPreparation;
           audioPreparationContext = initialContext;
+          audioPreparationInstrument = get().currentInstrumentName;
+          set({ audioPreparationPending: true });
           const pauseRequestId = audioPauseRequestId;
           audioPreparationPauseId = pauseRequestId;
 
           const preparation = (async () => {
-            let context = initialContext;
-            if (!(await initialResume)) {
-              if (
-                get().audioContext !== context ||
-                pauseRequestId !== audioPauseRequestId ||
-                isAudioPageHidden()
-              )
-                return null;
-              // Both suspended and interrupted contexts get a bounded resume
-              // attempt first. Only a failed attempt requires a new graph.
-              const replacement = get().initializeAudioSystem(true);
-              if (!replacement) {
-                return null;
-              }
-              context = replacement;
-              audioPreparationContext = context;
-              if (!(await resumeAudioContext(context))) {
-                return null;
-              }
-            }
+            const graph = await contextReady;
+            if (!graph) return null;
+            const context = graph.audioContext;
 
             const { masterVolumeGainNode, currentInstrumentName } = get();
             if (
@@ -1399,19 +1387,12 @@ export const createTabStore = (
             // Soundfonts are cached per context. A load from an abandoned graph
             // must never overwrite the current instrument or its cache.
             try {
-              const [player, countInBuffer] = await Promise.all([
-                ensureSoundfontPlayer(
-                  context,
-                  currentInstrumentName,
-                  masterVolumeGainNode,
-                ),
-                get().countInBuffer
-                  ? Promise.resolve(get().countInBuffer)
-                  : loadCountInBuffer(context).catch((error) => {
-                      console.error("Failed to load count-in audio:", error);
-                      return null;
-                    }),
-              ]);
+              const player = await ensureSoundfontPlayer(
+                context,
+                currentInstrumentName,
+                masterVolumeGainNode,
+              );
+              const countInBuffer = get().countInBuffer;
               const latest = get();
               if (
                 latest.audioContext !== context ||
@@ -1430,7 +1411,7 @@ export const createTabStore = (
               });
               // Loading can span a phone call or app switch. Check again before
               // either full playback, count-in, or a preview can mark playing.
-              if (!(await resumeAudioContext(context))) {
+              if (!(await get().ensureAudioContextReady())) {
                 return null;
               }
               if (
@@ -1447,7 +1428,12 @@ export const createTabStore = (
                 countInBuffer,
               };
             } catch (error) {
-              console.error("Failed to prepare playback audio:", error);
+              if (
+                get().audioContext === context &&
+                context.state !== "closed" &&
+                pauseRequestId === audioPauseRequestId
+              )
+                console.error("Failed to prepare playback audio:", error);
               return null;
             }
           })()
@@ -1459,13 +1445,84 @@ export const createTabStore = (
               if (audioPreparation === preparation) {
                 audioPreparation = null;
                 audioPreparationContext = null;
+                set({ audioPreparationPending: false });
               }
             });
           audioPreparation = preparation;
           return preparation;
         },
 
+        playTabWithCountIn: async ({ location, countIn = true } = {}) => {
+          get().pauseAudio();
+          const requestId = ++audioStartRequestId;
+          const ready = await get().ensureAudioSystemReady();
+          if (!ready || requestId !== audioStartRequestId) return;
+          if (!countIn) {
+            void get().playTab({ location });
+            return;
+          }
+          const { audioContext, masterVolumeGainNode, countInBuffer } = ready;
+          if (
+            requestId !== audioStartRequestId ||
+            get().audioContext !== audioContext ||
+            isAudioPageHidden()
+          )
+            return;
+          const sessionId = get().playbackSessionId;
+          set({ countInTimer: { ...get().countInTimer, showing: true } });
+          {
+            const nodes: (AudioBufferSourceNode | OscillatorNode)[] = [];
+            const countInStart = audioContext.currentTime + 0.3;
+            for (let beat = 0; beat < 3; beat++) {
+              const when = countInStart + beat;
+              const gain = audioContext.createGain();
+              let source: AudioBufferSourceNode | OscillatorNode;
+              if (countInBuffer) {
+                const sample = audioContext.createBufferSource();
+                sample.buffer = countInBuffer;
+                sample.detune.value = beat === 1 ? -50 : 0;
+                source = sample;
+                gain.gain.value = 0.25;
+              } else {
+                // Count-in must remain usable while its optional sample is
+                // downloading or unavailable after a network change.
+                const click = audioContext.createOscillator();
+                click.frequency.value = beat === 1 ? 950 : 1000;
+                source = click;
+                gain.gain.setValueAtTime(0.15, when);
+                gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.07);
+              }
+              source.connect(gain);
+              gain.connect(masterVolumeGainNode);
+              source.onended = () => {
+                source.disconnect();
+                gain.disconnect();
+              };
+              source.start(when);
+              if (!countInBuffer) source.stop(when + 0.08);
+              nodes.push(source);
+            }
+            set({ scheduledPlaybackNodes: nodes });
+          }
+          countInTimeout = setTimeout(() => {
+            countInTimeout = undefined;
+            const latest = get();
+            if (
+              requestId !== audioStartRequestId ||
+              latest.playbackSessionId !== sessionId ||
+              latest.audioContext !== audioContext ||
+              audioContext.state !== "running" ||
+              !latest.countInTimer.showing ||
+              isAudioPageHidden()
+            )
+              return;
+            set({ countInTimer: { ...latest.countInTimer, showing: false } });
+            void get().playTab({ location });
+          }, 3000);
+        },
+
         playTab: async ({ location }: PlayTab = {}) => {
+          if (get().countInTimer.showing) get().pauseAudio();
           const startRequestId = ++audioStartRequestId;
           const {
             tabData,
@@ -1702,6 +1759,7 @@ export const createTabStore = (
           chordEffects,
           strumSpreadCompileValue,
         }: PlayPreview) => {
+          if (get().countInTimer.showing) get().pauseAudio();
           const startRequestId = ++audioStartRequestId;
           const { capo, tuning, previewMetadata, ensureAudioSystemReady } =
             get();
@@ -1834,6 +1892,11 @@ export const createTabStore = (
         pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
           audioStartRequestId += 1;
           audioPauseRequestId += 1;
+          set({ audioPreparationPending: false });
+          clearTimeout(countInTimeout);
+          countInTimeout = undefined;
+          if (get().countInTimer.showing)
+            set({ countInTimer: { ...get().countInTimer, showing: false } });
           const {
             audioMetadata,
             previewMetadata,

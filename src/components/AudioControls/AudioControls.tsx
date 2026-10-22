@@ -162,7 +162,6 @@ function AudioControls() {
     bpm === -1 ||
     currentlyPlayingMetadata === null ||
     currentlyPlayingMetadata.length === 0 ||
-    !currentInstrument ||
     // idk why this last condition is going over my head right now, make sure it makes sense before commit
     // maybe doesn't hurt anything, but could be covering some of the statements above,
     // so maybe try to leverage it's "complete"ness of it's check through the tab?

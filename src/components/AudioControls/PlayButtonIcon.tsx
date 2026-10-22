@@ -53,45 +53,23 @@ function PlayButtonIcon({
   instrumentLoading = "eager",
   size = "0.75rem",
 }: PlayButtonIcon) {
-  const { audioContext, masterVolumeGainNode, countInBuffer } = useTabStore(
-    (state) => ({
-      audioContext: state.audioContext,
-      masterVolumeGainNode: state.masterVolumeGainNode,
-      countInBuffer: state.countInBuffer,
-    }),
-  );
-
-  const [countInNumber, setCountInNumber] = useState(4);
+  const preparingAudio = useTabStore((state) => state.audioPreparationPending);
+  const [countInNumber, setCountInNumber] = useState(3);
   const [hideCountInTimer, setHideCountInTimer] = useState(false);
 
   useEffect(() => {
-    if (
-      !showCountInTimer ||
-      !audioContext ||
-      !masterVolumeGainNode ||
-      !countInBuffer
-    )
-      return;
-
+    if (!showCountInTimer) return;
     setCountInNumber(3);
-
-    setTimeout(() => {
-      setCountInNumber(2);
-
-      setTimeout(() => {
-        setCountInNumber(1);
-
-        setTimeout(() => {
-          setHideCountInTimer(true);
-          setCountInNumber(4);
-
-          setTimeout(() => {
-            setHideCountInTimer(false);
-          }, 1000);
-        }, 1000);
-      }, 1000);
-    }, 1000);
-  }, [showCountInTimer, audioContext, countInBuffer, masterVolumeGainNode]);
+    setHideCountInTimer(false);
+    const timers = [
+      setTimeout(() => setCountInNumber(2), 1000),
+      setTimeout(() => setCountInNumber(1), 2000),
+      setTimeout(() => setHideCountInTimer(true), 3000),
+    ];
+    return () => {
+      for (const timer of timers) clearTimeout(timer);
+    };
+  }, [showCountInTimer]);
 
   function shouldShowPauseIcon({
     uniqueLocationKey,
@@ -103,7 +81,7 @@ function PlayButtonIcon({
     indexOfPattern,
     previewType,
   }: ShouldShowPauseIcon) {
-    const isAudioPlayingOnCurrentTab = audioMetadata && audioMetadata?.playing;
+    const isAudioPlayingOnCurrentTab = audioMetadata?.playing;
 
     const isAudioPlayingOnCurrentLocation =
       uniqueLocationKey === "audioControls" ||
@@ -138,7 +116,7 @@ function PlayButtonIcon({
     }
 
     if (
-      (!currentInstrument && instrumentLoading === "eager") ||
+      (!currentInstrument && instrumentLoading === "eager" && preparingAudio) ||
       forceShowLoadingSpinner
     ) {
       return (
