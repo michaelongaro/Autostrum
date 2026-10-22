@@ -432,7 +432,7 @@ function NoteTrainerPage() {
                 ) : (
                   <div className="baseFlex gap-3">
                     <PlayIcon />
-                    Play Note
+                    Play note
                   </div>
                 )}
               </motion.div>
@@ -444,7 +444,7 @@ function NoteTrainerPage() {
                 className="h-11 w-full px-6 sm:w-32"
                 onClick={nextRound}
               >
-                Next Round
+                Next round
               </Button>
             ) : (
               <Button
