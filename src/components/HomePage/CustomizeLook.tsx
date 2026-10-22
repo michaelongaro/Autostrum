@@ -114,7 +114,7 @@ function CustomizeLook() {
                     onFocus={() => setHoveredColor(colorString)}
                     onBlur={() => setHoveredColor(null)}
                     onClick={() => selectColor(colorString)}
-                    className={`group relative h-36 select-none overflow-hidden rounded-lg border-gray text-left shadow-sm transition xs:h-48 ${selected ? "cursor-default" : "cursor-pointer hover:brightness-105 active:brightness-100"}`}
+                    className={`group relative h-36 select-none overflow-hidden rounded-lg border-gray text-left shadow-sm transition xs:h-48 ${selected ? "cursor-default" : "cursor-pointer active:brightness-90 sm:hover:brightness-105 sm:active:brightness-100"}`}
                     aria-pressed={selected}
                     aria-label={`Select ${colorString} color`}
                   >
@@ -141,9 +141,9 @@ function CustomizeLook() {
                         {showRing && (
                           <motion.div
                             key={`ring-${colorString}`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.3 }}
                             style={{
                               backgroundColor:
