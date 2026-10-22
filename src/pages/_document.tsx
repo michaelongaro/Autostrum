@@ -5,7 +5,7 @@ import {
   NextScript,
   type DocumentProps,
 } from "next/document";
-import { LOGO_PATHS_WITHOUT_TITLE } from "~/utils/logoPaths";
+import { DYNAMIC_FAVICON_ID, FAVICON_PATHS } from "~/utils/faviconPaths";
 import { COLOR_VALUES } from "~/utils/updateCSSThemeVars";
 
 const DEFAULT_COLOR = "maple";
@@ -31,11 +31,9 @@ const serializeForInlineScript = (value: unknown) =>
     .replace(/>/g, "\\u003e")
     .replace(/&/g, "\\u0026");
 
-const DYNAMIC_FAVICON_ID = "dynamic-favicon";
-
 const themeInitializerScript = `
 (() => {
-  const faviconPaths = ${serializeForInlineScript(LOGO_PATHS_WITHOUT_TITLE)};
+  const faviconPaths = ${serializeForInlineScript(FAVICON_PATHS)};
   const headerColors = ${serializeForInlineScript(HEADER_COLORS)};
   const storageKeys = ${serializeForInlineScript(STORAGE_KEYS)};
   const defaultColor = ${serializeForInlineScript(DEFAULT_COLOR)};
@@ -69,12 +67,19 @@ const themeInitializerScript = `
       faviconLink.setAttribute("id", dynamicFaviconId);
       faviconLink.setAttribute("rel", "icon");
       faviconLink.setAttribute("type", "image/svg+xml");
+      faviconLink.setAttribute("sizes", "any");
       document.head.appendChild(faviconLink);
     }
 
     const faviconPath = faviconPaths[color];
     if (faviconPath) {
-      faviconLink.setAttribute("href", faviconPath);
+      faviconLink.setAttribute("href", faviconPath.svg);
+      document.querySelectorAll("link[rel~='icon']").forEach((link) => {
+        if (link === faviconLink) return;
+        link.setAttribute("href", faviconPath.png);
+        link.setAttribute("type", "image/png");
+        link.setAttribute("sizes", "96x96");
+      });
     }
 
     let metaThemeColor = document.querySelector("meta[name='theme-color']");
@@ -98,20 +103,22 @@ function Document(_props: DocumentProps) {
   return (
     <Html lang="en" data-color={DEFAULT_COLOR} data-theme="light">
       <Head>
-        {/* Static PNG for crawlers; SVG below is theme-swapped by JS. */}
+        {/* Keep stable fallbacks for crawlers and browsers without SVG support. */}
+        <link rel="shortcut icon" href="/favicon.ico" />
         <link
           rel="icon"
           href="/favicon-96x96.png"
           type="image/png"
           sizes="96x96"
         />
+        {/* Bootstrap keeps the scalable icon and raster fallbacks on one color. */}
         <link
           id={DYNAMIC_FAVICON_ID}
           rel="icon"
-          href="/favicon.svg"
+          href={FAVICON_PATHS[DEFAULT_COLOR].svg}
           type="image/svg+xml"
+          sizes="any"
         />
-        <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-icon.png" sizes="180x180" />
         <link rel="manifest" href="/manifest.json" />
         <script

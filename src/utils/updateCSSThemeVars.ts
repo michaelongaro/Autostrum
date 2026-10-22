@@ -1,5 +1,5 @@
 import type { COLORS, THEME } from "~/stores/TabStore";
-import { LOGO_PATHS_WITHOUT_TITLE } from "~/utils/logoPaths";
+import { DYNAMIC_FAVICON_ID, FAVICON_PATHS } from "~/utils/faviconPaths";
 
 export type ScreenshotColorKey =
   | "screenshot-background"
@@ -829,8 +829,6 @@ type UpdateCSSThemeVarsOptions = {
   animate?: boolean;
 };
 
-const DYNAMIC_FAVICON_ID = "dynamic-favicon";
-
 function addGlobalTransition() {
   const style = document.createElement("style");
   style.id = "global-transition-style";
@@ -842,7 +840,8 @@ function addGlobalTransition() {
   document.head.appendChild(style);
 }
 
-function changeFavicon(url: string): void {
+function changeFavicon(color: COLORS): void {
+  const { svg, png } = FAVICON_PATHS[color];
   let link = document.querySelector<HTMLLinkElement>(
     "link#" + DYNAMIC_FAVICON_ID,
   );
@@ -852,10 +851,22 @@ function changeFavicon(url: string): void {
     link.id = DYNAMIC_FAVICON_ID;
     link.rel = "icon";
     link.type = "image/svg+xml";
+    link.sizes.add("any");
     document.head.appendChild(link);
   }
 
-  link.href = url;
+  link.href = svg;
+
+  // Updating only the SVG lets Chrome switch back to a differently colored
+  // raster icon. Keep all desktop candidates in sync; leave touch icons alone.
+  for (const fallback of document.querySelectorAll<HTMLLinkElement>(
+    'link[rel~="icon"]',
+  )) {
+    if (fallback === link) continue;
+    fallback.href = png;
+    fallback.type = "image/png";
+    fallback.sizes.value = "96x96";
+  }
 }
 
 function updateThemeColorMetaTag(color: string): void {
@@ -905,7 +916,7 @@ function applyThemeToDocument(color: COLORS, theme: THEME) {
     }
   }
 
-  changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
+  changeFavicon(color);
 
   const headerColor = getComputedStyle(root)
     .getPropertyValue("--header")
@@ -924,7 +935,7 @@ function updateCSSThemeVars(
   theme: THEME,
   options: UpdateCSSThemeVarsOptions = {},
 ) {
-  if (!(color in LOGO_PATHS_WITHOUT_TITLE)) {
+  if (!(color in FAVICON_PATHS)) {
     throw new Error("Color not found.");
   }
 
@@ -939,7 +950,7 @@ function updateCSSThemeVars(
 
   if (alreadyApplied) {
     // Still refresh favicon / theme-color in case bootstrap skipped them.
-    changeFavicon(LOGO_PATHS_WITHOUT_TITLE[color]);
+    changeFavicon(color);
     const headerColor = getComputedStyle(root)
       .getPropertyValue("--header")
       .trim();
