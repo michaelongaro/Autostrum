@@ -105,11 +105,18 @@ export function TunerIllustration() {
       />
       <path d="M160 95V65" className="stroke-foreground" strokeWidth="3" />
       <circle cx="160" cy="97" r="4" className="fill-foreground" />
-      <path
-        d="M167 110h-14v17h14m-14-9h11"
-        className="stroke-foreground"
-        strokeWidth="3"
-      />
+      <text
+        x="160"
+        y="119"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontFamily="inherit"
+        fontSize="26"
+        fontWeight="600"
+        className="fill-foreground"
+      >
+        E
+      </text>
       <path
         d="M94 115h8m116 0h8m-4-4v8"
         className="stroke-foreground/40"
@@ -182,16 +189,29 @@ export function NoteTrainerIllustration() {
         className="fill-background stroke-foreground/25"
         strokeWidth="2"
       />
-      <path
-        d="M172 122a7 7 0 1 0 0 12m88-13h-10v14h10m-10-7h8"
-        className="stroke-foreground/50"
-        strokeWidth="2"
-      />
-      <path
-        d="M206 119h4a7 7 0 0 1 0 14h-4z"
-        className="stroke-foreground"
-        strokeWidth="2.5"
-      />
+      <g
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontFamily="inherit"
+        fontSize="20"
+        fontWeight="500"
+      >
+        <text x="167" y="128" className="fill-foreground/50">
+          C
+        </text>
+        <text
+          x="211"
+          y="126"
+          fontSize="22"
+          fontWeight="600"
+          className="fill-foreground"
+        >
+          D
+        </text>
+        <text x="255" y="128" className="fill-foreground/50">
+          E
+        </text>
+      </g>
       <circle
         cx="230"
         cy="107"
