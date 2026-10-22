@@ -47,14 +47,14 @@ function FilteredQueryExplore() {
 
           {isAboveMediumViewport ? (
             <div className="baseFlex gap-4">
-              <BiSearchAlt2 className="size-9 -rotate-12 text-foreground" />
-              <Binoculars className="size-9 rotate-12 text-foreground" />
-              <FaEye className="size-9 -rotate-12 text-foreground" />
+              <BiSearchAlt2 className="size-9 rotate-12 text-foreground" />
+              <Binoculars className="size-9 -rotate-12 text-foreground" />
               <LuFilter className="size-9 rotate-12 text-foreground" />
+              <FaEye className="size-9 -rotate-12 text-foreground" />
             </div>
           ) : (
             <div className="baseFlex">
-              <div className="relative right-[-18px] top-[3px] z-30 rotate-[-6deg] rounded-lg border bg-background p-2 shadow-sm">
+              <div className="relative right-[-18px] top-[3px] z-30 -rotate-[-6deg] rounded-lg border bg-background p-2 shadow-sm">
                 <BiSearchAlt2 className="size-6 text-foreground" />
               </div>
 
@@ -63,11 +63,11 @@ function FilteredQueryExplore() {
               </div>
 
               <div className="relative right-[-6px] z-10 rotate-3 rounded-lg border bg-background p-2 shadow-sm">
-                <FaEye className="size-6 text-foreground" />
+                <LuFilter className="size-6 text-foreground" />
               </div>
 
               <div className="relative top-[3px] rotate-[6deg] rounded-lg border bg-background p-2 shadow-sm">
-                <LuFilter className="size-6 text-foreground" />
+                <FaEye className="size-6 text-foreground" />
               </div>
             </div>
           )}
