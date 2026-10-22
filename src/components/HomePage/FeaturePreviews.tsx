@@ -113,7 +113,7 @@ function DemoPlaybackButton({
         onClick={() => void togglePlayback()}
         className={
           presentation === "icon"
-            ? "size-10 shrink-0 rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground"
+            ? "size-10 shrink-0 rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100 disabled:brightness-75"
             : "w-24 shrink-0 px-4"
         }
       >
@@ -426,13 +426,31 @@ function LoopControls({
       className="flex w-full flex-col gap-4 px-4 pb-4 pt-2"
       data-feature-control
     >
-      <PlaybackAudioRange
-        disabled={isGlideScrubbing}
-        chordDurations={chordDurations}
-        setChordRepetitions={setChordRepetitions}
-        scrollPositionsLength={scrollPositionsLength}
-        idPrefix={`feature-loop-${sectionIndex}`}
-      />
+      <div className="flex items-center gap-3">
+        {!audioMetadata.editingLoopRange && (
+          <span className="shrink-0 text-xs tabular-nums">
+            {formatSecondsToMinutes(
+              playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
+            )}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <PlaybackAudioRange
+            disabled={isGlideScrubbing}
+            chordDurations={chordDurations}
+            setChordRepetitions={setChordRepetitions}
+            scrollPositionsLength={scrollPositionsLength}
+            idPrefix={`feature-loop-${sectionIndex}`}
+          />
+        </div>
+        {!audioMetadata.editingLoopRange && (
+          <span className="shrink-0 text-xs tabular-nums">
+            {formatSecondsToMinutes(
+              playbackMetadata?.at(-1)?.elapsedSeconds ?? 0,
+            )}
+          </span>
+        )}
+      </div>
       {audioMetadata.editingLoopRange ? (
         <>
           <p className="min-h-4 text-center text-xs text-foreground/70">
@@ -441,33 +459,27 @@ function LoopControls({
           <PlaybackLoopRangeActions presentation="embedded" />
         </>
       ) : (
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <span className="text-xs tabular-nums">
-            {formatSecondsToMinutes(
-              playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
-            )}
-          </span>
-          <DemoPlaybackButton presentation="icon" disabled={isGlideScrubbing} />
-          <div className="flex items-center justify-end gap-2">
-            <span className="text-xs tabular-nums">
-              {formatSecondsToMinutes(
-                playbackMetadata?.at(-1)?.elapsedSeconds ?? 0,
-              )}
-            </span>
-            <Toggle
-              variant="outline"
-              aria-label="Edit loop range"
-              disabled={audioMetadata.playing || isGlideScrubbing}
-              pressed={audioMetadata.editingLoopRange}
-              className="size-8 shrink-0 p-1"
-              onPressedChange={() => {
-                const state = store.getState();
-                state.enterPlaybackLoopRangeEditor();
-              }}
-            >
-              <CgArrowsShrinkH className="size-6" />
-            </Toggle>
+        <div className="grid grid-cols-[auto_1fr] items-center gap-2 sm:grid-cols-[1fr_auto_1fr]">
+          <div className="sm:col-start-2">
+            <DemoPlaybackButton
+              presentation="icon"
+              disabled={isGlideScrubbing}
+            />
           </div>
+          <Toggle
+            variant="outline"
+            aria-label="Edit loop range"
+            disabled={audioMetadata.playing || isGlideScrubbing}
+            pressed={audioMetadata.editingLoopRange}
+            className="h-8 shrink-0 gap-2 justify-self-end whitespace-nowrap px-2 text-xs sm:text-sm"
+            onPressedChange={() => {
+              const state = store.getState();
+              state.enterPlaybackLoopRangeEditor();
+            }}
+          >
+            <CgArrowsShrinkH className="size-6 shrink-0" aria-hidden="true" />
+            Edit loop range
+          </Toggle>
         </div>
       )}
     </div>
