@@ -24,30 +24,24 @@ const GUIDED_ARC_MARKER_RATIOS = [-1, -0.4, -0.2, 0, 0.2, 0.4, 1];
 const STRING_THICKNESSES = [8, 7, 6, 5, 4, 3];
 
 type ArcLayout = {
-  tickRadiusX: number;
-  tickRadiusY: number;
-  labelRadiusX: number;
-  labelRadiusY: number;
+  tickRadius: number;
+  labelRadius: number;
   tickHalfHeight: number;
   tickClassName: string;
   labelClassName: string;
 };
 
 const MOBILE_ARC: ArcLayout = {
-  tickRadiusX: 118,
-  tickRadiusY: 120,
-  labelRadiusX: 130,
-  labelRadiusY: 132,
+  tickRadius: 115,
+  labelRadius: 133,
   tickHalfHeight: 4,
   tickClassName: "absolute h-2 w-px bg-foreground/45 lg:hidden",
   labelClassName: "absolute text-[10px] font-medium tabular-nums lg:hidden",
 };
 
 const DESKTOP_ARC: ArcLayout = {
-  tickRadiusX: 140,
-  tickRadiusY: 144,
-  labelRadiusX: 160,
-  labelRadiusY: 157,
+  tickRadius: 140,
+  labelRadius: 161,
   tickHalfHeight: 5,
   tickClassName: "absolute hidden h-2.5 w-px bg-foreground/45 lg:block",
   labelClassName: "absolute hidden text-xs font-medium tabular-nums lg:block",
@@ -119,10 +113,11 @@ function GuidedArcMarkers({ layout }: { layout: ArcLayout }) {
       {GUIDED_ARC_MARKER_RATIOS.map((ratio) => {
         const angleRadians = ratio * (Math.PI / 2);
         const angleDegrees = ratio * 90;
-        const tickX = Math.sin(angleRadians) * layout.tickRadiusX;
-        const tickY = Math.cos(angleRadians) * layout.tickRadiusY;
-        const labelX = Math.sin(angleRadians) * layout.labelRadiusX;
-        const labelY = Math.cos(angleRadians) * layout.labelRadiusY;
+        // Use the gradient's radial geometry for both ticks and label centers.
+        const tickX = Math.sin(angleRadians) * layout.tickRadius;
+        const tickY = Math.cos(angleRadians) * layout.tickRadius;
+        const labelX = Math.sin(angleRadians) * layout.labelRadius;
+        const labelY = Math.cos(angleRadians) * layout.labelRadius;
         const markerValue = ratio * GUIDED_RANGE_CENTS;
         const markerLabel =
           Math.abs(markerValue) < 0.5
@@ -600,14 +595,14 @@ function TunerPanel({
 
                   <div className="absolute bottom-4 left-1/2 h-[150px] w-[230px] -translate-x-1/2 lg:h-[180px] lg:w-[280px]">
                     <div
-                      className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full lg:h-[144px]"
+                      className="absolute bottom-0 left-0 right-0 h-[115px] rounded-t-full lg:h-[140px]"
                       style={{
                         backgroundImage: semicircleGradient(toleranceCents),
                       }}
                     />
 
-                    <div className="absolute bottom-0 left-0 right-0 h-[120px] rounded-t-full border-x border-t border-foreground/25 lg:h-[144px]" />
-                    <div className="absolute bottom-0 left-1/2 h-[122px] w-px -translate-x-1/2 bg-foreground/25 lg:h-[146px]" />
+                    <div className="absolute bottom-0 left-0 right-0 h-[115px] rounded-t-full border-x border-t border-foreground/25 lg:h-[140px]" />
+                    <div className="absolute bottom-0 left-1/2 h-[117px] w-px -translate-x-1/2 bg-foreground/25 lg:h-[142px]" />
 
                     <motion.div
                       className="absolute bottom-0 h-[108px] w-[3px] rounded-full lg:h-[130px]"
