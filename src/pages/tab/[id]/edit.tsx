@@ -48,14 +48,7 @@ function EditIndividualTab({ json }: { json: string }) {
   }
 
   return (
-    <motion.div
-      key={"editingTab"}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0 xl:w-[70%]"
-    >
+    <>
       <Head>
         <title>{openGraphData.title}</title>
         <meta name="description" content={openGraphData.description} />
@@ -70,12 +63,21 @@ function EditIndividualTab({ json }: { json: string }) {
         ></meta>
       </Head>
 
-      <AnimatePresence mode="wait">
-        <DraftEditor fetchedTab={tab}>
-          <Tab />
-        </DraftEditor>
-      </AnimatePresence>
-    </motion.div>
+      <DraftEditor fetchedTab={tab}>
+        <motion.div
+          key={"editingTab"}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0 xl:w-[70%]"
+        >
+          <AnimatePresence mode="wait">
+            <Tab />
+          </AnimatePresence>
+        </motion.div>
+      </DraftEditor>
+    </>
   );
 }
 

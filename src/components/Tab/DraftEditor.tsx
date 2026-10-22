@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { Button } from "~/components/ui/button";
+import Spinner from "~/components/ui/Spinner";
 import type { Tab } from "~/generated/browser";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { getTabStore, subscribeTabStore } from "~/stores/TabStore";
@@ -58,6 +59,14 @@ function cloudRecord(
   };
 }
 
+function DraftEditorLoading() {
+  return (
+    <div className="baseFlex min-h-[calc(100dvh-8rem)] w-full">
+      <Spinner className="size-8" />
+    </div>
+  );
+}
+
 export default function DraftEditor({
   fetchedTab,
   children,
@@ -67,12 +76,7 @@ export default function DraftEditor({
 }) {
   const { isLoaded, userId } = useAuth();
   const router = useRouter();
-  if (!isLoaded || !router.isReady)
-    return (
-      <p className="p-6" role="status">
-        Loading editor…
-      </p>
-    );
+  if (!isLoaded || !router.isReady) return <DraftEditorLoading />;
   return (
     <DraftEditorSession
       key={`${userId ?? "guest"}:${router.asPath}`}
@@ -345,12 +349,7 @@ function DraftEditorSession({
         </div>
       </div>
     );
-  if (!ready)
-    return (
-      <p className="p-6" role="status">
-        Loading editor…
-      </p>
-    );
+  if (!ready) return <DraftEditorLoading />;
 
   if (!ownerId) return children;
 
