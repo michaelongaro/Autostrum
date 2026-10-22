@@ -21,8 +21,18 @@ function PageErrorFallback() {
         <p className="text-center text-base">
           We&apos;re experiencing a technical issue and are unable to complete
           your request right now. Please try again later. If the problem
-          persists, feel free to contact our support team.
+          persists, please{" "}
+          <a
+            href="mailto:michael.ongaro.dev@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            contact us
+          </a>
+          .
         </p>
+
         <p className="text-center text-base">Thank you for your patience!</p>
       </div>
     </motion.div>
