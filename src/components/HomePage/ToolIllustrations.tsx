@@ -191,24 +191,35 @@ export function NoteTrainerIllustration() {
       />
       <g
         textAnchor="middle"
-        dominantBaseline="central"
         fontFamily="inherit"
         fontSize="20"
         fontWeight="500"
       >
-        <text x="167" y="128" className="fill-foreground/50">
+        {/* Safari needs the baseline on each text element, not the group. */}
+        <text
+          x="167"
+          y="128"
+          dominantBaseline="central"
+          className="fill-foreground/50"
+        >
           C
         </text>
         <text
           x="211"
           y="126"
+          dominantBaseline="central"
           fontSize="22"
           fontWeight="600"
           className="fill-foreground"
         >
           D
         </text>
-        <text x="255" y="128" className="fill-foreground/50">
+        <text
+          x="255"
+          y="128"
+          dominantBaseline="central"
+          className="fill-foreground/50"
+        >
           E
         </text>
       </g>
