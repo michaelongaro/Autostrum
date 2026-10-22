@@ -123,7 +123,7 @@ function CustomizeLook() {
                       alt=""
                       fill
                       sizes="500px"
-                      className={`pointer-events-none object-cover transition duration-300 ${selected ? "" : "group-hover:scale-[1.02]"}`}
+                      className={`pointer-events-none object-cover transition-[object-position] duration-300 ${selected ? "" : "group-hover:object-[50%_calc(50%-5px)]"}`}
                     />
                     <div
                       style={{
