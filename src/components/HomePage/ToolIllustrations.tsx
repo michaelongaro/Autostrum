@@ -1,4 +1,5 @@
 import type { SVGProps } from "react";
+import { EighthNote } from "~/utils/noteLengthIcons";
 
 const illustrationProps: SVGProps<SVGSVGElement> = {
   viewBox: "0 0 320 180",
@@ -144,19 +145,16 @@ export function NoteTrainerIllustration() {
         strokeWidth="2.5"
       />
       <circle cx="232" cy="60" r="29" className="fill-primary/10" />
-      <path
-        d="M234 68V43l13 5v0"
-        className="stroke-primary"
-        strokeWidth="2.5"
-      />
-      <ellipse
-        cx="229"
-        cy="69"
-        rx="6"
-        ry="4.5"
-        transform="rotate(-20 228 69)"
-        className="fill-primary"
-      />
+      <g transform="rotate(12 232 60)">
+        <EighthNote
+          x="220"
+          y="40"
+          width="24"
+          height="38"
+          viewBox="20 170 110 210"
+          className="text-primary"
+        />
+      </g>
       <rect
         x="150"
         y="111"
