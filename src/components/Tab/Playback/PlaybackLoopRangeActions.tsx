@@ -21,6 +21,7 @@ function PlaybackLoopRangeActions({
     draftLoopStartIndex,
     draftLoopEndIndex,
     setDraftLoopRange,
+    cancelPlaybackLoopRangeEditor,
     sectionProgressionLength,
     viewportLabel,
   } = useTabStore((state) => ({
@@ -30,6 +31,7 @@ function PlaybackLoopRangeActions({
     draftLoopStartIndex: state.draftLoopStartIndex,
     draftLoopEndIndex: state.draftLoopEndIndex,
     setDraftLoopRange: state.setDraftLoopRange,
+    cancelPlaybackLoopRangeEditor: state.cancelPlaybackLoopRangeEditor,
     sectionProgressionLength: state.sectionProgression.length,
     viewportLabel: state.viewportLabel,
   }));
@@ -51,20 +53,6 @@ function PlaybackLoopRangeActions({
   // Empty draft means "full tab" ([0, -1]) and is a valid Save target when the
   // committed store range is narrowed. Incomplete mid-pick drafts are not.
   const canSave = !isUnchanged && (isAlreadyEmpty || isComplete);
-
-  function exitEditMode() {
-    setCurrentChordIndex(0);
-    setAudioMetadata({
-      ...audioMetadata,
-      editingLoopRange: false,
-    });
-  }
-
-  function handleReturn() {
-    // Discard draft edits — store still holds the committed range.
-    setDraftLoopRange({ startIndex: null, endIndex: null });
-    exitEditMode();
-  }
 
   function handleReset() {
     if (isAlreadyEmpty) return;
@@ -119,7 +107,7 @@ function PlaybackLoopRangeActions({
       >
         <Button
           variant="outline"
-          onClick={handleReturn}
+          onClick={cancelPlaybackLoopRangeEditor}
           className="baseFlex w-[105px] shrink-0 gap-0.5 px-2"
         >
           <BsArrowLeftShort className="h-6 w-8 shrink-0" />

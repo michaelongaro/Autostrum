@@ -95,3 +95,115 @@ globalDocument.setHoveredChordLocation(null);
 console.log(
   "PASS: independent demo edits, undo/redo, reset, and global-store isolation",
 );
+
+for (const scenario of [
+  { name: "full tab", start: 0, end: -1, index: 57, delay: 0, editorIndex: 57 },
+  {
+    name: "narrowed loop",
+    start: 20,
+    end: 39,
+    index: 5,
+    delay: 0,
+    editorIndex: 25,
+  },
+  {
+    name: "artificial loop copy",
+    start: 20,
+    end: 25,
+    index: 19,
+    delay: 2,
+    editorIndex: 23,
+  },
+  {
+    name: "loop-delay spacer",
+    start: 20,
+    end: 25,
+    index: 7,
+    delay: 2,
+    editorIndex: 25,
+  },
+  {
+    name: "loop through tab end",
+    start: 92,
+    end: -1,
+    index: 3,
+    delay: 0,
+    editorIndex: 95,
+  },
+]) {
+  const store = createTabStore({ loopDelay: scenario.delay }, () => {});
+  const committedMetadata = {
+    ...store.getState().audioMetadata,
+    startLoopIndex: scenario.start,
+    endLoopIndex: scenario.end,
+    fullTabMetadataLength: 100,
+  };
+  store.getState().setAudioMetadata(committedMetadata);
+  store.getState().setCurrentChordIndex(scenario.index);
+  store.getState().enterPlaybackLoopRangeEditor();
+  assert.equal(
+    store.getState().currentChordIndex,
+    scenario.editorIndex,
+    scenario.name,
+  );
+
+  // Scroll elsewhere and change the draft before cancelling. A repeated entry
+  // must not replace the position captured at the beginning of this session.
+  store.getState().setCurrentChordIndex(70);
+  store.getState().setDraftLoopRange({ startIndex: 60, endIndex: 80 });
+  store.getState().enterPlaybackLoopRangeEditor();
+  store.getState().cancelPlaybackLoopRangeEditor();
+  assert.equal(
+    store.getState().currentChordIndex,
+    scenario.index,
+    scenario.name,
+  );
+  assert.deepEqual(
+    store.getState().audioMetadata,
+    committedMetadata,
+    scenario.name,
+  );
+  assert.equal(store.getState().draftLoopStartIndex, null);
+  assert.equal(store.getState().draftLoopEndIndex, null);
+
+  // Each new edit session captures its own origin; cancelling twice is harmless.
+  store.getState().setCurrentChordIndex(2);
+  store.getState().cancelPlaybackLoopRangeEditor();
+  assert.equal(store.getState().currentChordIndex, 2);
+  store.getState().enterPlaybackLoopRangeEditor();
+  store.getState().setCurrentChordIndex(50);
+  store.getState().cancelPlaybackLoopRangeEditor();
+  assert.equal(store.getState().currentChordIndex, 2);
+}
+
+first.getState().setCurrentChordIndex(12);
+first.getState().enterPlaybackLoopRangeEditor();
+second.getState().setCurrentChordIndex(24);
+second.getState().enterPlaybackLoopRangeEditor();
+first.getState().cancelPlaybackLoopRangeEditor();
+second.getState().cancelPlaybackLoopRangeEditor();
+assert.equal(first.getState().currentChordIndex, 12);
+assert.equal(second.getState().currentChordIndex, 24);
+
+first.getState().enterPlaybackLoopRangeEditor();
+first.getState().setAudioMetadata({
+  ...first.getState().audioMetadata,
+  location: { sectionIndex: 1 },
+});
+first.getState().cancelPlaybackLoopRangeEditor();
+assert.equal(
+  first.getState().currentChordIndex,
+  0,
+  "Switching sections discards the position from the previous playback scope",
+);
+
+first.getState().setCurrentChordIndex(8);
+first.getState().enterPlaybackLoopRangeEditor();
+first.getState().resetPlaybackModalSession();
+first.getState().setCurrentChordIndex(4);
+first.getState().enterPlaybackLoopRangeEditor();
+first.getState().cancelPlaybackLoopRangeEditor();
+assert.equal(first.getState().currentChordIndex, 4);
+console.log(
+  "PASS: loop-editor Return restores each session's playback position and discards drafts",
+);

@@ -716,6 +716,8 @@ interface TabState {
    * duplicated) strip onto the matching full-tab chord so the viewport stays put.
    */
   enterPlaybackLoopRangeEditor: () => void;
+  /** Discard the draft and restore the playback position from before editing. */
+  cancelPlaybackLoopRangeEditor: () => void;
   selectPlaybackLoopRangeChord: (index: number) => void;
   instruments: Record<InstrumentNames, Soundfont.Player>;
   setInstruments: (
@@ -894,6 +896,9 @@ export const createTabStore = (
   let audioPreparationPauseId = 0;
   let audioPauseRequestId = 0;
   let audioStartRequestId = 0;
+  // Keep the loop-relative index, including artificial copies and delay spacers.
+  // The editor uses full-tab indices, so its current index cannot restore this.
+  let playbackLoopRangeEntryChordIndex: number | null = null;
 
   let countInTimeout: ReturnType<typeof setTimeout> | undefined;
   const audioController = createAudioContextController({
@@ -1185,7 +1190,19 @@ export const createTabStore = (
           editingLoopRange: false,
           fullTabMetadataLength: -1,
         },
-        setAudioMetadata: (audioMetadata) => set({ audioMetadata }),
+        setAudioMetadata: (audioMetadata) => {
+          const previous = get().audioMetadata;
+          // A section change gives chord indices a different playback scope.
+          if (
+            !audioMetadata.editingLoopRange ||
+            !isEqual(audioMetadata.location, previous.location) ||
+            audioMetadata.startLoopIndex !== previous.startLoopIndex ||
+            audioMetadata.endLoopIndex !== previous.endLoopIndex
+          ) {
+            playbackLoopRangeEntryChordIndex = null;
+          }
+          set({ audioMetadata });
+        },
         draftLoopStartIndex: null,
         draftLoopEndIndex: null,
         setDraftLoopStartIndex: (draftLoopStartIndex) =>
@@ -1198,6 +1215,9 @@ export const createTabStore = (
           }),
         enterPlaybackLoopRangeEditor: () => {
           const { audioMetadata, currentChordIndex, loopDelay } = get();
+          if (audioMetadata.editingLoopRange) return;
+
+          playbackLoopRangeEntryChordIndex = currentChordIndex;
 
           const mappedChordIndex = mapLoopRelativeChordIndexToFullTabIndex({
             currentChordIndex,
@@ -1216,6 +1236,22 @@ export const createTabStore = (
             audioMetadata: {
               ...audioMetadata,
               editingLoopRange: true,
+            },
+          });
+        },
+        cancelPlaybackLoopRangeEditor: () => {
+          const { audioMetadata } = get();
+          if (!audioMetadata.editingLoopRange) return;
+
+          const currentChordIndex = playbackLoopRangeEntryChordIndex ?? 0;
+          playbackLoopRangeEntryChordIndex = null;
+          set({
+            currentChordIndex,
+            draftLoopStartIndex: null,
+            draftLoopEndIndex: null,
+            audioMetadata: {
+              ...audioMetadata,
+              editingLoopRange: false,
             },
           });
         },
@@ -2002,6 +2038,7 @@ export const createTabStore = (
 
         resetPlaybackModalSession: () => {
           get().pauseAudio();
+          playbackLoopRangeEntryChordIndex = null;
 
           const latest = get();
           set({
@@ -2103,6 +2140,7 @@ export const createTabStore = (
 
         // reset
         resetStoreToInitValues: () => {
+          playbackLoopRangeEntryChordIndex = null;
           if (useTabStoreBase.getState() === getTabStore()) {
             setHoveredChordLocationValue(null);
           }
