@@ -45,6 +45,7 @@ const sampleEnergy = new WeakMap<
   }
 >();
 const noiseBuffers = new WeakMap<BaseAudioContext, AudioBuffer>();
+const deadNoteHits = new WeakMap<PlaybackStrings, Uint8Array>();
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -170,8 +171,8 @@ function getAttackOffset(buffer: AudioBuffer) {
       peakFrame = frame;
     }
   }
-  // Only used when playback starts halfway through a legato phrase. Locate
-  // this sample's transient instead of jumping 0.1–0.5 s into every recording.
+  // Locate the post-attack body for legato entry and dead-note resonance,
+  // instead of jumping 0.1–0.5 s into every recording.
   const offset = Math.min(
     (peakFrame + windowSize) / buffer.sampleRate + 0.018,
     buffer.duration * 0.2,
@@ -596,6 +597,44 @@ function getNoiseBuffer(context: BaseAudioContext) {
   return buffer;
 }
 
+function deadNoteProfile(
+  midi: number,
+  stringIdx: number,
+  strings: PlaybackStrings,
+) {
+  const index = clamp(stringIdx, 0, 5);
+  let hits = deadNoteHits.get(strings);
+  if (!hits) {
+    hits = new Uint8Array(6);
+    deadNoteHits.set(strings, hits);
+  }
+  const hit = hits[index]!;
+  hits[index] = (hit + 1) % 4;
+
+  // Playback indexes run from high E to low E. Keep physical-string color
+  // independent of pitch so alternate tunings do not change string identity.
+  const treble = 1 - index / 5;
+  const fundamental = 440 * 2 ** ((midi - 69) / 12);
+  const variation = [1, 0.965, 1.025, 0.985][hit]!;
+  const contactColor = clamp((fundamental / 165) ** 0.18, 0.75, 1.4);
+  return {
+    duration: 0.075 - treble * 0.012,
+    attack: (0.002 - treble * 0.0005) * variation,
+    level: 0.32 - treble * 0.04,
+    // Retain a faint, short-lived string body instead of removing the bass
+    // strings' first several partials with a fixed 650 Hz high-pass.
+    sampleHighpass: clamp(fundamental * 1.4, 50, 1600),
+    sampleLowpass: clamp(fundamental * (5 + treble) * variation, 650, 5500),
+    sampleLowpassEnd: clamp(fundamental * 2.7, 280, 3500),
+    noiseHighpass: (600 + treble * 650) * contactColor * variation,
+    noiseLowpass: (2800 + treble * 1600) * contactColor * variation,
+    noiseLevel: 0.055 + treble * 0.005,
+    // Different slices decorrelate simultaneous strings and repeated hits.
+    // A bounded round robin is reproducible and never detunes the note.
+    noiseOffset: (index * 0.017 + hit * 0.029) % 0.12,
+  };
+}
+
 export function playGuitarPercussion(
   args: SampleArgs & {
     kind: "dead" | "slap";
@@ -606,56 +645,79 @@ export function playGuitarPercussion(
 ) {
   const time = Math.max(args.audioContext.currentTime, args.startTime);
   if (args.kind === "slap") stopGuitarStrings(args.strings, time);
-  const voice = createVoice({ ...args, startTime: time });
+  // Dead-note contact comes from the noise path. Start its recorded string
+  // body after the normal pluck so sample padding cannot swallow the decay.
+  const voice = createVoice({
+    ...args,
+    startTime: time,
+    legato: args.kind === "dead",
+  });
   if (!voice) return;
-  const duration =
+  const dead =
     args.kind === "dead"
-      ? args.palmMuted
-        ? 0.045
-        : 0.075
-      : args.palmMuted || args.staccato
-        ? 0.065
-        : 0.13;
-  const level =
-    (args.kind === "dead" ? 0.32 : 0.75) * (args.accented ? 1.22 : 1);
-  voice.filter.frequency.setValueAtTime(
-    args.kind === "dead" ? 1800 : 1100,
-    time,
-  );
+      ? deadNoteProfile(args.midi, args.stringIdx, args.strings)
+      : undefined;
+  const duration = dead
+    ? dead.duration * (args.palmMuted ? 0.6 : args.staccato ? 0.72 : 1)
+    : args.palmMuted || args.staccato
+      ? 0.065
+      : 0.13;
+  const level = (dead?.level ?? 0.75) * (args.accented ? 1.22 : 1);
+  const attack = dead?.attack ?? 0.002;
+  voice.filter.frequency.setValueAtTime(dead?.sampleLowpass ?? 1100, time);
+  if (dead) {
+    voice.filter.frequency.exponentialRampToValueAtTime(
+      dead.sampleLowpassEnd,
+      time + Math.min(duration * 0.55, 0.03),
+    );
+  }
   const sampleHighpass = args.audioContext.createBiquadFilter();
   sampleHighpass.type = "highpass";
-  sampleHighpass.frequency.value = args.kind === "dead" ? 650 : 65;
+  sampleHighpass.frequency.value = dead?.sampleHighpass ?? 65;
+  if (dead) sampleHighpass.Q.value = Math.SQRT1_2;
   voice.source.disconnect();
   voice.source.connect(sampleHighpass);
   sampleHighpass.connect(voice.filter);
   voice.extraNodes.push(sampleHighpass);
-  shapeEnvelope(voice, time, duration, level, true, 0.002);
+  shapeEnvelope(voice, time, duration, level, true, attack);
 
-  // The sample supplies the string/body sound; a quiet, filtered transient
-  // adds pick/finger contact without turning muted strings into sine beeps.
+  // The recorded sample supplies the string/body sound. A shorter, broader
+  // contact transient keeps dead notes percussive without a tone oscillator.
   const noise = args.audioContext.createBufferSource();
   noise.buffer = getNoiseBuffer(args.audioContext);
   const noiseGain = args.audioContext.createGain();
   const highpass = args.audioContext.createBiquadFilter();
   highpass.type = "highpass";
-  highpass.frequency.value = args.kind === "dead" ? 1200 : 500;
+  highpass.frequency.value = dead?.noiseHighpass ?? 500;
   const lowpass = args.audioContext.createBiquadFilter();
   lowpass.type = "lowpass";
-  lowpass.frequency.value = args.kind === "dead" ? 4500 : 2800;
+  lowpass.frequency.value = Math.min(
+    dead?.noiseLowpass ?? 2800,
+    args.audioContext.sampleRate * 0.45,
+  );
+  if (dead) {
+    highpass.Q.value = Math.SQRT1_2;
+    lowpass.Q.value = Math.SQRT1_2;
+  }
+  const noiseDuration = dead ? Math.min(duration * 0.65, 0.035) : duration;
   noiseGain.gain.setValueAtTime(0, time);
   noiseGain.gain.linearRampToValueAtTime(
-    (args.kind === "dead" ? 0.06 : 0.09) *
+    (dead?.noiseLevel ?? 0.09) *
       (args.accented ? 1.22 : 1) *
       (args.palmMuted ? 0.7 : 1),
-    time + 0.002,
+    time + attack,
   );
-  noiseGain.gain.exponentialRampToValueAtTime(SILENCE, time + duration * 0.8);
+  noiseGain.gain.exponentialRampToValueAtTime(
+    SILENCE,
+    time + noiseDuration * 0.8,
+  );
+  if (dead) noiseGain.gain.linearRampToValueAtTime(0, time + noiseDuration);
   noise.connect(highpass);
   highpass.connect(lowpass);
   lowpass.connect(noiseGain);
   noiseGain.connect(args.destination);
-  noise.start(time);
-  noise.stop(time + duration);
+  noise.start(time, dead?.noiseOffset ?? 0);
+  noise.stop(time + noiseDuration);
   trackModulator(voice, noise, noiseGain);
   voice.extraNodes.push(highpass, lowpass);
   return voice.source;

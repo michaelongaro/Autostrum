@@ -89,7 +89,9 @@ async function loadInstrument(context, name, format) {
     `${script}; return MIDI.Soundfont[${JSON.stringify(name)}];`,
   )({ Soundfont: {} });
   const buffers = {};
-  for (const midi of [40, 45, 50, 55, 59, 64, 66, 67, 69, 71, 73]) {
+  for (const midi of [
+    36, 38, 40, 42, 45, 47, 50, 52, 55, 57, 59, 61, 64, 66, 67, 69, 71, 73,
+  ]) {
     const pitchClasses = [
       "C",
       "Db",
@@ -116,12 +118,20 @@ async function loadInstrument(context, name, format) {
 async function render(
   instrument,
   notes,
-  { bpm = 120, pauseAt, duration = 4.5 } = {},
+  {
+    bpm = 120,
+    pauseAt,
+    duration = 4.5,
+    tuning: noteTuning = tuning,
+    capo = 0,
+    sampleRate = 48000,
+    isolateString = false,
+  } = {},
 ) {
   const context = new OfflineAudioContext(
     2,
-    Math.ceil(48000 * duration),
-    48000,
+    Math.ceil(sampleRate * duration),
+    sampleRate,
   );
   const sources = [];
   const sourceStarts = [];
@@ -131,6 +141,11 @@ async function render(
     sources.push(source);
     const start = source.start.bind(source);
     source.start = (...args) => {
+      if (
+        isolateString &&
+        !Object.values(instrument.buffers).includes(source.buffer)
+      )
+        source.disconnect();
       sourceStarts.push({ source, time: args[0], offset: args[1] ?? 0 });
       start(...args);
     };
@@ -143,8 +158,8 @@ async function render(
   );
   columns.forEach((currColumn, index) => {
     void playNoteColumn({
-      tuning,
-      capo: 0,
+      tuning: noteTuning,
+      capo,
       bpm,
       targetStartTime: 0.2 + (index * 60) / bpm,
       thirdPrevColumn: columns[index - 3],
@@ -310,6 +325,190 @@ export async function measureLegatoLevels() {
   }
   await context.close();
   return results;
+}
+
+function relativeDifference(bufferA, startA, bufferB, startB, seconds) {
+  const samplesA = bufferA.getChannelData(0);
+  const samplesB = bufferB.getChannelData(0);
+  const fromA = Math.round(startA * bufferA.sampleRate);
+  const fromB = Math.round(startB * bufferB.sampleRate);
+  let difference = 0;
+  let energy = 0;
+  for (let i = 0; i < Math.round(seconds * bufferA.sampleRate); i++) {
+    difference += (samplesA[fromA + i] - samplesB[fromB + i]) ** 2;
+    energy += samplesA[fromA + i] ** 2;
+  }
+  return Math.sqrt(difference / Math.max(energy, 1e-12));
+}
+
+export async function runDeadNoteAudioChecks() {
+  const decodeContext = new AudioContext();
+  const results = [];
+  const audition = {};
+  try {
+    for (const name of [
+      "acoustic_guitar_nylon",
+      "acoustic_guitar_steel",
+      "electric_guitar_clean",
+      "electric_guitar_jazz",
+    ]) {
+      for (const format of ["ogg", "mp3"]) {
+        const instrument = await loadInstrument(decodeContext, name, format);
+        const options = {
+          duration: 0.65,
+          sampleRate: format === "ogg" ? 48000 : 44100,
+        };
+        const label = `${name}-${format}`;
+        const strings = [];
+        for (let string = 0; string < 6; string++) {
+          const { buffer } = await render(
+            instrument,
+            [column("x", { string })],
+            options,
+          );
+          assert(
+            rms(buffer, 0.2, 0.24) > 0.0001,
+            `${label}: silent string ${string}`,
+          );
+          assert(rms(buffer, 0, 0.199) === 0, `${label}: early dead note`);
+          assert(
+            rms(buffer, 0.31, 0.6) < 0.00001,
+            `${label}: dead-note ringing`,
+          );
+          strings.push(buffer);
+        }
+        const body = await render(instrument, [column("x", { string: 5 })], {
+          ...options,
+          isolateString: true,
+        });
+        const stringBodyRatio =
+          rms(body.buffer, 0.2, 0.24) / rms(strings[5], 0.2, 0.24);
+        assert(
+          stringBodyRatio > 0.15,
+          `${label}: string body is masked by contact noise`,
+        );
+        const samePitch = [55, 55, 55, 55, 55, 55];
+        const treble = await render(instrument, [column("x")], {
+          ...options,
+          tuning: samePitch,
+        });
+        const bass = await render(instrument, [column("x", { string: 5 })], {
+          ...options,
+          tuning: samePitch,
+        });
+        const stringDifference = relativeDifference(
+          treble.buffer,
+          0.2,
+          bass.buffer,
+          0.2,
+          0.08,
+        );
+        assert(
+          stringDifference > 0.05,
+          `${label}: physical strings sound identical at the same pitch`,
+        );
+
+        const retuned = await render(instrument, [column("x", { string: 5 })], {
+          ...options,
+          tuning: [64, 59, 55, 50, 45, 42],
+        });
+        const capo = await render(instrument, [column("x", { string: 5 })], {
+          ...options,
+          capo: 2,
+        });
+        assert(
+          relativeDifference(retuned.buffer, 0.2, capo.buffer, 0.2, 0.08) <
+            0.00001,
+          `${label}: capo and tuning disagree`,
+        );
+        for (const midi of [36, 38]) {
+          const lower = await render(instrument, [column("x", { string: 5 })], {
+            ...options,
+            tuning: [64, 59, 55, 50, 45, midi],
+          });
+          assert(
+            rms(lower.buffer, 0.2, 0.24) > 0.0001,
+            `${label}: silent lower tuning`,
+          );
+        }
+
+        const repeated = await render(instrument, ["x", "x", "x", "x"], {
+          ...options,
+          bpm: 600,
+        });
+        const variationDifference = relativeDifference(
+          repeated.buffer,
+          0.2,
+          repeated.buffer,
+          0.3,
+          0.06,
+        );
+        assert(
+          variationDifference > 0.03,
+          `${label}: repeated attacks sound identical`,
+        );
+        for (const pauseAt of [0.19, 0.205]) {
+          const paused = await render(instrument, ["x", "x", "x"], {
+            ...options,
+            bpm: 600,
+            pauseAt,
+          });
+          assert(
+            rms(paused.buffer, pauseAt + 0.02, 0.6) < 0.00001,
+            `${label}: dead-note audio survives pause`,
+          );
+        }
+        const replaced = await render(instrument, ["0", "x"], {
+          ...options,
+          bpm: 600,
+        });
+        assert(
+          rms(replaced.buffer, 0.41, 0.6) < 0.00001,
+          `${label}: x did not choke the ringing string`,
+        );
+        for (const note of [column("x", { pm: "start" }), column("x.")]) {
+          const short = await render(instrument, [note], options);
+          assert(
+            rms(short.buffer, 0.27, 0.6) < 0.00001,
+            `${label}: shortened dead note rings`,
+          );
+        }
+        let maxPeak = Math.max(...strings.map(peak));
+        for (const chordEffects of [">", "v>", "^>"]) {
+          const chord = column("x", { chordEffects });
+          for (let index = 1; index < 7; index++) chord[index] = "x";
+          const strum = await render(instrument, [chord], options);
+          maxPeak = Math.max(maxPeak, peak(strum.buffer));
+        }
+        results.push({
+          instrument: name,
+          format,
+          sampleRate: options.sampleRate,
+          stringDifference,
+          variationDifference,
+          stringBodyRatio,
+          maxPeak,
+        });
+        if (name === "acoustic_guitar_steel" && format === "ogg") {
+          const sequence = await render(
+            instrument,
+            Array.from({ length: 6 }, (_, index) =>
+              column("x", { string: 5 - index }),
+            ),
+            { duration: 3.4 },
+          );
+          audition["Dead notes: low E → high E"] = sequence.buffer;
+          audition["Dead notes: repeated attacks"] = repeated.buffer;
+        }
+      }
+    }
+    window.__deadNoteAudioChecks = { results, audition };
+    createAuditionPanel(decodeContext, audition);
+    return { configurations: results.length, results };
+  } catch (error) {
+    await decodeContext.close();
+    throw error;
+  }
 }
 
 export async function runAudioChecks() {

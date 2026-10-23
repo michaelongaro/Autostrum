@@ -1,6 +1,7 @@
 // Run: node scripts/verifyGuitarEffects.mjs
 // For native browser audio checks, run with --browser, then evaluate the
 // expression in .git/guitar-effects-audio-checks.js in the collaborative preview.
+// Add --dead-notes for focused dead-note checks and audition controls.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -28,9 +29,11 @@ function moduleUrl(filename) {
 
 if (process.argv.includes("--browser")) {
   const url = moduleUrl("scripts/guitarEffectsAudioChecks.mjs");
-  const entry = process.argv.includes("--level-probe")
-    ? "measureLegatoLevels"
-    : "runAudioChecks";
+  const entry = process.argv.includes("--dead-notes")
+    ? "runDeadNoteAudioChecks"
+    : process.argv.includes("--level-probe")
+      ? "measureLegatoLevels"
+      : "runAudioChecks";
   fs.writeFileSync(
     ".git/guitar-effects-audio-checks.js",
     `import(${JSON.stringify(url)}).then(module => module.${entry}())`,
@@ -181,13 +184,22 @@ function column(note = "", { string = 0, chordEffects = "", pm = "" } = {}) {
   return col;
 }
 
-function phrase(env, notes, { startTime = 0.2, bpm = 120, capo = 0 } = {}) {
+function phrase(
+  env,
+  notes,
+  {
+    startTime = 0.2,
+    bpm = 120,
+    capo = 0,
+    tuning = [64, 59, 55, 50, 45, 40],
+  } = {},
+) {
   const columns = notes.map((note) =>
     typeof note === "string" ? column(note) : note,
   );
   columns.forEach((currColumn, index) => {
     void playNoteColumn({
-      tuning: [64, 59, 55, 50, 45, 40],
+      tuning,
       capo,
       bpm,
       targetStartTime: startTime + (index * 60) / bpm,
@@ -363,6 +375,43 @@ test("Dead notes and slaps use a sample plus noise without a tone oscillator", (
   );
   assert.equal(env.nodes.filter((node) => node.kind === "sample").length, 4);
 });
+test("Dead notes select the retuned and capo-adjusted string sample", () => {
+  const env = setup();
+  const retuned = env.context.createBuffer(1, 48000, 48000);
+  env.instrument.buffers[42] = retuned;
+  phrase(env, [column("x", { string: 5 })], {
+    tuning: [64, 59, 55, 50, 45, 38],
+    capo: 4,
+  });
+  const source = env.nodes.find((node) => node.buffer === retuned);
+  assert.ok(source);
+  assert.equal(source.detune.events.length, 0);
+});
+
+test("Repeated dead notes vary contact without transposing or delaying the string", () => {
+  const env = setup();
+  phrase(env, ["x", "x", "x", "x"]);
+  const noise = env.nodes.filter(
+    (node) => node.kind === "sample" && node.buffer !== env.buffer,
+  );
+  assert.equal(new Set(noise.map((node) => node.sampleOffset)).size, 4);
+  for (const [index, source] of sampleNodes(env).entries()) {
+    assert.equal(source.detune.events.length, 0);
+    assert.equal(source.startedAt, 0.2 + index * 0.5);
+    assert.ok(source.stoppedAt < source.startedAt + 0.1);
+  }
+});
+
+test("Pause cancels dead-note noise and body, including future scheduled hits", () => {
+  const env = setup();
+  phrase(env, ["x", "x", "x"]);
+  stopActivePlaybackStrings(env.strings, 0.21);
+  stopAllScheduledPlaybackNodes(env.scheduled, 0.21);
+  for (const node of env.nodes.filter((node) => node.kind === "sample"))
+    assert.ok(node.stoppedAt <= 0.222001);
+  assert.ok(env.strings.every((node) => node === undefined));
+});
+
 test("Muted strings occupy their correct position in a strum", () => {
   const env = setup();
   const chord = column("5", { chordEffects: "v" });
