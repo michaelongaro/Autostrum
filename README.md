@@ -1,60 +1,61 @@
 # Autostrum 🎸
 
-Autostrum is a place for guitar players to discover songs, practice with interactive playback, and create and share their own tabs. It brings a tab editor, guitar audio, and a collection of practice tools together in your browser.
+I built **Autostrum** because I wanted a single place in the browser where guitar players could discover songs, actually *hear* how a tab is supposed to sound, and jot down their own musical ideas without fighting clunky software. 
+
+Whether you're trying to nail a tricky solo, transcribing a favorite song, or just running through your daily warm-ups, Autostrum brings an interactive tab player, a fast tab editor, and a collection of practice tools together under one roof.
 
 ![Autostrum homepage](public/README/homepage_screenshot.png)
 
 ## Practice at your own pace
 
-Every tab can be played back using sampled guitar sounds, so you can hear how a part should sound before picking up your guitar. Follow along with the highlighted notes and chords, then adjust the playback to suit what you want to work on.
+Reading static text tabs works fine until you can't figure out the rhythm. Every tab on Autostrum plays back using sampled acoustic or electric guitar audio, highlighting notes and chords in real time so you can hear the groove before you even pick up your guitar.
 
-- **Find a comfortable tempo.** Slow playback down to learn a tricky passage, then increase the speed as it becomes more familiar.
-- **Focus on a phrase.** Loop a selected range, add a delay between repeats, and use a count-in to give yourself time to get ready.
-- **Keep your place.** Use autoscroll, jump between sections, or start playback from the chord you want to practice.
-- **Make tabs easier to read.** Adjust the zoom, enable color-coded chords, pin chord diagrams and section navigation, or switch to left-hand chord diagrams.
-- **Choose your sound.** Listen with acoustic or electric guitar sounds and adjust the playback volume.
+- **Slow down the tricky parts:** Drop the tempo while you get a difficult passage under your fingers, then gradually bring it back up to speed.
+- **Loop the bars giving you trouble:** Highlight a specific phrase to put it on repeat. You can add a count-in and a short pause between loops so you actually have time to reset your hands.
+- **Stay in the flow:** Let autoscroll move the page for you, jump straight between song sections, or click any chord to start playback right from that exact spot.
+- **Customize your view:** Adjust the zoom, turn on color-coded chords, pin chord diagrams and section navigation to your screen, or flip the diagrams if you play left-handed.
+- **Dial in your sound:** Switch between acoustic and electric guitar tones and tweak the playback volume to sit nicely in your mix.
 
-## Create and share tabs
+## Write tabs without the headache
 
-The editor is built for getting musical ideas down quickly, whether you are transcribing a favorite song or writing something of your own. Combine individual-note tablature with chord sections and reusable strumming patterns, then listen back as you write.
+Most tab editors feel like doing data entry in a spreadsheet. Autostrum’s editor is designed to get musical ideas out of your head and onto the page as fast as possible. You can mix single-note tablature with chord blocks and reusable strumming patterns, listening back to your arrangement as you write.
 
-- **Write the whole arrangement.** Define chords, choose note lengths, build strumming patterns, and organize the song into named sections with a section progression and repetitions.
-- **Set up your guitar.** Choose from preset tunings or create a custom tuning, set a capo, and add tempo changes where the song needs them.
-- **Work from the keyboard.** Navigate with arrow keys, use shortcuts to enter chords and change note lengths, copy and paste chords, and undo or redo edits.
-- **Rearrange with ease.** Reorder and duplicate sections and chord sequences without writing them out again.
-- **Return to unfinished ideas.** Automatic draft saving lets you keep working before you are ready to publish.
-- **Share your work.** Add song details such as artist, genre, and difficulty, then publish a tab for others to discover and play.
+- **Don't repeat yourself:** Build a strumming pattern or a section once, then organize your song's progression by duplicating, reordering, and looping sections without having to rewrite a single note.
+- **Match your guitar's setup:** Pick from preset tunings (or create a custom one), slap on a virtual capo, and program tempo changes mid-song where the music calls for it.
+- **Work fast from the keyboard:** Navigate the fretboard with your arrow keys, use hotkeys to punch in chords and change note lengths, and easily copy, paste, undo, and redo.
+- **Never lose a riff:** Automatic draft saving keeps your work safe in the background, so you can close your browser and come back to an unfinished idea whenever inspiration strikes.
+- **Share with the community:** When a tab is ready, tag it with the artist, genre, and difficulty level, and publish it for other players to learn.
 
-## Guitar tools
+## Built-in guitar tools
 
-You can also build a practice session around a specific skill with the dedicated tools:
+Sometimes you just want to work on your chops instead of learning a full song. Autostrum includes a set of standalone tools to help you build a solid practice routine:
 
-- **Warm-up Exercises:** Play along with exercises for finger strength, coordination, and dexterity, with options for different skill levels.
-- **Scales Practice:** Explore scale patterns and practice moving around the fretboard with interactive playback.
-- **Chord Trainer:** Work on smoother chord changes using ready-made chord sets or your own selection, with strumming patterns and adjustable tempo.
-- **Metronome:** Set your tempo, time signature, subdivisions, and downbeat accent. Use tap tempo to find a beat or Speed Trainer mode to gradually increase the BPM.
-- **Note Trainer:** Train your ear by listening to notes and identifying them, with selectable note sets and audio sources.
-- **Guitar Tuner:** Tune using your microphone, with support for alternate tunings and custom tuning targets.
+- **Warm-up Exercises:** Play along with interactive exercises for finger strength, coordination, and dexterity across different skill levels.
+- **Scales Practice:** Visualize scale patterns across the fretboard and practice moving through them with interactive audio playback.
+- **Chord Trainer:** Smooth out your chord transitions using preset progressions or your own custom problem-chords, complete with strumming patterns and adjustable tempo.
+- **Metronome:** Dial in your timing with custom time signatures, subdivisions, and downbeat accents. Use tap tempo to find a beat, or turn on *Speed Trainer* mode to gradually bump up the BPM as you play.
+- **Note Trainer:** Train your ear by listening to isolated notes and identifying them, with customizable note sets and audio sources.
+- **Guitar Tuner:** Tune up using your device's microphone, with full support for alternate and custom tunings.
 
-## Discover your next song
+## Find your next song to learn
 
-Search for songs and artists with suggestions as you type, or explore recently added tabs, popular songs, genres, and weekly featured creators.
+Search for songs and artists with instant suggestions as you type, or browse through newly added tabs, popular tracks, genres, and weekly featured creators.
 
-- **Narrow your search.** Filter tabs by genre, tuning, capo usage, and difficulty to find something that fits your guitar and skill level.
-- **Browse your way.** Switch between grid and table views, and sort results by relevance, date, or popularity.
-- **Keep exploring.** Visit artist and creator profiles or follow related-tab recommendations from a song you enjoy.
-- **Build your collection.** Bookmark tabs to return to later and keep your own published tabs together on your profile.
+- **Filter by how your guitar is set up right now:** Don't feel like retuning or hunting for your capo? Filter tabs by tuning, capo usage, genre, and difficulty to find something you can play immediately.
+- **Browse your way:** Flip between grid and table layouts, and sort results by relevance, date, or popularity.
+- **Go down the rabbit hole:** Check out artist and creator profiles, or follow related-tab recommendations based on songs you already enjoy.
+- **Build your songbook:** Bookmark tabs you want to learn later and keep all of your own published work neatly organized on your profile.
 
-## Notable technologies
+## Built with
 
-This project would not have been possible without these incredible technologies:
+This project wouldn't have been possible without these awesome tools and libraries:
 
 - The [T3 Stack](https://create.t3.gg/)
-- [Shadcnui](https://ui.shadcn.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
 - [Clerk](https://clerk.com/)
-- [Soundfont-player](https://github.com/danigb/soundfont-player)
+- [soundfont-player](https://github.com/danigb/soundfont-player)
 - The [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 
 ## Inspiration
 
-I would not have known where to start if it wasn't for the incredible library [React Guitar](https://github.com/4lejandrito/react-guitar). I borrowed the generous list of tunings and adopted a similar approach of playing notes from this library.
+I wouldn't have known where to start without the incredible [React Guitar](https://github.com/4lejandrito/react-guitar) library. I borrowed its generous list of tunings and took heavy inspiration from its approach to rendering and playing notes in the browser.
