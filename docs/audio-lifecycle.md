@@ -74,8 +74,17 @@ running recovery failures. Contexts that cannot recover are replaced in a gestur
 Audio buffers and players from an abandoned graph cannot overwrite the current
 graph; master gain is preserved across replacements.
 
+Pauses, rests, and replacement guitar notes release from their current envelope
+level to zero over 25 ms. Queued notes and percussion are canceled before their
+attack; repeated stops cannot extend a release that is already ending. Playback
+state changes immediately while the short audio tail finishes on the context clock.
+
 ## Verification
 
+- `node scripts/verifyGuitarEffects.mjs`: note scheduling and release deadlines.
+  Add `--browser --stops` and evaluate the generated expression in the browser
+  for native waveform checks at 44.1/48 kHz, all four guitar soundfonts in both
+  formats, queued percussion cancellation, and abrupt/faded stop auditions.
 - `node scripts/verifyAudioContextRecovery.mjs` (Node 22.15+): deterministic faults,
   resume timing, clock stalls, graph ownership, asset timeouts, stale sample loads,
   instrument changes, and count-in cancellation.

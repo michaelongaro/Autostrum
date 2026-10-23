@@ -22,6 +22,7 @@ type Voice = {
   sampleOffset: number;
   startTime: number;
   releaseAt: number;
+  stopAt: number;
   sampleGain: number;
   ended: boolean;
   gainPoints: Point[];
@@ -33,6 +34,7 @@ type Voice = {
 
 const SILENCE = 0.0001;
 const RELEASE_SECONDS = 0.012;
+const STOP_RELEASE_SECONDS = 0.025;
 const MAX_LEGATO_SAMPLE_GAIN = 3;
 const voices = new WeakMap<AudioBufferSourceNode, Voice>();
 const stringVoices = new WeakMap<PlaybackStrings, Set<Voice>>();
@@ -88,7 +90,13 @@ function ramp(param: AudioParam, points: Point[], value: number, time: number) {
   points.push({ time, value });
 }
 
-function stopModulators(voice: Voice, time: number) {
+function stopModulators(
+  voice: Voice,
+  time: number,
+  stopAt = time + RELEASE_SECONDS,
+) {
+  const endTime =
+    time <= voice.startTime ? time : Math.min(stopAt, time + RELEASE_SECONDS);
   for (const { source, gain } of voice.modulators) {
     if (typeof gain.gain.cancelAndHoldAtTime === "function") {
       gain.gain.cancelAndHoldAtTime(time);
@@ -96,7 +104,8 @@ function stopModulators(voice: Voice, time: number) {
       gain.gain.cancelScheduledValues(time);
     }
     gain.gain.setTargetAtTime(0, time, 0.003);
-    source.stop(time + RELEASE_SECONDS);
+    gain.gain.setValueAtTime(0, endTime);
+    source.stop(endTime);
   }
 }
 
@@ -117,14 +126,20 @@ function trackModulator(
 
 function releaseVoice(voice: Voice, time: number) {
   if (voice.ended) return;
-  const stopAt = Math.max(voice.source.context.currentTime, time);
-  // A later pause must never postpone an already scheduled string cutoff.
-  const releaseAt = Math.min(stopAt, voice.releaseAt);
+  const releaseAt = Math.max(voice.source.context.currentTime, time);
+  if (releaseAt >= voice.stopAt) return;
+  // Cancel queued notes before their attack. Sounding notes get a short fade
+  // from their current envelope level, without extending an existing release.
+  const stopAt =
+    releaseAt <= voice.startTime
+      ? releaseAt
+      : Math.min(releaseAt + STOP_RELEASE_SECONDS, voice.stopAt);
   holdAt(voice.gain.gain, voice.gainPoints, releaseAt);
-  ramp(voice.gain.gain, voice.gainPoints, SILENCE, releaseAt + RELEASE_SECONDS);
-  voice.releaseAt = releaseAt;
-  voice.stopSource(releaseAt + RELEASE_SECONDS);
-  stopModulators(voice, releaseAt);
+  ramp(voice.gain.gain, voice.gainPoints, 0, stopAt);
+  voice.releaseAt = Math.min(releaseAt, voice.releaseAt);
+  voice.stopAt = stopAt;
+  voice.stopSource(stopAt);
+  stopModulators(voice, releaseAt, stopAt);
 }
 
 export function stopGuitarStrings(strings: PlaybackStrings, time: number) {
@@ -316,6 +331,7 @@ function createVoice({
     sampleOffset: legato ? getAttackOffset(buffer) : 0,
     startTime,
     releaseAt: Infinity,
+    stopAt: Infinity,
     sampleGain: 1,
     ended: false,
     gainPoints: [{ time: startTime, value: 0 }],
@@ -405,14 +421,10 @@ function shapeEnvelope(
   } else {
     ramp(voice.gain.gain, voice.gainPoints, level, time + duration);
   }
-  ramp(
-    voice.gain.gain,
-    voice.gainPoints,
-    SILENCE,
-    time + duration + RELEASE_SECONDS,
-  );
+  ramp(voice.gain.gain, voice.gainPoints, 0, time + duration + RELEASE_SECONDS);
   voice.releaseAt = time + duration;
-  voice.stopSource(voice.releaseAt + RELEASE_SECONDS);
+  voice.stopAt = voice.releaseAt + RELEASE_SECONDS;
+  voice.stopSource(voice.stopAt);
 }
 
 function applyVibrato(voice: Voice, time: number, interval: number) {

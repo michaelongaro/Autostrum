@@ -2,6 +2,7 @@
 // For native browser audio checks, run with --browser, then evaluate the
 // expression in .git/guitar-effects-audio-checks.js in the collaborative preview.
 // Add --dead-notes for focused dead-note checks and audition controls.
+// Add --stops for release-envelope checks and abrupt/faded stop auditions.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -29,11 +30,13 @@ function moduleUrl(filename) {
 
 if (process.argv.includes("--browser")) {
   const url = moduleUrl("scripts/guitarEffectsAudioChecks.mjs");
-  const entry = process.argv.includes("--dead-notes")
-    ? "runDeadNoteAudioChecks"
-    : process.argv.includes("--level-probe")
-      ? "measureLegatoLevels"
-      : "runAudioChecks";
+  const entry = process.argv.includes("--stops")
+    ? "runNoteStopAudioChecks"
+    : process.argv.includes("--dead-notes")
+      ? "runDeadNoteAudioChecks"
+      : process.argv.includes("--level-probe")
+        ? "measureLegatoLevels"
+        : "runAudioChecks";
   fs.writeFileSync(
     ".git/guitar-effects-audio-checks.js",
     `import(${JSON.stringify(url)}).then(module => module.${entry}())`,
@@ -361,7 +364,7 @@ test("A faded sample refreshes after the pick attack with bounded gain", () => {
   phrase(env, ["5h", "7"], { bpm: 60 });
   assert.equal(sampleNodes(env).length, 2);
   assert.ok(sampleNodes(env)[1].sampleOffset > 0);
-  assert.ok(Math.abs(sampleNodes(env)[0].stoppedAt - 1.212) < 0.000001);
+  assert.ok(Math.abs(sampleNodes(env)[0].stoppedAt - 1.225) < 0.000001);
   for (const gain of env.nodes.filter((node) => node.kind === "gain"))
     assert.ok(gain.gain.events.every((event) => event.value <= 3.294));
 });
@@ -408,7 +411,7 @@ test("Pause cancels dead-note noise and body, including future scheduled hits", 
   stopActivePlaybackStrings(env.strings, 0.21);
   stopAllScheduledPlaybackNodes(env.scheduled, 0.21);
   for (const node of env.nodes.filter((node) => node.kind === "sample"))
-    assert.ok(node.stoppedAt <= 0.222001);
+    assert.ok(node.stoppedAt <= 0.235001);
   assert.ok(env.strings.every((node) => node === undefined));
 });
 
@@ -429,7 +432,7 @@ test("Entry slides and upper-fret bends include capo in their target", () => {
 test("A rest stops voices at its audio timestamp during lookahead", () => {
   const env = setup();
   phrase(env, ["5~", column("", { chordEffects: "r" })]);
-  assert.ok(Math.abs(sampleNodes(env)[0].stoppedAt - 0.712) < 0.0001);
+  assert.ok(Math.abs(sampleNodes(env)[0].stoppedAt - 0.725) < 0.0001);
   assert.ok(env.strings.every((node) => node === undefined));
 });
 test("Pause cancels both sounding and future voices without timer ownership races", () => {
@@ -437,11 +440,75 @@ test("Pause cancels both sounding and future voices without timer ownership race
   phrase(env, ["5~", "7~", "9"]);
   stopActivePlaybackStrings(env.strings, 0.4);
   stopAllScheduledPlaybackNodes(env.scheduled, 0.4);
-  for (const node of sampleNodes(env)) assert.ok(node.stoppedAt <= 0.412001);
+  for (const node of sampleNodes(env)) assert.ok(node.stoppedAt <= 0.425001);
   assert.ok(env.strings.every((node) => node === undefined));
   for (const node of env.nodes.filter((node) => node.kind === "oscillator"))
     assert.ok(node.stoppedAt <= 0.412001);
 });
+test("Interrupted notes reach exactly zero before the source stops", () => {
+  const env = setup();
+  phrase(env, ["5"]);
+  stopActivePlaybackStrings(env.strings, 0.4);
+  const gain = env.nodes.find((node) => node.kind === "gain");
+  const end = gain.gain.events.at(-1);
+  assert.equal(end.kind, "linear");
+  assert.equal(end.value, 0);
+  assert.ok(Math.abs(end.time - 0.425) < 0.000001);
+  assert.equal(sampleNodes(env)[0].stoppedAt, end.time);
+});
+
+test("Stopping during an attack preserves its level without cancelAndHoldAtTime", () => {
+  const env = setup();
+  phrase(env, ["5"]);
+  const gain = env.nodes.find((node) => node.kind === "gain");
+  gain.gain.cancelAndHoldAtTime = undefined;
+  env.context.currentTime = 0.201;
+  stopActivePlaybackStrings(env.strings, env.context.currentTime);
+  const held = gain.gain.events.at(-2);
+  assert.ok(Math.abs(held.value - 0.3) < 0.000001);
+  assert.equal(held.time, 0.201);
+  assert.equal(gain.gain.events.at(-1).value, 0);
+});
+
+test("Pause cancels queued attacks and percussion noise before they can start", () => {
+  for (const note of ["5~", "x", column("", { chordEffects: "s" })]) {
+    const env = setup();
+    phrase(env, [note]);
+    stopAllScheduledPlaybackNodes(env.scheduled, 0.19);
+    for (const source of env.nodes.filter(
+      (node) => node.startedAt !== undefined,
+    ))
+      assert.ok(source.stoppedAt < source.startedAt);
+  }
+});
+
+test("Repeated pauses preserve an earlier fade deadline", () => {
+  const env = setup();
+  phrase(env, ["5"]);
+  stopAllScheduledPlaybackNodes(env.scheduled, 0.4);
+  const source = sampleNodes(env)[0];
+  const deadline = source.stoppedAt;
+  env.context.currentTime = 0.41;
+  stopAllScheduledPlaybackNodes(env.scheduled, 0.41);
+  assert.equal(source.stoppedAt, deadline);
+  const gain = env.nodes.find((node) => node.kind === "gain");
+  const events = gain.gain.events.length;
+  env.context.currentTime = 0.5;
+  stopAllScheduledPlaybackNodes(env.scheduled, 0.5);
+  assert.equal(source.stoppedAt, deadline);
+  assert.equal(gain.gain.events.length, events);
+});
+
+test("Pause during a natural release cannot lengthen the note", () => {
+  const env = setup();
+  phrase(env, ["5."]);
+  const source = sampleNodes(env)[0];
+  const deadline = source.stoppedAt;
+  env.context.currentTime = deadline - 0.005;
+  stopActivePlaybackStrings(env.strings, env.context.currentTime);
+  assert.equal(source.stoppedAt, deadline);
+});
+
 test("Ended voices disconnect and leave the cancellation registry", () => {
   const env = setup();
   phrase(env, ["5h", "7"]);

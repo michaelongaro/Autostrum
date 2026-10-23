@@ -121,6 +121,8 @@ async function render(
   {
     bpm = 120,
     pauseAt,
+    hardStopAt,
+    holdFallback = false,
     duration = 4.5,
     tuning: noteTuning = tuning,
     capo = 0,
@@ -133,6 +135,20 @@ async function render(
     Math.ceil(sampleRate * duration),
     sampleRate,
   );
+  if (holdFallback) {
+    const createGain = context.createGain.bind(context);
+    context.createGain = () => {
+      const gain = createGain();
+      gain.gain.cancelAndHoldAtTime = undefined;
+      return gain;
+    };
+  }
+  let destination = context.destination;
+  if (hardStopAt !== undefined) {
+    destination = context.createGain();
+    destination.connect(context.destination);
+    destination.gain.setValueAtTime(0, hardStopAt);
+  }
   const sources = [];
   const sourceStarts = [];
   const createBufferSource = context.createBufferSource.bind(context);
@@ -168,13 +184,14 @@ async function render(
       currColumn,
       nextColumn: columns[index + 1],
       audioContext: context,
-      masterVolumeGainNode: context.destination,
+      masterVolumeGainNode: destination,
       currentInstrument: instrument,
       currentlyPlayingStrings: strings,
       scheduledNodes,
     });
   });
   if (pauseAt !== undefined) stopActivePlaybackStrings(strings, pauseAt);
+  if (hardStopAt !== undefined) stopActivePlaybackStrings(strings, hardStopAt);
   const guitarSources = sources.filter((source) =>
     Object.values(instrument.buffers).includes(source.buffer),
   );
@@ -454,7 +471,7 @@ export async function runDeadNoteAudioChecks() {
             pauseAt,
           });
           assert(
-            rms(paused.buffer, pauseAt + 0.02, 0.6) < 0.00001,
+            rms(paused.buffer, pauseAt + 0.026, 0.6) < 0.00001,
             `${label}: dead-note audio survives pause`,
           );
         }
@@ -503,6 +520,95 @@ export async function runDeadNoteAudioChecks() {
       }
     }
     window.__deadNoteAudioChecks = { results, audition };
+    createAuditionPanel(decodeContext, audition);
+    return { configurations: results.length, results };
+  } catch (error) {
+    await decodeContext.close();
+    throw error;
+  }
+}
+
+export async function runNoteStopAudioChecks() {
+  const decodeContext = new AudioContext();
+  const results = [];
+  const audition = {};
+  try {
+    // A steady signal makes the rendered release measurable sample by sample.
+    for (const sampleRate of [44100, 48000]) {
+      const constant = decodeContext.createBuffer(
+        1,
+        sampleRate * 2,
+        sampleRate,
+      );
+      constant.getChannelData(0).fill(0.2);
+      const instrument = { buffers: { 69: constant } };
+      for (const holdFallback of [false, true]) {
+        const { buffer } = await render(instrument, ["5"], {
+          pauseAt: 0.4,
+          duration: 0.8,
+          sampleRate,
+          holdFallback,
+        });
+        const samples = buffer.getChannelData(0);
+        let maxError = 0;
+        for (
+          let frame = Math.ceil(0.4 * sampleRate);
+          frame < samples.length;
+          frame++
+        ) {
+          const expected =
+            0.18 * Math.max(0, 1 - (frame / sampleRate - 0.4) / 0.025);
+          maxError = Math.max(maxError, Math.abs(samples[frame] - expected));
+        }
+        assert(maxError < 0.00002, `Release discontinuity: ${maxError}`);
+        assert(rms(buffer, 0.426, 0.8) === 0, "Release did not reach zero");
+        results.push({ sampleRate, holdFallback, maxError });
+      }
+    }
+    for (const name of [
+      "acoustic_guitar_nylon",
+      "acoustic_guitar_steel",
+      "electric_guitar_clean",
+      "electric_guitar_jazz",
+    ]) {
+      for (const format of ["ogg", "mp3"]) {
+        const instrument = await loadInstrument(decodeContext, name, format);
+        const faded = await render(instrument, ["5~", "7~", "9"], {
+          pauseAt: 0.4,
+          duration: 1.5,
+        });
+        assert(
+          rms(faded.buffer, 0.426, 1.5) === 0,
+          `${name}-${format}: audio survives pause`,
+        );
+        for (const note of ["x", column("", { chordEffects: "s" })]) {
+          const canceled = await render(instrument, [note], {
+            pauseAt: 0.19,
+            duration: 0.6,
+          });
+          assert(
+            peak(canceled.buffer) === 0,
+            `${name}-${format}: queued percussion leaked`,
+          );
+        }
+        results.push({ instrument: name, format, silentAfterRelease: true });
+        if (name === "acoustic_guitar_steel" && format === "ogg") {
+          audition["Abrupt stop"] = (
+            await render(instrument, ["5"], {
+              hardStopAt: 0.7,
+              duration: 1.15,
+            })
+          ).buffer;
+          audition["25 ms fade"] = (
+            await render(instrument, ["5"], {
+              pauseAt: 0.7,
+              duration: 1.15,
+            })
+          ).buffer;
+        }
+      }
+    }
+    window.__noteStopAudioChecks = { results, audition };
     createAuditionPanel(decodeContext, audition);
     return { configurations: results.length, results };
   } catch (error) {
