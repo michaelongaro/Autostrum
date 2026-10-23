@@ -3,10 +3,7 @@ import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -253,50 +250,20 @@ function ChordSequence({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">
-                      <SelectLabel>Strumming patterns</SelectLabel>
-                      {strummingPatterns.map((pattern, index) => {
-                        return (
-                          <SelectItem key={index} value={`${index}`}>
-                            <StrummingPattern
-                              data={pattern}
-                              mode={"viewingInSelectDropdown"}
-                              lastModifiedPalmMuteNode={
-                                lastModifiedPalmMuteNode
-                              }
-                              setLastModifiedPalmMuteNode={
-                                setLastModifiedPalmMuteNode
-                              }
-                            />
-                          </SelectItem>
-                        );
-                      })}
-
-                      <SelectSeparator />
-
-                      <div className="baseFlex mb-2 mt-3 w-full">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectIsOpen(false);
-                            setStrummingPatternBeingEdited({
-                              index: strummingPatterns.length,
-                              value: {
-                                id: crypto.randomUUID(),
-                                baseNoteLength: "eighth",
-                                strums: Array.from({ length: 8 }, () => ({
-                                  palmMute: "",
-                                  strum: "",
-                                  noteLength: "eighth",
-                                })),
-                              },
-                            });
-                          }}
-                        >
-                          Add new pattern
-                        </Button>
-                      </div>
-                    </SelectGroup>
+                    {strummingPatterns.map((pattern, index) => {
+                      return (
+                        <SelectItem key={index} value={`${index}`}>
+                          <StrummingPattern
+                            data={pattern}
+                            mode={"viewingInSelectDropdown"}
+                            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                            setLastModifiedPalmMuteNode={
+                              setLastModifiedPalmMuteNode
+                            }
+                          />
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
