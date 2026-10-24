@@ -608,11 +608,7 @@ function StrummingPattern({
       const chordSection = draft[sectionIndex ?? 0]?.data[subSectionIndex ?? 0];
 
       if (chordSection?.type === "chord") {
-        const newChordSection = { ...chordSection };
-        const newChord = value === "noChord" ? "" : value;
-        newChordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] =
-          newChord;
-        draft[sectionIndex ?? 0]!.data[subSectionIndex ?? 0] = newChordSection;
+        chordSection.data[chordSequenceIndex ?? 0]!.data[beatIndex] = value;
       }
     });
   }

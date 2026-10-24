@@ -8,7 +8,9 @@ import {
   playNoteColumn,
   stopActivePlaybackStrings,
   stopAllScheduledPlaybackNodes,
+  type StoppablePlaybackNode,
 } from "~/utils/playGeneratedAudioHelpers";
+import type { PlaybackStrings } from "~/utils/guitarEffects";
 import {
   compileFullTab,
   compileSpecificChordGrouping,
@@ -690,9 +692,6 @@ interface TabState {
   setCurrentChordIndex: (currentChordIndex: number) => void;
   playbackStartedAtAudioTime: number | null;
   playbackSessionId: number;
-  scheduledPlaybackNodes: { stop(when?: number): void }[];
-  activePlaybackStrings:
-    (Soundfont.Player | AudioBufferSourceNode | undefined)[] | null;
   audioMetadata: AudioMetadata;
   setAudioMetadata: (audioMetadata: AudioMetadata) => void;
   /**
@@ -896,6 +895,10 @@ export const createTabStore = (
   let audioPreparationPauseId = 0;
   let audioPauseRequestId = 0;
   let audioStartRequestId = 0;
+  // Audio callbacks and the scheduler mutate these registries. Keep them outside
+  // Immer state so document edits cannot freeze arrays still owned by Web Audio.
+  let scheduledPlaybackNodes: StoppablePlaybackNode[] = [];
+  let activePlaybackStrings: PlaybackStrings | null = null;
   // Keep the loop-relative index, including artificial copies and delay spacers.
   // The editor uses full-tab indices, so its current index cannot restore this.
   let playbackLoopRangeEntryChordIndex: number | null = null;
@@ -1180,8 +1183,6 @@ export const createTabStore = (
         },
         playbackStartedAtAudioTime: null,
         playbackSessionId: 0,
-        scheduledPlaybackNodes: [],
-        activePlaybackStrings: null,
         audioMetadata: {
           playing: false,
           location: null,
@@ -1538,7 +1539,7 @@ export const createTabStore = (
               if (!countInBuffer) source.stop(when + 0.08);
               nodes.push(source);
             }
-            set({ scheduledPlaybackNodes: nodes });
+            scheduledPlaybackNodes = nodes;
           }
           countInTimeout = setTimeout(() => {
             countInTimeout = undefined;
@@ -1728,7 +1729,9 @@ export const createTabStore = (
 
           // Web Audio is most reliable when you schedule sounds slightly ahead of audioContext.currentTime
           const nextPlaybackSessionId = get().playbackSessionId + 1;
-          const scheduledPlaybackNodes: { stop(when?: number): void }[] = [];
+          const playbackScheduledNodes: StoppablePlaybackNode[] = [];
+          scheduledPlaybackNodes = playbackScheduledNodes;
+          activePlaybackStrings = currentlyPlayingStrings;
 
           const nextChordStartTime =
             audioContext.currentTime + PLAYBACK_START_EPSILON_SECONDS;
@@ -1744,8 +1747,6 @@ export const createTabStore = (
             currentChordIndex: startChordIndex,
             playbackStartedAtAudioTime: nextChordStartTime,
             playbackSessionId: nextPlaybackSessionId,
-            scheduledPlaybackNodes,
-            activePlaybackStrings: currentlyPlayingStrings,
             breakOnNextChord: false,
           });
 
@@ -1763,7 +1764,7 @@ export const createTabStore = (
             masterVolumeGainNode,
             currentInstrument,
             currentlyPlayingStrings,
-            scheduledNodes: scheduledPlaybackNodes,
+            scheduledNodes: playbackScheduledNodes,
             playbackSessionId: activeSessionId,
             editing,
             isSessionValid: () => get().playbackSessionId === activeSessionId,
@@ -1826,9 +1827,9 @@ export const createTabStore = (
           ];
 
           const previewScheduledNodes: { stop(when?: number): void }[] = [];
+          activePlaybackStrings = currentlyPlayingStrings;
+          scheduledPlaybackNodes = previewScheduledNodes;
           set({
-            activePlaybackStrings: currentlyPlayingStrings,
-            scheduledPlaybackNodes: previewScheduledNodes,
             breakOnNextPreviewChord: false,
           });
 
@@ -1937,8 +1938,6 @@ export const createTabStore = (
             audioMetadata,
             previewMetadata,
             currentInstrument,
-            scheduledPlaybackNodes,
-            activePlaybackStrings,
             audioContext,
           } = get();
 
@@ -1946,6 +1945,8 @@ export const createTabStore = (
 
           stopAllScheduledPlaybackNodes(scheduledPlaybackNodes, stopTime);
           stopActivePlaybackStrings(activePlaybackStrings, stopTime);
+          scheduledPlaybackNodes = [];
+          activePlaybackStrings = null;
           currentInstrument?.stop(stopTime);
 
           const nextPlaybackSessionId = get().playbackSessionId + 1;
@@ -1966,8 +1967,6 @@ export const createTabStore = (
               currentChordIndex: 0,
               playbackStartedAtAudioTime: null,
               playbackSessionId: nextPlaybackSessionId,
-              scheduledPlaybackNodes: [],
-              activePlaybackStrings: null,
             });
             return;
           }
@@ -1987,8 +1986,6 @@ export const createTabStore = (
               playbackStartedAtAudioTime: null,
               breakOnNextChord: true,
               playbackSessionId: nextPlaybackSessionId,
-              scheduledPlaybackNodes: [],
-              activePlaybackStrings: null,
             });
 
             if (resetToStart) {
@@ -2006,8 +2003,6 @@ export const createTabStore = (
               },
               breakOnNextPreviewChord: true,
               playbackSessionId: nextPlaybackSessionId,
-              scheduledPlaybackNodes: [],
-              activePlaybackStrings: null,
             });
 
             if (resetToStart) {
@@ -2019,8 +2014,6 @@ export const createTabStore = (
           } else {
             set({
               playbackSessionId: nextPlaybackSessionId,
-              scheduledPlaybackNodes: [],
-              activePlaybackStrings: null,
             });
           }
         },
@@ -2140,6 +2133,7 @@ export const createTabStore = (
 
         // reset
         resetStoreToInitValues: () => {
+          get().pauseAudio();
           playbackLoopRangeEntryChordIndex = null;
           if (useTabStoreBase.getState() === getTabStore()) {
             setHoveredChordLocationValue(null);

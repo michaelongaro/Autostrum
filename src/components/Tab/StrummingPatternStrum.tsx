@@ -1,4 +1,5 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { Check } from "lucide-react";
 import { BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Element } from "react-scroll";
@@ -7,7 +8,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -26,6 +26,7 @@ import {
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
 import { beamBreaksForStrums } from "~/utils/noteLengthBeaming";
+import { getNextChordColor } from "~/utils/chordColors";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
   encodeStrumSpreadForCompile,
@@ -109,12 +110,15 @@ function StrummingPatternStrum({
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [chordSelectOpen, setChordSelectOpen] = useState(false);
+  const openingChordDialog = useRef(false);
 
   const setHoveredChordLocation = useTabStore(
     (state) => state.setHoveredChordLocation,
   );
   const bpm = useTabStore((state) => state.bpm);
   const playPreview = useTabStore((state) => state.playPreview);
+  const setChordBeingEdited = useTabStore((state) => state.setChordBeingEdited);
   const chordPreviewPlaying = useTabStore(
     (state) =>
       state.previewMetadata.playing && state.previewMetadata.type === "chord",
@@ -154,6 +158,36 @@ function StrummingPatternStrum({
     (isHovered || settingsOpen);
 
   const beamBreaks = beamBreaksForStrums(data.strums)[strumIndex];
+
+  const selectedChord = chordSequence?.[strumIndex] ?? "";
+  let inheritedChord = "";
+  if (mode === "editingChordSequence" && selectedChord === "") {
+    for (let index = strumIndex - 1; index >= 0; index--) {
+      if (chordSequence?.[index]) {
+        inheritedChord = chordSequence[index]!;
+        break;
+      }
+    }
+  }
+
+  function handleChordSelect(value: string) {
+    if (chords.length > 0) {
+      onChordChange(value, strumIndex);
+      return;
+    }
+
+    openingChordDialog.current = true;
+    setChordSelectOpen(false);
+    setChordBeingEdited({
+      index: 0,
+      value: {
+        id: crypto.randomUUID(),
+        name: "",
+        frets: ["", "", "", "", "", ""],
+        color: getNextChordColor(chords),
+      },
+    });
+  }
 
   function handlePreviewStrum() {
     void playPreview({
@@ -245,29 +279,71 @@ function StrummingPatternStrum({
               <div className="mt-2 h-[40px] w-[42px]"></div>
             ) : (
               <Select
-                onValueChange={(value) => onChordChange(value, strumIndex)}
-                value={
-                  chordSequence?.[strumIndex] === ""
-                    ? "noChord"
-                    : chordSequence?.[strumIndex]
-                }
+                open={chordSelectOpen}
+                onOpenChange={setChordSelectOpen}
+                onValueChange={handleChordSelect}
+                value={selectedChord}
               >
-                <SelectTrigger className="mx-1 mt-2 w-fit">
-                  <SelectValue>{chordSequence?.[strumIndex]}</SelectValue>
+                <SelectTrigger
+                  aria-label={`Chord for strum ${strumIndex + 1}`}
+                  aria-description={
+                    inheritedChord
+                      ? `Continuing ${inheritedChord} from the previous chord selection`
+                      : undefined
+                  }
+                  className="mx-1 mt-2 w-fit"
+                >
+                  <SelectValue
+                    placeholder={
+                      <span
+                        className={inheritedChord ? "opacity-50" : undefined}
+                      >
+                        {inheritedChord}
+                      </span>
+                    }
+                  >
+                    <span>{selectedChord}</span>
+                  </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  onCloseAutoFocus={(event) => {
+                    if (openingChordDialog.current) {
+                      event.preventDefault();
+                      openingChordDialog.current = false;
+                    }
+                  }}
+                >
                   <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">
                     {chords.map((chord) => (
-                      <SelectItem key={chord.name} value={chord.name}>
+                      <SelectItem
+                        key={chord.name}
+                        value={chord.name}
+                        indicator={
+                          inheritedChord === chord.name ? (
+                            <Check className="size-4 opacity-50" />
+                          ) : undefined
+                        }
+                      >
                         {chord.name}
                       </SelectItem>
                     ))}
 
-                    {chords.length > 0 && <SelectSeparator className="mr-2" />}
-
-                    <SelectItem value="noChord" className="italic">
-                      No chord
-                    </SelectItem>
+                    {chords.length === 0 && (
+                      <>
+                        <p className="px-2 py-1.5 text-sm">
+                          No chords available
+                        </p>
+                        <Button
+                          variant="link"
+                          className="h-auto cursor-pointer justify-center hover:bg-transparent hover:text-foreground focus:bg-transparent focus:text-foreground focus:underline"
+                          asChild
+                        >
+                          <SelectItem value="addChord" indicator={null}>
+                            Add one
+                          </SelectItem>
+                        </Button>
+                      </>
+                    )}
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -400,9 +476,7 @@ function StrummingPatternStrum({
                   })
                 }
                 onPreview={handlePreviewStrum}
-                previewDisabled={
-                  chordPreviewPlaying
-                }
+                previewDisabled={chordPreviewPlaying}
                 triggerClassName="mt-2 h-2.5 w-5 !p-1 hover:!bg-primary hover:!text-primary-foreground"
               />
             ) : (
