@@ -1,6 +1,6 @@
 # Autostrum 🎸
 
-I built **Autostrum** because I wanted a single place in the browser where guitar players could discover songs, actually *hear* how a tab is supposed to sound, and jot down their own musical ideas without fighting clunky software. 
+I built Autostrum because I wanted a single place in the browser where guitar players could discover songs, actually *hear* how a tab is supposed to sound, and jot down their own musical ideas without fighting clunky software. 
 
 Whether you're trying to nail a tricky solo, transcribing a favorite song, or just running through your daily warm-ups, Autostrum brings an interactive tab player, a fast tab editor, and a collection of practice tools together under one roof.
 
