@@ -54,7 +54,7 @@ function FilteredQueryExplore() {
             </div>
           ) : (
             <div className="baseFlex">
-              <div className="relative right-[-18px] top-[3px] z-30 -rotate-[-6deg] rounded-lg border bg-background p-2 shadow-sm">
+              <div className="relative right-[-18px] top-[3px] z-30 rotate-[-6deg] rounded-lg border bg-background p-2 shadow-sm">
                 <BiSearchAlt2 className="size-6 text-foreground" />
               </div>
 
