@@ -7,19 +7,19 @@ function Hero() {
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   return (
-    <section className="baseVertFlex min-h-[calc(100svh-4rem-0rem)] w-full max-w-[1700px] overflow-x-clip px-4 md:min-h-[calc(100svh-4rem-6rem)] md:px-6 lg:px-8">
-      <div className="baseVertFlex w-full gap-16 lg:flex-row lg:!items-center lg:!justify-between lg:gap-10">
-        <div className="baseVertFlex w-full max-w-xl shrink-0 gap-5 md:!items-start md:gap-6">
-          <div className="baseVertFlex gap-3 md:!items-start md:gap-4">
+    <section className="baseVertFlex min-h-[calc(100svh-4rem-0rem)] w-full max-w-[1700px] overflow-x-clip px-4 md:min-h-[calc(100svh-4rem-6rem)] md:px-6 lg:px-10 xl:px-12">
+      <div className="baseVertFlex w-full gap-16 lg:gap-12 xl:flex-row xl:!items-center xl:!justify-between xl:gap-8">
+        <div className="baseVertFlex w-full max-w-xl shrink-0 gap-5 md:gap-6 xl:w-[clamp(26rem,32.5vw,29.125rem)] xl:!items-start">
+          <div className="baseVertFlex gap-3 md:gap-4 xl:!items-start">
             <h1 className="sr-only">Autostrum</h1>
             <HeaderLogo
               width={isAboveMediumViewportWidth ? 320 : 220}
               height={isAboveMediumViewportWidth ? 56 : 38}
             />
-            <p className="max-w-lg text-center text-xl font-semibold tracking-tight md:text-left md:text-2xl lg:text-[1.75rem]">
+            <p className="max-w-lg whitespace-nowrap text-center text-xl font-semibold tracking-tight md:text-2xl xl:text-left xl:text-[clamp(1.5rem,1.875vw,1.75rem)]">
               Find your next favorite song to play.
             </p>
-            <p className="max-w-sm text-center text-sm text-foreground/80 md:text-left md:text-base">
+            <p className="max-w-sm text-center text-sm text-foreground/80 md:text-base xl:text-left">
               Discover guitar tabs, hear how they sound, and learn at your own
               pace.
             </p>
@@ -214,9 +214,11 @@ function TablatureTrack({
 }) {
   return (
     <div className="baseVertFlex relative min-h-0 w-full flex-1 select-none">
-      <div className="w-full overflow-hidden">
+      <div
+        className={`w-full overflow-hidden ${layout === "desktop" ? "h-full max-h-[315px]" : ""}`}
+      >
         <div
-          className={`baseFlex relative w-full overflow-hidden ${layout === "mobile" ? "h-[15.9375em]" : "h-[315px]"}`}
+          className={`baseFlex relative w-full overflow-hidden ${layout === "mobile" ? "h-[15.9375em]" : "h-full"}`}
         >
           <div className="relative flex size-full overflow-hidden [--playhead-position:50%]">
             {/* Complementary clips keep colors aligned with the playhead at every width. */}
@@ -343,11 +345,11 @@ function MobileTablatureScreenshot() {
 function TablatureScreenshot() {
   return (
     <div
-      className="heroScreenshotStage hidden w-full min-w-0 lg:block lg:flex-1"
+      className="heroScreenshotStage hidden w-full min-w-0 @container/hero-preview lg:block xl:flex-1"
       aria-hidden="true"
     >
       <div className="heroScreenshotTilt">
-        <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-[460px] w-full select-none !justify-between gap-0 overflow-hidden p-0 md:h-[560px] lg:h-[650px]">
+        <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-[clamp(540px,38vw,650px)] w-full select-none !justify-between gap-0 overflow-hidden p-0">
           {/* Top Header Section */}
           <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
             <div className="baseFlex w-full !items-end !justify-start gap-2">
@@ -425,7 +427,8 @@ function TablatureScreenshot() {
                       </div>
                     </div>
                   </div>
-                  <div className="baseFlex w-full max-w-none">
+                  {/* Show the complete navigation only when it fits beside the metadata. */}
+                  <div className="hidden shrink-0 @[940px]/hero-preview:flex">
                     <div className="baseFlex gap-0">
                       <div className="relative inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium">
                         <span className="absolute bottom-[4px] left-4 z-0 h-[2px] w-[54px] rounded-full bg-primary"></span>
@@ -450,7 +453,7 @@ function TablatureScreenshot() {
           {/* Tablature Track Section — desktop Practice view from main PlaybackModal */}
           <TablatureTrack />
 
-          <div className="baseVertFlex w-full lg:gap-2">
+          <div className="baseVertFlex w-full lg:gap-2 xl:pt-8 2xl:pt-0">
             {/* Desktop (non-landscape) PlaybackAudioControls */}
             <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[677px]">
               <div
@@ -514,7 +517,7 @@ function TablatureScreenshot() {
             {/* Desktop PlaybackBottomMetadata settings row */}
             <div className="baseFlex w-full px-4 py-4">
               <div className="baseFlex w-full">
-                <div className="baseFlex w-full !items-end gap-4">
+                <div className="baseFlex w-full flex-nowrap !items-end gap-4 whitespace-nowrap [&>*]:shrink-0">
                   <div className="baseVertFlex !items-start gap-2">
                     <div className="text-sm font-medium leading-none">
                       Instrument
