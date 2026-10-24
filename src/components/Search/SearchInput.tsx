@@ -408,6 +408,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 id={`autofillResult${idx}`}
                                 tabIndex={-1}
                                 variant={"ghost"}
+                                className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
                                 asChild
                               >
                                 <Link
@@ -516,6 +517,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                 id={`autofillResult${idx}`}
                                 tabIndex={-1}
                                 variant={"ghost"}
+                                className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
                                 asChild
                               >
                                 <Link
@@ -616,6 +618,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                               id={`autofillResult${idx}`}
                               tabIndex={-1}
                               variant={"ghost"}
+                              className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
                               asChild
                             >
                               <Link
@@ -732,9 +735,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                           >
                             <Button
                               key={idx}
-                              id={`artistAutofillResult${idx}`}
+                              id={`autofillResult${idx}`}
                               tabIndex={-1}
                               variant={"ghost"}
+                              className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
                               asChild
                             >
                               <Link
