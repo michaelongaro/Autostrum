@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import { IoMusicalNotes } from "react-icons/io5";
 import PracticePlaybackPanel from "~/components/tools/PracticePlaybackPanel";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
@@ -15,9 +15,11 @@ function WarmupsPage() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
-      <Head>
-        <title>Warm-up Exercises | Autostrum</title>
-      </Head>
+      <SEO
+        title="Warm-up Exercises | Autostrum"
+        description="Warm up with interactive guitar exercises for finger strength, coordination, and dexterity. Play along at your own pace across different skill levels."
+        path="/tools/warmups"
+      />
 
       <ToolRouteHeader
         icon={<IoMusicalNotes className="size-5" />}

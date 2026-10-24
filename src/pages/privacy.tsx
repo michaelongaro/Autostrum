@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 
 function Privacy() {
   return (
@@ -11,22 +11,11 @@ function Privacy() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full px-4"
     >
-      <Head>
-        <title>Privacy | Autostrum</title>
-        <meta name="description" content="Our privacy policy at Autostrum." />
-        <meta property="og:title" content="Privacy | Autostrum"></meta>
-        <meta property="og:url" content="https://www.autostrum.com/privacy" />
-        <meta
-          property="og:description"
-          content="Our privacy policy at Autostrum."
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title="Privacy Policy | Autostrum"
+        description="Read the Autostrum privacy policy to learn how we collect, use, and protect your personal information when you use our guitar tabs and practice tools."
+        path="/privacy"
+      />
       <div className="baseVertFlex z-10 my-24 items-start gap-4 rounded-xl border bg-background p-4 shadow-lg sm:w-auto sm:max-w-4xl md:p-8">
         <div className="baseVertFlex !items-start gap-2 md:!items-center">
           <h1 className="text-2xl font-bold md:text-3xl">

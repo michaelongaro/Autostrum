@@ -1,6 +1,6 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -181,28 +181,11 @@ function UserSettings() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
-      <Head>
-        <title>Settings | Autostrum</title>
-        <meta
-          name="description"
-          content="Update your username, password, profile image, and more."
-        />
-        <meta property="og:title" content="Settings | Autostrum"></meta>
-        <meta
-          property="og:url"
-          content="https://www.autostrum.com/profile/settings"
-        />
-        <meta
-          property="og:description"
-          content="Update your username, password, profile image, and more."
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title="Settings | Autostrum"
+        description="Manage your Autostrum account, username, password, profile image, and preferences."
+        noIndex
+      />
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-between px-4 lg:px-0">

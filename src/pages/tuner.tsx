@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import TunerPanel from "~/components/tuner/TunerPanel";
 import { useTabStore } from "~/stores/TabStore";
@@ -30,25 +30,11 @@ function Tuner() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
-      <Head>
-        <title>Tuner | Autostrum</title>
-        <meta
-          name="description"
-          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
-        />
-        <meta property="og:title" content="Autostrum"></meta>
-        <meta property="og:url" content="https://www.autostrum.com" />
-        <meta
-          property="og:description"
-          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title="Tuner | Autostrum"
+        description="Tune your guitar online using your microphone. Check string pitch with the free Autostrum guitar tuner, with support for alternate and custom tunings."
+        path="/tuner"
+      />
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-start pb-2">

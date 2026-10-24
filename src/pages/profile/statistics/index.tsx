@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { api } from "~/utils/api";
@@ -83,31 +83,11 @@ function UserStatistics() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
-      <Head>
-        <title>Statistics | Autostrum</title>
-        <meta
-          name="description"
-          content="Discover detailed statistics on your guitar tabs, including total tabs, views, ratings, bookmarks, top songs, and genre breakdowns"
-        />
-        <meta
-          property="og:title"
-          content={`${currentUser?.username ? `${currentUser.username}` : "Artist"} | Autostrum`}
-        ></meta>
-        <meta property="og:site_name" content="Autostrum" />
-        <meta
-          property="og:url"
-          content="https://www.autostrum.com/profile/statistics"
-        />
-        <meta
-          property="og:description"
-          content="Discover detailed statistics on your guitar tabs, including total tabs, views, ratings, bookmarks, top songs, and genre breakdowns"
-        />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title="Statistics | Autostrum"
+        description="See statistics for your Autostrum guitar tabs, including views, ratings, bookmarks, top songs, and genres."
+        noIndex
+      />
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-start md:!hidden">

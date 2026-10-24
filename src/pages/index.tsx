@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import Link from "next/link";
 import { BsGridFill } from "react-icons/bs";
 import GenreCards from "~/components/Explore/GenreCards";
@@ -24,25 +24,7 @@ function Home() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full gap-16 overflow-x-clip pb-16 md:gap-24 md:pb-24"
     >
-      <Head>
-        <title>Autostrum</title>
-        <meta
-          name="description"
-          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
-        />
-        <meta property="og:title" content="Autostrum"></meta>
-        <meta property="og:url" content="https://www.autostrum.com" />
-        <meta
-          property="og:description"
-          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music. Practice any tab alongside our realistic generated audio and convenient audio controls."
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO path="/" />
 
       <Hero />
 

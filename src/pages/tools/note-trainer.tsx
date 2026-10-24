@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import { IoEar } from "react-icons/io5";
 import { get } from "@tonaljs/note";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
@@ -281,9 +281,11 @@ function NoteTrainerPage() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
-      <Head>
-        <title>Note Trainer | Autostrum</title>
-      </Head>
+      <SEO
+        title="Note Trainer | Autostrum"
+        description="Train your ear by listening to notes and identifying their pitch. Customize note sets and audio sources with the free Autostrum note trainer."
+        path="/tools/note-trainer"
+      />
 
       <ToolRouteHeader
         icon={<IoEar className="size-5" />}

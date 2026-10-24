@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Paintbrush } from "lucide-react";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
@@ -268,13 +268,11 @@ function ChordTrainerPage() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1240px] gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
-      <Head>
-        <title>Chord Trainer | Autostrum</title>
-        <meta
-          name="description"
-          content="Build smoother chord changes with ready-made sets or create your own."
-        />
-      </Head>
+      <SEO
+        title="Chord Trainer | Autostrum"
+        description="Practice smoother guitar chord changes with preset progressions or your own chords. Add strumming patterns and adjust the tempo on Autostrum."
+        path="/tools/chord-trainer"
+      />
 
       <ToolRouteHeader
         icon={<Logo className="size-5" />}

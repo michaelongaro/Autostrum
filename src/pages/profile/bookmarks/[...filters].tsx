@@ -1,6 +1,6 @@
 import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import Link from "next/link";
 import SearchResults from "~/components/Search/SearchResults";
 import { Button } from "~/components/ui/button";
@@ -23,28 +23,11 @@ function UserBookmarks() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
-      <Head>
-        <title>My Bookmarks | Autostrum</title>
-        <meta
-          name="description"
-          content="View and sort through all of your bookmarked tabs."
-        />
-        <meta property="og:title" content="My Bookmarks | Autostrum"></meta>
-        <meta
-          property="og:url"
-          content="https://www.autostrum.com/profile/bookmarks"
-        />
-        <meta
-          property="og:description"
-          content="View and sort through all of your bookmarked tabs."
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title="My Bookmarks | Autostrum"
+        description="Browse and organize your bookmarked guitar tabs on Autostrum."
+        noIndex
+      />
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-start md:!hidden">

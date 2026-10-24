@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import type { GetStaticProps } from "next";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import { useRouter } from "next/router";
 import superjson from "superjson";
 import RelatedTabs from "~/components/Tab/Static/RelatedTabs";
@@ -13,6 +13,7 @@ import {
   type RelatedTabCandidate,
   type RelatedTabSection,
 } from "~/utils/relatedTabs";
+import { SITE_URL } from "~/utils/seo";
 
 interface OpenGraphData {
   title: string;
@@ -31,10 +32,6 @@ interface PageData {
   relatedTabSections: RelatedTabSection<RelatedTabCandidate>[];
   relatedArtist: RelatedArtistLink | null;
 }
-
-const SITE_ORIGIN = (
-  process.env.NEXT_PUBLIC_DOMAIN_URL ?? "https://www.autostrum.com"
-).replace(/\/$/, "");
 
 /**
  * Related links are computed with the page. Refresh them on a steady interval
@@ -63,20 +60,12 @@ function ViewIndividualTab({ json }: { json: string }) {
       transition={{ duration: asPath.includes("screenshot") ? 0 : 0.5 }}
       className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0 2xl:w-[70%]"
     >
-      <Head>
-        <title>{openGraphData.title}</title>
-        <meta name="description" content={openGraphData.description} />
-        <meta property="og:title" content={openGraphData.title} />
-        <meta property="og:url" content={openGraphData.url} />
-        <meta property="og:description" content={openGraphData.description} />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-        {tab && <link rel="canonical" href={openGraphData.url} />}
-      </Head>
+      <SEO
+        title={openGraphData.title}
+        description={openGraphData.description}
+        path={tab ? openGraphData.url : undefined}
+        noIndex={!tab}
+      />
 
       {tab ? (
         <>
@@ -121,7 +110,7 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
           relatedArtist: null,
           openGraphData: {
             title: "Autostrum",
-            url: `${SITE_ORIGIN}/`,
+            url: `${SITE_URL}/`,
             description: "View and listen to this tab on Autostrum.",
           },
         }),
@@ -278,7 +267,7 @@ function buildOpenGraphData(tab: {
 
   return {
     title: `${tab.title}${byArtist} | Autostrum`,
-    url: `${SITE_ORIGIN}/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
+    url: `${SITE_URL}/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
     description: `View the ${genrePrefix}guitar tab for ${tab.title}${byArtist} on Autostrum.`,
   };
 }

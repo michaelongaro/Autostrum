@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import ToolCardGrid from "~/components/tools/ToolCardGrid";
 import { toolDefinitions } from "~/data/tools/toolDefinitions";
 
@@ -13,13 +13,11 @@ function ToolsHub() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1100px] gap-6 px-3 pb-8 xs:px-4 sm:px-6 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)] md:px-8"
     >
-      <Head>
-        <title>Tools | Autostrum</title>
-        <meta
-          name="description"
-          content="Explore guitar tools on Autostrum: warm-up exercises, scales practice, metronome, audible note trainer, and tuner workflows."
-        />
-      </Head>
+      <SEO
+        title="Tools | Autostrum"
+        description="Build your guitar practice routine with free tools: a metronome, guitar tuner, chord trainer, scales, warm-up exercises, and a note trainer."
+        path="/tools"
+      />
 
       <div className="baseVertFlex w-full !items-start gap-2">
         <h1 className="text-2xl font-semibold md:text-3xl">Guitar Tools</h1>

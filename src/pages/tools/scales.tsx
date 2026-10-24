@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import PracticePlaybackPanel from "~/components/tools/PracticePlaybackPanel";
 import { GiMusicalScore } from "react-icons/gi";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
@@ -15,9 +15,11 @@ function ScalesPage() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
-      <Head>
-        <title>Scales Practice | Autostrum</title>
-      </Head>
+      <SEO
+        title="Scales Practice | Autostrum"
+        description="Learn guitar scales with visual fretboard patterns and interactive audio playback. Practice moving through scale shapes at your own pace on Autostrum."
+        path="/tools/scales"
+      />
 
       <ToolRouteHeader
         icon={<GiMusicalScore className="size-8" />}

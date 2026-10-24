@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 import NextProgress from "next-progress";
 import ClientErrorBoundary from "~/components/errors/ClientErrorBoundary";
 import GeneralLayout from "~/components/Layout/GeneralLayout";
+import SEO from "~/components/SEO";
 import "~/styles/globals.css";
 import "overlayscrollbars/overlayscrollbars.css";
 import { useTabStore } from "~/stores/TabStore";
@@ -36,6 +37,7 @@ function App({ Component, pageProps }: ComponentWithPageLayout) {
       }}
       {...pageProps}
     >
+      <SEO />
       <NextProgress
         key={color}
         color={COLOR_HEX_VALUES[color]}

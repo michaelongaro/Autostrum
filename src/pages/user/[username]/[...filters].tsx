@@ -1,3 +1,4 @@
+import type { GetServerSideProps } from "next";
 import UserProfile from "~/components/User/UserProfile";
 
 function ArtistProfileWithoutId() {
@@ -5,3 +6,8 @@ function ArtistProfileWithoutId() {
 }
 
 export default ArtistProfileWithoutId;
+
+// Resolve route names and URLs in the initial metadata returned to crawlers.
+export const getServerSideProps: GetServerSideProps = async () => ({
+  props: {},
+});

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import { PiMetronome } from "react-icons/pi";
 import { getTrackBackground, Range } from "~/components/ui/Range";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
@@ -395,9 +395,11 @@ function MetronomeToolPage() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-8 min-h-[calc(100dvh-4rem-4rem)] w-full max-w-[1000px] gap-6 pb-8 md:my-16 md:min-h-[calc(100dvh-4rem-8rem)]"
     >
-      <Head>
-        <title>Metronome | Autostrum</title>
-      </Head>
+      <SEO
+        title="Metronome | Autostrum"
+        description="Practice your timing with our metronome. Set your tempo, time signature, subdivisions, and accents, or build speed with our Speed Trainer."
+        path="/tools/metronome"
+      />
 
       <ToolRouteHeader
         icon={<PiMetronome className="size-6" />}

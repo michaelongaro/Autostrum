@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import SearchResults from "~/components/Search/SearchResults";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { BiSearchAlt2 } from "react-icons/bi";
@@ -19,25 +19,11 @@ function FilteredQueryExplore() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-12 min-h-[calc(100dvh-4rem-6rem)] w-full max-w-[1400px] !justify-start md:my-24 md:min-h-[calc(100dvh-4rem-12rem)] md:w-3/4"
     >
-      <Head>
-        <title>Search | Autostrum</title>
-        <meta
-          name="description"
-          content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured artist section."
-        />
-        <meta property="og:title" content="Search | Autostrum"></meta>
-        <meta property="og:url" content="https://www.autostrum.com/explore" />
-        <meta
-          property="og:description"
-          content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured artist section."
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title="Search | Autostrum"
+        description="Search guitar tabs by song or artist. Filter by genre, tuning, capo, and difficulty to find your next song to learn on Autostrum."
+        path="/search/filters"
+      />
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-between gap-4 px-4 md:px-0">

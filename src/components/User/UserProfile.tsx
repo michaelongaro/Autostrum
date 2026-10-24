@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
@@ -80,39 +80,10 @@ function UserProfile({ uniqueKey }: UserProfile) {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
-      <Head>
-        <title>{`${userMetadata?.user.username ? `${userMetadata?.user.username}` : "User"} | Autostrum`}</title>
-        <meta
-          name="description"
-          content={`Check out ${
-            userMetadata?.user.username
-              ? `${userMetadata?.user.username}'s tabs`
-              : "this user"
-          } on Autostrum.`}
-        />
-        <meta
-          property="og:title"
-          content={`${userMetadata?.user.username ? `${userMetadata?.user.username}` : "User"} | Autostrum`}
-        ></meta>
-        <meta
-          property="og:url"
-          content={`https://www.autostrum.com/user/${userMetadata?.user.username}`}
-        />
-        <meta
-          property="og:description"
-          content={`Check out ${
-            userMetadata?.user.username
-              ? `${userMetadata?.user.username}'s tabs`
-              : "this user"
-          } on Autostrum.`}
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title={`${userMetadata?.user.username ?? (typeof query.username === "string" ? query.username : "User")} | Autostrum`}
+        description={`Explore guitar tabs created by ${userMetadata?.user.username ?? (typeof query.username === "string" ? query.username : "this creator")}. Listen, practice, and discover their music on Autostrum.`}
+      />
 
       <div className="baseVertFlex w-full gap-4">
         <AnimatePresence mode="popLayout">

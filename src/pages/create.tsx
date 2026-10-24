@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import Tab from "~/components/Tab/Tab";
 import { GiMusicalScore } from "react-icons/gi";
 import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
@@ -14,25 +14,11 @@ function Create() {
 
   return (
     <>
-      <Head>
-        <title>Create | Autostrum</title>
-        <meta
-          name="description"
-          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music."
-        />
-        <meta property="og:title" content="Create | Autostrum"></meta>
-        <meta property="og:url" content="https://www.autostrum.com/create" />
-        <meta
-          property="og:description"
-          content="Create and share your riffs exactly how you want them to sound. Our advanced tab editor minimizes repetitive actions so you can focus on creating your music."
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title="Create | Autostrum"
+        description="Write guitar tabs with chords and reusable strumming patterns. Hear your arrangement as you edit, save drafts, and share your music on Autostrum."
+        path="/create"
+      />
 
       <DraftEditor>
         <motion.div

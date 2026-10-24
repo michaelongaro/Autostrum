@@ -1,6 +1,6 @@
 import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import Image from "next/image";
 import superjson from "superjson";
 import { Separator } from "~/components/ui/separator";
@@ -59,25 +59,11 @@ function Explore({ json }: { json: string }) {
       transition={{ duration: 0.5 }}
       className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0 xl:w-8/12"
     >
-      <Head>
-        <title>Explore | Autostrum</title>
-        <meta
-          name="description"
-          content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured user section."
-        />
-        <meta property="og:title" content="Explore | Autostrum"></meta>
-        <meta property="og:url" content="https://www.autostrum.com/explore" />
-        <meta
-          property="og:description"
-          content="Find inspiration from our evergrowing library of tabs and discover new talents in our weekly featured user section."
-        />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title="Explore | Autostrum"
+        description="Find your next song to learn. Browse guitar tabs by genre, discover popular tracks and new songs, and explore featured creators on Autostrum."
+        path="/explore"
+      />
 
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex relative w-full gap-4 px-2 md:px-0">
@@ -87,7 +73,7 @@ function Explore({ json }: { json: string }) {
 
           <Image
             src={GuitarImage}
-            alt={"hi"}
+            alt={"Decorative acoustic guitar header"}
             className="h-24 w-full rounded-lg object-cover object-top md:h-36 md:rounded-xl"
           />
         </div>

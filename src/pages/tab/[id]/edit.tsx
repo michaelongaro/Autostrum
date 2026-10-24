@@ -1,7 +1,7 @@
 import { getAuth } from "@clerk/nextjs/server";
 import { AnimatePresence, motion } from "framer-motion";
 import type { GetServerSideProps } from "next";
-import Head from "next/head";
+import SEO from "~/components/SEO";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { BiErrorCircle } from "react-icons/bi";
@@ -49,19 +49,11 @@ function EditIndividualTab({ json }: { json: string }) {
 
   return (
     <>
-      <Head>
-        <title>{openGraphData.title}</title>
-        <meta name="description" content={openGraphData.description} />
-        <meta property="og:title" content={openGraphData.title} />
-        <meta property="og:url" content={openGraphData.url} />
-        <meta property="og:description" content={openGraphData.description} />
-        <meta property="og:site_name" content="Autostrum" />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:image"
-          content="https://www.autostrum.com/opengraphScreenshots/homepage.png"
-        ></meta>
-      </Head>
+      <SEO
+        title={openGraphData.title}
+        description={openGraphData.description}
+        noIndex
+      />
 
       <DraftEditor fetchedTab={tab}>
         <motion.div
