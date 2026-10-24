@@ -431,6 +431,7 @@ const initialStoreState = {
 
   // playback
   showPlaybackModal: false,
+  playbackMetronomeEnabled: false,
   playbackModalViewingState: "Practice" as const,
   // Must reset with the route: stale width/expanded data from a previous tab
   // (or orientation) leaves the modal unable to virtualize/highlight chords.
@@ -579,6 +580,8 @@ interface TabState {
   countInBuffer: AudioBuffer | null;
   setCountInBuffer: (countInBuffer: AudioBuffer | null) => void;
   countInTimerEnabled: boolean;
+  playbackMetronomeEnabled: boolean;
+  setPlaybackMetronomeEnabled: (enabled: boolean) => void;
   setCountInTimerEnabled: (countInTimerEnabled: boolean) => void;
   updateMasterVolumeGainNode: (newVolume: number) => void;
 
@@ -1350,6 +1353,9 @@ export const createTabStore = (
           interactingWithAudioProgressSlider,
         ) => set({ interactingWithAudioProgressSlider }),
         countInTimerEnabled: true,
+        playbackMetronomeEnabled: false,
+        setPlaybackMetronomeEnabled: (playbackMetronomeEnabled) =>
+          set({ playbackMetronomeEnabled }),
         setCountInTimerEnabled: (countInTimerEnabled) =>
           set({ countInTimerEnabled }),
         hoveredChordLocation: null,
@@ -1758,6 +1764,7 @@ export const createTabStore = (
             startChordIndex,
             playbackStartTime: nextChordStartTime,
             playbackSpeed,
+            loopDelayChordCount: editing ? 0 : loopDelay,
             tuning,
             capo: capo ?? 0,
             audioContext,
@@ -1776,6 +1783,7 @@ export const createTabStore = (
                 showPlaybackModal: state.showPlaybackModal,
                 audioMetadata: state.audioMetadata,
                 currentChordIndex: state.currentChordIndex,
+                playbackMetronomeEnabled: state.playbackMetronomeEnabled,
               };
             },
             setState: (partial) => set(partial),

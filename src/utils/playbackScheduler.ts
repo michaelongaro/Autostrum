@@ -4,6 +4,7 @@ import {
   playNoteColumn,
   stopActivePlaybackStrings,
 } from "~/utils/playGeneratedAudioHelpers";
+import { createPlaybackMetronome } from "~/utils/playbackMetronome";
 
 export const PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS = 2.0;
 
@@ -18,6 +19,7 @@ export interface PlaybackTimelineEntry {
   startTime: number | null;
   duration: number;
   effectiveBpm: number;
+  metronomeBpm: number;
   thirdPrevColumn?: string[];
   secondPrevColumn?: string[];
   prevColumn?: string[];
@@ -32,6 +34,7 @@ export interface BuildPlaybackTimelineArgs {
   adjChordCount: number;
   playbackSpeed: number;
   startTime: number;
+  loopDelayChordCount?: number;
 }
 
 export function buildPlaybackTimeline({
@@ -40,9 +43,16 @@ export function buildPlaybackTimeline({
   adjChordCount,
   playbackSpeed,
   startTime,
+  loopDelayChordCount = 0,
 }: BuildPlaybackTimelineArgs): PlaybackTimelineEntry[] {
   const entries: PlaybackTimelineEntry[] = [];
   let nextStartTime = startTime;
+  const loopDelayStart = compiledChords.length - loopDelayChordCount;
+  const lastMusicalBpm = Number(
+    compiledChords
+      .slice(0, loopDelayStart)
+      .findLast((column) => Number(column[9]) > 0)?.[9],
+  );
 
   for (
     let chordIndex = fromChordIndex;
@@ -55,6 +65,7 @@ export function buildPlaybackTimeline({
     let entryStartTime: number | null = null;
     let duration = 0;
     let effectiveBpm = 0;
+    let metronomeBpm = 0;
 
     if (currColumn && currColumn.length > 0) {
       // guard against malformed columns: an invalid note length or bpm must
@@ -65,6 +76,10 @@ export function buildPlaybackTimeline({
 
       if (Number.isFinite(baseBpm) && baseBpm > 0 && playbackSpeed > 0) {
         effectiveBpm = baseBpm * (1 / noteLengthMultiplier) * playbackSpeed;
+        // Loop-delay columns encode seconds at 60 BPM, not a tempo change.
+        metronomeBpm =
+          (adjChordIndex >= loopDelayStart ? lastMusicalBpm : baseBpm) *
+          playbackSpeed;
         duration = 60 / effectiveBpm;
         entryStartTime = nextStartTime;
         nextStartTime += duration;
@@ -77,6 +92,7 @@ export function buildPlaybackTimeline({
       startTime: entryStartTime,
       duration,
       effectiveBpm,
+      metronomeBpm,
       thirdPrevColumn: compiledChords[adjChordIndex - 3],
       secondPrevColumn: compiledChords[adjChordIndex - 2],
       prevColumn: compiledChords[adjChordIndex - 1],
@@ -168,6 +184,7 @@ export interface RunPlaybackSchedulerArgs {
   startChordIndex: number;
   playbackStartTime: number;
   playbackSpeed: number;
+  loopDelayChordCount?: number;
   tuning: number[];
   capo: number;
   audioContext: AudioContext;
@@ -186,6 +203,7 @@ export interface RunPlaybackSchedulerArgs {
     showPlaybackModal: boolean;
     audioMetadata: { playing: boolean };
     currentChordIndex: number;
+    playbackMetronomeEnabled: boolean;
   };
   setState: (partial: Record<string, unknown>) => void;
   resetAudioRangeToStart: (mode: "editing" | "playback") => void;
@@ -198,6 +216,7 @@ export async function runPlaybackScheduler({
   startChordIndex,
   playbackStartTime,
   playbackSpeed,
+  loopDelayChordCount = 0,
   tuning,
   capo,
   audioContext,
@@ -225,6 +244,7 @@ export async function runPlaybackScheduler({
     adjChordCount,
     playbackSpeed,
     startTime: playbackStartTime,
+    loopDelayChordCount,
   });
 
   let scheduledIndex = 0;
@@ -239,6 +259,22 @@ export async function runPlaybackScheduler({
       segmentEndTime = entry.startTime + entry.duration;
     }
   }
+
+  const metronome = createPlaybackMetronome({
+    audioContext,
+    destination: masterVolumeGainNode,
+    timeline,
+    repeatTimeline: buildPlaybackTimeline({
+      compiledChords,
+      fromChordIndex: 0,
+      adjChordCount,
+      playbackSpeed,
+      startTime: 0,
+      loopDelayChordCount,
+    }),
+  });
+  // One cancellation handle per session; finished clicks remove themselves.
+  scheduledNodes?.push(metronome);
 
   const maybeUpdateCurrentChordIndex = (nextChordIndex: number | null) => {
     if (nextChordIndex === null || nextChordIndex === lastReportedChordIndex) {
@@ -279,139 +315,159 @@ export async function runPlaybackScheduler({
     });
   };
 
-  while (isSessionValid()) {
-    const now = audioContext.currentTime;
-    const horizon = now + PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS;
+  try {
+    while (isSessionValid()) {
+      const now = audioContext.currentTime;
+      const horizon = now + PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS;
+      const state = getState();
+      metronome.schedule(
+        state.showPlaybackModal &&
+          state.audioMetadata.playing &&
+          state.playbackMetronomeEnabled,
+        (state.looping || state.showPlaybackModal) &&
+          state.audioMetadata.playing,
+      );
 
-    maybeUpdateCurrentChordIndex(
-      getActiveChordIndexForTime(timeline, now, timelineAnchorTime),
-    );
+      maybeUpdateCurrentChordIndex(
+        getActiveChordIndexForTime(timeline, now, timelineAnchorTime),
+      );
 
-    // schedule everything inside the lookahead window
-    while (scheduledIndex < timeline.length && isSessionValid()) {
-      const entry = timeline[scheduledIndex]!;
+      // schedule everything inside the lookahead window
+      while (scheduledIndex < timeline.length && isSessionValid()) {
+        const entry = timeline[scheduledIndex]!;
 
-      if (entry.startTime !== null && entry.startTime > horizon) {
-        break;
-      }
-
-      if (entry.startTime !== null && entry.currColumn.length > 0) {
-        void playNoteColumn({
-          tuning,
-          capo,
-          bpm: entry.effectiveBpm,
-          targetStartTime: entry.startTime,
-          thirdPrevColumn: entry.thirdPrevColumn,
-          secondPrevColumn: entry.secondPrevColumn,
-          prevColumn: entry.prevColumn,
-          currColumn: entry.currColumn,
-          nextColumn: entry.nextColumn,
-          audioContext,
-          masterVolumeGainNode,
-          currentInstrument,
-          currentlyPlayingStrings,
-          scheduledNodes,
-        });
-      }
-
-      scheduledIndex++;
-    }
-
-    // process ALL entries that have completed by `now` (not just one),
-    // so we recover immediately after background-tab timer throttling
-    while (processedIndex < timeline.length && isSessionValid()) {
-      const entry = timeline[processedIndex]!;
-      const completionTime = getEntryCompletionTime(entry, lastCompletionTime);
-
-      if (now < completionTime) break;
-
-      const { breakOnNextChord } = getState();
-
-      if (breakOnNextChord) {
-        clearBreakOnNextChord();
-        // silence audio already scheduled within the lookahead window,
-        // otherwise up to a second of notes keeps playing after "pause"
-        stopAllScheduledAudio();
-        return;
-      }
-
-      if (entry.isLastInCompiledSequence) {
-        resetAudioRangeToStart(editing ? "editing" : "playback");
-      }
-
-      lastCompletionTime = completionTime;
-      processedIndex++;
-    }
-
-    if (processedIndex >= timeline.length) {
-      const lastEntry = timeline[timeline.length - 1];
-      const { looping, showPlaybackModal, audioMetadata } = getState();
-
-      // empty timeline (e.g. empty compiledChords): make sure we don't
-      // leave the UI stuck in a "playing" state
-      if (!lastEntry) {
-        stopPlaybackState();
-        return;
-      }
-
-      if (
-        lastEntry.chordIndex === adjChordCount - 1 &&
-        (looping || showPlaybackModal) &&
-        audioMetadata.playing &&
-        isSessionValid()
-      ) {
-        maybeUpdateCurrentChordIndex(0);
-
-        timeline = buildPlaybackTimeline({
-          compiledChords,
-          fromChordIndex: 0,
-          adjChordCount,
-          playbackSpeed,
-          startTime: segmentEndTime,
-        });
-
-        scheduledIndex = 0;
-        processedIndex = 0;
-        lastCompletionTime = segmentEndTime;
-        timelineAnchorTime = segmentEndTime;
-
-        for (const entry of timeline) {
-          if (entry.startTime !== null) {
-            segmentEndTime = entry.startTime + entry.duration;
-          }
+        if (entry.startTime !== null && entry.startTime > horizon) {
+          break;
         }
 
-        continue;
+        if (entry.startTime !== null && entry.currColumn.length > 0) {
+          void playNoteColumn({
+            tuning,
+            capo,
+            bpm: entry.effectiveBpm,
+            targetStartTime: entry.startTime,
+            thirdPrevColumn: entry.thirdPrevColumn,
+            secondPrevColumn: entry.secondPrevColumn,
+            prevColumn: entry.prevColumn,
+            currColumn: entry.currColumn,
+            nextColumn: entry.nextColumn,
+            audioContext,
+            masterVolumeGainNode,
+            currentInstrument,
+            currentlyPlayingStrings,
+            scheduledNodes,
+          });
+        }
+
+        scheduledIndex++;
       }
 
-      if (lastEntry.chordIndex === adjChordCount - 1 && !looping) {
-        stopPlaybackState();
+      // process ALL entries that have completed by `now` (not just one),
+      // so we recover immediately after background-tab timer throttling
+      while (processedIndex < timeline.length && isSessionValid()) {
+        const entry = timeline[processedIndex]!;
+        const completionTime = getEntryCompletionTime(
+          entry,
+          lastCompletionTime,
+        );
+
+        if (now < completionTime) break;
+
+        const { breakOnNextChord } = getState();
+
+        if (breakOnNextChord) {
+          clearBreakOnNextChord();
+          // silence audio already scheduled within the lookahead window,
+          // otherwise up to a second of notes keeps playing after "pause"
+          stopAllScheduledAudio();
+          return;
+        }
+
+        if (entry.isLastInCompiledSequence) {
+          resetAudioRangeToStart(editing ? "editing" : "playback");
+        }
+
+        lastCompletionTime = completionTime;
+        processedIndex++;
       }
 
-      return;
-    }
+      if (processedIndex >= timeline.length) {
+        const lastEntry = timeline[timeline.length - 1];
+        const { looping, showPlaybackModal, audioMetadata } = getState();
 
-    const nextUnscheduledEntry = timeline[scheduledIndex];
-    const nextUnprocessedEntry = timeline[processedIndex];
+        // empty timeline (e.g. empty compiledChords): make sure we don't
+        // leave the UI stuck in a "playing" state
+        if (!lastEntry) {
+          stopPlaybackState();
+          return;
+        }
 
-    let wakeTime = now + MIN_SCHEDULER_SLEEP_SECONDS;
+        if (
+          lastEntry.chordIndex === adjChordCount - 1 &&
+          (looping || showPlaybackModal) &&
+          audioMetadata.playing &&
+          isSessionValid()
+        ) {
+          maybeUpdateCurrentChordIndex(0);
 
-    if (nextUnscheduledEntry && nextUnscheduledEntry.startTime !== null) {
-      const scheduleWake =
-        nextUnscheduledEntry.startTime - PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS;
-      wakeTime = Math.min(wakeTime, scheduleWake);
-    }
+          timeline = buildPlaybackTimeline({
+            compiledChords,
+            fromChordIndex: 0,
+            adjChordCount,
+            playbackSpeed,
+            startTime: segmentEndTime,
+            loopDelayChordCount,
+          });
 
-    if (nextUnprocessedEntry) {
-      const processWake = getEntryCompletionTime(
-        nextUnprocessedEntry,
-        lastCompletionTime,
+          scheduledIndex = 0;
+          processedIndex = 0;
+          lastCompletionTime = segmentEndTime;
+          timelineAnchorTime = segmentEndTime;
+
+          for (const entry of timeline) {
+            if (entry.startTime !== null) {
+              segmentEndTime = entry.startTime + entry.duration;
+            }
+          }
+
+          continue;
+        }
+
+        if (lastEntry.chordIndex === adjChordCount - 1 && !looping) {
+          stopPlaybackState();
+        }
+
+        return;
+      }
+
+      const nextUnscheduledEntry = timeline[scheduledIndex];
+      const nextUnprocessedEntry = timeline[processedIndex];
+
+      let wakeTime = now + MIN_SCHEDULER_SLEEP_SECONDS;
+
+      if (nextUnscheduledEntry && nextUnscheduledEntry.startTime !== null) {
+        const scheduleWake =
+          nextUnscheduledEntry.startTime - PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS;
+        wakeTime = Math.min(wakeTime, scheduleWake);
+      }
+
+      if (nextUnprocessedEntry) {
+        const processWake = getEntryCompletionTime(
+          nextUnprocessedEntry,
+          lastCompletionTime,
+        );
+        wakeTime = Math.min(wakeTime, processWake);
+      }
+
+      wakeTime = Math.max(now + MIN_SCHEDULER_SLEEP_SECONDS, wakeTime);
+
+      await sleepUntilAudioTime(
+        audioContext,
+        wakeTime,
+        () => !isSessionValid(),
       );
-      wakeTime = Math.min(wakeTime, processWake);
     }
-
-    wakeTime = Math.max(now + MIN_SCHEDULER_SLEEP_SECONDS, wakeTime);
-
-    await sleepUntilAudioTime(audioContext, wakeTime, () => !isSessionValid());
+  } finally {
+    metronome.stop();
   }
 }

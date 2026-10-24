@@ -67,6 +67,7 @@ import { useRouter } from "next/router";
 import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
 import ChordName from "~/components/ui/ChordName";
 import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
+import PlaybackMetronomeControl from "~/components/Tab/Playback/PlaybackMetronomeControl";
 
 interface PlaybackBottomMetadata {
   tabProgressValue: number;
@@ -478,6 +479,8 @@ function MobileSettingsPopover({
             }}
           />
         </div>
+
+        <PlaybackMetronomeControl mobile />
 
         {/* gives tablet users ability to still control volume */}
         {!isMobileOnly && (
@@ -1198,6 +1201,8 @@ function DesktopSettings({
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      <PlaybackMetronomeControl />
 
       <TooltipProvider delayDuration={100}>
         <Tooltip>

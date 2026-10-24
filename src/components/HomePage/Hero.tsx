@@ -57,6 +57,7 @@ import TuningFork from "~/components/ui/icons/TuningFork";
 import PlayIcon from "~/components/ui/icons/PlayIcon";
 import { FaBook, FaListUl } from "react-icons/fa";
 import { IoMdSettings } from "react-icons/io";
+import { PiMetronome } from "react-icons/pi";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 
 const HERO_PLAYBACK_PROGRESS = 23 / (4 * 60 + 12);
@@ -451,7 +452,7 @@ function TablatureScreenshot() {
 
           <div className="baseVertFlex w-full lg:gap-2">
             {/* Desktop (non-landscape) PlaybackAudioControls */}
-            <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[612px]">
+            <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[677px]">
               <div
                 style={{
                   display: "flex",
@@ -518,7 +519,7 @@ function TablatureScreenshot() {
                     <div className="text-sm font-medium leading-none">
                       Instrument
                     </div>
-                    <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                    <div className="border-input flex h-10 w-[200px] items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
                       Acoustic guitar - Steel
                       <ChevronDown className="size-4 shrink-0 opacity-50" />
                     </div>
@@ -528,7 +529,7 @@ function TablatureScreenshot() {
                     <div className="text-sm font-medium leading-none">
                       Speed
                     </div>
-                    <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                    <div className="border-input flex h-10 w-[85px] items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
                       1x
                       <ChevronDown className="size-4 shrink-0 opacity-50" />
                     </div>
@@ -538,7 +539,7 @@ function TablatureScreenshot() {
                     <div className="text-sm font-medium leading-none">
                       Loop delay
                     </div>
-                    <div className="border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                    <div className="border-input flex h-10 w-20 items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
                       0s
                       <ChevronDown className="size-4 shrink-0 opacity-50" />
                     </div>
@@ -550,6 +551,10 @@ function TablatureScreenshot() {
 
                   <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
                     <CountIn className="size-5" />
+                  </div>
+
+                  <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                    <PiMetronome className="size-5" />
                   </div>
 
                   <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">

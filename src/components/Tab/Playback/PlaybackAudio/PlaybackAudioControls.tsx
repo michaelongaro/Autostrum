@@ -206,7 +206,7 @@ function PlaybackAudioControls({
 
       {!viewportLabel.includes("Landscape") && (
         // Reserve the playback controls' height when loop editing hides them.
-        <div className="baseVertFlex relative h-14 w-full max-w-[85vw] shrink-0 gap-2 sm:max-w-[612px]">
+        <div className="baseVertFlex relative h-14 w-full max-w-[85vw] shrink-0 gap-2 sm:max-w-[677px]">
           {audioMetadata.editingLoopRange &&
             viewportLabel.includes("mobile") && (
               <p className="absolute bottom-full mb-2 text-center text-sm text-gray">
