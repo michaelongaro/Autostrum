@@ -545,13 +545,21 @@ function RateTabInternals({
             return (
               <div
                 key={`star-${starValue}`}
-                onMouseEnter={() => {
-                  if (lockOutHoveredRatingRef.current || ratingSubmitted)
+                onPointerEnter={(event) => {
+                  // iOS taps synthesize mouse events before click. Only a mouse
+                  // should preview outlines before committing filled stars.
+                  if (
+                    event.pointerType !== "mouse" ||
+                    lockOutHoveredRatingRef.current ||
+                    ratingSubmitted
+                  )
                     return;
 
                   setHoveredRating(starValue);
                 }}
-                onMouseLeave={() => {
+                onPointerLeave={(event) => {
+                  if (event.pointerType !== "mouse") return;
+
                   if (lockOutHoveredRatingRef.current) {
                     lockOutHoveredRatingRef.current = false;
                   }
@@ -559,7 +567,7 @@ function RateTabInternals({
                   setHoveredRating(null);
                 }}
                 onClick={() => {
-                  lockOutHoveredRatingRef.current = true;
+                  lockOutHoveredRatingRef.current = hoveredRating !== null;
                   setHoveredRating(null);
                   setSelectedRating(starValue);
                 }}
@@ -568,21 +576,7 @@ function RateTabInternals({
                 {!hoveredRating &&
                 selectedRating &&
                 selectedRating >= starValue ? (
-                  <div
-                    onMouseEnter={() => {
-                      if (selectedRating && selectedRating >= starValue) return;
-                      setHoveredRating(starValue);
-                    }}
-                    onMouseLeave={() => {
-                      if (selectedRating && selectedRating >= starValue) return;
-
-                      setHoveredRating(null);
-                    }}
-                    onClick={() => {
-                      setSelectedRating(starValue);
-                    }}
-                    className="baseFlex"
-                  >
+                  <div className="baseFlex">
                     <FaStar className="!size-9 !shrink-0 text-yellow-500" />
                   </div>
                 ) : (
