@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { useTabStore } from "~/stores/TabStore";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
@@ -19,6 +19,9 @@ import {
 } from "~/components/ui/carousel";
 import ChordName from "~/components/ui/ChordName";
 import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
+import useExtraTabMetadataLayout, {
+  type MetadataPane,
+} from "~/hooks/useExtraTabMetadataLayout";
 
 function MobileExtraTabMetadata() {
   const {
@@ -43,8 +46,15 @@ function MobileExtraTabMetadata() {
     playPreview: state.playPreview,
   }));
 
-  const [activeTabName, setActiveTabName] = useState("Section progression");
+  const [activeTabName, setActiveTabName] = useState<MetadataPane>(
+    "Section progression",
+  );
   const [tabContentExpanded, setTabContentExpanded] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const { contentRef, height, hasOverflow } = useExtraTabMetadataLayout(
+    activeTabName,
+    tabContentExpanded,
+  );
 
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [carouselContentApi, setCarouselContentApi] =
@@ -69,29 +79,32 @@ function MobileExtraTabMetadata() {
 
       switch (currentIndex) {
         case 0:
-          carouselApi.scrollTo(0);
+          carouselApi.scrollTo(0, !!reduceMotion);
           setActiveTabName("Section progression");
           break;
         case 1:
-          carouselApi.scrollTo(1);
+          carouselApi.scrollTo(1, !!reduceMotion);
           setActiveTabName("Chords");
           break;
         case 2:
-          carouselApi.scrollTo(2);
+          carouselApi.scrollTo(2, !!reduceMotion);
           setActiveTabName("Strumming patterns");
           break;
         default:
-          carouselApi.scrollTo(0);
+          carouselApi.scrollTo(0, !!reduceMotion);
           setActiveTabName("Section progression");
       }
     }
 
     carouselContentApi.on("select", handleContentSelect);
+    carouselContentApi.on("reInit", handleContentSelect);
+    handleContentSelect();
 
     return () => {
       carouselContentApi.off("select", handleContentSelect);
+      carouselContentApi.off("reInit", handleContentSelect);
     };
-  }, [carouselApi, carouselContentApi]);
+  }, [carouselApi, carouselContentApi, reduceMotion]);
 
   return (
     <div className="baseVertFlex w-full gap-4">
@@ -113,63 +126,60 @@ function MobileExtraTabMetadata() {
             <CarouselItem className="baseFlex basis-auto">
               <Button
                 variant={"text"}
+                aria-pressed={activeTabName === "Section progression"}
                 onClick={() => {
-                  carouselApi?.scrollTo(0);
-                  carouselContentApi?.scrollTo(0);
+                  carouselApi?.scrollTo(0, !!reduceMotion);
+                  carouselContentApi?.scrollTo(0, !!reduceMotion);
+                  setActiveTabName("Section progression");
                 }}
                 className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
               >
                 <BsMusicNoteList className="size-4" />
                 Section progression
-                {activeTabName === "Section progression" && (
-                  <motion.span
-                    layoutId="mobileActiveTabUnderline"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
-                  />
-                )}
+                <span
+                  aria-hidden="true"
+                  className={`absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground transition-opacity duration-200 motion-reduce:transition-none ${activeTabName === "Section progression" ? "opacity-100" : "opacity-0"}`}
+                />
               </Button>
             </CarouselItem>
 
             <CarouselItem className="baseFlex basis-auto">
               <Button
                 variant={"text"}
+                aria-pressed={activeTabName === "Chords"}
                 onClick={() => {
-                  carouselApi?.scrollTo(1);
-                  carouselContentApi?.scrollTo(1);
+                  carouselApi?.scrollTo(1, !!reduceMotion);
+                  carouselContentApi?.scrollTo(1, !!reduceMotion);
+                  setActiveTabName("Chords");
                 }}
                 className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
               >
                 <BsMusicNoteBeamed className="size-4" />
                 Chords
-                {activeTabName === "Chords" && (
-                  <motion.span
-                    layoutId="mobileActiveTabUnderline"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
-                  />
-                )}
+                <span
+                  aria-hidden="true"
+                  className={`absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground transition-opacity duration-200 motion-reduce:transition-none ${activeTabName === "Chords" ? "opacity-100" : "opacity-0"}`}
+                />
               </Button>
             </CarouselItem>
 
             <CarouselItem className="baseFlex basis-auto">
               <Button
                 variant={"text"}
+                aria-pressed={activeTabName === "Strumming patterns"}
                 onClick={() => {
-                  carouselApi?.scrollTo(2);
-                  carouselContentApi?.scrollTo(2);
+                  carouselApi?.scrollTo(2, !!reduceMotion);
+                  carouselContentApi?.scrollTo(2, !!reduceMotion);
+                  setActiveTabName("Strumming patterns");
                 }}
                 className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
               >
                 <Logo className="z-0 size-4" />
                 Strumming patterns
-                {activeTabName === "Strumming patterns" && (
-                  <motion.span
-                    layoutId="mobileActiveTabUnderline"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
-                  />
-                )}
+                <span
+                  aria-hidden="true"
+                  className={`absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground transition-opacity duration-200 motion-reduce:transition-none ${activeTabName === "Strumming patterns" ? "opacity-100" : "opacity-0"}`}
+                />
               </Button>
             </CarouselItem>
           </CarouselContent>
@@ -184,10 +194,11 @@ function MobileExtraTabMetadata() {
           }
           aria-expanded={tabContentExpanded}
           onClick={() => setTabContentExpanded((prev) => !prev)}
-          className="baseFlex mr-[9px] !p-0"
+          disabled={!hasOverflow}
+          className={`baseFlex mr-[9px] !p-0 ${hasOverflow ? "" : "invisible"}`}
         >
           <ChevronDown
-            className={`size-[18px] transition-transform ${
+            className={`size-[18px] transition-transform motion-reduce:transition-none ${
               tabContentExpanded ? "rotate-180" : ""
             }`}
           />
@@ -195,266 +206,263 @@ function MobileExtraTabMetadata() {
       </div>
 
       {/* tab content */}
-      <div className="baseVertFlex w-full overflow-hidden">
-        <Carousel setApi={setCarouselContentApi} className="w-full">
-          <CarouselContent className="-ml-2 w-full">
-            <CarouselItem className="baseFlex basis-full">
-              <AnimatePresence mode="wait" initial={false}>
-                {activeTabName === "Section progression" && (
-                  <ExtraTabMetadataPane
-                    key="sectionProgressionTab"
-                    expanded={tabContentExpanded}
-                  >
-                    <div className="baseFlex w-full">
-                      {sectionProgression.length === 0 ? (
-                        <p className="baseFlex h-24 text-gray">
-                          No section progression specified
-                        </p>
-                      ) : (
+      <motion.div
+        ref={contentRef}
+        data-metadata-viewport
+        initial={false}
+        animate={{ height }}
+        transition={{
+          duration: reduceMotion ? 0 : 0.25,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="w-full overflow-hidden"
+        style={{ overflowAnchor: "none" }}
+      >
+        <Carousel
+          setApi={setCarouselContentApi}
+          opts={{ duration: reduceMotion ? 0 : 25 }}
+          className="w-full"
+        >
+          <CarouselContent className="!ml-0 items-start">
+            <CarouselItem className="basis-full !pl-0">
+              <ExtraTabMetadataPane
+                name="Section progression"
+                active={activeTabName === "Section progression"}
+              >
+                <div className="baseFlex w-full">
+                  {sectionProgression.length === 0 ? (
+                    <p className="baseFlex h-24 text-gray">
+                      No section progression specified
+                    </p>
+                  ) : (
+                    <div
+                      className={`baseVertFlex min-h-24 gap-2 ${sectionProgression.length > 3 ? "!justify-start" : ""}`}
+                    >
+                      {sectionProgression.map((section) => (
                         <div
-                          className={`baseVertFlex mb-2 min-h-24 gap-2 ${sectionProgression.length > 3 ? "!justify-start" : ""}`}
+                          key={section.id}
+                          className="baseFlex w-full !justify-start gap-2"
                         >
-                          {sectionProgression.map((section) => (
-                            <div
-                              key={section.id}
-                              className="baseFlex w-full !justify-start gap-2"
-                            >
-                              <div className="baseFlex w-24 gap-2 text-gray">
-                                <p>
-                                  {formatSecondsToMinutes(section.startSeconds)}
-                                </p>
-                                <span>-</span>
-                                <p>
-                                  {formatSecondsToMinutes(section.endSeconds)}
-                                </p>
-                              </div>
-
-                              <div className="baseFlex gap-2">
-                                <p className="text-nowrap font-semibold">
-                                  {section.title}
-                                </p>
-                                {section.repetitions > 1 && (
-                                  <p>({section.repetitions}x)</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </ExtraTabMetadataPane>
-                )}
-              </AnimatePresence>
-            </CarouselItem>
-
-            <CarouselItem className="baseFlex basis-full">
-              <AnimatePresence mode="wait" initial={false}>
-                {activeTabName === "Chords" && (
-                  <ExtraTabMetadataPane
-                    key="chordsTab"
-                    expanded={tabContentExpanded}
-                    collapsedHeight={chords.length === 0 ? 96 : 160}
-                  >
-                    {chords.length === 0 ? (
-                      <p className="baseFlex h-24 text-gray">
-                        No chords specified
-                      </p>
-                    ) : (
-                      <div className="grid w-full grid-cols-2 items-start justify-items-center gap-8 sm:flex sm:flex-wrap sm:justify-center">
-                        {chords.map((chord, index) => (
-                          <div
-                            key={chord.id}
-                            className="baseFlex min-w-0 max-w-full sm:max-w-[175px]"
-                          >
-                            <div className="baseVertFlex min-w-0 max-w-full gap-3">
-                              <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
-                                <ChordName
-                                  name={chord.name}
-                                  color={chord.color}
-                                  truncate={false}
-                                  showFullName={true}
-                                  isHighlighted={
-                                    chordDisplayMode === "color"
-                                      ? false
-                                      : previewMetadata.indexOfPattern ===
-                                            index &&
-                                          previewMetadata.playing &&
-                                          previewMetadata.type === "chord"
-                                        ? true
-                                        : false
-                                  }
-                                />
-
-                                {/* preview chord button */}
-                                <Button
-                                  variant={"audio"}
-                                  disabled={
-                                    previewMetadata.indexOfPattern === index &&
-                                    previewMetadata.playing &&
-                                    previewMetadata.type === "chord"
-                                  }
-                                  size={"sm"}
-                                  onClick={() => {
-                                    if (
-                                      audioMetadata.playing ||
-                                      previewMetadata.playing
-                                    ) {
-                                      pauseAudio();
-                                    }
-
-                                    setTimeout(
-                                      () => {
-                                        void playPreview({
-                                          data: chord.frets,
-                                          index,
-                                          type: "chord",
-                                        });
-                                      },
-                                      audioMetadata.playing ||
-                                        previewMetadata.playing
-                                        ? 50
-                                        : 0,
-                                    );
-                                  }}
-                                  className="baseFlex h-6 w-10 rounded-sm"
-                                >
-                                  <PlayButtonIcon
-                                    uniqueLocationKey={`chordPreview${index}`}
-                                    currentInstrument={currentInstrument}
-                                    previewMetadata={previewMetadata}
-                                    indexOfPattern={index}
-                                    previewType="chord"
-                                    size={"0.7rem"}
-                                  />
-                                </Button>
-                              </div>
-
-                              <div className="h-[118px] max-w-full">
-                                <ChordDiagram originalFrets={chord.frets} />
-                              </div>
-                            </div>
+                          <div className="baseFlex w-24 gap-2 text-gray">
+                            <p>
+                              {formatSecondsToMinutes(section.startSeconds)}
+                            </p>
+                            <span>-</span>
+                            <p>{formatSecondsToMinutes(section.endSeconds)}</p>
                           </div>
-                        ))}
-                      </div>
-                    )}
-                  </ExtraTabMetadataPane>
-                )}
-              </AnimatePresence>
+
+                          <div className="baseFlex gap-2">
+                            <p className="text-nowrap font-semibold">
+                              {section.title}
+                            </p>
+                            {section.repetitions > 1 && (
+                              <p>({section.repetitions}x)</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </ExtraTabMetadataPane>
             </CarouselItem>
 
-            <CarouselItem className="baseFlex basis-full">
-              <AnimatePresence mode="wait" initial={false}>
-                {activeTabName === "Strumming patterns" && (
-                  <ExtraTabMetadataPane
-                    key="strummingPatternsTab"
-                    expanded={tabContentExpanded}
-                    collapsedHeight={strummingPatterns.length === 0 ? 96 : 160}
+            <CarouselItem className="basis-full !pl-0">
+              <ExtraTabMetadataPane
+                name="Chords"
+                active={activeTabName === "Chords"}
+              >
+                {chords.length === 0 ? (
+                  <p className="baseFlex h-24 text-gray">No chords specified</p>
+                ) : (
+                  <div
+                    data-metadata-items
+                    className="grid w-full grid-cols-2 items-start justify-items-center gap-8 sm:flex sm:flex-wrap sm:justify-center"
                   >
-                    {strummingPatterns.length === 0 ? (
-                      <p className="baseFlex h-24 text-gray">
-                        No strumming patterns specified
-                      </p>
-                    ) : (
-                      <div className="baseVertFlex mb-2 !items-start !justify-start gap-8 sm:!flex-row sm:flex-wrap sm:!justify-center">
-                        {strummingPatterns.map((pattern, index) => (
-                          <div
-                            key={pattern.id}
-                            className="baseVertFlex !items-start"
-                          >
+                    {chords.map((chord, index) => (
+                      <div
+                        key={chord.id}
+                        className="baseFlex min-w-0 max-w-full sm:max-w-[175px]"
+                      >
+                        <div className="baseVertFlex min-w-0 max-w-full gap-3">
+                          <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
+                            <ChordName
+                              name={chord.name}
+                              color={chord.color}
+                              truncate={false}
+                              showFullName={true}
+                              isHighlighted={
+                                chordDisplayMode === "color"
+                                  ? false
+                                  : previewMetadata.indexOfPattern === index &&
+                                      previewMetadata.playing &&
+                                      previewMetadata.type === "chord"
+                                    ? true
+                                    : false
+                              }
+                            />
+
+                            {/* preview chord button */}
                             <Button
                               variant={"audio"}
+                              disabled={
+                                previewMetadata.indexOfPattern === index &&
+                                previewMetadata.playing &&
+                                previewMetadata.type === "chord"
+                              }
                               size={"sm"}
-                              disabled={artificalPlayButtonTimeout[index]}
                               onClick={() => {
                                 if (
-                                  previewMetadata.playing &&
-                                  index === previewMetadata.indexOfPattern &&
-                                  previewMetadata.type === "strummingPattern"
+                                  audioMetadata.playing ||
+                                  previewMetadata.playing
                                 ) {
                                   pauseAudio();
-                                  setArtificalPlayButtonTimeout((prev) => {
-                                    const prevArtificalPlayButtonTimeout = [
-                                      ...prev,
-                                    ];
-                                    prevArtificalPlayButtonTimeout[index] =
-                                      true;
-                                    return prevArtificalPlayButtonTimeout;
-                                  });
-
-                                  setTimeout(() => {
-                                    setArtificalPlayButtonTimeout((prev) => {
-                                      const prevArtificalPlayButtonTimeout = [
-                                        ...prev,
-                                      ];
-                                      prevArtificalPlayButtonTimeout[index] =
-                                        false;
-                                      return prevArtificalPlayButtonTimeout;
-                                    });
-                                  }, 300);
-                                } else {
-                                  if (
-                                    audioMetadata.playing ||
-                                    previewMetadata.playing
-                                  ) {
-                                    pauseAudio();
-                                  }
-
-                                  setTimeout(
-                                    () => {
-                                      void playPreview({
-                                        data: pattern,
-                                        index,
-                                        type: "strummingPattern",
-                                      });
-                                    },
-                                    audioMetadata.playing ||
-                                      previewMetadata.playing
-                                      ? 50
-                                      : 0,
-                                  );
                                 }
+
+                                setTimeout(
+                                  () => {
+                                    void playPreview({
+                                      data: chord.frets,
+                                      index,
+                                      type: "chord",
+                                    });
+                                  },
+                                  audioMetadata.playing ||
+                                    previewMetadata.playing
+                                    ? 50
+                                    : 0,
+                                );
                               }}
-                              className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
+                              className="baseFlex h-6 w-10 rounded-sm"
                             >
-                              <p>
-                                {previewMetadata.playing &&
-                                index === previewMetadata.indexOfPattern &&
-                                previewMetadata.type === "strummingPattern"
-                                  ? "Stop"
-                                  : "Play"}
-                              </p>
                               <PlayButtonIcon
-                                uniqueLocationKey={`strummingPatternPreview${index}`}
+                                uniqueLocationKey={`chordPreview${index}`}
                                 currentInstrument={currentInstrument}
                                 previewMetadata={previewMetadata}
                                 indexOfPattern={index}
-                                previewType="strummingPattern"
+                                previewType="chord"
+                                size={"0.7rem"}
                               />
                             </Button>
-                            <div className="baseFlex border-b-none rounded-md border-2">
-                              <StrummingPattern
-                                data={pattern}
-                                mode="viewingWithHighlights"
-                                index={index}
-                                lastModifiedPalmMuteNode={
-                                  lastModifiedPalmMuteNode
-                                }
-                                setLastModifiedPalmMuteNode={
-                                  setLastModifiedPalmMuteNode
-                                }
-                              />
-                            </div>
                           </div>
-                        ))}
+
+                          <div className="h-[118px] max-w-full">
+                            <ChordDiagram originalFrets={chord.frets} />
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </ExtraTabMetadataPane>
+                    ))}
+                  </div>
                 )}
-              </AnimatePresence>
+              </ExtraTabMetadataPane>
+            </CarouselItem>
+
+            <CarouselItem className="basis-full !pl-0">
+              <ExtraTabMetadataPane
+                name="Strumming patterns"
+                active={activeTabName === "Strumming patterns"}
+              >
+                {strummingPatterns.length === 0 ? (
+                  <p className="baseFlex h-24 text-gray">
+                    No strumming patterns specified
+                  </p>
+                ) : (
+                  <div
+                    data-metadata-items
+                    className="baseVertFlex !items-start !justify-start gap-8 px-8 sm:!flex-row sm:flex-wrap sm:!justify-center"
+                  >
+                    {strummingPatterns.map((pattern, index) => (
+                      <div
+                        key={pattern.id}
+                        className="baseVertFlex !items-start"
+                      >
+                        <Button
+                          variant={"audio"}
+                          size={"sm"}
+                          disabled={artificalPlayButtonTimeout[index]}
+                          onClick={() => {
+                            if (
+                              previewMetadata.playing &&
+                              index === previewMetadata.indexOfPattern &&
+                              previewMetadata.type === "strummingPattern"
+                            ) {
+                              pauseAudio();
+                              setArtificalPlayButtonTimeout((prev) => {
+                                const prevArtificalPlayButtonTimeout = [
+                                  ...prev,
+                                ];
+                                prevArtificalPlayButtonTimeout[index] = true;
+                                return prevArtificalPlayButtonTimeout;
+                              });
+
+                              setTimeout(() => {
+                                setArtificalPlayButtonTimeout((prev) => {
+                                  const prevArtificalPlayButtonTimeout = [
+                                    ...prev,
+                                  ];
+                                  prevArtificalPlayButtonTimeout[index] = false;
+                                  return prevArtificalPlayButtonTimeout;
+                                });
+                              }, 300);
+                            } else {
+                              if (
+                                audioMetadata.playing ||
+                                previewMetadata.playing
+                              ) {
+                                pauseAudio();
+                              }
+
+                              setTimeout(
+                                () => {
+                                  void playPreview({
+                                    data: pattern,
+                                    index,
+                                    type: "strummingPattern",
+                                  });
+                                },
+                                audioMetadata.playing || previewMetadata.playing
+                                  ? 50
+                                  : 0,
+                              );
+                            }
+                          }}
+                          className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"
+                        >
+                          <p>
+                            {previewMetadata.playing &&
+                            index === previewMetadata.indexOfPattern &&
+                            previewMetadata.type === "strummingPattern"
+                              ? "Stop"
+                              : "Play"}
+                          </p>
+                          <PlayButtonIcon
+                            uniqueLocationKey={`strummingPatternPreview${index}`}
+                            currentInstrument={currentInstrument}
+                            previewMetadata={previewMetadata}
+                            indexOfPattern={index}
+                            previewType="strummingPattern"
+                          />
+                        </Button>
+                        <div className="baseFlex border-b-none rounded-md border-2">
+                          <StrummingPattern
+                            data={pattern}
+                            mode="viewingWithHighlights"
+                            index={index}
+                            lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                            setLastModifiedPalmMuteNode={
+                              setLastModifiedPalmMuteNode
+                            }
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ExtraTabMetadataPane>
             </CarouselItem>
           </CarouselContent>
         </Carousel>
-      </div>
+      </motion.div>
     </div>
   );
 }
