@@ -149,6 +149,10 @@ class FakeContext extends FakeTarget {
     this.sources.push(node);
     return node;
   }
+  createBuffer(channels, length, sampleRate) {
+    return { numberOfChannels: channels, length, sampleRate };
+  }
+  sampleRate = 48000;
   createOscillator() {
     const node = this.createBufferSource();
     node.frequency = { value: 0 };
@@ -314,6 +318,85 @@ test("running with a frozen clock fails readiness and is replaced on a gesture",
   const result = owner.ensureRunning();
   await advance(100);
   assert.equal(await result, changes[1]);
+});
+
+test("a trusted tap retries a running context while its clock check is pending", async () => {
+  const { owner, changes } = controller();
+  const ctx = owner.initialize();
+  ctx.state = "running";
+  ctx.frozen = true;
+  ctx.resumeImpl = () => {
+    ctx.frozen = false;
+    return Promise.resolve();
+  };
+  const pending = owner.ensureRunning();
+  await advance(100);
+  assert.equal(ctx.resumeCalls, 0, "background checks do not re-unlock audio");
+  // Deliberately leave navigator.userActivation false: the capture listener
+  // must preserve the gesture even on Safari versions without that API.
+  doc.emit("touchend", { isTrusted: true });
+  assert.equal(
+    ctx.resumeCalls,
+    1,
+    "running is not proof that Safari unlocked audio",
+  );
+  await advance(100);
+  assert.equal(await pending, ctx);
+  assert.equal(
+    changes.length,
+    1,
+    "the current tap recovers the existing graph",
+  );
+});
+
+test("cold modal playback unlocks a source in the tap before waiting for the clock", async () => {
+  const value = store();
+  const ctx = value.getState().initializeAudioSystem();
+  ctx.frozen = true;
+  const createSource = ctx.createBufferSource.bind(ctx);
+  let unlock;
+  ctx.createBufferSource = () => {
+    const source = createSource();
+    const start = source.start;
+    source.start = () => {
+      assert.equal(
+        activation.isActive,
+        true,
+        "unlock must precede the first await",
+      );
+      assert.equal(
+        source.buffer.length,
+        1,
+        "unlock is a silent one-frame buffer",
+      );
+      ctx.frozen = false;
+      unlock = source;
+      start();
+    };
+    return source;
+  };
+  let plays = 0;
+  value.setState({
+    playTab: async () => {
+      plays++;
+    },
+  });
+  activation.isActive = true;
+  const start = value.getState().playTabWithCountIn({ countIn: false });
+  activation.isActive = false;
+  await advance(1300);
+  await start;
+  assert.equal(
+    plays,
+    1,
+    "the first tap reaches playback instead of reverting to Play",
+  );
+  assert.equal(value.getState().audioPreparationPending, false);
+  assert.ok(unlock?.started);
+  mock.method(unlock, "disconnect");
+  unlock.onended();
+  assert.equal(unlock.disconnect.mock.callCount(), 1);
+  assert.equal(unlock.onended, null);
 });
 
 test("a rendering clock that freezes during playback is detected without a statechange", async () => {

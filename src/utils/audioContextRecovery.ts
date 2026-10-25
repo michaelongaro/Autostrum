@@ -87,7 +87,10 @@ const pendingResumes = new WeakMap<AudioContext, ResumeAttempt>();
 
 /** Every real tap issues resume synchronously, even if Safari left an older promise pending. */
 export function resumeAudioContext(context: AudioContext): Promise<boolean> {
-  if (context.state === "running") return Promise.resolve(true);
+  // Safari can report running before rendering has actually recovered. A real
+  // tap must still reach resume(), including while a clock check is pending.
+  if (context.state === "running" && !hasUserActivation())
+    return Promise.resolve(true);
   if (context.state === "closed") return Promise.resolve(false);
   let attempt: Promise<void>;
   try {
@@ -196,7 +199,7 @@ export function createAudioContextController(options: {
       if (requested && !replaceOnGesture) void ensureRunning();
     } else if (
       requested &&
-      (replaceOnGesture || context?.state !== "running")
+      (replaceOnGesture || context?.state !== "running" || pending)
     ) {
       void ensureRunning();
     }
@@ -267,6 +270,27 @@ export function createAudioContextController(options: {
     requested = true;
     // A second tap can unlock Safari even when the first resume() never settles.
     const resumed = resumeAudioContext(target);
+    if (hasUserActivation() && performance.now() - lastVerifiedAt >= 250) {
+      // iOS may need a source started in the gesture as well as resume(). The
+      // real notes wait for readiness/sample loading, so unlock with one silent
+      // frame now rather than waiting for a clock that has not started yet.
+      let source: AudioBufferSourceNode | undefined;
+      try {
+        source = target.createBufferSource();
+        source.buffer = target.createBuffer(1, 1, target.sampleRate);
+        source.connect(target.destination);
+        const unlockSource = source;
+        source.onended = () => {
+          unlockSource.disconnect();
+          unlockSource.onended = null;
+        };
+        source.start(0);
+      } catch {
+        source?.disconnect();
+        // Resume and the bounded clock check still decide readiness if this
+        // browser cannot schedule the unlock source.
+      }
+    }
     if (pending) return pending;
     // Playback preparation checks before and after sample loading. Reuse a
     // recent clock proof instead of adding another delay to the same tap.

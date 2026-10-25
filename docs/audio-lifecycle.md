@@ -59,6 +59,14 @@ uses the controller, with its own graph so its synthetic clock remains isolated.
    than recursively reacquiring on that transition.
 8. **Embedded playback primed the global store.** Gesture priming now uses the
    component's store, preserving independent demo ownership.
+9. **Clock verification could prevent the first source from unlocking iOS audio.**
+   Readiness waited for an advancing clock before scheduling any source, while
+   some iOS contexts need a source started inside the tap to begin rendering.
+   Recreating the graph could repeat that failure on every Play. A silent,
+   one-frame buffer now starts synchronously during activation, before any
+   readiness or sample-loading await, and disconnects when it ends. A trusted
+   gesture also retries `resume()` during a pending clock check even when Safari
+   reports `running`.
 
 ## Intended interruption behavior
 
@@ -90,8 +98,10 @@ state changes immediately while the short audio tail finishes on the context clo
   instrument changes, and count-in cancellation.
 - `node scripts/verifyAudioLifecycleBrowser.mjs [baseURL]`: native Chromium Web
   Audio and a simulated microphone; sample stalls, tool interruption, context
-  replacement, late microphone responses, and foreground recovery. Requires dev
-  server and Playwright Chromium. Creates no remote records.
+  replacement, late microphone responses, and foreground recovery. Also models
+  clocks locked until a source starts during activation, including replacement
+  graphs, to verify modal Play succeeds on its first tap. Requires dev server
+  and Playwright Chromium. Creates no remote records.
 - `node scripts/verifyTabStoreSessions.mjs`: independent demo/store isolation.
 
 The focused checks above pass, as does a native-browser smoke check of the strip
