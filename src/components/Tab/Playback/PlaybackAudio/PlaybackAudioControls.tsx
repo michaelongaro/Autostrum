@@ -138,40 +138,41 @@ function PlaybackAudioControls({
           {/* audio source, instrument, speed selects*/}
 
           {/* play/pause button*/}
-          {!audioMetadata.editingLoopRange && (
-            <>
-              <Button
-                variant="audio"
-                size={aboveLargeViewportWidth ? "default" : "sm"}
-                disabled={disablePlayButton}
-                onPointerDown={handlePlayPointerDown}
-                onClick={handlePlayButtonClick}
-                className="size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
-              >
-                <PlayButtonIcon
-                  uniqueLocationKey="audioControls"
-                  currentInstrument={currentInstrument}
-                  audioMetadata={audioMetadata}
-                  forceShowLoadingSpinner={fetchingFullTabData}
-                  showCountInTimer={countInTimerEnabled && countInTimer.showing}
-                  size="0.75rem"
-                />
-              </Button>
-
-              <PlaybackSpeedPopover
-                triggerVariant="link"
-                playbackSpeed={playbackSpeed}
-                disabled={countInTimer.showing}
-                onPlaybackSpeedChange={(newPlaybackSpeed) => {
-                  const normalizedProgress = tabProgressValue * playbackSpeed;
-                  setTabProgressValue(normalizedProgress / newPlaybackSpeed);
-                  setPlaybackSpeed(newPlaybackSpeed);
-                  pauseAudio();
-                }}
-                side="top"
+          {/* Keep the hidden controls' space so the slider stays aligned. */}
+          <div
+            className={`baseFlex shrink-0 gap-4 ${audioMetadata.editingLoopRange ? "invisible" : ""}`}
+          >
+            <Button
+              variant="audio"
+              size={aboveLargeViewportWidth ? "default" : "sm"}
+              disabled={disablePlayButton}
+              onPointerDown={handlePlayPointerDown}
+              onClick={handlePlayButtonClick}
+              className="size-8 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground hover:bg-audio hover:text-audio-foreground disabled:border-none disabled:bg-transparent disabled:opacity-100"
+            >
+              <PlayButtonIcon
+                uniqueLocationKey="audioControls"
+                currentInstrument={currentInstrument}
+                audioMetadata={audioMetadata}
+                forceShowLoadingSpinner={fetchingFullTabData}
+                showCountInTimer={countInTimerEnabled && countInTimer.showing}
+                size="0.75rem"
               />
-            </>
-          )}
+            </Button>
+
+            <PlaybackSpeedPopover
+              triggerVariant="link"
+              playbackSpeed={playbackSpeed}
+              disabled={countInTimer.showing || audioMetadata.editingLoopRange}
+              onPlaybackSpeedChange={(newPlaybackSpeed) => {
+                const normalizedProgress = tabProgressValue * playbackSpeed;
+                setTabProgressValue(normalizedProgress / newPlaybackSpeed);
+                setPlaybackSpeed(newPlaybackSpeed);
+                pauseAudio();
+              }}
+              side="top"
+            />
+          </div>
 
           <div className="baseFlex w-full gap-4">
             <div className="baseFlex w-9 !justify-start self-start">
@@ -190,17 +191,15 @@ function PlaybackAudioControls({
             </div>
           </div>
 
-          {!audioMetadata.editingLoopRange && (
-            <Button
-              variant={"outline"}
-              aria-label="Edit loop range"
-              disabled={audioMetadata.playing || countInTimer.showing}
-              className="h-8 w-8 p-1"
-              onClick={() => enterPlaybackLoopRangeEditor()}
-            >
-              <CgArrowsShrinkH className="size-6" />
-            </Button>
-          )}
+          <Button
+            variant={"outline"}
+            aria-label="Edit loop range"
+            disabled={audioMetadata.playing || countInTimer.showing}
+            className={`h-8 w-8 p-1 ${audioMetadata.editingLoopRange ? "invisible" : ""}`}
+            onClick={() => enterPlaybackLoopRangeEditor()}
+          >
+            <CgArrowsShrinkH className="size-6" />
+          </Button>
         </div>
       )}
 
@@ -221,7 +220,7 @@ function PlaybackAudioControls({
             scrollPositionsLength={scrollPositionsLength}
           />
 
-          <div className="baseFlex w-full !justify-between">
+          <div className="baseFlex h-10 w-full shrink-0 !justify-between">
             <div className="baseFlex w-9 !justify-start self-start">
               {formatSecondsToMinutes(rangeStartSeconds)}
             </div>
