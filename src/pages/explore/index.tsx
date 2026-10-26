@@ -235,6 +235,7 @@ export const getStaticProps: GetStaticProps = async () => {
 
   // get the five weekly featured users' userIds
   const featuredUserIds = await prisma.weeklyFeaturedUser.findMany({
+    orderBy: { id: "asc" },
     select: {
       userId: true,
     },
@@ -287,7 +288,11 @@ export const getStaticProps: GetStaticProps = async () => {
   });
 
   // combine the user data with their pinned tabs
-  const weeklyFeaturedUsers = featuredUsers.map((user) => {
+  const orderedUsers = featuredUserIds.flatMap(({ userId }) => {
+    const user = featuredUsers.find((candidate) => candidate.userId === userId);
+    return user ? [user] : [];
+  });
+  const weeklyFeaturedUsers = orderedUsers.map((user) => {
     const pinnedTab = minimalPinnedTabs.find(
       (tab) => tab.id === user.pinnedTabId,
     );

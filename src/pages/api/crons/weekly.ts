@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { env } from "~/env";
+import { refreshWeeklyDiscovery } from "~/server/api/weeklyDiscovery";
 import { prisma } from "~/server/db";
 
 export default async function handler(
@@ -21,106 +22,7 @@ export default async function handler(
   }
 
   try {
-    // Get the top tabs based on weekly page views
-    const topTabsFromViews = await prisma.weeklyTabView.findMany({
-      orderBy: {
-        pageViews: "desc",
-      },
-      take: 5,
-    });
-
-    let trendingTabIds = topTabsFromViews.map((tabView) => tabView.tabId);
-
-    // Fill remaining spots with all-time popular tabs if needed
-    const neededTabs = 5 - trendingTabIds.length;
-
-    if (neededTabs > 0) {
-      const fillerTabs = await prisma.tab.findMany({
-        take: neededTabs,
-        where: {
-          id: {
-            notIn: trendingTabIds,
-          },
-        },
-        orderBy: {
-          pageViews: "desc",
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      trendingTabIds = [
-        ...trendingTabIds,
-        ...fillerTabs.map((tab) => tab.id),
-      ];
-    }
-
-    const updateTabPromises = trendingTabIds.map((tabId, index) =>
-      prisma.mostPopularTabs.update({
-        where: { id: index + 1 },
-        data: { tabId },
-      }),
-    );
-
-    // Get the top users based on weekly tab views
-    const topUsersFromViews = await prisma.weeklyUserTotalTabView.findMany({
-      orderBy: {
-        totalTabPageViews: "desc",
-      },
-      take: 5,
-    });
-
-    let featuredUsersData = topUsersFromViews.map((user) => ({
-      userId: user.userId,
-    }));
-
-    // Check if we need to add filler users to reach the target of 5
-    const needed = 5 - featuredUsersData.length;
-
-    if (needed > 0) {
-      const existingUserIds = featuredUsersData.map((user) => user.userId);
-
-      // Fetch additional users to fill the remaining spots
-      const fillerUsers = await prisma.user.findMany({
-        take: needed,
-        where: {
-          // Ensure we don't select users who are already in the top list
-          userId: {
-            notIn: existingUserIds,
-          },
-        },
-        // Order by a metric like total views to select other popular users
-        orderBy: {
-          totalTabViews: "desc",
-        },
-      });
-
-      const fillerUsersData = fillerUsers.map((user) => ({
-        userId: user.userId,
-      }));
-
-      // Combine the top users with the filler users
-      featuredUsersData = [...featuredUsersData, ...fillerUsersData];
-    }
-
-    // Perform all related write operations within a transaction for consistency
-    await prisma.$transaction([
-      ...updateTabPromises,
-
-      // Clear the previous weekly featured users
-      prisma.weeklyFeaturedUser.deleteMany({}),
-
-      // Set the new weekly featured users
-      prisma.weeklyFeaturedUser.createMany({
-        data: featuredUsersData,
-        skipDuplicates: true, // Good practice, though logic should prevent duplicates
-      }),
-
-      // Clear the source data for the next cycle
-      prisma.weeklyUserTotalTabView.deleteMany({}),
-      prisma.weeklyTabView.deleteMany({}),
-    ]);
+    await refreshWeeklyDiscovery(prisma);
 
     // Revalidate only after the transaction is successful
     await res.revalidate("/explore");

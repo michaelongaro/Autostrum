@@ -1,3 +1,4 @@
+import { deleteUserData } from "~/server/api/userDeletion";
 import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { DeleteObjectsCommand, S3Client } from "@aws-sdk/client-s3";
@@ -28,7 +29,7 @@ export const userRouter = createTRPCRouter({
 
     if (!userId) return false;
 
-    const user = await ctx.prisma.user.findFirst({
+    const user = await ctx.prisma.user.findUnique({
       where: {
         userId,
       },
@@ -49,6 +50,9 @@ export const userRouter = createTRPCRouter({
         },
         include: {
           bookmarks: {
+            where: {
+              bookmarkedByUserId: ctx.auth.userId === userId ? userId : "",
+            },
             select: {
               tabId: true,
             },
@@ -58,10 +62,10 @@ export const userRouter = createTRPCRouter({
 
       if (!user) return null;
 
+      const { bookmarks, ...profile } = user;
       const userMetadata: UserMetadata = {
-        ...user,
-        bookmarkedTabIds:
-          user.bookmarks?.map((bookmark) => bookmark.tabId) ?? [],
+        ...profile,
+        bookmarkedTabIds: bookmarks.map((bookmark) => bookmark.tabId),
       };
 
       return userMetadata;
@@ -462,11 +466,11 @@ export const userRouter = createTRPCRouter({
     const artistIsVerified = new Map<string, boolean>();
 
     const difficultyIntToString = {
-      0: "Beginner",
-      1: "Easy",
-      2: "Intermediate",
-      3: "Advanced",
-      4: "Expert",
+      1: "Beginner",
+      2: "Easy",
+      3: "Intermediate",
+      4: "Advanced",
+      5: "Expert",
     };
 
     // iterate through the rawMiscStats and increment the count for each row
@@ -495,7 +499,7 @@ export const userRouter = createTRPCRouter({
       }
 
       const ordinalCapo =
-        stat.capo === 0 ? "None" : `${getOrdinalSuffix(stat.capo + 1)} fret`;
+        stat.capo === 0 ? "None" : `${getOrdinalSuffix(stat.capo)} fret`;
       const capoCount = capos.get(ordinalCapo);
       if (capoCount !== undefined) {
         capos.set(ordinalCapo, capoCount + 1);
@@ -539,165 +543,21 @@ export const userRouter = createTRPCRouter({
     .mutation(async ({ input: anonymizeUserTabs, ctx }) => {
       const userId = ctx.auth.userId;
 
-      const clerk = await clerkClient();
-      await clerk.users.deleteUser(userId);
-
-      await ctx.prisma.user.delete({
-        where: {
-          userId: userId,
-        },
-      });
-
-      // --- artist: precomputed fields bookkeeping ---
-      // get total number of tabs user created w/ an associated artistId
-      const tabsWithAssociatedArtist = await ctx.prisma.tab.groupBy({
-        by: ["artistId"],
-        where: {
-          createdByUserId: userId,
-          artistId: {
-            not: null,
-          },
-        },
-        _count: {
-          _all: true, // just counting the number of rows, not by any specific field
-        },
-      });
-
-      // apply the changes to the artist's precomputed fields
-      for (const { artistId, _count } of tabsWithAssociatedArtist) {
-        const artist = await ctx.prisma.artist.findUnique({
-          where: {
-            id: artistId!,
-          },
-        });
-
-        if (!artist) continue;
-
-        const newTabCount = artist.totalTabs - _count._all;
-
-        await ctx.prisma.artist.update({
-          where: {
-            id: artistId!,
-          },
-          data: {
-            totalTabs: newTabCount,
-          },
-        });
-      }
-
-      // get total number of bookmarks associated with the user
-      const bookmarks = await ctx.prisma.bookmark.groupBy({
-        by: ["tabCreatorUserId"],
-        where: {
-          bookmarkedByUserId: userId,
-        },
-        _count: {
-          _all: true,
-        },
-      });
-
-      // apply the changes to each user's precomputed fields
-      for (const { tabCreatorUserId, _count } of bookmarks) {
-        if (!tabCreatorUserId) continue;
-
-        const user = await ctx.prisma.user.findUnique({
-          where: {
-            userId: tabCreatorUserId,
-          },
-        });
-
-        if (!user) continue;
-
-        const newTotalBookmarksReceived =
-          user.totalBookmarksReceived - _count._all;
-
-        await ctx.prisma.user.update({
-          where: {
-            userId: tabCreatorUserId,
-          },
-          data: {
-            totalBookmarksReceived: newTotalBookmarksReceived,
-          },
-        });
-      }
-
-      let userIdsThatNeedRatingsRecalculated = [];
-      let userIdsThatNeedBookmarksRecalculated = [];
-
-      // get all unique userIds that the user rated
-      // Step 1: Get all tabIds the user rated
-      const ratedTabIds = await ctx.prisma.tabRating.findMany({
-        where: { userId: userId },
-        select: { tabId: true },
-      });
-
-      // Step 2: Get all unique createdByUserIds for those tabs
-      const uniqueUserIds = await ctx.prisma.tab.findMany({
-        where: {
-          id: { in: ratedTabIds.map((r) => r.tabId) },
-          createdByUserId: { not: null },
-        },
-        select: { createdByUserId: true },
-        distinct: ["createdByUserId"],
-      });
-
-      // Step 3: Extract the userIds
-      userIdsThatNeedRatingsRecalculated = uniqueUserIds.map(
-        (t) => t.createdByUserId,
+      const tabs = await deleteUserData(ctx.prisma, userId, anonymizeUserTabs);
+      // External services run after the database transaction. Retrying deletion
+      // is safe if Clerk fails after the database has committed.
+      ctx.waitUntil(
+        Promise.all(
+          tabs.map(({ id, title }) =>
+            ctx.res
+              .revalidate(`/tab/${id}/${encodeURIComponent(title)}`)
+              .catch((error: unknown) => {
+                console.error("Error revalidating former user's tab:", error);
+              }),
+          ),
+        ),
       );
-
-      // get all unique userIds that the user bookmarked
-      // Step 1: Get all tabIds the user bookmarked
-      const bookmarkedTabIds = await ctx.prisma.bookmark.findMany({
-        where: { bookmarkedByUserId: userId },
-        select: { tabId: true },
-      });
-
-      // Step 2: Get all unique createdByUserIds for those tabs
-      const uniqueUserIdsForBookmarks = await ctx.prisma.tab.findMany({
-        where: {
-          id: { in: bookmarkedTabIds.map((r) => r.tabId) },
-          createdByUserId: { not: null },
-        },
-        select: { createdByUserId: true },
-        distinct: ["createdByUserId"],
-      });
-
-      // Step 3: Extract the userIds
-      userIdsThatNeedBookmarksRecalculated = uniqueUserIdsForBookmarks.map(
-        (t) => t.createdByUserId,
-      );
-
-      if (anonymizeUserTabs) {
-        // user allowed the tabs to be preserved, just removing the createdByUserId field from them
-        await ctx.prisma.tab.updateMany({
-          where: {
-            createdByUserId: userId,
-          },
-          data: {
-            createdByUserId: null,
-          },
-        });
-      } else {
-        // delete all artist's tabs
-
-        // get all tabIds that the user created
-        const tabIds = await ctx.prisma.tab.findMany({
-          where: {
-            createdByUserId: userId,
-          },
-          select: {
-            id: true,
-          },
-        });
-
-        await ctx.prisma.tab.deleteMany({
-          where: {
-            createdByUserId: userId,
-          },
-        });
-
-        // delete all tab screenshots in S3 bucket
+      if (!anonymizeUserTabs && tabs.length > 0) {
         const s3 = new S3Client({
           region: "us-east-2",
           credentials: {
@@ -705,87 +565,26 @@ export const userRouter = createTRPCRouter({
             secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
           },
         });
-
-        // Split tabIds into chunks of 1000 (S3 limit per request)
-        const chunkSize = 1000;
-        for (let i = 0; i < tabIds.length; i += chunkSize) {
-          const chunk = tabIds.slice(i, i + chunkSize);
-
-          const deleteParams = {
-            Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-            Delete: {
-              Objects: chunk.map(({ id: tabId }) => ({ Key: `${tabId}.jpeg` })),
-              Quiet: false,
-            },
-          };
-
-          try {
-            const command = new DeleteObjectsCommand(deleteParams);
-            const res = await s3.send(command);
-            console.log(res);
-          } catch (e) {
-            console.error(e);
-          }
-        }
+        ctx.waitUntil(
+          (async () => {
+            for (let i = 0; i < tabs.length; i += 1000) {
+              await s3.send(
+                new DeleteObjectsCommand({
+                  Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
+                  Delete: {
+                    Objects: tabs
+                      .slice(i, i + 1000)
+                      .map(({ id }) => ({ Key: `${id}.jpeg` })),
+                  },
+                }),
+              );
+            }
+          })().catch((error: unknown) =>
+            console.error("Error deleting user screenshots:", error),
+          ),
+        );
       }
-
-      // --- user: precomputed fields bookkeeping ---
-
-      // recompute the average rating and ratings count for each user
-      for (const userId of userIdsThatNeedRatingsRecalculated) {
-        if (!userId) continue;
-
-        const tabs = await ctx.prisma.tab.findMany({
-          where: {
-            createdByUserId: userId,
-          },
-          include: {
-            ratings: true,
-          },
-        });
-
-        let totalRating = 0;
-        let ratingsCount = 0;
-
-        for (const tab of tabs) {
-          totalRating += tab.averageRating * tab.ratingsCount;
-          ratingsCount += tab.ratingsCount;
-        }
-
-        const newAverageRating =
-          ratingsCount > 0 ? totalRating / ratingsCount : 0;
-
-        await ctx.prisma.user.update({
-          where: {
-            userId,
-          },
-          data: {
-            averageTabRating: newAverageRating,
-            totalTabRatings: ratingsCount,
-          },
-        });
-      }
-
-      // decrement the total number of bookmarks for each user that the user bookmarked
-      for (const userId of userIdsThatNeedBookmarksRecalculated) {
-        if (!userId) continue;
-
-        const newTotalBookmarksReceived = await ctx.prisma.bookmark.count({
-          where: {
-            tab: {
-              createdByUserId: userId,
-            },
-          },
-        });
-
-        await ctx.prisma.user.update({
-          where: {
-            userId,
-          },
-          data: {
-            totalBookmarksReceived: newTotalBookmarksReceived,
-          },
-        });
-      }
+      const clerk = await clerkClient();
+      await clerk.users.deleteUser(userId);
     }),
 });

@@ -2,6 +2,11 @@ import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { Tab } from "~/generated/client";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { serializableTransaction } from "~/server/api/transactions";
+import {
+  refreshArtistStatistics,
+  refreshUserStatistics,
+} from "~/server/api/statistics";
 import { env } from "~/env";
 import {
   chordSchema,
@@ -58,7 +63,7 @@ async function triggerScreenshotCapture(
     });
 
     if (!response.ok) {
-      const error = await response.json();
+      const error: unknown = await response.json();
       console.error("Screenshot capture failed:", error);
     }
   } catch (error) {
@@ -223,112 +228,59 @@ export const tabRouter = createTRPCRouter({
   processPageView: publicProcedure
     .input(
       z.object({
-        tabId: z.number(),
+        tabId: z.number().int().positive(),
         tabCreatorUserId: z.string().optional(),
         artistId: z.number().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { tabId, tabCreatorUserId, artistId } = input;
-
+      const forwarded = ctx.req.headers["x-forwarded-for"];
       const ipAddress =
-        ctx.req.headers["x-forwarded-for"] || ctx.req.socket.remoteAddress;
-
-      if (!ipAddress || typeof ipAddress !== "string") {
-        throw new Error("IP address not found");
-      }
-
-      // make sure that the userIpAddress + tabId combo is not already in the DailyTabView model for this tab
-      const existingView = await ctx.prisma.dailyTabView.findUnique({
-        where: {
-          userIpAddress_tabId: {
-            tabId,
-            userIpAddress: ipAddress,
-          },
-        },
-      });
-
-      if (existingView) return;
-
-      // 1) increment the tab's page views
-      await ctx.prisma.tab.update({
-        where: {
-          id: tabId,
-        },
-        data: {
-          pageViews: {
-            increment: 1,
-          },
-        },
-      });
-
-      // 2) add a new row to the DailyTabView model
-      await ctx.prisma.dailyTabView.create({
-        data: {
-          userIpAddress: ipAddress,
-          tabId,
-        },
-      });
-
-      if (tabCreatorUserId) {
-        // 3) increment the tabCreator's totalTabViews (if tabCreatorUserId is provided)
-        await ctx.prisma.user.update({
-          where: {
-            userId: tabCreatorUserId,
-          },
-          data: {
-            totalTabViews: {
-              increment: 1,
-            },
-          },
+        (Array.isArray(forwarded) ? forwarded[0] : forwarded)
+          ?.split(",")[0]
+          ?.trim() || ctx.req.socket.remoteAddress;
+      if (!ipAddress)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "IP address not found",
         });
 
-        // 4) increment the user's WeeklyTotalTabViews
-        await ctx.prisma.weeklyUserTotalTabView.upsert({
-          where: {
-            userId: tabCreatorUserId,
-          },
-          update: {
-            totalTabPageViews: {
-              increment: 1,
-            },
-          },
-          create: {
-            userId: tabCreatorUserId,
-            totalTabPageViews: 1,
-          },
+      await serializableTransaction(ctx.prisma, async (tx) => {
+        const tab = await tx.tab.findUnique({
+          where: { id: input.tabId },
+          select: { createdByUserId: true, artistId: true },
         });
-      }
-
-      // 5) increment this tab's weekly page views (for trending songs)
-      await ctx.prisma.weeklyTabView.upsert({
-        where: {
-          tabId,
-        },
-        update: {
-          pageViews: {
-            increment: 1,
-          },
-        },
-        create: {
-          tabId,
-          pageViews: 1,
-        },
+        if (!tab) throw new TRPCError({ code: "NOT_FOUND" });
+        const inserted = await tx.dailyTabView.createMany({
+          data: { userIpAddress: ipAddress, tabId: input.tabId },
+          skipDuplicates: true,
+        });
+        if (inserted.count === 0) return;
+        // Engagement must not invalidate an editor's baseUpdatedAt version.
+        await tx.$executeRaw`UPDATE "Tab" SET "pageViews" = "pageViews" + 1 WHERE id = ${input.tabId}`;
+        if (tab.createdByUserId) {
+          await tx.user.update({
+            where: { userId: tab.createdByUserId },
+            data: { totalTabViews: { increment: 1 } },
+          });
+          await tx.weeklyUserTotalTabView.upsert({
+            where: { userId: tab.createdByUserId },
+            create: { userId: tab.createdByUserId, totalTabPageViews: 1 },
+            update: { totalTabPageViews: { increment: 1 } },
+          });
+        }
+        await tx.weeklyTabView.upsert({
+          where: { tabId: input.tabId },
+          create: { tabId: input.tabId, pageViews: 1 },
+          update: { pageViews: { increment: 1 } },
+        });
+        if (tab.artistId) {
+          await tx.artist.update({
+            where: { id: tab.artistId },
+            data: { totalViews: { increment: 1 } },
+          });
+        }
       });
-
-      if (artistId) {
-        // 6) increment the artist's totalTabViews
-        await ctx.prisma.artist.update({
-          where: {
-            id: artistId,
-          },
-          data: {
-            totalViews: {
-              increment: 1,
-            },
-          },
-        });
-      }
     }),
 
   create: protectedProcedure
@@ -344,7 +296,7 @@ export const tabRouter = createTRPCRouter({
         bpm: z.number(),
         capo: z.number(),
         key: z.string().nullable(),
-        difficulty: z.number(),
+        difficulty: z.number().int().min(1).max(5),
         chords: z.array(chordSchema),
         strummingPatterns: z.array(strummingPatternSchema),
         sectionProgression: z.array(sectionProgressionSchema),
@@ -374,55 +326,68 @@ export const tabRouter = createTRPCRouter({
 
       const userId = ctx.auth.userId;
 
-      const { tab, replayed } = await ctx.prisma.$transaction(async (tx) => {
-        const replay = await claimDraftForPublication(
-          tx,
-          input.draft,
-          userId,
-          null,
-        );
-        if (replay) return { tab: replay, replayed: true };
-        const tab = await tx.tab.create({
-          data: {
-            title,
-            description,
-            genre,
-            tuning,
-            sectionProgression,
-            bpm,
-            capo,
-            key,
-            difficulty,
-            chords,
-            strummingPatterns,
-            tabData,
-            ...(userId ? { createdBy: { connect: { userId: userId } } } : {}),
-            // FYI: even though userId will always be provided, since the field is optional
-            // in our schema, prisma wants us to use the relation field.
-            ...(artistId != null
-              ? { artist: { connect: { id: artistId } } }
-              : artistName
-                ? {
-                    artist: {
-                      create: {
-                        name: artistName,
-                        isVerified: false,
-                        totalTabs: 1,
-                        totalViews: 0,
+      const { tab, replayed } = await serializableTransaction(
+        ctx.prisma,
+        async (tx) => {
+          const replay = await claimDraftForPublication(
+            tx,
+            input.draft,
+            userId,
+            null,
+          );
+          if (replay) return { tab: replay, replayed: true };
+          const tab = await tx.tab.create({
+            data: {
+              title,
+              description,
+              genre,
+              tuning,
+              sectionProgression,
+              bpm,
+              capo,
+              key,
+              difficulty,
+              chords,
+              strummingPatterns,
+              tabData,
+              ...(userId ? { createdBy: { connect: { userId: userId } } } : {}),
+              // FYI: even though userId will always be provided, since the field is optional
+              // in our schema, prisma wants us to use the relation field.
+              ...(artistId != null
+                ? { artist: { connect: { id: artistId } } }
+                : artistName
+                  ? {
+                      artist: {
+                        create: {
+                          name: artistName,
+                          isVerified: false,
+                          totalTabs: 1,
+                          totalViews: 0,
+                        },
                       },
-                    },
-                  }
-                : {}),
-          },
-        });
+                    }
+                  : {}),
+            },
+          });
 
-        await finishDraftPublication(tx, input.draft, tab.id);
-        return { tab, replayed: false };
-      });
+          await tx.user.update({
+            where: { userId },
+            data: { totalTabs: { increment: 1 } },
+          });
+          if (artistId !== null) {
+            await tx.artist.update({
+              where: { id: artistId },
+              data: { totalTabs: { increment: 1 } },
+            });
+          }
+          await finishDraftPublication(tx, input.draft, tab.id);
+          return { tab, replayed: false };
+        },
+      );
       if (replayed) return tab;
 
       // immediately revalidate the tab's url to improve end user experience
-      ctx.res
+      await ctx.res
         .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
         .catch((e) => {
           console.error("Error revalidating tab page:", e);
@@ -434,40 +399,6 @@ export const tabRouter = createTRPCRouter({
           console.error("Screenshot capture error:", e),
         ),
       );
-
-      // increment the tabCreator's number of tabs
-      ctx.prisma.user
-        .update({
-          where: {
-            userId,
-          },
-          data: {
-            totalTabs: {
-              increment: 1,
-            },
-          },
-        })
-        .catch((e) => {
-          console.error("Error incrementing tabCreator's totalTabs:", e);
-        });
-
-      // if artistId was passed in, increment the artist's number of tabs
-      if (artistId) {
-        ctx.prisma.artist
-          .update({
-            where: {
-              id: artistId,
-            },
-            data: {
-              totalTabs: {
-                increment: 1,
-              },
-            },
-          })
-          .catch((e) => {
-            console.error("Error incrementing artist's totalTabs:", e);
-          });
-      }
 
       return tab;
     }),
@@ -486,7 +417,7 @@ export const tabRouter = createTRPCRouter({
         bpm: z.number(),
         capo: z.number(),
         key: z.string().nullable(),
-        difficulty: z.number(),
+        difficulty: z.number().int().min(1).max(5),
         chords: z.array(chordSchema),
         strummingPatterns: z.array(strummingPatternSchema),
         sectionProgression: z.array(sectionProgressionSchema),
@@ -517,7 +448,8 @@ export const tabRouter = createTRPCRouter({
 
       // need to know if artistId changed, since we will then need to update the old and new
       // artist's totalTabs
-      const { tab, prevTabVersion, replayed } = await ctx.prisma.$transaction(
+      const { tab, replayed } = await serializableTransaction(
+        ctx.prisma,
         async (tx) => {
           const prevTabVersion = await tx.tab.findUnique({
             where: {
@@ -594,8 +526,16 @@ export const tabRouter = createTRPCRouter({
               throw error;
             });
 
+          if (prevTabVersion.artistId !== tab.artistId) {
+            await refreshArtistStatistics(
+              tx,
+              [prevTabVersion.artistId, tab.artistId].filter(
+                (id): id is number => id !== null,
+              ),
+            );
+          }
           await finishDraftPublication(tx, input.draft, tab.id);
-          return { tab, prevTabVersion, replayed: false };
+          return { tab, replayed: false };
         },
       );
       if (replayed) return tab;
@@ -616,50 +556,6 @@ export const tabRouter = createTRPCRouter({
         ),
       );
 
-      // check if the artistId has changed
-      if (prevTabVersion.artistId !== artistId) {
-        // decrement the prev artist's totalTabs and totalViews
-        if (prevTabVersion.artistId) {
-          ctx.prisma.artist
-            .update({
-              where: {
-                id: prevTabVersion.artistId,
-              },
-              data: {
-                totalTabs: {
-                  decrement: 1,
-                },
-                totalViews: {
-                  decrement: prevTabVersion.pageViews,
-                },
-              },
-            })
-            .catch((e) => {
-              console.error("Error decrementing prev artist's totalTabs:", e);
-            });
-        }
-        // increment the new artist's totalTabs and totalViews
-        if (artistId) {
-          ctx.prisma.artist
-            .update({
-              where: {
-                id: artistId,
-              },
-              data: {
-                totalTabs: {
-                  increment: 1,
-                },
-                totalViews: {
-                  increment: prevTabVersion.pageViews,
-                },
-              },
-            })
-            .catch((e) => {
-              console.error("Error incrementing new artist's totalTabs:", e);
-            });
-        }
-      }
-
       return tab;
     }),
 
@@ -668,14 +564,23 @@ export const tabRouter = createTRPCRouter({
     .mutation(async ({ input: idToDelete, ctx }) => {
       const userId = ctx.auth.userId;
 
-      const tab = await ctx.prisma.tab.findUnique({
-        where: {
-          id: idToDelete,
-        },
+      const deleted = await serializableTransaction(ctx.prisma, async (tx) => {
+        const tab = await tx.tab.findFirst({
+          where: { id: idToDelete, createdByUserId: userId },
+          select: { artistId: true, title: true },
+        });
+        if (!tab) return false;
+        await tx.user.updateMany({
+          where: { pinnedTabId: idToDelete },
+          data: { pinnedTabId: null },
+        });
+        await tx.tab.delete({ where: { id: idToDelete } });
+        await refreshUserStatistics(tx, [userId]);
+        if (tab.artistId !== null)
+          await refreshArtistStatistics(tx, [tab.artistId]);
+        return tab;
       });
-
-      // only the tab creator can delete their tab
-      if (!tab || tab.createdByUserId !== userId) return null;
+      if (!deleted) return null;
 
       const s3 = new S3Client({
         region: "us-east-2",
@@ -697,84 +602,10 @@ export const tabRouter = createTRPCRouter({
         // return null;
       }
 
-      // if this tab is the tabCreator's pinned tab, then set the tabCreator's pinnedTabId to -1 (default value)
-      if (tab.createdByUserId) {
-        const tabCreator = await ctx.prisma.user.findUnique({
-          where: {
-            userId: tab.createdByUserId,
-          },
+      await ctx.res
+        .revalidate(`/tab/${idToDelete}/${encodeURIComponent(deleted.title)}`)
+        .catch((error: unknown) => {
+          console.error("Error revalidating deleted tab:", error);
         });
-
-        if (tabCreator?.pinnedTabId === idToDelete) {
-          await ctx.prisma.user.update({
-            where: {
-              id: tabCreator.id,
-            },
-            data: {
-              pinnedTabId: -1,
-            },
-          });
-        }
-      }
-
-      // --- pre-tab deletion: precomputed fields bookkeeping ---
-      // count the number of bookmarks for this tab
-      const existingBookmarks = await ctx.prisma.bookmark.count({
-        where: {
-          tabId: idToDelete,
-        },
-      });
-
-      // delete tab row
-      await ctx.prisma.tab.delete({
-        where: {
-          id: idToDelete,
-        },
-      });
-
-      // --- post-tab deletion: precomputed fields bookkeeping ---
-      if (tab.createdByUserId) {
-        // recompute the tabCreator's average rating and total number of ratings
-        const tabs = await ctx.prisma.tab.findMany({
-          where: {
-            createdByUserId: tab.createdByUserId,
-          },
-          select: {
-            averageRating: true,
-            ratingsCount: true,
-          },
-        });
-
-        let totalRatings = 0;
-        let weightedSum = 0;
-
-        for (const t of tabs) {
-          totalRatings += t.ratingsCount;
-          weightedSum += t.averageRating * t.ratingsCount;
-        }
-
-        const newAverageRating =
-          totalRatings > 0 ? weightedSum / totalRatings : 0;
-
-        // update the tab creator's row w/ the new values
-        await ctx.prisma.user.update({
-          where: {
-            userId: tab.createdByUserId,
-          },
-          data: {
-            totalTabs: {
-              decrement: 1,
-            },
-            totalTabViews: {
-              decrement: tab.pageViews,
-            },
-            averageTabRating: newAverageRating,
-            totalTabRatings: totalRatings,
-            totalBookmarksReceived: {
-              decrement: existingBookmarks,
-            },
-          },
-        });
-      }
     }),
 });

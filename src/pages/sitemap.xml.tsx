@@ -142,8 +142,6 @@ ${allEntries.join("\n")}
       res.statusCode = 500;
       res.end();
     }
-  } finally {
-    await prisma.$disconnect();
   }
 
   return { props: {} };

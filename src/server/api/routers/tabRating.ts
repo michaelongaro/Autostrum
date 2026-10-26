@@ -1,127 +1,43 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { serializableTransaction } from "~/server/api/transactions";
+import {
+  refreshTabRatings,
+  refreshUserStatistics,
+} from "~/server/api/statistics";
 
 export const tabRatingRouter = createTRPCRouter({
   rate: protectedProcedure
     .input(
       z.object({
-        tabId: z.number(),
-        rating: z.number().min(1).max(5),
+        tabId: z.number().int().positive(),
+        rating: z.number().int().min(1).max(5),
         tabCreatorUserId: z.string().optional(),
       }),
     )
-    .mutation(async ({ input, ctx }) => {
-      const { tabId, rating, tabCreatorUserId } = input;
-      const userId = ctx.auth.userId;
-
-      const userAlreadyRated = await ctx.prisma.tabRating.findFirst({
-        where: {
-          userId,
-          tabId,
-        },
-      });
-
-      const tab = await ctx.prisma.tab.findUnique({
-        where: {
-          id: tabId,
-        },
-      });
-
-      if (!tab) {
-        throw new Error("Tab not found");
-      }
-
-      let newAverageRating: number;
-      let newRatingsCount: number;
-
-      if (userAlreadyRated) {
-        // User is updating their existing rating
-        newAverageRating =
-          (tab.averageRating * tab.ratingsCount -
-            userAlreadyRated.value +
-            rating) /
-          tab.ratingsCount;
-        newRatingsCount = tab.ratingsCount;
-
-        await ctx.prisma.tabRating.update({
+    .mutation(({ input, ctx }) =>
+      serializableTransaction(ctx.prisma, async (tx) => {
+        const tab = await tx.tab.findUnique({
+          where: { id: input.tabId },
+          select: { createdByUserId: true },
+        });
+        if (!tab) throw new TRPCError({ code: "NOT_FOUND" });
+        await tx.tabRating.upsert({
           where: {
-            userId_tabId: {
-              userId: userId,
-              tabId: tabId,
-            },
+            userId_tabId: { userId: ctx.auth.userId, tabId: input.tabId },
           },
-          data: {
-            value: rating,
+          create: {
+            userId: ctx.auth.userId,
+            tabId: input.tabId,
+            value: input.rating,
           },
+          update: { value: input.rating },
         });
-      } else {
-        // User is submitting a new rating
-        newAverageRating =
-          (tab.averageRating * tab.ratingsCount + rating) /
-          (tab.ratingsCount + 1);
-        newRatingsCount = tab.ratingsCount + 1;
-
-        await ctx.prisma.tabRating.create({
-          data: {
-            userId: userId,
-            tabId: tabId,
-            value: rating,
-          },
-        });
-      }
-
-      await ctx.prisma.tab.update({
-        where: {
-          id: tabId,
-        },
-        data: {
-          averageRating: newAverageRating,
-          ratingsCount: newRatingsCount,
-        },
-      });
-
-      // --- precomputed fields bookkeeping ---
-      if (tabCreatorUserId) {
-        const tabCreator = await ctx.prisma.user.findUnique({
-          where: {
-            userId: tabCreatorUserId,
-          },
-        });
-
-        if (!tabCreator) {
-          throw new Error("Tab creator not found");
+        await refreshTabRatings(tx, [input.tabId]);
+        if (tab.createdByUserId) {
+          await refreshUserStatistics(tx, [tab.createdByUserId]);
         }
-
-        let newUserAverageRating: number;
-        let newUserRatingsCount: number;
-
-        if (userAlreadyRated) {
-          // User is updating their existing rating
-          newUserAverageRating =
-            (tabCreator.averageTabRating * tabCreator.totalTabRatings -
-              userAlreadyRated.value +
-              rating) /
-            tabCreator.totalTabRatings;
-          newUserRatingsCount = tabCreator.totalTabRatings;
-        } else {
-          // User is submitting a new rating
-          newUserAverageRating =
-            (tabCreator.averageTabRating * tabCreator.totalTabRatings +
-              rating) /
-            (tabCreator.totalTabRatings + 1);
-          newUserRatingsCount = tabCreator.totalTabRatings + 1;
-        }
-
-        await ctx.prisma.user.update({
-          where: {
-            userId: tabCreatorUserId,
-          },
-          data: {
-            averageTabRating: newUserAverageRating,
-            totalTabRatings: newUserRatingsCount,
-          },
-        });
-      }
-    }),
+      }),
+    ),
 });

@@ -1,4 +1,4 @@
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
@@ -21,22 +21,10 @@ type ComponentWithPageLayout = AppProps & {
 
 function App({ Component, pageProps }: ComponentWithPageLayout) {
   const { asPath } = useRouter();
-  const { color, theme } = useTabStore((state) => ({
-    color: state.color,
-    theme: state.theme,
-  }));
+  const color = useTabStore((state) => state.color);
 
   return (
-    <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      appearance={{
-        theme: theme === "dark" ? dark : undefined,
-        options: {
-          showOptionalFields: true,
-        },
-      }}
-      {...pageProps}
-    >
+    <>
       <SEO />
       <NextProgress
         key={color}
@@ -51,8 +39,30 @@ function App({ Component, pageProps }: ComponentWithPageLayout) {
           <Component {...pageProps} />
         </ClientErrorBoundary>
       </GeneralLayout>
-    </ClerkProvider>
+    </>
   );
 }
 
-export default api.withTRPC(App);
+const AppWithTRPC = api.withTRPC(App);
+
+function SessionApp(props: ComponentWithPageLayout) {
+  const { userId } = useAuth();
+  // A new provider gets a fresh QueryClient whenever the account changes.
+  return <AppWithTRPC key={userId ?? "guest"} {...props} />;
+}
+
+export default function AppProviders(props: ComponentWithPageLayout) {
+  const theme = useTabStore((state) => state.theme);
+  return (
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      appearance={{
+        theme: theme === "dark" ? dark : undefined,
+        options: { showOptionalFields: true },
+      }}
+      {...props.pageProps}
+    >
+      <SessionApp {...props} />
+    </ClerkProvider>
+  );
+}

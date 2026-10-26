@@ -1,217 +1,248 @@
 generator client {
-    provider        = "prisma-client"
-    output          = "../src/generated"
-    previewFeatures = ["fullTextSearchPostgres", "relationJoins"]
+  provider        = "prisma-client"
+  output          = "../src/generated"
+  previewFeatures = ["fullTextSearchPostgres", "relationJoins"]
 }
 
 datasource db {
-    provider = "postgresql"
+  provider = "postgresql"
 }
 
 // FYI: this model isn't technically necessary, but I am keeping it for debugging
 // purposes or if I need to change the weekly featured users for some reason.
 // (updated weekly by a cron job)
 model WeeklyFeaturedUser {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
 
-    userId String @unique
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 // used to get the WeeklyFeaturedUsers each week
 // (entire model is cleared weekly by a cron job)
 model WeeklyUserTotalTabView {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
 
-    userId            String @unique
-    totalTabPageViews Int    @default(0) // total tab page views for the week
+  userId            String @unique
+  totalTabPageViews Int    @default(0) // total tab page views for the week
+  user              User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([totalTabPageViews, userId])
 }
 
 // prevents users from spam-viewing the same tab multiple times in a day
 // (entire model is cleared daily by a cron job)
 model DailyTabView {
-    createdAt DateTime @default(now())
+  createdAt DateTime @default(now())
 
-    userIpAddress String
-    tabId         Int
+  userIpAddress String
+  tabId         Int
+  tab           Tab    @relation(fields: [tabId], references: [id], onDelete: Cascade)
 
-    @@id([userIpAddress, tabId]) // composite key because we always are querying by userIpAddress + tabId
+  @@id([userIpAddress, tabId]) // composite key because we always are querying by userIpAddress + tabId
+  @@index([tabId])
 }
 
 // used to get the top trending tabs each week
 // (entire model is cleared weekly by a cron job)
 model WeeklyTabView {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
 
-    tabId     Int @unique
-    pageViews Int @default(0) // page views for the week
+  tabId     Int @unique
+  pageViews Int @default(0) // page views for the week
 
-    tab Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  tab Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+
+  @@index([pageViews, tabId])
 }
 
 // top 5 trending tabs based on weekly page views
 // (updated weekly by a cron job)
 model MostPopularTabs {
-    id Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-    tabId Int
-    tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  tabId Int
+  tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+
+  @@index([tabId])
 }
 
 // Legacy snapshot table for popular artists. Search autofill now queries
 // Artist.totalViews directly (all-time), so this is no longer updated.
 model MostPopularArtists {
-    id Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-    artistId Int
-    artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  artistId Int
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
 }
 
 model Artist {
-    id Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-    name       String  @default("")
-    isVerified Boolean @default(false)
-    totalTabs  Int     @default(0)
-    totalViews Int     @default(0)
+  name       String  @default("")
+  isVerified Boolean @default(false)
+  totalTabs  Int     @default(0)
+  totalViews Int     @default(0)
 
-    Tab                Tab[]
-    mostPopularArtists MostPopularArtists[]
+  Tab                Tab[]
+  mostPopularArtists MostPopularArtists[]
+
+  @@index([totalViews, id])
 }
 
 model TabRating {
-    createdAt DateTime @default(now()) // might be used to detect spam
+  createdAt DateTime @default(now()) // might be used to detect spam
 
-    value Int // (1-5) rating
+  value Int // (1-5) rating
 
-    tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
-    tabId Int
+  tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  tabId Int
 
-    user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
-    userId String
+  user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId String
 
-    @@id([userId, tabId]) // composite key to prevent duplicate ratings
+  @@id([userId, tabId]) // composite key to prevent duplicate ratings
+  @@index([tabId])
 }
 
 model Bookmark {
-    createdAt DateTime @default(now())
+  createdAt DateTime @default(now())
 
-    tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
-    tabId Int
+  tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  tabId Int
 
-    // user who created the tab (recipient of the bookmark)
-    tabCreator       User?   @relation("tabCreator", fields: [tabCreatorUserId], references: [userId], onDelete: SetNull)
-    tabCreatorUserId String?
+  // user who created the tab (recipient of the bookmark)
+  tabCreator       User?   @relation("tabCreator", fields: [tabCreatorUserId], references: [userId], onDelete: SetNull)
+  tabCreatorUserId String?
 
-    // user who is bookmarking
-    bookmarkedBy       User   @relation("bookmarkedBy", fields: [bookmarkedByUserId], references: [userId], onDelete: Cascade)
-    bookmarkedByUserId String
+  // user who is bookmarking
+  bookmarkedBy       User   @relation("bookmarkedBy", fields: [bookmarkedByUserId], references: [userId], onDelete: Cascade)
+  bookmarkedByUserId String
 
-    @@id([bookmarkedByUserId, tabId]) // composite key to prevent duplicate ratings
+  @@id([bookmarkedByUserId, tabId]) // composite key to prevent duplicate ratings
+  @@index([bookmarkedByUserId, createdAt, tabId])
+  @@index([tabId])
+  @@index([tabCreatorUserId])
 }
 
 model Tab {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-    title              String
-    genre              String
-    tuning             String
-    description        String?
-    capo               Int     @default(0)
-    bpm                Int     @default(75)
-    difficulty         Int     @default(1) // 1-5
-    key                String?
-    chords             Json    @default("[]")
-    strummingPatterns  Json    @default("[]")
-    sectionProgression Json
-    tabData            Json
+  title              String
+  genre              String
+  tuning             String
+  description        String?
+  capo               Int     @default(0)
+  bpm                Int     @default(75)
+  difficulty         Int     @default(1) // 1-5
+  key                String?
+  chords             Json    @default("[]")
+  strummingPatterns  Json    @default("[]")
+  sectionProgression Json
+  tabData            Json
 
-    createdBy       User?   @relation(fields: [createdByUserId], references: [userId], onDelete: SetNull)
-    createdByUserId String?
+  createdBy       User?   @relation(fields: [createdByUserId], references: [userId], onDelete: SetNull)
+  createdByUserId String?
 
-    bookmarks       Bookmark[]
-    comments        Comment[]
-    mostPopularTabs MostPopularTabs[]
-    weeklyTabViews  WeeklyTabView[]
+  bookmarks       Bookmark[]
+  comments        Comment[]
+  mostPopularTabs MostPopularTabs[]
+  weeklyTabViews  WeeklyTabView[]
+  dailyTabViews   DailyTabView[]
 
-    averageRating Float       @default(0)
-    ratingsCount  Int         @default(0) // needed to calculate new average rating in optimistic fashion
-    ratings       TabRating[]
+  averageRating Float       @default(0)
+  ratingsCount  Int         @default(0) // needed to calculate new average rating in optimistic fashion
+  ratings       TabRating[]
 
-    artist   Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
-    artistId Int?
+  artist   Artist? @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  artistId Int?
 
-    // tsvector column for FTS:
-    // Prisma doesn't manage this type directly, hence 'Unsupported'
-    // The '?' makes it optional, easier to handle with triggers
-    searchVector Unsupported("tsvector")?
+  // tsvector column for FTS:
+  // Prisma doesn't manage this type directly, hence 'Unsupported'
+  // The '?' makes it optional, easier to handle with triggers
+  searchVector Unsupported("tsvector")?
 
-    pageViews Int @default(0)
+  pageViews Int @default(0)
 
-    @@index([searchVector], type: Gin) // Hint to Prisma about the index type, but the actual index is created via raw SQL migration
+  @@index([searchVector], type: Gin) // Hint to Prisma about the index type, but the actual index is created via raw SQL migration
+  @@index([createdAt, id])
+  @@index([pageViews, id])
+  @@index([createdByUserId, createdAt, id])
+  @@index([artistId, createdAt, id])
+  @@index([genre, createdAt, id])
 }
 
 model Comment {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @default(now()) @updatedAt
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
-    text     String
-    authorId String
+  text     String
+  authorId String
 
-    tab   Tab @relation(fields: [tabId], references: [id])
-    tabId Int
+  tab   Tab @relation(fields: [tabId], references: [id], onDelete: Cascade)
+  tabId Int
 
-    replyTo   Comment?  @relation("Replies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-    replyToId Int?
-    replies   Comment[] @relation("Replies")
+  replyTo   Comment?  @relation("Replies", fields: [replyToId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  replyToId Int?
+  replies   Comment[] @relation("Replies")
+
+  @@index([tabId, createdAt, id])
+  @@index([replyToId])
 }
 
 model User {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
 
-    userId          String @unique // the id generated by Clerk upon sign up
-    username        String @unique
-    profileImageUrl String
-    pinnedTabId     Int?
-    color           String @default("maple")
+  userId          String @unique // the id generated by Clerk upon sign up
+  username        String @unique
+  profileImageUrl String
+  pinnedTabId     Int?
+  color           String @default("maple")
 
-    // user stats
-    totalTabs              Int   @default(0)
-    totalTabViews          Int   @default(0)
-    averageTabRating       Float @default(0)
-    totalTabRatings        Int   @default(0)
-    totalBookmarksReceived Int   @default(0)
+  // user stats
+  totalTabs              Int   @default(0)
+  totalTabViews          Int   @default(0)
+  averageTabRating       Float @default(0)
+  totalTabRatings        Int   @default(0)
+  totalBookmarksReceived Int   @default(0)
 
-    bookmarks         Bookmark[] @relation("bookmarkedBy")
-    bookmarksReceived Bookmark[] @relation("tabCreator")
+  bookmarks         Bookmark[] @relation("bookmarkedBy")
+  bookmarksReceived Bookmark[] @relation("tabCreator")
 
-    tabs       Tab[]
-    tabRatings TabRating[]
-    drafts     TabDraft[]
+  tabs               Tab[]
+  tabRatings         TabRating[]
+  drafts             TabDraft[]
+  weeklyFeaturedUser WeeklyFeaturedUser?
+  weeklyTabViews     WeeklyUserTotalTabView?
+
+  @@index([totalTabViews, id])
 }
 
 // Private working copies. Public tab queries never read this table.
 model TabDraft {
-    id              String    @id @db.Uuid
-    ownerId         String
-    owner           User      @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
-    createdAt       DateTime  @default(now())
-    updatedAt       DateTime  @default(now()) @updatedAt
-    title           String
-    document        Json
-    sourceTabId     Int?
-    baseUpdatedAt   DateTime?
-    revision        Int       @default(1)
-    lastMutationId  String    @db.Uuid
-    deletedAt       DateTime?
-    publishedTabId  Int?
+  id             String    @id @db.Uuid
+  ownerId        String
+  owner          User      @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+  title          String
+  document       Json
+  sourceTabId    Int?
+  baseUpdatedAt  DateTime?
+  revision       Int       @default(1)
+  lastMutationId String    @db.Uuid
+  deletedAt      DateTime?
+  publishedTabId Int?
 
-    @@index([ownerId, deletedAt, updatedAt])
-    @@index([ownerId, sourceTabId])
+  @@index([ownerId, deletedAt, updatedAt])
+  @@index([ownerId, sourceTabId])
 }

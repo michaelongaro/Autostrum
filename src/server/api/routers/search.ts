@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { Prisma } from "../../../generated/client";
 import { z } from "zod";
 import { tuningNotes } from "~/utils/tunings";
@@ -138,7 +139,7 @@ export const searchRouter = createTRPCRouter({
     // Trending tab ids are updated weekly from WeeklyTabView.
     // Popular artists are the current all-time most viewed (no timeframe).
 
-    const trendingTabs = await ctx.prisma.mostPopularTabs.findMany({
+    const trendingTabsPromise = ctx.prisma.mostPopularTabs.findMany({
       select: {
         tab: {
           select: {
@@ -161,7 +162,7 @@ export const searchRouter = createTRPCRouter({
       take: 5,
     });
 
-    const popularArtists = await ctx.prisma.artist.findMany({
+    const popularArtistsPromise = ctx.prisma.artist.findMany({
       select: {
         id: true,
         name: true,
@@ -173,6 +174,10 @@ export const searchRouter = createTRPCRouter({
       take: 5,
     });
 
+    const [trendingTabs, popularArtists] = await Promise.all([
+      trendingTabsPromise,
+      popularArtistsPromise,
+    ]);
     const sanitizedTabs = trendingTabs.map((tab) => {
       return {
         id: tab.tab.id,
@@ -190,7 +195,7 @@ export const searchRouter = createTRPCRouter({
   }),
 
   getMostRecentAndPopularTabs: publicProcedure.query(async ({ ctx }) => {
-    const mostRecentTabs = await ctx.prisma.tab.findMany({
+    const mostRecentTabsPromise = ctx.prisma.tab.findMany({
       select: {
         id: true,
         title: true,
@@ -214,11 +219,11 @@ export const searchRouter = createTRPCRouter({
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 15,
     });
 
-    const mostPopularTabs = await ctx.prisma.tab.findMany({
+    const mostPopularTabsPromise = ctx.prisma.tab.findMany({
       select: {
         id: true,
         title: true,
@@ -242,11 +247,14 @@ export const searchRouter = createTRPCRouter({
           },
         },
       },
-      orderBy: { pageViews: "desc" },
+      orderBy: [{ pageViews: "desc" }, { id: "desc" }],
       take: 15,
     });
 
-    if (!mostRecentTabs || !mostPopularTabs) return null;
+    const [mostRecentTabs, mostPopularTabs] = await Promise.all([
+      mostRecentTabsPromise,
+      mostPopularTabsPromise,
+    ]);
 
     const fullMostRecentTabs: MinimalTabRepresentation[] = mostRecentTabs.map(
       (tab) => {
@@ -441,7 +449,7 @@ export const searchRouter = createTRPCRouter({
   getInfiniteTabsBySearchQuery: publicProcedure
     .input(
       z.object({
-        searchQuery: z.string().optional(),
+        searchQuery: z.string().max(100).optional(),
         genre: z.string().optional(),
         tuning: z.string().optional(),
         difficulty: z.number().int().min(1).max(5).optional(),
@@ -456,10 +464,10 @@ export const searchRouter = createTRPCRouter({
         usernameToSelectFrom: z.string().optional(), // Filter by creator's username
         artistIdToSelectFrom: z.number().optional(), // Filter by artist
         bookmarkedByUserId: z.string().optional(), // Filter by bookmarker
-        limit: z.number().min(1).max(50).optional().default(15),
+        limit: z.number().int().min(1).max(50).optional().default(15),
         // Cursor is a page number for both Prisma and raw FTS paths
         // We'll treat null/undefined as the first page (page 0)
-        cursor: z.number().nullish(),
+        cursor: z.number().int().min(0).max(1_000_000).nullish(),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -477,6 +485,14 @@ export const searchRouter = createTRPCRouter({
         cursor,
       } = input;
 
+      if (
+        bookmarkedByUserId !== undefined &&
+        bookmarkedByUserId !== ctx.auth.userId
+      ) {
+        throw new TRPCError({
+          code: ctx.auth.userId ? "FORBIDDEN" : "UNAUTHORIZED",
+        });
+      }
       const trimmedQuery = searchQuery?.trim();
       const useFts = sortBy === "relevance" && !!trimmedQuery;
 
@@ -567,7 +583,7 @@ export const searchRouter = createTRPCRouter({
               ? Prisma.sql`ts_rank_cd("Tab"."searchVector", ${tsQuery}) DESC,`
               : Prisma.empty
           }
-          "Tab"."title" ASC`;
+          "Tab"."title" ASC, "Tab"."id" ASC`;
 
         const selectFields = Prisma.sql`
           "Tab"."id", "Tab"."title", "Tab"."genre",
@@ -700,71 +716,78 @@ export const searchRouter = createTRPCRouter({
         }
 
         // Build OrderBy for Prisma
-        let orderBy: Prisma.TabOrderByWithRelationInput | undefined = undefined;
+        let orderBy: Prisma.TabOrderByWithRelationInput[];
         switch (sortBy) {
           case "newest":
-            orderBy = { createdAt: "desc" };
+            orderBy = [{ createdAt: "desc" }, { id: "desc" }];
             break;
           case "oldest":
-            orderBy = { createdAt: "asc" };
+            orderBy = [{ createdAt: "asc" }, { id: "asc" }];
             break;
           case "mostPopular":
-            orderBy = { pageViews: "desc" };
+            orderBy = [{ pageViews: "desc" }, { id: "desc" }];
             break;
           case "leastPopular":
-            orderBy = { pageViews: "asc" };
+            orderBy = [{ pageViews: "asc" }, { id: "asc" }];
             break;
           case "relevance": // Should have been handled by FTS path if query exists
           default:
             // Fallback: No specific order or default DB order
             // Prisma requires *some* order for cursor pagination, usually ID
-            orderBy = { id: "asc" }; // Use ID as a default stable sort for cursor
+            orderBy = [{ id: "asc" }]; // Use ID as a default stable sort for cursor
             break;
         }
 
-        // I think that we just manually do a .sort() on the results for bookmark createdAt date.
-        // this means that we need to retrieve the bookmark createdAt date to be able to sort by it.
-
         try {
-          const [count, tabs] = await ctx.prisma.$transaction([
-            ctx.prisma.tab.count({ where }),
-            ctx.prisma.tab.findMany({
-              where,
-              orderBy,
-              take: limit + 1, // Fetch one extra to determine next cursor
-              skip: offset,
+          const select = {
+            id: true,
+            title: true,
+            genre: true,
+            createdAt: true,
+            updatedAt: true,
+            difficulty: true,
+            averageRating: true,
+            ratingsCount: true,
+            artist: {
               select: {
                 id: true,
-                title: true,
-                genre: true,
-                createdAt: true,
-                updatedAt: true,
-                difficulty: true,
-                averageRating: true,
-                ratingsCount: true,
-                artist: {
-                  select: {
-                    id: true,
-                    name: true,
-                    isVerified: true,
-                  },
-                },
-                createdBy: {
-                  select: {
-                    userId: true,
-                    username: true,
-                  },
-                },
-                bookmarks: {
-                  select: {
-                    createdAt: true,
-                  },
-                  where: {
-                    bookmarkedByUserId: bookmarkedByUserId,
-                  },
-                },
+                name: true,
+                isVerified: true,
               },
-            }),
+            },
+            createdBy: {
+              select: {
+                userId: true,
+                username: true,
+              },
+            },
+          } satisfies Prisma.TabSelect;
+          const bookmarkDateSort =
+            bookmarkedByUserId !== undefined &&
+            (sortBy === "newest" || sortBy === "oldest");
+          const pageQuery = bookmarkDateSort
+            ? ctx.prisma.bookmark
+                .findMany({
+                  where: { bookmarkedByUserId, tab: where },
+                  orderBy: [
+                    { createdAt: sortBy === "newest" ? "desc" : "asc" },
+                    { tabId: sortBy === "newest" ? "desc" : "asc" },
+                  ],
+                  take: limit + 1,
+                  skip: offset,
+                  select: { tab: { select } },
+                })
+                .then((bookmarks) => bookmarks.map(({ tab }) => tab))
+            : ctx.prisma.tab.findMany({
+                where,
+                orderBy,
+                take: limit + 1,
+                skip: offset,
+                select,
+              });
+          const [count, tabs] = await Promise.all([
+            ctx.prisma.tab.count({ where }),
+            pageQuery,
           ]);
 
           let nextCursor: number | null = null;
@@ -773,7 +796,7 @@ export const searchRouter = createTRPCRouter({
             nextCursor = page + 1;
           }
 
-          let sanitizedTabs: MinimalTabRepresentation[] = tabs.map((tab) => {
+          const sanitizedTabs: MinimalTabRepresentation[] = tabs.map((tab) => {
             const conditionalArtist = tab.artist
               ? {
                   id: tab.artist.id,
@@ -795,24 +818,6 @@ export const searchRouter = createTRPCRouter({
               createdBy: conditionalCreatedBy,
             };
           });
-
-          if (
-            bookmarkedByUserId &&
-            (sortBy === "newest" || sortBy === "oldest")
-          ) {
-            // Sort the tabs by the bookmark createdAt date
-            sanitizedTabs.sort((a, b) => {
-              const aBookmark = a.bookmarks?.[0]?.createdAt ?? new Date(0);
-              const bBookmark = b.bookmarks?.[0]?.createdAt ?? new Date(0);
-              return sortBy === "newest"
-                ? bBookmark.getTime() - aBookmark.getTime() // Sort in descending order
-                : aBookmark.getTime() - bBookmark.getTime(); // Sort in ascending order
-            });
-            // Remove the bookmarks field from the sanitized tabs since we don't need it anymore
-            sanitizedTabs = sanitizedTabs.map(
-              ({ bookmarks: _bookmarks, ...rest }) => rest,
-            );
-          }
 
           return {
             data: {
