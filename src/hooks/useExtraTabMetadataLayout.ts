@@ -3,7 +3,10 @@ import { useLayoutEffect, useRef, useState } from "react";
 export type MetadataPane =
   "Section progression" | "Chords" | "Strumming patterns";
 
-type PaneSize = { height: number; firstRowHeight: number };
+type PaneSize = { height: number; collapsedHeight: number };
+
+const SECTION_PROGRESSION_HEIGHT = 96;
+const NEXT_ROW_PREVIEW_HEIGHT = 24;
 
 export default function useExtraTabMetadataLayout(
   activePane: MetadataPane,
@@ -29,20 +32,25 @@ export default function useExtraTabMetadataLayout(
         const rect = pane.getBoundingClientRect();
         const items = pane.querySelector("[data-metadata-items]")?.children;
         const firstTop = items?.[0]?.getBoundingClientRect().top;
-        let firstRowHeight = 0;
+        let collapsedHeight = SECTION_PROGRESSION_HEIGHT;
         if (items && firstTop !== undefined) {
+          // A single row keeps its natural height, including pane padding.
+          collapsedHeight = rect.height;
           for (const item of items) {
             const itemRect = item.getBoundingClientRect();
-            if (Math.abs(itemRect.top - firstTop) > 1) break;
-            firstRowHeight = Math.max(
-              firstRowHeight,
-              itemRect.bottom - rect.top,
-            );
+            if (itemRect.top - firstTop > 1) {
+              // Include the row gap and a glimpse of the next row under the fade.
+              collapsedHeight = Math.min(
+                rect.height,
+                itemRect.top - rect.top + NEXT_ROW_PREVIEW_HEIGHT,
+              );
+              break;
+            }
           }
         }
         next[pane.dataset.metadataPane as MetadataPane] = {
           height: Math.ceil(rect.height),
-          firstRowHeight: Math.ceil(firstRowHeight),
+          collapsedHeight: Math.ceil(collapsedHeight),
         };
       }
       setSizes((previous) =>
@@ -50,7 +58,7 @@ export default function useExtraTabMetadataLayout(
           const name = pane.dataset.metadataPane as MetadataPane;
           return (
             previous[name]?.height === next[name]?.height &&
-            previous[name]?.firstRowHeight === next[name]?.firstRowHeight
+            previous[name]?.collapsedHeight === next[name]?.collapsedHeight
           );
         })
           ? previous
@@ -64,14 +72,8 @@ export default function useExtraTabMetadataLayout(
     return () => observer.disconnect();
   }, []);
 
-  // Grow a common card height for taller diagrams and palm-mute markings.
-  const cardHeight = Math.max(
-    176,
-    sizes.Chords?.firstRowHeight ?? 0,
-    sizes["Strumming patterns"]?.firstRowHeight ?? 0,
-  );
   const collapsedHeight =
-    activePane === "Section progression" ? 96 : cardHeight;
+    sizes[activePane]?.collapsedHeight ?? SECTION_PROGRESSION_HEIGHT;
   const naturalHeight = sizes[activePane]?.height ?? collapsedHeight;
   const hasOverflow = naturalHeight > collapsedHeight + 1;
 
@@ -83,12 +85,9 @@ export default function useExtraTabMetadataLayout(
       .forEach((pane) => {
         const size = sizes[pane.dataset.metadataPane as MetadataPane];
         if (!size) return;
-        // Keep a shorter pattern row intact without exposing a chopped-off
-        // second row in the space reserved for the common card height.
-        pane.style.clipPath =
-          expanded || !size.firstRowHeight
-            ? "inset(0px)"
-            : `inset(0px 0px max(0px, calc(100% - ${size.firstRowHeight}px)) 0px)`;
+        pane.style.clipPath = expanded
+          ? "inset(0px)"
+          : `inset(0px 0px max(0px, calc(100% - ${size.collapsedHeight}px)) 0px)`;
         const items = pane.querySelector<HTMLElement>("[data-metadata-items]");
         if (!items) return;
         const top = pane.getBoundingClientRect().top;
@@ -97,7 +96,7 @@ export default function useExtraTabMetadataLayout(
             item.inert =
               !expanded &&
               item.getBoundingClientRect().bottom - top >
-                size.firstRowHeight + 1;
+                size.collapsedHeight + 1;
           }
         }
       });

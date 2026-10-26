@@ -13,6 +13,7 @@ import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSecti
 import Logo from "~/components/ui/icons/Logo";
 import ChordName from "~/components/ui/ChordName";
 import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
+import styles from "./ExtraTabMetadataPane.module.css";
 import useExtraTabMetadataLayout, {
   type MetadataPane,
 } from "~/hooks/useExtraTabMetadataLayout";
@@ -131,7 +132,7 @@ function DesktopExtraTabMetadata() {
         style={{ overflowAnchor: "none" }}
       >
         <div
-          className="absolute inset-0 overflow-hidden"
+          className={`absolute inset-0 overflow-hidden ${activeTabName !== "Section progression" && hasOverflow && !tabContentExpanded ? styles.overflowFade : ""}`}
           style={{ bottom: hasOverflow ? 40 : 0 }}
         >
           <ExtraTabMetadataPane
@@ -186,7 +187,7 @@ function DesktopExtraTabMetadata() {
             ) : (
               <div
                 data-metadata-items
-                className="baseFlex w-full flex-wrap !items-start gap-8"
+                className="baseFlex w-full flex-wrap !items-start gap-x-12 gap-y-6"
               >
                 {chords.map((chord, index) => (
                   <div key={chord.id} className="baseFlex">
@@ -273,7 +274,7 @@ function DesktopExtraTabMetadata() {
             ) : (
               <div
                 data-metadata-items
-                className="baseFlex w-full flex-wrap !items-start gap-8"
+                className="baseFlex w-full flex-wrap !items-start gap-x-8 gap-y-6"
               >
                 {strummingPatterns.map((pattern, index) => (
                   <div key={pattern.id} className="baseVertFlex !items-start">

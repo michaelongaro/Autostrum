@@ -19,6 +19,7 @@ import {
 } from "~/components/ui/carousel";
 import ChordName from "~/components/ui/ChordName";
 import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
+import styles from "./ExtraTabMetadataPane.module.css";
 import useExtraTabMetadataLayout, {
   type MetadataPane,
 } from "~/hooks/useExtraTabMetadataLayout";
@@ -215,7 +216,7 @@ function MobileExtraTabMetadata() {
           duration: reduceMotion ? 0 : 0.25,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className="w-full overflow-hidden"
+        className={`w-full overflow-hidden ${hasOverflow && !tabContentExpanded ? styles.overflowFade : ""}`}
         style={{ overflowAnchor: "none" }}
       >
         <Carousel
@@ -277,12 +278,12 @@ function MobileExtraTabMetadata() {
                 ) : (
                   <div
                     data-metadata-items
-                    className="grid w-full grid-cols-2 items-start justify-items-center gap-8 sm:flex sm:flex-wrap sm:justify-center"
+                    className={`grid w-fit max-w-full ${chords.length === 1 ? "grid-cols-1" : "grid-cols-2"} items-start justify-items-center gap-x-12 gap-y-6 sm:flex sm:w-full sm:flex-wrap sm:justify-center`}
                   >
                     {chords.map((chord, index) => (
                       <div
                         key={chord.id}
-                        className="baseFlex min-w-0 max-w-full sm:max-w-[175px]"
+                        className="baseFlex min-w-0 max-w-full last:odd:col-span-full sm:max-w-[175px]"
                       >
                         <div className="baseVertFlex min-w-0 max-w-full gap-3">
                           <div className="baseFlex w-full !justify-between gap-2 border-b pb-2">
@@ -369,12 +370,12 @@ function MobileExtraTabMetadata() {
                 ) : (
                   <div
                     data-metadata-items
-                    className="baseVertFlex !items-start !justify-start gap-8 px-8 sm:!flex-row sm:flex-wrap sm:!justify-center"
+                    className="baseFlex w-full flex-wrap !items-start gap-x-8 gap-y-6 px-8"
                   >
                     {strummingPatterns.map((pattern, index) => (
                       <div
                         key={pattern.id}
-                        className="baseVertFlex !items-start"
+                        className="baseVertFlex max-w-full !items-start"
                       >
                         <Button
                           variant={"audio"}
@@ -443,7 +444,7 @@ function MobileExtraTabMetadata() {
                             previewType="strummingPattern"
                           />
                         </Button>
-                        <div className="baseFlex border-b-none rounded-md border-2">
+                        <div className="baseFlex border-b-none max-w-full rounded-md border-2">
                           <StrummingPattern
                             data={pattern}
                             mode="viewingWithHighlights"

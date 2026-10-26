@@ -2,6 +2,10 @@
   transition: clip-path 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.overflowFade {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 32px), transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pane {
     transition: none;
