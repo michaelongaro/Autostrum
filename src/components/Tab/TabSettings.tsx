@@ -34,7 +34,7 @@ function TabSettings({
   const pinSectionNavigation = useGetLocalStorageValues().pinSectionNavigation;
 
   return (
-    <div className="baseVertFlex w-full gap-2">
+    <div className="baseVertFlex w-full gap-3">
       <TabZoomControl
         zoom={zoom}
         onZoomChange={(value) => localStorageZoom.set(String(value))}
