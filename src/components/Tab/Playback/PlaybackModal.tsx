@@ -35,7 +35,6 @@ import PlaybackAnimatedStrip from "~/components/Tab/Playback/PlaybackAnimatedStr
 import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import {
   computePlaybackChordLayoutData,
-  resyncChordRepetitionsAfterIndexJump,
   type PlaybackChordLayoutData,
 } from "~/utils/playbackModalLayout";
 import {
@@ -164,8 +163,8 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
 
   const [initialPlaceholderWidth, setInitialPlaceholderWidth] = useState(0);
 
-  // Per-chord repetition tracking for smooth infinite scroll without visual snapping
-  // Each chord tracks how many times it has "looped" for positioning purposes
+  // Uniform repetition anchors playback/resume. The visible window mounts
+  // adjacent loop copies independently of this scheduler-polled state.
   const [chordRepetitions, setChordRepetitions] = useState<number[]>([]);
 
   // Temporary: glide scrub mode takes imperative ownership of strip translateX.
@@ -268,81 +267,21 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
     ],
   );
 
-  // Primary / catchup virtualization, plus resync after large index jumps
-  // (background-tab timer throttling skips intermediate thresholds).
+  // Only the audio scheduler advances this anchor. Scrubbing owns absolute
+  // position (and repetition) until release; no forward half-shift can fight it.
   useLayoutEffect(() => {
-    if (!chordLayoutData || chordRepetitions.length === 0) {
-      prevChordIndexRef.current = currentChordIndex;
-      return;
-    }
-
     const previousChordIndex = prevChordIndexRef.current;
     prevChordIndexRef.current = currentChordIndex;
-
-    const indexJumped = Math.abs(currentChordIndex - previousChordIndex) > 1;
-    const wrappedForward =
-      audioMetadata.playing && currentChordIndex < previousChordIndex;
-
-    if (indexJumped || wrappedForward) {
-      setChordRepetitions((prev) =>
-        resyncChordRepetitionsAfterIndexJump({
-          length: prev.length,
-          previousRepetitions: prev,
-          currentChordIndex,
-          previousChordIndex,
-          virtualizationIndex: chordLayoutData.virtualizationIndex,
-          virtualizationStartIndex: chordLayoutData.virtualizationStartIndex,
-          virtualizationCatchupIndex:
-            chordLayoutData.virtualizationCatchupIndex,
-          canVirtualize: chordLayoutData.canVirtualize,
-          wrappedForward,
-        }),
+    if (
+      audioMetadata.playing &&
+      !isGlideScrubbing &&
+      currentChordIndex < previousChordIndex
+    ) {
+      setChordRepetitions((previous) =>
+        new Array<number>(previous.length).fill((previous[0] ?? 0) + 1),
       );
-      return;
     }
-
-    if (!chordLayoutData.canVirtualize) {
-      return;
-    }
-
-    // Primary: bump the first half once the end of the strip is entering view.
-    if (
-      currentChordIndex >= chordLayoutData.virtualizationIndex &&
-      chordRepetitions[0] === chordRepetitions[chordRepetitions.length - 1]
-    ) {
-      setChordRepetitions((prev) => {
-        const newRepetitions = (prev[0] ?? 0) + 1;
-        const oldRepetitions = prev[0] ?? 0;
-        const secondHalfLength =
-          prev.length - chordLayoutData.virtualizationStartIndex;
-
-        return [
-          ...(new Array(chordLayoutData.virtualizationStartIndex).fill(
-            newRepetitions,
-          ) as number[]),
-          ...(new Array(secondHalfLength).fill(oldRepetitions) as number[]),
-        ];
-      });
-      return;
-    }
-
-    // Catchup: finish bumping the trailing half after the previous loop leaves.
-    if (
-      currentChordIndex < chordLayoutData.virtualizationIndex &&
-      currentChordIndex >= chordLayoutData.virtualizationCatchupIndex &&
-      chordRepetitions[0] !== chordRepetitions[chordRepetitions.length - 1]
-    ) {
-      setChordRepetitions((prev) => {
-        const newRepetitions = prev[0] ?? 0;
-        return new Array(prev.length).fill(newRepetitions) as number[];
-      });
-    }
-  }, [
-    chordLayoutData,
-    chordRepetitions,
-    currentChordIndex,
-    audioMetadata.playing,
-  ]);
+  }, [currentChordIndex, audioMetadata.playing, isGlideScrubbing]);
 
   // Measure modal width on mount/resize/orientation/visibility. Zero-size
   // frames (common mid-orientation on mobile) schedule rAF retries.

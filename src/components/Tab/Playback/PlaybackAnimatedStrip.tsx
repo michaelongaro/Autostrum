@@ -73,6 +73,7 @@ const PlaybackAnimatedStrip = memo(
   }: PlaybackAnimatedStrip) {
     const internalStripRef = useRef<HTMLDivElement | null>(null);
     const internalScrollPositionRef = useRef(0);
+    const positionReaderRef = useRef<(() => number | null) | null>(null);
     const scrollStripRef = externalStripRef ?? internalStripRef;
     const scrollPositionRef =
       externalScrubPositionRef ?? internalScrollPositionRef;
@@ -91,6 +92,7 @@ const PlaybackAnimatedStrip = memo(
       playbackStartedAtAudioTime,
       playing,
       scrollPositionRef,
+      positionReaderRef,
     });
 
     // While paused, React owns transform for scrubbing. While playing, the
@@ -155,6 +157,8 @@ const PlaybackAnimatedStrip = memo(
           loopDelay={loopDelay}
           renderChord={renderChord}
           scrollPositionRef={scrollPositionRef}
+          positionReaderRef={positionReaderRef}
+          isGlideScrubbing={isGlideScrubbing}
         />
       </div>
     );

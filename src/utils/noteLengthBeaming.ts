@@ -31,6 +31,14 @@ const CLOSED_BREAKS: BeamBreakFlags = {
 type PlaybackBeamChord =
   PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
 
+// Compiled playback arrays are immutable. Resolve each span once, not once
+// per mounted chord on every highlight/visibility update. Weak keys release
+// the flags when a tab is recompiled or its session is discarded.
+const playbackBeamCache = new WeakMap<
+  readonly PlaybackBeamChord[],
+  BeamBreakFlags[]
+>();
+
 export function beamBreaksForTabColumns(
   columns: readonly (TabNote | TabMeasureLine)[],
 ): BeamBreakFlags[] {
@@ -118,31 +126,32 @@ export function beamBreaksForPlaybackIndex(
   chords: readonly PlaybackBeamChord[],
   index: number,
 ): BeamBreakFlags {
-  const chord = chords[index];
-  if (!chord || isSpanBoundary(chord)) return CLOSED_BREAKS;
-
-  let start = index;
-  while (start > 0 && canJoinPlaybackSpan(chords[start - 1]!, chords[start]!)) {
-    start--;
+  let flags = playbackBeamCache.get(chords);
+  if (!flags) {
+    flags = new Array<BeamBreakFlags>(chords.length).fill(CLOSED_BREAKS);
+    for (let start = 0; start < chords.length;) {
+      let end = start;
+      while (
+        end + 1 < chords.length &&
+        canJoinPlaybackSpan(chords[end]!, chords[end + 1]!)
+      )
+        end++;
+      const events: BeamSpanEvent[] = [];
+      const indices: number[] = [];
+      for (let cursor = start; cursor <= end; cursor++) {
+        const event = playbackEvent(chords[cursor]!);
+        if (event) {
+          indices.push(cursor);
+          events.push(event);
+        }
+      }
+      const spanFlags = resolveBeamBreaks(events);
+      indices.forEach((chordIndex, eventIndex) => {
+        flags![chordIndex] = spanFlags[eventIndex] ?? CLOSED_BREAKS;
+      });
+      start = end + 1;
+    }
+    playbackBeamCache.set(chords, flags);
   }
-
-  let end = index;
-  while (
-    end < chords.length - 1 &&
-    canJoinPlaybackSpan(chords[end]!, chords[end + 1]!)
-  ) {
-    end++;
-  }
-
-  const events: BeamSpanEvent[] = [];
-  let indexInSpan = 0;
-
-  for (let cursor = start; cursor <= end; cursor++) {
-    const event = playbackEvent(chords[cursor]!);
-    if (!event) continue;
-    if (cursor === index) indexInSpan = events.length;
-    events.push(event);
-  }
-
-  return resolveBeamBreaks(events)[indexInSpan] ?? CLOSED_BREAKS;
+  return flags[index] ?? CLOSED_BREAKS;
 }

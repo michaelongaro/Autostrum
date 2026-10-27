@@ -1,0 +1,2082 @@
+{
+  "date": "2026-10-26",
+  "gitHead": "8a0b7bbb",
+  "environment": {
+    "mode": "Next.js dev --webpack; React Compiler enabled; StrictMode disabled",
+    "browser": "Electron 44.9.3 / Chromium 152.0.7977.167, Windows",
+    "node": "25.5.0",
+    "devicePixelRatio": 1,
+    "logicalProcessors": 12,
+    "desktopViewport": [1280, 800],
+    "desktopPlaybackWidth": 1152,
+    "narrowViewport": [390, 844],
+    "narrowPlaybackWidth": 390,
+    "baselineRafHz": 237
+  },
+  "methodology": {
+    "timing": "requestAnimationFrame callback cadence, not independently measured compositor FPS",
+    "input": "Synthetic PointerEvents dispatched through the real React playback handlers",
+    "gap": "Largest uncovered viewport interval between mounted column wrappers, excluding intentional space before chord 0",
+    "gestureStatistics": "Active gesture interval; maximum callback gap and long tasks include the full run, including release/settle",
+    "limitations": [
+      "Development build, one desktop machine, foreground browser",
+      "Narrow viewport retains desktop user agent; no real touch hardware, Safari, Android, production profile, CPU throttling, or GPU trace",
+      "Probe samples computed transforms and mounted geometry every frame, adding measurement overhead",
+      "Paused state fields inferred through React internals in the initial probe were discarded. Retained results use store state and DOM geometry. The saved probe has no React-internals dependency."
+    ]
+  },
+  "runs": [
+    {
+      "activeFramesOver16_8Ms": 0,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 7995.600000000006,
+      "activeP95Ms": 4.2999999999883585,
+      "activeP99Ms": 8.300000000017462,
+      "activeRafHz": 236.8802841562858,
+      "durationMs": 8001.2999999977765,
+      "final": {
+        "expanded": 899,
+        "index": 182,
+        "mounted": 46,
+        "playing": true,
+        "position": 5554.64,
+        "stripNodes": 2500,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 164,
+          "mounted": 46,
+          "p": 5008.66,
+          "t": 5.699999997770647
+        },
+        {
+          "gap": 0,
+          "index": 164,
+          "mounted": 46,
+          "p": 5008.94,
+          "t": 9.799999997776467
+        },
+        {
+          "gap": 0,
+          "index": 164,
+          "mounted": 46,
+          "p": 5009.23,
+          "t": 14.099999997764826
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": null,
+      "id": 0,
+      "initial": {
+        "expanded": 899,
+        "index": 164,
+        "mounted": 46,
+        "playing": true,
+        "position": 5008.1,
+        "stripNodes": 2500,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: normal playback, 120 BPM quarters",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 8.5,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 46,
+      "mountedMin": 44,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 3,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 1995.6999999999825,
+      "activeP95Ms": 16.60000000000582,
+      "activeP99Ms": 16.79999999998836,
+      "activeRafHz": 181.3899884752233,
+      "durationMs": 2602.299999998504,
+      "final": {
+        "expanded": 899,
+        "index": 292,
+        "mounted": 106,
+        "playing": false,
+        "position": 8872,
+        "stripNodes": 5739,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 250,
+          "mounted": 105,
+          "p": 7609,
+          "t": 2.5999999985215254
+        },
+        {
+          "gap": 0,
+          "index": 250,
+          "mounted": 105,
+          "p": 7610.56,
+          "t": 14.999999998515705
+        },
+        {
+          "gap": 0,
+          "index": 250,
+          "mounted": 105,
+          "p": 7618,
+          "t": 23.399999998509884
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -1200,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 1,
+      "initial": {
+        "expanded": 899,
+        "index": 250,
+        "mounted": 105,
+        "playing": false,
+        "position": 7609,
+        "stripNodes": 5723,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: forward drag 1200px over 2s",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 20.800000000017462,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 106,
+      "mountedMin": 105,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 10,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 1999.8999999999942,
+      "activeP95Ms": 16.699999999982538,
+      "activeP99Ms": 20.800000000017462,
+      "activeRafHz": 176.00880044002253,
+      "durationMs": 2603.100000000006,
+      "final": {
+        "expanded": 899,
+        "index": 250,
+        "mounted": 105,
+        "playing": false,
+        "position": 7609,
+        "stripNodes": 5723,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 292,
+          "mounted": 106,
+          "p": 8872,
+          "t": -0.8999999999941792
+        },
+        {
+          "gap": 0,
+          "index": 292,
+          "mounted": 106,
+          "p": 8872,
+          "t": 11.60000000000582
+        },
+        {
+          "gap": 0,
+          "index": 291,
+          "mounted": 106,
+          "p": 8865.04,
+          "t": 19.89999999999418
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": 1200,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 2,
+      "initial": {
+        "expanded": 899,
+        "index": 292,
+        "mounted": 106,
+        "playing": false,
+        "position": 8872,
+        "stripNodes": 5739,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: backward drag 1200px over 2s",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 25,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 106,
+      "mountedMin": 105,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 5,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 2995.7000000000116,
+      "activeP95Ms": 16.599999999976717,
+      "activeP99Ms": 16.70000000001164,
+      "activeRafHz": 187.2684180658937,
+      "durationMs": 3602.099999997008,
+      "final": {
+        "expanded": 899,
+        "index": 248,
+        "mounted": 106,
+        "playing": false,
+        "position": 7541,
+        "stripNodes": 5739,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 250,
+          "mounted": 105,
+          "p": 7609,
+          "t": 2.0999999970081262
+        },
+        {
+          "gap": 0,
+          "index": 250,
+          "mounted": 105,
+          "p": 7610.12,
+          "t": 18.699999997013947
+        },
+        {
+          "gap": 0,
+          "index": 250,
+          "mounted": 105,
+          "p": 7618.97,
+          "t": 26.89999999702559
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -800,
+            "durationMs": 1500
+          },
+          {
+            "deltaPx": 800,
+            "durationMs": 1500
+          }
+        ]
+      },
+      "id": 3,
+      "initial": {
+        "expanded": 899,
+        "index": 250,
+        "mounted": 105,
+        "playing": false,
+        "position": 7609,
+        "stripNodes": 5723,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: forward then backward reversal",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 20.89999999999418,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 106,
+      "mountedMin": 105,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 34,
+      "activeFramesOver25Ms": 34,
+      "activeMs": 1987.5,
+      "activeP95Ms": 41.79999999998836,
+      "activeP99Ms": 50,
+      "activeRafHz": 80,
+      "durationMs": 2702.699999999255,
+      "final": {
+        "expanded": 800,
+        "index": 237,
+        "mounted": 94,
+        "playing": false,
+        "position": 8058,
+        "stripNodes": 5547,
+        "totalWidth": 27200,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 200,
+          "mounted": 94,
+          "p": 6800,
+          "t": 2.699999999254942
+        },
+        {
+          "gap": 0,
+          "index": 200,
+          "mounted": 94,
+          "p": 6801.62,
+          "t": 10.9999999992433
+        },
+        {
+          "gap": 0,
+          "index": 200,
+          "mounted": 94,
+          "p": 6806.6,
+          "t": 15.099999999249121
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -1200,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 4,
+      "initial": {
+        "expanded": 800,
+        "index": 200,
+        "mounted": 94,
+        "playing": false,
+        "position": 6800,
+        "stripNodes": 5547,
+        "totalWidth": 27200,
+        "viewportWidth": 1152
+      },
+      "label": "800 columns: no barlines, forward drag 1200px over 2s",
+      "longTaskCount": 2,
+      "longTaskTotalMs": 106,
+      "maxFrameMs": 54.20000000001164,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 56,
+      "mountedMax": 94,
+      "mountedMin": 94,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 35,
+      "activeFramesOver25Ms": 35,
+      "activeMs": 1991.7000000000116,
+      "activeP95Ms": 41.70000000001164,
+      "activeP99Ms": 50.10000000000582,
+      "activeRafHz": 74.81046342320587,
+      "durationMs": 3003.699999997014,
+      "final": {
+        "expanded": 800,
+        "index": 201,
+        "mounted": 94,
+        "playing": false,
+        "position": 6834,
+        "stripNodes": 5547,
+        "totalWidth": 27200,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 237,
+          "mounted": 94,
+          "p": 8058,
+          "t": -0.40000000299187377
+        },
+        {
+          "gap": 0,
+          "index": 237,
+          "mounted": 94,
+          "p": 8058,
+          "t": 12.099999997008126
+        },
+        {
+          "gap": 0,
+          "index": 236,
+          "mounted": 94,
+          "p": 8050.74,
+          "t": 16.299999997019768
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": 1200,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 5,
+      "initial": {
+        "expanded": 800,
+        "index": 237,
+        "mounted": 94,
+        "playing": false,
+        "position": 8058,
+        "stripNodes": 5547,
+        "totalWidth": 27200,
+        "viewportWidth": 1152
+      },
+      "label": "800 columns: no barlines, backward drag 1200px over 2s",
+      "longTaskCount": 2,
+      "longTaskTotalMs": 120,
+      "maxFrameMs": 66.69999999998254,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 68,
+      "mountedMax": 94,
+      "mountedMin": 94,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 23,
+      "activeFramesOver25Ms": 3,
+      "activeMs": 5999.899999999994,
+      "activeP95Ms": 12.60000000000582,
+      "activeP99Ms": 20.800000000017462,
+      "activeRafHz": 201.83669727828817,
+      "durationMs": 6002.299999999988,
+      "final": {
+        "expanded": 800,
+        "index": 213,
+        "mounted": 40,
+        "playing": true,
+        "position": 7277.81,
+        "stripNodes": 2361,
+        "totalWidth": 27200,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 201,
+          "mounted": 40,
+          "p": 6873.52,
+          "t": 2.3999999999941792
+        },
+        {
+          "gap": 0,
+          "index": 201,
+          "mounted": 40,
+          "p": 6873.78,
+          "t": 6.600000000005821
+        },
+        {
+          "gap": 0,
+          "index": 201,
+          "mounted": 40,
+          "p": 6874.03,
+          "t": 10.700000000011642
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": null,
+      "id": 6,
+      "initial": {
+        "expanded": 800,
+        "index": 201,
+        "mounted": 40,
+        "playing": true,
+        "position": 6873.27,
+        "stripNodes": 2361,
+        "totalWidth": 27200,
+        "viewportWidth": 1152
+      },
+      "label": "800 columns: no barlines, normal playback",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 25.10000000000582,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 41,
+      "mountedMin": 40,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 3,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 7008,
+      "activeP95Ms": 12.5,
+      "activeP99Ms": 16.60000000000582,
+      "activeRafHz": 184.21803652968038,
+      "durationMs": 7003.2999999977765,
+      "final": {
+        "expanded": 899,
+        "index": 256,
+        "mounted": 46,
+        "playing": true,
+        "position": 7850.38,
+        "stripNodes": 2622,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 21,
+          "mounted": 46,
+          "p": 752.705,
+          "t": -4.700000002223533
+        },
+        {
+          "gap": 0,
+          "index": 21,
+          "mounted": 46,
+          "p": 760.416,
+          "t": 3.6999999977706466
+        },
+        {
+          "gap": 0,
+          "index": 21,
+          "mounted": 46,
+          "p": 764.18,
+          "t": 7.799999997776467
+        }
+      ],
+      "framesWithGap": 145,
+      "gesture": null,
+      "id": 7,
+      "initial": {
+        "expanded": 899,
+        "index": 21,
+        "mounted": 46,
+        "playing": true,
+        "position": 748.941,
+        "stripNodes": 2627,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: 300 BPM sixteenths at 1.5x (requested 2x was clamped)",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 20.79999999998836,
+      "maxGapPx": 89.21900000000005,
+      "maxLongTaskMs": 0,
+      "mountedMax": 46,
+      "mountedMin": 44,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 4,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 5008.299999999988,
+      "activeP95Ms": 12.599999999976717,
+      "activeP99Ms": 16.70000000001164,
+      "activeRafHz": 177.50534113371845,
+      "durationMs": 5001.899999997753,
+      "final": {
+        "expanded": 899,
+        "index": 175,
+        "mounted": 45,
+        "playing": true,
+        "position": 59962.9,
+        "stripNodes": 2561,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 1.1999999999970896,
+          "index": 6,
+          "mounted": 43,
+          "p": 54836.2,
+          "t": -6.400000002235174
+        },
+        {
+          "gap": 10.099999999998545,
+          "index": 6,
+          "mounted": 43,
+          "p": 54845.1,
+          "t": 1.9999999977881089
+        },
+        {
+          "gap": 0,
+          "index": 6,
+          "mounted": 44,
+          "p": 54849.4,
+          "t": 6.099999997764826
+        }
+      ],
+      "framesWithGap": 132,
+      "gesture": null,
+      "id": 8,
+      "initial": {
+        "expanded": 899,
+        "index": 6,
+        "mounted": 43,
+        "playing": true,
+        "position": 54832.1,
+        "stripNodes": 2533,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: fast playback shortly after loop boundary",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 20.900000000023283,
+      "maxGapPx": 48.099999999998545,
+      "maxLongTaskMs": 0,
+      "mountedMax": 46,
+      "mountedMin": 41,
+      "included": true,
+      "note": "The initial 500ms playback warm-up had already crossed the boundary. Run 17 measures the actual wrap."
+    },
+    {
+      "activeFramesOver16_8Ms": 8,
+      "activeFramesOver25Ms": 3,
+      "activeMs": 1995.6999999999534,
+      "activeP95Ms": 16.599999999976717,
+      "activeP99Ms": 21,
+      "activeRafHz": 182.89322042391566,
+      "durationMs": 2901.2000000000116,
+      "final": {
+        "expanded": 899,
+        "index": 157,
+        "mounted": 106,
+        "playing": false,
+        "position": 4777,
+        "stripNodes": 6023,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 177,
+          "mounted": 106,
+          "p": 60035.5,
+          "t": 1.400000000023283
+        },
+        {
+          "gap": 0,
+          "index": 177,
+          "mounted": 105,
+          "p": 60035.1,
+          "t": 113.90000000002328
+        },
+        {
+          "gap": 0,
+          "index": 177,
+          "mounted": 106,
+          "p": 5391,
+          "t": 142.90000000002328
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": 600,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 9,
+      "initial": {
+        "expanded": 899,
+        "index": 177,
+        "mounted": 45,
+        "playing": true,
+        "position": 60035.5,
+        "stripNodes": 2561,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: backward grab after loop",
+      "longTaskCount": 1,
+      "longTaskTotalMs": 102,
+      "maxFrameMs": 112.5,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 102,
+      "mountedMax": 106,
+      "mountedMin": 105,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 1,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 5004,
+      "activeP95Ms": 8.400000000023283,
+      "activeP99Ms": 12.5,
+      "activeRafHz": 203.23741007194243,
+      "durationMs": 5003.999999999243,
+      "final": {
+        "expanded": 899,
+        "index": 111,
+        "mounted": 45,
+        "playing": true,
+        "position": 3417.21,
+        "stripNodes": 2561,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 10,
+          "mounted": 32,
+          "p": 341.129,
+          "t": -7.566995918750763e-10
+        },
+        {
+          "gap": 0,
+          "index": 10,
+          "mounted": 32,
+          "p": 343.638,
+          "t": 4.099999999278225
+        },
+        {
+          "gap": 0,
+          "index": 10,
+          "mounted": 32,
+          "p": 346.209,
+          "t": 8.299999999231659
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": null,
+      "id": 10,
+      "initial": {
+        "expanded": 899,
+        "index": 10,
+        "mounted": 32,
+        "playing": true,
+        "position": 338.62,
+        "stripNodes": 1851,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: 180 BPM sixteenths at 1.5x (requested 2x was clamped)",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 20.800000000046566,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 46,
+      "mountedMin": 32,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 0,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 1995.7999999999884,
+      "activeP95Ms": 16.5,
+      "activeP99Ms": 16.600000000034925,
+      "activeRafHz": 189.89878745365377,
+      "durationMs": 3202.7000000000116,
+      "final": {
+        "expanded": 8999,
+        "index": 2041,
+        "mounted": 105,
+        "playing": false,
+        "position": 61936,
+        "stripNodes": 5723,
+        "totalWidth": 272999,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 2000,
+          "mounted": 106,
+          "p": 60674,
+          "t": -1.2999999999883585
+        },
+        {
+          "gap": 0,
+          "index": 2000,
+          "mounted": 106,
+          "p": 60674,
+          "t": 15.299999999988358
+        },
+        {
+          "gap": 0,
+          "index": 2000,
+          "mounted": 106,
+          "p": 60683.2,
+          "t": 19.5
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -1200,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 11,
+      "initial": {
+        "expanded": 8999,
+        "index": 2000,
+        "mounted": 106,
+        "playing": false,
+        "position": 60674,
+        "stripNodes": 5739,
+        "totalWidth": 272999,
+        "viewportWidth": 1152
+      },
+      "label": "8999 columns: forward drag 1200px over 2s",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 20.79999999998836,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 106,
+      "mountedMin": 105,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 5,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 2000,
+      "activeP95Ms": 16.600000000034925,
+      "activeP99Ms": 20.70000000001164,
+      "activeRafHz": 177.5,
+      "durationMs": 3202.899999997753,
+      "final": {
+        "expanded": 8999,
+        "index": 2000,
+        "mounted": 106,
+        "playing": false,
+        "position": 60674,
+        "stripNodes": 5739,
+        "totalWidth": 272999,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 2041,
+          "mounted": 105,
+          "p": 61936,
+          "t": -1.2000000022235326
+        },
+        {
+          "gap": 0,
+          "index": 2041,
+          "mounted": 105,
+          "p": 61936,
+          "t": 15.399999997753184
+        },
+        {
+          "gap": 0,
+          "index": 2040,
+          "mounted": 106,
+          "p": 61926.8,
+          "t": 19.699999997741543
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": 1200,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 12,
+      "initial": {
+        "expanded": 8999,
+        "index": 2041,
+        "mounted": 105,
+        "playing": false,
+        "position": 61936,
+        "stripNodes": 5723,
+        "totalWidth": 272999,
+        "viewportWidth": 1152
+      },
+      "label": "8999 columns: backward drag 1200px over 2s",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 25,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 106,
+      "mountedMin": 105,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 0,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 5999.900000000023,
+      "activeP95Ms": 4.2999999999883585,
+      "activeP99Ms": 8.299999999988358,
+      "activeRafHz": 236.00393339888907,
+      "durationMs": 6002.200000000012,
+      "final": {
+        "expanded": 8999,
+        "index": 2014,
+        "mounted": 45,
+        "playing": true,
+        "position": 61128.6,
+        "stripNodes": 2441,
+        "totalWidth": 272999,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 2001,
+          "mounted": 46,
+          "p": 60722.9,
+          "t": 2.2999999999883585
+        },
+        {
+          "gap": 0,
+          "index": 2001,
+          "mounted": 46,
+          "p": 60723.2,
+          "t": 6.5
+        },
+        {
+          "gap": 0,
+          "index": 2001,
+          "mounted": 46,
+          "p": 60723.4,
+          "t": 10.599999999976717
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": null,
+      "id": 13,
+      "initial": {
+        "expanded": 8999,
+        "index": 2001,
+        "mounted": 46,
+        "playing": true,
+        "position": 60722.6,
+        "stripNodes": 2500,
+        "totalWidth": 272999,
+        "viewportWidth": 1152
+      },
+      "label": "8999 columns: normal playback",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 12.5,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 46,
+      "mountedMin": 44,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 17,
+      "activeFramesOver25Ms": 17,
+      "activeMs": 1950,
+      "activeP95Ms": 83.29999999998836,
+      "activeP99Ms": 95.79999999998836,
+      "activeRafHz": 58.46153846153846,
+      "durationMs": 3302.099999999278,
+      "final": {
+        "expanded": 2000,
+        "index": 282,
+        "mounted": 94,
+        "playing": false,
+        "position": 9588,
+        "stripNodes": 5547,
+        "totalWidth": 68000,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 237.1900000000005,
+          "index": 300,
+          "mounted": 94,
+          "p": 8935.81,
+          "t": 2.199999999254942
+        },
+        {
+          "gap": 0,
+          "index": 262,
+          "mounted": 94,
+          "p": 8936.47,
+          "t": 10.4999999992433
+        },
+        {
+          "gap": 0,
+          "index": 262,
+          "mounted": 94,
+          "p": 8938.96,
+          "t": 189.69999999925494
+        }
+      ],
+      "framesWithGap": 1,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -600,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 14,
+      "initial": {
+        "expanded": 2000,
+        "index": 300,
+        "mounted": 94,
+        "playing": false,
+        "position": 8935.81,
+        "stripNodes": 5547,
+        "totalWidth": 68000,
+        "viewportWidth": 1152
+      },
+      "label": "2000 columns: no barlines, forward drag 600px over 2s",
+      "longTaskCount": 20,
+      "longTaskTotalMs": 1796,
+      "maxFrameMs": 179.20000000001164,
+      "maxGapPx": 237.1900000000005,
+      "maxLongTaskMs": 175,
+      "mountedMax": 94,
+      "mountedMin": 94,
+      "included": false,
+      "note": "Excluded from conclusions: the paused transform had not settled at the requested index before pointer-down. Runs 15 and 16 repeat after settling."
+    },
+    {
+      "activeFramesOver16_8Ms": 16,
+      "activeFramesOver25Ms": 16,
+      "activeMs": 1929.2000000000116,
+      "activeP95Ms": 87.5,
+      "activeP99Ms": 99.90000000002328,
+      "activeRafHz": 67.90379431888825,
+      "durationMs": 3300.2999999999884,
+      "final": {
+        "expanded": 2000,
+        "index": 419,
+        "mounted": 94,
+        "playing": false,
+        "position": 14246,
+        "stripNodes": 5547,
+        "totalWidth": 68000,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 400,
+          "mounted": 94,
+          "p": 13600,
+          "t": 0.29999999998835847
+        },
+        {
+          "gap": 0,
+          "index": 400,
+          "mounted": 94,
+          "p": 13600.1,
+          "t": 8.700000000011642
+        },
+        {
+          "gap": 0,
+          "index": 400,
+          "mounted": 94,
+          "p": 13602.6,
+          "t": 17
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -600,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 15,
+      "initial": {
+        "expanded": 2000,
+        "index": 400,
+        "mounted": 94,
+        "playing": false,
+        "position": 13600,
+        "stripNodes": 5547,
+        "totalWidth": 68000,
+        "viewportWidth": 1152
+      },
+      "label": "2000 columns: settled no-barline forward drag",
+      "longTaskCount": 19,
+      "longTaskTotalMs": 1718,
+      "maxFrameMs": 103.90000000002328,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 100,
+      "mountedMax": 94,
+      "mountedMin": 94,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 17,
+      "activeFramesOver25Ms": 17,
+      "activeMs": 1933.3000000000466,
+      "activeP95Ms": 87.5,
+      "activeP99Ms": 104.20000000001164,
+      "activeRafHz": 57.93203331091776,
+      "durationMs": 3302.5,
+      "final": {
+        "expanded": 2000,
+        "index": 400,
+        "mounted": 94,
+        "playing": false,
+        "position": 13600,
+        "stripNodes": 5547,
+        "totalWidth": 68000,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 419,
+          "mounted": 94,
+          "p": 14246,
+          "t": 2.599999999976717
+        },
+        {
+          "gap": 0,
+          "index": 418,
+          "mounted": 94,
+          "p": 14245.2,
+          "t": 15.099999999976717
+        },
+        {
+          "gap": 0,
+          "index": 418,
+          "mounted": 94,
+          "p": 14241.5,
+          "t": 119.29999999998836
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": 600,
+            "durationMs": 2000
+          }
+        ]
+      },
+      "id": 16,
+      "initial": {
+        "expanded": 2000,
+        "index": 419,
+        "mounted": 94,
+        "playing": false,
+        "position": 14246,
+        "stripNodes": 5547,
+        "totalWidth": 68000,
+        "viewportWidth": 1152
+      },
+      "label": "2000 columns: no-barline backward drag",
+      "longTaskCount": 19,
+      "longTaskTotalMs": 1708,
+      "maxFrameMs": 112.39999999996508,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 111,
+      "mountedMax": 94,
+      "mountedMin": 94,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 2,
+      "activeFramesOver25Ms": 1,
+      "activeMs": 8003.900000000023,
+      "activeP95Ms": 12.5,
+      "activeP99Ms": 16.70000000001164,
+      "activeRafHz": 180.53698821824307,
+      "durationMs": 8003.2999999977765,
+      "final": {
+        "expanded": 899,
+        "index": 86,
+        "mounted": 46,
+        "playing": true,
+        "position": 29964.9,
+        "stripNodes": 2622,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 715,
+          "mounted": 45,
+          "p": 21835.5,
+          "t": -0.6000000022468157
+        },
+        {
+          "gap": 0,
+          "index": 715,
+          "mounted": 45,
+          "p": 21839.5,
+          "t": 3.599999997764826
+        },
+        {
+          "gap": 0,
+          "index": 715,
+          "mounted": 45,
+          "p": 21843.3,
+          "t": 7.699999997741543
+        }
+      ],
+      "framesWithGap": 231,
+      "gesture": null,
+      "id": 17,
+      "initial": {
+        "expanded": 899,
+        "index": 715,
+        "mounted": 45,
+        "playing": true,
+        "position": 21831.5,
+        "stripNodes": 2561,
+        "totalWidth": 27299,
+        "viewportWidth": 1152
+      },
+      "label": "899 columns: 300 BPM 1.5x through loop wrap",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 25.100000000034925,
+      "maxGapPx": 74.29999999999927,
+      "maxLongTaskMs": 0,
+      "mountedMax": 46,
+      "mountedMin": 40,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 0,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 5003.900000000023,
+      "activeP95Ms": 4.2999999999883585,
+      "activeP99Ms": 4.399999999965075,
+      "activeRafHz": 238.6138811726842,
+      "durationMs": 5001.0999999985215,
+      "final": {
+        "expanded": 899,
+        "index": 212,
+        "mounted": 20,
+        "playing": true,
+        "position": 6452.64,
+        "stripNodes": 1095,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 201,
+          "mounted": 20,
+          "p": 6111.69,
+          "t": -2.8000000015017577
+        },
+        {
+          "gap": 0,
+          "index": 201,
+          "mounted": 20,
+          "p": 6111.97,
+          "t": 1.299999998533167
+        },
+        {
+          "gap": 0,
+          "index": 201,
+          "mounted": 20,
+          "p": 6112.26,
+          "t": 5.499999998486601
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": null,
+      "id": 18,
+      "initial": {
+        "expanded": 899,
+        "index": 201,
+        "mounted": 20,
+        "playing": true,
+        "position": 6111.42,
+        "stripNodes": 1095,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "label": "390px viewport: normal playback",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 8.5,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 22,
+      "mountedMin": 20,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 3,
+      "activeFramesOver25Ms": 2,
+      "activeMs": 1195.6999999999534,
+      "activeP95Ms": 12.400000000023283,
+      "activeP99Ms": 20.79999999998836,
+      "activeRafHz": 181.48364974492637,
+      "durationMs": 2402.3999999992666,
+      "final": {
+        "expanded": 899,
+        "index": 223,
+        "mounted": 81,
+        "playing": false,
+        "position": 6790,
+        "stripNodes": 4393,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 212,
+          "mounted": 81,
+          "p": 6464.25,
+          "t": 2.599999999278225
+        },
+        {
+          "gap": 0,
+          "index": 212,
+          "mounted": 81,
+          "p": 6464.9,
+          "t": 135.9999999992433
+        },
+        {
+          "gap": 0,
+          "index": 213,
+          "mounted": 81,
+          "p": 6498.25,
+          "t": 148.39999999926658
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -300,
+            "durationMs": 1200
+          }
+        ]
+      },
+      "id": 19,
+      "initial": {
+        "expanded": 899,
+        "index": 212,
+        "mounted": 21,
+        "playing": true,
+        "position": 6464.25,
+        "stripNodes": 1154,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "label": "390px viewport: forward drag 300px",
+      "longTaskCount": 1,
+      "longTaskTotalMs": 125,
+      "maxFrameMs": 133.39999999996508,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 125,
+      "mountedMax": 81,
+      "mountedMin": 80,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 1,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 1195.7999999999884,
+      "activeP95Ms": 8.299999999988358,
+      "activeP99Ms": 16.5,
+      "activeRafHz": 215.75514300050386,
+      "durationMs": 2402.5999999985215,
+      "final": {
+        "expanded": 899,
+        "index": 213,
+        "mounted": 81,
+        "playing": false,
+        "position": 6483,
+        "stripNodes": 4393,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 223,
+          "mounted": 81,
+          "p": 6790,
+          "t": 2.6999999984982423
+        },
+        {
+          "gap": 0,
+          "index": 222,
+          "mounted": 81,
+          "p": 6789.33,
+          "t": 10.899999998509884
+        },
+        {
+          "gap": 0,
+          "index": 222,
+          "mounted": 81,
+          "p": 6787.27,
+          "t": 27.699999998498242
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": 300,
+            "durationMs": 1200
+          }
+        ]
+      },
+      "id": 20,
+      "initial": {
+        "expanded": 899,
+        "index": 223,
+        "mounted": 81,
+        "playing": false,
+        "position": 6790,
+        "stripNodes": 4393,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "label": "390px viewport: backward drag 300px",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 20.79999999998836,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 0,
+      "mountedMax": 81,
+      "mountedMin": 80,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 0,
+      "activeFramesOver25Ms": 0,
+      "activeMs": 6012.299999999988,
+      "activeP95Ms": 8.400000000023283,
+      "activeP99Ms": 12.599999999976717,
+      "activeRafHz": 207.07549523476914,
+      "durationMs": 6005.999999999243,
+      "final": {
+        "expanded": 899,
+        "index": 220,
+        "mounted": 20,
+        "playing": true,
+        "position": 6734.68,
+        "stripNodes": 1147,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 18,
+          "mounted": 20,
+          "p": 606.421,
+          "t": -6.300000000745058
+        },
+        {
+          "gap": 0,
+          "index": 18,
+          "mounted": 20,
+          "p": 614.058,
+          "t": 1.9999999992433004
+        },
+        {
+          "gap": 0,
+          "index": 18,
+          "mounted": 20,
+          "p": 617.83,
+          "t": 6.099999999278225
+        }
+      ],
+      "framesWithGap": 64,
+      "gesture": null,
+      "id": 21,
+      "initial": {
+        "expanded": 899,
+        "index": 18,
+        "mounted": 20,
+        "playing": true,
+        "position": 602.556,
+        "stripNodes": 1149,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "label": "390px viewport: 300 BPM sixteenths at 1.5x",
+      "longTaskCount": 0,
+      "longTaskTotalMs": 0,
+      "maxFrameMs": 16.70000000001164,
+      "maxGapPx": 20.359999999999673,
+      "maxLongTaskMs": 0,
+      "mountedMax": 22,
+      "mountedMin": 20,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 1,
+      "activeFramesOver25Ms": 1,
+      "activeMs": 795.7999999999884,
+      "activeP95Ms": 8.299999999988358,
+      "activeP99Ms": 16.70000000001164,
+      "activeRafHz": 206.08193013320232,
+      "durationMs": 1601.5999999985215,
+      "final": {
+        "expanded": 899,
+        "index": 6,
+        "mounted": 47,
+        "playing": false,
+        "position": 204,
+        "stripNodes": 2564,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 0,
+          "mounted": 40,
+          "p": 38.0677,
+          "t": 1.799999998533167
+        },
+        {
+          "gap": 0,
+          "index": 1,
+          "mounted": 41,
+          "p": 38.4052,
+          "t": 55.9999999984866
+        },
+        {
+          "gap": 0,
+          "index": 1,
+          "mounted": 41,
+          "p": 48.5677,
+          "t": 68.39999999850988
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -150,
+            "durationMs": 800
+          }
+        ]
+      },
+      "id": 22,
+      "initial": {
+        "expanded": 899,
+        "index": 0,
+        "mounted": 11,
+        "playing": true,
+        "position": 38.0677,
+        "stripNodes": 612,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "label": "390px: playback-to-drag grab repeat 1",
+      "longTaskCount": 1,
+      "longTaskTotalMs": 51,
+      "maxFrameMs": 54.199999999953434,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 51,
+      "mountedMax": 47,
+      "mountedMin": 40,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 2,
+      "activeFramesOver25Ms": 1,
+      "activeMs": 795.7000000000116,
+      "activeP95Ms": 4.300000000046566,
+      "activeP99Ms": 20.70000000001164,
+      "activeRafHz": 208.62133970088925,
+      "durationMs": 1602.699999999255,
+      "final": {
+        "expanded": 899,
+        "index": 12,
+        "mounted": 52,
+        "playing": false,
+        "position": 375,
+        "stripNodes": 2859,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 6,
+          "mounted": 47,
+          "p": 240.168,
+          "t": 2.8999999992665835
+        },
+        {
+          "gap": 0,
+          "index": 7,
+          "mounted": 48,
+          "p": 240.712,
+          "t": 65.39999999926658
+        },
+        {
+          "gap": 0,
+          "index": 7,
+          "mounted": 48,
+          "p": 252.43,
+          "t": 86.09999999927823
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -150,
+            "durationMs": 800
+          }
+        ]
+      },
+      "id": 23,
+      "initial": {
+        "expanded": 899,
+        "index": 6,
+        "mounted": 17,
+        "playing": true,
+        "position": 240.168,
+        "stripNodes": 966,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "label": "390px: playback-to-drag grab repeat 2",
+      "longTaskCount": 1,
+      "longTaskTotalMs": 60,
+      "maxFrameMs": 62.5,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 60,
+      "mountedMax": 52,
+      "mountedMin": 47,
+      "included": true
+    },
+    {
+      "activeFramesOver16_8Ms": 1,
+      "activeFramesOver25Ms": 1,
+      "activeMs": 795.9000000000233,
+      "activeP95Ms": 4.300000000046566,
+      "activeP99Ms": 16.600000000034925,
+      "activeRafHz": 206.05603719059582,
+      "durationMs": 1602.2999999970198,
+      "final": {
+        "expanded": 899,
+        "index": 18,
+        "mounted": 58,
+        "playing": false,
+        "position": 546,
+        "stripNodes": 3170,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "firstFrames": [
+        {
+          "gap": 0,
+          "index": 12,
+          "mounted": 52,
+          "p": 409.671,
+          "t": 2.3999999969964847
+        },
+        {
+          "gap": 0,
+          "index": 13,
+          "mounted": 53,
+          "p": 410.121,
+          "t": 69.09999999700813
+        },
+        {
+          "gap": 0,
+          "index": 13,
+          "mounted": 53,
+          "p": 422.627,
+          "t": 85.69999999704305
+        }
+      ],
+      "framesWithGap": 0,
+      "gesture": {
+        "segments": [
+          {
+            "deltaPx": -150,
+            "durationMs": 800
+          }
+        ]
+      },
+      "id": 24,
+      "initial": {
+        "expanded": 899,
+        "index": 12,
+        "mounted": 20,
+        "playing": true,
+        "position": 409.671,
+        "stripNodes": 1095,
+        "totalWidth": 27299,
+        "viewportWidth": 390
+      },
+      "label": "390px: playback-to-drag grab repeat 3",
+      "longTaskCount": 1,
+      "longTaskTotalMs": 64,
+      "maxFrameMs": 66.70000000001164,
+      "maxGapPx": 0,
+      "maxLongTaskMs": 64,
+      "mountedMax": 58,
+      "mountedMin": 52,
+      "included": true
+    }
+  ],
+  "loopReversal": {
+    "input": "At index 885 of 899 columns, drag 17px forward, then 8 successive 1px backward samples, allowing two rAFs between samples.",
+    "samples": [
+      {
+        "step": "initial",
+        "index": 885,
+        "position": 26856
+      },
+      {
+        "step": "forward17",
+        "index": 885,
+        "position": 26873
+      },
+      {
+        "step": "backward1",
+        "index": 885,
+        "position": 26856
+      },
+      {
+        "step": "backward2",
+        "index": 884,
+        "position": 26822
+      },
+      {
+        "step": "backward3",
+        "index": 883,
+        "position": 26788
+      },
+      {
+        "step": "backward4",
+        "index": 882,
+        "position": 26754
+      },
+      {
+        "step": "backward5",
+        "index": 881,
+        "position": 26753
+      },
+      {
+        "step": "backward6",
+        "index": 880,
+        "position": 26719
+      },
+      {
+        "step": "backward7",
+        "index": 879,
+        "position": 26685
+      },
+      {
+        "step": "backward8",
+        "index": 878,
+        "position": 26684
+      }
+    ],
+    "backwardInputPx": 8,
+    "backwardStripTravelPx": 189
+  },
+  "staticVirtualization": {
+    "full": {
+      "bodies": [
+        {
+          "height": 5525,
+          "rows": 900
+        }
+      ],
+      "height": 5818,
+      "nodes": 43937,
+      "ready": "true",
+      "viewport": [1280, 800]
+    },
+    "virtualized": {
+      "samples": [
+        {
+          "bodyHeight": 5525,
+          "fraction": 0,
+          "height": 5818,
+          "mountedRows": 5,
+          "nodes": 9044,
+          "visibleRows": 3,
+          "y": 0
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0.2,
+          "height": 5818,
+          "mountedRows": 7,
+          "nodes": 12708,
+          "visibleRows": 5,
+          "y": 1004
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0.4,
+          "height": 5818,
+          "mountedRows": 8,
+          "nodes": 14519,
+          "visibleRows": 4,
+          "y": 2007
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0.6,
+          "height": 5818,
+          "mountedRows": 7,
+          "nodes": 12708,
+          "visibleRows": 5,
+          "y": 3011
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0.8,
+          "height": 5818,
+          "mountedRows": 7,
+          "nodes": 12708,
+          "visibleRows": 5,
+          "y": 4014
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 1,
+          "height": 5818,
+          "mountedRows": 5,
+          "nodes": 7765,
+          "visibleRows": 4,
+          "y": 5018
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0.8,
+          "height": 5818,
+          "mountedRows": 7,
+          "nodes": 12708,
+          "visibleRows": 5,
+          "y": 4014
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0.6,
+          "height": 5818,
+          "mountedRows": 7,
+          "nodes": 12708,
+          "visibleRows": 5,
+          "y": 3011
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0.4,
+          "height": 5818,
+          "mountedRows": 8,
+          "nodes": 14519,
+          "visibleRows": 4,
+          "y": 2007
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0.2,
+          "height": 5818,
+          "mountedRows": 7,
+          "nodes": 12708,
+          "visibleRows": 5,
+          "y": 1004
+        },
+        {
+          "bodyHeight": 5525,
+          "fraction": 0,
+          "height": 5818,
+          "mountedRows": 5,
+          "nodes": 9044,
+          "visibleRows": 3,
+          "y": 0
+        }
+      ],
+      "viewport": [1280, 800]
+    },
+    "note": "Huge 899-column fixture, bare=1, desktop, 11 forward/backward scroll positions; no empty visible rows or height changes."
+  },
+  "savedProbeConfirmation": {
+    "final": {
+      "expanded": 899,
+      "index": 184,
+      "mounted": 21,
+      "playbackSpeed": 1.5,
+      "playing": true,
+      "position": 5645.3,
+      "stripNodes": 1210,
+      "totalWidth": 27299,
+      "viewportWidth": 390
+    },
+    "framesWithGap": 12,
+    "initial": {
+      "expanded": 899,
+      "index": 14,
+      "mounted": 21,
+      "playbackSpeed": 1.5,
+      "playing": true,
+      "position": 527.751,
+      "stripNodes": 1165,
+      "totalWidth": 27299,
+      "viewportWidth": 390
+    },
+    "label": "Final saved probe: narrow fast-playback coverage",
+    "maxGapPx": 18.899999999999636,
+    "samples": 1159
+  },
+  "savedProbeLoopReversalConfirmation": {
+    "backwardInputPx": 8,
+    "backwardStripTravelPx": 189,
+    "samples": [
+      {
+        "index": 885,
+        "position": 26856,
+        "step": "initial"
+      },
+      {
+        "index": 885,
+        "position": 26873,
+        "step": "forward17"
+      },
+      {
+        "index": 885,
+        "position": 26856,
+        "step": "backward1"
+      },
+      {
+        "index": 884,
+        "position": 26822,
+        "step": "backward2"
+      },
+      {
+        "index": 883,
+        "position": 26788,
+        "step": "backward3"
+      },
+      {
+        "index": 882,
+        "position": 26754,
+        "step": "backward4"
+      },
+      {
+        "index": 881,
+        "position": 26753,
+        "step": "backward5"
+      },
+      {
+        "index": 880,
+        "position": 26719,
+        "step": "backward6"
+      },
+      {
+        "index": 879,
+        "position": 26685,
+        "step": "backward7"
+      },
+      {
+        "index": 878,
+        "position": 26684,
+        "step": "backward8"
+      }
+    ],
+    "state": {
+      "countIn": {
+        "forSectionContainer": null,
+        "showing": false
+      },
+      "metadata": 899,
+      "show": true,
+      "view": "Practice",
+      "width": 1152
+    },
+    "viewport": [1280, 800]
+  },
+  "excludedAdditionalProbes": [
+    {
+      "scenario": "Loop reversal after switching the same tab from narrow portrait to desktop landscape and replacing its fixture",
+      "reason": "Requested index was 885, but the strip remained at position 0 and pointer events did not move it; setup was not ready. This is not a valid reversal measurement. Fresh desktop-page repetition with the saved probe reproduced the original 189px result. Resize/orientation recovery requires separate isolation.",
+      "result": {
+        "backwardInputPx": 8,
+        "backwardStripTravelPx": 0,
+        "samples": [
+          {
+            "index": 885,
+            "position": 0,
+            "step": "initial"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "forward17"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "backward1"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "backward2"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "backward3"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "backward4"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "backward5"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "backward6"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "backward7"
+          },
+          {
+            "index": 885,
+            "position": 0,
+            "step": "backward8"
+          }
+        ],
+        "viewport": [1280, 800]
+      }
+    }
+  ]
+}

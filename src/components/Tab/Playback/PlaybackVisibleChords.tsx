@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useMemo, useState, type RefObject } from "react";
 import {
   type PlaybackLoopDelaySpacerChord,
   type PlaybackStrummedChord,
@@ -6,33 +6,24 @@ import {
   useTabStore,
 } from "~/stores/TabStore";
 import { isLoopRangeChordDimmed } from "~/utils/loopRangeHelpers";
-
-/** Extra pixels beyond the viewport for chord mount/unmount hysteresis. */
-const VIRTUALIZATION_BUFFER = 100;
-
-/**
- * While playing, refresh the visibility window from the live scroll position
- * at this interval so we are not tied to the 25ms-polled currentChordIndex
- * (which lags the strip at loop wraps).
- */
-const PLAYING_VISIBILITY_REFRESH_MS = 100;
-
-interface ChordLayoutData {
-  scrollPositions: number[];
-  chordWidths: number[];
-  totalWidth: number;
-  durations: number[];
-}
+import {
+  closestPlaybackChordPosition,
+  playbackOverscanPx,
+  visiblePlaybackCopies,
+  type PlaybackViewportLayout,
+} from "~/utils/playbackViewport";
 
 interface PlaybackVisibleChords {
-  chordLayoutData: ChordLayoutData;
+  chordLayoutData: PlaybackViewportLayout;
   expandedTabData: (
     PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord
   )[];
   chordRepetitions: number[];
   initialPlaceholderWidth: number;
   loopDelay: number;
-  scrollPositionRef?: React.RefObject<number>;
+  scrollPositionRef: RefObject<number>;
+  positionReaderRef: RefObject<(() => number | null) | null>;
+  isGlideScrubbing: boolean;
   renderChord: (props: {
     chord:
       PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
@@ -55,6 +46,8 @@ function PlaybackVisibleChords({
   initialPlaceholderWidth,
   loopDelay,
   scrollPositionRef,
+  positionReaderRef,
+  isGlideScrubbing,
   renderChord,
 }: PlaybackVisibleChords) {
   const {
@@ -73,179 +66,114 @@ function PlaybackVisibleChords({
     draftLoopEndIndex: state.draftLoopEndIndex,
   }));
 
-  // Throttled mirror of the compositor scroll position for visibility culling
-  // while playing. Avoids depending on lagged currentChordIndex at loop wraps.
-  const [playingScrollPosition, setPlayingScrollPosition] = useState(0);
+  const { scrollPositions, totalWidth, chordWidths } = chordLayoutData;
+  const pausedPosition =
+    (scrollPositions[currentChordIndex] ?? 0) +
+    (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
+  const moving = audioMetadata.playing || isGlideScrubbing;
+  const anchorPosition = moving ? null : pausedPosition;
+  const overscan = useMemo(
+    () => playbackOverscanPx(chordLayoutData),
+    [chordLayoutData],
+  );
+  const [windowCenter, setWindowCenter] = useState(pausedPosition);
 
-  useEffect(() => {
-    if (!audioMetadata.playing || !scrollPositionRef) {
-      return;
-    }
+  useLayoutEffect(() => {
+    let rafId = 0;
+    const refresh = (force: boolean) => {
+      const position = audioMetadata.playing
+        ? (positionReaderRef.current?.() ?? scrollPositionRef.current)
+        : (anchorPosition ?? scrollPositionRef.current);
+      // Fresh timeline sampling is cheap. React only moves the mounted window
+      // after consuming a third of its buffer, leaving headroom for the commit.
+      setWindowCenter((previous) =>
+        force || Math.abs(position - previous) >= overscan / 3
+          ? position
+          : previous,
+      );
+      if (moving) rafId = requestAnimationFrame(() => refresh(false));
+    };
+    refresh(true);
+    return () => cancelAnimationFrame(rafId);
+  }, [
+    anchorPosition,
+    audioMetadata.playing,
+    chordLayoutData,
+    moving,
+    overscan,
+    positionReaderRef,
+    scrollPositionRef,
+  ]);
 
-    setPlayingScrollPosition(scrollPositionRef.current);
-
-    const intervalId = window.setInterval(() => {
-      setPlayingScrollPosition(scrollPositionRef.current);
-    }, PLAYING_VISIBILITY_REFRESH_MS);
-
-    return () => window.clearInterval(intervalId);
-  }, [audioMetadata.playing, scrollPositionRef]);
-
-  function getChordScrollPosition(index: number) {
-    const { scrollPositions, totalWidth } = chordLayoutData;
-    return (
-      (scrollPositions[index] ?? 0) +
-      (chordRepetitions[index] ?? 0) * totalWidth
-    );
-  }
-
-  function isChordHighlighted(chordIndex: number): boolean {
-    if (!currentlyPlayingMetadata) {
-      return false;
-    }
-
-    // Prefer live index/playing state even if chordRepetitions is briefly
-    // empty during modal reinitialization after orientation/tab switches.
-    if (currentChordIndex === chordIndex && audioMetadata.playing) {
-      return true;
-    }
-
-    if (chordRepetitions.length === 0) {
-      return chordIndex < currentChordIndex;
-    }
-
-    const chordRep = chordRepetitions[chordIndex] ?? 0;
-    const currentRep = chordRepetitions[currentChordIndex] ?? 0;
-
-    if (chordRep < currentRep) {
-      return true;
-    }
-
-    if (chordRep === currentRep && chordIndex < currentChordIndex) {
-      return true;
-    }
-
-    return false;
-  }
-
-  const { scrollPositions, chordWidths, totalWidth } = chordLayoutData;
-
-  // v TODO: verify if this is a path that can ever be hit v
-  // Until the modal has a measured width, mount a small window around the
-  // current chord so we never paint an empty strip during remeasure/orientation.
-  let visibleChords;
-  if (visiblePlaybackContainerWidth <= 0) {
-    const fallbackStart = Math.max(0, currentChordIndex - 8);
-    const fallbackEnd = Math.min(
-      expandedTabData.length,
-      currentChordIndex + 16,
-    );
-
-    visibleChords = expandedTabData
-      .slice(fallbackStart, fallbackEnd)
-      .map((chord, offset) => {
-        const index = fallbackStart + offset;
-        return {
-          chord,
-          index,
-          prevChord: expandedTabData[index - 1],
-          nextChord: expandedTabData[index + 1],
-          isFirstChordInTab:
-            index === 0 &&
-            (loopDelay !== 0 || (chordRepetitions[0] ?? 0) === 0),
-          isLastChordInTab:
-            index === expandedTabData.length - 1 && loopDelay !== 0,
-        };
-      });
-  } else {
-    const currentPosition = audioMetadata.playing
-      ? playingScrollPosition
-      : (scrollPositions[currentChordIndex] ?? 0) +
-        (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
-
-    const dynamicVirtualizationBuffer = audioMetadata.playing
-      ? VIRTUALIZATION_BUFFER
-      : VIRTUALIZATION_BUFFER * 10;
-
-    const halfViewport = visiblePlaybackContainerWidth / 2;
-
-    const minVisiblePosition =
-      currentPosition - halfViewport - dynamicVirtualizationBuffer;
-
-    const maxVisiblePosition =
-      currentPosition + halfViewport + dynamicVirtualizationBuffer;
-
-    visibleChords = expandedTabData.flatMap((chord, index) => {
-      const left =
-        (scrollPositions[index] ?? 0) +
-        (chordRepetitions[index] ?? 0) * totalWidth;
-      const right = left + (chordWidths[index] ?? 0);
-
-      if (right < minVisiblePosition || left > maxVisiblePosition) {
-        return [];
-      }
-
-      const isFirstChordInFirstLoop =
-        index === 0 && (chordRepetitions[0] ?? 0) === 0;
-
-      return [
-        {
-          chord,
-          index,
-          prevChord: expandedTabData[index - 1],
-          nextChord: expandedTabData[index + 1],
-          isFirstChordInTab:
-            chord.isFirstChordInTab === true &&
-            (loopDelay !== 0 || isFirstChordInFirstLoop),
-          isLastChordInTab: chord.isLastChordInTab === true && loopDelay !== 0,
-        },
-      ];
-    });
-  }
+  const center = anchorPosition ?? windowCenter;
+  const visibleChords = useMemo(
+    () =>
+      visiblePlaybackCopies(
+        chordLayoutData,
+        center,
+        visiblePlaybackContainerWidth,
+        overscan,
+      ),
+    [chordLayoutData, center, visiblePlaybackContainerWidth, overscan],
+  );
+  const activePosition = closestPlaybackChordPosition(
+    currentChordIndex,
+    scrollPositions,
+    totalWidth,
+    center,
+  );
+  const activeRepetition =
+    totalWidth > 0
+      ? Math.round(
+          (activePosition - (scrollPositions[currentChordIndex] ?? 0)) /
+            totalWidth,
+        )
+      : 0;
 
   return (
     <>
-      {visibleChords.map(
-        ({
-          chord,
-          index,
-          prevChord,
-          nextChord,
-          isFirstChordInTab,
-          isLastChordInTab,
-        }) => {
-          const isDimmed = audioMetadata.editingLoopRange
-            ? isLoopRangeChordDimmed({
-                index,
-                draftStartIndex: draftLoopStartIndex,
-                draftEndIndex: draftLoopEndIndex,
-              })
-            : false;
-
-          return (
-            <div
-              key={index}
-              style={{
-                position: "absolute",
-                width: `${chordLayoutData.chordWidths[index] ?? 0}px`,
-                left: `${getChordScrollPosition(index) + initialPlaceholderWidth}px`,
-              }}
-            >
-              {renderChord({
-                chord,
-                index,
-                prevChord,
-                nextChord,
-                isFirstChordInTab,
-                isLastChordInTab,
-                isDimmed,
-                isHighlighted:
-                  !audioMetadata.editingLoopRange && isChordHighlighted(index),
-              })}
-            </div>
-          );
-        },
-      )}
+      {visibleChords.map(({ index, repetition, left }) => {
+        const chord = expandedTabData[index];
+        if (!chord) return null;
+        const isDimmed = audioMetadata.editingLoopRange
+          ? isLoopRangeChordDimmed({
+              index,
+              draftStartIndex: draftLoopStartIndex,
+              draftEndIndex: draftLoopEndIndex,
+            })
+          : false;
+        const isHighlighted =
+          !!currentlyPlayingMetadata &&
+          !audioMetadata.editingLoopRange &&
+          (repetition < activeRepetition ||
+            (repetition === activeRepetition &&
+              (index < currentChordIndex ||
+                (index === currentChordIndex && audioMetadata.playing))));
+        return (
+          <div
+            key={repetition + ":" + index}
+            style={{
+              position: "absolute",
+              width: (chordWidths[index] ?? 0) + "px",
+              left: left + initialPlaceholderWidth + "px",
+            }}
+          >
+            {renderChord({
+              chord,
+              index,
+              prevChord: expandedTabData[index - 1],
+              nextChord: expandedTabData[index + 1],
+              isFirstChordInTab:
+                chord.isFirstChordInTab === true &&
+                (loopDelay !== 0 || (index === 0 && repetition === 0)),
+              isLastChordInTab:
+                chord.isLastChordInTab === true && loopDelay !== 0,
+              isDimmed,
+              isHighlighted,
+            })}
+          </div>
+        );
+      })}
     </>
   );
 }

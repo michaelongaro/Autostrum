@@ -12,15 +12,9 @@ import {
   coastDistanceBudgetForVelocity,
   coastDurationBudgetForVelocity,
   FLING_START_VELOCITY_PX_PER_MS,
-  getAbsoluteChordPosition,
-  getAbsoluteChordPositionBounds,
-  getChordIndexAtPlayhead,
-  getNearestChordIndex,
   getStripTransform,
-  halfShiftRepetitionsForNextLoop,
   integrateCriticallyDampedSpringStep,
   integrateIosCoastStep,
-  isVisuallyForwardIndexChange,
   IOS_REST_VELOCITY_PX_PER_MS,
   MAX_COAST_DURATION_MS,
   MAX_SCRUB_VELOCITY_PX_PER_MS,
@@ -31,6 +25,12 @@ import {
   velocityToReachIosCoastDestination,
 } from "~/utils/playbackScrubMath";
 import { parseStripPositionPx } from "~/utils/playbackStripMotion";
+import {
+  closestPlaybackChordPosition,
+  nearestPlaybackChordIndex,
+  playbackChordIndexAtPosition,
+  playbackRepetitionAtPosition,
+} from "~/utils/playbackViewport";
 
 /** Cap a single frame so backgrounding cannot fling the strip. */
 const MAX_FRAME_DELTA_MS = 32;
@@ -58,12 +58,6 @@ const SNAP_SETTLED_DISTANCE_PX = 0.35;
 const SNAP_SETTLE_MIN_MS = 120;
 
 /**
- * Coast velocity must be at least this negative (px/ms) before we treat a
- * position decrease as an intentional backward scrub for rep resets.
- */
-const BACKWARD_RESET_VELOCITY_PX_PER_MS = -0.05;
-
-/**
  * Safety cap so a pathological spring cannot run forever if floats drift.
  * Ceiling matches the most aggressive coast budget so Play is never blocked
  * longer than a max-velocity fling would already allow.
@@ -83,9 +77,6 @@ interface UsePlaybackGlideScrubArgs {
   scrollPositions: number[] | null;
   chordRepetitions: number[];
   totalWidth: number;
-  /** Same threshold PlaybackModal uses for primary virtualization half-shift. */
-  virtualizationStartIndex: number;
-  canVirtualize: boolean;
   currentChordIndex: number;
   setCurrentChordIndex: (index: number) => void;
   setChordRepetitions: (repetitions: number[]) => void;
@@ -101,9 +92,8 @@ interface UsePlaybackGlideScrubArgs {
  * rAF-coalesced 1:1 finger tracking → iOS exponential deceleration with a
  * soft velocity-space destination pull → critically-damped spring settle.
  *
- * Forward scrubbing can enter the next artificial loop via half-shift.
- * Backward scrubbing resets chordRepetitions to all zeros (virtualization only
- * handles forward movement) and remaps the playhead onto the base loop.
+ * Both directions use one continuous absolute coordinate. Visible loop copies
+ * are mounted independently, so reversing never rebases/quantizes the pointer.
  */
 function usePlaybackGlideScrub({
   stripRef,
@@ -112,8 +102,6 @@ function usePlaybackGlideScrub({
   scrollPositions,
   chordRepetitions,
   totalWidth,
-  virtualizationStartIndex,
-  canVirtualize,
   currentChordIndex,
   setCurrentChordIndex,
   setChordRepetitions,
@@ -127,8 +115,6 @@ function usePlaybackGlideScrub({
   const scrollPositionsRef = useRef(scrollPositions);
   const chordRepetitionsRef = useRef(chordRepetitions);
   const totalWidthRef = useRef(totalWidth);
-  const virtualizationStartIndexRef = useRef(virtualizationStartIndex);
-  const canVirtualizeRef = useRef(canVirtualize);
   const containerWidthRef = useRef(containerWidthPx);
 
   const isTouchingRef = useRef(false);
@@ -141,12 +127,6 @@ function usePlaybackGlideScrub({
   /** Unconstrained playhead position (before rubber-band display mapping). */
   const positionRef = useRef(0);
   const velocityPxPerMsRef = useRef(0);
-  /**
-   * Finger/coast intent: -1 = backward through the tab (position decreasing),
-   * +1 = forward. Used so spring micro-corrections cannot trigger the
-   * backward chordRepetitions reset.
-   */
-  const scrubDirectionRef = useRef<-1 | 0 | 1>(0);
   const samplesRef = useRef<VelocitySample[]>([]);
   const rafIdRef = useRef<number | null>(null);
   const trackingRafIdRef = useRef<number | null>(null);
@@ -181,8 +161,7 @@ function usePlaybackGlideScrub({
     scrollPositionsRef.current = scrollPositions;
   }, [scrollPositions]);
 
-  // Layout so half-shifts from PlaybackModal are visible to the next pointer
-  // sample in the same frame (useEffect would lag one paint).
+  // Layout so session/loop changes are visible to the next pointer sample.
   useLayoutEffect(() => {
     chordRepetitionsRef.current = chordRepetitions;
   }, [chordRepetitions]);
@@ -190,14 +169,6 @@ function usePlaybackGlideScrub({
   useEffect(() => {
     totalWidthRef.current = totalWidth;
   }, [totalWidth]);
-
-  useEffect(() => {
-    virtualizationStartIndexRef.current = virtualizationStartIndex;
-  }, [virtualizationStartIndex]);
-
-  useEffect(() => {
-    canVirtualizeRef.current = canVirtualize;
-  }, [canVirtualize]);
 
   useEffect(() => {
     containerWidthRef.current = containerWidthPx;
@@ -218,144 +189,37 @@ function usePlaybackGlideScrub({
 
   function getPositionBounds() {
     const positions = scrollPositionsRef.current;
-    const repetitions = chordRepetitionsRef.current;
-    const width = totalWidthRef.current;
 
     if (!positions || positions.length === 0) {
       return { min: 0, max: 0 };
     }
 
-    return getAbsoluteChordPositionBounds(positions, repetitions, width);
+    // The Practice strip loops forward indefinitely; only its very beginning
+    // has an edge. Crossing a loop in reverse must not create a rubber band.
+    return { min: 0, max: Number.POSITIVE_INFINITY };
   }
 
-  function getRubberBandDimension(min: number, max: number) {
-    return Math.max(1, containerWidthRef.current || max - min || 320);
+  function getRubberBandDimension() {
+    return Math.max(1, containerWidthRef.current || 320);
   }
 
-  function commitRepetitions(next: number[]) {
+  function syncRepetition(positionPx: number) {
+    const length = scrollPositionsRef.current?.length ?? 0;
+    const repetition = playbackRepetitionAtPosition(
+      positionPx,
+      totalWidthRef.current,
+    );
     const current = chordRepetitionsRef.current;
-    const changed = next.some((rep, index) => rep !== (current[index] ?? 0));
-    if (!changed) return false;
+    if (
+      length === 0 ||
+      (current.length === length &&
+        current[0] === repetition &&
+        current[length - 1] === repetition)
+    )
+      return;
+    const next = new Array<number>(length).fill(repetition);
     chordRepetitionsRef.current = next;
     setChordRepetitions(next);
-    return true;
-  }
-
-  /**
-   * True only for intentional backward scrubbing — not spring pullback
-   * during a forward coast, and not forward loop wraps (last → 0).
-   */
-  function isIntentionalBackwardScrub() {
-    // Snap-settle / overscroll spring-back can move position backward toward a
-    // nearby chord without being an intentional backward scrub.
-    if (isSpringBackRef.current || isSnapSettlingRef.current) return false;
-
-    if (isTouchingRef.current) {
-      return scrubDirectionRef.current === -1;
-    }
-
-    if (isCoastingRef.current) {
-      return velocityPxPerMsRef.current <= BACKWARD_RESET_VELOCITY_PX_PER_MS;
-    }
-
-    return scrubDirectionRef.current === -1;
-  }
-
-  /**
-   * Forward only: when the playhead crosses into the next loop, half-shift /
-   * bump repetitions so scrubbing can continue continuously.
-   */
-  function ensureNextLoopRepetitions(positionPx: number) {
-    const positions = scrollPositionsRef.current;
-    const width = totalWidthRef.current;
-    if (!positions || positions.length === 0 || width <= 0) return;
-
-    for (let guard = 0; guard < 4; guard++) {
-      const repetitions = chordRepetitionsRef.current;
-      const firstRep = repetitions[0] ?? 0;
-      const lastRep = repetitions[positions.length - 1] ?? 0;
-
-      // Already spanning current→next loop via primary virtualization.
-      if (firstRep !== lastRep) return;
-
-      const nextLoopStart = firstRep * width + width;
-      if (positionPx < nextLoopStart - 0.5) return;
-
-      const shifted = canVirtualizeRef.current
-        ? halfShiftRepetitionsForNextLoop(
-            repetitions,
-            virtualizationStartIndexRef.current,
-          )
-        : (new Array(positions.length).fill(firstRep + 1) as number[]);
-      if (!commitRepetitions(shifted)) return;
-    }
-  }
-
-  /**
-   * Virtualization only handles forward movement. On an intentional backward
-   * scrub while any chord is on a non-zero repetition, reset all reps to 0 and
-   * remap the playhead onto that chord in the base loop.
-   */
-  function maybeResetRepetitionsOnBackwardScrub(
-    previousPositionPx: number,
-    nextPositionPx: number,
-  ): number {
-    if (nextPositionPx >= previousPositionPx) {
-      return nextPositionPx;
-    }
-
-    if (!isIntentionalBackwardScrub()) {
-      return nextPositionPx;
-    }
-
-    const positions = scrollPositionsRef.current;
-    const repetitions = chordRepetitionsRef.current;
-    const width = totalWidthRef.current;
-    if (!positions || positions.length === 0) {
-      return nextPositionPx;
-    }
-
-    const hasNonZeroRep = repetitions.some((rep) => rep !== 0);
-    if (!hasNonZeroRep) {
-      return nextPositionPx;
-    }
-
-    const previousIndex = currentChordIndexRef.current;
-    const indexAtNext = getChordIndexAtPlayhead(
-      nextPositionPx,
-      positions,
-      repetitions,
-      width,
-    );
-
-    // Forward loop wraps also decrease index (last → 0) but increase absolute
-    // position — never reset those.
-    if (
-      isVisuallyForwardIndexChange(
-        previousIndex,
-        indexAtNext,
-        positions,
-        repetitions,
-        width,
-      )
-    ) {
-      return nextPositionPx;
-    }
-
-    const resetRepetitions = new Array(positions.length).fill(0) as number[];
-    commitRepetitions(resetRepetitions);
-
-    const remappedPosition = getAbsoluteChordPosition(
-      indexAtNext,
-      positions,
-      resetRepetitions,
-      width,
-    );
-
-    currentChordIndexRef.current = indexAtNext;
-    setCurrentChordIndex(indexAtNext);
-
-    return remappedPosition;
   }
 
   /**
@@ -388,7 +252,7 @@ function usePlaybackGlideScrub({
   }
 
   /**
-   * Apply a new unconstrained position: update loop layout, rubber-band the
+   * Apply a new unconstrained position: rubber-band the
    * displayed transform, keep positionRef as the logical playhead.
    * When `deferDisplayWrite` is set, only update refs — the tracking rAF
    * paints once per frame for steadier translateX pacing.
@@ -398,20 +262,10 @@ function usePlaybackGlideScrub({
     rubberBand: boolean,
     deferDisplayWrite = false,
   ) {
-    const nextUnconstrained = maybeResetRepetitionsOnBackwardScrub(
-      positionRef.current,
-      unconstrainedPositionPx,
-    );
+    const nextUnconstrained = unconstrainedPositionPx;
+    const { min, max } = getPositionBounds();
 
-    let { min, max } = getPositionBounds();
-    const loopWidth = Math.max(0, totalWidthRef.current);
-
-    // Allow one loop-width of forward slack so next-loop half-shift can run
-    // without letting rubber-band overscroll invent unbounded loops.
-    ensureNextLoopRepetitions(clamp(nextUnconstrained, min, max + loopWidth));
-    ({ min, max } = getPositionBounds());
-
-    const dimension = getRubberBandDimension(min, max);
+    const dimension = getRubberBandDimension();
 
     if (rubberBand) {
       positionRef.current = nextUnconstrained;
@@ -438,53 +292,19 @@ function usePlaybackGlideScrub({
 
   function syncChordIndexFromPosition(positionPx: number) {
     const positions = scrollPositionsRef.current;
-    const repetitions = chordRepetitionsRef.current;
     const width = totalWidthRef.current;
 
     if (!positions || positions.length === 0) return;
 
-    const nextIndex = getChordIndexAtPlayhead(
+    syncRepetition(positionPx);
+    const nextIndex = playbackChordIndexAtPosition(
       positionPx,
       positions,
-      repetitions,
       width,
     );
     const previousIndex = currentChordIndexRef.current;
 
     if (nextIndex === previousIndex) return;
-
-    const visuallyForward = isVisuallyForwardIndexChange(
-      previousIndex,
-      nextIndex,
-      positions,
-      repetitions,
-      width,
-    );
-
-    // Only reset on intentional backward scrub — never on forward loop wraps
-    // (last → 0) or spring pullback during a forward coast.
-    if (
-      nextIndex < previousIndex &&
-      !visuallyForward &&
-      isIntentionalBackwardScrub()
-    ) {
-      const hasNonZeroRep = repetitions.some((rep) => rep !== 0);
-      if (hasNonZeroRep) {
-        const resetRepetitions = new Array(positions.length).fill(
-          0,
-        ) as number[];
-        commitRepetitions(resetRepetitions);
-
-        const remappedPosition = getAbsoluteChordPosition(
-          nextIndex,
-          positions,
-          resetRepetitions,
-          width,
-        );
-        positionRef.current = remappedPosition;
-        writeTransform(remappedPosition);
-      }
-    }
 
     currentChordIndexRef.current = nextIndex;
     setCurrentChordIndex(nextIndex);
@@ -509,8 +329,7 @@ function usePlaybackGlideScrub({
     const latest = samples[samples.length - 1]!;
     const windowStart = latest.timeMs - VELOCITY_SAMPLE_WINDOW_MS;
     let earliestInWindow: VelocitySample | null = null;
-    for (let i = 0; i < samples.length; i++) {
-      const sample = samples[i]!;
+    for (const sample of samples) {
       if (sample.timeMs >= windowStart) {
         earliestInWindow = sample;
         break;
@@ -573,20 +392,17 @@ function usePlaybackGlideScrub({
     samplesRef.current = [];
 
     const positions = scrollPositionsRef.current;
-    const repetitions = chordRepetitionsRef.current;
     const width = totalWidthRef.current;
 
     if (positions && positions.length > 0) {
-      // Do not reset repetitions here. Forward loop wraps (last → 0) and
-      // spring corrections can also lower the index; resets are handled only by
-      // intentional-backward paths during the gesture/coast.
-      const finalPosition = getAbsoluteChordPosition(
+      const finalPosition = closestPlaybackChordPosition(
         finalIndex,
         positions,
-        repetitions,
         width,
+        positionRef.current,
       );
       positionRef.current = finalPosition;
+      syncRepetition(finalPosition);
       writeTransform(finalPosition);
       currentChordIndexRef.current = finalIndex;
       setCurrentChordIndex(finalIndex);
@@ -597,42 +413,28 @@ function usePlaybackGlideScrub({
       strip.style.willChange = "auto";
     }
 
-    scrubDirectionRef.current = 0;
     setIsGlideScrubbing(false);
   }
 
   function retargetSnapFromProjectedPosition(projectedPx: number) {
     const positions = scrollPositionsRef.current;
-    const repetitions = chordRepetitionsRef.current;
     const width = totalWidthRef.current;
     if (!positions || positions.length === 0) return;
 
     const { min, max } = getPositionBounds();
     const clampedProjected = clamp(projectedPx, min, max);
-    const snapIndex = getNearestChordIndex(
+    const snapIndex = nearestPlaybackChordIndex(
       clampedProjected,
       positions,
-      repetitions,
       width,
     );
     coastSnapIndexRef.current = snapIndex;
-    coastSnapTargetRef.current = getAbsoluteChordPosition(
+    coastSnapTargetRef.current = closestPlaybackChordPosition(
       snapIndex,
       positions,
-      repetitions,
       width,
+      clampedProjected,
     );
-  }
-
-  function retargetSnapFromCurrentPosition() {
-    const budget = coastDistanceBudgetForVelocity(velocityPxPerMsRef.current);
-    const projected = projectCoastPositionWithDistanceBudget(
-      positionRef.current,
-      velocityPxPerMsRef.current,
-      budget,
-      SCRUB_COAST_DECELERATION_RATE,
-    );
-    retargetSnapFromProjectedPosition(projected);
   }
 
   /**
@@ -641,7 +443,6 @@ function usePlaybackGlideScrub({
    */
   function finishAtPlayheadChord() {
     const positions = scrollPositionsRef.current;
-    const repetitions = chordRepetitionsRef.current;
     const width = totalWidthRef.current;
     if (!positions || positions.length === 0) {
       finishScrub(currentChordIndexRef.current);
@@ -650,31 +451,27 @@ function usePlaybackGlideScrub({
 
     velocityPxPerMsRef.current = 0;
     coastInitialSpeedRef.current = 0;
-    scrubDirectionRef.current = 0;
-
-    const playheadIndex = getChordIndexAtPlayhead(
+    const playheadIndex = playbackChordIndexAtPosition(
       positionRef.current,
       positions,
-      repetitions,
       width,
     );
-    const nearestIndex = getNearestChordIndex(
+    const nearestIndex = nearestPlaybackChordIndex(
       positionRef.current,
       positions,
-      repetitions,
       width,
     );
-    const playheadPos = getAbsoluteChordPosition(
+    const playheadPos = closestPlaybackChordPosition(
       playheadIndex,
       positions,
-      repetitions,
       width,
+      positionRef.current,
     );
-    const nearestPos = getAbsoluteChordPosition(
+    const nearestPos = closestPlaybackChordPosition(
       nearestIndex,
       positions,
-      repetitions,
       width,
+      positionRef.current,
     );
 
     // Prefer the nearest chord when it's clearly closer; otherwise keep the
@@ -811,7 +608,6 @@ function usePlaybackGlideScrub({
       return;
     }
 
-    const repsBefore = chordRepetitionsRef.current;
     const { positionDelta, velocity } = integrateIosCoastStep(
       velocityPxPerMsRef.current,
       deltaMs,
@@ -838,12 +634,6 @@ function usePlaybackGlideScrub({
       nextVelocity + (idealVelocity - nextVelocity) * pull,
     );
 
-    // Keep scrub direction aligned with live coast velocity so intentional
-    // backward flings can still reset reps, while forward coasts cannot.
-    if (Math.abs(nextVelocity) >= IOS_REST_VELOCITY_PX_PER_MS) {
-      scrubDirectionRef.current = nextVelocity < 0 ? -1 : 1;
-    }
-
     const { min, max } = getPositionBounds();
     if (nextPosition <= min || nextPosition >= max) {
       nextPosition = clamp(nextPosition, min, max);
@@ -866,11 +656,6 @@ function usePlaybackGlideScrub({
     applyPosition(nextPosition, false);
     syncChordIndexFromPosition(positionRef.current);
 
-    if (chordRepetitionsRef.current !== repsBefore) {
-      // Half-shift changed the absolute layout — retarget without hard-stopping.
-      retargetSnapFromCurrentPosition();
-    }
-
     const distanceToSnap = Math.abs(
       positionRef.current - coastSnapTargetRef.current,
     );
@@ -892,14 +677,13 @@ function usePlaybackGlideScrub({
 
   function beginOverscrollSpringBack(min: number, max: number) {
     const positions = scrollPositionsRef.current;
-    const repetitions = chordRepetitionsRef.current;
     const width = totalWidthRef.current;
     if (!positions || positions.length === 0) {
       finishScrub(currentChordIndexRef.current);
       return;
     }
 
-    const dimension = getRubberBandDimension(min, max);
+    const dimension = getRubberBandDimension();
     const displayPosition = applyIosRubberBandPosition(
       positionRef.current,
       min,
@@ -907,12 +691,12 @@ function usePlaybackGlideScrub({
       dimension,
     );
     const edge = positionRef.current < min ? min : max;
-    const edgeIndex = getNearestChordIndex(edge, positions, repetitions, width);
-    const edgePosition = getAbsoluteChordPosition(
+    const edgeIndex = nearestPlaybackChordIndex(edge, positions, width);
+    const edgePosition = closestPlaybackChordPosition(
       edgeIndex,
       positions,
-      repetitions,
       width,
+      edge,
     );
 
     // Animate from the rubber-banded pixels the user currently sees, not from
@@ -932,7 +716,6 @@ function usePlaybackGlideScrub({
         : Math.sign(towardEdge) === Math.sign(measured)
           ? measured
           : 0;
-    scrubDirectionRef.current = 0;
     springOmegaRef.current = OVERSCROLL_SPRING_OMEGA_PER_MS;
     isSpringBackRef.current = true;
     isSnapSettlingRef.current = false;
@@ -991,8 +774,6 @@ function usePlaybackGlideScrub({
       return;
     }
 
-    scrubDirectionRef.current = releaseVelocity < 0 ? -1 : 1;
-
     const budgetedProjected = projectCoastPositionWithDistanceBudget(
       positionRef.current,
       releaseVelocity,
@@ -1000,7 +781,6 @@ function usePlaybackGlideScrub({
       SCRUB_COAST_DECELERATION_RATE,
     );
 
-    ensureNextLoopRepetitions(budgetedProjected);
     retargetSnapFromProjectedPosition(budgetedProjected);
 
     // Destination-lock onto the budgeted chord, never exceeding the capped
@@ -1079,9 +859,7 @@ function usePlaybackGlideScrub({
     const paintedPosition =
       wasInertiaActive || !stripElement
         ? null
-        : parseStripPositionPx(
-            window.getComputedStyle(stripElement).transform,
-          );
+        : parseStripPositionPx(window.getComputedStyle(stripElement).transform);
     if (paintedPosition !== null) {
       scrubPositionRef.current = paintedPosition;
     }
@@ -1098,7 +876,6 @@ function usePlaybackGlideScrub({
     // Treat press as non-moving until a real drag delta arrives.
     lastSignificantMoveAtRef.current = 0;
     velocityPxPerMsRef.current = 0;
-    scrubDirectionRef.current = 0;
     positionRef.current = startPosition;
     pendingDisplayPositionRef.current = startPosition;
 
@@ -1136,10 +913,6 @@ function usePlaybackGlideScrub({
       (sample) => sample.timeMs >= cutoff,
     );
 
-    // Finger right => earlier chords (lower strip position) => backward.
-    if (deltaX !== 0) {
-      scrubDirectionRef.current = deltaX > 0 ? -1 : 1;
-    }
     if (Math.abs(deltaX) >= RELEASE_STILLNESS_MOVEMENT_PX) {
       lastSignificantMoveAtRef.current = nowMs;
     }

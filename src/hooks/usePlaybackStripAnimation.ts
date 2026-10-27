@@ -20,6 +20,8 @@ interface UsePlaybackStripAnimationArgs {
   playing: boolean;
   /** Latest absolute scroll position in px (strip-local, before centering). */
   scrollPositionRef?: RefObject<number>;
+  /** Fresh compositor-model position without DOM reads or timer sampling. */
+  positionReaderRef?: RefObject<(() => number | null) | null>;
   /**
    * Test seam. Production callers leave this unset. The anchor captured for a
    * play session is the chord index from the render that set
@@ -41,6 +43,7 @@ function usePlaybackStripAnimation({
   playbackStartedAtAudioTime,
   playing,
   scrollPositionRef,
+  positionReaderRef,
   driverRef,
   segmentTargetMs,
 }: UsePlaybackStripAnimationArgs) {
@@ -73,6 +76,7 @@ function usePlaybackStripAnimation({
 
   useLayoutEffect(() => {
     if (driverRef) driverRef.current = null;
+    if (positionReaderRef) positionReaderRef.current = null;
 
     if (
       !playing ||
@@ -126,6 +130,17 @@ function usePlaybackStripAnimation({
 
       const started = driver.start();
       if (driverRef) driverRef.current = started ? driver : null;
+      if (positionReaderRef) {
+        const activeDriver = driver;
+        positionReaderRef.current = started
+          ? () => {
+              const now = document.timeline.currentTime;
+              return typeof now === "number"
+                ? activeDriver.getExpectedPositionPx(now)
+                : null;
+            }
+          : null;
+      }
 
       if (!started && retries < MAX_TIMELINE_RETRIES) {
         retries += 1;
@@ -141,6 +156,7 @@ function usePlaybackStripAnimation({
       driver?.stop();
       driver = null;
       if (driverRef) driverRef.current = null;
+      if (positionReaderRef) positionReaderRef.current = null;
     };
   }, [
     audioContext,
@@ -149,6 +165,7 @@ function usePlaybackStripAnimation({
     playbackStartedAtAudioTime,
     playing,
     scrollPositionRef,
+    positionReaderRef,
     segmentTargetMs,
     stripRef,
   ]);
