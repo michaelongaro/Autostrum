@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import SEO from "~/components/SEO";
 import { PiMetronome } from "react-icons/pi";
 import { getTrackBackground, Range } from "~/components/ui/Range";
@@ -145,6 +145,30 @@ function MetronomeToolPage() {
 
   // Mode state
   const [mode, setMode] = useState<"regular" | "speed-trainer">("regular");
+  const reduceMotion = useReducedMotion();
+  const modeControlsRef = useRef<HTMLDivElement>(null);
+  const [modeControlsHeight, setModeControlsHeight] = useState<number>();
+  const modeHeightTransition = {
+    duration: reduceMotion ? 0 : 0.35,
+    ease: [0.4, 0, 0.2, 1] as const,
+  };
+  const modeContentTransition = {
+    duration: reduceMotion ? 0 : 0.2,
+    ease: [0.4, 0, 0.2, 1] as const,
+  };
+
+  useEffect(() => {
+    const controls = modeControlsRef.current;
+    if (!controls) return;
+
+    // Only the active panel contributes to this height, including after a resize.
+    const observer = new ResizeObserver(() => {
+      setModeControlsHeight(controls.getBoundingClientRect().height);
+    });
+    observer.observe(controls);
+
+    return () => observer.disconnect();
+  }, []);
 
   // Speed trainer state
   const [startBpm, setStartBpm] = useState(60);
@@ -542,301 +566,322 @@ function MetronomeToolPage() {
             </p>
           </div>
 
-          {mode === "regular" ? (
-            <>
-              {/* BPM slider + Tap button */}
-              <div className="baseFlex w-full gap-3 sm:max-w-lg">
-                <div className="flex w-full items-center px-1">
-                  <Range
-                    label="BPM"
-                    step={1}
-                    min={40}
-                    max={240}
-                    values={[bpm]}
-                    onChange={(values) => {
-                      if (values[0] !== undefined) setBpm(values[0]);
-                    }}
-                    renderTrack={({ props, children }) => (
-                      <div
-                        onMouseDown={props.onMouseDown}
-                        onTouchStart={props.onTouchStart}
-                        style={{
-                          ...props.style,
-                          display: "flex",
-                          width: "100%",
+          <motion.div
+            initial={false}
+            animate={{ height: modeControlsHeight ?? "auto" }}
+            transition={modeHeightTransition}
+            className="-mx-3 -my-1 w-[calc(100%+1.5rem)] overflow-hidden"
+          >
+            <div ref={modeControlsRef} className="relative w-full px-3 py-1">
+              <motion.div
+                initial={false}
+                animate={{ opacity: mode === "regular" ? 1 : 0 }}
+                transition={modeContentTransition}
+                aria-hidden={mode !== "regular"}
+                inert={mode !== "regular"}
+                className={`baseVertFlex ${mode === "regular" ? "relative w-full" : "absolute inset-x-3 top-1"}`}
+              >
+                {/* BPM slider + Tap button */}
+                <div className="baseFlex w-full gap-3 sm:max-w-lg">
+                  <div className="flex w-full items-center px-1">
+                    <Range
+                      label="BPM"
+                      step={1}
+                      min={40}
+                      max={240}
+                      values={[bpm]}
+                      onChange={(values) => {
+                        if (values[0] !== undefined) setBpm(values[0]);
+                      }}
+                      renderTrack={({ props, children }) => (
+                        <div
+                          onMouseDown={props.onMouseDown}
+                          onTouchStart={props.onTouchStart}
+                          style={{
+                            ...props.style,
+                            display: "flex",
+                            width: "100%",
+                          }}
+                        >
+                          <div
+                            ref={props.ref}
+                            style={{
+                              height: "8px",
+                              width: "100%",
+                              borderRadius: "4px",
+                              background: getTrackBackground({
+                                values: [bpm],
+                                colors: [
+                                  "hsl(var(--primary))",
+                                  "hsl(var(--gray) / 0.5)",
+                                ],
+                                min: 40,
+                                max: 240,
+                              }),
+                              alignSelf: "center",
+                            }}
+                          >
+                            {children}
+                          </div>
+                        </div>
+                      )}
+                      renderThumb={({ props }) => (
+                        <div
+                          {...props}
+                          className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                        />
+                      )}
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="!h-9 shrink-0 px-4 font-semibold"
+                    onClick={handleTap}
+                  >
+                    Tap
+                  </Button>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={false}
+                animate={{ opacity: mode === "speed-trainer" ? 1 : 0 }}
+                transition={modeContentTransition}
+                aria-hidden={mode !== "speed-trainer"}
+                inert={mode !== "speed-trainer"}
+                className={`baseVertFlex ${mode === "speed-trainer" ? "relative w-full" : "absolute inset-x-3 top-1"}`}
+              >
+                {/* Speed trainer controls */}
+                <div className="mb-4 grid w-full grid-cols-2 gap-x-8 gap-y-4 sm:px-32">
+                  <div className="baseVertFlex items-start gap-2">
+                    <label className="text-sm font-medium">
+                      Start BPM: {startBpm}
+                    </label>
+                    <div className="flex w-full items-center">
+                      <Range
+                        label="Start BPM"
+                        step={1}
+                        min={40}
+                        max={240}
+                        values={[startBpm]}
+                        onChange={(values) => {
+                          if (values[0] !== undefined) setStartBpm(values[0]);
                         }}
-                      >
-                        <div
-                          ref={props.ref}
-                          style={{
-                            height: "8px",
-                            width: "100%",
-                            borderRadius: "4px",
-                            background: getTrackBackground({
-                              values: [bpm],
-                              colors: [
-                                "hsl(var(--primary))",
-                                "hsl(var(--gray) / 0.5)",
-                              ],
-                              min: 40,
-                              max: 240,
-                            }),
-                            alignSelf: "center",
-                          }}
-                        >
-                          {children}
-                        </div>
-                      </div>
-                    )}
-                    renderThumb={({ props }) => (
-                      <div
-                        {...props}
-                        className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                        renderTrack={({ props, children }) => (
+                          <div
+                            onMouseDown={props.onMouseDown}
+                            onTouchStart={props.onTouchStart}
+                            style={{
+                              ...props.style,
+                              display: "flex",
+                              width: "100%",
+                            }}
+                          >
+                            <div
+                              ref={props.ref}
+                              style={{
+                                height: "8px",
+                                width: "100%",
+                                borderRadius: "4px",
+                                background: getTrackBackground({
+                                  values: [startBpm],
+                                  colors: [
+                                    "hsl(var(--primary))",
+                                    "hsl(var(--gray) / 0.5)",
+                                  ],
+                                  min: 40,
+                                  max: 240,
+                                }),
+                                alignSelf: "center",
+                              }}
+                            >
+                              {children}
+                            </div>
+                          </div>
+                        )}
+                        renderThumb={({ props }) => (
+                          <div
+                            {...props}
+                            className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                          />
+                        )}
                       />
-                    )}
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  className="!h-9 shrink-0 px-4 font-semibold"
-                  onClick={handleTap}
-                >
-                  Tap
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Speed trainer controls */}
-              <div className="mb-4 grid w-full grid-cols-2 gap-x-8 gap-y-4 sm:px-32">
-                <div className="baseVertFlex items-start gap-2">
-                  <label className="text-sm font-medium">
-                    Start BPM: {startBpm}
-                  </label>
-                  <div className="flex w-full items-center">
-                    <Range
-                      label="Start BPM"
-                      step={1}
-                      min={40}
-                      max={240}
-                      values={[startBpm]}
-                      onChange={(values) => {
-                        if (values[0] !== undefined) setStartBpm(values[0]);
-                      }}
-                      renderTrack={({ props, children }) => (
-                        <div
-                          onMouseDown={props.onMouseDown}
-                          onTouchStart={props.onTouchStart}
-                          style={{
-                            ...props.style,
-                            display: "flex",
-                            width: "100%",
-                          }}
-                        >
-                          <div
-                            ref={props.ref}
-                            style={{
-                              height: "8px",
-                              width: "100%",
-                              borderRadius: "4px",
-                              background: getTrackBackground({
-                                values: [startBpm],
-                                colors: [
-                                  "hsl(var(--primary))",
-                                  "hsl(var(--gray) / 0.5)",
-                                ],
-                                min: 40,
-                                max: 240,
-                              }),
-                              alignSelf: "center",
-                            }}
-                          >
-                            {children}
-                          </div>
-                        </div>
-                      )}
-                      renderThumb={({ props }) => (
-                        <div
-                          {...props}
-                          className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
-                        />
-                      )}
-                    />
+                    </div>
                   </div>
-                </div>
 
-                <div className="baseVertFlex items-start gap-2">
-                  <label className="text-sm font-medium">
-                    Final BPM: {finalBpm}
-                  </label>
-                  <div className="flex w-full items-center">
-                    <Range
-                      label="Final BPM"
-                      step={1}
-                      min={40}
-                      max={240}
-                      values={[finalBpm]}
-                      onChange={(values) => {
-                        if (values[0] !== undefined) setFinalBpm(values[0]);
-                      }}
-                      renderTrack={({ props, children }) => (
-                        <div
-                          onMouseDown={props.onMouseDown}
-                          onTouchStart={props.onTouchStart}
-                          style={{
-                            ...props.style,
-                            display: "flex",
-                            width: "100%",
-                          }}
-                        >
+                  <div className="baseVertFlex items-start gap-2">
+                    <label className="text-sm font-medium">
+                      Final BPM: {finalBpm}
+                    </label>
+                    <div className="flex w-full items-center">
+                      <Range
+                        label="Final BPM"
+                        step={1}
+                        min={40}
+                        max={240}
+                        values={[finalBpm]}
+                        onChange={(values) => {
+                          if (values[0] !== undefined) setFinalBpm(values[0]);
+                        }}
+                        renderTrack={({ props, children }) => (
                           <div
-                            ref={props.ref}
+                            onMouseDown={props.onMouseDown}
+                            onTouchStart={props.onTouchStart}
                             style={{
-                              height: "8px",
+                              ...props.style,
+                              display: "flex",
                               width: "100%",
-                              borderRadius: "4px",
-                              background: getTrackBackground({
-                                values: [finalBpm],
-                                colors: [
-                                  "hsl(var(--primary))",
-                                  "hsl(var(--gray) / 0.5)",
-                                ],
-                                min: 40,
-                                max: 240,
-                              }),
-                              alignSelf: "center",
                             }}
                           >
-                            {children}
+                            <div
+                              ref={props.ref}
+                              style={{
+                                height: "8px",
+                                width: "100%",
+                                borderRadius: "4px",
+                                background: getTrackBackground({
+                                  values: [finalBpm],
+                                  colors: [
+                                    "hsl(var(--primary))",
+                                    "hsl(var(--gray) / 0.5)",
+                                  ],
+                                  min: 40,
+                                  max: 240,
+                                }),
+                                alignSelf: "center",
+                              }}
+                            >
+                              {children}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      renderThumb={({ props }) => (
-                        <div
-                          {...props}
-                          className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
-                        />
-                      )}
-                    />
+                        )}
+                        renderThumb={({ props }) => (
+                          <div
+                            {...props}
+                            className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="baseVertFlex items-start gap-2">
-                  <label className="text-sm font-medium">
-                    Increase by: {bpmIncrement} BPM
-                  </label>
-                  <div className="flex w-full items-center">
-                    <Range
-                      label="BPM increment"
-                      step={1}
-                      min={1}
-                      max={20}
-                      values={[bpmIncrement]}
-                      onChange={(values) => {
-                        if (values[0] !== undefined) setBpmIncrement(values[0]);
-                      }}
-                      renderTrack={({ props, children }) => (
-                        <div
-                          onMouseDown={props.onMouseDown}
-                          onTouchStart={props.onTouchStart}
-                          style={{
-                            ...props.style,
-                            display: "flex",
-                            width: "100%",
-                          }}
-                        >
+                  <div className="baseVertFlex items-start gap-2">
+                    <label className="text-sm font-medium">
+                      Increase by: {bpmIncrement} BPM
+                    </label>
+                    <div className="flex w-full items-center">
+                      <Range
+                        label="BPM increment"
+                        step={1}
+                        min={1}
+                        max={20}
+                        values={[bpmIncrement]}
+                        onChange={(values) => {
+                          if (values[0] !== undefined)
+                            setBpmIncrement(values[0]);
+                        }}
+                        renderTrack={({ props, children }) => (
                           <div
-                            ref={props.ref}
+                            onMouseDown={props.onMouseDown}
+                            onTouchStart={props.onTouchStart}
                             style={{
-                              height: "8px",
+                              ...props.style,
+                              display: "flex",
                               width: "100%",
-                              borderRadius: "4px",
-                              background: getTrackBackground({
-                                values: [bpmIncrement],
-                                colors: [
-                                  "hsl(var(--primary))",
-                                  "hsl(var(--gray) / 0.5)",
-                                ],
-                                min: 1,
-                                max: 20,
-                              }),
-                              alignSelf: "center",
                             }}
                           >
-                            {children}
+                            <div
+                              ref={props.ref}
+                              style={{
+                                height: "8px",
+                                width: "100%",
+                                borderRadius: "4px",
+                                background: getTrackBackground({
+                                  values: [bpmIncrement],
+                                  colors: [
+                                    "hsl(var(--primary))",
+                                    "hsl(var(--gray) / 0.5)",
+                                  ],
+                                  min: 1,
+                                  max: 20,
+                                }),
+                                alignSelf: "center",
+                              }}
+                            >
+                              {children}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      renderThumb={({ props }) => (
-                        <div
-                          {...props}
-                          className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
-                        />
-                      )}
-                    />
+                        )}
+                        renderThumb={({ props }) => (
+                          <div
+                            {...props}
+                            className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="baseVertFlex items-start gap-2">
-                  <label className="text-sm font-medium">
-                    Every: {barsPerIncrease}{" "}
-                    {barsPerIncrease === 1 ? "bar" : "bars"}
-                  </label>
-                  <div className="flex w-full items-center">
-                    <Range
-                      label="Bars per increase"
-                      step={1}
-                      min={1}
-                      max={16}
-                      values={[barsPerIncrease]}
-                      onChange={(values) => {
-                        if (values[0] !== undefined)
-                          setBarsPerIncrease(values[0]);
-                      }}
-                      renderTrack={({ props, children }) => (
-                        <div
-                          onMouseDown={props.onMouseDown}
-                          onTouchStart={props.onTouchStart}
-                          style={{
-                            ...props.style,
-                            display: "flex",
-                            width: "100%",
-                          }}
-                        >
+                  <div className="baseVertFlex items-start gap-2">
+                    <label className="text-sm font-medium">
+                      Every: {barsPerIncrease}{" "}
+                      {barsPerIncrease === 1 ? "bar" : "bars"}
+                    </label>
+                    <div className="flex w-full items-center">
+                      <Range
+                        label="Bars per increase"
+                        step={1}
+                        min={1}
+                        max={16}
+                        values={[barsPerIncrease]}
+                        onChange={(values) => {
+                          if (values[0] !== undefined)
+                            setBarsPerIncrease(values[0]);
+                        }}
+                        renderTrack={({ props, children }) => (
                           <div
-                            ref={props.ref}
+                            onMouseDown={props.onMouseDown}
+                            onTouchStart={props.onTouchStart}
                             style={{
-                              height: "8px",
+                              ...props.style,
+                              display: "flex",
                               width: "100%",
-                              borderRadius: "4px",
-                              background: getTrackBackground({
-                                values: [barsPerIncrease],
-                                colors: [
-                                  "hsl(var(--primary))",
-                                  "hsl(var(--gray) / 0.5)",
-                                ],
-                                min: 1,
-                                max: 16,
-                              }),
-                              alignSelf: "center",
                             }}
                           >
-                            {children}
+                            <div
+                              ref={props.ref}
+                              style={{
+                                height: "8px",
+                                width: "100%",
+                                borderRadius: "4px",
+                                background: getTrackBackground({
+                                  values: [barsPerIncrease],
+                                  colors: [
+                                    "hsl(var(--primary))",
+                                    "hsl(var(--gray) / 0.5)",
+                                  ],
+                                  min: 1,
+                                  max: 16,
+                                }),
+                                alignSelf: "center",
+                              }}
+                            >
+                              {children}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      renderThumb={({ props }) => (
-                        <div
-                          {...props}
-                          className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
-                        />
-                      )}
-                    />
+                        )}
+                        renderThumb={({ props }) => (
+                          <div
+                            {...props}
+                            className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
+              </motion.div>
+            </div>
+          </motion.div>
 
           {/* Controls: time signature, subdivision, accent */}
           <div className="grid w-full gap-6 sm:mt-3 sm:grid-cols-3 sm:place-items-center">
