@@ -582,7 +582,7 @@ function TunerPanel({
                         displayWithFlex={true}
                         showScientificPitchNotation={true}
                         noteClass="text-lg xs:text-xl"
-                        accidentalClass="text-base xs:mr-1 xs:text-lg"
+                        accidentalClass="text-base xs:text-lg"
                       />
                     </div>
                     <div className="baseFlex gap-2">

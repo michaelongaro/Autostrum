@@ -411,7 +411,7 @@ function NoteTrainerPage() {
                     displayWithFlex={true}
                     showScientificPitchNotation={true}
                     noteClass="text-base sm:text-lg"
-                    accidentalClass="text-sm mr-[1px] sm:text-base sm:mr-[3px]"
+                    accidentalClass="text-sm sm:text-base"
                   />
                 </Button>
               ))}

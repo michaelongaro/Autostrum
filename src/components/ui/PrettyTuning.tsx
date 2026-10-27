@@ -25,13 +25,19 @@ function PrettyNote({
     ? noteMatch?.groups?.octave
     : undefined;
   const isSharp = accidental === "#" || accidental === "♯";
+  // Include the glyph width and italic overhang as the font size/weight grows.
+  const accidentalSpacingClass = showScientificPitchNotation
+    ? "shrink-0 px-[0.05em]"
+    : displayWithFlex
+      ? "w-[8px]"
+      : "w-[10px]";
 
   return (
     <div className={`baseFlex relative ${noteClass}`}>
       <p>{letter.toUpperCase()}</p>
       {accidental && (
         <div
-          className={`relative top-[-3px] ${isSharp ? "italic" : ""} ${displayWithFlex ? "w-[8px]" : "w-[10px]"} text-center ${accidentalClass}`}
+          className={`relative top-[-3px] ${isSharp ? "italic" : ""} ${accidentalSpacingClass} text-center ${accidentalClass}`}
         >
           <p>{isSharp ? "#" : "♭"}</p>
         </div>
