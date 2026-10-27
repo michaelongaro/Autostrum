@@ -477,7 +477,7 @@ function LoopControls({
             aria-label="Edit loop range"
             disabled={audioMetadata.playing || isGlideScrubbing}
             pressed={audioMetadata.editingLoopRange}
-            className="h-8 shrink-0 gap-2 justify-self-end whitespace-nowrap px-2 text-xs sm:text-sm"
+            className="h-10 shrink-0 gap-2 justify-self-end whitespace-nowrap px-2 text-xs sm:text-sm"
             onPressedChange={() => {
               const state = store.getState();
               state.enterPlaybackLoopRangeEditor();
