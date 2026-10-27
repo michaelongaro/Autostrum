@@ -4,8 +4,9 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "~/utils/cn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
+// Keep the outline inset and its geometry fixed so variant changes only fade its color.
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm shadow-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground disabled:pointer-events-none disabled:opacity-50 select-none",
+  "inline-flex items-center justify-center rounded-md text-sm shadow-sm font-medium ring-offset-background outline outline-1 -outline-offset-1 outline-transparent focus-visible:ring-2 focus-visible:ring-foreground disabled:pointer-events-none disabled:opacity-50 select-none",
   {
     // might want to make separate variants for "primaryOutline" and "primaryGhost" so you don't need the "!"
     variants: {
@@ -15,7 +16,7 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary-hover !shadow-primaryButton hover:text-secondary-foreground active:bg-secondary-active",
         outline:
-          "border text-foreground hover:bg-secondary hover:!text-foreground active:brightness-90",
+          "outline-border text-foreground hover:bg-secondary hover:!text-foreground active:brightness-90",
         ghost:
           "hover:bg-accent hover:!text-primary-foreground shadow-none active:bg-accent active:!text-primary-foreground active:brightness-90",
         link: "underline-offset-4 hover:underline active:brightness-75 shadow-none",
@@ -76,7 +77,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         style={{
           ...props.style,
           transition:
-            "opacity 0.15s linear, transform 0.15s linear, filter 0.15s linear, background-color 0.15s linear, color 0.15s linear, box-shadow 0.15s ease-out",
+            "opacity 0.15s linear, transform 0.15s linear, filter 0.15s linear, background-color 0.15s linear, color 0.15s linear, outline-color 0.15s linear, box-shadow 0.15s ease-out",
         }}
       />
     );

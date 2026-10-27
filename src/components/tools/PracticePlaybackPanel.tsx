@@ -296,7 +296,7 @@ function PracticePlaybackPanel({
                         variant={
                           item.id === selectedExerciseId ? "default" : "outline"
                         }
-                        className={`!h-auto min-h-14 !justify-start px-3 py-2 text-left ${item.id === selectedExerciseId ? "border border-transparent" : ""}`}
+                        className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
                         onClick={() => selectExercise(item.id)}
                       >
                         <span className="baseVertFlex !items-start gap-0.5">

@@ -145,8 +145,8 @@ function SearchFilterCarousel<T>({
                   onClick={() => onValueChange(option.value)}
                   className={`gap-0 whitespace-nowrap rounded-full active:scale-95 motion-reduce:transform-none ${
                     option.badgeColor
-                      ? "border-0 bg-transparent p-0 shadow-none hover:bg-transparent active:brightness-75"
-                      : `px-3 active:bg-primary/20 ${selected ? "border-primary bg-primary/10" : "border-gray/50"}`
+                      ? "outline-transparent bg-transparent p-0 shadow-none hover:bg-transparent active:brightness-75"
+                      : `px-3 active:bg-primary/20 ${selected ? "outline-primary bg-primary/10" : "outline-gray/50"}`
                   }`}
                 >
                   {option.badgeColor ? (
