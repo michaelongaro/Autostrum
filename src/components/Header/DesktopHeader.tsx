@@ -32,6 +32,7 @@ import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import Logo from "~/components/ui/icons/Logo";
+import { isThemeTransitionPointerEvent } from "~/utils/updateCSSThemeVars";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -210,7 +211,17 @@ function DesktopHeader() {
             </Tooltip>
           </TooltipProvider>
 
-          <PopoverContent side={"bottom"} className="baseFlex max-w-[275px]">
+          <PopoverContent
+            side={"bottom"}
+            className="baseFlex max-w-[275px]"
+            onPointerDownOutside={(event) => {
+              // Radix defers this callback until click, which can occur after
+              // the transition has finished. Check when the press began.
+              if (isThemeTransitionPointerEvent(event.detail.originalEvent)) {
+                event.preventDefault();
+              }
+            }}
+          >
             <ThemePicker />
           </PopoverContent>
         </Popover>

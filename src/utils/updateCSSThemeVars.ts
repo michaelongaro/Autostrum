@@ -901,6 +901,17 @@ function canUseViewTransitions(): boolean {
   );
 }
 
+let themeTransitionStart = -1;
+let themeTransitionEnd = -1;
+let latestThemeTransition: ViewTransition | undefined;
+
+function isThemeTransitionPointerEvent(event: PointerEvent): boolean {
+  return (
+    event.timeStamp >= themeTransitionStart &&
+    event.timeStamp <= themeTransitionEnd
+  );
+}
+
 function applyThemeToDocument(color: COLORS, theme: THEME) {
   // Suppress per-element color transitions so snapshots/snaps stay solid.
   addGlobalTransition();
@@ -963,14 +974,27 @@ function updateCSSThemeVars(
   const { animate = false } = options;
 
   if (animate && canUseViewTransitions()) {
-    document.startViewTransition(() => {
+    const start = performance.now();
+    const transition = document.startViewTransition(() => {
       applyThemeToDocument(color, theme);
     });
+    if (!latestThemeTransition) {
+      themeTransitionStart = start;
+    }
+    themeTransitionEnd = Infinity;
+    latestThemeTransition = transition;
+    const finishTransition = () => {
+      if (latestThemeTransition === transition) {
+        themeTransitionEnd = performance.now();
+        latestThemeTransition = undefined;
+      }
+    };
+    void transition.finished.then(finishTransition, finishTransition);
     return;
   }
 
   applyThemeToDocument(color, theme);
 }
 
-export { updateCSSThemeVars };
+export { isThemeTransitionPointerEvent, updateCSSThemeVars };
 export type { UpdateCSSThemeVarsOptions };
