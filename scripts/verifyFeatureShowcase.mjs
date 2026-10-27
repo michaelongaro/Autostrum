@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright";
+import sharp from "sharp";
 
 const baseURL = process.argv[2] ?? "http://localhost:3000";
 const artifacts = "coverage/feature-showcase";
@@ -109,14 +110,157 @@ async function assertFits(locator) {
   assert.ok(fits, "Demo fits inside its presentation frame");
 }
 
+async function assertEditorHelpFits(feature) {
+  for (const name of ["Note lengths", "Chord modifiers"]) {
+    const button = panel(feature).getByRole("button", { name, exact: true });
+    assert.ok(
+      await button.evaluate((element) => {
+        const viewport = element
+          .closest("[data-feature-editor-scroll]")
+          .getBoundingClientRect();
+        const rect = element.getBoundingClientRect();
+        return (
+          rect.left >= viewport.left + 2 && rect.right <= viewport.right - 2
+        );
+      }),
+      `${feature}: ${name} button is fully inside its scroll viewport`,
+    );
+    await button.click();
+    await page.getByRole("dialog").getByText(name, { exact: true }).waitFor();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Glossary", exact: true })
+      .click();
+    const glossary = page.getByRole("dialog", {
+      name: "Modifier Glossary",
+      exact: true,
+    });
+    await glossary.waitFor();
+    await glossary
+      .getByRole("button", { name: "Note Lengths", exact: true })
+      .click();
+    await glossary.getByRole("button", { name: "Close", exact: true }).click();
+    await glossary.waitFor({ state: "hidden" });
+  }
+}
+
+async function assertStartingStaffLineIsPainted() {
+  for (const theme of ["light", "dark"]) {
+    for (const deviceScaleFactor of [1, 2]) {
+      const context = await browser.newContext({
+        viewport: { width: 1365, height: 950 },
+        deviceScaleFactor,
+        reducedMotion: "reduce",
+      });
+      try {
+        await context.addInitScript((theme) => {
+          localStorage.setItem("autostrum-theme", theme);
+          localStorage.setItem("autostrum-color", "amethyst");
+          localStorage.setItem("autostrum-follows-device-theme", "false");
+        }, theme);
+        const page = await context.newPage();
+        await page.goto(baseURL, { waitUntil: "networkidle" });
+        await page
+          .getByRole("button", { name: "Compose", exact: true })
+          .click();
+        const line = page.locator(
+          "#feature-panel-hotkeys [data-tab-start-nut] > div",
+        );
+        await line.waitFor();
+        for (const width of [1024, 1365, 1440]) {
+          await page.setViewportSize({ width, height: 950 });
+          const rect = await line.boundingBox();
+          assert.ok(rect, "Starting line is mounted");
+          const clip = {
+            x: Math.floor(rect.x) - 2,
+            y: Math.ceil(rect.y) + 6,
+            width: 7,
+            height: Math.floor(rect.height) - 12,
+          };
+          const { data, info } = await sharp(await page.screenshot({ clip }))
+            .removeAlpha()
+            .raw()
+            .toBuffer({ resolveWithObject: true });
+          const medians = [];
+          for (let column = 0; column < info.width; column++) {
+            const values = [];
+            for (let row = 0; row < info.height; row++) {
+              const offset = (row * info.width + column) * 3;
+              values.push(
+                (data[offset] + data[offset + 1] + data[offset + 2]) / 3,
+              );
+            }
+            values.sort((left, right) => left - right);
+            // Median removes the horizontal string lines and background dots.
+            medians.push(values[Math.floor(values.length / 2)]);
+          }
+          const scale = info.width / clip.width;
+          const start = Math.floor((rect.x - clip.x) * scale);
+          const end = Math.ceil((rect.x - clip.x + rect.width) * scale);
+          const contrast = Math.max(
+            ...medians
+              .slice(start, end)
+              .map((value) => Math.abs(value - medians.at(-1))),
+          );
+          assert.ok(
+            contrast > 35,
+            `Starting line is painted above the first note's background (${theme}, ${width}px, DPR ${deviceScaleFactor}; contrast ${contrast})`,
+          );
+        }
+      } finally {
+        await context.close();
+      }
+    }
+  }
+  console.log(
+    "PASS: starting staff line is visible across themes, widths, and display scales",
+  );
+}
+
 try {
+  await assertStartingStaffLineIsPainted();
   await page.goto(baseURL, { waitUntil: "networkidle" });
   await section.waitFor();
   await page.waitForTimeout(1200);
   const before = await prefs();
   await section.scrollIntoViewIfNeeded();
-  await section.getByRole("button", { name: "Editing", exact: true }).click();
+  await section.getByRole("button", { name: "Compose", exact: true }).click();
   await select("hotkeys");
+  assert.ok(
+    await panel("hotkeys")
+      .locator("[data-tab-start-nut] > div")
+      .evaluate((line) => line.getBoundingClientRect().width >= 1),
+    "Starting staff line remains visible at the hotkeys demo's reduced scale",
+  );
+  await assertEditorHelpFits("hotkeys");
+  await page.locator("#input-16-0-0-1").focus();
+  await page.keyboard.press("Space");
+  await page.waitForFunction(() =>
+    document
+      .getElementById("input-16-0-1-6")
+      ?.style.color.includes("--primary)"),
+  );
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(100);
+  assert.ok(
+    await panel("hotkeys").evaluate((element) => {
+      const staff = element.querySelector("[data-editing-tab-staff]");
+      const head = staff.lastElementChild.getBoundingClientRect();
+      return [...staff.querySelectorAll('input[id$="-1"]')].some((input) => {
+        const rect = input.getBoundingClientRect();
+        const column = input
+          .closest('[id^="section16-subSection0-chord"]')
+          .getBoundingClientRect();
+        const zoom = column.width / 40;
+        const expectedX = column.left + column.width / 2 - 10 * zoom;
+        return (
+          Math.abs(head.left + head.width / 2 - expectedX) < 1 &&
+          Math.abs(head.top - (rect.top + rect.height / 2)) < 1
+        );
+      });
+    }),
+    "Paused hotkeys playhead aligns with the scaled staff",
+  );
   await page.locator("#input-16-0-0-1").click();
   await page.keyboard.press("ArrowRight");
   assert.equal(
@@ -148,10 +292,11 @@ try {
     insertedChord,
     "Native chord copy/paste",
   );
+  const initialInputCount = await panel("hotkeys").locator("input").count();
   await page.keyboard.press("w");
   assert.equal(
     await panel("hotkeys").locator("input").count(),
-    49,
+    initialInputCount + 7,
     "Native insertion adds a column",
   );
   await page.keyboard.press("Shift+ArrowUp");
@@ -167,10 +312,10 @@ try {
       .locator('input[id^="sectionTitleInput"]')
       .evaluateAll((inputs) => inputs.map((input) => input.value));
   assert.deepEqual(await sectionTitles(), [
-    "Intro",
-    "Chorus",
+    "Intro/Verse/Chorus",
+    "Break",
     "Bridge",
-    "Outro",
+    "Post Bridge",
   ]);
   assert.equal(
     await panel("reordering")
@@ -185,10 +330,10 @@ try {
     .click();
   await page.getByRole("menuitem", { name: "Move up", exact: true }).click();
   assert.deepEqual(await sectionTitles(), [
-    "Chorus",
-    "Intro",
+    "Break",
+    "Intro/Verse/Chorus",
     "Bridge",
-    "Outro",
+    "Post Bridge",
   ]);
   await panel("reordering")
     .getByRole("button", { name: "Play section", exact: true })
@@ -239,6 +384,29 @@ try {
 
   await page.setViewportSize({ width: 1280, height: 950 });
   await select("autoscroll");
+  await assertEditorHelpFits("autoscroll");
+  assert.deepEqual(
+    await Promise.all(
+      ["12-2", "12-3", "15-2", "15-4"].map((cell) =>
+        panel("autoscroll").locator(`#input-15-0-${cell}`).inputValue(),
+      ),
+    ),
+    ["9", "9", "10", "7"],
+    "Melody notes keep their simultaneous arpeggio notes at the reference positions",
+  );
+  assert.ok(
+    await panel("autoscroll").evaluate((element) => {
+      const tab = element.querySelector("[data-feature-editor-scroll]");
+      const play = element.querySelector('[aria-label="Play example"]');
+      const toggle = element.querySelector('[role="switch"]');
+      return (
+        play.getBoundingClientRect().top >=
+          tab.getBoundingClientRect().bottom &&
+        toggle.getBoundingClientRect().top >= tab.getBoundingClientRect().bottom
+      );
+    }),
+    "Playback and autoscroll controls sit below the tab",
+  );
   await panel("autoscroll")
     .getByRole("button", { name: "Play example", exact: true })
     .click();
@@ -277,6 +445,17 @@ try {
   await page.evaluate(() => {
     window.__activeDemoContext = window.__demoAudioContexts.at(-1);
   });
+  await panel("autoscroll")
+    .getByRole("button", { name: "Play example", exact: true })
+    .waitFor({ state: "visible", timeout: 22000 });
+  await page.waitForTimeout(500);
+  assert.equal(
+    await panel("autoscroll")
+      .getByRole("button", { name: "Pause example", exact: true })
+      .count(),
+    0,
+    "Autoscroll playback finishes without looping",
+  );
   await select("hotkeys");
   assert.equal(
     await page.evaluate(() => window.__activeDemoContext.state),

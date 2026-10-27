@@ -15,9 +15,14 @@ import {
 export interface ChordSection {
   sectionIndex: number;
   subSectionIndex: number;
+  presentation?: "full" | "embedded";
 }
 
-function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
+function ChordSection({
+  sectionIndex,
+  subSectionIndex,
+  presentation = "full",
+}: ChordSection) {
   const { bpm, setTabData } = useTabStore((state) => ({
     bpm: state.bpm,
     setTabData: state.setTabData,
@@ -148,6 +153,7 @@ function ChordSection({ sectionIndex, subSectionIndex }: ChordSection) {
                 sectionIndex={sectionIndex}
                 subSectionIndex={subSectionIndex}
                 chordSequenceIndex={index}
+                presentation={presentation}
               />
             </AnimatedListItem>
           ))}

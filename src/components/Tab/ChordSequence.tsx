@@ -15,6 +15,7 @@ import MiscellaneousControls from "./MiscellaneousControls";
 import StrummingPattern from "./StrummingPattern";
 import StrummingPatternPreview from "./StrummingPatternPreview";
 import { QuarterNote } from "~/utils/noteLengthIcons";
+import { cn } from "~/utils/cn";
 import {
   useChordSequenceData,
   useChordSequenceParentBpm,
@@ -24,12 +25,14 @@ export interface ChordSequence {
   sectionIndex: number;
   subSectionIndex: number;
   chordSequenceIndex: number;
+  presentation?: "full" | "embedded";
 }
 
 function ChordSequence({
   sectionIndex,
   subSectionIndex,
   chordSequenceIndex,
+  presentation = "full",
 }: ChordSequence) {
   const [selectIsOpen, setSelectIsOpen] = useState(false);
 
@@ -170,65 +173,96 @@ function ChordSequence({
         </div>
       ) : (
         <div className="baseVertFlex relative w-full !justify-start gap-4 rounded-md border bg-background p-4 shadow-sm">
-          <div className="baseFlex w-full !items-start">
-            <div className="baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start lg:gap-4">
-              <div className="baseFlex gap-2">
-                <Label
-                  htmlFor={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
-                >
-                  BPM
-                </Label>
+          <div
+            className={
+              presentation === "embedded"
+                ? "grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-4"
+                : "baseFlex w-full !items-start"
+            }
+          >
+            <div
+              className={
+                presentation === "embedded"
+                  ? "contents"
+                  : "baseVertFlex w-5/6 !items-start gap-2 lg:!flex-row lg:!justify-start lg:gap-4"
+              }
+            >
+              <div
+                className={
+                  presentation === "embedded"
+                    ? "flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2"
+                    : "contents"
+                }
+              >
+                <div className="baseFlex gap-2">
+                  <Label
+                    htmlFor={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                  >
+                    BPM
+                  </Label>
 
-                <div className="baseFlex">
-                  <QuarterNote className="-ml-1 size-5" />
+                  <div className="baseFlex">
+                    <QuarterNote className="-ml-1 size-5" />
 
-                  <Input
-                    id={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="w-[52px] px-2.5"
-                    placeholder={placeholderBpm}
-                    value={
-                      chordSequence.bpm === -1
-                        ? ""
-                        : chordSequence.bpm.toString()
-                    }
-                    onChange={handleBpmChange}
-                  />
+                    <Input
+                      id={`chordSequenceBpmInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-[52px] px-2.5"
+                      placeholder={placeholderBpm}
+                      value={
+                        chordSequence.bpm === -1
+                          ? ""
+                          : chordSequence.bpm.toString()
+                      }
+                      onChange={handleBpmChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="baseFlex gap-2">
+                  <Label
+                    htmlFor={`chordSequenceRepetitionsInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                  >
+                    Repetitions
+                  </Label>
+                  <div className="relative w-12">
+                    <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
+                      x
+                    </span>
+                    <Input
+                      id={`chordSequenceRepetitionsInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      className="w-[45px] px-2 pl-4"
+                      placeholder="1"
+                      value={
+                        chordSequence.repetitions === -1
+                          ? ""
+                          : chordSequence.repetitions.toString()
+                      }
+                      onChange={handleRepetitionsChange}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="baseFlex gap-2">
-                <Label
-                  htmlFor={`chordSequenceRepetitionsInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
-                >
-                  Repetitions
-                </Label>
-                <div className="relative w-12">
-                  <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
-                    x
-                  </span>
-                  <Input
-                    id={`chordSequenceRepetitionsInput${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="w-[45px] px-2 pl-4"
-                    placeholder="1"
-                    value={
-                      chordSequence.repetitions === -1
-                        ? ""
-                        : chordSequence.repetitions.toString()
-                    }
-                    onChange={handleRepetitionsChange}
-                  />
-                </div>
-              </div>
-
-              <div className="baseFlex !justify-start gap-2">
+              <div
+                className={cn(
+                  "baseFlex !justify-start gap-2",
+                  presentation === "embedded" &&
+                    "col-span-2 row-start-2 min-w-0 flex-wrap",
+                )}
+              >
                 <Label
                   htmlFor={`chordSequenceStrummingPatternSelect${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
+                  className={
+                    presentation === "embedded"
+                      ? "whitespace-nowrap"
+                      : undefined
+                  }
                 >
                   Strumming pattern
                 </Label>
@@ -241,7 +275,11 @@ function ChordSequence({
                 >
                   <SelectTrigger
                     id={`chordSequenceStrummingPatternSelect${sectionIndex}${subSectionIndex}${chordSequenceIndex}`}
-                    className="w-auto"
+                    className={cn(
+                      "w-auto",
+                      presentation === "embedded" &&
+                        "max-w-full [&>span]:min-w-0 [&>span]:overflow-hidden",
+                    )}
                   >
                     <SelectValue>
                       <StrummingPatternPreview
@@ -274,6 +312,7 @@ function ChordSequence({
               sectionIndex={sectionIndex}
               subSectionIndex={subSectionIndex}
               chordSequenceIndex={chordSequenceIndex}
+              presentation={presentation}
             />
           </div>
 

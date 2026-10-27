@@ -61,6 +61,9 @@ export type FeatureId =
 const EmbeddedPlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
 );
+const DemoGlossaryDialog = dynamic(
+  () => import("~/components/Dialogs/GlossaryDialog"),
+);
 
 function DemoPlaybackButton({
   presentation = "button",
@@ -521,11 +524,12 @@ const HOTKEYS = [
 function HotkeysPreview() {
   const { sectionIndex } = useFeatureDemo();
   return (
-    <div className={styles.editorViewport} data-feature-editor-scroll>
+    <div className={`${styles.editorViewport} px-3`} data-feature-editor-scroll>
       <TabSection
         sectionIndex={sectionIndex}
         subSectionIndex={0}
         presentation="embedded"
+        className="[zoom:0.85]"
       ></TabSection>
       <div
         className="mx-auto mt-4 grid w-[450px] grid-cols-2 place-items-center gap-2 !self-center"
@@ -578,6 +582,19 @@ function AutoscrollPreview() {
   useAutoscrollToCurrentChord(autoscroll, scrollRef);
   return (
     <div className="flex w-full min-w-0 flex-col gap-4">
+      <div
+        ref={scrollRef}
+        className={`${styles.autoscrollViewport} px-3`}
+        data-feature-editor-scroll
+        tabIndex={0}
+        aria-label="Scrollable tab example"
+      >
+        <TabSection
+          sectionIndex={sectionIndex}
+          subSectionIndex={0}
+          presentation="embedded"
+        />
+      </div>
       <div className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3">
         <DemoPlaybackButton />
         <div className="flex items-center gap-2">
@@ -588,19 +605,6 @@ function AutoscrollPreview() {
             onCheckedChange={setAutoscroll}
           />
         </div>
-      </div>
-      <div
-        ref={scrollRef}
-        className={styles.autoscrollViewport}
-        data-feature-editor-scroll
-        tabIndex={0}
-        aria-label="Scrollable tab example"
-      >
-        <TabSection
-          sectionIndex={sectionIndex}
-          subSectionIndex={0}
-          presentation="embedded"
-        />
       </div>
     </div>
   );
@@ -670,9 +674,14 @@ function DemoContent({ feature }: { feature: FeatureId }) {
       break;
   }
   return (
-    <div ref={rootRef} className="flex w-full min-w-0 justify-center">
-      {content}
-    </div>
+    <>
+      <div ref={rootRef} className="flex w-full min-w-0 justify-center">
+        {content}
+      </div>
+      {(feature === "hotkeys" || feature === "autoscroll") && (
+        <DemoGlossaryDialog />
+      )}
+    </>
   );
 }
 

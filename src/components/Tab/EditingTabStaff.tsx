@@ -557,18 +557,25 @@ function TuningGutter({
           />
         </div>
         <div
-          className="shrink-0 bg-foreground/50"
+          data-tab-start-nut=""
+          className="relative z-[1] shrink-0"
           style={{
             width: 1,
             height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
             marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
           }}
-        ></div>
+        >
+          {/* Keep the border above adjacent note backgrounds at fractional zoom. */}
+          <div className="absolute inset-y-0 left-0 border-l border-foreground/50" />
+        </div>
       </div>
 
       <div className="baseFlex relative h-[41px] w-full">
         <Popover>
-          <PopoverTrigger className="baseFlex absolute left-[-8px] top-4 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10">
+          <PopoverTrigger
+            aria-label="Note lengths"
+            className="baseFlex absolute left-[-8px] top-4 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10"
+          >
             <QuarterNote />
             <EighthNote />
           </PopoverTrigger>
@@ -590,7 +597,10 @@ function TuningGutter({
 
       <div className="baseFlex relative h-[41px] w-full">
         <Popover>
-          <PopoverTrigger className="absolute left-[-8px] top-2 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10">
+          <PopoverTrigger
+            aria-label="Chord modifiers"
+            className="absolute left-[-8px] top-2 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10"
+          >
             <BsArrowDown className="absolute left-0 top-1 size-4" />
             <BsArrowUp className="absolute left-2 top-1 size-4" />
           </PopoverTrigger>

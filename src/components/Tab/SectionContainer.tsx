@@ -294,6 +294,7 @@ function SectionContainer({
                       <ChordSection
                         sectionIndex={sectionIndex}
                         subSectionIndex={index}
+                        presentation={presentation}
                       />
                     ) : (
                       <TabSection

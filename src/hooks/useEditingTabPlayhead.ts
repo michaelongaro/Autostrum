@@ -9,6 +9,7 @@ import {
   findPlaybackSegmentIndex,
   getPlaybackCumulativeSeconds,
 } from "~/utils/playbackTimeline";
+import { getElementCssZoomForRect } from "~/utils/staticTabGeometry";
 
 /** Rows differ by ~column height + gap-y-4; anything above this is a wrap. */
 const ROW_Y_SNAP_THRESHOLD_PX = 40;
@@ -59,15 +60,17 @@ function measureChordPosition(
 
   const containerRect = container.getBoundingClientRect();
   const rect = element.getBoundingClientRect();
+  // Transforms use local layout pixels. Rects already include the editor's
+  // CSS zoom, so convert them before positioning a playhead inside that editor.
+  const zoom = getElementCssZoomForRect(container, 1, container.offsetHeight);
 
   return {
-    x: rect.left - containerRect.left + rect.width / 2,
+    x: (rect.left - containerRect.left + rect.width / 2) / zoom,
     y:
-      rect.top -
-      containerRect.top +
+      (rect.top - containerRect.top) / zoom +
       EDITING_TAB_PALM_MUTE_HEIGHT_PX +
       EDITING_TAB_STAFF_LINE_INSET_PX,
-    width: rect.width,
+    width: rect.width / zoom,
   };
 }
 
