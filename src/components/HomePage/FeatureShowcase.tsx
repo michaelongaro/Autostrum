@@ -16,7 +16,7 @@ import {
   ZoomIn,
 } from "lucide-react";
 import { BsSpeedometer2 } from "react-icons/bs";
-import { GiMusicalScore } from "react-icons/gi";
+import { MdModeEditOutline } from "react-icons/md";
 import { PiMouseScroll } from "react-icons/pi";
 import { useEffect, useState, type KeyboardEvent } from "react";
 import { cn } from "~/utils/cn";
@@ -293,7 +293,7 @@ export default function FeatureShowcase() {
                   {name === "Practice" ? (
                     <Play className="size-4" />
                   ) : (
-                    <GiMusicalScore className="size-[18px]" />
+                    <MdModeEditOutline className="size-[18px]" />
                   )}
 
                   {name}
