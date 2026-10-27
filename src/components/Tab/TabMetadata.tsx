@@ -74,6 +74,7 @@ import { isMobile } from "react-device-detect";
 import Spinner from "~/components/ui/Spinner";
 import { useDraftActions } from "~/components/Tab/DraftEditor";
 import type { DraftReference } from "~/utils/tabDocument";
+import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -550,7 +551,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
     <>
       {editing && (
         <div className="baseVertFlex w-full gap-2">
-          <div className="baseFlex w-full !justify-end gap-2 p-4 sm:gap-3">
+          <div className="baseFlex w-full flex-wrap !justify-end gap-2 p-4 sm:gap-3">
             {!asPath.includes("create") && (
               <DropdownMenu modal={true}>
                 <DropdownMenuTrigger asChild>
@@ -1090,6 +1091,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                       )}
 
                       <Button
+                        aria-label="Share tab"
                         variant={"secondary"}
                         size={"icon"}
                         disabled={isLoadingARoute}
@@ -1148,7 +1150,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                   </div>
 
                   <AnimatePresence mode="popLayout">
-                    <div className="baseFlex gap-3">
+                    <div className="baseFlex flex-wrap !justify-start gap-3">
                       {dynamicMetadata ? (
                         <motion.div
                           key={"crossfadeRateTab"}
@@ -1194,7 +1196,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           transition={{
                             duration: 0.25,
                           }}
-                          className="baseFlex h-10 w-36"
+                          className="baseFlex h-10 md:w-36"
                         >
                           <BookmarkToggle
                             tabId={id}
@@ -1220,24 +1222,29 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                         </motion.div>
                       )}
 
-                      <Button
-                        variant={"secondary"}
-                        disabled={isLoadingARoute}
-                        onClick={async () => {
-                          try {
-                            await navigator.share({
-                              title,
-                              text: `Check out this tab I found on Autostrum!`,
-                              url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
-                            });
-                          } catch (error) {
-                            console.error("Error sharing tab:", error);
-                          }
-                        }}
-                        className="!p-2"
-                      >
-                        <IoIosShareAlt className="size-5" />
-                      </Button>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <Button
+                          aria-label="Share tab"
+                          variant={"secondary"}
+                          size="icon"
+                          disabled={isLoadingARoute}
+                          onClick={async () => {
+                            try {
+                              await navigator.share({
+                                title,
+                                text: `Check out this tab I found on Autostrum!`,
+                                url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                              });
+                            } catch (error) {
+                              console.error("Error sharing tab:", error);
+                            }
+                          }}
+                          className="!p-2"
+                        >
+                          <IoIosShareAlt className="size-5" />
+                        </Button>
+                        <PrintTabButton />
+                      </div>
                     </div>
                   </AnimatePresence>
                 </div>
@@ -1246,7 +1253,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                   asPath.includes("create")) && (
                   <Button
                     disabled={isLoadingARoute}
-                    className="baseFlex gap-2"
+                    className="baseFlex h-10 gap-2 whitespace-nowrap"
                     onClick={() => {
                       if (
                         asPath.includes("create") ||

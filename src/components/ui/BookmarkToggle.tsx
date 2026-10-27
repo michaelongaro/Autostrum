@@ -222,7 +222,10 @@ function BookmarkToggle({
                 className="baseFlex gap-2"
               >
                 <IoBookmark className="h-[18px] w-[18px] md:h-5 md:w-5" />
-                {showText && "Bookmarked"}
+
+                {showText && (
+                  <span className="hidden md:block">Bookmarked</span>
+                )}
               </motion.div>
             ) : (
               <motion.div
@@ -234,7 +237,8 @@ function BookmarkToggle({
                 className="baseFlex gap-2"
               >
                 <IoBookmarkOutline className="h-[18px] w-[18px] md:h-5 md:w-5" />
-                {showText && "Bookmark"}
+
+                {showText && <span className="hidden md:block">Bookmark</span>}
               </motion.div>
             )}
           </AnimatePresence>

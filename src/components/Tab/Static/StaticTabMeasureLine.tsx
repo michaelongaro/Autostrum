@@ -26,6 +26,7 @@ function StaticTabMeasureLine({
 }: StaticTabMeasureLineProps) {
   return (
     <div
+      data-static-tab-measure-line=""
       style={{
         height: STATIC_TAB_ROW_HEIGHT_PX,
         width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
@@ -64,9 +65,7 @@ function StaticTabMeasureLine({
           ></div>
         </div>
       ) : (
-        <>
-          {!showBpm && <div className="h-4 w-full shrink-0"></div>}
-        </>
+        <>{!showBpm && <div className="h-4 w-full shrink-0"></div>}</>
       )}
 
       {/* Former top container border — spacer only */}
@@ -76,6 +75,7 @@ function StaticTabMeasureLine({
         style={{ height: STATIC_TAB_STRINGS_HEIGHT_PX }}
       >
         <div
+          data-static-tab-measure-staff=""
           style={{
             width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
             height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,

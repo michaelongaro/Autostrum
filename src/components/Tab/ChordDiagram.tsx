@@ -11,15 +11,16 @@ const STRING_COUNT = 6;
 
 interface ChordDiagram {
   originalFrets: string[]; // Array of 6 strings representing fret positions ('x', '0', '1', '2', etc.)
+  leftHanded?: boolean;
 }
 
 /**
  * GuitarChordDiagram Component
  * Renders a guitar chord diagram based on the provided frets array.
  */
-function ChordDiagram({ originalFrets }: ChordDiagram) {
-  const leftHandChordDiagrams =
-    useGetLocalStorageValues().leftHandChordDiagrams;
+function ChordDiagram({ originalFrets, leftHanded }: ChordDiagram) {
+  const preferences = useGetLocalStorageValues();
+  const leftHandChordDiagrams = leftHanded ?? preferences.leftHandChordDiagrams;
   const frets = leftHandChordDiagrams
     ? [...originalFrets]
     : [...originalFrets].reverse();

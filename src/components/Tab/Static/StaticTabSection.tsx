@@ -450,6 +450,41 @@ function TuningGutter({ tuning }: { tuning: string }) {
   );
 }
 
+/** A complete, non-virtualized staff line for the paginated print document. */
+export function StaticPrintTabRow({
+  subSectionData,
+  start,
+  end,
+  tuning,
+  bpm,
+}: {
+  subSectionData: TabSection;
+  start: number;
+  end: number;
+  tuning: string;
+  bpm: number;
+}) {
+  return (
+    <div
+      data-print-tab-row=""
+      className="baseFlex w-full !items-start !justify-start"
+    >
+      <TuningGutter tuning={tuning} />
+      {renderColumnRange(
+        subSectionData.data,
+        start,
+        end,
+        "maple",
+        "light",
+        subSectionData.bpm,
+        bpm,
+        -1,
+        true,
+      )}
+    </div>
+  );
+}
+
 const ENDCAP_GROUP_CLASS =
   "baseFlex w-max shrink-0 flex-nowrap !items-start !justify-start";
 
@@ -486,6 +521,7 @@ function renderColumnRange(
   subSectionBpm: number,
   baselineBpm: number,
   highlightedThroughColumn = -1,
+  closeBeamsAtRowEdges = false,
 ): ReactNode[] {
   const renderedColumns: ReactNode[] = [];
   const beamBreaks = beamBreaksForTabColumns(columns);
@@ -525,8 +561,14 @@ function renderColumnRange(
           isLastColumn={isLastColumn}
           color={color}
           theme={theme}
-          breakBeamWithPrevious={beamBreaks[index]?.breakWithPrevious ?? true}
-          breakBeamWithNext={beamBreaks[index]?.breakWithNext ?? true}
+          breakBeamWithPrevious={
+            (closeBeamsAtRowEdges && index === startIndex) ||
+            (beamBreaks[index]?.breakWithPrevious ?? true)
+          }
+          breakBeamWithNext={
+            (closeBeamsAtRowEdges && index === endIndex) ||
+            (beamBreaks[index]?.breakWithNext ?? true)
+          }
         />
       );
     }

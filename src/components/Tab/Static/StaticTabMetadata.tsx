@@ -23,6 +23,7 @@ import { formatNumber } from "~/utils/formatNumber";
 import Verified from "~/components/ui/icons/Verified";
 import getDynamicFontSize from "~/utils/getDynamicFontSize";
 import { Badge } from "~/components/ui/badge";
+import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
@@ -234,6 +235,7 @@ function StaticTabMetadata() {
                   )}
 
                   <Button
+                    aria-label="Share tab"
                     variant={"secondary"}
                     size={"icon"}
                     disabled={isLoadingARoute}
@@ -253,10 +255,11 @@ function StaticTabMetadata() {
                   </Button>
                 </AnimatePresence>
               )}
+              {!asPath.includes("screenshot") && <PrintTabButton />}
             </div>
           </div>
         ) : (
-          <div className="baseVertFlex relative w-full !items-start gap-4 sm:!flex-row sm:!items-end">
+          <div className="baseVertFlex relative w-full !items-start gap-4 xs:!flex-row xs:!items-end">
             <div className="baseVertFlex w-full !items-start gap-4">
               <div className="baseVertFlex w-full !items-start gap-2">
                 <div
@@ -292,7 +295,7 @@ function StaticTabMetadata() {
               </div>
 
               <AnimatePresence mode="popLayout">
-                <div className="baseFlex gap-3">
+                <div className="baseFlex flex-wrap !justify-start gap-3">
                   {dynamicMetadata ? (
                     <motion.div
                       key={"crossfadeRateTab"}
@@ -338,7 +341,7 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex h-10 w-36"
+                      className="baseFlex h-10 md:w-36"
                     >
                       <BookmarkToggle
                         tabId={id}
@@ -364,24 +367,29 @@ function StaticTabMetadata() {
                     </motion.div>
                   )}
 
-                  <Button
-                    variant={"secondary"}
-                    disabled={isLoadingARoute}
-                    onClick={async () => {
-                      try {
-                        await navigator.share({
-                          title,
-                          text: `Check out this tab I found on Autostrum!`,
-                          url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
-                        });
-                      } catch (error) {
-                        console.error("Error sharing tab:", error);
-                      }
-                    }}
-                    className="!p-2"
-                  >
-                    <IoIosShareAlt className="size-5" />
-                  </Button>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <Button
+                      aria-label="Share tab"
+                      variant={"secondary"}
+                      size="icon"
+                      disabled={isLoadingARoute}
+                      onClick={async () => {
+                        try {
+                          await navigator.share({
+                            title,
+                            text: `Check out this tab I found on Autostrum!`,
+                            url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                          });
+                        } catch (error) {
+                          console.error("Error sharing tab:", error);
+                        }
+                      }}
+                      className="!p-2"
+                    >
+                      <IoIosShareAlt className="size-5" />
+                    </Button>
+                    {!asPath.includes("screenshot") && <PrintTabButton />}
+                  </div>
                 </div>
               </AnimatePresence>
             </div>
@@ -389,7 +397,7 @@ function StaticTabMetadata() {
             {userId && createdByUserId === userId && (
               <Button
                 disabled={isLoadingARoute}
-                className="baseFlex gap-2"
+                className="baseFlex h-10 gap-2"
                 onClick={() => void push(`/tab/${id}/edit`)}
               >
                 Edit
