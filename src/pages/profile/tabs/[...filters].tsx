@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import SEO from "~/components/SEO";
 import Link from "next/link";
 import SearchResults from "~/components/Search/SearchResults";
+import styles from "~/components/Search/SearchResults.module.css";
 import { Button } from "~/components/ui/button";
 import DraftsDialog from "~/components/Dialogs/DraftsDialog";
 import { getSignedInPageProps } from "~/server/auth";
@@ -14,7 +15,7 @@ function UserTabs() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
+      className={`${styles.pageShell} baseVertFlex my-12 min-h-[650px] !justify-start md:my-24 md:p-0`}
     >
       <SEO
         title="My Tabs | Autostrum"

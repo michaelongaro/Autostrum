@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import SEO from "~/components/SEO";
 import SearchResults from "~/components/Search/SearchResults";
+import styles from "~/components/Search/SearchResults.module.css";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { BiSearchAlt2 } from "react-icons/bi";
 import Binoculars from "~/components/ui/icons/Binoculars";
@@ -17,7 +18,7 @@ function FilteredQueryExplore() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-12 min-h-[calc(100dvh-4rem-6rem)] w-full max-w-[1400px] !justify-start md:my-24 md:min-h-[calc(100dvh-4rem-12rem)] md:w-3/4"
+      className={`${styles.pageShell} baseVertFlex my-12 min-h-[calc(100dvh-4rem-6rem)] !justify-start md:my-24 md:min-h-[calc(100dvh-4rem-12rem)]`}
     >
       <SEO
         title="Search | Autostrum"

@@ -717,7 +717,7 @@ function SearchResults({
         </div>
       </div>
 
-      <div className="baseVertFlex relative size-full">
+      <div className="baseVertFlex relative h-full min-w-0 flex-1">
         <div
           ref={stickyStylesSentinelRef}
           className="absolute top-0 h-[1px]"

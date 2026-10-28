@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
 import SearchResults from "~/components/Search/SearchResults";
+import styles from "~/components/Search/SearchResults.module.css";
 import { FaStar } from "react-icons/fa6";
 import { IoBookmark } from "react-icons/io5";
 import { api } from "~/utils/api";
@@ -78,7 +79,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
+      className={`${styles.pageShell} baseVertFlex my-12 min-h-[650px] !justify-start md:my-24 md:p-0`}
     >
       <SEO
         title={`${userMetadata?.user.username ?? (typeof query.username === "string" ? query.username : "User")} | Autostrum`}

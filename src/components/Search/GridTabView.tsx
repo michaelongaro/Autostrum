@@ -59,7 +59,7 @@ function GridTabView({
         {tabResults && tabResults.pages[0]?.count !== 0 && (
           <div
             style={{ gridAutoRows: "minmax(min-content, max-content)" }}
-            className="grid w-full grid-cols-1 place-items-center gap-4 p-4 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4"
+            className="grid w-full grid-cols-[repeat(auto-fill,minmax(min(100%,330px),1fr))] place-items-center gap-4 p-4"
           >
             {tabResults.pages.map((page) =>
               page.data.tabs.map((tab, index) => (

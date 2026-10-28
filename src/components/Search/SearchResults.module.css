@@ -1,3 +1,16 @@
+.pageShell {
+  width: 100%;
+  max-width: 1400px;
+  min-width: 0;
+}
+
+/* Leave room for the cards and filters instead of reserving 25% for margins. */
+@media (min-width: 768px) {
+  .pageShell {
+    width: calc(100% - clamp(2rem, 4vw, 4rem));
+  }
+}
+
 .stickyHeader {
   position: sticky;
   top: 4rem;
