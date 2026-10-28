@@ -41,9 +41,9 @@ import { useTabStore } from "~/stores/TabStore";
 import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
   EDITING_TAB_FOOTER_HEIGHT_PX,
+  EDITING_TAB_NUT_MARGIN_TOP_PX,
   EDITING_TAB_ROW_STRIDE_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
-  EDITING_TAB_STAFF_LINE_INSET_PX,
   EDITING_TAB_TUNING_PALM_MUTE_SPACER_PX,
 } from "~/utils/editingTabGeometry";
 import {
@@ -562,7 +562,7 @@ function TuningGutter({
           style={{
             width: 1,
             height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
-            marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
+            marginTop: EDITING_TAB_NUT_MARGIN_TOP_PX,
           }}
         >
           {/* Keep the border above adjacent note backgrounds at fractional zoom. */}
@@ -633,7 +633,7 @@ function EndNut() {
           style={{
             width: 1,
             height: EDITING_TAB_STAFF_LINE_HEIGHT_PX,
-            marginTop: EDITING_TAB_STAFF_LINE_INSET_PX,
+            marginTop: EDITING_TAB_NUT_MARGIN_TOP_PX,
           }}
         ></div>
       </div>

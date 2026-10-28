@@ -2,6 +2,7 @@ import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
   STATIC_TAB_MEASURE_LINE_WIDTH_PX,
   STATIC_TAB_NOTE_LENGTH_FOOTER_HEIGHT_PX,
+  STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX,
   STATIC_TAB_ROW_HEIGHT_PX,
   STATIC_TAB_STAFF_LINE_HEIGHT_PX,
   STATIC_TAB_STAFF_LINE_INSET_PX,
@@ -68,20 +69,21 @@ function StaticTabMeasureLine({
         <>{!showBpm && <div className="h-4 w-full shrink-0"></div>}</>
       )}
 
-      {/* Former top container border — spacer only */}
+      {/* Keep the staff anchored independently of the BPM/palm-mute spacers. */}
 
       <div
-        className="relative w-full shrink-0"
+        className="w-full shrink-0"
         style={{ height: STATIC_TAB_STRINGS_HEIGHT_PX }}
       >
         <div
           data-static-tab-measure-staff=""
+          className="absolute"
           style={{
             width: STATIC_TAB_MEASURE_LINE_WIDTH_PX,
             height: STATIC_TAB_STAFF_LINE_HEIGHT_PX,
-            marginTop: isInPalmMuteSection
-              ? STATIC_TAB_STAFF_LINE_INSET_PX
-              : "0px",
+            top:
+              STATIC_TAB_PALM_MUTE_HEADER_HEIGHT_PX +
+              STATIC_TAB_STAFF_LINE_INSET_PX,
             backgroundColor: "hsl(var(--screenshot-foreground) / 0.5)",
           }}
         />

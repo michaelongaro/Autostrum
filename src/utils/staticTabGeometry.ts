@@ -50,9 +50,9 @@ export const STATIC_TAB_TUNING_NOTE_GAP_PX = 8;
 /** 1px start/end/measure vertical lines through the first–sixth strings. */
 export const STATIC_TAB_STAFF_LINE_WIDTH_PX = 1;
 
-/** Offset from the top of the string stack to the first 1px string line. */
+/** Top edge of the first 1px string line centered in its string row. */
 export const STATIC_TAB_STAFF_LINE_INSET_PX =
-  STATIC_TAB_STRING_ROW_HEIGHT_PX / 2;
+  (STATIC_TAB_STRING_ROW_HEIGHT_PX - STATIC_TAB_STAFF_LINE_WIDTH_PX) / 2;
 
 /** Vertical line spanning the first string through the sixth string. */
 export const STATIC_TAB_STAFF_LINE_HEIGHT_PX =

@@ -49,6 +49,15 @@ export const EDITING_TAB_REORDER_DIM_HEIGHT_PX = 119;
 export const EDITING_TAB_STAFF_LINE_INSET_PX =
   EDITING_TAB_STRING_ROW_HEIGHT_PX / 2;
 
+/**
+ * Start/end nuts use the shorter tuning header. Compensate for that header
+ * and align to the top edge of the centered 1px strings, not their centers.
+ */
+export const EDITING_TAB_NUT_MARGIN_TOP_PX =
+  EDITING_TAB_PALM_MUTE_HEIGHT_PX -
+  EDITING_TAB_TUNING_PALM_MUTE_SPACER_PX +
+  (EDITING_TAB_STRING_ROW_HEIGHT_PX - 1) / 2;
+
 /** Vertical line spanning the first string through the sixth string. */
 export const EDITING_TAB_STAFF_LINE_HEIGHT_PX =
   (EDITING_TAB_STRING_COUNT - 1) * EDITING_TAB_STRING_ROW_HEIGHT_PX + 1;
