@@ -1,6 +1,6 @@
 import { useLocalStorageValue } from "@react-hookz/web";
-import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useMemo, useState, type ReactNode } from "react";
 import { isMobileOnly } from "react-device-detect";
 import {
   BsFillVolumeDownFill,
@@ -65,6 +65,7 @@ function AudioControls() {
   const [visibility, setVisibility] = useState<"expanded" | "minimized">(
     "expanded",
   );
+  const minimized = visibility === "minimized";
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerHandleDisabled, setDrawerHandleDisabled] = useState(false);
@@ -143,19 +144,6 @@ function AudioControls() {
     }
   }
 
-  // Expanded stick offset matches the resting gap under the Tab container
-  // (see AudioControlsStickyBounds). Minimized values slide the bar down
-  // past the viewport edge.
-  let dynamicBottomValue = AUDIO_CONTROLS_BOTTOM_OFFSET;
-
-  if (visibility === "minimized") {
-    if (aboveLargeViewportWidth) {
-      dynamicBottomValue = "-6.15rem";
-    } else {
-      dynamicBottomValue = "-2.85rem";
-    }
-  }
-
   const disablePlayButton =
     fetchingFullTabData ||
     audioMetadata.editingLoopRange ||
@@ -167,52 +155,18 @@ function AudioControls() {
     // so maybe try to leverage it's "complete"ness of it's check through the tab?
     (tabIsEffectivelyEmpty && !audioMetadata.location);
 
-  const mainAudioControlsVariants = {
-    expanded: {
-      opacity: 1,
-      bottom: dynamicBottomValue,
-    },
-    closed: {
-      opacity: 0,
-      bottom: aboveLargeViewportWidth ? "-8rem" : "-4rem",
-    },
-  };
-
   return (
-    <motion.div
-      key={"audioControls"}
-      variants={mainAudioControlsVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
-      style={{
-        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-      }}
-      className="baseFlex pointer-events-auto sticky z-30 w-[95vw] max-w-[500px] lg:max-w-[825px] xl:w-10/12"
+    <AudioControlsFrame
+      minimized={minimized}
+      desktop={!!aboveLargeViewportWidth}
+      onExpand={() => setVisibility("expanded")}
     >
-      <div className="baseVertFlex z-30 size-full rounded-xl bg-accent p-2 text-primary-foreground shadow-xl transition-opacity lg:rounded-full lg:px-10 lg:py-2">
-        <AnimatePresence mode="sync">
-          {aboveLargeViewportWidth && visibility === "minimized" && (
-            <motion.div
-              key={"audioControlsTopLayer"}
-              style={{ overflow: "hidden" }}
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 30, opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.35 }}
-              className="baseFlex"
-            >
-              <Button
-                variant="ghost"
-                className="mb-2 h-5 w-8 p-0"
-                onClick={() => setVisibility("expanded")}
-              >
-                <GoChevronUp className="h-5 w-5" />
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {/* mobile top layer: return to tab, v/^ chevron, audio slider */}
+      <div
+        inert={minimized}
+        aria-hidden={minimized}
+        className={`baseVertFlex w-[100cqw] p-2 lg:px-10 lg:py-2 ${minimized ? "pointer-events-none invisible" : "pointer-events-auto"}`}
+      >
+        {/* mobile top layer: return to tab, minimize, audio slider */}
         {!aboveLargeViewportWidth && (
           <div className="grid w-full grid-cols-12 place-items-center">
             {/* return to tab, v/^ chevron */}
@@ -255,21 +209,15 @@ function AudioControls() {
               </AnimatePresence>
             </div>
 
-            {/* v/^ chevron */}
+            {/* minimize */}
             <Button
               variant={"ghost"}
+              aria-label="Minimize audio controls"
+              aria-expanded={true}
               className="col-span-2 h-7 w-7 p-0"
-              onClick={() =>
-                setVisibility(
-                  visibility === "minimized" ? "expanded" : "minimized",
-                )
-              }
+              onClick={() => setVisibility("minimized")}
             >
-              {visibility === "minimized" ? (
-                <GoChevronUp className="h-5 w-5" />
-              ) : (
-                <GoChevronDown className="h-5 w-5" />
-              )}
+              <GoChevronDown className="h-5 w-5" />
             </Button>
 
             {!isMobileOnly && (
@@ -739,6 +687,8 @@ function AudioControls() {
 
               <Button
                 variant={"ghost"}
+                aria-label="Minimize audio controls"
+                aria-expanded={true}
                 className="h-8 w-8 p-0"
                 onClick={() => setVisibility("minimized")}
               >
@@ -878,11 +828,76 @@ function AudioControls() {
           )}
         </div>
       </div>
-    </motion.div>
+    </AudioControlsFrame>
   );
 }
 
 export default AudioControls;
+
+// Keep the expanded layout stable inside the narrowing shell, so minimizing
+// never wraps controls or changes how far they slide below the viewport.
+function AudioControlsFrame({
+  minimized,
+  desktop,
+  onExpand,
+  children,
+}: {
+  minimized: boolean;
+  desktop: boolean;
+  onExpand: () => void;
+  children: ReactNode;
+}) {
+  const reduceMotion = useReducedMotion();
+  const transition = {
+    duration: reduceMotion ? 0 : 0.3,
+    ease: "easeInOut" as const,
+  };
+
+  return (
+    <motion.div
+      key="audioControls"
+      variants={{
+        expanded: {
+          opacity: 1,
+          bottom: minimized ? "0rem" : AUDIO_CONTROLS_BOTTOM_OFFSET,
+          y: minimized ? "calc(100% - 1.75rem)" : "0%",
+        },
+        closed: {
+          opacity: 0,
+          bottom: desktop ? "-8rem" : "-4rem",
+          y: "0%",
+        },
+      }}
+      initial="closed"
+      animate="expanded"
+      exit="closed"
+      transition={transition}
+      style={{ containerType: "inline-size" }}
+      className="baseFlex pointer-events-none sticky z-30 w-[95vw] max-w-[500px] lg:max-w-[825px] xl:w-10/12"
+    >
+      <motion.div
+        data-audio-controls={minimized ? "minimized" : "expanded"}
+        initial={false}
+        animate={{ width: minimized ? "4rem" : "100%" }}
+        transition={transition}
+        className={`relative z-30 overflow-hidden bg-accent text-primary-foreground shadow-xl ${minimized ? "rounded-xl" : "rounded-xl lg:rounded-full"}`}
+      >
+        {minimized && (
+          <Button
+            variant="ghost"
+            aria-label="Expand audio controls"
+            aria-expanded={false}
+            className="pointer-events-auto absolute inset-x-0 top-0 z-40 mx-auto h-7 w-12 p-0"
+            onClick={onExpand}
+          >
+            <GoChevronUp className="size-5" />
+          </Button>
+        )}
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+}
 
 function DesktopInstrumentAndSpeedSelects() {
   const {

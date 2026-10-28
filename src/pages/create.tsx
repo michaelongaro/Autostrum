@@ -6,6 +6,7 @@ import { EighthNote, QuarterNote } from "~/utils/noteLengthIcons";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import DraftEditor from "~/components/Tab/DraftEditor";
 import { BsFillPlayFill } from "react-icons/bs";
+import Spinner from "~/components/ui/Spinner";
 
 function Create() {
   const isAboveMediumViewport = useViewportWidthBreakpoint(768);

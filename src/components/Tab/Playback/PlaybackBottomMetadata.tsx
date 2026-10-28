@@ -755,7 +755,7 @@ function MobileMenuDialog() {
                 </Button>
               </CarouselItem>
 
-              <CarouselItem className="baseFlex basis-auto">
+              <CarouselItem className="baseFlex basis-auto pr-3">
                 <Button
                   variant={"text"}
                   onClick={() => selectPracticeMenuPane(2)}

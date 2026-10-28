@@ -76,6 +76,9 @@ export default function useExtraTabMetadataLayout(
     sizes[activePane]?.collapsedHeight ?? SECTION_PROGRESSION_HEIGHT;
   const naturalHeight = sizes[activePane]?.height ?? collapsedHeight;
   const hasOverflow = naturalHeight > collapsedHeight + 1;
+  const hasAnyOverflow = Object.values(sizes).some(
+    (size) => size.height > size.collapsedHeight + 1,
+  );
 
   useLayoutEffect(() => {
     // Clipping alone still allows tabbing to hidden preview buttons, which can
@@ -105,6 +108,7 @@ export default function useExtraTabMetadataLayout(
   return {
     contentRef,
     hasOverflow,
+    hasAnyOverflow,
     height: expanded
       ? Math.max(collapsedHeight, naturalHeight)
       : collapsedHeight,

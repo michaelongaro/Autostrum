@@ -52,10 +52,8 @@ function MobileExtraTabMetadata() {
   );
   const [tabContentExpanded, setTabContentExpanded] = useState(false);
   const reduceMotion = useReducedMotion();
-  const { contentRef, height, hasOverflow } = useExtraTabMetadataLayout(
-    activeTabName,
-    tabContentExpanded,
-  );
+  const { contentRef, height, hasOverflow, hasAnyOverflow } =
+    useExtraTabMetadataLayout(activeTabName, tabContentExpanded);
 
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [carouselContentApi, setCarouselContentApi] =
@@ -121,7 +119,7 @@ function MobileExtraTabMetadata() {
               },
             },
           }}
-          className="baseFlex max-w-[90%]"
+          className={`baseFlex min-w-0 flex-1 ${hasAnyOverflow ? "max-w-[90%]" : "w-full"}`}
         >
           <CarouselContent className="pl-3">
             <CarouselItem className="baseFlex basis-auto">
@@ -164,7 +162,7 @@ function MobileExtraTabMetadata() {
               </Button>
             </CarouselItem>
 
-            <CarouselItem className="baseFlex basis-auto">
+            <CarouselItem className="baseFlex basis-auto pr-3">
               <Button
                 variant={"text"}
                 aria-pressed={activeTabName === "Strumming patterns"}
@@ -186,24 +184,26 @@ function MobileExtraTabMetadata() {
           </CarouselContent>
         </Carousel>
 
-        <Button
-          variant={"text"}
-          aria-label={
-            tabContentExpanded
-              ? "Collapse extra tab metadata"
-              : "Expand extra tab metadata"
-          }
-          aria-expanded={tabContentExpanded}
-          onClick={() => setTabContentExpanded((prev) => !prev)}
-          disabled={!hasOverflow}
-          className={`baseFlex mr-[9px] !p-0 ${hasOverflow ? "" : "invisible"}`}
-        >
-          <ChevronDown
-            className={`size-[18px] transition-transform motion-reduce:transition-none ${
-              tabContentExpanded ? "rotate-180" : ""
-            }`}
-          />
-        </Button>
+        {hasAnyOverflow && (
+          <Button
+            variant={"text"}
+            aria-label={
+              hasOverflow && tabContentExpanded
+                ? "Collapse extra tab metadata"
+                : "Expand extra tab metadata"
+            }
+            aria-expanded={hasOverflow && tabContentExpanded}
+            onClick={() => setTabContentExpanded((prev) => !prev)}
+            disabled={!hasOverflow}
+            className="baseFlex mr-[9px] shrink-0 !p-0"
+          >
+            <ChevronDown
+              className={`size-[18px] transition-transform motion-reduce:transition-none ${
+                hasOverflow && tabContentExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </Button>
+        )}
       </div>
 
       {/* tab content */}
