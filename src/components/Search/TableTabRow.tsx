@@ -72,7 +72,7 @@ function TableTabRow({
             <Link
               prefetch={false}
               href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
-              className="!p-0 !text-base !font-semibold md:!text-lg"
+              className="!p-0 !text-base !font-semibold"
             >
               <span className="max-w-[230px] truncate sm:max-w-[300px]">
                 {minimalTab.title}
