@@ -161,11 +161,7 @@ function AudioControls() {
       desktop={!!aboveLargeViewportWidth}
       onExpand={() => setVisibility("expanded")}
     >
-      <div
-        inert={minimized}
-        aria-hidden={minimized}
-        className={`baseVertFlex w-[100cqw] p-2 lg:px-10 lg:py-2 ${minimized ? "pointer-events-none invisible" : "pointer-events-auto"}`}
-      >
+      <div className="baseVertFlex w-full p-2 lg:px-10 lg:py-2">
         {/* mobile top layer: return to tab, minimize, audio slider */}
         {!aboveLargeViewportWidth && (
           <div className="grid w-full grid-cols-12 place-items-center">
@@ -175,37 +171,36 @@ function AudioControls() {
             {/* not sure if this will work, just want  */}
             <div className="baseFlex col-span-5 w-full">
               <AnimatePresence mode="wait">
-                {audioMetadata.location !== null &&
-                  visibility === "expanded" && (
-                    <motion.div
-                      key={"returnToEntireTabButton"}
-                      variants={opacityAndScaleVariants}
-                      initial="closed"
-                      animate="expanded"
-                      exit="closed"
-                      transition={{ duration: 0.15 }}
-                    >
-                      <Button
-                        variant="ghost" // or secondary maybe
-                        onClick={() => {
-                          pauseAudio(true);
+                {audioMetadata.location !== null && (
+                  <motion.div
+                    key={"returnToEntireTabButton"}
+                    variants={opacityAndScaleVariants}
+                    initial="closed"
+                    animate="expanded"
+                    exit="closed"
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Button
+                      variant="ghost" // or secondary maybe
+                      onClick={() => {
+                        pauseAudio(true);
 
-                          setAudioMetadata({
-                            ...audioMetadata,
-                            playing: false,
-                            location: null,
-                            startLoopIndex: 0,
-                            endLoopIndex: -1,
-                            editingLoopRange: false,
-                          });
-                        }}
-                        className="baseFlex h-[28px] gap-2 !py-0 px-1"
-                      >
-                        <RiArrowGoBackFill className="h-3.5 w-3.5" />
-                        <p className="text-xs">Play whole tab</p>
-                      </Button>
-                    </motion.div>
-                  )}
+                        setAudioMetadata({
+                          ...audioMetadata,
+                          playing: false,
+                          location: null,
+                          startLoopIndex: 0,
+                          endLoopIndex: -1,
+                          editingLoopRange: false,
+                        });
+                      }}
+                      className="baseFlex h-[28px] gap-2 !py-0 px-1"
+                    >
+                      <RiArrowGoBackFill className="h-3.5 w-3.5" />
+                      <p className="text-xs">Play whole tab</p>
+                    </Button>
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
 
@@ -221,11 +216,7 @@ function AudioControls() {
             </Button>
 
             {!isMobileOnly && (
-              <div
-                className={`baseFlex col-span-5 w-full gap-2 ${
-                  visibility === "minimized" ? "opacity-0" : "opacity-100"
-                } transition-opacity`}
-              >
+              <div className="baseFlex col-span-5 w-full gap-2">
                 <AnimatePresence mode="popLayout" initial={false}>
                   {volume === 0 && (
                     <motion.div
@@ -834,8 +825,8 @@ function AudioControls() {
 
 export default AudioControls;
 
-// Keep the expanded layout stable inside the narrowing shell, so minimizing
-// never wraps controls or changes how far they slide below the viewport.
+// Keep both views mounted at their final sizes and positions so they can
+// crossfade together without reflowing the controls or resetting their state.
 function AudioControlsFrame({
   minimized,
   desktop,
@@ -856,44 +847,51 @@ function AudioControlsFrame({
   return (
     <motion.div
       key="audioControls"
+      data-audio-controls={minimized ? "minimized" : "expanded"}
       variants={{
         expanded: {
           opacity: 1,
-          bottom: minimized ? "0rem" : AUDIO_CONTROLS_BOTTOM_OFFSET,
-          y: minimized ? "calc(100% - 1.75rem)" : "0%",
+          bottom: AUDIO_CONTROLS_BOTTOM_OFFSET,
         },
         closed: {
           opacity: 0,
           bottom: desktop ? "-8rem" : "-4rem",
-          y: "0%",
         },
       }}
       initial="closed"
       animate="expanded"
       exit="closed"
       transition={transition}
-      style={{ containerType: "inline-size" }}
       className="baseFlex pointer-events-none sticky z-30 w-[95vw] max-w-[500px] lg:max-w-[825px] xl:w-10/12"
     >
       <motion.div
-        data-audio-controls={minimized ? "minimized" : "expanded"}
+        inert={minimized}
+        aria-hidden={minimized}
         initial={false}
-        animate={{ width: minimized ? "4rem" : "100%" }}
+        animate={{ opacity: minimized ? 0 : 1 }}
         transition={transition}
-        className={`relative z-30 overflow-hidden bg-accent text-primary-foreground shadow-xl ${minimized ? "rounded-xl" : "rounded-xl lg:rounded-full"}`}
+        className={`relative w-full overflow-hidden rounded-xl bg-accent text-primary-foreground shadow-xl lg:rounded-full ${minimized ? "pointer-events-none" : "pointer-events-auto"}`}
       >
-        {minimized && (
-          <Button
-            variant="ghost"
-            aria-label="Expand audio controls"
-            aria-expanded={false}
-            className="pointer-events-auto absolute inset-x-0 top-0 z-40 mx-auto h-7 w-12 p-0"
-            onClick={onExpand}
-          >
-            <GoChevronUp className="size-5" />
-          </Button>
-        )}
         {children}
+      </motion.div>
+      <motion.div
+        inert={!minimized}
+        aria-hidden={!minimized}
+        initial={false}
+        animate={{ opacity: minimized ? 1 : 0 }}
+        transition={transition}
+        style={{ bottom: `calc(-1 * ${AUDIO_CONTROLS_BOTTOM_OFFSET})` }}
+        className={`baseFlex absolute w-16 rounded-t-xl bg-accent text-primary-foreground shadow-xl ${minimized ? "pointer-events-auto" : "pointer-events-none"}`}
+      >
+        <Button
+          variant="ghost"
+          aria-label="Expand audio controls"
+          aria-expanded={false}
+          className="h-7 w-12 p-0"
+          onClick={onExpand}
+        >
+          <GoChevronUp className="size-5" />
+        </Button>
       </motion.div>
     </motion.div>
   );
