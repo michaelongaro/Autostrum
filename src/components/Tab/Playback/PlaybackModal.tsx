@@ -541,7 +541,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
       >
         <div
           ref={containerRef}
-          className="relative flex h-[315px] w-full overflow-hidden"
+          className="relative flex h-[var(--playback-practice-strip-height,315px)] w-full overflow-hidden"
         >
           {!audioMetadata.editingLoopRange && (
             <div className="baseFlex absolute left-0 top-0 size-full">

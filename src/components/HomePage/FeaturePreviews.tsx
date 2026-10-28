@@ -433,13 +433,11 @@ function LoopControls({
       data-feature-control
     >
       <div className="flex items-center gap-3">
-        {!audioMetadata.editingLoopRange && (
-          <span className="shrink-0 text-xs tabular-nums">
-            {formatSecondsToMinutes(
-              playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
-            )}
-          </span>
-        )}
+        <span className="shrink-0 text-xs tabular-nums">
+          {formatSecondsToMinutes(
+            playbackMetadata?.[currentChordIndex]?.elapsedSeconds ?? 0,
+          )}
+        </span>
         <div className="min-w-0 flex-1">
           <PlaybackAudioRange
             disabled={isGlideScrubbing}
@@ -449,13 +447,11 @@ function LoopControls({
             idPrefix={`feature-loop-${sectionIndex}`}
           />
         </div>
-        {!audioMetadata.editingLoopRange && (
-          <span className="shrink-0 text-xs tabular-nums">
-            {formatSecondsToMinutes(
-              playbackMetadata?.at(-1)?.elapsedSeconds ?? 0,
-            )}
-          </span>
-        )}
+        <span className="shrink-0 text-xs tabular-nums">
+          {formatSecondsToMinutes(
+            playbackMetadata?.at(-1)?.elapsedSeconds ?? 0,
+          )}
+        </span>
       </div>
       {audioMetadata.editingLoopRange ? (
         <>
@@ -529,10 +525,10 @@ function HotkeysPreview() {
         sectionIndex={sectionIndex}
         subSectionIndex={0}
         presentation="embedded"
-        className="[zoom:0.85]"
+        className="[zoom:0.9]"
       ></TabSection>
       <div
-        className="mx-auto mt-4 grid w-[450px] grid-cols-2 place-items-center gap-2 !self-center"
+        className="mx-auto mt-4 grid w-full max-w-[450px] grid-cols-[repeat(auto-fit,minmax(192px,1fr))] place-items-center gap-2 !self-center"
         data-feature-hotkeys
       >
         {HOTKEYS.map(({ keys, label }) => (

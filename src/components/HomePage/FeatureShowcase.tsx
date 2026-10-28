@@ -18,7 +18,7 @@ import {
 import { BsSpeedometer2 } from "react-icons/bs";
 import { MdModeEditOutline } from "react-icons/md";
 import { PiMouseScroll } from "react-icons/pi";
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { cn } from "~/utils/cn";
 import { Button } from "~/components/ui/button";
 import { useTabStore } from "~/stores/TabStore";
@@ -80,7 +80,7 @@ const EDITING_FEATURES: Feature[] = [
   },
 ];
 
-function CrossfadePreview({
+function FeaturePanel({
   feature,
   reduceMotion,
   active,
@@ -101,14 +101,73 @@ function CrossfadePreview({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeInOut" }}
+      transition={{ duration: reduceMotion ? 0 : 0.15, ease: "easeInOut" }}
       className={cn(
-        "flex items-center justify-center p-4",
-        isPresent ? "relative col-start-1 row-start-1" : "absolute inset-0",
+        "relative flex items-center justify-center p-4",
+        PRACTICE_FEATURES.some(({ id }) => id === feature.id)
+          ? styles.practicePanel
+          : styles.composePanel,
       )}
     >
-      <div className="w-full min-w-0 max-w-[540px]">
+      <div
+        className={cn(
+          "w-full min-w-0",
+          feature.id === "hotkeys" || feature.id === "autoscroll"
+            ? "max-w-[580px]"
+            : "max-w-[540px]",
+        )}
+      >
         <FeaturePreview feature={feature.id} active={active && isPresent} />
+      </div>
+    </motion.div>
+  );
+}
+
+function AnimatedPreview({
+  feature,
+  reduceMotion,
+  active,
+}: {
+  feature: Feature;
+  reduceMotion: boolean;
+  active: boolean;
+}) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number>();
+
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+
+    // Measure the natural content height independently of the animated frame.
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry && entry.contentRect.height > 0) {
+        setHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ height: height ?? "auto" }}
+      transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeInOut" }}
+      className={cn(
+        styles.previewSurface,
+        "relative box-content min-w-0 self-start overflow-hidden rounded-xl border border-foreground/20",
+      )}
+    >
+      <div ref={contentRef} className="relative min-w-0">
+        <AnimatePresence initial={false} mode="wait">
+          <FeaturePanel
+            key={feature.id}
+            feature={feature}
+            reduceMotion={reduceMotion}
+            active={active}
+          />
+        </AnimatePresence>
       </div>
     </motion.div>
   );
@@ -372,21 +431,11 @@ export default function FeatureShowcase() {
             })}
           </div>
         </div>
-        <div
-          className={cn(
-            styles.previewSurface,
-            "relative grid min-w-0 grid-cols-1 overflow-hidden rounded-xl border border-foreground/20",
-          )}
-        >
-          <AnimatePresence initial={false} mode="sync">
-            <CrossfadePreview
-              key={activeFeature.id}
-              feature={activeFeature}
-              reduceMotion={Boolean(reduceMotion)}
-              active={desktop === true}
-            />
-          </AnimatePresence>
-        </div>
+        <AnimatedPreview
+          feature={activeFeature}
+          reduceMotion={Boolean(reduceMotion)}
+          active={desktop === true}
+        />
       </div>
 
       <PracticeCarousel active={desktop === false} />

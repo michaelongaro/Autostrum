@@ -261,7 +261,7 @@ function createPracticeTab(
     id: `demo-${sectionIndex}-tab`,
     type: "tab",
     bpm: feature === "speed" ? 200 : -1,
-    repetitions: feature === "speed" ? 2 : 1,
+    repetitions: 1,
     baseNoteLength,
     data: measures.flatMap((measure, measureIndex) => [
       ...(measureIndex === 0
