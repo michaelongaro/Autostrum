@@ -141,16 +141,14 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
 
     if (tabId) {
       void push(`/tab/${tabId}/${encodedSearchQuery}`);
-    } else if (searchType === "artists") {
-      if (artistId) {
-        void push(`/artist/${encodedSearchQuery}/${artistId}/filters`);
-      } else {
-        void push(`/artist/${encodedSearchQuery}/filters`);
-      }
+    } else if (searchType === "artists" && artistId) {
+      void push(`/artist/${encodedSearchQuery}/${artistId}/filters`);
     } else {
       const pathname = "/search/filters";
       const newQuery = {
-        ...(encodedSearchQuery && { search: encodedSearchQuery }),
+        ...(searchType === "songs" && encodedSearchQuery && {
+          search: encodedSearchQuery,
+        }),
         ...(query.layout && { layout: query.layout }),
       };
 
