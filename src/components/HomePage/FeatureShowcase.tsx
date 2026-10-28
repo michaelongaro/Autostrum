@@ -274,14 +274,13 @@ export default function FeatureShowcase() {
   const theme = useTabStore((state) => state.theme);
   const [mode, setMode] = useState<FeatureMode>("Practice");
   const desktop = useViewportWidthBreakpoint(768);
-  const [selection, setSelection] = useState({ Practice: 0, Compose: 0 });
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const reduceMotion = useReducedMotion();
   const features = mode === "Practice" ? PRACTICE_FEATURES : EDITING_FEATURES;
-  const selectedIndex = selection[mode];
   const activeFeature = features[selectedIndex] ?? features[0]!;
 
   function selectFeature(index: number) {
-    setSelection((previous) => ({ ...previous, [mode]: index }));
+    setSelectedIndex(index);
   }
 
   function handleFeatureKeys(
@@ -338,7 +337,12 @@ export default function FeatureShowcase() {
                   type="button"
                   variant="toggle"
                   aria-pressed={mode === name}
-                  onClick={() => setMode(name)}
+                  onClick={() => {
+                    if (name !== mode) {
+                      setMode(name);
+                      setSelectedIndex(0);
+                    }
+                  }}
                   style={{
                     color:
                       theme === "light"
