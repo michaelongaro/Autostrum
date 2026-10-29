@@ -57,8 +57,8 @@ function Home() {
       {/* <TabDiscovery /> */}
       {/* <TabMarquee /> */}
       <ToolsShowcase />
-      <SignupCTA />
-      <CustomizeLook />
+      {/* <SignupCTA />
+      <CustomizeLook /> */}
       <FAQ />
     </motion.div>
   );
