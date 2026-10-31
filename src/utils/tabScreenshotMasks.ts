@@ -1,3 +1,9 @@
+import {
+  getTabScreenshotThumbnailKey,
+  TAB_SCREENSHOT_THUMBNAIL_WIDTHS,
+  type TabScreenshotThumbnailWidth,
+} from "./tabScreenshotThumbnails";
+
 // Increment the format when capture geometry, roles, or atlas layout changes.
 export const TAB_SCREENSHOT_MASK_FORMAT = "masks-v1";
 export const TAB_SCREENSHOT_MASK_WIDTH = 1200;
@@ -18,12 +24,26 @@ export const TAB_SCREENSHOT_MASK_ROLES = [
 export type TabScreenshotRenderer = "masks" | "gradient-map";
 export const DEFAULT_TAB_SCREENSHOT_RENDERER: TabScreenshotRenderer = "masks";
 
-export function getTabScreenshotMaskKey(tabId: number | string) {
+export function getTabScreenshotMaskKey(
+  tabId: number | string,
+  width?: TabScreenshotThumbnailWidth,
+) {
+  if (width) {
+    return getTabScreenshotThumbnailKey(
+      tabId,
+      `${TAB_SCREENSHOT_MASK_FORMAT}.png`,
+      width,
+    );
+  }
   return `${tabId}/${TAB_SCREENSHOT_MASK_FORMAT}.png`;
 }
 
-export function getTabScreenshotMaskSrc(tabId: number, version: string) {
-  return `/api/getTabScreenshotMasks/${tabId}?v=${encodeURIComponent(version)}`;
+export function getTabScreenshotMaskSrc(
+  tabId: number,
+  version: string,
+  width?: TabScreenshotThumbnailWidth,
+) {
+  return `/api/getTabScreenshotMasks/${tabId}?v=${encodeURIComponent(version)}${width ? `&width=${width}` : ""}`;
 }
 
 export function getTabScreenshotObjectKeys(tabId: number) {
@@ -32,5 +52,10 @@ export function getTabScreenshotObjectKeys(tabId: number) {
     `${tabId}/dark.jpeg`,
     getTabScreenshotMaskKey(tabId),
     `${tabId}.jpeg`, // Legacy capture layout.
+    ...TAB_SCREENSHOT_THUMBNAIL_WIDTHS.flatMap((width) => [
+      getTabScreenshotThumbnailKey(tabId, "light.jpeg", width),
+      getTabScreenshotThumbnailKey(tabId, "dark.jpeg", width),
+      getTabScreenshotMaskKey(tabId, width),
+    ]),
   ];
 }

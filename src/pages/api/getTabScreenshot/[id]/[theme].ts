@@ -1,64 +1,50 @@
-import axios from "axios";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { Readable } from "stream";
-import { env } from "~/env";
+import { readTabScreenshot } from "~/server/tabScreenshotStorage";
+import { isTabScreenshotThumbnailWidth } from "~/utils/tabScreenshotThumbnails";
 
-const s3 = new S3Client({
-  region: "us-east-2",
-  credentials: {
-    accessKeyId: env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-export const config = {
-  api: {
-    responseLimit: false,
-  },
-};
+export const config = { api: { responseLimit: false } };
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const { id, theme } = req.query;
-  const tabId = Array.isArray(id) ? id[0] : id;
-  const screenshotTheme = Array.isArray(theme) ? theme[0] : theme;
-
-  if (!tabId || !screenshotTheme) {
-    res.status(400).end();
-    return;
+  res.setHeader("Cache-Control", "no-store");
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    return res.status(405).end();
   }
 
-  if (screenshotTheme !== "light" && screenshotTheme !== "dark") {
-    res.status(400).end();
-    return;
+  const { id, theme, v, width } = req.query;
+  const thumbnailWidth = width === undefined ? undefined : Number(width);
+  if (
+    typeof id !== "string" ||
+    !/^\d+$/.test(id) ||
+    (theme !== "light" && theme !== "dark") ||
+    (v !== undefined &&
+      (typeof v !== "string" || !Number.isFinite(Date.parse(v)))) ||
+    (width !== undefined && typeof width !== "string") ||
+    (thumbnailWidth !== undefined &&
+      !isTabScreenshotThumbnailWidth(thumbnailWidth))
+  ) {
+    return res.status(400).end();
   }
-
-  const command = new GetObjectCommand({
-    Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-    Key: `${tabId}/${screenshotTheme}.jpeg`,
-  });
-  const url = await getSignedUrl(s3, command, { expiresIn: 15 * 60 });
 
   try {
-    const response = await axios({
-      method: "GET",
-      url: url,
-      responseType: "stream",
+    const image = await readTabScreenshot({
+      tabId: id,
+      filename: `${theme}.jpeg`,
+      version: v,
+      width: thumbnailWidth,
     });
-    if (response.status !== 200) {
-      res.status(response.status).end();
-      return;
-    }
-
+    if (!image) return res.status(404).end();
     res.setHeader("Content-Type", "image/jpeg");
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-    (response.data as Readable).pipe(res);
-  } catch (e) {
-    console.error(e);
-    res.status(500).end();
+    res.setHeader("Cache-Control", image.cacheControl);
+    return res.status(200).send(image.body);
+  } catch (error) {
+    console.error("Could not load tab screenshot", {
+      tabId: id,
+      error: error instanceof Error ? error.name : "UnknownError",
+    });
+    return res.status(500).end();
   }
 }

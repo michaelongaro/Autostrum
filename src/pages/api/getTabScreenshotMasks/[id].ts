@@ -1,16 +1,7 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { Readable } from "node:stream";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { env } from "~/env";
-import { getTabScreenshotMaskKey } from "~/utils/tabScreenshotMasks";
-
-const s3 = new S3Client({
-  region: "us-east-2",
-  credentials: {
-    accessKeyId: env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-  },
-});
+import { readTabScreenshot } from "~/server/tabScreenshotStorage";
+import { TAB_SCREENSHOT_MASK_FORMAT } from "~/utils/tabScreenshotMasks";
+import { isTabScreenshotThumbnailWidth } from "~/utils/tabScreenshotThumbnails";
 
 export const config = { api: { responseLimit: false } };
 
@@ -24,41 +15,33 @@ export default async function handler(
     return res.status(405).end();
   }
 
-  const { id, v } = req.query;
+  const { id, v, width } = req.query;
+  const thumbnailWidth = width === undefined ? undefined : Number(width);
   if (
     typeof id !== "string" ||
     !/^\d+$/.test(id) ||
     typeof v !== "string" ||
-    !Number.isFinite(Date.parse(v))
+    !Number.isFinite(Date.parse(v)) ||
+    (width !== undefined && typeof width !== "string") ||
+    (thumbnailWidth !== undefined &&
+      !isTabScreenshotThumbnailWidth(thumbnailWidth))
   ) {
     return res.status(400).end();
   }
 
   try {
-    const object = await s3.send(
-      new GetObjectCommand({
-        Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-        Key: getTabScreenshotMaskKey(id),
-      }),
-    );
-    // The external JPEG capture service can update a tab before its masks have
-    // been retaken. Never show geometry from an older tab revision.
-    if (!object.Body || object.Metadata?.["tab-version"] !== v) {
-      if (object.Body instanceof Readable) object.Body.destroy();
-      return res.status(404).end();
-    }
-
-    const body = Buffer.from(await object.Body.transformToByteArray());
+    const image = await readTabScreenshot({
+      tabId: id,
+      filename: `${TAB_SCREENSHOT_MASK_FORMAT}.png`,
+      version: v,
+      width: thumbnailWidth,
+      requireVersion: true,
+    });
+    if (!image) return res.status(404).end();
     res.setHeader("Content-Type", "image/png");
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-    return res.status(200).send(body);
+    res.setHeader("Cache-Control", image.cacheControl);
+    return res.status(200).send(image.body);
   } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.name === "NoSuchKey" || error.name === "NotFound")
-    ) {
-      return res.status(404).end();
-    }
     console.error("Could not load tab screenshot masks", {
       tabId: id,
       error: error instanceof Error ? error.name : "UnknownError",

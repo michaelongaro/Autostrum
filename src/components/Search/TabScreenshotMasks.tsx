@@ -5,6 +5,7 @@ import {
   TAB_SCREENSHOT_MASK_ROLES,
   TAB_SCREENSHOT_MASK_WIDTH,
 } from "~/utils/tabScreenshotMasks";
+import { getTabScreenshotThumbnailWidth } from "~/utils/tabScreenshotThumbnails";
 
 interface TabScreenshotMasksProps {
   tabId: number;
@@ -24,15 +25,20 @@ function TabScreenshotMasks({
   onError,
 }: TabScreenshotMasksProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [maskURL, setMaskURL] = useState<string | null>(null);
+  const [atlas, setAtlas] = useState<{
+    url: string;
+    width: number;
+    height: number;
+  } | null>(null);
   const [ready, setReady] = useState(false);
   const src = getTabScreenshotMaskSrc(tabId, version);
-  const scale = Math.max(
-    width / TAB_SCREENSHOT_MASK_WIDTH,
-    height / TAB_SCREENSHOT_MASK_HEIGHT,
-  );
-  const imageWidth = TAB_SCREENSHOT_MASK_WIDTH * scale;
-  const imageHeight = TAB_SCREENSHOT_MASK_HEIGHT * scale;
+  // Use decoded dimensions: the API can return a legacy full-size atlas while
+  // thumbnails are being backfilled. Its role boundaries must stay aligned.
+  const atlasWidth = atlas?.width ?? TAB_SCREENSHOT_MASK_WIDTH;
+  const atlasHeight = atlas?.height ?? TAB_SCREENSHOT_MASK_HEIGHT;
+  const scale = Math.max(width / atlasWidth, height / atlasHeight);
+  const imageWidth = atlasWidth * scale;
+  const imageHeight = atlasHeight * scale;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -40,7 +46,14 @@ function TabScreenshotMasks({
 
     async function loadAtlas() {
       try {
-        const response = await fetch(src, { signal: controller.signal });
+        // Every grid variant is at most 400 CSS pixels wide. One density tier
+        // per screen also lets normal and large cards share the same atlas.
+        const thumbnailWidth = getTabScreenshotThumbnailWidth(
+          400 * window.devicePixelRatio,
+        );
+        const response = await fetch(`${src}&width=${thumbnailWidth}`, {
+          signal: controller.signal,
+        });
         if (!response.ok) throw new Error("Mask atlas unavailable");
         const blob = await response.blob();
         if (controller.signal.aborted) return;
@@ -49,7 +62,22 @@ function TabScreenshotMasks({
         const image = new window.Image();
         image.src = objectURL;
         await image.decode();
-        if (!controller.signal.aborted) setMaskURL(objectURL);
+        const layerHeight =
+          image.naturalHeight / TAB_SCREENSHOT_MASK_ROLES.length;
+        if (
+          !image.naturalWidth ||
+          !Number.isInteger(layerHeight) ||
+          !layerHeight
+        ) {
+          throw new Error("Invalid mask atlas geometry");
+        }
+        if (!controller.signal.aborted) {
+          setAtlas({
+            url: objectURL,
+            width: image.naturalWidth,
+            height: layerHeight,
+          });
+        }
       } catch {
         if (!controller.signal.aborted) onError();
       }
@@ -74,7 +102,7 @@ function TabScreenshotMasks({
   }, [src, onError]);
 
   useEffect(() => {
-    if (!maskURL) return;
+    if (!atlas) return;
     let revealFrame = 0;
     // Mount CSS masks using an already decoded, local resource. Let the browser
     // process those styles for a frame before exposing the black blend base.
@@ -88,7 +116,7 @@ function TabScreenshotMasks({
       cancelAnimationFrame(prepareFrame);
       cancelAnimationFrame(revealFrame);
     };
-  }, [maskURL, onLoad]);
+  }, [atlas, onLoad]);
 
   return (
     <div
@@ -101,7 +129,7 @@ function TabScreenshotMasks({
       className="pointer-events-none absolute inset-0 isolate overflow-hidden rounded-t-sm bg-black"
       style={{ opacity: ready ? 1 : 0 }}
     >
-      {maskURL &&
+      {atlas &&
         TAB_SCREENSHOT_MASK_ROLES.map((role, index) => (
           <div
             key={role}
@@ -111,7 +139,7 @@ function TabScreenshotMasks({
               // The capture already includes occlusion. Add its premultiplied
               // contributions, rather than applying source-over opacity twice.
               mixBlendMode: "plus-lighter",
-              maskImage: `url("${maskURL}")`,
+              maskImage: `url("${atlas.url}")`,
               maskMode: "alpha",
               maskRepeat: "no-repeat",
               maskSize: `${imageWidth}px ${imageHeight * TAB_SCREENSHOT_MASK_ROLES.length}px`,

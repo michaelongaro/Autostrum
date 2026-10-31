@@ -9,6 +9,10 @@ import { chromium, type Browser } from "playwright";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { captureTabScreenshotMasks } from "./captureTabScreenshotMasks";
 import { getTabScreenshotMaskKey } from "./tabScreenshotMasks";
+import {
+  createTabScreenshotThumbnails,
+  type TabScreenshotAsset,
+} from "./createTabScreenshotThumbnails";
 
 // npx tsx src/utils/bulkRetakeAllTabScreenshots.ts --masks-only
 // Options: --tab=123 --bucket=autostrum-screenshots-dev
@@ -79,6 +83,8 @@ async function screenshotAndUpload(
       }
     });
 
+    const captures: { light?: Buffer; dark?: Buffer } = {};
+    const assets: TabScreenshotAsset[] = [];
     if (!values["masks-only"]) {
       for (const theme of ["light", "dark"] as const) {
         const image = await page
@@ -88,22 +94,28 @@ async function screenshotAndUpload(
               : "#tabPreviewScreenshotDark",
           )
           .screenshot({ type: "png", animations: "disabled" });
+        captures[theme] = image;
         const body = await sharp(image)
           .resize({ width: 1200 })
           .jpeg({ quality: 90 })
           .toBuffer();
-        await s3.send(
-          new PutObjectCommand({
-            Bucket: bucket,
-            Key: `${tab.id}/${theme}.jpeg`,
-            Body: body,
-            ContentType: "image/jpeg",
-          }),
-        );
+        assets.push({
+          key: `${tab.id}/${theme}.jpeg`,
+          body,
+          contentType: "image/jpeg",
+        });
       }
     }
 
     const masks = await captureTabScreenshotMasks(page);
+    assets.push(
+      {
+        key: getTabScreenshotMaskKey(tab.id),
+        body: masks,
+        contentType: "image/png",
+      },
+      ...(await createTabScreenshotThumbnails(tab.id, { ...captures, masks })),
+    );
     // Do not label masks with an old revision if the tab changed mid-capture.
     const current = await prisma.tab.findUnique({
       where: { id: tab.id },
@@ -112,16 +124,23 @@ async function screenshotAndUpload(
     if (current?.updatedAt.toISOString() !== tab.updatedAt.toISOString()) {
       throw new Error("Tab changed while its screenshot was being captured");
     }
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: getTabScreenshotMaskKey(tab.id),
-        Body: masks,
-        ContentType: "image/png",
-        Metadata: { "tab-version": tab.updatedAt.toISOString() },
-      }),
+    const uploads = await Promise.allSettled(
+      assets.map(({ key, body, contentType }) =>
+        s3.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: key,
+            Body: body,
+            ContentType: contentType,
+            Metadata: { "tab-version": tab.updatedAt.toISOString() },
+          }),
+        ),
+      ),
     );
-    console.log(`Tab ${tab.id}: uploaded masks (${masks.length} bytes)`);
+    if (uploads.some((upload) => upload.status === "rejected")) {
+      throw new Error("Could not upload all screenshot assets");
+    }
+    console.log(`Tab ${tab.id}: uploaded ${assets.length} screenshot assets`);
     return true;
   } catch (error) {
     // Avoid printing SDK/HTTP objects, which may include credentials or URLs.
@@ -145,7 +164,7 @@ async function main() {
     });
     if (!tabs.length) throw new Error("No matching tabs found");
     console.log(
-      `Capturing ${tabs.length} tabs into ${bucket} (${values["masks-only"] ? "masks only; JPEGs preserved" : "JPEGs and masks"})`,
+      `Capturing ${tabs.length} tabs into ${bucket} (${values["masks-only"] ? "masks and mask thumbnails; JPEGs preserved" : "JPEGs, masks, and card thumbnails"})`,
     );
     browser = await chromium.launch({ headless: true });
     const captureBrowser = browser;

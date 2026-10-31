@@ -1,5 +1,4 @@
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { FaStar } from "react-icons/fa6";
@@ -24,6 +23,7 @@ import type { COLORS, THEME } from "~/stores/TabStore";
 import { getTabScreenshotGradientMap } from "~/utils/tabScreenshotGradientMap";
 import TabScreenshotMasks from "~/components/Search/TabScreenshotMasks";
 import { DEFAULT_TAB_SCREENSHOT_RENDERER } from "~/utils/tabScreenshotMasks";
+import TabScreenshotImage from "~/components/Search/TabScreenshotImage";
 
 const loadedTabScreenshotKeys = new Set<string>();
 const SCREENSHOT_REVEAL_DELAY_MS = 100;
@@ -42,10 +42,6 @@ function getTabScreenshotCacheKey(
   version: string,
 ) {
   return `${tabId}:${theme}:${version}`;
-}
-
-function getTabScreenshotSrc(tabId: number, theme: THEME, version: string) {
-  return `/api/getTabScreenshot/${tabId}/${theme}?v=${encodeURIComponent(version)}`;
 }
 
 interface GridTabCard {
@@ -98,11 +94,6 @@ function GridTabCard({
   const handleMaskError = useCallback(() => {
     setMaskState({ key: screenshotMaskCacheKey, status: "error" });
   }, [screenshotMaskCacheKey]);
-  const screenshotSrc = getTabScreenshotSrc(
-    minimalTab.id,
-    theme,
-    screenshotVersion,
-  );
   const screenshotRevealTimeoutRef = useRef<number | null>(null);
   const [revealedScreenshotCacheKey, setRevealedScreenshotCacheKey] = useState<
     string | null
@@ -257,14 +248,14 @@ function GridTabCard({
                     </filter>
                   </defs>
                 </svg>
-                <Image
-                  src={screenshotSrc}
-                  alt={`screenshot of ${minimalTab.title}`}
-                  fill
-                  sizes={`(max-width: 768px) 100vw, ${getDynamicWidth()}px`}
+                <TabScreenshotImage
+                  tabId={minimalTab.id}
+                  theme={theme}
+                  version={screenshotVersion}
+                  width={getDynamicWidth()}
+                  title={minimalTab.title}
+                  filterId={screenshotFilterId}
                   onLoad={() => revealTabScreenshot(screenshotCacheKey)}
-                  style={{ filter: `url("#${screenshotFilterId}")` }}
-                  className="pointer-events-none rounded-t-sm object-cover object-center"
                 />
                 {screenshotRenderer === "masks" && (
                   <TabScreenshotMasks
