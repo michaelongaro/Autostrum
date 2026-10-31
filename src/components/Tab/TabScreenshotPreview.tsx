@@ -24,6 +24,7 @@ function TabScreenshotPreview({
     <div
       data-color={color}
       data-theme={theme}
+      style={{ color: "hsl(var(--screenshot-foreground))" }}
       className="baseVertFlex relative mt-16 size-full !justify-start gap-4"
     >
       {tabData.map((section, index) => (

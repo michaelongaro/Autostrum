@@ -10,6 +10,7 @@ import {
 } from "~/server/api/trpc";
 import { env } from "~/env";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import { getTabScreenshotObjectKeys } from "~/utils/tabScreenshotMasks";
 import { getTuningName, tunings as defaultTunings } from "~/utils/tunings";
 
 export interface UserMetadata extends User {
@@ -567,14 +568,15 @@ export const userRouter = createTRPCRouter({
         });
         ctx.waitUntil(
           (async () => {
-            for (let i = 0; i < tabs.length; i += 1000) {
+            const objects = tabs.flatMap(({ id }) =>
+              getTabScreenshotObjectKeys(id).map((Key) => ({ Key })),
+            );
+            for (let i = 0; i < objects.length; i += 1000) {
               await s3.send(
                 new DeleteObjectsCommand({
                   Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
                   Delete: {
-                    Objects: tabs
-                      .slice(i, i + 1000)
-                      .map(({ id }) => ({ Key: `${id}.jpeg` })),
+                    Objects: objects.slice(i, i + 1000),
                   },
                 }),
               );

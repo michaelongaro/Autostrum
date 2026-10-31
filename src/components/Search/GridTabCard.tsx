@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -21,6 +21,9 @@ import { MdModeEditOutline } from "react-icons/md";
 import { TbPinned } from "react-icons/tb";
 import Verified from "~/components/ui/icons/Verified";
 import type { COLORS, THEME } from "~/stores/TabStore";
+import { getTabScreenshotGradientMap } from "~/utils/tabScreenshotGradientMap";
+import TabScreenshotMasks from "~/components/Search/TabScreenshotMasks";
+import { DEFAULT_TAB_SCREENSHOT_RENDERER } from "~/utils/tabScreenshotMasks";
 
 const loadedTabScreenshotKeys = new Set<string>();
 const SCREENSHOT_REVEAL_DELAY_MS = 100;
@@ -59,7 +62,7 @@ interface GridTabCard {
 function GridTabCard({
   minimalTab,
   currentUser,
-  color: _color,
+  color,
   theme,
   largeVariant,
   pinnedTabType,
@@ -69,12 +72,32 @@ function GridTabCard({
   const { query, asPath } = useRouter();
 
   const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
+  const screenshotFilterId = `tab-screenshot-${useId()}`;
+  const screenshotGradientMap = getTabScreenshotGradientMap(color, theme);
+  const screenshotRenderer =
+    query.screenshotRenderer === "gradient-map" ||
+    query.screenshotRenderer === "masks"
+      ? query.screenshotRenderer
+      : DEFAULT_TAB_SCREENSHOT_RENDERER;
   const screenshotVersion = getTabScreenshotVersion(minimalTab.updatedAt);
   const screenshotCacheKey = getTabScreenshotCacheKey(
     minimalTab.id,
     theme,
     screenshotVersion,
   );
+  // A decoded atlas works in every theme. Do not hide it while the fallback
+  // JPEG for a newly selected light/dark mode is still loading.
+  const screenshotMaskCacheKey = `${minimalTab.id}:masks:${screenshotVersion}`;
+  const [maskState, setMaskState] = useState<{
+    key: string;
+    status: "ready" | "error";
+  } | null>(null);
+  const revealMasks = useCallback(() => {
+    setMaskState({ key: screenshotMaskCacheKey, status: "ready" });
+  }, [screenshotMaskCacheKey]);
+  const handleMaskError = useCallback(() => {
+    setMaskState({ key: screenshotMaskCacheKey, status: "error" });
+  }, [screenshotMaskCacheKey]);
   const screenshotSrc = getTabScreenshotSrc(
     minimalTab.id,
     theme,
@@ -86,9 +109,18 @@ function GridTabCard({
   >(() =>
     loadedTabScreenshotKeys.has(screenshotCacheKey) ? screenshotCacheKey : null,
   );
-  const tabScreenshotLoaded =
+  const gradientScreenshotLoaded =
     loadedTabScreenshotKeys.has(screenshotCacheKey) ||
     revealedScreenshotCacheKey === screenshotCacheKey;
+  // Readiness belongs to this mounted mask surface, not just a cached network
+  // image. Keep the skeleton until the CSS masks are prepared, or until an
+  // atlas failure lets us reveal the decoded gradient-map fallback.
+  const tabScreenshotLoaded =
+    screenshotRenderer === "masks"
+      ? maskState?.key === screenshotMaskCacheKey &&
+        (maskState.status === "ready" ||
+          (maskState.status === "error" && gradientScreenshotLoaded))
+      : gradientScreenshotLoaded;
 
   useEffect(() => {
     return () => {
@@ -99,15 +131,15 @@ function GridTabCard({
     };
   }, [screenshotCacheKey]);
 
-  function revealTabScreenshot() {
-    loadedTabScreenshotKeys.add(screenshotCacheKey);
+  function revealTabScreenshot(cacheKey: string) {
+    loadedTabScreenshotKeys.add(cacheKey);
 
     if (screenshotRevealTimeoutRef.current !== null) {
       window.clearTimeout(screenshotRevealTimeoutRef.current);
     }
 
     screenshotRevealTimeoutRef.current = window.setTimeout(() => {
-      setRevealedScreenshotCacheKey(screenshotCacheKey);
+      setRevealedScreenshotCacheKey(cacheKey);
       screenshotRevealTimeoutRef.current = null;
     }, SCREENSHOT_REVEAL_DELAY_MS);
   }
@@ -192,22 +224,60 @@ function GridTabCard({
                 }}
                 className="relative col-start-1 col-end-2 row-start-1 row-end-2"
               >
+                <svg
+                  aria-hidden="true"
+                  focusable="false"
+                  width="0"
+                  height="0"
+                  className="pointer-events-none absolute"
+                >
+                  <defs>
+                    <filter
+                      id={screenshotFilterId}
+                      x="0"
+                      y="0"
+                      width="100%"
+                      height="100%"
+                      colorInterpolationFilters="sRGB"
+                    >
+                      <feComponentTransfer>
+                        <feFuncR
+                          type="table"
+                          tableValues={screenshotGradientMap.red}
+                        />
+                        <feFuncG
+                          type="table"
+                          tableValues={screenshotGradientMap.green}
+                        />
+                        <feFuncB
+                          type="table"
+                          tableValues={screenshotGradientMap.blue}
+                        />
+                      </feComponentTransfer>
+                    </filter>
+                  </defs>
+                </svg>
                 <Image
                   src={screenshotSrc}
                   alt={`screenshot of ${minimalTab.title}`}
                   fill
                   sizes={`(max-width: 768px) 100vw, ${getDynamicWidth()}px`}
-                  onLoad={revealTabScreenshot}
+                  onLoad={() => revealTabScreenshot(screenshotCacheKey)}
+                  style={{ filter: `url("#${screenshotFilterId}")` }}
                   className="pointer-events-none rounded-t-sm object-cover object-center"
                 />
-
-                <div
-                  style={{
-                    backgroundColor:
-                      "hsl(var(--screenshot-secondary) / var(--screenshot-color-overlay-alpha))",
-                  }}
-                  className="absolute inset-0 size-full rounded-t-sm mix-blend-color"
-                ></div>
+                {screenshotRenderer === "masks" && (
+                  <TabScreenshotMasks
+                    key={`${minimalTab.id}:${screenshotVersion}`}
+                    tabId={minimalTab.id}
+                    version={screenshotVersion}
+                    width={getDynamicWidth()}
+                    // The preview's bottom border occupies one layout pixel.
+                    height={getDynamicHeight() - 1}
+                    onLoad={revealMasks}
+                    onError={handleMaskError}
+                  />
+                )}
               </div>
 
               <AnimatePresence>

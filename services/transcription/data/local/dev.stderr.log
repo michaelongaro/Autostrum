@@ -1,0 +1,18 @@
+WARNING:root:Coremltools is not installed. If you plan to use a CoreML Saved Model, reinstall basic-pitch with `pip install 'basic-pitch[coreml]'`
+WARNING:root:tflite-runtime is not installed. If you plan to use a TFLite Model, reinstall basic-pitch with `pip install 'basic-pitch tflite-runtime'` or `pip install 'basic-pitch[tf]'
+WARNING:root:Tensorflow is not installed. If you plan to use a TF Saved Model, reinstall basic-pitch with `pip install 'basic-pitch[tf]'`
+C:\WebDev Projects\Autostrum\.venv-transcription\lib\site-packages\resampy\filters.py:50: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+INFO:     Started server process [32532]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+Exception in thread Thread-1 (run):
+Traceback (most recent call last):
+  File "C:\Users\monga\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "C:\Users\monga\AppData\Roaming\uv\python\cpython-3.10-windows-x86_64-none\lib\threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\WebDev Projects\Autostrum\services\transcription\app.py", line 185, in run
+  File "C:\WebDev Projects\Autostrum\services\transcription\app.py", line 121, in expired
+sqlite3.OperationalError: no such table: jobs

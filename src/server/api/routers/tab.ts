@@ -1,4 +1,5 @@
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectsCommand, S3Client } from "@aws-sdk/client-s3";
+import { getTabScreenshotObjectKeys } from "~/utils/tabScreenshotMasks";
 import type { Tab } from "~/generated/client";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
@@ -590,9 +591,13 @@ export const tabRouter = createTRPCRouter({
         },
       });
 
-      const command = new DeleteObjectCommand({
+      const command = new DeleteObjectsCommand({
         Bucket: `autostrum-screenshots${env.NODE_ENV === "development" ? "-dev" : ""}`,
-        Key: `${idToDelete}.jpeg`,
+        Delete: {
+          Objects: getTabScreenshotObjectKeys(idToDelete).map((Key) => ({
+            Key,
+          })),
+        },
       });
 
       try {

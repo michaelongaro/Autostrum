@@ -39,7 +39,7 @@ function generateThemeTokensCSS(colorValues, screenshotColors) {
     /* Overlay alpha for GridTabCard color wash; scoped by data-theme so
        screenshot wrappers can override independently of <html>. */
     '[data-theme="light"] {',
-    "  --screenshot-color-overlay-alpha: 0.7;",
+    "  --screenshot-color-overlay-alpha: 0.5;",
     "}",
     "",
     '[data-theme="dark"] {',
