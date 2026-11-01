@@ -275,7 +275,7 @@ function UserSettings() {
                 className="baseFlex"
               >
                 {localSettings ? (
-                  <span className="font-medium italic !text-foreground/75 lg:text-xl">
+                  <span className="font-medium italic !text-foreground/75 no-underline lg:text-xl [&_a]:!text-inherit [&_a]:!no-underline">
                     {localSettings.emailAddress}
                   </span>
                 ) : (

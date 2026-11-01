@@ -25,7 +25,7 @@ function useGetLocalStorageValues() {
   );
 
   const localStorageCountIn = useLocalStorageValue("autostrum-count-in", {
-    defaultValue: "true",
+    defaultValue: "false",
   });
 
   const localStorageColorCodedChords = useLocalStorageValue(

@@ -15,6 +15,7 @@ import ErrorPage from "next/error";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import StaticTab from "~/components/Tab/Static/StaticTab";
+import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 import {
   useTabStore,
@@ -156,6 +157,7 @@ export default function DevVirtualizationHarness() {
 
   const fixture =
     typeof query.fixture === "string" ? query.fixture : "realistic";
+  const printFixture = fixture === "print";
   const tabData = buildFixture(fixture);
 
   const zoomParam =
@@ -166,7 +168,8 @@ export default function DevVirtualizationHarness() {
   const ready = storeTabData[0]?.id === tabData[0]?.id;
 
   useEffect(() => {
-    if (!isReady) return;
+    // The print verifier seeds its own store snapshot after loading the page.
+    if (!isReady || printFixture) return;
 
     // Apply zoom before hydrating tab data so StaticSectionContainer's first
     // mount reads the requested autostrum-zoom from localStorage.
@@ -189,11 +192,28 @@ export default function DevVirtualizationHarness() {
     setTabData((draft) => {
       draft.splice(0, draft.length, ...tabData);
     });
-  }, [isReady, tabData, setId, setTabData, setBpm, zoomParam, fixture]);
+  }, [
+    isReady,
+    tabData,
+    setId,
+    setTabData,
+    setBpm,
+    zoomParam,
+    fixture,
+    printFixture,
+  ]);
 
   // NODE_ENV is inlined at build time; this page only exists in dev
   if (process.env.NODE_ENV === "production") {
     return <ErrorPage statusCode={404} />;
+  }
+
+  if (printFixture) {
+    return (
+      <div id="devPrintHarness" data-ready={isReady}>
+        <PrintTabButton />
+      </div>
+    );
   }
 
   const virtualized = query.virtualized !== "false";

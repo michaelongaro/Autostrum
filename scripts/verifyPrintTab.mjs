@@ -1,5 +1,5 @@
 // Run npm run dev, then node scripts/verifyPrintTab.mjs [baseURL].
-// Uses only a local editor fixture and blocks writes to the remote database.
+// Uses only local store fixtures and blocks writes to the remote database.
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -481,6 +481,114 @@ async function assertFloatingActions() {
   );
 }
 
+async function verifyIOSPrintHandoff() {
+  await choosePrintOption("print-paper", "a4");
+  await choosePrintOption("print-orientation", "landscape");
+  await setPrintScale(110);
+  await page.getByLabel("3. Outro", { exact: true }).uncheck();
+  await ready();
+  const expectedPages = await frame().locator("#print-pages").innerHTML();
+  const expectedCount = (await metrics()).count;
+  await page.evaluate(() => {
+    window.__originalOpen = window.open;
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value: "iPhone",
+    });
+    window.open = () => null;
+  });
+  await printButton().click();
+  await page.getByRole("alert").filter({ hasText: "Allow pop-ups" }).waitFor();
+  assert.equal(
+    await printButton().isEnabled(),
+    true,
+    "blocked popups can retry",
+  );
+  await page.evaluate(() => {
+    window.open = (...args) => {
+      const popup = window.__originalOpen.apply(window, args);
+      if (popup) {
+        popup.__printCalls = 0;
+        popup.print = () => popup.__printCalls++;
+      }
+      return popup;
+    };
+  });
+
+  for (const platform of ["iPhone", "iPad desktop mode"]) {
+    if (platform === "iPad desktop mode") {
+      await page.evaluate(() => {
+        Object.defineProperties(navigator, {
+          userAgent: { configurable: true, value: "Macintosh Safari" },
+          platform: { configurable: true, value: "MacIntel" },
+          maxTouchPoints: { configurable: true, value: 5 },
+        });
+      });
+    }
+    const opened = page.waitForEvent("popup");
+    await printButton().click();
+    const popup = await opened;
+    await popup.waitForFunction(() => window.__printCalls === 1);
+    assert.equal(await popup.evaluate(() => document.compatMode), "CSS1Compat");
+    assert.equal(await popup.title(), await frame().title());
+    assert.equal(
+      await popup.locator("#print-pages").innerHTML(),
+      expectedPages,
+    );
+    assert.equal(
+      await popup.locator("#print-source, iframe, [role=dialog]").count(),
+      0,
+    );
+    assert.equal(
+      await popup
+        .getByRole("button", { name: "Print", exact: true })
+        .isVisible(),
+      true,
+    );
+    await popup.getByRole("button", { name: "Print", exact: true }).click();
+    assert.equal(await popup.evaluate(() => window.__printCalls), 2);
+    assert.equal(
+      popup.isClosed(),
+      false,
+      "keep document available after printing",
+    );
+    await popup.emulateMedia({ media: "print" });
+    assert.equal(
+      await popup.locator("#print-window-actions").isVisible(),
+      false,
+    );
+    assert.equal(
+      await popup
+        .locator("#print-pages")
+        .evaluate((el) => getComputedStyle(el).zoom),
+      "1",
+    );
+    const pdf = await popup.pdf({
+      preferCSSPageSize: true,
+      printBackground: true,
+    });
+    assert.equal(
+      [...pdf.toString("latin1").matchAll(/\/Type\s*\/Page\b/g)].length,
+      expectedCount,
+      `${platform}: top-level printout must match the customized preview`,
+    );
+    await popup.emulateMedia({ media: "screen" });
+    const closed = popup.waitForEvent("close");
+    await popup.getByRole("button", { name: "Close", exact: true }).click();
+    await closed;
+  }
+  await page.evaluate(() => {
+    window.open = window.__originalOpen;
+    delete window.__originalOpen;
+    delete navigator.userAgent;
+    delete navigator.platform;
+    delete navigator.maxTouchPoints;
+  });
+  console.log(
+    "PASS iPhone/iPad top-level print handoff, custom settings, PDF pagination, retry and reprinting",
+  );
+}
+
 async function assertShareOrder() {
   // Responsive metadata replaces the toolbar after the resize event.
   await page.waitForFunction(() => {
@@ -502,9 +610,11 @@ async function assertShareOrder() {
 }
 
 try {
-  await page.goto(`${baseURL}/create`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseURL}/dev-virtualization-harness?fixture=print`, {
+    waitUntil: "domcontentloaded",
+  });
   await page
-    .getByRole("button", { name: "Tab block", exact: true })
+    .locator('#devPrintHarness[data-ready="true"]')
     .waitFor({ timeout: 90000 });
   await page.evaluate((data) => {
     const store = window.__AUTOSTRUM_GET_TAB_STORE__();
@@ -809,6 +919,7 @@ try {
   await assertFloatingActions();
   assert.ok(await printButton().isVisible());
   await page.screenshot({ path: join(artifacts, "mobile-preview.png") });
+  await verifyIOSPrintHandoff();
   await closePrintDialog("close", true);
   // No progression: expanded output must fall back to the document order.
   await page.evaluate(() =>

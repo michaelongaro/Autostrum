@@ -22,6 +22,7 @@ import { buildPrintBlocks } from "./PrintTabDocument";
 import PrintTabPreview from "./PrintTabPreview";
 import PrintSettingsPanel from "./PrintSettingsPanel";
 import ScaleSlider from "~/components/ui/ScaleSlider";
+import { printPreparedTab } from "./printPreparedTab";
 
 function PrintToggle({
   id,
@@ -78,6 +79,7 @@ export default function PrintTabDialog({
   const [readyOptions, setReadyOptions] = useState<PrintOptions | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [previewError, setPreviewError] = useState("");
+  const [printError, setPrintError] = useState("");
   const frameRef = useRef<HTMLIFrameElement>(null);
   const { blocks, error } = useMemo(() => {
     try {
@@ -117,15 +119,15 @@ export default function PrintTabDialog({
   const message = error || previewError;
 
   function print() {
-    if (!ready || !frameRef.current?.contentWindow) return;
-    try {
-      frameRef.current.contentWindow.focus();
-      frameRef.current.contentWindow.print();
-    } catch {
-      onError(
-        "Printing is unavailable in this browser. Try opening this tab in a browser that supports printing.",
+    if (!ready || !frameRef.current) return;
+    setPrintError("");
+    void printPreparedTab(frameRef.current).catch((error: unknown) => {
+      setPrintError(
+        error instanceof Error
+          ? error.message
+          : "Printing is unavailable in this browser. Try opening this tab in a browser that supports printing.",
       );
-    }
+    });
   }
 
   return (
@@ -266,7 +268,7 @@ export default function PrintTabDialog({
                 />
               </fieldset>
               <fieldset className="space-y-2 border-t pt-4">
-                <legend className="pr-1 text-sm font-semibold">
+                <legend className="pr-2 text-sm font-semibold">
                   On the page
                 </legend>
                 <PrintToggle
@@ -296,7 +298,7 @@ export default function PrintTabDialog({
                 />
               </fieldset>
               <fieldset className="space-y-2 border-t pt-4">
-                <legend className="pr-1 text-sm font-semibold">
+                <legend className="pr-2 text-sm font-semibold">
                   Sections to print
                 </legend>
                 <div className="flex gap-4 text-xs">
@@ -407,9 +409,17 @@ export default function PrintTabDialog({
             : "Preview updates with your settings"}
         </p>
         <div
-          className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-10 flex md:right-5"
+          className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-10 flex max-w-[calc(100%-2rem)] flex-col items-end gap-2 md:right-5"
           data-print-actions=""
         >
+          {printError && (
+            <p
+              role="alert"
+              className="max-w-sm rounded-md border bg-background p-3 text-sm text-foreground shadow-lg"
+            >
+              {printError}
+            </p>
+          )}
           <Button
             type="button"
             disabled={!ready}

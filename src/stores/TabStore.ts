@@ -1364,7 +1364,7 @@ export const createTabStore = (
         setInteractingWithAudioProgressSlider: (
           interactingWithAudioProgressSlider,
         ) => set({ interactingWithAudioProgressSlider }),
-        countInTimerEnabled: true,
+        countInTimerEnabled: false,
         playbackMetronomeEnabled: false,
         setPlaybackMetronomeEnabled: (playbackMetronomeEnabled) =>
           set({ playbackMetronomeEnabled }),
@@ -1507,7 +1507,10 @@ export const createTabStore = (
           return preparation;
         },
 
-        playTabWithCountIn: async ({ location, countIn = true } = {}) => {
+        playTabWithCountIn: async ({
+          location,
+          countIn = get().countInTimerEnabled,
+        } = {}) => {
           get().pauseAudio();
           const requestId = ++audioStartRequestId;
           const ready = await get().ensureAudioSystemReady();

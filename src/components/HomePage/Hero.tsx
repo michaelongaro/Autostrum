@@ -48,7 +48,7 @@ function Hero() {
 
 export default Hero;
 
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import CountIn from "~/components/ui/icons/CountIn";
 import { IoColorPalette } from "react-icons/io5";
@@ -260,7 +260,7 @@ function MobileTablatureScreenshot() {
     >
       <div className="heroScreenshotTilt">
         <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative aspect-[2/1] w-full select-none !justify-between gap-0 overflow-hidden p-0 text-[2cqw] leading-[1.5]">
-          <div className="baseFlex w-full !justify-between px-[1em] pt-[0.5em]">
+          <div className="baseFlex w-full !justify-between px-[1em] pt-[0.75em]">
             <div className="baseFlex !justify-start gap-[1em]">
               <span className="whitespace-nowrap text-[1.25em] font-bold">
                 Let Her Go
@@ -271,7 +271,6 @@ function MobileTablatureScreenshot() {
                 70 BPM
               </div>
             </div>
-            <X className="size-[1.25em] opacity-70" />
           </div>
 
           <TablatureTrack layout="mobile" />
@@ -295,7 +294,7 @@ function MobileTablatureScreenshot() {
                 />
               </div>
               <span>4:12</span>
-              <div className="baseFlex size-[2em] shrink-0 rounded-sm border">
+              <div className="baseFlex size-[2em] shrink-0 rounded-[3px] border">
                 <CgArrowsShrinkH className="size-[1.5em]" />
               </div>
             </div>
@@ -311,7 +310,7 @@ function MobileTablatureScreenshot() {
                   <span className="text-[0.875em] font-medium">Capo</span>
                   <span>None</span>
                 </div>
-                <div className="baseFlex h-[2.75em] gap-[0.5em] rounded-sm border px-[1em] text-[0.875em] font-medium">
+                <div className="baseFlex h-[2.75em] gap-[0.5em] rounded-[3px] border px-[1em] text-[0.875em] font-medium">
                   <TuningFork className="size-[1.125em]" />
                   Tuner
                 </div>
@@ -319,18 +318,18 @@ function MobileTablatureScreenshot() {
               <div className="baseFlex gap-[1em]">
                 <div className="baseFlex gap-[0.5em] text-[0.875em]">
                   <span className="font-medium">Section</span>
-                  <div className="baseFlex h-[2.75em] gap-[0.5em] rounded-sm border px-[0.75em]">
+                  <div className="baseFlex h-[2.75em] gap-[0.5em] rounded-[3px] border px-[0.75em]">
                     <span className="whitespace-nowrap">Full tab</span>
                     <ChevronDown className="size-[1.125em] opacity-50" />
                   </div>
                 </div>
-                <div className="baseFlex size-[2.25em] rounded-sm border">
+                <div className="baseFlex size-[2.25em] rounded-[3px] border">
                   <IoMdSettings className="size-[1.25em]" />
                 </div>
-                <div className="baseFlex size-[2.25em] rounded-sm border">
+                <div className="baseFlex size-[2.25em] rounded-[3px] border">
                   <FaListUl className="size-[1em]" />
                 </div>
-                <div className="baseFlex size-[2.25em] rounded-sm border">
+                <div className="baseFlex size-[2.25em] rounded-[3px] border">
                   <FaBook className="size-[1em]" />
                 </div>
               </div>
@@ -570,11 +569,6 @@ function TablatureScreenshot() {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="baseFlex absolute right-4 top-4 !size-5 text-foreground opacity-70">
-            <X className="size-5" />
-            <span className="sr-only">Close</span>
           </div>
         </div>
       </div>
