@@ -170,8 +170,6 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
   // Temporary: glide scrub mode takes imperative ownership of strip translateX.
   const [isGlideScrubbing, setIsGlideScrubbing] = useState(false);
 
-  const [tabProgressValue, setTabProgressValue] = useState(0);
-
   const loopRangePrompt = audioMetadata.editingLoopRange
     ? getLoopRangePrompt(
         getLoopRangeSelectionStep(draftLoopStartIndex, draftLoopEndIndex),
@@ -628,10 +626,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
           tabIndex={-1}
           className="baseVertFlex playbackModalGradient relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
         >
-          <PlaybackTopMetadata
-            tabProgressValue={tabProgressValue}
-            setTabProgressValue={setTabProgressValue}
-          />
+          <PlaybackTopMetadata />
 
           <AnimatePresence mode="popLayout">
             {showBackgroundBlur && (
@@ -668,8 +663,6 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
             <div className="baseVertFlex w-full lg:gap-2 mobilePortrait:gap-1">
               <PlaybackAudioControls
                 chordDurations={chordLayoutData?.durations ?? []}
-                tabProgressValue={tabProgressValue}
-                setTabProgressValue={setTabProgressValue}
                 setChordRepetitions={setChordRepetitions}
                 scrollPositionsLength={
                   chordLayoutData?.scrollPositions.length ?? 0
@@ -682,8 +675,6 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
                 <PlaybackLoopRangeActions />
               ) : (
                 <PlaybackBottomMetadata
-                  tabProgressValue={tabProgressValue}
-                  setTabProgressValue={setTabProgressValue}
                   showBackgroundBlur={showBackgroundBlur}
                   setShowBackgroundBlur={setShowBackgroundBlur}
                 />

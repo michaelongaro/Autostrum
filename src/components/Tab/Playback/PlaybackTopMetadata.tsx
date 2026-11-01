@@ -17,15 +17,7 @@ import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import { getTuningName } from "~/utils/tunings";
 import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
 
-interface PlaybackTopMetadata {
-  tabProgressValue: number;
-  setTabProgressValue: Dispatch<SetStateAction<number>>;
-}
-
-function PlaybackTopMetadata({
-  tabProgressValue,
-  setTabProgressValue,
-}: PlaybackTopMetadata) {
+function PlaybackTopMetadata() {
   const { asPath } = useRouter();
 
   const {
@@ -37,6 +29,7 @@ function PlaybackTopMetadata({
     viewportLabel,
     countInTimer,
     playbackSpeed,
+    requestedPlaybackSpeed,
     pauseAudio,
     setPlaybackSpeed,
     setShowGlossaryDialog,
@@ -49,6 +42,7 @@ function PlaybackTopMetadata({
     viewportLabel: state.viewportLabel,
     countInTimer: state.countInTimer,
     playbackSpeed: state.playbackSpeed,
+    requestedPlaybackSpeed: state.requestedPlaybackSpeed,
     pauseAudio: state.pauseAudio,
     setPlaybackSpeed: state.setPlaybackSpeed,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
@@ -174,22 +168,8 @@ function PlaybackTopMetadata({
                             countInTimer.showing ||
                             audioMetadata.editingLoopRange
                           }
-                          playbackSpeed={playbackSpeed}
-                          onPlaybackSpeedChange={(newPlaybackSpeed) => {
-                            pauseAudio();
-
-                            // Normalize the progress value to 1x speed
-                            const normalizedProgress =
-                              tabProgressValue * playbackSpeed;
-
-                            // Adjust the progress value to the new playback speed
-                            const adjustedProgress =
-                              normalizedProgress / newPlaybackSpeed;
-
-                            // Set the new progress value
-                            setTabProgressValue(adjustedProgress);
-                            setPlaybackSpeed(newPlaybackSpeed);
-                          }}
+                          playbackSpeed={requestedPlaybackSpeed}
+                          onPlaybackSpeedChange={setPlaybackSpeed}
                           triggerClassName="h-8 w-[85px]"
                         />
                       </div>

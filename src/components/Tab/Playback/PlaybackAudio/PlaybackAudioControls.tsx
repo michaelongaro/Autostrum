@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
@@ -12,8 +12,6 @@ import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 interface PlaybackAudioControls {
   chordDurations: number[];
-  tabProgressValue: number;
-  setTabProgressValue: Dispatch<SetStateAction<number>>;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   scrollPositionsLength: number;
   /** True while the strip is being glide-scrubbed or still coasting after release. */
@@ -23,8 +21,6 @@ interface PlaybackAudioControls {
 
 function PlaybackAudioControls({
   chordDurations,
-  tabProgressValue,
-  setTabProgressValue,
   setChordRepetitions,
   scrollPositionsLength,
   isGlideScrubbing = false,
@@ -50,7 +46,7 @@ function PlaybackAudioControls({
     enterPlaybackLoopRangeEditor,
   } = useTabStore((state) => ({
     bpm: state.bpm,
-    playbackSpeed: state.playbackSpeed,
+    playbackSpeed: state.requestedPlaybackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
@@ -88,12 +84,6 @@ function PlaybackAudioControls({
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
 
   useSpacebarAudioControl({ disabled: isGlideScrubbing });
-
-  useEffect(() => {
-    if (currentChordIndex === 0) {
-      setTabProgressValue(0);
-    }
-  }, [currentChordIndex, setTabProgressValue]);
 
   function handlePlayPointerDown() {
     // Stay inside the gesture stack before any await/setTimeout (count-in).
@@ -164,12 +154,7 @@ function PlaybackAudioControls({
               triggerVariant="link"
               playbackSpeed={playbackSpeed}
               disabled={countInTimer.showing || audioMetadata.editingLoopRange}
-              onPlaybackSpeedChange={(newPlaybackSpeed) => {
-                const normalizedProgress = tabProgressValue * playbackSpeed;
-                setTabProgressValue(normalizedProgress / newPlaybackSpeed);
-                setPlaybackSpeed(newPlaybackSpeed);
-                pauseAudio();
-              }}
+              onPlaybackSpeedChange={setPlaybackSpeed}
               side="top"
             />
           </div>

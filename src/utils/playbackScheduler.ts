@@ -204,6 +204,7 @@ export interface RunPlaybackSchedulerArgs {
     audioMetadata: { playing: boolean };
     currentChordIndex: number;
     playbackMetronomeEnabled: boolean;
+    requestedPlaybackSpeed: number;
   };
   setState: (partial: Record<string, unknown>) => void;
   resetAudioRangeToStart: (mode: "editing" | "playback") => void;
@@ -253,6 +254,9 @@ export async function runPlaybackScheduler({
   let timelineAnchorTime = playbackStartTime;
   let segmentEndTime = playbackStartTime;
   let lastReportedChordIndex = getState().currentChordIndex;
+  let scheduledPlaybackSpeed = playbackSpeed;
+  let appliedPlaybackSpeed = playbackSpeed;
+  const speedChanges: { time: number; speed: number }[] = [];
 
   for (const entry of timeline) {
     if (entry.startTime !== null) {
@@ -320,6 +324,67 @@ export async function runPlaybackScheduler({
       const now = audioContext.currentTime;
       const horizon = now + PLAYBACK_SCHEDULE_LOOKAHEAD_SECONDS;
       const state = getState();
+      const requestedSpeed = state.requestedPlaybackSpeed;
+      if (
+        Number.isFinite(requestedSpeed) &&
+        requestedSpeed > 0 &&
+        requestedSpeed !== scheduledPlaybackSpeed
+      ) {
+        // Never cancel/retrigger a buffered guitar voice: later notes may
+        // already have scheduled releases or legato changes on that voice.
+        // Change tempo at the first note that has not been sent to Web Audio.
+        const nextEntry = timeline
+          .slice(scheduledIndex)
+          .find((entry) => entry.startTime !== null);
+        const changeTime = nextEntry?.startTime ?? segmentEndTime;
+        const durationRatio = scheduledPlaybackSpeed / requestedSpeed;
+        for (let index = scheduledIndex; index < timeline.length; index++) {
+          const entry = timeline[index]!;
+          if (entry.startTime !== null) {
+            entry.startTime =
+              changeTime + (entry.startTime - changeTime) * durationRatio;
+          }
+          entry.duration *= durationRatio;
+          entry.effectiveBpm /= durationRatio;
+          entry.metronomeBpm /= durationRatio;
+        }
+        segmentEndTime =
+          changeTime + (segmentEndTime - changeTime) * durationRatio;
+        metronome.changeSpeed(changeTime, durationRatio);
+        const pendingChange = speedChanges.at(-1);
+        if (pendingChange?.time === changeTime) {
+          pendingChange.speed = requestedSpeed;
+        } else {
+          speedChanges.push({ time: changeTime, speed: requestedSpeed });
+        }
+        scheduledPlaybackSpeed = requestedSpeed;
+      }
+
+      let appliedSpeed: number | undefined;
+      while (speedChanges[0] && speedChanges[0].time <= now) {
+        appliedSpeed = speedChanges.shift()!.speed;
+      }
+      if (appliedSpeed !== undefined && appliedSpeed !== appliedPlaybackSpeed) {
+        appliedPlaybackSpeed = appliedSpeed;
+        const activeIndex = getActiveChordIndexForTime(
+          timeline,
+          now,
+          timelineAnchorTime,
+        );
+        const activeEntry = timeline.find(
+          (entry) => entry.chordIndex === activeIndex,
+        );
+        // At the loop endpoint the next iteration reanchors to chord zero.
+        const atLoopEnd = now >= segmentEndTime;
+        lastReportedChordIndex = atLoopEnd ? 0 : (activeIndex ?? 0);
+        setState({
+          playbackSpeed: appliedSpeed,
+          currentChordIndex: lastReportedChordIndex,
+          playbackStartedAtAudioTime: atLoopEnd
+            ? segmentEndTime
+            : (activeEntry?.startTime ?? now),
+        });
+      }
       metronome.schedule(
         state.showPlaybackModal &&
           state.audioMetadata.playing &&
@@ -328,9 +393,11 @@ export async function runPlaybackScheduler({
           state.audioMetadata.playing,
       );
 
-      maybeUpdateCurrentChordIndex(
-        getActiveChordIndexForTime(timeline, now, timelineAnchorTime),
-      );
+      if (now < segmentEndTime) {
+        maybeUpdateCurrentChordIndex(
+          getActiveChordIndexForTime(timeline, now, timelineAnchorTime),
+        );
+      }
 
       // schedule everything inside the lookahead window
       while (scheduledIndex < timeline.length && isSessionValid()) {
@@ -414,7 +481,7 @@ export async function runPlaybackScheduler({
             compiledChords,
             fromChordIndex: 0,
             adjChordCount,
-            playbackSpeed,
+            playbackSpeed: scheduledPlaybackSpeed,
             startTime: segmentEndTime,
             loopDelayChordCount,
           });

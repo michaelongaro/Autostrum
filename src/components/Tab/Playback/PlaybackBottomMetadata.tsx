@@ -70,15 +70,11 @@ import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
 import PlaybackMetronomeControl from "~/components/Tab/Playback/PlaybackMetronomeControl";
 
 interface PlaybackBottomMetadata {
-  tabProgressValue: number;
-  setTabProgressValue: Dispatch<SetStateAction<number>>;
   showBackgroundBlur: boolean;
   setShowBackgroundBlur: Dispatch<SetStateAction<boolean>>;
 }
 
 function PlaybackBottomMetadata({
-  tabProgressValue,
-  setTabProgressValue,
   showBackgroundBlur,
   setShowBackgroundBlur,
 }: PlaybackBottomMetadata) {
@@ -202,10 +198,7 @@ function PlaybackBottomMetadata({
             </div>
           ) : (
             <div className="baseFlex w-full">
-              <DesktopSettings
-                tabProgressValue={tabProgressValue}
-                setTabProgressValue={setTabProgressValue}
-              />
+              <DesktopSettings />
             </div>
           )}
         </div>
@@ -1027,15 +1020,7 @@ function MobileMenuDialog() {
   );
 }
 
-interface DesktopSettings {
-  tabProgressValue: number;
-  setTabProgressValue: Dispatch<SetStateAction<number>>;
-}
-
-function DesktopSettings({
-  tabProgressValue,
-  setTabProgressValue,
-}: DesktopSettings) {
+function DesktopSettings() {
   const {
     currentInstrumentName,
     setCurrentInstrumentName,
@@ -1051,7 +1036,7 @@ function DesktopSettings({
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
-    playbackSpeed: state.playbackSpeed,
+    playbackSpeed: state.requestedPlaybackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
     audioMetadata: state.audioMetadata,
     pauseAudio: state.pauseAudio,
@@ -1121,19 +1106,7 @@ function DesktopSettings({
           id="speed"
           disabled={countInTimer.showing || audioMetadata.editingLoopRange}
           playbackSpeed={playbackSpeed}
-          onPlaybackSpeedChange={(newPlaybackSpeed) => {
-            pauseAudio();
-
-            // Normalize the progress value to 1x speed
-            const normalizedProgress = tabProgressValue * playbackSpeed;
-
-            // Adjust the progress value to the new playback speed
-            const adjustedProgress = normalizedProgress / newPlaybackSpeed;
-
-            // Set the new progress value
-            setTabProgressValue(adjustedProgress);
-            setPlaybackSpeed(newPlaybackSpeed);
-          }}
+          onPlaybackSpeedChange={setPlaybackSpeed}
           triggerClassName="w-[85px]"
           side="top"
         />

@@ -87,6 +87,7 @@ function AudioControls() {
     currentInstrumentName,
     setCurrentInstrumentName,
     playbackSpeed,
+    requestedPlaybackSpeed,
     setPlaybackSpeed,
     currentChordIndex,
     setCurrentChordIndex,
@@ -105,6 +106,7 @@ function AudioControls() {
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
     playbackSpeed: state.playbackSpeed,
+    requestedPlaybackSpeed: state.requestedPlaybackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
@@ -773,12 +775,9 @@ function AudioControls() {
                     <Label htmlFor="speed">Speed</Label>
                     <PlaybackSpeedPopover
                       id="speed"
-                      playbackSpeed={playbackSpeed}
+                      playbackSpeed={requestedPlaybackSpeed}
                       onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-                      onPlaybackSpeedChange={(newPlaybackSpeed) => {
-                        pauseAudio();
-                        setPlaybackSpeed(newPlaybackSpeed);
-                      }}
+                      onPlaybackSpeedChange={setPlaybackSpeed}
                       triggerClassName="w-[85px] border-ring"
                       side="top"
                     />
@@ -901,14 +900,14 @@ function DesktopInstrumentAndSpeedSelects() {
   const {
     currentInstrumentName,
     setCurrentInstrumentName,
-    playbackSpeed,
+    requestedPlaybackSpeed,
     setPlaybackSpeed,
     editingLoopRange,
     pauseAudio,
   } = useTabStore((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
-    playbackSpeed: state.playbackSpeed,
+    requestedPlaybackSpeed: state.requestedPlaybackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
     editingLoopRange: state.audioMetadata.editingLoopRange,
     pauseAudio: state.pauseAudio,
@@ -968,11 +967,8 @@ function DesktopInstrumentAndSpeedSelects() {
         <PlaybackSpeedPopover
           id="speed"
           disabled={editingLoopRange}
-          playbackSpeed={playbackSpeed}
-          onPlaybackSpeedChange={(newPlaybackSpeed) => {
-            pauseAudio();
-            setPlaybackSpeed(newPlaybackSpeed);
-          }}
+          playbackSpeed={requestedPlaybackSpeed}
+          onPlaybackSpeedChange={setPlaybackSpeed}
           triggerClassName="w-[85px] focus-visible:ring-primary-foreground/75"
           side="top"
         />

@@ -442,6 +442,7 @@ const initialStoreState = {
   currentlyPlayingMetadata: null,
   playbackMetadata: null,
   playbackSpeed: 1 as const,
+  requestedPlaybackSpeed: 1,
   loopDelay: 0,
   currentChordIndex: 0,
   playbackStartedAtAudioTime: null,
@@ -689,7 +690,10 @@ interface TabState {
   setLooping: (looping: boolean) => void;
   loopDelay: number;
   setLoopDelay: (loopDelay: number) => void;
+  /** Tempo currently audible, also used by metadata and playhead clocks. */
   playbackSpeed: PlaybackSpeed;
+  /** Slider selection; the scheduler applies it after already-buffered notes. */
+  requestedPlaybackSpeed: PlaybackSpeed;
   setPlaybackSpeed: (speed: PlaybackSpeed) => void;
   currentChordIndex: number;
   setCurrentChordIndex: (currentChordIndex: number) => void;
@@ -1178,8 +1182,16 @@ export const createTabStore = (
         loopDelay: 0,
         setLoopDelay: (loopDelay) => set({ loopDelay }),
         playbackSpeed: 1,
-        setPlaybackSpeed: (playbackSpeed) =>
-          set({ playbackSpeed: clampPlaybackSpeed(playbackSpeed) }),
+        requestedPlaybackSpeed: initialValues.playbackSpeed ?? 1,
+        setPlaybackSpeed: (speed) => {
+          const requestedPlaybackSpeed = clampPlaybackSpeed(speed);
+          set({
+            requestedPlaybackSpeed,
+            ...(!get().audioMetadata.playing && {
+              playbackSpeed: requestedPlaybackSpeed,
+            }),
+          });
+        },
         currentChordIndex: 0,
         setCurrentChordIndex: (currentChordIndex) => {
           set({ currentChordIndex });
@@ -1784,6 +1796,7 @@ export const createTabStore = (
                 audioMetadata: state.audioMetadata,
                 currentChordIndex: state.currentChordIndex,
                 playbackMetronomeEnabled: state.playbackMetronomeEnabled,
+                requestedPlaybackSpeed: state.requestedPlaybackSpeed,
               };
             },
             setState: (partial) => set(partial),
@@ -1937,7 +1950,10 @@ export const createTabStore = (
         pauseAudio: (resetToStart, resetCurrentlyPlayingMetadata) => {
           audioStartRequestId += 1;
           audioPauseRequestId += 1;
-          set({ audioPreparationPending: false });
+          set({
+            audioPreparationPending: false,
+            playbackSpeed: get().requestedPlaybackSpeed,
+          });
           clearTimeout(countInTimeout);
           countInTimeout = undefined;
           if (get().countInTimer.showing)

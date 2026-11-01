@@ -7,6 +7,7 @@ import {
 import { useTabStoreApi, useTabStore } from "../stores/TabStore";
 import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
+import isEqual from "lodash.isequal";
 import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
 import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 
@@ -26,7 +27,7 @@ function useAutoCompileChords() {
   const debouncedRef = useRef<ReturnType<typeof debounce> | null>(null);
 
   useEffect(() => {
-    const handleTabLogic = () => {
+    const handleTabLogic = (preservePlaybackStrip = false) => {
       const {
         editing: isEditing,
         playbackSpeed,
@@ -157,7 +158,15 @@ function useAutoCompileChords() {
           loopDelay,
         });
 
-        setExpandedTabData(expandedTabData.chords);
+        // Tempo only changes timestamps. Preserve strip geometry/repetitions
+        // so PlaybackModal does not replace the scheduler's precise anchor
+        // with its generic geometry-change reanchor.
+        if (
+          !preservePlaybackStrip ||
+          !isEqual(expandedTabData.chords, store.getState().expandedTabData)
+        ) {
+          setExpandedTabData(expandedTabData.chords);
+        }
       }
     };
 
@@ -193,7 +202,14 @@ function useAutoCompileChords() {
         return;
       }
 
-      debouncedHandleTabLogic();
+      if (state.playbackSpeed !== prevState.playbackSpeed) {
+        // A live tempo boundary also reanchors the playhead. Its timestamps
+        // must use the new speed immediately, including in the editor.
+        debouncedHandleTabLogic.cancel();
+        handleTabLogic(true);
+      } else {
+        debouncedHandleTabLogic();
+      }
     });
 
     return () => {

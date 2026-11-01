@@ -60,7 +60,7 @@ export function createPlaybackMetronome({
   let { clickTimes, beatsUntilNextClick } = buildMetronomeTimeline(timeline);
   let nextClickIndex = 0;
   let nextCycleStart = timelineDuration(timeline);
-  const cycleDuration = timelineDuration(repeatTimeline);
+  let cycleDuration = timelineDuration(repeatTimeline);
   const activeClicks = new Map<OscillatorNode, number>();
   let stopped = false;
 
@@ -70,6 +70,33 @@ export function createPlaybackMetronome({
   }
 
   return {
+    changeSpeed(fromTime: number, durationRatio: number) {
+      // Notes before this boundary are already buffered. Keep their clicks,
+      // including any sounding click, and move only the unsounded future.
+      const retime = (time: number) =>
+        time < fromTime ? time : fromTime + (time - fromTime) * durationRatio;
+      const cancelledClicks: number[] = [];
+      for (const [source, when] of activeClicks) {
+        if (when < fromTime) continue;
+        source.stop();
+        activeClicks.delete(source);
+        cancelledClicks.push(when);
+      }
+      clickTimes = cancelledClicks
+        .concat(clickTimes.slice(nextClickIndex))
+        .map(retime)
+        .sort((a, b) => a - b);
+      nextClickIndex = 0;
+      nextCycleStart = retime(nextCycleStart);
+      repeatTimeline = repeatTimeline.map((entry) => ({
+        ...entry,
+        startTime:
+          entry.startTime === null ? null : entry.startTime * durationRatio,
+        duration: entry.duration * durationRatio,
+        metronomeBpm: entry.metronomeBpm / durationRatio,
+      }));
+      cycleDuration *= durationRatio;
+    },
     stop() {
       stopped = true;
       stopClicks();

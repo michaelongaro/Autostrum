@@ -379,13 +379,10 @@ function ColorsPreview() {
 
 function SpeedPreview() {
   const controlId = useId();
-  const { playbackSpeed, setPlaybackSpeed, pauseAudio } = useTabStore(
-    (state) => ({
-      playbackSpeed: state.playbackSpeed,
-      setPlaybackSpeed: state.setPlaybackSpeed,
-      pauseAudio: state.pauseAudio,
-    }),
-  );
+  const { playbackSpeed, setPlaybackSpeed } = useTabStore((state) => ({
+    playbackSpeed: state.requestedPlaybackSpeed,
+    setPlaybackSpeed: state.setPlaybackSpeed,
+  }));
   return (
     <div className="flex w-full min-w-0 flex-col gap-5">
       <div className={styles.practiceViewport} data-feature-control>
@@ -398,10 +395,7 @@ function SpeedPreview() {
           <PlaybackSpeedPopover
             id={controlId}
             playbackSpeed={playbackSpeed}
-            onPlaybackSpeedChange={(speed) => {
-              pauseAudio();
-              setPlaybackSpeed(speed);
-            }}
+            onPlaybackSpeedChange={setPlaybackSpeed}
             side="top"
             triggerClassName="w-[85px]"
           />
