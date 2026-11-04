@@ -30,13 +30,17 @@ export default function PlaybackMetronomeControl({ mobile = false }) {
 
   if (mobile) {
     return (
-      <div className="baseFlex w-full !justify-between gap-2">
-        <Label htmlFor={id} className="baseFlex gap-2">
-          <PiMetronome className="size-4" />
+      <div className="flex w-full flex-row items-center justify-between gap-2">
+        <Label
+          htmlFor={id}
+          className="flex items-center gap-2 whitespace-nowrap"
+        >
+          <PiMetronome className="size-4 shrink-0" />
           Metronome
         </Label>
         <Switch
           id={id}
+          className="shrink-0"
           checked={enabled}
           onCheckedChange={setEnabled}
           {...keyboardProps}

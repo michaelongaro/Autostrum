@@ -219,7 +219,7 @@ function PracticePlaybackPanel({
 
   return (
     <PracticePlaybackProvider value={practicePlaybackValue}>
-      <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
+      <div className="baseVertFlex w-full sm:px-6 md:px-8">
         <div className="baseVertFlex w-full items-start gap-4 rounded-none border-y bg-background p-4 shadow-md sm:gap-8 sm:rounded-lg sm:border-x">
           <div className="baseVertFlex w-full !items-start gap-2">
             <p className="text-sm font-medium sm:hidden">Choose an exercise</p>

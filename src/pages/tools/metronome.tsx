@@ -431,7 +431,7 @@ function MetronomeToolPage() {
         description="Find your rhythm and stay on beat with a simple, customizable click."
       />
 
-      <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
+      <div className="baseVertFlex w-full sm:px-6 md:px-8">
         <div className="baseVertFlex w-full gap-6 border-y bg-background p-4 shadow-md sm:rounded-lg sm:border-x sm:p-6">
           <div className="baseFlex w-full gap-4 sm:!justify-between">
             {/* Mode toggle */}
@@ -883,8 +883,8 @@ function MetronomeToolPage() {
           </motion.div>
 
           {/* Controls: time signature, subdivision, accent */}
-          <div className="grid w-full gap-6 sm:mt-3 sm:grid-cols-3 sm:place-items-center">
-            <div className="baseVertFlex w-full !items-start gap-2">
+          <div className="flex w-full flex-wrap gap-6 sm:mt-3 sm:justify-between">
+            <div className="baseVertFlex w-full !items-start gap-2 sm:w-auto sm:shrink-0">
               <p className="text-sm font-medium">Time Signature</p>
               <div className="baseFlex w-full !justify-start gap-2 sm:w-auto">
                 {timeSignatures.map((signature) => (
@@ -904,7 +904,7 @@ function MetronomeToolPage() {
               </div>
             </div>
 
-            <div className="baseVertFlex !items-start gap-2">
+            <div className="baseVertFlex w-full !items-start gap-2 sm:mr-auto sm:w-auto sm:shrink-0 md:mr-0">
               <p className="text-sm font-medium">Subdivision</p>
               <div className="baseFlex w-full !justify-start gap-2 sm:w-auto">
                 {subdivisions.map((subdivisionOption) => (
@@ -922,7 +922,7 @@ function MetronomeToolPage() {
               </div>
             </div>
 
-            <div className="baseVertFlex !items-start gap-2">
+            <div className="baseVertFlex w-full !items-start gap-2 sm:w-auto sm:shrink-0">
               <p className="text-sm font-medium">Downbeat Accent</p>
               <div className="baseFlex w-full !justify-start gap-2 sm:w-auto">
                 <Button

@@ -293,7 +293,7 @@ function NoteTrainerPage() {
         description="Train your ear to recognize different notes across the fretboard."
       />
 
-      <div className="baseVertFlex w-full xs:px-4 sm:px-6 md:px-8">
+      <div className="baseVertFlex w-full sm:px-6 md:px-8">
         <div className="baseVertFlex relative w-full gap-8 border-y bg-background p-4 shadow-md sm:rounded-lg sm:border-x sm:p-6">
           {/* Top row: round / source select / stats */}
           <div className="relative flex w-full flex-col items-center md:gap-0">

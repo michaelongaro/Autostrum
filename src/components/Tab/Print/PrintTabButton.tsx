@@ -61,7 +61,7 @@ export default function PrintTabButton({
           );
         }}
       >
-        <Printer className="size-4" />
+        <Printer className="size-4" strokeWidth={1.75} />
         {showLabel && "Print"}
       </Button>
       {data && (

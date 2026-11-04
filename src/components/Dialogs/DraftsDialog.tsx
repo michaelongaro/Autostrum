@@ -2,14 +2,6 @@ import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Button } from "~/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
 import { api, type RouterOutputs } from "~/utils/api";
 import useDraftLibrary from "~/hooks/useDraftLibrary";
 import { draftHref, formatDraftDate } from "~/utils/drafts/draftPresentation";
@@ -62,12 +54,16 @@ function AccountDraftsDialog({ ownerId }: { ownerId: string }) {
           <MdModeEditOutline />
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-3xl flex-col gap-5 overflow-y-auto rounded-lg">
-        <DialogHeader className="pr-6 text-left">
-          <DialogTitle>My drafts</DialogTitle>
-          <DialogDescription>Continue working on your tabs.</DialogDescription>
-        </DialogHeader>
-        <DraftList ownerId={ownerId} library={library} />
+      <DialogContent className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-3xl flex-col overflow-y-auto rounded-lg p-0">
+        <div className="flex shrink-0 flex-col gap-5 p-6">
+          <DialogHeader className="pr-6 text-left">
+            <DialogTitle>My drafts</DialogTitle>
+            <DialogDescription>
+              Continue working on your tabs.
+            </DialogDescription>
+          </DialogHeader>
+          <DraftList ownerId={ownerId} library={library} />
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -85,9 +81,11 @@ function DraftList({
   const discard = api.draft.discard.useMutation();
   const [target, setTarget] = useState<DiscardTarget | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   async function discardSelected() {
-    if (!target) return;
+    if (!target || isDeleting) return;
+    setIsDeleting(true);
     setError(null);
     try {
       if (target.kind === "cloud") {
@@ -125,7 +123,64 @@ function DraftList({
       );
       void utils.draft.list.invalidate();
       setTarget(null);
+    } finally {
+      setIsDeleting(false);
     }
+  }
+
+  function deleteButton(candidate: DiscardTarget) {
+    const confirming =
+      target?.kind === candidate.kind &&
+      target.draft.id === candidate.draft.id &&
+      (target.kind !== "local" ||
+        (candidate.kind === "local" &&
+          target.draft.writerId === candidate.draft.writerId));
+
+    return (
+      <Button
+        type="button"
+        size="sm"
+        variant={confirming ? "destructive" : "ghost"}
+        className="grid border border-transparent"
+        disabled={isDeleting}
+        aria-busy={confirming && isDeleting}
+        onClick={() => {
+          if (confirming) void discardSelected();
+          else {
+            setError(null);
+            setTarget(candidate);
+          }
+        }}
+        onBlur={() => {
+          if (confirming && !isDeleting) setTarget(null);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && confirming && !isDeleting) {
+            event.preventDefault();
+            event.stopPropagation();
+            setTarget(null);
+          }
+        }}
+        title={
+          candidate.kind === "local"
+            ? "Delete this browser recovery copy. Account drafts and other recovery copies are kept."
+            : "Delete this account draft and its synced browser copies. Unsynced recovery copies and the published tab are kept."
+        }
+      >
+        <span
+          aria-hidden={confirming}
+          className={`col-start-1 row-start-1 transition-opacity duration-150 motion-reduce:transition-none ${confirming ? "opacity-0" : "opacity-100"}`}
+        >
+          Delete
+        </span>
+        <span
+          aria-hidden={!confirming}
+          className={`col-start-1 row-start-1 transition-opacity duration-150 motion-reduce:transition-none ${confirming ? "opacity-100" : "opacity-0"}`}
+        >
+          Confirm deletion
+        </span>
+      </Button>
+    );
   }
 
   return (
@@ -169,13 +224,7 @@ function DraftList({
               <Button size="sm" asChild>
                 <Link href={draftHref(draft)}>Continue editing</Link>
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setTarget({ kind: "cloud", draft })}
-              >
-                Discard
-              </Button>
+              {deleteButton({ kind: "cloud", draft })}
             </DraftCard>
           ))}
         </section>
@@ -196,13 +245,7 @@ function DraftList({
                   Recover draft
                 </Link>
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setTarget({ kind: "local", draft })}
-              >
-                Discard
-              </Button>
+              {deleteButton({ kind: "local", draft })}
             </DraftCard>
           ))}
         </section>
@@ -218,45 +261,6 @@ function DraftList({
             </p>
           </div>
         )}
-      <AlertDialog
-        open={!!target}
-        onOpenChange={(open) => {
-          if (!open && !discard.isLoading) setTarget(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Discard{" "}
-              {target?.kind === "local"
-                ? "this recovery copy"
-                : "this private draft"}
-              ?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {target?.kind === "local"
-                ? "This removes the selected browser copy. Account drafts and other recovery copies are kept."
-                : "This removes the account draft and its synced browser copies. Unsynced recovery copies and the published tab are kept."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button
-              variant="secondary"
-              disabled={discard.isLoading}
-              onClick={() => setTarget(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={discard.isLoading}
-              onClick={discardSelected}
-            >
-              Discard
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

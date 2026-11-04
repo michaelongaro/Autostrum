@@ -154,7 +154,7 @@ export default function PrintTabDialog({
         }}
       >
         <DialogTitle className="flex shrink-0 items-center gap-2 px-5 py-4 pr-12">
-          <Printer className="size-5" /> Print tab
+          <Printer className="size-5" strokeWidth={1.75} /> Print tab
         </DialogTitle>
         <DialogDescription className="sr-only">
           Configure and preview this tab before printing or saving it as PDF.
@@ -297,57 +297,59 @@ export default function PrintTabDialog({
                   onChange={(value) => update("description", value)}
                 />
               </fieldset>
-              <fieldset className="space-y-2 border-t pt-4">
-                <legend className="pr-2 text-sm font-semibold">
-                  Sections to print
-                </legend>
-                <div className="flex gap-4 text-xs">
-                  <button
-                    type="button"
-                    className="underline underline-offset-2"
-                    onClick={() =>
-                      update(
-                        "sectionIds",
-                        data.tabData.map((section) => section.id),
-                      )
-                    }
-                  >
-                    Select all
-                  </button>
-                  <button
-                    type="button"
-                    className="underline underline-offset-2"
-                    onClick={() => update("sectionIds", [])}
-                  >
-                    Clear
-                  </button>
-                </div>
-                {data.tabData.map((section, index) => (
-                  <label
-                    key={section.id}
-                    className="flex cursor-pointer items-start gap-2 py-1 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      className="mt-0.5 size-4 shrink-0 accent-primary"
-                      checked={options.sectionIds.includes(section.id)}
-                      onChange={(event) =>
+              {data.tabData.length > 1 && (
+                <fieldset className="space-y-2 border-t pt-4">
+                  <legend className="pr-2 text-sm font-semibold">
+                    Sections to print
+                  </legend>
+                  <div className="flex gap-4 text-xs">
+                    <button
+                      type="button"
+                      className="underline underline-offset-2"
+                      onClick={() =>
                         update(
                           "sectionIds",
-                          event.target.checked
-                            ? [...options.sectionIds, section.id]
-                            : options.sectionIds.filter(
-                                (id) => id !== section.id,
-                              ),
+                          data.tabData.map((section) => section.id),
                         )
                       }
-                    />
-                    <span className="break-words">
-                      {index + 1}. {section.title}
-                    </span>
-                  </label>
-                ))}
-              </fieldset>
+                    >
+                      Select all
+                    </button>
+                    <button
+                      type="button"
+                      className="underline underline-offset-2"
+                      onClick={() => update("sectionIds", [])}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {data.tabData.map((section, index) => (
+                    <label
+                      key={section.id}
+                      className="flex cursor-pointer items-start gap-2 py-1 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        className="mt-0.5 size-4 shrink-0 accent-primary"
+                        checked={options.sectionIds.includes(section.id)}
+                        onChange={(event) =>
+                          update(
+                            "sectionIds",
+                            event.target.checked
+                              ? [...options.sectionIds, section.id]
+                              : options.sectionIds.filter(
+                                  (id) => id !== section.id,
+                                ),
+                          )
+                        }
+                      />
+                      <span className="break-words">
+                        {index + 1}. {section.title}
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -426,7 +428,7 @@ export default function PrintTabDialog({
             onClick={print}
             className="gap-2 shadow-lg"
           >
-            <Printer className="size-4" /> Print
+            <Printer className="size-4" strokeWidth={1.75} /> Print
           </Button>
         </div>
       </DialogContent>

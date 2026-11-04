@@ -6,7 +6,7 @@ export function getPrintStyles(options: PrintOptions) {
   // The shared notation mixes fixed staff dimensions with rem-based spacers.
   // Keep the app's 16px root so tuning, measures and rhythm guides stay aligned.
   return `
-    @page { size: ${options.paper === "letter" ? "letter" : "A4"} ${options.orientation}; margin: 0; }
+    @page { size: ${options.paper === "letter" ? "letter" : "A4"} ${options.orientation}; margin: 12mm; }
     :root {
       color-scheme: light;
       --background: 0 0% 100%; --foreground: 0 0% 9%; --primary: 0 0% 9%;
@@ -59,11 +59,16 @@ export function getPrintStyles(options: PrintOptions) {
       body { padding-bottom: 76px; }
     }
     @media print {
-      html, body { background: white; width: ${width}px; }
+      html, body { background: white; width: ${contentWidth}px; margin: 0; padding: 0; }
       #print-source { display: none; }
-      #print-pages { zoom: 1 !important; margin: 0 !important; width: ${width}px; }
-      .print-page { margin: 0; box-shadow: none; break-after: page; page-break-after: always; }
-      .print-page:last-child { break-after: auto; page-break-after: auto; }
+      #print-pages { zoom: 1 !important; margin: 0 !important; width: ${contentWidth}px; }
+      /* The paper margin replaces the preview's padding. A full-sheet box can
+         overflow iOS's printable area and generate an empty continuation page.
+         Leave a pixel of slack for physical-unit rounding, and break only before
+         subsequent pages instead of forcing a break after the last page. */
+      .print-page { display: block; width: ${contentWidth}px; height: auto; padding: 0; margin: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
+      .print-page-content { height: ${contentHeight - 1}px; }
+      .print-page + .print-page { break-before: page; page-break-before: always; }
     }
   `;
 }
