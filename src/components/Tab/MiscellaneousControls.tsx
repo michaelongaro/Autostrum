@@ -63,8 +63,6 @@ function MiscellaneousControls({
   const store = useTabStoreApi();
   const {
     bpm,
-    sectionProgression,
-    setSectionProgression,
     audioMetadata,
     setAudioMetadata,
     currentInstrument,
@@ -74,8 +72,6 @@ function MiscellaneousControls({
     setTabData,
   } = useTabStore((state) => ({
     bpm: state.bpm,
-    sectionProgression: state.sectionProgression,
-    setSectionProgression: state.setSectionProgression,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     currentInstrument: state.currentInstrument,
@@ -337,10 +333,6 @@ function MiscellaneousControls({
       location: null,
     });
 
-    // Capture the section ID before modifying tabData, so we can filter
-    // the section progression outside the setTabData immer callback
-    const sectionIdToDelete = sectionId;
-
     setTabData((draft) => {
       if (chordSequenceIndex !== undefined && subSectionIndex !== undefined) {
         const chordSequenceData = draft[sectionIndex]?.data[subSectionIndex]
@@ -364,14 +356,6 @@ function MiscellaneousControls({
         }
       }
     });
-
-    // Update section progression after setTabData to avoid nested state updates
-    if (chordSequenceIndex === undefined && subSectionIndex === undefined) {
-      const newSectionProgression = sectionProgression.filter(
-        (item) => item.sectionId !== sectionIdToDelete,
-      );
-      setSectionProgression(newSectionProgression);
-    }
   }
 
   return (

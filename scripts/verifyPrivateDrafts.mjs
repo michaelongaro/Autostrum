@@ -266,6 +266,15 @@ try {
   await rejectsWith(guest.list({ ownerId: "owner-a" }), "UNAUTHORIZED");
   const saved = await owner.save(first);
   assert.equal(saved.revision, 1);
+  assert.equal(
+    rows.get(first.id).document.sectionProgression.length,
+    1,
+    "private autosave stores a default progression before playback compiles",
+  );
+  assert.equal(
+    rows.get(first.id).document.sectionProgression[0].sectionId,
+    first.document.tabData[0].id,
+  );
   assert.equal(tabs.size, 0, "autosave must not publish");
   assert.equal(publishedCount, 0, "autosave must not change public counts");
   assert.equal((await owner.list({ ownerId: "owner-a" })).length, 1);
@@ -328,6 +337,15 @@ try {
   };
   const publisher = publicTabs.createCaller(context("owner-a"));
   const published = await publisher.create(publicationInput);
+  assert.equal(
+    published.sectionProgression.length,
+    1,
+    "publishing an empty progression must persist defaults, even for zero-duration sections",
+  );
+  assert.equal(
+    published.sectionProgression[0].sectionId,
+    publicationInput.tabData[0].id,
+  );
   assert.equal(tabs.size, 1);
   assert.equal(publishedCount, 1);
   assert.equal(await owner.get({ id: first.id, ownerId: "owner-a" }), null);
@@ -398,6 +416,11 @@ try {
     draft: { id: freshEdit.id, revision: 1 },
   });
   assert.equal(updatedTab.title, "Explicitly published edit");
+  assert.equal(
+    updatedTab.sectionProgression.length,
+    1,
+    "saving an edit with an empty progression must persist defaults",
+  );
   assert.equal(await owner.get({ id: freshEdit.id, ownerId: "owner-a" }), null);
   assert.ok(
     await owner.get({ id: edit.id, ownerId: "owner-a" }),
@@ -405,6 +428,108 @@ try {
   );
   console.log(
     "PASS: private edit isolation, publication conflicts, rollback, explicit updates preserve other drafts",
+  );
+
+  const timedSections = ["Intro", "Chorus"].map((title, index) => ({
+    id: crypto.randomUUID(),
+    title,
+    data: [
+      {
+        id: crypto.randomUUID(),
+        type: "tab",
+        bpm: index === 0 ? -1 : 60,
+        baseNoteLength: "quarter",
+        repetitions: 1,
+        data: Array.from({ length: 4 }, () => ({
+          id: crypto.randomUUID(),
+          type: "note",
+          palmMute: "",
+          firstString: "0",
+          secondString: "",
+          thirdString: "",
+          fourthString: "",
+          fifthString: "",
+          sixthString: "",
+          chordEffects: "",
+          noteLength: "quarter",
+        })),
+      },
+    ],
+  }));
+  const timedInput = {
+    ...publicationInput,
+    draft: undefined,
+    bpm: 120,
+    tabData: timedSections,
+  };
+  const timed = await publisher.create(timedInput);
+  assert.deepEqual(
+    timed.sectionProgression.map((entry) => [
+      entry.sectionId,
+      entry.startSeconds,
+      entry.endSeconds,
+    ]),
+    [
+      [timedSections[0].id, 0, 2],
+      [timedSections[1].id, 2, 6],
+    ],
+  );
+  const custom = [1, 0, 1].map((index, order) => ({
+    id: crypto.randomUUID(),
+    sectionId: timedSections[index].id,
+    title: timedSections[index].title,
+    repetitions: [2, 3, 1][order],
+    startSeconds: 999,
+    endSeconds: 999,
+  }));
+  const customCreate = await publisher.create({
+    ...timedInput,
+    sectionProgression: custom,
+  });
+  const customEdit = await publisher.update({
+    ...timedInput,
+    id: timed.id,
+    sectionProgression: custom,
+  });
+  for (const result of [customCreate, customEdit]) {
+    assert.deepEqual(
+      result.sectionProgression.map(
+        ({ startSeconds, endSeconds, ...entry }) => entry,
+      ),
+      custom.map(({ startSeconds, endSeconds, ...entry }) => entry),
+      "custom ordering, IDs, and repetitions survive both write paths",
+    );
+    assert.deepEqual(
+      result.sectionProgression.map((entry) => [
+        entry.startSeconds,
+        entry.endSeconds,
+      ]),
+      [
+        [0, 8],
+        [8, 14],
+        [14, 18],
+      ],
+    );
+  }
+  const defaultEdit = await publisher.update({
+    ...timedInput,
+    id: timed.id,
+    sectionProgression: [],
+  });
+  assert.deepEqual(
+    defaultEdit.sectionProgression.map((entry) => entry.sectionId),
+    timedSections.map((section) => section.id),
+  );
+  await rejectsWith(
+    publisher.create({ ...timedInput, tabData: [] }),
+    "BAD_REQUEST",
+  );
+  await rejectsWith(
+    publisher.update({ ...timedInput, id: timed.id, tabData: [] }),
+    "BAD_REQUEST",
+  );
+  console.log(
+    "PASS: create/update fill empty progressions, preserve custom orders/repeats, recalculate timings, and reject sectionless tabs",
   );
 
   const one = persistence.newRecoveryRecord("owner-a", document("Local only"));

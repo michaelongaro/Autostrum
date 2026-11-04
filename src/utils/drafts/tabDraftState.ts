@@ -1,3 +1,4 @@
+import { ensureSectionProgression } from "~/utils/sectionProgression";
 import { getTabStore } from "~/stores/TabStore";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import type { TabDocument } from "~/utils/tabDocument";
@@ -5,6 +6,7 @@ import { DEFAULT_TUNING } from "~/utils/tunings";
 import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 
 export function emptyTabDocument(): TabDocument {
+  const tabData = [{ id: crypto.randomUUID(), title: "Section 1", data: [] }];
   return {
     title: "",
     artistId: null,
@@ -19,8 +21,8 @@ export function emptyTabDocument(): TabDocument {
     difficulty: 1,
     chords: [],
     strummingPatterns: [],
-    sectionProgression: [],
-    tabData: [{ id: crypto.randomUUID(), title: "Section 1", data: [] }],
+    sectionProgression: ensureSectionProgression(tabData, []),
+    tabData,
   };
 }
 
@@ -39,7 +41,10 @@ export function getTabDocument(store = getTabStore()): TabDocument {
     difficulty: store.difficulty,
     chords: store.chords,
     strummingPatterns: store.strummingPatterns,
-    sectionProgression: store.sectionProgression,
+    sectionProgression: ensureSectionProgression(
+      store.tabData,
+      store.sectionProgression,
+    ),
     tabData: store.tabData,
   };
 }
@@ -74,7 +79,9 @@ export function applyTabDocument(document: TabDocument) {
   store.setTabData((draft) => {
     draft.splice(0, draft.length, ...document.tabData);
   });
-  store.setSectionProgression(document.sectionProgression);
+  store.setSectionProgression(
+    ensureSectionProgression(document.tabData, document.sectionProgression),
+  );
   // Loading a published tab, recovery copy, or account version starts a new
   // history session; hydration itself must not become an undoable edit.
   store.clearEditorHistory();
@@ -107,7 +114,10 @@ export function hydratePublishedTab(tab?: TabWithArtistMetadata | null) {
   document.sectionProgression =
     updateElapsedSecondsInSectionProgression({
       tabData: document.tabData,
-      sectionProgression: document.sectionProgression ?? [],
+      sectionProgression: ensureSectionProgression(
+        document.tabData,
+        document.sectionProgression,
+      ),
       baselineBpm: document.bpm,
     }) ?? [];
   applyTabDocument(document);

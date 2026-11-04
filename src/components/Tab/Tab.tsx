@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef } from "react";
 import { FaBook } from "react-icons/fa";
-import { getTabData, getTabStore, useTabStore } from "~/stores/TabStore";
+import { getTabData, useTabStore } from "~/stores/TabStore";
 import { useSectionIds } from "~/hooks/useTabDataSelectors";
 import { Button } from "~/components/ui/button";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
@@ -163,24 +163,6 @@ function Tab() {
         data: [],
       });
     });
-
-    // Mirror deleteSection: keep an existing progression in sync with tabData.
-    // Empty progression still means "all sections" via generateDefault.
-    // Read imperatively so Tab does not re-render on progression updates.
-    const { sectionProgression, setSectionProgression } = getTabStore();
-    if (sectionProgression.length > 0) {
-      setSectionProgression([
-        ...sectionProgression,
-        {
-          id: crypto.randomUUID(),
-          sectionId: newSectionId,
-          title,
-          repetitions: 1,
-          startSeconds: 0,
-          endSeconds: 0,
-        },
-      ]);
-    }
 
     setForceCloseSectionAccordions(true);
   }

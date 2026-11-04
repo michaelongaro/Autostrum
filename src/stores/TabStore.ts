@@ -1,3 +1,7 @@
+import { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
+export { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
+import { ensureSectionProgression } from "~/utils/sectionProgression";
+import { appendNewlyAddedSectionsToProgression } from "~/utils/appendNewlyAddedSectionsToProgression";
 import type { Tab } from "~/generated/browser";
 import type Soundfont from "soundfont-player";
 import { devtools } from "zustand/middleware";
@@ -46,14 +50,14 @@ import {
   mapLoopRelativeChordIndexToFullTabIndex,
 } from "~/utils/loopRangeHelpers";
 
-export interface SectionProgression {
+export type SectionProgression = {
   id: string; // used to identify the section for the sorting context
   sectionId: string;
   title: string;
   repetitions: number;
   startSeconds: number;
   endSeconds: number;
-}
+};
 
 export interface Chord {
   id: string;
@@ -183,41 +187,6 @@ export const baseNoteLengthMultipliers: Record<
   quarter: 1,
   eighth: 0.5,
   sixteenth: 0.25,
-};
-
-export const noteLengthMultipliers: Record<
-  | "whole"
-  | "whole dotted"
-  | "whole double-dotted"
-  | "half"
-  | "half dotted"
-  | "half double-dotted"
-  | "quarter"
-  | "quarter dotted"
-  | "quarter double-dotted"
-  | "eighth"
-  | "eighth dotted"
-  | "eighth double-dotted"
-  | "sixteenth"
-  | "sixteenth dotted"
-  | "sixteenth double-dotted",
-  number
-> = {
-  whole: 4,
-  "whole dotted": 6,
-  "whole double-dotted": 7,
-  half: 2,
-  "half dotted": 3,
-  "half double-dotted": 3.5,
-  quarter: 1,
-  "quarter dotted": 1.5,
-  "quarter double-dotted": 1.75,
-  eighth: 0.5,
-  "eighth dotted": 0.75,
-  "eighth double-dotted": 0.875,
-  sixteenth: 0.25,
-  "sixteenth dotted": 0.375,
-  "sixteenth double-dotted": 0.4375,
 };
 
 export interface Metadata {
@@ -895,6 +864,9 @@ export const createTabStore = (
   initialValues: Partial<TabState> = {},
   resetAudioRange = resetAudioRangeToStart,
 ) => {
+  const initialTabData = initialValues.tabData?.length
+    ? initialValues.tabData
+    : [{ id: crypto.randomUUID(), title: "Section 1", data: [] }];
   let audioPreparation: ReturnType<TabState["ensureAudioSystemReady"]> | null =
     null;
   let audioPreparationContext: AudioContext | null = null;
@@ -1060,17 +1032,38 @@ export const createTabStore = (
         title: "",
         setTitle: (title) => editDocument({ title }),
 
-        tabData: [
-          {
-            id: crypto.randomUUID(),
-            title: "Section 1",
-            data: [],
-          },
-        ],
         setTabData: (updater) =>
           editDocument((draft) => {
+            const knownSectionIds = new Set(
+              draft.tabData.map((section) => section.id),
+            );
             updater(draft.tabData);
+            if (draft.tabData.length === 0) {
+              draft.tabData.push({
+                id: crypto.randomUUID(),
+                title: "Section 1",
+                data: [],
+              });
+            }
             initializeEmptyChordSequences(draft);
+            const sectionIds = new Set(
+              draft.tabData.map((section) => section.id),
+            );
+            const remainingProgression = draft.sectionProgression.every(
+              (entry) => sectionIds.has(entry.sectionId),
+            )
+              ? draft.sectionProgression
+              : draft.sectionProgression.filter((entry) =>
+                  sectionIds.has(entry.sectionId),
+                );
+            draft.sectionProgression = ensureSectionProgression(
+              draft.tabData,
+              appendNewlyAddedSectionsToProgression({
+                tabData: draft.tabData,
+                sectionProgression: remainingProgression,
+                knownSectionIds,
+              }),
+            );
           }),
 
         artistId: null,
@@ -1117,10 +1110,14 @@ export const createTabStore = (
           get().breakEditorHistoryGroup();
           set({ editing });
         },
-        sectionProgression: [],
         setSectionProgression: (sectionProgression, options) => {
-          if (options?.recordHistory === false) set({ sectionProgression });
-          else editDocument({ sectionProgression });
+          const progression = ensureSectionProgression(
+            get().tabData,
+            sectionProgression,
+          );
+          if (options?.recordHistory === false)
+            set({ sectionProgression: progression });
+          else editDocument({ sectionProgression: progression });
         },
         currentlyCopiedData: null,
         setCurrentlyCopiedData: (currentlyCopiedData) =>
@@ -2165,10 +2162,21 @@ export const createTabStore = (
           if (useTabStoreBase.getState() === getTabStore()) {
             setHoveredChordLocationValue(null);
           }
-          set(initialStoreState);
+          set({
+            ...initialStoreState,
+            sectionProgression: ensureSectionProgression(
+              initialStoreState.tabData,
+              [],
+            ),
+          });
           get().clearEditorHistory();
         },
         ...initialValues,
+        tabData: initialTabData,
+        sectionProgression: ensureSectionProgression(
+          initialTabData,
+          initialValues.sectionProgression,
+        ),
       })),
     ),
   );

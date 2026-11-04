@@ -1,3 +1,4 @@
+import { generateDefaultSectionProgression } from "./sectionProgression";
 import { getSectionIndexFromId } from "~/utils/getSectionIndexFromId";
 import {
   noteLengthMultipliers,
@@ -711,23 +712,6 @@ function compileSpecificChordGrouping({
   setCurrentlyPlayingMetadata(metadataMappedToLoopRange);
 
   return compiledChordsMappedToLoopRange;
-}
-
-function generateDefaultSectionProgression(tabData: Section[]) {
-  const sectionProgression: SectionProgression[] = [];
-
-  for (const section of tabData) {
-    sectionProgression.push({
-      id: crypto.randomUUID(),
-      sectionId: section.id,
-      title: section.title,
-      repetitions: 1,
-      startSeconds: 0, // will be overwritten by useAutoCompileChords
-      endSeconds: 0, // will be overwritten by useAutoCompileChords
-    });
-  }
-
-  return sectionProgression;
 }
 
 interface CompileStrummingPatternPreview {

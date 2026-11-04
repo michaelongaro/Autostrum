@@ -1,3 +1,5 @@
+import { ensureSectionProgression } from "~/utils/sectionProgression";
+import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 import { DeleteObjectsCommand, S3Client } from "@aws-sdk/client-s3";
 import { getTabScreenshotObjectKeys } from "~/utils/tabScreenshotMasks";
 import type { Tab } from "~/generated/client";
@@ -301,7 +303,7 @@ export const tabRouter = createTRPCRouter({
         chords: z.array(chordSchema),
         strummingPatterns: z.array(strummingPatternSchema),
         sectionProgression: z.array(sectionProgressionSchema),
-        tabData: z.array(sectionSchema),
+        tabData: z.array(sectionSchema).min(1),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -343,7 +345,14 @@ export const tabRouter = createTRPCRouter({
               description,
               genre,
               tuning,
-              sectionProgression,
+              sectionProgression: updateElapsedSecondsInSectionProgression({
+                tabData,
+                baselineBpm: bpm,
+                sectionProgression: ensureSectionProgression(
+                  tabData,
+                  sectionProgression,
+                ),
+              }),
               bpm,
               capo,
               key,
@@ -422,7 +431,7 @@ export const tabRouter = createTRPCRouter({
         chords: z.array(chordSchema),
         strummingPatterns: z.array(strummingPatternSchema),
         sectionProgression: z.array(sectionProgressionSchema),
-        tabData: z.array(sectionSchema),
+        tabData: z.array(sectionSchema).min(1),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -487,7 +496,14 @@ export const tabRouter = createTRPCRouter({
                 description,
                 genre,
                 tuning,
-                sectionProgression,
+                sectionProgression: updateElapsedSecondsInSectionProgression({
+                  tabData,
+                  baselineBpm: bpm,
+                  sectionProgression: ensureSectionProgression(
+                    tabData,
+                    sectionProgression,
+                  ),
+                }),
                 bpm,
                 capo,
                 key,

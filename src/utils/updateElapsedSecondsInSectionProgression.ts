@@ -1,8 +1,8 @@
+import { noteLengthMultipliers } from "./noteLengthMultipliers";
 import isEqual from "lodash.isequal";
 import { getSectionIndexFromId } from "~/utils/getSectionIndexFromId";
 import {
   type ChordSection,
-  noteLengthMultipliers,
   type Section,
   type SectionProgression,
   type TabSection,
@@ -73,7 +73,6 @@ function updateElapsedSecondsInSectionProgression({
     !isEqual(sectionProgression, sectionProgressionWithElapsedSeconds)
   ) {
     setSectionProgression(sectionProgressionWithElapsedSeconds);
-    return;
   }
 
   return sectionProgressionWithElapsedSeconds;

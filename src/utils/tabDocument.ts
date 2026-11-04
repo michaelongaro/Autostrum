@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ensureSectionProgression } from "./sectionProgression";
 
 const baseNoteLengths = z.union([
   z.literal("whole"),
@@ -153,23 +154,37 @@ export const sectionSchema = z.object({
 });
 
 // Drafts accept unfinished metadata and empty music; publishing has its own checks.
-export const tabDocumentSchema = z.object({
-  title: z.string().max(50),
-  artistId: z.number().int().positive().nullable(),
-  artistName: z.string().max(60).optional(),
-  artistIsVerified: z.boolean().optional(),
-  description: z.string().max(500).nullable(),
-  genre: z.string(),
-  tuning: z.string(),
-  bpm: z.number().finite(),
-  capo: z.number().finite(),
-  key: z.string().nullable(),
-  difficulty: z.number().finite(),
-  chords: z.array(chordSchema),
-  strummingPatterns: z.array(strummingPatternSchema),
-  sectionProgression: z.array(sectionProgressionSchema),
-  tabData: z.array(sectionSchema),
-});
+export const tabDocumentSchema = z
+  .object({
+    title: z.string().max(50),
+    artistId: z.number().int().positive().nullable(),
+    artistName: z.string().max(60).optional(),
+    artistIsVerified: z.boolean().optional(),
+    description: z.string().max(500).nullable(),
+    genre: z.string(),
+    tuning: z.string(),
+    bpm: z.number().finite(),
+    capo: z.number().finite(),
+    key: z.string().nullable(),
+    difficulty: z.number().finite(),
+    chords: z.array(chordSchema),
+    strummingPatterns: z.array(strummingPatternSchema),
+    sectionProgression: z.array(sectionProgressionSchema),
+    tabData: z.array(sectionSchema),
+  })
+  .transform((document) => {
+    const tabData = document.tabData.length
+      ? document.tabData
+      : [{ id: crypto.randomUUID(), title: "Section 1", data: [] }];
+    return {
+      ...document,
+      tabData,
+      sectionProgression: ensureSectionProgression(
+        tabData,
+        document.sectionProgression,
+      ),
+    };
+  });
 
 export type TabDocument = z.input<typeof tabDocumentSchema>;
 

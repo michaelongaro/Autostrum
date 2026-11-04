@@ -207,3 +207,86 @@ assert.equal(first.getState().currentChordIndex, 4);
 console.log(
   "PASS: loop-editor Return restores each session's playback position and discards drafts",
 );
+
+// Progressions must exist before any debounced playback compilation runs.
+const editor = createTabStore({ editing: true }, () => {});
+assert.equal(
+  editor.getState().sectionProgression[0].sectionId,
+  editor.getState().tabData[0].id,
+);
+const originalProgression = structuredClone(
+  editor.getState().sectionProgression,
+);
+const secondSection = { id: crypto.randomUUID(), title: "Section 2", data: [] };
+editor.getState().setTabData((draft) => draft.push(secondSection));
+assert.equal(editor.getState().sectionProgression.length, 2);
+assert.equal(
+  editor.getState().sectionProgression[1].sectionId,
+  secondSection.id,
+);
+editor.getState().undo();
+assert.equal(editor.getState().tabData.length, 1);
+assert.deepEqual(
+  editor.getState().sectionProgression,
+  originalProgression,
+  "adding a section and its progression entry is one undoable edit",
+);
+editor.getState().redo();
+assert.equal(editor.getState().sectionProgression.length, 2);
+editor
+  .getState()
+  .setSectionProgression([editor.getState().sectionProgression[1]]);
+editor.getState().setTabData((draft) => {
+  draft[0].title = "Omitted intro";
+});
+assert.deepEqual(
+  editor.getState().sectionProgression.map((entry) => entry.sectionId),
+  [secondSection.id],
+  "ordinary edits do not re-add intentionally omitted sections",
+);
+editor.getState().setTabData((draft) => {
+  draft.splice(1, 1);
+});
+assert.equal(
+  editor.getState().sectionProgression[0].sectionId,
+  editor.getState().tabData[0].id,
+  "deleting the only included section restores a progression for remaining sections",
+);
+editor.getState().setSectionProgression([]);
+assert.equal(editor.getState().sectionProgression.length, 1);
+editor.getState().setTabData((draft) => {
+  draft.splice(0);
+});
+assert.equal(editor.getState().tabData.length, 1);
+assert.equal(
+  editor.getState().sectionProgression[0].sectionId,
+  editor.getState().tabData[0].id,
+);
+editor.getState().resetStoreToInitValues();
+assert.equal(
+  editor.getState().sectionProgression[0].sectionId,
+  editor.getState().tabData[0].id,
+);
+
+const { emptyTabDocument, applyTabDocument, getTabDocument } =
+  await import("../src/utils/drafts/tabDraftState.ts");
+const empty = emptyTabDocument();
+assert.equal(empty.sectionProgression[0].sectionId, empty.tabData[0].id);
+globalThis.document = { getElementById: () => null };
+applyTabDocument({ ...empty, sectionProgression: [] });
+delete globalThis.document;
+assert.equal(
+  getTabDocument().sectionProgression.length,
+  1,
+  "legacy recovery gets defaults on hydration",
+);
+const { tabDocumentSchema } = await import("../src/utils/tabDocument.ts");
+const parsed = tabDocumentSchema.parse({
+  ...empty,
+  tabData: [],
+  sectionProgression: [],
+});
+assert.equal(parsed.sectionProgression[0].sectionId, parsed.tabData[0].id);
+console.log(
+  "PASS: immediate progression defaults, atomic section add/delete undo, intentional omissions, reset and legacy recovery",
+);
