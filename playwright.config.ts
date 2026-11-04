@@ -1,7 +1,7 @@
 import nextEnv from "@next/env";
 import { defineConfig, devices } from "@playwright/test";
 
-// Load the same local environment files as Next.js; CI provides these directly.
+// Load the same local environment files as Next.js.
 nextEnv.loadEnvConfig(process.cwd());
 
 export default defineConfig({
@@ -9,7 +9,6 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  forbidOnly: !!process.env.CI,
   timeout: 120_000,
   expect: { timeout: 30_000 },
   reporter: [["list"], ["html", { open: "never" }]],

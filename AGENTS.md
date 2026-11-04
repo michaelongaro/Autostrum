@@ -14,7 +14,7 @@ All env vars validated in `src/env.js` (`DATABASE_URL`, `CLERK_SECRET_KEY`, `NEX
 
 ### Lint / test / build
 - **Lint:** `npm run lint` (`eslint .`). Note: the repo currently has many pre-existing lint errors/warnings unrelated to setup — a non-zero result is expected and is not a regression.
-- **E2E tests:** `npm run test:e2e` runs the Playwright tab publish/delete lifecycle against `E2E_BASE_URL` (defaults to `http://localhost:3000`, requires a running server). It uses real Clerk authentication and the matching database; configure `E2E_CLERK_USER_EMAIL` for an existing onboarded account. See `docs/deployment-e2e.md` for credentials and the post-Vercel-deployment GitHub Action. `npm run test:e2e -- --list` only lists tests. Additional verification helpers live in `scripts/`, including `node scripts/verifyStaticTabVirtualization.mjs`.
+- **E2E tests (manual, local only):** Start the app with `npm run dev`, then run `npm run test:e2e` in another terminal. The Playwright tab publish/delete lifecycle uses `E2E_BASE_URL` (defaults to `http://localhost:3000`), real Clerk authentication, and the matching database; configure `E2E_CLERK_USER_EMAIL` for an existing onboarded account. See `docs/e2e.md` for setup. These tests are not part of CI/CD or the Vercel build. `npm run test:e2e -- --list` only lists tests. Additional verification helpers live in `scripts/`, including `node scripts/verifyStaticTabVirtualization.mjs`.
 - **Build:** `npm run build` runs `prisma generate && prisma migrate deploy && next build`. Caution: `migrate deploy` targets the shared remote `DATABASE_URL`; prefer `npm run dev` for local verification and avoid running the full build unless necessary. `next.config.js` sets `typescript.ignoreBuildErrors: true`.
 
 ### Gotchas

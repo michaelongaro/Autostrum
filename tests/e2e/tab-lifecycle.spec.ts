@@ -62,25 +62,8 @@ test.afterAll(async () => {
 
 test("publish a tab, verify persistence, delete it, verify removal", async ({
   page,
-  baseURL,
 }) => {
   console.info(`Tab lifecycle fixture: ${title}`);
-  // Limit the Vercel bypass header to this app's origin (never Clerk or S3).
-  const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-  if (bypassSecret) {
-    const origin = new URL(baseURL!).origin;
-    await page.route(
-      (url) => url.origin === origin,
-      (route) =>
-        route.continue({
-          headers: {
-            ...route.request().headers(),
-            "x-vercel-protection-bypass": bypassSecret,
-            "x-vercel-set-bypass-cookie": "true",
-          },
-        }),
-    );
-  }
 
   await test.step("Sign in to the existing, onboarded test account", async () => {
     await page.goto("/");
