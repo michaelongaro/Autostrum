@@ -51,7 +51,10 @@ export function getPrintPageSize(options: PrintOptions) {
     height: (height! * 96) / 25.4,
     margin,
     contentWidth: (width! * 96) / 25.4 - margin * 2,
-    contentHeight: (height! * 96) / 25.4 - margin * 2 - 48,
+    // Reserve 24px each for the running header/footer plus 24px of breathing
+    // room for native print margins and browser headers (not just px rounding).
+    // The paginator and preview must use the same conservative music budget.
+    contentHeight: (height! * 96) / 25.4 - margin * 2 - 48 - 24,
   };
 }
 

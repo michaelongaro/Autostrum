@@ -23,7 +23,7 @@ export function getPrintStyles(options: PrintOptions) {
     .print-running-header { height: 24px; flex-shrink: 0; display: flex; justify-content: space-between; gap: 16px; color: #555; font-size: 10px; overflow: hidden; white-space: nowrap; }
     .print-running-header span:first-child { overflow: hidden; text-overflow: ellipsis; }
     .print-page-content { width: ${contentWidth}px; height: ${contentHeight}px; flex-shrink: 0; }
-    .print-page-footer { height: 24px; display: flex; align-items: end; justify-content: space-between; gap: 20px; font-size: 10px; color: #555; border-top: 1px solid #ddd; overflow-wrap: anywhere; }
+    .print-page-footer { height: 24px; flex-shrink: 0; margin-top: auto; display: flex; align-items: end; justify-content: space-between; gap: 20px; font-size: 10px; color: #555; border-top: 1px solid #ddd; overflow-wrap: anywhere; }
     .print-page-footer span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     [data-print-block] { padding-bottom: 10px; overflow-wrap: anywhere; }
     h1, h2, p { margin: 0; }
@@ -62,12 +62,13 @@ export function getPrintStyles(options: PrintOptions) {
       html, body { background: white; width: ${contentWidth}px; margin: 0; padding: 0; }
       #print-source { display: none; }
       #print-pages { zoom: 1 !important; margin: 0 !important; width: ${contentWidth}px; }
-      /* The paper margin replaces the preview's padding. A full-sheet box can
-         overflow iOS's printable area and generate an empty continuation page.
-         Leave a pixel of slack for physical-unit rounding, and break only before
-         subsequent pages instead of forcing a break after the last page. */
-      .print-page { display: block; width: ${contentWidth}px; height: auto; padding: 0; margin: 0; box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
-      .print-page-content { height: ${contentHeight - 1}px; }
+      /* Native iOS margins can leave less space than @page requested. Never
+         print the preview's fixed-height spacer: it can push even a sparse
+         page's footer onto a separate sheet. Let the page hug its music, with
+         the paginator reserving room for both running elements and margin slack. */
+      .print-page { display: block; width: ${contentWidth}px; height: auto; padding: 0; margin: 0; box-shadow: none; overflow: visible; break-inside: avoid; page-break-inside: avoid; }
+      .print-page-content { height: auto; }
+      .print-page-footer { break-before: avoid; page-break-before: avoid; break-inside: avoid; page-break-inside: avoid; }
       .print-page + .print-page { break-before: page; page-break-before: always; }
     }
   `;
