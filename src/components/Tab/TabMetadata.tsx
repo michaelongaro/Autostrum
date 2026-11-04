@@ -180,10 +180,24 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
 
-  const { data: dynamicMetadata } =
+  const isEditorPreview = asPath.includes("create") || asPath.includes("edit");
+
+  const { data: fetchedDynamicMetadata } =
     api.tab.getRatingBookmarkAndViewCount.useQuery(id, {
-      enabled: !editing,
+      enabled: !editing && id !== -1,
     });
+
+  const dynamicMetadata =
+    fetchedDynamicMetadata ??
+    (isEditorPreview
+      ? {
+          averageRating: 0,
+          ratingsCount: 0,
+          userRating: null,
+          bookmarked: false,
+          pageViews: 0,
+        }
+      : undefined);
 
   const [saveButtonText, setSaveButtonText] = useState(
     asPath.includes("create") ? "Publish" : "Save",
@@ -1017,100 +1031,100 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                     </Button>
                   )}
 
-                  {!asPath.includes("create") && !asPath.includes("edit") && (
-                    <AnimatePresence mode="popLayout">
-                      {dynamicMetadata ? (
-                        <motion.div
-                          key={"crossfadeRateTab"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex h-10 w-28"
-                        >
-                          <RateTab
-                            tabId={id}
-                            averageRating={dynamicMetadata.averageRating}
-                            ratingsCount={dynamicMetadata.ratingsCount}
-                            currentUser={currentUser}
-                            userRating={dynamicMetadata.userRating}
-                            tabCreatorUserId={createdByUserId ?? undefined}
-                            customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
-                          />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key={"crossfadeRateTabPlaceholder"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex h-10 w-28"
-                        >
-                          <div className="pulseAnimation size-full rounded-md"></div>
-                        </motion.div>
-                      )}
-
-                      {dynamicMetadata ? (
-                        <motion.div
-                          key={"crossfadeBookmarkToggle"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex h-10 w-36"
-                        >
-                          <BookmarkToggle
-                            tabId={id}
-                            createdByUserId={createdByUserId}
-                            currentUser={currentUser}
-                            showText={true}
-                            isBookmarked={dynamicMetadata.bookmarked}
-                            customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
-                          />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key={"crossfadeBookmarkTogglePlaceholder"}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                          }}
-                          className="baseFlex h-10 w-36"
-                        >
-                          <div className="pulseAnimation size-full rounded-md"></div>
-                        </motion.div>
-                      )}
-
-                      <Button
-                        aria-label="Share tab"
-                        variant={"secondary"}
-                        size={"icon"}
-                        disabled={isLoadingARoute}
-                        onClick={async () => {
-                          try {
-                            await navigator.share({
-                              title,
-                              text: `Check out this tab I found on Autostrum!`,
-                              url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
-                            });
-                          } catch (error) {
-                            console.error("Error sharing tab:", error);
-                          }
+                  <AnimatePresence mode="popLayout">
+                    {dynamicMetadata ? (
+                      <motion.div
+                        key={"crossfadeRateTab"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          duration: 0.25,
                         }}
+                        className="baseFlex h-10 w-28"
                       >
-                        <IoIosShareAlt className="size-5" />
-                      </Button>
-                    </AnimatePresence>
-                  )}
+                        <RateTab
+                          tabId={id}
+                          disabled={isEditorPreview}
+                          averageRating={dynamicMetadata.averageRating}
+                          ratingsCount={dynamicMetadata.ratingsCount}
+                          currentUser={currentUser}
+                          userRating={dynamicMetadata.userRating}
+                          tabCreatorUserId={createdByUserId ?? undefined}
+                          customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key={"crossfadeRateTabPlaceholder"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          duration: 0.25,
+                        }}
+                        className="baseFlex h-10 w-28"
+                      >
+                        <div className="pulseAnimation size-full rounded-md"></div>
+                      </motion.div>
+                    )}
+
+                    {dynamicMetadata ? (
+                      <motion.div
+                        key={"crossfadeBookmarkToggle"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          duration: 0.25,
+                        }}
+                        className="baseFlex h-10 w-36"
+                      >
+                        <BookmarkToggle
+                          tabId={id}
+                          disabled={isEditorPreview}
+                          createdByUserId={createdByUserId}
+                          currentUser={currentUser}
+                          showText={true}
+                          isBookmarked={dynamicMetadata.bookmarked}
+                          customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key={"crossfadeBookmarkTogglePlaceholder"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          duration: 0.25,
+                        }}
+                        className="baseFlex h-10 w-36"
+                      >
+                        <div className="pulseAnimation size-full rounded-md"></div>
+                      </motion.div>
+                    )}
+
+                    <Button
+                      aria-label="Share tab"
+                      variant={"secondary"}
+                      size={"icon"}
+                      disabled={isLoadingARoute || isEditorPreview}
+                      onClick={async () => {
+                        try {
+                          await navigator.share({
+                            title,
+                            text: `Check out this tab I found on Autostrum!`,
+                            url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                          });
+                        } catch (error) {
+                          console.error("Error sharing tab:", error);
+                        }
+                      }}
+                    >
+                      <IoIosShareAlt className="size-5" />
+                    </Button>
+                  </AnimatePresence>
                 </div>
               </div>
             ) : (
@@ -1164,6 +1178,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                         >
                           <RateTab
                             tabId={id}
+                            disabled={isEditorPreview}
                             averageRating={dynamicMetadata.averageRating}
                             ratingsCount={dynamicMetadata.ratingsCount}
                             currentUser={currentUser}
@@ -1200,6 +1215,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                         >
                           <BookmarkToggle
                             tabId={id}
+                            disabled={isEditorPreview}
                             createdByUserId={createdByUserId}
                             currentUser={currentUser}
                             showText={true}
@@ -1227,7 +1243,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                           aria-label="Share tab"
                           variant={"secondary"}
                           size="icon"
-                          disabled={isLoadingARoute}
+                          disabled={isLoadingARoute || isEditorPreview}
                           onClick={async () => {
                             try {
                               await navigator.share({

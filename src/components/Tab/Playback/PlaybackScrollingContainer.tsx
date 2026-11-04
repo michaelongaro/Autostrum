@@ -10,6 +10,7 @@ import { useTabStore } from "~/stores/TabStore";
 import type { PlaybackChordLayoutData } from "~/utils/playbackModalLayout";
 
 interface PlaybackScrollingContainerProps {
+  enabled?: boolean;
   children: ReactNode;
   setChordRepetitions: Dispatch<SetStateAction<number[]>>;
   chordLayoutData: PlaybackChordLayoutData | null;
@@ -23,6 +24,7 @@ interface PlaybackScrollingContainerProps {
 }
 
 function PlaybackScrollingContainer({
+  enabled = true,
   children,
   setChordRepetitions,
   chordLayoutData,
@@ -50,6 +52,7 @@ function PlaybackScrollingContainer({
   }));
 
   const glideScrub = usePlaybackGlideScrub({
+    enabled,
     stripRef,
     scrubPositionRef,
     playheadRef,

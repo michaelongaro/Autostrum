@@ -14,6 +14,7 @@ import {
 } from "~/utils/playbackViewport";
 
 interface PlaybackVisibleChords {
+  frozenScrollPosition?: number | null;
   chordLayoutData: PlaybackViewportLayout;
   expandedTabData: (
     PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord
@@ -40,6 +41,7 @@ interface PlaybackVisibleChords {
 }
 
 function PlaybackVisibleChords({
+  frozenScrollPosition = null,
   chordLayoutData,
   expandedTabData,
   chordRepetitions,
@@ -70,8 +72,11 @@ function PlaybackVisibleChords({
   const pausedPosition =
     (scrollPositions[currentChordIndex] ?? 0) +
     (chordRepetitions[currentChordIndex] ?? 0) * totalWidth;
-  const moving = audioMetadata.playing || isGlideScrubbing;
-  const anchorPosition = moving ? null : pausedPosition;
+  const moving =
+    frozenScrollPosition === null &&
+    (audioMetadata.playing || isGlideScrubbing);
+  const anchorPosition =
+    frozenScrollPosition ?? (moving ? null : pausedPosition);
   const overscan = useMemo(
     () => playbackOverscanPx(chordLayoutData),
     [chordLayoutData],

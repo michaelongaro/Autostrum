@@ -20,6 +20,7 @@ interface BookmarkToggle {
   showText: boolean;
   isBookmarked: boolean;
   infiniteQueryParams?: InfiniteQueryParams;
+  disabled?: boolean;
 }
 
 function BookmarkToggle({
@@ -30,6 +31,7 @@ function BookmarkToggle({
   showText,
   isBookmarked,
   infiniteQueryParams,
+  disabled = false,
 }: BookmarkToggle) {
   const [showUnregisteredPopover, setShowUnregisteredPopover] = useState(false);
   const [unregisteredPopoverTimeoutId, setUnregisteredPopoverTimeoutId] =
@@ -193,6 +195,7 @@ function BookmarkToggle({
       >
         <Button
           aria-label={"Bookmark toggle"}
+          disabled={disabled}
           variant={"secondary"}
           className={customClassName}
           onClick={() => {

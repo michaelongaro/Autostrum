@@ -2,15 +2,8 @@ import { motion } from "framer-motion";
 import SEO from "~/components/SEO";
 import SearchResults from "~/components/Search/SearchResults";
 import styles from "~/components/Search/SearchResults.module.css";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { BiSearchAlt2 } from "react-icons/bi";
-import Binoculars from "~/components/ui/icons/Binoculars";
-import { FaEye } from "react-icons/fa";
-import { LuFilter } from "react-icons/lu";
 
 function FilteredQueryExplore() {
-  const isAboveMediumViewport = useViewportWidthBreakpoint(768);
-
   return (
     <motion.div
       key={"search"}
@@ -31,33 +24,6 @@ function FilteredQueryExplore() {
           <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             Search
           </h1>
-
-          {isAboveMediumViewport ? (
-            <div className="baseFlex gap-4">
-              <BiSearchAlt2 className="size-9 rotate-12 text-foreground" />
-              <Binoculars className="size-9 -rotate-12 text-foreground" />
-              <LuFilter className="size-9 rotate-12 text-foreground" />
-              <FaEye className="size-9 -rotate-12 text-foreground" />
-            </div>
-          ) : (
-            <div className="baseFlex">
-              <div className="relative right-[-18px] top-[3px] z-30 rotate-[-6deg] rounded-lg border bg-background p-2 shadow-sm">
-                <BiSearchAlt2 className="size-6 text-foreground" />
-              </div>
-
-              <div className="relative right-[-12px] z-20 -rotate-3 rounded-lg border bg-background p-2 shadow-sm">
-                <Binoculars className="size-6 text-foreground" />
-              </div>
-
-              <div className="relative right-[-6px] z-10 rotate-3 rounded-lg border bg-background p-2 shadow-sm">
-                <LuFilter className="size-6 text-foreground" />
-              </div>
-
-              <div className="relative top-[3px] rotate-[6deg] rounded-lg border bg-background p-2 shadow-sm">
-                <FaEye className="size-6 text-foreground" />
-              </div>
-            </div>
-          )}
         </div>
 
         <SearchResults />

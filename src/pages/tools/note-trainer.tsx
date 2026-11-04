@@ -100,12 +100,10 @@ function getRandomNote(notePool: readonly string[]) {
 
 function NoteTrainerPage() {
   const store = useTabStoreApi();
-  const { audioPreparationPending, setCurrentInstrumentName } = useTabStore(
-    (state) => ({
-      audioPreparationPending: state.audioPreparationPending,
-      setCurrentInstrumentName: state.setCurrentInstrumentName,
-    }),
-  );
+  const { instruments, setCurrentInstrumentName } = useTabStore((state) => ({
+    instruments: state.instruments,
+    setCurrentInstrumentName: state.setCurrentInstrumentName,
+  }));
 
   const currentPlaybackRef = useRef<PlaybackHandle>(null);
   const playbackRequestIdRef = useRef(0);
@@ -252,7 +250,7 @@ function NoteTrainerPage() {
     roundsPlayed === 0 ? 0 : Math.round((correctGuesses / roundsPlayed) * 100);
 
   const isSoundfontLoading =
-    audioSource !== "generated" && audioPreparationPending;
+    audioSource !== "generated" && !instruments[audioSource];
 
   const feedbackMessage = selectedGuess ? (
     lastGuessCorrect ? (
@@ -318,15 +316,11 @@ function NoteTrainerPage() {
                 <Select
                   value={audioSource}
                   onValueChange={(v) => {
-                    setAudioSource(v as AudioSource);
-
-                    setCurrentInstrumentName(
-                      v as
-                        | "acoustic_guitar_nylon"
-                        | "acoustic_guitar_steel"
-                        | "electric_guitar_clean"
-                        | "electric_guitar_jazz",
-                    );
+                    const source = v as AudioSource;
+                    setAudioSource(source);
+                    if (source !== "generated") {
+                      setCurrentInstrumentName(source);
+                    }
                   }}
                 >
                   <SelectTrigger id="audioSelect" className="w-52 md:w-52">

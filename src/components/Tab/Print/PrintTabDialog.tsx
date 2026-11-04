@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Printer, RotateCcw } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -328,14 +329,13 @@ export default function PrintTabDialog({
                       key={section.id}
                       className="flex cursor-pointer items-start gap-2 py-1 text-sm"
                     >
-                      <input
-                        type="checkbox"
-                        className="mt-0.5 size-4 shrink-0 accent-primary"
+                      <Checkbox
+                        className="mt-0.5 shrink-0"
                         checked={options.sectionIds.includes(section.id)}
-                        onChange={(event) =>
+                        onCheckedChange={(checked) =>
                           update(
                             "sectionIds",
-                            event.target.checked
+                            checked === true
                               ? [...options.sectionIds, section.id]
                               : options.sectionIds.filter(
                                   (id) => id !== section.id,

@@ -51,6 +51,7 @@ const ratingDescriptions = [
 ];
 
 interface RateTab {
+  disabled?: boolean;
   tabId: number;
   averageRating: number;
   ratingsCount: number;
@@ -61,6 +62,7 @@ interface RateTab {
 }
 
 function RateTab({
+  disabled = false,
   tabId,
   averageRating,
   ratingsCount,
@@ -191,6 +193,7 @@ function RateTab({
     <>
       {viewportLabel.includes("mobile") ? (
         <RateTabDrawer
+          disabled={disabled}
           ratingsCount={ratingsCount}
           customClassName={customClassName}
           hoveredRating={hoveredRating}
@@ -214,6 +217,7 @@ function RateTab({
         />
       ) : (
         <RateTabPopover
+          disabled={disabled}
           ratingsCount={ratingsCount}
           customClassName={customClassName}
           hoveredRating={hoveredRating}
@@ -243,6 +247,7 @@ function RateTab({
 export default RateTab;
 
 interface RateTabWrapper {
+  disabled: boolean;
   ratingsCount: number;
   customClassName: string;
   hoveredRating: number | null;
@@ -270,6 +275,7 @@ interface RateTabWrapper {
 }
 
 function RateTabPopover({
+  disabled,
   ratingsCount,
   customClassName,
   hoveredRating,
@@ -339,6 +345,7 @@ function RateTabPopover({
       >
         <Button
           aria-label={"Rate toggle"}
+          disabled={disabled}
           variant={"secondary"}
           className={customClassName}
           onClick={() => {
@@ -392,6 +399,7 @@ function RateTabPopover({
 }
 
 function RateTabDrawer({
+  disabled,
   ratingsCount,
   hoveredRating,
   selectedRating,
@@ -428,6 +436,8 @@ function RateTabDrawer({
     >
       <DrawerTrigger asChild>
         <Button
+          aria-label="Rate toggle"
+          disabled={disabled}
           variant={"secondary"}
           className="baseFlex w-full gap-2 text-base"
         >

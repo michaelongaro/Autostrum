@@ -4,6 +4,7 @@ import TabZoomControl from "./TabZoomControl";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { useTabStore } from "~/stores/TabStore";
 
 interface TabSettingsProps {
   showPinnedChords: boolean;
@@ -16,6 +17,8 @@ function TabSettings({
   setShowPinnedChords,
   setPressingOnZoomSlider,
 }: TabSettingsProps) {
+  const sectionCount = useTabStore((state) => state.tabData.length);
+  const hasChords = useTabStore((state) => state.chords.length > 0);
   const localStorageZoom = useLocalStorageValue("autostrum-zoom");
   const localStorageLeftHandChordDiagrams = useLocalStorageValue(
     "autostrum-left-hand-chord-diagrams",
@@ -45,6 +48,7 @@ function TabSettings({
         <Label htmlFor="pinSectionNavigation">Pin section navigation</Label>
         <Switch
           id="pinSectionNavigation"
+          disabled={sectionCount <= 1}
           checked={pinSectionNavigation}
           onCheckedChange={(value) =>
             localStoragePinSectionNavigation.set(String(value))
@@ -56,6 +60,7 @@ function TabSettings({
         <Label htmlFor="pinChords">Pin chords</Label>
         <Switch
           id="pinChords"
+          disabled={!hasChords}
           checked={showPinnedChords}
           onCheckedChange={(value) => {
             setShowPinnedChords(value);
@@ -68,6 +73,7 @@ function TabSettings({
 
         <Switch
           id="leftHandChordDiagrams"
+          disabled={!hasChords}
           checked={leftHandChordDiagrams}
           onCheckedChange={(value) =>
             localStorageLeftHandChordDiagrams.set(String(value))
@@ -80,6 +86,7 @@ function TabSettings({
 
         <Switch
           id="chordDisplayMode"
+          disabled={!hasChords}
           checked={colorCodedChords}
           onCheckedChange={(checked) =>
             localStorageColorCodedChords.set(String(checked))

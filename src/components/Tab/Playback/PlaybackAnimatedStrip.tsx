@@ -19,6 +19,7 @@ interface ChordLayoutData {
 }
 
 interface PlaybackAnimatedStrip {
+  frozenScrollPosition?: number | null;
   chordLayoutData: ChordLayoutData;
   playing: boolean;
   currentChordIndex: number;
@@ -55,6 +56,7 @@ interface PlaybackAnimatedStrip {
 // so the compositor animation owns transform without per-chord React re-renders.
 const PlaybackAnimatedStrip = memo(
   function PlaybackAnimatedStrip({
+    frozenScrollPosition = null,
     chordLayoutData,
     playing,
     currentChordIndex,
@@ -90,7 +92,7 @@ const PlaybackAnimatedStrip = memo(
       currentRepetition,
       audioContext,
       playbackStartedAtAudioTime,
-      playing,
+      playing: playing && frozenScrollPosition === null,
       scrollPositionRef,
       positionReaderRef,
     });
@@ -101,6 +103,11 @@ const PlaybackAnimatedStrip = memo(
     // after React commits so highlight re-renders cannot clear it.
     useLayoutEffect(() => {
       const stripElement = scrollStripRef.current;
+      if (stripElement && frozenScrollPosition !== null) {
+        stripElement.style.transition = "none";
+        stripElement.style.transform = `translate3d(${-frozenScrollPosition}px, 0, 0)`;
+        return;
+      }
       if (!stripElement || playing) return;
 
       if (isGlideScrubbing) {
@@ -116,6 +123,7 @@ const PlaybackAnimatedStrip = memo(
       stripElement.style.webkitBackfaceVisibility = "";
       stripElement.style.transform = scrollContainerTransform;
     }, [
+      frozenScrollPosition,
       isGlideScrubbing,
       playing,
       scrollContainerTransform,
@@ -123,7 +131,8 @@ const PlaybackAnimatedStrip = memo(
       scrollStripRef,
     ]);
 
-    const reactOwnsTransform = !playing && !isGlideScrubbing;
+    const reactOwnsTransform =
+      !playing && !isGlideScrubbing && frozenScrollPosition === null;
 
     return (
       <div
@@ -133,9 +142,11 @@ const PlaybackAnimatedStrip = memo(
           // Omit transform while playing/glide-scrubbing so React cannot clear
           // the imperative inline value. While paused (discrete scrub), React
           // drives scrubbing via currentChordIndex.
-          ...(reactOwnsTransform
-            ? { transform: scrollContainerTransform }
-            : {}),
+          ...(frozenScrollPosition !== null
+            ? { transform: `translate3d(${-frozenScrollPosition}px, 0, 0)` }
+            : reactOwnsTransform
+              ? { transform: scrollContainerTransform }
+              : {}),
           transition: reactOwnsTransform ? "transform 0.1s linear" : "none",
         }}
         className="relative flex items-center"
@@ -150,6 +161,7 @@ const PlaybackAnimatedStrip = memo(
           }}
         />
         <PlaybackVisibleChords
+          frozenScrollPosition={frozenScrollPosition}
           chordLayoutData={chordLayoutData}
           expandedTabData={expandedTabData}
           chordRepetitions={chordRepetitions}
@@ -164,6 +176,8 @@ const PlaybackAnimatedStrip = memo(
     );
   },
   (previousProps, nextProps) => {
+    if (previousProps.frozenScrollPosition !== nextProps.frozenScrollPosition)
+      return false;
     if (previousProps.playing !== nextProps.playing) return false;
     if (previousProps.isGlideScrubbing !== nextProps.isGlideScrubbing) {
       return false;

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
 import { Button } from "~/components/ui/button";
 import {
@@ -97,6 +98,11 @@ function PracticePlaybackPanel({
 
   const selectedExercise =
     exercises.find((exercise) => exercise.id === selectedExerciseId) ?? null;
+  const selectedExerciseIndex = exercises.findIndex(
+    (exercise) => exercise.id === selectedExerciseId,
+  );
+  const previousExercise = exercises[selectedExerciseIndex - 1];
+  const nextExercise = exercises[selectedExerciseIndex + 1];
   const exerciseGroups = useMemo(
     () => groupPracticeExercisesByLevel(exercises),
     [exercises],
@@ -334,10 +340,21 @@ function PracticePlaybackPanel({
             )}
           </div>
 
-          <div className="baseFlex my-2 w-full sm:mb-2 sm:mt-0">
+          <div className="baseFlex my-2 w-full gap-2 sm:mb-2 sm:mt-0">
+            <Button
+              variant="outline"
+              className="baseFlex gap-1 pl-2 pr-3 sm:hidden"
+              disabled={!previousExercise}
+              onClick={() => {
+                if (previousExercise) selectExercise(previousExercise.id);
+              }}
+            >
+              <IoIosArrowBack />
+              Prev
+            </Button>
             <Button
               variant="audio"
-              className="baseFlex gap-2 px-8 *:!h-10 sm:px-8 sm:text-base"
+              className="baseFlex gap-2 px-6 *:!h-10 sm:px-8 sm:text-base"
               disabled={audioMetadata.fullTabMetadataLength <= 0}
               onClick={() => {
                 primePlaybackUserGesture();
@@ -347,6 +364,17 @@ function PracticePlaybackPanel({
             >
               <Logo className="size-3 sm:size-4" />
               Begin
+            </Button>
+            <Button
+              variant="outline"
+              className="baseFlex gap-1 pl-3 pr-2 sm:hidden"
+              disabled={!nextExercise}
+              onClick={() => {
+                if (nextExercise) selectExercise(nextExercise.id);
+              }}
+            >
+              Next
+              <IoIosArrowForward />
             </Button>
           </div>
         </div>

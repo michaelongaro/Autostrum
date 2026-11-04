@@ -97,6 +97,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
     playbackMetadata,
     audioMetadata,
     showPlaybackModal,
+    setShowPlaybackModal,
     visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth,
     playbackModalViewingState,
@@ -116,6 +117,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
     playbackMetadata: state.playbackMetadata,
     audioMetadata: state.audioMetadata,
     showPlaybackModal: state.showPlaybackModal,
+    setShowPlaybackModal: state.setShowPlaybackModal,
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     playbackModalViewingState: state.playbackModalViewingState,
@@ -169,6 +171,9 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
 
   // Temporary: glide scrub mode takes imperative ownership of strip translateX.
   const [isGlideScrubbing, setIsGlideScrubbing] = useState(false);
+  const [closingStripPosition, setClosingStripPosition] = useState<
+    number | null
+  >(null);
 
   const loopRangePrompt = audioMetadata.editingLoopRange
     ? getLoopRangePrompt(
@@ -241,10 +246,16 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
   ]);
 
   function closePlaybackModal() {
-    // Must not spread a stale audioMetadata.playing:true after pauseAudio —
-    // that resurrected playing without a scheduler and made the strip scroll
-    // on the next open with no audio.
-    resetPlaybackModalSession();
+    const strip = playbackStripRef.current;
+    const transform = strip ? getComputedStyle(strip).transform : "none";
+    const position =
+      transform === "none" ? 0 : -new DOMMatrixReadOnly(transform).m41;
+    // Freeze the painted frame before stopping audio. Reset session state only
+    // in the unmount cleanup, after AnimatePresence finishes the exit fade.
+    strip?.getAnimations().forEach((animation) => animation.pause());
+    setClosingStripPosition(position);
+    pauseAudio();
+    setShowPlaybackModal(false);
   }
 
   // React Compiler escape hatch: stable identity so PlaybackAnimatedStrip's
@@ -528,6 +539,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
   const practiceStrip = (
     <div className="w-full overflow-hidden">
       <PlaybackScrollingContainer
+        enabled={closingStripPosition === null}
         setChordRepetitions={setChordRepetitions}
         chordLayoutData={chordLayoutData}
         chordRepetitions={chordRepetitions}
@@ -554,6 +566,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
 
           {chordLayoutData && expandedTabData && (
             <PlaybackAnimatedStrip
+              frozenScrollPosition={closingStripPosition}
               chordLayoutData={chordLayoutData}
               playing={audioMetadata.playing}
               currentChordIndex={currentChordIndex}
@@ -624,6 +637,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
         <div
           ref={modalContentRef}
           tabIndex={-1}
+          inert={closingStripPosition !== null}
           className="baseVertFlex playbackModalGradient relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
         >
           <PlaybackTopMetadata />

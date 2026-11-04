@@ -54,7 +54,7 @@ function PinnedTabChrome({
   }
 
   return (
-    <div className="baseVertFlex sticky top-16 z-20 w-full !justify-start">
+    <div className="baseVertFlex sticky top-16 z-20 w-full !justify-start gap-2">
       <PinnedSectionNavigation
         getAdditionalStickyOffset={getPinnedChordsStickyOffset}
         showPinnedChordsBar={showPinnedChordsBar}

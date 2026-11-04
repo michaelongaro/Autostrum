@@ -151,7 +151,7 @@ function PinnedSectionNavigation({
   return (
     <div
       id="pinnedSectionNavigation"
-      className={`w-full border-b bg-background tablet:border-b-0 ${showPinnedChordsBar ? "mb-1 tablet:mb-0" : ""}`}
+      className={`ease-in-out w-full border-b bg-background transition-[margin-bottom] [transition-duration:250ms] motion-reduce:transition-none tablet:border-b-0 ${showPinnedChordsBar ? "mb-1 tablet:mb-0" : ""}`}
     >
       <Carousel
         setApi={setCarouselApi}

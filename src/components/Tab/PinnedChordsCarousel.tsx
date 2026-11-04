@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Carousel,
   CarouselContent,
@@ -20,6 +20,8 @@ function PinnedChordsCarousel({
   showPinnedChords,
   nestedInStickyStack = false,
 }: PinnedChordsCarouselProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <AnimatePresence mode="wait">
       {showPinnedChords && chords.length > 0 && (
@@ -27,22 +29,36 @@ function PinnedChordsCarousel({
           id="stickyPinnedChords"
           key={"stickyPinnedChords"}
           initial={{
+            height: 0,
+            // The standalone bar is a direct child of the tab's gap-4 flex
+            // container. Collapse that gap too, so mounting/unmounting has no jump.
+            marginBottom: nestedInStickyStack ? 0 : "-1rem",
             opacity: 0,
             paddingTop: 0,
             paddingBottom: 0,
+            borderTopWidth: 0,
+            borderBottomWidth: 0,
           }}
           animate={{
+            height: "auto",
+            marginBottom: 0,
             opacity: 1,
             paddingTop: "0.5rem",
             paddingBottom: "0.5rem",
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
           }}
           exit={{
+            height: 0,
+            marginBottom: nestedInStickyStack ? 0 : "-1rem",
             opacity: 0,
             paddingTop: 0,
             paddingBottom: 0,
+            borderTopWidth: 0,
+            borderBottomWidth: 0,
           }}
-          transition={{ duration: 0.25 }}
-          className={`baseFlex max-w-[calc(100%-1.75rem)] rounded-xl border bg-background px-2 shadow-xl sm:px-8 ${
+          transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeInOut" }}
+          className={`baseFlex max-w-[calc(100%-1.75rem)] overflow-hidden rounded-xl border bg-background px-2 shadow-xl sm:px-8 ${
             nestedInStickyStack ? "relative z-10" : "sticky left-0 top-20 z-10"
           }`}
         >

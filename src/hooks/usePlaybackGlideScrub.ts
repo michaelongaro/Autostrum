@@ -70,6 +70,7 @@ interface VelocitySample {
 }
 
 interface UsePlaybackGlideScrubArgs {
+  enabled?: boolean;
   stripRef: RefObject<HTMLDivElement | null>;
   scrubPositionRef: RefObject<number>;
   /** Center playhead; translated with rubber-band overscroll so it stays attached. */
@@ -96,6 +97,7 @@ interface UsePlaybackGlideScrubArgs {
  * are mounted independently, so reversing never rebases/quantizes the pointer.
  */
 function usePlaybackGlideScrub({
+  enabled = true,
   stripRef,
   scrubPositionRef,
   playheadRef,
@@ -174,7 +176,14 @@ function usePlaybackGlideScrub({
     containerWidthRef.current = containerWidthPx;
   }, [containerWidthPx]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (!enabled) {
+      isTouchingRef.current = false;
+      isCoastingRef.current = false;
+      isSpringBackRef.current = false;
+      isSnapSettlingRef.current = false;
+      pointerIdRef.current = null;
+    }
     return () => {
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
@@ -185,7 +194,7 @@ function usePlaybackGlideScrub({
         trackingRafIdRef.current = null;
       }
     };
-  }, []);
+  }, [enabled]);
 
   function getPositionBounds() {
     const positions = scrollPositionsRef.current;
