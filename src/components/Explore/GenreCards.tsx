@@ -115,7 +115,7 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
       style={{
         backgroundColor: color,
       }}
-      className={`baseVertFlex group relative h-36 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:p-6 ${
+      className={`baseVertFlex group relative h-28 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:h-36 sm:p-6 ${
         darkenCard ? "brightness-75" : "brightness-100"
       }`}
       onPointerLeave={() => {
