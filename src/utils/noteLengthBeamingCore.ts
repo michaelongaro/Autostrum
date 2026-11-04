@@ -9,9 +9,9 @@ import type { FullNoteLengths } from "~/stores/TabStore";
  * that starts at the beginning of that span, using its real duration.
  *
  * The grid pulse is a quarter note — the same pulse as the "1 e & a" labels
- * on strumming patterns, and the usual guitar beat. Eighths therefore beam
- * in pairs and sixteenths in fours, which you can count without tracing the
- * whole tab.
+ * on strumming patterns, and the usual guitar beat. Sixteenths and mixed
+ * rhythms beam within that pulse. Four straight eighths filling a half-note
+ * grid cell share a beam across both beats; incomplete cells stay in pairs.
  *
  * A dotted-quarter pulse (compound meter: 6/8, 12/8, …) is used only when
  * that reading scores clearly better than the quarter grid. One ambiguous
@@ -22,6 +22,7 @@ import type { FullNoteLengths } from "~/stores/TabStore";
 
 /** Duration unit: one 64th note. A quarter note is 16. */
 const QUARTER_PULSE = 16;
+const HALF_NOTE = 2 * QUARTER_PULSE;
 const DOTTED_QUARTER_PULSE = 24;
 
 /**
@@ -162,7 +163,7 @@ export function resolveBeamBreaks(events: BeamSpanEvent[]): BeamBreakFlags[] {
   const pulse = choosePulse(events);
   const starts = startPositions(events);
 
-  return events.map((event, index) => {
+  const breaks = events.map((event, index) => {
     const previous = events[index - 1];
     const next = events[index + 1];
     const start = starts[index] ?? 0;
@@ -179,6 +180,33 @@ export function resolveBeamBreaks(events: BeamSpanEvent[]): BeamBreakFlags[] {
       breakWithNext: !(next && sharesPulseWith(next, starts[index + 1] ?? 0)),
     };
   });
+
+  // Keep meter inference on the quarter grid, then widen only complete,
+  // straight-eighth cells. A wider pulse for every note would also merge
+  // sixteenths and dotted/mixed rhythms across their beat boundaries.
+  if (pulse === QUARTER_PULSE) {
+    for (let index = 0; index + 3 < events.length; index++) {
+      if ((starts[index] ?? 0) % HALF_NOTE !== 0) continue;
+
+      let end = index;
+      while (
+        end < index + 4 &&
+        events[end]?.noteLength === "eighth" &&
+        !events[end]?.isRest
+      ) {
+        end++;
+      }
+
+      if (end !== index + 4) continue;
+
+      // The quarter-grid groups already connect each pair. Join the middle.
+      breaks[index + 1]!.breakWithNext = false;
+      breaks[index + 2]!.breakWithPrevious = false;
+      index += 3;
+    }
+  }
+
+  return breaks;
 }
 
 const CLOSED_BREAKS: BeamBreakFlags = {

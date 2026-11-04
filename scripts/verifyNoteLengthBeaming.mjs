@@ -15,6 +15,7 @@ import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import {
   beamBreaksForNoteSpans,
+  beamBreaksForStrums,
   resolveBeamBreaks,
 } from "../src/utils/noteLengthBeamingCore.ts";
 
@@ -66,10 +67,10 @@ function check(name, fn) {
 
 console.log("note-length beam grouping");
 
-check("eight eighths beam as pairs", () => {
+check("eight eighths beam as two groups of four", () => {
   assert.equal(
     signature(["e", "e", "e", "e", "e", "e", "e", "e"]),
-    "e-e|e-e|e-e|e-e",
+    "e-e-e-e|e-e-e-e",
   );
 });
 
@@ -108,8 +109,25 @@ check("three eighths read as a pair plus a flag", () => {
   assert.equal(signature(["e", "e", "e"]), "e-e|e");
 });
 
-check("six eighths stay in simple pairs", () => {
-  assert.equal(signature(["e", "e", "e", "e", "e", "e"]), "e-e|e-e|e-e");
+check("six eighths read as four plus a pair in simple meter", () => {
+  assert.equal(signature(["e", "e", "e", "e", "e", "e"]), "e-e-e-e|e-e");
+});
+
+check("four eighths fill a two-beat beam group", () => {
+  assert.equal(signature(["e", "e", "e", "e"]), "e-e-e-e");
+});
+
+check("four-eighth groups stay aligned to the half-note grid", () => {
+  assert.equal(signature(["q", "e", "e", "e", "e", "e", "e"]), "q|e-e|e-e-e-e");
+});
+
+check("rests prevent widening an eighth-note group", () => {
+  assert.equal(signature(["e", "r", "e", "e"]), "e|r|e-e");
+  assert.equal(signature(["e", "e", "e", "r"]), "e-e|e|r");
+});
+
+check("a mixed beat does not widen the preceding eighth pair", () => {
+  assert.equal(signature(["e", "e", "e", "s", "s"]), "e-e|e-s-s");
 });
 
 check("a half note occupies two beats before the next pair", () => {
@@ -123,8 +141,45 @@ check("dotted quarter does not beam the two eighths after it", () => {
 check("one syncopated group does not rebeam a simple measure", () => {
   assert.equal(
     signature(["e", "e", "e", "e", "s", "s", "s", "e", "s", "e", "e"]),
-    "e-e|e-e|s-s-s-e|s-e|e",
+    "e-e-e-e|s-s-s-e|s-e|e",
   );
+});
+
+check("strumming patterns use four-eighth groups and respect rests", () => {
+  const strums = Array.from({ length: 8 }, () => ({
+    noteLength: "eighth",
+    strum: "v",
+  }));
+  assert.deepEqual(
+    beamBreaksForStrums(strums),
+    resolveBeamBreaks(events(Array(8).fill("e"))),
+  );
+  strums[2].strum = "r";
+  const breaks = beamBreaksForStrums(strums);
+  assert.equal(breaks[1].breakWithNext, true);
+  assert.equal(breaks[2].breakWithPrevious, true);
+  assert.equal(breaks[2].breakWithNext, true);
+  assert.equal(breaks[3].breakWithPrevious, true);
+  assert.equal(breaks[5].breakWithNext, false);
+});
+
+check("barlines split eighth runs and restart four-chord grouping", () => {
+  const note = { type: "note", noteLength: "eighth", chordEffects: "" };
+  const breaks = beamBreaksForNoteSpans([
+    note,
+    note,
+    { type: "measureLine" },
+    note,
+    note,
+    note,
+    note,
+  ]);
+  assert.equal(breaks[0].breakWithNext, false);
+  assert.equal(breaks[1].breakWithNext, true);
+  assert.equal(breaks[3].breakWithPrevious, true);
+  assert.equal(breaks[4].breakWithNext, false);
+  assert.equal(breaks[5].breakWithPrevious, false);
+  assert.equal(breaks[6].breakWithNext, true);
 });
 
 check("measure lines reset the beat grid", () => {
@@ -190,7 +245,8 @@ try {
 
   function assertFlushWithStem(beam, stem, message) {
     const stemCenter = stem.x + stem.width / 2;
-    const inner = beam.side === "left" ? beam.box.x + beam.box.width : beam.box.x;
+    const inner =
+      beam.side === "left" ? beam.box.x + beam.box.width : beam.box.x;
     nearly(inner, stemCenter, 0.75, message);
   }
 
@@ -226,17 +282,17 @@ try {
   }
 
   await geometry(
-    "paired eighths meet and the next pair leaves a gap",
+    "four eighths meet across the beat and the next group leaves a gap",
     async () => {
-      const right = (await beams("eight-eighths", 0)).find(
+      const right = (await beams("eight-eighths", 1)).find(
         (beam) => beam.side === "right" && beam.offset === "0",
       );
-      const left = (await beams("eight-eighths", 1)).find(
+      const left = (await beams("eight-eighths", 2)).find(
         (beam) => beam.side === "left" && beam.offset === "0",
       );
       assert.equal(right?.connected, "true");
       assert.equal(left?.connected, "true");
-      const col = await columnBox("eight-eighths", 0);
+      const col = await columnBox("eight-eighths", 1);
       nearly(right.box.width, col.width / 2, 1, "connected beam width");
       nearly(
         right.box.x + right.box.width,
@@ -245,10 +301,10 @@ try {
         "connected beams meet",
       );
 
-      const endOfPair = await beams("eight-eighths", 1);
-      const startOfNext = await beams("eight-eighths", 2);
+      const endOfGroup = await beams("eight-eighths", 3);
+      const startOfNext = await beams("eight-eighths", 4);
       assert.equal(
-        endOfPair.some((beam) => beam.side === "right"),
+        endOfGroup.some((beam) => beam.side === "right"),
         false,
       );
       assert.equal(
@@ -360,11 +416,7 @@ try {
       (beam) => beam.connected === "false" && beam.side === "left",
     );
     assert.ok(flag?.box);
-    assertFlushWithStem(
-      flag,
-      await stemBox("rest-separated", 4),
-      "left flag",
-    );
+    assertFlushWithStem(flag, await stemBox("rest-separated", 4), "left flag");
   });
 
   await geometry(

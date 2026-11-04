@@ -80,7 +80,7 @@ function DevBeamHarness() {
     >
       <BeamRow
         id="eight-eighths"
-        label="Eight eighths — pairs"
+        label="Eight eighths — groups of four"
         pattern={["e", "e", "e", "e", "e", "e", "e", "e"]}
         columnWidth={34}
       />
