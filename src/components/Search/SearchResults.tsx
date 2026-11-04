@@ -295,8 +295,8 @@ function SearchResults({
 
     gridTemplateColumns += ") ";
 
-    // Bookmark toggle
-    gridTemplateColumns += isAboveSmViewport ? "90.95px" : "72px";
+    // Bookmark toggle: leave 2px for the results container's side borders.
+    gridTemplateColumns += isAboveSmViewport ? "88.95px" : "72px";
 
     return gridTemplateColumns;
   }

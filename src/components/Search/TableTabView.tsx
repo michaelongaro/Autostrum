@@ -109,7 +109,7 @@ function TableTabView({
           defer
           className="w-full"
         >
-          <div className="relative w-[1160px]">
+          <div className="relative w-[1160px] sm:w-[1158px]">
             <Table>
               <colgroup id="tableTabViewColGroup">
                 {/* Direct /edit page button */}
@@ -144,7 +144,7 @@ function TableTabView({
                 />
 
                 {/* Bookmark toggle */}
-                <col className="w-[72px] sm:!w-[90.95px]" />
+                <col className="w-[72px] sm:!w-[88.95px]" />
               </colgroup>
 
               <AnimatePresence mode="popLayout">
