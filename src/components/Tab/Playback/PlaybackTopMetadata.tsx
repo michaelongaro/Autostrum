@@ -13,7 +13,7 @@ import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import { Separator } from "~/components/ui/separator";
 import { useTabStore, type PlaybackMetadata } from "~/stores/TabStore";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import { getTuningName } from "~/utils/tunings";
 import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
 
@@ -231,10 +231,7 @@ function CurrentTempoDisplay({
 
   return (
     <>
-      {getDynamicNoteLengthIcon({
-        noteLength:
-          playbackMetadata?.[currentChordIndex]?.noteLength ?? "quarter",
-      })}
+      <QuarterNote />
       {scaledBPM} BPM
     </>
   );
