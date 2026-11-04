@@ -1,21 +1,19 @@
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import HeaderLogo from "~/components/Header/HeaderLogo";
 import { Button } from "~/components/ui/button";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 
 function Hero() {
-  const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
-
   return (
-    <section className="baseVertFlex min-h-[calc(100svh-4rem-0rem)] w-full max-w-[1700px] overflow-x-clip px-4 md:min-h-[calc(100svh-4rem-6rem)] md:px-6 lg:px-10 xl:px-12">
-      <div className="baseVertFlex w-full gap-16 lg:gap-12 xl:flex-row xl:!items-center xl:!justify-between xl:gap-8">
-        <div className="baseVertFlex w-full max-w-xl shrink-0 gap-5 md:gap-6 xl:w-[clamp(26rem,32.5vw,29.125rem)] xl:!items-start">
+    // The homepage's 4rem section gap supplies the rest of the mobile bottom spacing.
+    <section className="baseVertFlex min-h-[calc(100svh-17rem)] w-full max-w-[1700px] overflow-x-clip px-4 pb-4 pt-20 md:min-h-[calc(100svh-20rem)] md:px-6 md:py-8 lg:px-10 lg:py-4 xl:px-12">
+      <div className="baseVertFlex w-full !flex-col-reverse gap-8 lg:!flex-row lg:!items-center lg:!justify-center">
+        <div className="baseVertFlex w-full max-w-xl shrink-0 gap-5 md:gap-6 lg:w-[clamp(22rem,32.5vw,29.125rem)] xl:!items-start">
           <div className="baseVertFlex gap-3 md:gap-4 xl:!items-start">
             <h1 className="sr-only">Autostrum</h1>
-            <HeaderLogo
-              width={isAboveMediumViewportWidth ? 320 : 220}
-              height={isAboveMediumViewportWidth ? 56 : 38}
-            />
+            <div className="hidden md:block">
+              <HeaderLogo width={320} height={56} />
+            </div>
             <p className="max-w-lg whitespace-nowrap text-center text-xl font-semibold tracking-tight md:text-2xl xl:text-left xl:text-[clamp(1.5rem,1.875vw,1.75rem)]">
               Find your next favorite song to play.
             </p>
@@ -255,7 +253,7 @@ function TablatureTrack({
 function MobileTablatureScreenshot() {
   return (
     <div
-      className="heroScreenshotStage heroScreenshotMobile w-full min-w-0 max-w-[800px] lg:hidden"
+      className="heroScreenshotStage heroScreenshotMobile w-full min-w-0 max-w-[640px] md:max-w-[min(640px,50svh)] lg:max-w-[800px] lg:flex-1 xl:hidden"
       aria-hidden="true"
     >
       <div className="heroScreenshotTilt">
@@ -341,230 +339,279 @@ function MobileTablatureScreenshot() {
   );
 }
 
+// Render the desktop modal at its full design size, then scale the entire frame.
+const DESKTOP_PREVIEW_WIDTH = 1100;
+const DESKTOP_PREVIEW_HEIGHT = 650;
+
 function TablatureScreenshot() {
+  const stageRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    const preview = previewRef.current;
+    if (!stage || !preview) return;
+
+    const updateScale = (width: number) => {
+      preview.style.transform = `scale(${width / DESKTOP_PREVIEW_WIDTH})`;
+    };
+
+    updateScale(stage.clientWidth);
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) updateScale(entry.contentRect.width);
+    });
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
-      className="heroScreenshotStage hidden w-full min-w-0 @container/hero-preview lg:block xl:flex-1"
+      className="hidden w-[min(85svh,51rem)] min-w-0 xl:block"
       aria-hidden="true"
     >
-      <div className="heroScreenshotTilt">
-        <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-[clamp(540px,38vw,650px)] w-full select-none !justify-between gap-0 overflow-hidden p-0">
-          {/* Top Header Section */}
-          <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
-            <div className="baseFlex w-full !items-end !justify-start gap-2">
-              <div className="baseVertFlex w-full !items-start gap-2">
-                <div className="baseFlex !justify-start gap-4">
-                  <div className="baseFlex w-full !justify-start">
-                    <div className="size-full max-w-[80vw] tablet:max-w-[600px]">
-                      <div style={{ padding: 0 }}>
-                        <span className="whitespace-nowrap text-xl font-bold tablet:text-2xl">
-                          Let Her Go
-                        </span>
+      <div
+        ref={stageRef}
+        className="relative w-full max-w-[min(85svh,51rem)]"
+        style={{
+          aspectRatio: `${DESKTOP_PREVIEW_WIDTH} / ${DESKTOP_PREVIEW_HEIGHT}`,
+        }}
+      >
+        <div
+          ref={previewRef}
+          className="heroScreenshotStage !absolute left-0 top-0 origin-top-left @container/hero-preview"
+          style={{
+            width: DESKTOP_PREVIEW_WIDTH,
+            height: DESKTOP_PREVIEW_HEIGHT,
+            transform: "scale(0)",
+          }}
+        >
+          <div className="heroScreenshotTilt h-full">
+            <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-full w-full select-none !justify-between gap-0 overflow-hidden p-0">
+              {/* Top Header Section */}
+              <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
+                <div className="baseFlex w-full !items-end !justify-start gap-2">
+                  <div className="baseVertFlex w-full !items-start gap-2">
+                    <div className="baseFlex !justify-start gap-4">
+                      <div className="baseFlex w-full !justify-start">
+                        <div className="size-full max-w-[600px]">
+                          <div style={{ padding: 0 }}>
+                            <span className="whitespace-nowrap text-2xl font-bold">
+                              Let Her Go
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="baseFlex gap-4">
+                        <div className="h-6 w-[1px] shrink-0 rounded-full bg-foreground/50"></div>
+                        <div className="baseFlex gap-2">
+                          <label
+                            className="text-sm font-medium"
+                            htmlFor="sectionPicker"
+                          >
+                            Section
+                          </label>
+                          <div
+                            className="border-input flex h-8 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm ring-offset-background placeholder:text-foreground/75"
+                            id="sectionPicker"
+                          >
+                            <p className="truncate">Full tab</p>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="size-4 shrink-0 opacity-50"
+                            >
+                              <path d="m6 9 6 6 6-6" />
+                            </svg>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="baseFlex gap-4">
-                    <div className="h-6 w-[1px] shrink-0 rounded-full bg-foreground/50"></div>
-                    <div className="baseFlex gap-2">
-                      <label
-                        className="text-sm font-medium"
-                        htmlFor="sectionPicker"
-                      >
-                        Section
-                      </label>
-                      <div
-                        className="border-input flex !h-9 w-full !max-w-32 items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm ring-offset-background placeholder:text-foreground/75 mobilePortrait:!h-8 mobilePortrait:!max-w-none"
-                        id="sectionPicker"
-                      >
-                        <p className="truncate">Full tab</p>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="size-4 shrink-0 opacity-50"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
+                    <div className="baseFlex w-full !justify-between gap-4">
+                      <div className="baseFlex w-full !justify-start gap-4">
+                        <div className="baseFlex gap-4">
+                          <div className="baseVertFlex !items-start text-nowrap">
+                            <span className="text-sm font-medium">Tempo</span>
+                            <div className="baseFlex w-[79px] !justify-start gap-1">
+                              <QuarterNote />
+                              70 BPM
+                            </div>
+                          </div>
+
+                          <div className="baseVertFlex !items-start">
+                            <span className="text-sm font-medium">Tuning</span>
+                            <div>Standard</div>
+                          </div>
+
+                          <div className="baseVertFlex !items-start">
+                            <span className="text-sm font-medium">Capo</span>
+                            None
+                          </div>
+
+                          <div className="inline-flex h-9 items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-foreground shadow-sm">
+                            <TuningFork className="size-4" />
+                            Tuner
+                          </div>
+
+                          <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                            <FaBook className="size-4" />
+                          </div>
+                        </div>
+                      </div>
+                      {/* Show the complete navigation only when it fits beside the metadata. */}
+                      <div className="hidden shrink-0 @[940px]/hero-preview:flex">
+                        <div className="baseFlex gap-0">
+                          <div className="relative inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium">
+                            <span className="absolute bottom-[4px] left-4 z-0 h-[2px] w-[54px] rounded-full bg-primary"></span>
+                            Practice
+                          </div>
+                          <div className="relative inline-flex h-10 items-center justify-center text-nowrap rounded-md px-4 py-2 text-sm font-medium">
+                            Section progression
+                          </div>
+                          <div className="relative inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium">
+                            Chords
+                          </div>
+                          <div className="relative inline-flex h-10 items-center justify-center text-nowrap rounded-md px-4 py-2 text-sm font-medium">
+                            Strumming patterns
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="baseFlex w-full !justify-between gap-4">
-                  <div className="baseVertFlex w-full !items-start gap-4 md:!flex-row md:!items-center md:!justify-start">
-                    <div className="baseFlex gap-4">
-                      <div className="baseVertFlex !items-start text-nowrap">
-                        <span className="text-sm font-medium">Tempo</span>
-                        <div className="baseFlex w-[79px] !justify-start gap-1">
-                          <QuarterNote />
-                          70 BPM
+              </div>
+
+              {/* Tablature Track Section — desktop Practice view from main PlaybackModal */}
+              <TablatureTrack />
+
+              <div className="baseVertFlex w-full gap-2">
+                {/* Desktop (non-landscape) PlaybackAudioControls */}
+                <div className="baseVertFlex w-full max-w-[677px] gap-2">
+                  <div
+                    style={{
+                      display: "flex",
+                      width: "100%",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "8px",
+                        borderRadius: "4px",
+                        alignSelf: "center",
+                      }}
+                      className="relative w-full bg-[hsl(var(--gray)/0.5)]"
+                    >
+                      <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
+                        <div
+                          style={{
+                            transform: `scaleX(${HERO_PLAYBACK_PROGRESS})`,
+                          }}
+                          className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary"
+                        ></div>
+                      </div>
+                      <div
+                        style={{
+                          left: HERO_PLAYBACK_PROGRESS_PERCENT,
+                          top: "50%",
+                          transform: "translate(-50%, -50%)",
+                        }}
+                        className="absolute !z-20 size-[18px] rounded-full border border-foreground/50 bg-primary"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div className="baseFlex w-full !justify-between">
+                    <div className="baseFlex w-9 !justify-start self-start">
+                      0:23
+                    </div>
+
+                    <div className="baseFlex gap-6">
+                      <div className="baseFlex size-4 shrink-0 rounded-full bg-transparent p-0 text-sm">
+                        -5s
+                      </div>
+                      <div className="baseFlex size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground">
+                        <PlayIcon
+                          style={{
+                            width: "1rem",
+                            height: "1rem",
+                          }}
+                        />
+                      </div>
+                      <div className="baseFlex size-4 shrink-0 rounded-full bg-transparent p-0 text-sm">
+                        +5s
+                      </div>
+                    </div>
+
+                    <div className="baseFlex w-9 !justify-end self-start">
+                      4:12
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop PlaybackBottomMetadata settings row */}
+                <div className="baseFlex w-full px-4 py-4">
+                  <div className="baseFlex w-full">
+                    <div className="baseFlex w-full flex-nowrap !items-end gap-4 whitespace-nowrap [&>*]:shrink-0">
+                      <div className="baseVertFlex !items-start gap-2">
+                        <div className="text-sm font-medium leading-none">
+                          Instrument
+                        </div>
+                        <div className="border-input flex h-10 w-[200px] items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                          Acoustic guitar - Steel
+                          <ChevronDown className="size-4 shrink-0 opacity-50" />
                         </div>
                       </div>
 
-                      <div className="baseVertFlex !items-start">
-                        <span className="text-sm font-medium">Tuning</span>
-                        <div>Standard</div>
+                      <div className="baseVertFlex !items-start gap-2">
+                        <div className="text-sm font-medium leading-none">
+                          Speed
+                        </div>
+                        <div className="border-input flex h-10 w-[85px] items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                          1x
+                          <ChevronDown className="size-4 shrink-0 opacity-50" />
+                        </div>
                       </div>
 
-                      <div className="baseVertFlex !items-start">
-                        <span className="text-sm font-medium">Capo</span>
-                        None
-                      </div>
-
-                      <div className="inline-flex h-9 items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium text-foreground shadow-sm">
-                        <TuningFork className="size-4" />
-                        Tuner
+                      <div className="baseVertFlex !items-start gap-2">
+                        <div className="text-sm font-medium leading-none">
+                          Loop delay
+                        </div>
+                        <div className="border-input flex h-10 w-20 items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
+                          0s
+                          <ChevronDown className="size-4 shrink-0 opacity-50" />
+                        </div>
                       </div>
 
                       <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-                        <FaBook className="size-4" />
+                        <CgArrowsShrinkH className="size-6" />
+                      </div>
+
+                      <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                        <CountIn className="size-5" />
+                      </div>
+
+                      <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                        <PiMetronome className="size-5" />
+                      </div>
+
+                      <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                        <IoColorPalette className="size-5" />
+                      </div>
+
+                      <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
+                        <BsFillVolumeUpFill
+                          size={"1.5rem"}
+                          className="shrink-0"
+                        />
                       </div>
                     </div>
-                  </div>
-                  {/* Show the complete navigation only when it fits beside the metadata. */}
-                  <div className="hidden shrink-0 @[940px]/hero-preview:flex">
-                    <div className="baseFlex gap-0">
-                      <div className="relative inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium">
-                        <span className="absolute bottom-[4px] left-4 z-0 h-[2px] w-[54px] rounded-full bg-primary"></span>
-                        Practice
-                      </div>
-                      <div className="relative inline-flex h-10 items-center justify-center text-nowrap rounded-md px-4 py-2 text-sm font-medium">
-                        Section progression
-                      </div>
-                      <div className="relative inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium">
-                        Chords
-                      </div>
-                      <div className="relative inline-flex h-10 items-center justify-center text-nowrap rounded-md px-4 py-2 text-sm font-medium">
-                        Strumming patterns
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tablature Track Section — desktop Practice view from main PlaybackModal */}
-          <TablatureTrack />
-
-          <div className="baseVertFlex w-full lg:gap-2 xl:pt-8 2xl:pt-0">
-            {/* Desktop (non-landscape) PlaybackAudioControls */}
-            <div className="baseVertFlex w-full max-w-[85vw] gap-2 sm:max-w-[677px]">
-              <div
-                style={{
-                  display: "flex",
-                  width: "100%",
-                  justifyContent: "center",
-                }}
-              >
-                <div
-                  style={{
-                    height: "8px",
-                    borderRadius: "4px",
-                    alignSelf: "center",
-                  }}
-                  className="relative w-full bg-[hsl(var(--gray)/0.5)]"
-                >
-                  <div className="absolute left-0 top-0 h-full w-full overflow-hidden rounded-[4px]">
-                    <div
-                      style={{ transform: `scaleX(${HERO_PLAYBACK_PROGRESS})` }}
-                      className="absolute left-0 top-0 z-10 h-full w-full origin-left rounded-[4px] bg-primary"
-                    ></div>
-                  </div>
-                  <div
-                    style={{
-                      left: HERO_PLAYBACK_PROGRESS_PERCENT,
-                      top: "50%",
-                      transform: "translate(-50%, -50%)",
-                    }}
-                    className="absolute !z-20 size-[18px] rounded-full border border-foreground/50 bg-primary"
-                  ></div>
-                </div>
-              </div>
-
-              <div className="baseFlex w-full !justify-between">
-                <div className="baseFlex w-9 !justify-start self-start">
-                  0:23
-                </div>
-
-                <div className="baseFlex gap-6">
-                  <div className="baseFlex size-4 shrink-0 rounded-full bg-transparent p-0 text-sm">
-                    -5s
-                  </div>
-                  <div className="baseFlex size-10 shrink-0 overflow-hidden rounded-full border-none bg-transparent p-0 text-foreground">
-                    <PlayIcon
-                      style={{
-                        width: "1rem",
-                        height: "1rem",
-                      }}
-                    />
-                  </div>
-                  <div className="baseFlex size-4 shrink-0 rounded-full bg-transparent p-0 text-sm">
-                    +5s
-                  </div>
-                </div>
-
-                <div className="baseFlex w-9 !justify-end self-start">4:12</div>
-              </div>
-            </div>
-
-            {/* Desktop PlaybackBottomMetadata settings row */}
-            <div className="baseFlex w-full px-4 py-4">
-              <div className="baseFlex w-full">
-                <div className="baseFlex w-full flex-nowrap !items-end gap-4 whitespace-nowrap [&>*]:shrink-0">
-                  <div className="baseVertFlex !items-start gap-2">
-                    <div className="text-sm font-medium leading-none">
-                      Instrument
-                    </div>
-                    <div className="border-input flex h-10 w-[200px] items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
-                      Acoustic guitar - Steel
-                      <ChevronDown className="size-4 shrink-0 opacity-50" />
-                    </div>
-                  </div>
-
-                  <div className="baseVertFlex !items-start gap-2">
-                    <div className="text-sm font-medium leading-none">
-                      Speed
-                    </div>
-                    <div className="border-input flex h-10 w-[85px] items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
-                      1x
-                      <ChevronDown className="size-4 shrink-0 opacity-50" />
-                    </div>
-                  </div>
-
-                  <div className="baseVertFlex !items-start gap-2">
-                    <div className="text-sm font-medium leading-none">
-                      Loop delay
-                    </div>
-                    <div className="border-input flex h-10 w-20 items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm">
-                      0s
-                      <ChevronDown className="size-4 shrink-0 opacity-50" />
-                    </div>
-                  </div>
-
-                  <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-                    <CgArrowsShrinkH className="size-6" />
-                  </div>
-
-                  <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-                    <CountIn className="size-5" />
-                  </div>
-
-                  <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-                    <PiMetronome className="size-5" />
-                  </div>
-
-                  <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-                    <IoColorPalette className="size-5" />
-                  </div>
-
-                  <div className="inline-flex size-10 items-center justify-center rounded-md border text-sm font-medium text-foreground shadow-sm">
-                    <BsFillVolumeUpFill size={"1.5rem"} className="shrink-0" />
                   </div>
                 </div>
               </div>
