@@ -376,9 +376,8 @@ function TunerPanel({
                     theme === "light"
                       ? "hsl(var(--background)"
                       : "hsl(var(--primary))",
-                  transition: "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
                 }}
-                className={`absolute inset-0 !z-[-1] ${mode === "guided" ? "w-[123px] translate-x-0 rounded-l-sm sm:w-[72px]" : "w-[123px] translate-x-[123px] rounded-r-sm sm:w-[93px] sm:translate-x-[72px]"}`}
+                className={`togglePill absolute inset-0 !z-[-1] ${mode === "guided" ? "w-[123px] translate-x-0 rounded-l-sm sm:w-[72px]" : "w-[123px] translate-x-[123px] rounded-r-sm sm:w-[93px] sm:translate-x-[72px]"}`}
               ></div>
             </div>
           </div>
@@ -486,9 +485,8 @@ function TunerPanel({
                           theme === "light"
                             ? "hsl(var(--background)"
                             : "hsl(var(--primary))",
-                        transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                       }}
-                      className={`absolute inset-0 !z-[-1] ${playbackCapoControl.selectedCapo === 0 ? "w-[80px] translate-x-0 rounded-l-sm sm:w-[90px]" : "w-[80px] translate-x-[80px] rounded-r-sm sm:w-[90px] sm:translate-x-[90px]"}`}
+                      className={`togglePill absolute inset-0 !z-[-1] ${playbackCapoControl.selectedCapo === 0 ? "w-[80px] translate-x-0 rounded-l-sm sm:w-[90px]" : "w-[80px] translate-x-[80px] rounded-r-sm sm:w-[90px] sm:translate-x-[90px]"}`}
                     ></div>
                   </div>
                 ) : (
@@ -563,10 +561,7 @@ function TunerPanel({
                   </Button>
 
                   <div
-                    style={{
-                      transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-                    }}
-                    className={`absolute inset-0 !z-[-1] bg-primary ${playbackCapoControl.selectedCapo === 0 ? "w-[80px] translate-x-0 rounded-l-sm sm:w-[90px]" : "w-[80px] translate-x-[80px] rounded-r-sm sm:w-[90px] sm:translate-x-[90px]"}`}
+                    className={`togglePill absolute inset-0 !z-[-1] bg-primary ${playbackCapoControl.selectedCapo === 0 ? "w-[80px] translate-x-0 rounded-l-sm sm:w-[90px]" : "w-[80px] translate-x-[80px] rounded-r-sm sm:w-[90px] sm:translate-x-[90px]"}`}
                   ></div>
                 </div>
               </div>

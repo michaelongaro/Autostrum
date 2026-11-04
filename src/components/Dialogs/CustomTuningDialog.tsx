@@ -271,9 +271,8 @@ function CustomTuningEditor({
               width: inputMode === "auto" ? "55px" : "72px",
               transform:
                 inputMode === "auto" ? "translateX(0)" : "translateX(55px)",
-              transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
-            className={`absolute inset-0 !z-[-1] bg-primary ${inputMode === "auto" ? "rounded-l-sm" : "rounded-r-sm"}`}
+            className={`togglePill absolute inset-0 !z-[-1] bg-primary ${inputMode === "auto" ? "rounded-l-sm" : "rounded-r-sm"}`}
           ></div>
         </div>
       </div>

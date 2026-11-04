@@ -197,6 +197,19 @@ kbd {
   align-items: center;
 }
 
+/* Give segmented toggle pills a quick start and a soft settle. */
+.togglePill {
+  transition-property: transform, width, background-color, border-radius;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .togglePill {
+    transition: none;
+  }
+}
+
 .modalGradient {
   background: linear-gradient(145deg,
       hsl(var(--modal-gradient-from)),

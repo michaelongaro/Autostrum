@@ -370,11 +370,8 @@ export default function FeatureShowcase() {
                   theme === "light"
                     ? "hsl(var(--accent))"
                     : "hsl(var(--primary))",
-                transition: reduceMotion
-                  ? "none"
-                  : "all 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
-              className={`absolute inset-0 -z-10 w-1/2 ${mode === "Practice" ? "translate-x-0 rounded-l-sm" : "translate-x-full rounded-r-sm"}`}
+              className={`togglePill absolute inset-0 -z-10 w-1/2 ${mode === "Practice" ? "translate-x-0 rounded-l-sm" : "translate-x-full rounded-r-sm"}`}
             />
           </div>
 

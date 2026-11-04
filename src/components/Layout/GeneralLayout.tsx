@@ -3,12 +3,22 @@ import { type ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import Footer from "../Footer/Footer";
 import GeneralLayoutStatefulShell from "./GeneralLayoutStatefulShell";
-import { Noto_Sans } from "next/font/google";
+import localFont from "next/font/local";
 
-const notoSans = Noto_Sans({
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  subsets: ["latin"],
+// Keep font loading independent of Google Fonts responses during compilation.
+const notoSans = localFont({
+  src: [
+    {
+      path: "../../styles/fonts/noto-sans.woff2",
+      weight: "400 700",
+      style: "normal",
+    },
+    {
+      path: "../../styles/fonts/noto-sans-italic.woff2",
+      weight: "400 700",
+      style: "italic",
+    },
+  ],
   display: "swap",
 });
 
