@@ -35,15 +35,25 @@ jobs:
           node-version: "24"
           cache: npm
       - name: Check E2E configuration
+        id: e2e-config
         shell: bash
         run: |
+          missing=()
           for name in E2E_BASE_URL DATABASE_URL CLERK_SECRET_KEY NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY E2E_CLERK_USER_EMAIL; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing $name. See docs/deployment-e2e.md."
-              exit 1
+              missing+=("$name")
             fi
           done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Skipping tab lifecycle E2E because required configuration is missing: ${missing[*]}. See docs/deployment-e2e.md."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
       - run: npm ci
+        if: steps.e2e-config.outputs.configured == 'true'
       - run: npx playwright install --with-deps chromium
+        if: steps.e2e-config.outputs.configured == 'true'
       - name: Verify tab creation and deletion against the deployment
+        if: steps.e2e-config.outputs.configured == 'true'
         run: npm run test:e2e

@@ -41,7 +41,8 @@ Vercel and Playwright both document GitHub Actions for this:
 
    Repository secrets can be used instead if both environments share the same
    database and Clerk instance. Vercel environment variables are not automatically
-   copied to GitHub Actions.
+   copied to GitHub Actions. If any required value is missing, the workflow logs a
+   warning and skips the E2E execution instead of failing that deployment check.
 
 4. Trigger a new deployment and look for **Deployed tab lifecycle** in Actions.
 
