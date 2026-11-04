@@ -30,9 +30,9 @@ import { getTabDocument } from "~/utils/drafts/tabDraftState";
 import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 import { api } from "~/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
-import Binoculars from "~/components/ui/icons/Binoculars";
 import Logo from "~/components/ui/icons/Logo";
 import { isThemeTransitionPointerEvent } from "~/utils/updateCSSThemeVars";
+import { CiCompass1 } from "react-icons/ci";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -151,7 +151,7 @@ function DesktopHeader() {
                   href={"/explore"}
                   className="baseFlex !size-12 !rounded-full !p-0"
                 >
-                  <Binoculars className="size-5" />
+                  <CiCompass1 className="size-6 stroke-[0.5px]" />
                 </Link>
               </Button>
             </TooltipTrigger>

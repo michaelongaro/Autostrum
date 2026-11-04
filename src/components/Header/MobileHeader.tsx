@@ -33,12 +33,12 @@ import { Separator } from "~/components/ui/separator";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import SearchInput from "~/components/Search/SearchInput";
 import { api } from "~/utils/api";
-import Binoculars from "~/components/ui/icons/Binoculars";
 import ThemePicker from "~/components/Header/ThemePicker";
 import HeaderLogo from "~/components/Header/HeaderLogo";
 import { getTabDocument } from "~/utils/drafts/tabDraftState";
 import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 import Spinner from "~/components/ui/Spinner";
+import { CiCompass1 } from "react-icons/ci";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -174,7 +174,7 @@ function MobileHeader() {
                     href={"/explore"}
                     className="baseFlex w-[165px] gap-2.5 text-[1.13rem]"
                   >
-                    <Binoculars className="size-[18px]" />
+                    <CiCompass1 className="size-5" />
                     Explore
                   </Link>
                 </Button>
