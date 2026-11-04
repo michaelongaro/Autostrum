@@ -21,6 +21,7 @@ interface ChordName {
   screenshotColor?: COLORS;
   screenshotTheme?: THEME;
   showFullName?: boolean;
+  rotate?: boolean;
   hideColor?: boolean;
 }
 
@@ -32,6 +33,7 @@ function ChordName({
   screenshotColor,
   screenshotTheme,
   showFullName,
+  rotate = true,
   hideColor,
 }: ChordName) {
   const chordDisplayMode = useTabStore((state) => {
@@ -63,7 +65,9 @@ function ChordName({
         lineHeight: "1.25rem",
         zIndex: showFullName ? 9 : undefined, // I still want hover to take priority over chord popover being open
         rotate:
-          modifiedChordName.length > 4 && !showFullName ? "-30deg" : "0deg",
+          rotate && modifiedChordName.length > 4 && !showFullName
+            ? "-30deg"
+            : "0deg",
         transition: "rotate 0.15s ease-out",
       }}
       // FYI: I am still unsure why adding "isolate" fixes the issue where the chord name
