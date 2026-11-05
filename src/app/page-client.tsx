@@ -25,31 +25,33 @@ function Home() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full gap-16 overflow-x-clip pb-16 md:gap-24 md:pb-24"
     >
-      <Hero />
+      <div className="baseVertFlex w-full">
+        <Hero />
 
-      <div className="baseVertFlex w-full max-w-[1150px] !items-start gap-4 px-4 xl:px-0">
-        <div className="baseFlex w-full !items-baseline !justify-between gap-2">
-          <div className="baseVertFlex max-w-2xl gap-2">
-            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Genres
-            </h2>
+        <div className="baseVertFlex w-full max-w-[1150px] !items-start gap-4 px-4 xl:px-0">
+          <div className="baseFlex w-full !items-baseline !justify-between gap-2">
+            <div className="baseVertFlex max-w-2xl gap-2">
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+                Genres
+              </h2>
+            </div>
+
+            <Button
+              role="link"
+              variant="link"
+              className="!h-auto !px-0 text-foreground"
+              nativeButton={false}
+              render={
+                <Link prefetch={false} href="/search/filters">
+                  View all tabs
+                </Link>
+              }
+            />
           </div>
 
-          <Button
-            role="link"
-            variant="link"
-            className="!h-auto !px-0 text-foreground"
-            nativeButton={false}
-            render={
-              <Link prefetch={false} href="/search/filters">
-                View all tabs
-              </Link>
-            }
-          />
-        </div>
-
-        <div className="grid w-full grid-cols-2 place-items-center gap-4 lg:grid-cols-3 2xl:grid-cols-4">
-          <GenreCards />
+          <div className="grid w-full grid-cols-2 place-items-center gap-4 lg:grid-cols-3 2xl:grid-cols-4">
+            <GenreCards />
+          </div>
         </div>
       </div>
 

@@ -5,8 +5,9 @@ import { Button } from "~/components/ui/button";
 
 function Hero() {
   return (
-    // The homepage's 4rem section gap supplies the rest of the mobile bottom spacing.
-    <section className="baseVertFlex min-h-[calc(100svh-17rem)] w-full max-w-[1700px] overflow-x-clip px-4 pb-4 pt-20 md:min-h-[calc(100svh-20rem)] md:px-6 md:py-8 lg:px-12 lg:py-4">
+    // Reserve the header and a peek at the genre names, then center the hero
+    // in the remaining space. Cap the height so tall screens reveal counts too.
+    <section className="baseVertFlex min-h-[min(calc(100svh-10rem),60rem)] w-full max-w-[1700px] overflow-x-clip px-4 py-8 sm:min-h-[min(calc(100svh-10.5rem),60rem)] md:min-h-[min(calc(100svh-11rem),60rem)] md:px-6 lg:px-12">
       <div className="baseVertFlex w-full !flex-col-reverse gap-8 lg:!flex-row lg:!items-center lg:!justify-center lg:gap-24">
         <div className="baseVertFlex w-full max-w-xl shrink-0 gap-5 md:gap-6 lg:w-[clamp(22rem,32.5vw,29.125rem)] lg:!items-start">
           <div className="baseVertFlex gap-3 md:gap-4 lg:!items-start">
