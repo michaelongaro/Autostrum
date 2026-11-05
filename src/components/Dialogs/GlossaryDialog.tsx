@@ -14,7 +14,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import ArpeggiatedDownstrumIcon from "~/components/ui/icons/ArpeggiatedDownstrumIcon";
 import ArpeggiatedUpstrumIcon from "~/components/ui/icons/ArpeggiatedUpstrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";

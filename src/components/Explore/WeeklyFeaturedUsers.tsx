@@ -118,23 +118,28 @@ function WeeklyFeaturedUsers({
                   <div className="baseVertFlex w-full min-w-0 !items-start gap-2">
                     <div className="baseFlex gap-1">User</div>
 
-                    <Button variant={"link"} asChild>
-                      <Link
-                        prefetch={false}
-                        href={`/user/${user.username}/filters`}
-                        className="baseFlex min-w-0 max-w-[250px] !justify-start gap-2 !p-0 lg:max-w-[100%]"
-                      >
-                        <FeaturedUserAvatar
-                          key={user.profileImageUrl}
-                          src={user.profileImageUrl}
-                          username={user.username}
-                        />
+                    <Button
+                      role="link"
+                      variant={"link"}
+                      nativeButton={false}
+                      render={
+                        <Link
+                          prefetch={false}
+                          href={`/user/${user.username}/filters`}
+                          className="baseFlex min-w-0 max-w-[250px] !justify-start gap-2 !p-0 lg:max-w-[100%]"
+                        >
+                          <FeaturedUserAvatar
+                            key={user.profileImageUrl}
+                            src={user.profileImageUrl}
+                            username={user.username}
+                          />
 
-                        <span className="w-full truncate text-2xl font-semibold tracking-tight lg:text-3xl">
-                          {user.username}
-                        </span>
-                      </Link>
-                    </Button>
+                          <span className="w-full truncate text-2xl font-semibold tracking-tight lg:text-3xl">
+                            {user.username}
+                          </span>
+                        </Link>
+                      }
+                    />
 
                     <div className="baseVertFlex mt-4 w-full !items-start gap-2 self-center font-medium sm:text-lg">
                       <div className="baseFlex w-full !justify-between gap-4">
@@ -218,7 +223,8 @@ function WeeklyFeaturedUsers({
           <Button
             key={user.userId}
             ref={(element) => {
-              indicatorRefs.current[index] = element;
+              indicatorRefs.current[index] =
+                element instanceof HTMLButtonElement ? element : null;
             }}
             type="button"
             variant="text"

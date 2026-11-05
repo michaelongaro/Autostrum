@@ -12,7 +12,6 @@ import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
 import {
   Drawer,
-  DrawerPortal,
   DrawerTrigger,
   DrawerContent,
   DrawerTitle,
@@ -46,7 +45,7 @@ import scrollChordIntoView, {
 } from "~/utils/scrollChordIntoView";
 import { AUDIO_CONTROLS_BOTTOM_OFFSET } from "./AudioControlsStickyBounds";
 import PlayButtonIcon from "./PlayButtonIcon";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import { Direction, getTrackBackground, Range } from "~/components/ui/Range";
 import { IoMdSettings } from "react-icons/io";
 
@@ -380,57 +379,59 @@ function AudioControls() {
               </Toggle>
 
               <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="p-2 text-primary-foreground"
-                  >
-                    <AnimatePresence mode="popLayout" initial={false}>
-                      {volume === 0 && (
-                        <motion.div
-                          key="muteIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeMuteFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      )}
-                      {volume > 0 && volume < 1 ? (
-                        <motion.div
-                          key="lowVolumeIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeDownFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      ) : null}
-                      {volume >= 1 ? (
-                        <motion.div
-                          key="highVolumeIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeUpFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      ) : null}
-                    </AnimatePresence>
-                  </Button>
-                </PopoverTrigger>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      className="p-2 text-primary-foreground"
+                    >
+                      <AnimatePresence mode="popLayout" initial={false}>
+                        {volume === 0 && (
+                          <motion.div
+                            key="muteIcon"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            className="baseFlex"
+                          >
+                            <BsFillVolumeMuteFill
+                              size={"1.5rem"}
+                              className="shrink-0"
+                            />
+                          </motion.div>
+                        )}
+                        {volume > 0 && volume < 1 ? (
+                          <motion.div
+                            key="lowVolumeIcon"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            className="baseFlex"
+                          >
+                            <BsFillVolumeDownFill
+                              size={"1.5rem"}
+                              className="shrink-0"
+                            />
+                          </motion.div>
+                        ) : null}
+                        {volume >= 1 ? (
+                          <motion.div
+                            key="highVolumeIcon"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            className="baseFlex"
+                          >
+                            <BsFillVolumeUpFill
+                              size={"1.5rem"}
+                              className="shrink-0"
+                            />
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+                    </Button>
+                  }
+                />
                 <PopoverContent
                   className="baseVertFlex h-40 w-[54px] gap-2 pb-2 pt-4"
                   side="top"
@@ -698,122 +699,116 @@ function AudioControls() {
 
                 setDrawerOpen(open);
               }}
-              dismissible={!drawerHandleDisabled} // bad UX to allow drawer to be moved when a nested select/popover is open
+              swipeDisabled={drawerHandleDisabled}
+              disablePointerDismissal={drawerHandleDisabled} // bad UX to allow drawer to be moved when a nested select/popover is open
             >
-              <DrawerTrigger asChild>
-                <Button
-                  disabled={audioMetadata.editingLoopRange}
-                  size="sm"
-                  variant={"outline"}
-                  className="px-2 py-1 text-primary-foreground"
-                >
-                  <IoMdSettings className="size-[18px]" />
-                </Button>
-              </DrawerTrigger>
-              <DrawerPortal>
-                <DrawerContent className="baseVertFlex z-50 !items-start gap-4 p-4 pb-6">
-                  <VisuallyHidden>
-                    <DrawerTitle>Audio settings</DrawerTitle>
-                    <DrawerDescription>
-                      Change the instrument, playback speed, and other audio
-                      settings.
-                    </DrawerDescription>
-                  </VisuallyHidden>
+              <DrawerTrigger
+                render={
+                  <Button
+                    disabled={audioMetadata.editingLoopRange}
+                    size="sm"
+                    variant={"outline"}
+                    className="px-2 py-1 text-primary-foreground"
+                  >
+                    <IoMdSettings className="size-[18px]" />
+                  </Button>
+                }
+              />
 
-                  <div className="baseVertFlex w-full !items-start gap-1">
-                    <div className="baseFlex gap-2 font-medium">
-                      <IoMdSettings className="size-4" />
-                      Audio settings
-                    </div>
-                    <Separator className="w-full bg-primary" />
+              <DrawerContent className="baseVertFlex z-50 !items-start gap-4 p-4 pb-6">
+                <VisuallyHidden>
+                  <DrawerTitle>Audio settings</DrawerTitle>
+                  <DrawerDescription>
+                    Change the instrument, playback speed, and other audio
+                    settings.
+                  </DrawerDescription>
+                </VisuallyHidden>
+
+                <div className="baseVertFlex w-full !items-start gap-1">
+                  <div className="baseFlex gap-2 font-medium">
+                    <IoMdSettings className="size-4" />
+                    Audio settings
                   </div>
+                  <Separator className="w-full bg-primary" />
+                </div>
 
-                  <div className="baseFlex mt-2 w-full !justify-between gap-4">
-                    <Label htmlFor="instrument">Instrument</Label>
-                    <Select
-                      onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-                      value={currentInstrumentName}
-                      onValueChange={(value) => {
-                        pauseAudio();
+                <div className="baseFlex mt-2 w-full !justify-between gap-4">
+                  <Label htmlFor="instrument">Instrument</Label>
+                  <Select
+                    onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
+                    value={currentInstrumentName}
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      pauseAudio();
 
-                        setCurrentInstrumentName(
-                          value as
-                            | "acoustic_guitar_nylon"
-                            | "acoustic_guitar_steel"
-                            | "electric_guitar_clean"
-                            | "electric_guitar_jazz",
-                        );
-                      }}
-                    >
-                      <SelectTrigger
-                        id="instrument"
-                        className="w-52 border-ring"
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={"acoustic_guitar_nylon"}>
-                          Acoustic guitar - Nylon
-                        </SelectItem>
+                      setCurrentInstrumentName(value);
+                    }}
+                  >
+                    <SelectTrigger id="instrument" className="w-52 border-ring">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={"acoustic_guitar_nylon"}>
+                        Acoustic guitar - Nylon
+                      </SelectItem>
 
-                        <SelectItem value={"acoustic_guitar_steel"}>
-                          Acoustic guitar - Steel
-                        </SelectItem>
+                      <SelectItem value={"acoustic_guitar_steel"}>
+                        Acoustic guitar - Steel
+                      </SelectItem>
 
-                        <SelectItem value={"electric_guitar_clean"}>
-                          Electric guitar - Clean
-                        </SelectItem>
+                      <SelectItem value={"electric_guitar_clean"}>
+                        Electric guitar - Clean
+                      </SelectItem>
 
-                        <SelectItem value={"electric_guitar_jazz"}>
-                          Electric guitar - Jazz
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                      <SelectItem value={"electric_guitar_jazz"}>
+                        Electric guitar - Jazz
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  <div className="baseFlex w-full !justify-between gap-4">
-                    <Label htmlFor="speed">Speed</Label>
-                    <PlaybackSpeedPopover
-                      id="speed"
-                      playbackSpeed={requestedPlaybackSpeed}
-                      onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
-                      onPlaybackSpeedChange={setPlaybackSpeed}
-                      triggerClassName="w-[85px] border-ring"
-                      side="top"
-                    />
-                  </div>
+                <div className="baseFlex w-full !justify-between gap-4">
+                  <Label htmlFor="speed">Speed</Label>
+                  <PlaybackSpeedPopover
+                    id="speed"
+                    playbackSpeed={requestedPlaybackSpeed}
+                    onOpenChange={(isOpen) => setDrawerHandleDisabled(isOpen)}
+                    onPlaybackSpeedChange={setPlaybackSpeed}
+                    triggerClassName="w-[85px] border-ring"
+                    side="top"
+                  />
+                </div>
 
-                  <div className="baseFlex w-full !justify-between gap-4">
-                    <Label htmlFor="autoscroll">Autoscroll</Label>
-                    <Switch
-                      id="autoscroll"
-                      checked={autoscrollEnabled}
-                      onCheckedChange={(value) =>
-                        localStorageAutoscroll.set(String(value))
-                      }
-                    />
-                  </div>
+                <div className="baseFlex w-full !justify-between gap-4">
+                  <Label htmlFor="autoscroll">Autoscroll</Label>
+                  <Switch
+                    id="autoscroll"
+                    checked={autoscrollEnabled}
+                    onCheckedChange={(value) =>
+                      localStorageAutoscroll.set(String(value))
+                    }
+                  />
+                </div>
 
-                  <div className="baseFlex w-full !justify-between gap-4">
-                    <Label htmlFor="loop">Loop</Label>
-                    <Switch
-                      id="loop"
-                      disabled={audioMetadata.playing}
-                      checked={looping}
-                      onCheckedChange={(value) => {
-                        setAudioMetadata({
-                          ...audioMetadata,
-                          startLoopIndex: 0,
-                          endLoopIndex: -1,
-                          editingLoopRange: false,
-                        });
+                <div className="baseFlex w-full !justify-between gap-4">
+                  <Label htmlFor="loop">Loop</Label>
+                  <Switch
+                    id="loop"
+                    disabled={audioMetadata.playing}
+                    checked={looping}
+                    onCheckedChange={(value) => {
+                      setAudioMetadata({
+                        ...audioMetadata,
+                        startLoopIndex: 0,
+                        endLoopIndex: -1,
+                        editingLoopRange: false,
+                      });
 
-                        localStorageLooping.set(String(value));
-                      }}
-                    />
-                  </div>
-                </DrawerContent>
-              </DrawerPortal>
+                      localStorageLooping.set(String(value));
+                    }}
+                  />
+                </div>
+              </DrawerContent>
             </Drawer>
           )}
         </div>
@@ -923,15 +918,10 @@ function DesktopInstrumentAndSpeedSelects() {
           disabled={editingLoopRange}
           value={currentInstrumentName}
           onValueChange={(value) => {
+            if (value === null) return;
             pauseAudio();
 
-            setCurrentInstrumentName(
-              value as
-                | "acoustic_guitar_nylon"
-                | "acoustic_guitar_steel"
-                | "electric_guitar_clean"
-                | "electric_guitar_jazz",
-            );
+            setCurrentInstrumentName(value);
           }}
         >
           <SelectTrigger

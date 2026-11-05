@@ -107,10 +107,8 @@ function StrummingPatterns() {
   return (
     <div className="baseVertFlex relative w-1/2 min-w-[300px] max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton sm:min-w-[500px]">
       <Accordion
-        type="single"
-        collapsible
-        value={accordionValue}
-        onValueChange={(value) => {
+        value={[accordionValue]}
+        onValueChange={([value = "closed"]) => {
           setAccordionValue(value);
         }}
         className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 sm:px-0"
@@ -195,16 +193,18 @@ function StrummingPatterns() {
                                 });
                               }}
                             >
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant={"destructive"}
-                                  size="sm"
-                                  aria-label={`Delete strumming pattern ${index + 1}`}
-                                  className="baseFlex h-[30px] w-10 rounded-none rounded-br-[3px] border-none p-0"
-                                >
-                                  <FaTrashAlt className="size-4" />
-                                </Button>
-                              </PopoverTrigger>
+                              <PopoverTrigger
+                                render={
+                                  <Button
+                                    variant={"destructive"}
+                                    size="sm"
+                                    aria-label={`Delete strumming pattern ${index + 1}`}
+                                    className="baseFlex h-[30px] w-10 rounded-none rounded-br-[3px] border-none p-0"
+                                  >
+                                    <FaTrashAlt className="size-4" />
+                                  </Button>
+                                }
+                              />
                               <PopoverContent showArrow>
                                 <div className="baseVertFlex gap-4">
                                   <p className="w-auto text-center text-sm">

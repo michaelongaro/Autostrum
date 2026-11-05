@@ -96,6 +96,7 @@ function TabPlaybackSectionPicker() {
         <Select
           value={currentSectionId}
           onValueChange={(value) => {
+            if (value === null) return;
             handleChangeSection(value);
           }}
         >
@@ -103,9 +104,10 @@ function TabPlaybackSectionPicker() {
             id="sectionPicker"
             className="!h-9 !max-w-32 mobilePortrait:!h-8 mobilePortrait:!max-w-none"
           >
-            <SelectValue placeholder="Select a section" asChild>
-              <p className="truncate">{currentSectionTitle}</p>
-            </SelectValue>
+            <SelectValue
+              placeholder="Select a section"
+              render={<p className="truncate">{currentSectionTitle}</p>}
+            />
           </SelectTrigger>
           <SelectContent className="!justify-start">
             <>

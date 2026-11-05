@@ -59,14 +59,16 @@ function ToolsShowcase() {
         </div>
 
         <Button
+          role="link"
           variant="link"
-          asChild
           className="!h-auto !px-0 text-foreground"
-        >
-          <Link prefetch={false} href="/tools">
-            View all tools
-          </Link>
-        </Button>
+          nativeButton={false}
+          render={
+            <Link prefetch={false} href="/tools">
+              View all tools
+            </Link>
+          }
+        />
       </div>
 
       <div className="grid w-full gap-4 md:grid-cols-3">

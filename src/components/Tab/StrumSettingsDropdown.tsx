@@ -75,17 +75,19 @@ function StrumSettingsDropdown({
 
   return (
     <DropdownMenu modal={true} open={open} onOpenChange={onOpenChange}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className={triggerClassName}>
-          <Ellipsis className="h-3 w-4 rotate-90" />
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" className={triggerClassName}>
+            <Ellipsis className="h-3 w-4 rotate-90" />
+          </Button>
+        }
+      />
 
       <DropdownMenuContent
         data-tab-editor-history="strum-settings"
         side="bottom"
         className="baseVertFlex w-[280px] gap-3 p-3"
-        onCloseAutoFocus={(e) => e.preventDefault()}
+        finalFocus={false}
       >
         <div className="baseFlex w-full !justify-between gap-2">
           <div className="baseFlex gap-2">

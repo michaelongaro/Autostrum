@@ -42,15 +42,17 @@ function PlaybackTunerDialog() {
         setOpen(nextOpen);
       }}
     >
-      <DialogTrigger asChild>
-        <Button
-          variant={"outline"}
-          className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
-        >
-          <TuningFork className="size-4" />
-          <span className="hidden xs:block">Tuner</span>
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button
+            variant={"outline"}
+            className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
+          >
+            <TuningFork className="size-4" />
+            <span className="hidden xs:block">Tuner</span>
+          </Button>
+        }
+      />
 
       <DialogContent
         closeButtonColor="hsl(var(--primary-foreground))"

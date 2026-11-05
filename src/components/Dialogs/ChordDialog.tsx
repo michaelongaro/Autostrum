@@ -19,7 +19,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import { AnimatePresence, motion } from "framer-motion";
 
 function ChordDialog() {

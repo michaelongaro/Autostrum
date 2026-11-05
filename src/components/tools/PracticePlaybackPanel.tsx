@@ -230,7 +230,12 @@ function PracticePlaybackPanel({
           <div className="baseVertFlex w-full !items-start gap-2">
             <p className="text-sm font-medium sm:hidden">Choose an exercise</p>
 
-            <Select value={selectedExerciseId} onValueChange={selectExercise}>
+            <Select
+              value={selectedExerciseId}
+              onValueChange={(value) => {
+                if (value !== null) selectExercise(value);
+              }}
+            >
               <SelectTrigger className="sm:hidden">
                 <SelectValue>{selectedExercise.title}</SelectValue>
               </SelectTrigger>

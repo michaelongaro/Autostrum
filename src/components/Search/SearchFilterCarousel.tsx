@@ -111,7 +111,7 @@ function SearchFilterCarousel<T>({
         opts={carouselOptions}
         setApi={setApi}
         className="w-full"
-        data-vaul-no-drag
+        data-base-ui-swipe-ignore="x"
       >
         <CarouselContent className="ml-0 gap-2 px-4 py-1">
           {options.map((option, index) => {
@@ -145,8 +145,8 @@ function SearchFilterCarousel<T>({
                   onClick={() => onValueChange(option.value)}
                   className={`gap-0 whitespace-nowrap rounded-full active:scale-95 motion-reduce:transform-none ${
                     option.badgeColor
-                      ? "outline-transparent bg-transparent p-0 shadow-none hover:bg-transparent active:brightness-75"
-                      : `px-3 active:bg-primary/20 ${selected ? "outline-primary bg-primary/10" : "outline-gray/50"}`
+                      ? "bg-transparent p-0 shadow-none outline-transparent hover:bg-transparent active:brightness-75"
+                      : `px-3 active:bg-primary/20 ${selected ? "bg-primary/10 outline-primary" : "outline-gray/50"}`
                   }`}
                 >
                   {option.badgeColor ? (

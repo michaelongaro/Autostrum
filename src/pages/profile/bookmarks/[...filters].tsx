@@ -38,42 +38,62 @@ function UserBookmarks() {
         </div>
 
         <div className="baseFlex !hidden w-full !justify-start gap-4 md:!flex">
-          <Button variant={"text"} asChild>
-            <Link
-              prefetch={false}
-              href={"/profile/settings"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
-            >
-              Settings
-            </Link>
-          </Button>
-          <Button variant={"text"} asChild>
-            <Link
-              prefetch={false}
-              href={"/profile/statistics"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
-            >
-              Statistics
-            </Link>
-          </Button>
-          <Button variant={"text"} asChild>
-            <Link
-              prefetch={false}
-              href={"/profile/tabs/filters"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
-            >
-              Tabs
-            </Link>
-          </Button>
-          <Button variant={"text"} asChild>
-            <Link
-              prefetch={false}
-              href={"/profile/bookmarks/filters"}
-              className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
-            >
-              Bookmarks
-            </Link>
-          </Button>
+          <Button
+            role="link"
+            variant={"text"}
+            nativeButton={false}
+            render={
+              <Link
+                prefetch={false}
+                href={"/profile/settings"}
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
+              >
+                Settings
+              </Link>
+            }
+          />
+          <Button
+            role="link"
+            variant={"text"}
+            nativeButton={false}
+            render={
+              <Link
+                prefetch={false}
+                href={"/profile/statistics"}
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
+              >
+                Statistics
+              </Link>
+            }
+          />
+          <Button
+            role="link"
+            variant={"text"}
+            nativeButton={false}
+            render={
+              <Link
+                prefetch={false}
+                href={"/profile/tabs/filters"}
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
+              >
+                Tabs
+              </Link>
+            }
+          />
+          <Button
+            role="link"
+            variant={"text"}
+            nativeButton={false}
+            render={
+              <Link
+                prefetch={false}
+                href={"/profile/bookmarks/filters"}
+                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 md:!text-4xl"
+              >
+                Bookmarks
+              </Link>
+            }
+          />
         </div>
 
         <SearchResults />

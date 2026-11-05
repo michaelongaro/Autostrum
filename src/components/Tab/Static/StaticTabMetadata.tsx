@@ -129,22 +129,27 @@ function StaticTabMetadata() {
               {artistName && (
                 <div className="baseFlex gap-2 text-lg">
                   by
-                  <Button variant={"link"} asChild>
-                    <Link
-                      prefetch={false}
-                      href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                      className="!h-6 !p-0"
-                    >
-                      <div className="baseFlex gap-1 text-lg font-medium">
-                        {artistIsVerified && (
-                          <Verified className="mr-[2px] size-5 shrink-0" />
-                        )}
-                        <span className="max-w-[300px] truncate">
-                          {artistName}
-                        </span>
-                      </div>
-                    </Link>
-                  </Button>
+                  <Button
+                    role="link"
+                    variant={"link"}
+                    nativeButton={false}
+                    render={
+                      <Link
+                        prefetch={false}
+                        href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
+                        className="!h-6 !p-0"
+                      >
+                        <div className="baseFlex gap-1 text-lg font-medium">
+                          {artistIsVerified && (
+                            <Verified className="mr-[2px] size-5 shrink-0" />
+                          )}
+                          <span className="max-w-[300px] truncate">
+                            {artistName}
+                          </span>
+                        </div>
+                      </Link>
+                    }
+                  />
                 </div>
               )}
             </div>
@@ -274,22 +279,27 @@ function StaticTabMetadata() {
                 {artistName && (
                   <div className="baseFlex w-full max-w-[100%] !justify-start gap-2 text-lg">
                     by
-                    <Button variant={"link"} asChild>
-                      <Link
-                        prefetch={false}
-                        href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                        className="baseFlex !h-6 !justify-start !p-0"
-                      >
-                        <div className="baseFlex w-full gap-1 text-lg font-medium">
-                          {artistIsVerified && (
-                            <Verified className="mr-[2px] size-5 shrink-0" />
-                          )}
-                          <span className="max-w-full truncate">
-                            {artistName}
-                          </span>
-                        </div>
-                      </Link>
-                    </Button>
+                    <Button
+                      role="link"
+                      variant={"link"}
+                      nativeButton={false}
+                      render={
+                        <Link
+                          prefetch={false}
+                          href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
+                          className="baseFlex !h-6 !justify-start !p-0"
+                        >
+                          <div className="baseFlex w-full gap-1 text-lg font-medium">
+                            {artistIsVerified && (
+                              <Verified className="mr-[2px] size-5 shrink-0" />
+                            )}
+                            <span className="max-w-full truncate">
+                              {artistName}
+                            </span>
+                          </div>
+                        </Link>
+                      }
+                    />
                   </div>
                 )}
               </div>
@@ -341,7 +351,7 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex h-10 md:w-36"
+                      className="baseFlex h-10 w-10 shrink-0 md:w-36"
                     >
                       <BookmarkToggle
                         tabId={id}
@@ -349,7 +359,7 @@ function StaticTabMetadata() {
                         currentUser={currentUser}
                         showText={true}
                         isBookmarked={dynamicMetadata.bookmarked}
-                        customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
+                        customClassName={`${classes.bookmark} baseFlex h-10 w-full gap-2 p-2 md:px-3 md:py-1`}
                       />
                     </motion.div>
                   ) : (
@@ -361,7 +371,7 @@ function StaticTabMetadata() {
                       transition={{
                         duration: 0.25,
                       }}
-                      className="baseFlex h-10 w-36"
+                      className="baseFlex h-10 w-10 shrink-0 md:w-36"
                     >
                       <div className="pulseAnimation size-full rounded-md"></div>
                     </motion.div>

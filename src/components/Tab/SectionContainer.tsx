@@ -214,10 +214,8 @@ function SectionContainer({
       )}
     >
       <Accordion
-        type="single"
-        collapsible
-        value={accordionOpen}
-        onValueChange={(value) => {
+        value={[accordionOpen]}
+        onValueChange={([value = "closed"]) => {
           setAccordionOpen(value === "opened" ? value : "closed");
         }}
         className="w-full"

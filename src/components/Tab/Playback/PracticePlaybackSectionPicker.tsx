@@ -36,16 +36,24 @@ function PracticePlaybackSectionPicker() {
         <Label htmlFor="practiceExercisePicker" className="text-sm font-medium">
           Exercise
         </Label>
-        <Select value={selectedExerciseId} onValueChange={selectExercise}>
+        <Select
+          value={selectedExerciseId}
+          onValueChange={(value) => {
+            if (value !== null) selectExercise(value);
+          }}
+        >
           <SelectTrigger
             id="practiceExercisePicker"
             className="!h-9 !max-w-48 mobilePortrait:!h-8 mobilePortrait:!max-w-[120px] tablet:!max-w-none"
           >
-            <SelectValue placeholder="Select an exercise" asChild>
-              <p className="truncate">
-                {selectedExercise?.title ?? "Select an exercise"}
-              </p>
-            </SelectValue>
+            <SelectValue
+              placeholder="Select an exercise"
+              render={
+                <p className="truncate">
+                  {selectedExercise?.title ?? "Select an exercise"}
+                </p>
+              }
+            />
           </SelectTrigger>
           <SelectContent className="!justify-start">
             {exerciseGroups.map((group) => (

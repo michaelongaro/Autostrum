@@ -132,15 +132,18 @@ export default function PrintTabDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+    >
       <DialogContent
         className="flex h-[100dvh] max-h-none !w-screen !max-w-none flex-col gap-0 overflow-hidden !rounded-none border-0 p-0 md:h-[94dvh] md:max-h-[1000px] md:!w-[min(1400px,96vw)] md:!rounded-lg md:border"
-        onCloseAutoFocus={(event) => {
-          // Radix calls this after the shared dialog's exit animation ends.
-          // Only then release the snapshot and restore focus to Print tab.
-          event.preventDefault();
-          onClose();
-        }}
+        // Keep the snapshot until the exit transition finishes. Base UI's
+        // finalFocus callback runs earlier, when the focus trap is released.
+        finalFocus={false}
         onKeyDown={(event) => {
           // The editor has a window-level spacebar playback shortcut.
           if (event.code === "Space") event.stopPropagation();
@@ -169,9 +172,10 @@ export default function PrintTabDialog({
                   <Label htmlFor="print-layout">Layout</Label>
                   <Select
                     value={options.layout}
-                    onValueChange={(value) =>
-                      update("layout", value as PrintOptions["layout"])
-                    }
+                    onValueChange={(value) => {
+                      if (value === null) return;
+                      return update("layout", value);
+                    }}
                   >
                     <SelectTrigger
                       id="print-layout"
@@ -217,9 +221,10 @@ export default function PrintTabDialog({
                     <Label htmlFor="print-paper">Paper</Label>
                     <Select
                       value={options.paper}
-                      onValueChange={(value) =>
-                        update("paper", value as PrintOptions["paper"])
-                      }
+                      onValueChange={(value) => {
+                        if (value === null) return;
+                        return update("paper", value);
+                      }}
                     >
                       <SelectTrigger
                         id="print-paper"
@@ -237,12 +242,10 @@ export default function PrintTabDialog({
                     <Label htmlFor="print-orientation">Orientation</Label>
                     <Select
                       value={options.orientation}
-                      onValueChange={(value) =>
-                        update(
-                          "orientation",
-                          value as PrintOptions["orientation"],
-                        )
-                      }
+                      onValueChange={(value) => {
+                        if (value === null) return;
+                        return update("orientation", value);
+                      }}
                     >
                       <SelectTrigger
                         id="print-orientation"

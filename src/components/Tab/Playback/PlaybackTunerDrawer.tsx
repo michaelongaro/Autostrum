@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   Drawer,
-  DrawerPortal,
   DrawerTrigger,
   DrawerContent,
   DrawerTitle,
@@ -43,52 +42,52 @@ function PlaybackTunerDrawer() {
         setOpen(nextOpen);
       }}
     >
-      <DrawerTrigger asChild>
-        <Button
-          variant={"outline"}
-          className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
-        >
-          <TuningFork className="size-4" />
-          <span className="hidden xs:block">Tuner</span>
-        </Button>
-      </DrawerTrigger>
-      <DrawerPortal>
-        <DrawerContent
-          forPlaybackModalTuner={true}
-          className="baseVertFlex z-50 !items-start p-0"
-        >
-          <DrawerHeader className="sr-only">
-            <DrawerTitle>Guitar Tuner</DrawerTitle>
-            <DrawerDescription>
-              Tune your guitar to this tab&apos;s required tuning.
-            </DrawerDescription>
-          </DrawerHeader>
+      <DrawerTrigger
+        render={
+          <Button
+            variant={"outline"}
+            className="baseFlex h-9 gap-2 !px-2.5 !py-0 sm:!px-4"
+          >
+            <TuningFork className="size-4" />
+            <span className="hidden xs:block">Tuner</span>
+          </Button>
+        }
+      />
+      <DrawerContent
+        forPlaybackModalTuner={true}
+        className="baseVertFlex z-50 !items-start p-0"
+      >
+        <DrawerHeader className="sr-only">
+          <DrawerTitle>Guitar Tuner</DrawerTitle>
+          <DrawerDescription>
+            Tune your guitar to this tab&apos;s required tuning.
+          </DrawerDescription>
+        </DrawerHeader>
 
-          <TunerPanel
-            targetNotes={tuner.targetNotes}
-            currentTargetIndex={tuner.currentTargetIndex}
-            reading={tuner.reading}
-            isListening={tuner.isListening}
-            completed={tuner.completed}
-            error={tuner.error}
-            permissionDenied={tuner.permissionDenied}
-            onStartListening={tuner.startListening}
-            onStopListening={tuner.stopListening}
-            onResetProgress={tuner.resetProgress}
-            onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
-            forPlaybackModal={true}
-            playbackCapoToggle={
-              capo > 0
-                ? {
-                    requiredCapo: capo,
-                    selectedCapo,
-                    onSelectCapo: setSelectedCapo,
-                  }
-                : undefined
-            }
-          />
-        </DrawerContent>
-      </DrawerPortal>
+        <TunerPanel
+          targetNotes={tuner.targetNotes}
+          currentTargetIndex={tuner.currentTargetIndex}
+          reading={tuner.reading}
+          isListening={tuner.isListening}
+          completed={tuner.completed}
+          error={tuner.error}
+          permissionDenied={tuner.permissionDenied}
+          onStartListening={tuner.startListening}
+          onStopListening={tuner.stopListening}
+          onResetProgress={tuner.resetProgress}
+          onSetCurrentTargetIndex={tuner.setCurrentTargetIndex}
+          forPlaybackModal={true}
+          playbackCapoToggle={
+            capo > 0
+              ? {
+                  requiredCapo: capo,
+                  selectedCapo,
+                  onSelectCapo: setSelectedCapo,
+                }
+              : undefined
+          }
+        />
+      </DrawerContent>
     </Drawer>
   );
 }

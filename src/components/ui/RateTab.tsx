@@ -14,7 +14,6 @@ import {
 import {
   Drawer,
   DrawerTrigger,
-  DrawerPortal,
   DrawerContent,
   DrawerTitle,
   DrawerDescription,
@@ -27,7 +26,7 @@ import { FaRegStar, FaStar } from "react-icons/fa6";
 import { useTabStore } from "~/stores/TabStore";
 import { SignInButton } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -324,7 +323,6 @@ function RateTabPopover({
       }}
     >
       <PopoverTrigger
-        asChild
         onClick={() => {
           if (!currentUser) {
             setShowPopover(true);
@@ -342,37 +340,38 @@ function RateTabPopover({
           }
         }}
         className="baseFlex p-0"
-      >
-        <Button
-          aria-label={"Rate toggle"}
-          disabled={disabled}
-          variant={"secondary"}
-          className={customClassName}
-          onClick={() => {
-            if (!currentUser) return;
-          }}
-        >
-          <motion.div
-            key={`tabRatings-${tabId}`}
-            variants={opacityAndScaleVariants}
-            initial="closed"
-            animate="expanded"
-            exit="closed"
-            transition={{ duration: 0.15 }}
-            className="baseFlex gap-2 text-base"
+        render={
+          <Button
+            aria-label={"Rate toggle"}
+            disabled={disabled}
+            variant={"secondary"}
+            className={customClassName}
+            onClick={() => {
+              if (!currentUser) return;
+            }}
           >
-            <div className="baseFlex gap-1">
-              {averageRating.toFixed(1)}
-              {ratingSubmitted ? (
-                <FaStar className="size-4" />
-              ) : (
-                <FaRegStar className="size-4" />
-              )}
-            </div>
-            {`(${formatNumber(ratingsCount)})`}
-          </motion.div>
-        </Button>
-      </PopoverTrigger>
+            <motion.div
+              key={`tabRatings-${tabId}`}
+              variants={opacityAndScaleVariants}
+              initial="closed"
+              animate="expanded"
+              exit="closed"
+              transition={{ duration: 0.15 }}
+              className="baseFlex gap-2 text-base"
+            >
+              <div className="baseFlex gap-1">
+                {averageRating.toFixed(1)}
+                {ratingSubmitted ? (
+                  <FaStar className="size-4" />
+                ) : (
+                  <FaRegStar className="size-4" />
+                )}
+              </div>
+              {`(${formatNumber(ratingsCount)})`}
+            </motion.div>
+          </Button>
+        }
+      />
       <PopoverContent className="baseFlex w-[350px] py-2 text-sm md:text-base">
         {showUnregisteredPopover ? (
           "You must be logged in to rate a tab."
@@ -434,68 +433,69 @@ function RateTabDrawer({
       }}
       modal={true}
     >
-      <DrawerTrigger asChild>
-        <Button
-          aria-label="Rate toggle"
-          disabled={disabled}
-          variant={"secondary"}
-          className="baseFlex w-full gap-2 text-base"
-        >
-          <div className="baseFlex gap-1">
-            {averageRating.toFixed(1)}
-            {ratingSubmitted ? (
-              <FaStar className="size-4" />
-            ) : (
-              <FaRegStar className="size-4" />
-            )}
-          </div>
-          {`(${formatNumber(ratingsCount)})`}
-        </Button>
-      </DrawerTrigger>
-      <DrawerPortal>
-        <DrawerContent className="baseVertFlex z-50 !items-start gap-4 p-4 pb-6">
-          <VisuallyHidden>
-            <DrawerTitle>Rate this tab</DrawerTitle>
-            <DrawerDescription>
-              Rate this tab to help others gauge its quality. Your rating will
-              be visible to all users.
-            </DrawerDescription>
-          </VisuallyHidden>
-
-          {currentUser ? (
-            <RateTabInternals
-              hoveredRating={hoveredRating}
-              selectedRating={selectedRating}
-              averageRating={averageRating}
-              tabId={tabId}
-              tabCreatorUserId={tabCreatorUserId}
-              submitRating={submitRating}
-              ratingSubmitted={ratingSubmitted}
-              setHoveredRating={setHoveredRating}
-              setSelectedRating={setSelectedRating}
-              lockOutHoveredRatingRef={lockOutHoveredRatingRef}
-              currentUser={currentUser}
-              showThankYouMessage={showThankYouMessage}
-              userRating={userRating}
-            />
-          ) : (
-            <div className="baseVertFlex my-8 w-full gap-8">
-              <span className="font-medium">
-                You must be logged in to rate a tab.
-              </span>
-
-              <div className="baseFlex">
-                <SignInButton mode="modal">
-                  <Button className="baseFlex gap-2 px-8">
-                    <FaUser className="size-4" />
-                    Sign in
-                  </Button>
-                </SignInButton>
-              </div>
+      <DrawerTrigger
+        render={
+          <Button
+            aria-label="Rate toggle"
+            disabled={disabled}
+            variant={"secondary"}
+            className="baseFlex w-full gap-2 text-base"
+          >
+            <div className="baseFlex gap-1">
+              {averageRating.toFixed(1)}
+              {ratingSubmitted ? (
+                <FaStar className="size-4" />
+              ) : (
+                <FaRegStar className="size-4" />
+              )}
             </div>
-          )}
-        </DrawerContent>
-      </DrawerPortal>
+            {`(${formatNumber(ratingsCount)})`}
+          </Button>
+        }
+      />
+
+      <DrawerContent className="baseVertFlex z-50 !items-start gap-4 p-4 pb-6">
+        <VisuallyHidden>
+          <DrawerTitle>Rate this tab</DrawerTitle>
+          <DrawerDescription>
+            Rate this tab to help others gauge its quality. Your rating will be
+            visible to all users.
+          </DrawerDescription>
+        </VisuallyHidden>
+
+        {currentUser ? (
+          <RateTabInternals
+            hoveredRating={hoveredRating}
+            selectedRating={selectedRating}
+            averageRating={averageRating}
+            tabId={tabId}
+            tabCreatorUserId={tabCreatorUserId}
+            submitRating={submitRating}
+            ratingSubmitted={ratingSubmitted}
+            setHoveredRating={setHoveredRating}
+            setSelectedRating={setSelectedRating}
+            lockOutHoveredRatingRef={lockOutHoveredRatingRef}
+            currentUser={currentUser}
+            showThankYouMessage={showThankYouMessage}
+            userRating={userRating}
+          />
+        ) : (
+          <div className="baseVertFlex my-8 w-full gap-8">
+            <span className="font-medium">
+              You must be logged in to rate a tab.
+            </span>
+
+            <div className="baseFlex">
+              <SignInButton mode="modal">
+                <Button className="baseFlex gap-2 px-8">
+                  <FaUser className="size-4" />
+                  Sign in
+                </Button>
+              </SignInButton>
+            </div>
+          </div>
+        )}
+      </DrawerContent>
     </Drawer>
   );
 }

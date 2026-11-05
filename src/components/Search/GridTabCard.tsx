@@ -296,15 +296,20 @@ function GridTabCard({
               transition={{ duration: 0.3 }}
               className="w-full"
             >
-              <Button variant={"secondary"} asChild>
-                <Link
-                  prefetch={false}
-                  href={`/tab/${minimalTab.id}/edit`}
-                  className="absolute right-14 top-2 z-10 !size-10 !p-0"
-                >
-                  <MdModeEditOutline className="size-5" />
-                </Link>
-              </Button>
+              <Button
+                role="link"
+                variant={"secondary"}
+                nativeButton={false}
+                render={
+                  <Link
+                    prefetch={false}
+                    href={`/tab/${minimalTab.id}/edit`}
+                    className="absolute right-14 top-2 z-10 !size-10 !p-0"
+                  >
+                    <MdModeEditOutline className="size-5" />
+                  </Link>
+                }
+              />
             </motion.div>
           )}
 
@@ -326,15 +331,20 @@ function GridTabCard({
       <div className="baseVertFlex w-full gap-1 rounded-b-sm bg-secondary-active/50 p-2.5">
         {/* title */}
         <div className="baseVertFlex w-full min-w-0 !items-start">
-          <Button variant={"link"} asChild>
-            <Link
-              prefetch={false}
-              href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
-              className="baseFlex !h-5 min-w-0 max-w-full select-all !justify-start !p-0 !font-semibold md:h-6 md:!text-lg"
-            >
-              <span className="block truncate">{minimalTab.title}</span>
-            </Link>
-          </Button>
+          <Button
+            role="link"
+            variant={"link"}
+            nativeButton={false}
+            render={
+              <Link
+                prefetch={false}
+                href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
+                className="baseFlex !h-5 min-w-0 max-w-full select-all !justify-start !p-0 !font-semibold md:h-6 md:!text-lg"
+              >
+                <span className="block truncate">{minimalTab.title}</span>
+              </Link>
+            }
+          />
         </div>
 
         {/* artist/tab creator link --- difficulty */}
@@ -346,34 +356,39 @@ function GridTabCard({
           {allowedToRenderArtistLink() && (
             <>
               {minimalTab.artist || minimalTab.createdBy ? (
-                <Button variant={"link"} asChild>
-                  <Link
-                    prefetch={false}
-                    href={
-                      minimalTab.artist
-                        ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}/filters`
-                        : minimalTab.createdBy
-                          ? `/user/${minimalTab.createdBy.username}/filters`
-                          : ""
-                    }
-                    className="baseFlex !h-6 max-w-[60%] !justify-start !p-0 xs:max-w-[65%]"
-                  >
-                    {minimalTab.artist ? (
-                      <div className="baseFlex size-full !justify-start">
-                        {minimalTab.artist.isVerified && (
-                          <Verified className="mr-[5px] size-4 shrink-0" />
-                        )}
+                <Button
+                  role="link"
+                  variant={"link"}
+                  nativeButton={false}
+                  render={
+                    <Link
+                      prefetch={false}
+                      href={
+                        minimalTab.artist
+                          ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}/filters`
+                          : minimalTab.createdBy
+                            ? `/user/${minimalTab.createdBy.username}/filters`
+                            : ""
+                      }
+                      className="baseFlex !h-6 max-w-[60%] !justify-start !p-0 xs:max-w-[65%]"
+                    >
+                      {minimalTab.artist ? (
+                        <div className="baseFlex size-full !justify-start">
+                          {minimalTab.artist.isVerified && (
+                            <Verified className="mr-[5px] size-4 shrink-0" />
+                          )}
+                          <span className="max-w-[100%] truncate">
+                            {minimalTab.artist.name}
+                          </span>
+                        </div>
+                      ) : (
                         <span className="max-w-[100%] truncate">
-                          {minimalTab.artist.name}
+                          {minimalTab.createdBy?.username ?? "Anonymous"}
                         </span>
-                      </div>
-                    ) : (
-                      <span className="max-w-[100%] truncate">
-                        {minimalTab.createdBy?.username ?? "Anonymous"}
-                      </span>
-                    )}
-                  </Link>
-                </Button>
+                      )}
+                    </Link>
+                  }
+                />
               ) : (
                 <span className="text-sm italic">Anonymous</span>
               )}

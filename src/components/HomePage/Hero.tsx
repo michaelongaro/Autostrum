@@ -24,16 +24,27 @@ function Hero() {
           </div>
 
           <div className="baseFlex !justify-start gap-3">
-            <Button asChild className="px-5 md:px-6">
-              <Link prefetch={false} href="/explore">
-                Explore tabs
-              </Link>
-            </Button>
-            <Button variant="outline" asChild className="px-5 md:px-6">
-              <Link prefetch={false} href="/create">
-                Create a tab
-              </Link>
-            </Button>
+            <Button
+              role="link"
+              className="px-5 md:px-6"
+              nativeButton={false}
+              render={
+                <Link prefetch={false} href="/explore">
+                  Explore tabs
+                </Link>
+              }
+            />
+            <Button
+              role="link"
+              variant="outline"
+              className="px-5 md:px-6"
+              nativeButton={false}
+              render={
+                <Link prefetch={false} href="/create">
+                  Create a tab
+                </Link>
+              }
+            />
           </div>
         </div>
 

@@ -54,14 +54,13 @@ function NoteLengthDropdown({ value, onValueChange }: NoteLengthDropdownProps) {
   const selectedValue = isFullNoteLength(value) ? value : undefined;
 
   return (
-    <div className="baseVertFlex w-full !items-start">
+    <DropdownMenuGroup className="baseVertFlex w-full !items-start">
       <DropdownMenuLabel>Note length</DropdownMenuLabel>
 
       <div className="baseVertFlex w-full gap-1">
         {NOTE_LENGTH_GROUPS.map((group) => {
           const groupContainsSelectedValue =
-            selectedValue !== undefined &&
-            group.values.includes(selectedValue as FullNoteLengths);
+            selectedValue !== undefined && group.values.includes(selectedValue);
 
           const groupValue = groupContainsSelectedValue
             ? selectedValue
@@ -76,7 +75,7 @@ function NoteLengthDropdown({ value, onValueChange }: NoteLengthDropdownProps) {
                 <DropdownMenuItem
                   key={option}
                   className={`baseFlex relative h-8 w-[40px] ${option === groupValue ? "bg-primary text-primary-foreground" : ""}`}
-                  onSelect={() => {
+                  onClick={() => {
                     if (isFullNoteLength(option)) {
                       onValueChange(option);
                     }
@@ -104,7 +103,7 @@ function NoteLengthDropdown({ value, onValueChange }: NoteLengthDropdownProps) {
           );
         })}
       </div>
-    </div>
+    </DropdownMenuGroup>
   );
 }
 

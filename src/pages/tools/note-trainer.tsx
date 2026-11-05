@@ -316,7 +316,8 @@ function NoteTrainerPage() {
                 <Select
                   value={audioSource}
                   onValueChange={(v) => {
-                    const source = v as AudioSource;
+                    if (v === null) return;
+                    const source = v;
                     setAudioSource(source);
                     if (source !== "generated") {
                       setCurrentInstrumentName(source);
@@ -347,7 +348,8 @@ function NoteTrainerPage() {
                 <Label htmlFor="noteSelect">Notes</Label>
                 <Select
                   value={noteSet}
-                  onValueChange={(value: NoteSet) => {
+                  onValueChange={(value) => {
+                    if (value === null) return;
                     setNoteSet(value);
                     setSelectedGuess(null);
                     setRevealedNote(null);

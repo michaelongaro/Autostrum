@@ -44,16 +44,18 @@ function AccountDraftsDialog({ ownerId }: { ownerId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="link"
-          className="baseFlex ml-auto !h-5 shrink-0 gap-2 !self-end !py-0"
-          disabled={!library.hasDrafts}
-        >
-          Drafts
-          <MdModeEditOutline />
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button
+            variant="link"
+            className="baseFlex ml-auto !h-5 shrink-0 gap-2 !self-end !py-0"
+            disabled={!library.hasDrafts}
+          >
+            Drafts
+            <MdModeEditOutline />
+          </Button>
+        }
+      />
       <DialogContent className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-3xl flex-col overflow-y-auto rounded-lg p-0">
         <div className="flex shrink-0 flex-col gap-5 p-6">
           <DialogHeader className="pr-6 text-left">
@@ -221,9 +223,12 @@ function DraftList({
               title={draft.title}
               date={draft.updatedAt.toISOString()}
             >
-              <Button size="sm" asChild>
-                <Link href={draftHref(draft)}>Continue editing</Link>
-              </Button>
+              <Button
+                role="link"
+                size="sm"
+                nativeButton={false}
+                render={<Link href={draftHref(draft)}>Continue editing</Link>}
+              />
               {deleteButton({ kind: "cloud", draft })}
             </DraftCard>
           ))}
@@ -240,11 +245,16 @@ function DraftList({
               title={draft.document.title}
               date={draft.updatedAt}
             >
-              <Button size="sm" asChild>
-                <Link href={draftHref(draft, draft.writerId)}>
-                  Recover draft
-                </Link>
-              </Button>
+              <Button
+                role="link"
+                size="sm"
+                nativeButton={false}
+                render={
+                  <Link href={draftHref(draft, draft.writerId)}>
+                    Recover draft
+                  </Link>
+                }
+              />
               {deleteButton({ kind: "local", draft })}
             </DraftCard>
           ))}

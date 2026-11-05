@@ -23,7 +23,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import { Label } from "~/components/ui/label";
 import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
 

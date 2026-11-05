@@ -4,7 +4,6 @@ import isEqual from "lodash.isequal";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
-  Fragment,
   useEffect,
   useState,
   type ChangeEvent,
@@ -568,15 +567,17 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
           <div className="baseFlex w-full flex-wrap !justify-end gap-2 p-4 sm:gap-3">
             {!asPath.includes("create") && (
               <DropdownMenu modal={true}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    aria-label="Miscellaneous tab actions dropdown trigger"
-                    variant={"ghost"}
-                    className="px-0"
-                  >
-                    <LiaEllipsisVSolid className="size-7 sm:size-8" />
-                  </Button>
-                </DropdownMenuTrigger>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      aria-label="Miscellaneous tab actions dropdown trigger"
+                      variant={"ghost"}
+                      className="px-0"
+                    >
+                      <LiaEllipsisVSolid className="size-7 sm:size-8" />
+                    </Button>
+                  }
+                />
 
                 <DropdownMenuContent side={"bottom"}>
                   <DropdownMenuItem className="baseFlex">
@@ -625,66 +626,68 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 }
               }}
             >
-              <PopoverTrigger asChild>
-                <Button
-                  disabled={
-                    audioMetadata.playing || // helps with performance when playing audio (while editing)
-                    isLoadingARoute ||
-                    isPublishing ||
-                    isUpdating ||
-                    isDeleting ||
-                    (asPath.includes("create") &&
-                      saveButtonText !== "Publish") ||
-                    (asPath.includes("edit") && saveButtonText !== "Save")
-                  }
-                  onClick={() => void handleSave()}
-                  className="baseFlex overflow-hidden"
-                >
-                  <AnimatePresence mode={"wait"} initial={false}>
-                    <motion.div
-                      key={saveButtonText}
-                      initial={{ opacity: 0, y: -20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      transition={{
-                        duration: 0.25,
-                      }}
-                      className="baseFlex w-[100px] gap-2 overflow-hidden"
-                    >
-                      {saveButtonText}
+              <PopoverTrigger
+                render={
+                  <Button
+                    disabled={
+                      audioMetadata.playing || // helps with performance when playing audio (while editing)
+                      isLoadingARoute ||
+                      isPublishing ||
+                      isUpdating ||
+                      isDeleting ||
+                      (asPath.includes("create") &&
+                        saveButtonText !== "Publish") ||
+                      (asPath.includes("edit") && saveButtonText !== "Save")
+                    }
+                    onClick={() => void handleSave()}
+                    className="baseFlex overflow-hidden"
+                  >
+                    <AnimatePresence mode={"wait"} initial={false}>
+                      <motion.div
+                        key={saveButtonText}
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{
+                          duration: 0.25,
+                        }}
+                        className="baseFlex w-[100px] gap-2 overflow-hidden"
+                      >
+                        {saveButtonText}
 
-                      {(saveButtonText === "Publishing" ||
-                        saveButtonText === "Saving") && (
-                        <Spinner className="size-4" />
-                      )}
+                        {(saveButtonText === "Publishing" ||
+                          saveButtonText === "Saving") && (
+                          <Spinner className="size-4" />
+                        )}
 
-                      {saveButtonText === "" && (
-                        <svg
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                          className="size-5"
-                        >
-                          <motion.path
-                            initial={{ pathLength: 0 }}
-                            animate={{ pathLength: 1 }}
-                            transition={{
-                              delay: 0.2,
-                              type: "tween",
-                              ease: "easeOut",
-                              duration: 0.3,
-                            }}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                </Button>
-              </PopoverTrigger>
+                        {saveButtonText === "" && (
+                          <svg
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            className="size-5"
+                          >
+                            <motion.path
+                              initial={{ pathLength: 0 }}
+                              animate={{ pathLength: 1 }}
+                              transition={{
+                                delay: 0.2,
+                                type: "tween",
+                                ease: "easeOut",
+                                duration: 0.3,
+                              }}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </Button>
+                }
+              />
               <PopoverContent className="w-full p-0">
                 {renderSavePopoverContent(popoverContentIsForSave)}
               </PopoverContent>
@@ -757,6 +760,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               <Select
                 value={genre}
                 onValueChange={(value) => {
+                  if (value === null) return;
                   setGenre(value);
                   setShowInvalidGenre(false);
                 }}
@@ -808,7 +812,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               <Label htmlFor="capo">Capo</Label>
               <Select
                 value={capo.toString()}
-                onValueChange={(value) => setCapo(Number(value))}
+                onValueChange={(value) => {
+                  if (value === null) return;
+                  return setCapo(Number(value));
+                }}
               >
                 <SelectTrigger id="capo" className="w-28">
                   <SelectValue placeholder="None" />
@@ -863,7 +870,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               <Label htmlFor="key">Key</Label>
               <Select
                 value={key ?? ""}
-                onValueChange={(value) => setKey(value)}
+                onValueChange={(value) => {
+                  if (value === null) return;
+                  return setKey(value);
+                }}
               >
                 <SelectTrigger id="key">
                   <SelectValue placeholder="Select a key" />
@@ -875,14 +885,14 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                     </SelectItem>
 
                     {Object.entries(KEYS_BY_LETTER).map(([letter, keys]) => (
-                      <Fragment key={letter}>
+                      <SelectGroup key={letter}>
                         <SelectLabel>{letter}</SelectLabel>
                         {keys.map((key) => (
                           <SelectItem key={key} value={key}>
                             {key}
                           </SelectItem>
                         ))}
-                      </Fragment>
+                      </SelectGroup>
                     ))}
                   </SelectGroup>
                 </SelectContent>
@@ -899,7 +909,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               </Label>
               <Select
                 value={difficulty.toString()}
-                onValueChange={(value) => setDifficulty(Number(value))}
+                onValueChange={(value) => {
+                  if (value === null) return;
+                  return setDifficulty(Number(value));
+                }}
               >
                 <SelectTrigger id="difficulty" className="w-[180px]">
                   <SelectValue placeholder="Select a difficulty">
@@ -990,20 +1003,25 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                   {artistName && (
                     <div className="baseFlex gap-2 text-lg">
                       by
-                      <Button variant={"link"} asChild>
-                        <Link
-                          prefetch={false}
-                          href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                          className="!h-6 !p-0"
-                        >
-                          <div className="baseFlex gap-1 text-lg font-medium">
-                            {true && <Verified className="size-5 shrink-0" />}
-                            <span className="max-w-[300px] truncate">
-                              {artistName}
-                            </span>
-                          </div>
-                        </Link>
-                      </Button>
+                      <Button
+                        role="link"
+                        variant={"link"}
+                        nativeButton={false}
+                        render={
+                          <Link
+                            prefetch={false}
+                            href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
+                            className="!h-6 !p-0"
+                          >
+                            <div className="baseFlex gap-1 text-lg font-medium">
+                              {true && <Verified className="size-5 shrink-0" />}
+                              <span className="max-w-[300px] truncate">
+                                {artistName}
+                              </span>
+                            </div>
+                          </Link>
+                        }
+                      />
                     </div>
                   )}
                 </div>
@@ -1143,22 +1161,27 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                     {artistName && (
                       <div className="baseFlex w-full max-w-[100%] !justify-start gap-2 text-lg">
                         by
-                        <Button variant={"link"} asChild>
-                          <Link
-                            prefetch={false}
-                            href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                            className="baseFlex !h-6 !justify-start !p-0"
-                          >
-                            <div className="baseFlex w-full gap-1 text-lg font-medium">
-                              {artistIsVerified && (
-                                <Verified className="size-5 shrink-0" />
-                              )}
-                              <span className="max-w-full truncate">
-                                {artistName}
-                              </span>
-                            </div>
-                          </Link>
-                        </Button>
+                        <Button
+                          role="link"
+                          variant={"link"}
+                          nativeButton={false}
+                          render={
+                            <Link
+                              prefetch={false}
+                              href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
+                              className="baseFlex !h-6 !justify-start !p-0"
+                            >
+                              <div className="baseFlex w-full gap-1 text-lg font-medium">
+                                {artistIsVerified && (
+                                  <Verified className="size-5 shrink-0" />
+                                )}
+                                <span className="max-w-full truncate">
+                                  {artistName}
+                                </span>
+                              </div>
+                            </Link>
+                          }
+                        />
                       </div>
                     )}
                   </div>

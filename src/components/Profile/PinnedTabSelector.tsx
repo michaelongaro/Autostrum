@@ -8,7 +8,6 @@ import {
   Drawer,
   DrawerTrigger,
   DrawerContent,
-  DrawerPortal,
   DrawerTitle,
   DrawerDescription,
 } from "~/components/ui/drawer";
@@ -16,7 +15,7 @@ import { Separator } from "~/components/ui/separator";
 import PinnedTabList from "~/components/Profile/PinnedTabList";
 import { IoClose } from "react-icons/io5";
 import type { LocalSettings } from "~/pages/profile/settings";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 interface PinnedTabSelector {
   localPinnedTabId: number | null;
@@ -103,30 +102,26 @@ function PinnedTabSelector({
               onOpenChange={(open) => {
                 setDrawerIsOpen(open);
               }}
-              onClose={() => {
-                // setDrawerView("Search filters");
-              }}
             >
-              <DrawerTrigger asChild>
-                <Button variant={"outline"}>Edit</Button>
-              </DrawerTrigger>
-              <DrawerPortal>
-                <DrawerContent className="baseVertFlex h-[471px] !items-start !justify-start">
-                  <VisuallyHidden>
-                    <DrawerTitle>Pinned tab selector</DrawerTitle>
-                    <DrawerDescription>
-                      Select a pinned tab to display on your profile.
-                    </DrawerDescription>
-                  </VisuallyHidden>
+              <DrawerTrigger
+                render={<Button variant={"outline"}>Edit</Button>}
+              />
 
-                  <div className="my-1.5"></div>
+              <DrawerContent className="baseVertFlex h-[471px] !items-start !justify-start">
+                <VisuallyHidden>
+                  <DrawerTitle>Pinned tab selector</DrawerTitle>
+                  <DrawerDescription>
+                    Select a pinned tab to display on your profile.
+                  </DrawerDescription>
+                </VisuallyHidden>
 
-                  <PinnedTabList
-                    localPinnedTabId={localPinnedTabId}
-                    setLocalPinnedTabId={setLocalPinnedTabId}
-                  />
-                </DrawerContent>
-              </DrawerPortal>
+                <div className="my-1.5"></div>
+
+                <PinnedTabList
+                  localPinnedTabId={localPinnedTabId}
+                  setLocalPinnedTabId={setLocalPinnedTabId}
+                />
+              </DrawerContent>
             </Drawer>
           )}
         </div>

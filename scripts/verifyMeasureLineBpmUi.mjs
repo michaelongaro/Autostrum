@@ -176,7 +176,10 @@ async function run() {
     await pmChord.scrollIntoViewIfNeeded();
     const box = await pmChord.boundingBox();
     if (box) {
-      const pmShot = path.join(OUT, "editing_pm_measure_line_bpm_alignment.png");
+      const pmShot = path.join(
+        OUT,
+        "editing_pm_measure_line_bpm_alignment.png",
+      );
       await page.screenshot({
         path: pmShot,
         clip: {
@@ -196,7 +199,7 @@ async function run() {
     await stickyBtn.click({ force: true });
     await page.waitForTimeout(300);
     const placeholder = await page
-      .locator('[role="dialog"] input, [data-radix-popper-content-wrapper] input')
+      .locator('[role="dialog"] input')
       .first()
       .getAttribute("placeholder");
     console.log("  sticky null placeholder:", placeholder);
@@ -204,7 +207,10 @@ async function run() {
       placeholder === "120",
       `sticky null measure-line placeholder is carried BPM 120 (got ${placeholder})`,
     );
-    const popShot = path.join(OUT, "editing_sticky_bpm_popover_placeholder.png");
+    const popShot = path.join(
+      OUT,
+      "editing_sticky_bpm_popover_placeholder.png",
+    );
     await page.screenshot({ path: popShot, fullPage: false });
     console.log(`  wrote ${popShot}`);
   } else {
@@ -277,8 +283,10 @@ async function run() {
     "playback sticky note BPMs match expected walk",
   );
   assert(
-    playbackCheck.measureShows.filter((m) => m.show).map((m) => m.bpm).join(",") ===
-      "120,140",
+    playbackCheck.measureShows
+      .filter((m) => m.show)
+      .map((m) => m.bpm)
+      .join(",") === "120,140",
     "playback would show BPM only for 120 and 140 measure lines",
   );
 

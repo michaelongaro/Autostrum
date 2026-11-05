@@ -1,82 +1,112 @@
 "use client";
 
 import * as React from "react";
-import { Drawer as DrawerPrimitive } from "vaul";
-
+import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
+import type { StyledProps } from "./base-ui-types";
 import { cn } from "~/utils/cn";
 
-const Drawer = ({
-  shouldScaleBackground = true,
+const SwipeContext = React.createContext({
+  disabled: false,
+  handleOnly: false,
+});
+
+type DrawerProps = DrawerPrimitive.Root.Props & {
+  swipeDisabled?: boolean;
+  swipeHandleOnly?: boolean;
+};
+
+function Drawer({
+  swipeDisabled = false,
+  swipeHandleOnly = false,
+  onOpenChange,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
-  <DrawerPrimitive.Root
-    shouldScaleBackground={shouldScaleBackground}
-    {...props}
-  />
-);
-Drawer.displayName = "Drawer";
+}: DrawerProps) {
+  return (
+    <SwipeContext.Provider
+      value={{ disabled: swipeDisabled, handleOnly: swipeHandleOnly }}
+    >
+      <DrawerPrimitive.Root
+        {...props}
+        onOpenChange={(open, details) => {
+          if (swipeDisabled && details.reason === "swipe") {
+            details.cancel();
+            return;
+          }
+          onOpenChange?.(open, details);
+        }}
+      />
+    </SwipeContext.Provider>
+  );
+}
 
 const DrawerTrigger = DrawerPrimitive.Trigger;
-
 const DrawerPortal = DrawerPrimitive.Portal;
-
 const DrawerClose = DrawerPrimitive.Close;
 
+// Match Vaul's quick start and long, gentle settle on both enter and exit.
+const drawerMotion: React.CSSProperties = {
+  transitionDuration: "500ms",
+  transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+};
+
 const DrawerOverlay = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
+  React.ComponentRef<typeof DrawerPrimitive.Backdrop>,
+  StyledProps<typeof DrawerPrimitive.Backdrop>
 >(({ className, ...props }, ref) => (
-  <DrawerPrimitive.Overlay
+  <DrawerPrimitive.Backdrop
     ref={ref}
-    style={{
-      animationDuration: "300ms",
-      animationTimingFunction: "ease-in-out",
-    }}
+    style={drawerMotion}
     className={cn(
-      "fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/50 opacity-[calc(1_-_var(--drawer-swipe-progress,0))] transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-[swiping]:transition-none motion-reduce:transition-none",
       className,
     )}
     {...props}
   />
 ));
-DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
+DrawerOverlay.displayName = "DrawerOverlay";
 
-type DrawerContentProps = React.ComponentPropsWithoutRef<
-  typeof DrawerPrimitive.Content
-> & {
+type DrawerContentProps = StyledProps<typeof DrawerPrimitive.Popup> & {
   forPlaybackModalTuner?: boolean;
 };
-
 const DrawerContent = React.forwardRef<
-  React.ComponentRef<typeof DrawerPrimitive.Content>,
+  React.ComponentRef<typeof DrawerPrimitive.Popup>,
   DrawerContentProps
->(({ className, children, forPlaybackModalTuner, ...props }, ref) => (
-  <DrawerPortal>
-    {/* little hack below here, since the default overlay when scrolling drawer up past default height wouldn't show the border-x that I have on <DrawerContent> */}
-    <DrawerOverlay className="fixed">
-      {/* <div className="baseFlex absolute bottom-0 left-0 h-[100px] w-full">
-        <div className="size-full max-w-md bg-background"></div>
-      </div> */}
-    </DrawerOverlay>
-
-    <DrawerPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed bottom-2 left-2 right-2 z-50 flex h-auto w-[calc(100%-16px)] max-w-md flex-col place-self-center overflow-hidden !rounded-[20px] bg-background pt-3",
-        className,
-      )}
-      {...props}
-    >
-      {forPlaybackModalTuner ? (
-        <div className="mx-auto mb-8 mt-4 h-1 w-12 flex-shrink-0 rounded-full bg-gray/25"></div>
-      ) : (
-        <div className="mx-auto mb-2 h-1 w-12 flex-shrink-0 rounded-full bg-gray/25"></div>
-      )}
-
-      {children}
-    </DrawerPrimitive.Content>
-  </DrawerPortal>
-));
+>(({ className, children, forPlaybackModalTuner, ...props }, ref) => {
+  const swipe = React.useContext(SwipeContext);
+  return (
+    <DrawerPortal>
+      <DrawerOverlay />
+      <DrawerPrimitive.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-2 outline-none">
+        <DrawerPrimitive.Popup
+          ref={ref}
+          data-slot="drawer-content"
+          data-base-ui-swipe-ignore={swipe.disabled ? "" : undefined}
+          style={drawerMotion}
+          className={cn(
+            "relative flex h-auto w-full max-w-md translate-y-[var(--drawer-swipe-movement-y)] flex-col overflow-hidden !rounded-[20px] bg-background pt-3 outline-none transition-transform data-[ending-style]:translate-y-[calc(100%_+_16px)] data-[starting-style]:translate-y-[calc(100%_+_16px)] data-[swiping]:select-none data-[swiping]:transition-none motion-reduce:transition-none",
+            className,
+          )}
+          {...props}
+        >
+          <div
+            data-slot="drawer-swipe-handle"
+            aria-hidden="true"
+            className={cn(
+              "mx-auto h-1 w-12 shrink-0 rounded-full bg-gray/25",
+              forPlaybackModalTuner ? "mb-8 mt-4" : "mb-2",
+            )}
+          />
+          <DrawerPrimitive.Content
+            className="contents"
+            data-base-ui-swipe-ignore={swipe.handleOnly ? "" : undefined}
+          >
+            {children}
+          </DrawerPrimitive.Content>
+        </DrawerPrimitive.Popup>
+      </DrawerPrimitive.Viewport>
+    </DrawerPortal>
+  );
+});
 DrawerContent.displayName = "DrawerContent";
 
 const DrawerHeader = ({
@@ -102,8 +132,8 @@ const DrawerFooter = ({
 DrawerFooter.displayName = "DrawerFooter";
 
 const DrawerTitle = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
+  React.ComponentRef<typeof DrawerPrimitive.Title>,
+  StyledProps<typeof DrawerPrimitive.Title>
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Title
     ref={ref}
@@ -114,11 +144,11 @@ const DrawerTitle = React.forwardRef<
     {...props}
   />
 ));
-DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
+DrawerTitle.displayName = "DrawerTitle";
 
 const DrawerDescription = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Description>
+  React.ComponentRef<typeof DrawerPrimitive.Description>,
+  StyledProps<typeof DrawerPrimitive.Description>
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Description
     ref={ref}
@@ -126,7 +156,7 @@ const DrawerDescription = React.forwardRef<
     {...props}
   />
 ));
-DrawerDescription.displayName = DrawerPrimitive.Description.displayName;
+DrawerDescription.displayName = "DrawerDescription";
 
 export {
   Drawer,

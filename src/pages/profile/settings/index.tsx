@@ -194,53 +194,75 @@ function UserSettings() {
           </span>
 
           <div className="baseFlex !hidden gap-4 lg:!flex">
-            <Button variant={"text"} asChild>
-              <Link
-                prefetch={false}
-                href={"/profile/settings"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
-              >
-                Settings
-              </Link>
-            </Button>
-            <Button variant={"text"} asChild>
-              <Link
-                prefetch={false}
-                href={"/profile/statistics"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:text-foreground/75 lg:!text-4xl"
-              >
-                Statistics
-              </Link>
-            </Button>
-            <Button variant={"text"} asChild>
-              <Link
-                prefetch={false}
-                href={"/profile/tabs/filters"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
-              >
-                Tabs
-              </Link>
-            </Button>
-            <Button variant={"text"} asChild>
-              <Link
-                prefetch={false}
-                href={"/profile/bookmarks/filters"}
-                className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
-              >
-                Bookmarks
-              </Link>
-            </Button>
+            <Button
+              role="link"
+              variant={"text"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={"/profile/settings"}
+                  className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+                >
+                  Settings
+                </Link>
+              }
+            />
+            <Button
+              role="link"
+              variant={"text"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={"/profile/statistics"}
+                  className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:text-foreground/75 lg:!text-4xl"
+                >
+                  Statistics
+                </Link>
+              }
+            />
+            <Button
+              role="link"
+              variant={"text"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={"/profile/tabs/filters"}
+                  className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+                >
+                  Tabs
+                </Link>
+              }
+            />
+            <Button
+              role="link"
+              variant={"text"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={"/profile/bookmarks/filters"}
+                  className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+                >
+                  Bookmarks
+                </Link>
+              }
+            />
           </div>
 
           <Popover
             open={showExtraSettingsPopover}
             onOpenChange={setShowExtraSettingsPopover}
           >
-            <PopoverTrigger asChild>
-              <Button variant={"text"} className="!p-0">
-                <Ellipsis className="size-[18px] text-foreground lg:size-5" />
-              </Button>
-            </PopoverTrigger>
+            <PopoverTrigger
+              render={
+                <Button variant={"text"} className="!p-0">
+                  <Ellipsis className="size-[18px] text-foreground lg:size-5" />
+                </Button>
+              }
+            />
             <PopoverContent side={"bottom"} align="end" className="w-fit">
               <Button
                 variant={"destructive"}
@@ -741,14 +763,16 @@ function UserSettings() {
               <div className="baseFlex gap-1 text-xl font-medium !text-foreground lg:gap-2 lg:text-2xl">
                 Theme
                 <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="mt-0.5 !size-7 !rounded-full !p-0 lg:mt-1 lg:!size-7"
-                    >
-                      <MdOutlineInfo className="size-[19px] lg:size-5" />
-                    </Button>
-                  </PopoverTrigger>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        className="mt-0.5 !size-7 !rounded-full !p-0 lg:mt-1 lg:!size-7"
+                      >
+                        <MdOutlineInfo className="size-[19px] lg:size-5" />
+                      </Button>
+                    }
+                  />
                   <PopoverContent
                     className="baseVertFlex p-2 text-center text-sm sm:text-base"
                     side="bottom"

@@ -270,7 +270,9 @@ function ChordSequence({
                 <Select
                   open={selectIsOpen}
                   onOpenChange={setSelectIsOpen}
-                  onValueChange={handleStrummingPatternChange}
+                  onValueChange={(value) => {
+                    if (value !== null) handleStrummingPatternChange(value);
+                  }}
                   value={`${indexOfCurrentlySelectedStrummingPattern}`}
                 >
                   <SelectTrigger

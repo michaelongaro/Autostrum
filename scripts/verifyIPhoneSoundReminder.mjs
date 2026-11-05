@@ -125,11 +125,11 @@ async function openHelp(page, screenshotPath, useKeyboard = false) {
   );
   if (screenshotPath) await page.screenshot({ path: screenshotPath });
   assert.equal(
-    await help(page).evaluate(
-      (el) => el.closest('[role="dialog"]').lastElementChild === el,
+    await help(page).evaluate((el) =>
+      el.parentElement.textContent.includes("Instrument"),
     ),
     true,
-    "No sound is the last action in the settings popover",
+    "No sound stays beside the Instrument heading in the settings popover",
   );
   const startsBeforeHelp = await page.evaluate(() => window.audioStarts);
   if (useKeyboard) await help(page).press("Space");
@@ -161,18 +161,24 @@ async function openHelp(page, screenshotPath, useKeyboard = false) {
     0,
     "Settings closes before help opens",
   );
-  assert.equal(await settings(page).getAttribute("data-state"), "closed");
+  assert.equal(await settings(page).getAttribute("data-popup-open"), null);
   await page.waitForFunction(() => {
     const dialog = document.querySelector(
-      '[data-vaul-drawer][data-state="open"]',
+      '[data-slot="drawer-content"][data-open]',
     );
     return dialog?.contains(document.activeElement);
   });
   for (let i = 0; i < 3; i++) {
     await page.keyboard.press("Tab");
+    // Base UI redirects from its portal focus guard on the next task.
+    await page.waitForFunction(() =>
+      document
+        .querySelector('[data-slot="drawer-content"][data-open]')
+        ?.contains(document.activeElement),
+    );
     assert.ok(
       await drawer(page).evaluate((el) => el.contains(document.activeElement)),
-      "Focus stays inside help",
+      `Focus stays inside help: ${await page.evaluate(() => document.activeElement?.outerHTML)}`,
     );
   }
 }

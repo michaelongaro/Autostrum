@@ -1,12 +1,13 @@
+import type { StyledProps } from "./base-ui-types";
 import * as React from "react";
-import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
 import { ChevronDown } from "lucide-react";
 
 import { cn } from "~/utils/cn";
 
 const Accordion = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Root>
+  StyledProps<typeof AccordionPrimitive.Root<string>>
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Root
     ref={ref}
@@ -18,13 +19,13 @@ Accordion.displayName = "Accordion";
 
 const AccordionItem = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+  StyledProps<typeof AccordionPrimitive.Item>
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item ref={ref} className={className} {...props} />
 ));
 AccordionItem.displayName = "AccordionItem";
 
-interface AccordionTriggerProps extends React.ComponentPropsWithoutRef<
+interface AccordionTriggerProps extends StyledProps<
   typeof AccordionPrimitive.Trigger
 > {
   extraPadding?: boolean;
@@ -80,35 +81,35 @@ const AccordionTrigger = React.forwardRef<
                 : extraTabMetadata
                   ? "right-4"
                   : "right-0"
-          } size-5 shrink-0 rounded-md transition-all duration-200 group-data-[state=open]:rotate-180`}
+          } size-5 shrink-0 rounded-md transition-all duration-200 group-data-[open]:rotate-180`}
         />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   ),
 );
-AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
+AccordionTrigger.displayName = "AccordionTrigger";
 
-interface AccordionContentProps extends React.ComponentPropsWithoutRef<
-  typeof AccordionPrimitive.Content
+interface AccordionContentProps extends StyledProps<
+  typeof AccordionPrimitive.Panel
 > {
   extraPaddingBottom?: boolean;
   animated?: boolean;
 }
 
 const AccordionContent = React.forwardRef<
-  React.ComponentRef<typeof AccordionPrimitive.Content>,
+  React.ComponentRef<typeof AccordionPrimitive.Panel>,
   AccordionContentProps
 >(
   (
     { extraPaddingBottom, animated = true, className, children, ...props },
     ref,
   ) => (
-    <AccordionPrimitive.Content
+    <AccordionPrimitive.Panel
       ref={ref}
       className={cn(
         `overflow-hidden ${
           animated
-            ? "transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+            ? "h-[var(--accordion-panel-height)] transition-[height] duration-200 data-[ending-style]:h-0 data-[starting-style]:h-0"
             : ""
         } `,
         className,
@@ -116,9 +117,9 @@ const AccordionContent = React.forwardRef<
       {...props}
     >
       <div className={`${extraPaddingBottom ? "pb-4" : ""}`}>{children}</div>
-    </AccordionPrimitive.Content>
+    </AccordionPrimitive.Panel>
   ),
 );
-AccordionContent.displayName = AccordionPrimitive.Content.displayName;
+AccordionContent.displayName = "AccordionContent";
 
 export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };

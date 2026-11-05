@@ -277,39 +277,42 @@ function MobileSettingsPopover({
   }, [showBackgroundBlur]);
 
   return (
-    <Popover open={open}>
-      <PopoverTrigger asChild>
-        <Button
-          ref={settingsTriggerRef}
-          variant="outline"
-          aria-label="Playback settings"
-          onClick={() => {
-            setOpen((prev) => !prev);
-            setShowBackgroundBlur((prev) => !prev);
-            if (audioMetadata.playing) pauseAudio();
-          }}
-          style={{
-            backgroundColor: open ? "hsl(var(--background))" : "transparent",
-          }}
-          className="z-50 !h-9"
-        >
-          <IoMdSettings className="size-5" />
-          <span className="ml-0 hidden mobilePortrait:ml-2 mobilePortrait:block">
-            Settings
-          </span>
-        </Button>
-      </PopoverTrigger>
+    <Popover
+      open={open}
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen && openSoundDrawerAfterCloseRef.current) {
+          openSoundDrawerAfterCloseRef.current = false;
+          openSoundDrawer(settingsTriggerRef.current);
+        }
+      }}
+    >
+      <PopoverTrigger
+        render={
+          <Button
+            ref={settingsTriggerRef}
+            variant="outline"
+            aria-label="Playback settings"
+            onClick={() => {
+              setOpen((prev) => !prev);
+              setShowBackgroundBlur((prev) => !prev);
+              if (audioMetadata.playing) pauseAudio();
+            }}
+            style={{
+              backgroundColor: open ? "hsl(var(--background))" : "transparent",
+            }}
+            className="z-50 !h-9"
+          >
+            <IoMdSettings className="size-5" />
+            <span className="ml-0 hidden mobilePortrait:ml-2 mobilePortrait:block">
+              Settings
+            </span>
+          </Button>
+        }
+      />
       <PopoverContent
         side={viewportLabel.includes("Landscape") ? "left" : "top"}
         className="baseVertFlex max-h-[calc(100dvh-32px)] w-[450px] gap-4 overflow-y-auto mobilePortrait:w-[300px]"
-        onCloseAutoFocus={(event) => {
-          if (openSoundDrawerAfterCloseRef.current) {
-            event.preventDefault();
-            openSoundDrawerAfterCloseRef.current = false;
-            // Hand off focus only after the settings popover has closed.
-            openSoundDrawer(settingsTriggerRef.current);
-          }
-        }}
+        finalFocus={() => !openSoundDrawerAfterCloseRef.current}
       >
         <div className="baseVertFlex w-full !items-start gap-2">
           <div className="baseFlex w-full !justify-between gap-2">
@@ -680,20 +683,22 @@ function MobileMenuDialog() {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          onClick={() => {
-            if (audioMetadata.playing) pauseAudio();
-          }}
-          className="!h-9"
-        >
-          <FaListUl className="size-[18px]" />
-          <span className="ml-0 hidden mobilePortrait:ml-3 mobilePortrait:block">
-            Menu
-          </span>
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (audioMetadata.playing) pauseAudio();
+            }}
+            className="!h-9"
+          >
+            <FaListUl className="size-[18px]" />
+            <span className="ml-0 hidden mobilePortrait:ml-3 mobilePortrait:block">
+              Menu
+            </span>
+          </Button>
+        }
+      />
       <DialogContent className="baseVertFlex !flex h-dvh max-h-dvh w-full !max-w-none !justify-start !gap-0 overflow-hidden !rounded-none !border-none !px-0 !pb-0 !pt-12">
         <div className="baseFlex h-12 w-full shrink-0 !justify-start">
           <Carousel
@@ -1066,15 +1071,10 @@ function DesktopSettings() {
           disabled={countInTimer.showing || audioMetadata.editingLoopRange}
           value={currentInstrumentName}
           onValueChange={(value) => {
+            if (value === null) return;
             pauseAudio();
 
-            setCurrentInstrumentName(
-              value as
-                | "acoustic_guitar_nylon"
-                | "acoustic_guitar_steel"
-                | "electric_guitar_clean"
-                | "electric_guitar_jazz",
-            );
+            setCurrentInstrumentName(value);
           }}
         >
           <SelectTrigger id="instrument" className="w-[200px]">
@@ -1118,6 +1118,7 @@ function DesktopSettings() {
           disabled={countInTimer.showing}
           value={`${loopDelay}s`}
           onValueChange={(value) => {
+            if (value === null) return;
             pauseAudio();
 
             setLoopDelay(Number(value[0]));
@@ -1135,42 +1136,46 @@ function DesktopSettings() {
         </Select>
       </div>
 
-      <TooltipProvider delayDuration={100}>
+      <TooltipProvider delay={100}>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={"outline"}
-              aria-label="Enter the loop range editor"
-              disabled={audioMetadata.playing || countInTimer.showing}
-              className="baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
-              onClick={() => {
-                enterPlaybackLoopRangeEditor();
-              }}
-            >
-              <CgArrowsShrinkH className="size-6" />
-            </Button>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <Button
+                variant={"outline"}
+                aria-label="Enter the loop range editor"
+                disabled={audioMetadata.playing || countInTimer.showing}
+                className="baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
+                onClick={() => {
+                  enterPlaybackLoopRangeEditor();
+                }}
+              >
+                <CgArrowsShrinkH className="size-6" />
+              </Button>
+            }
+          />
           <TooltipContent side={"bottom"}>
             <p>Edit loop range</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
-      <TooltipProvider delayDuration={100}>
+      <TooltipProvider delay={100}>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={"outline"}
-              aria-label="Toggle count-in"
-              disabled={audioMetadata.playing || countInTimer.showing}
-              className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${countIn ? "bg-accent/90 text-primary-foreground" : ""}`}
-              onClick={() => {
-                localStorageCountIn.set(String(!countIn));
-              }}
-            >
-              <CountIn className="size-5" />
-            </Button>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <Button
+                variant={"outline"}
+                aria-label="Toggle count-in"
+                disabled={audioMetadata.playing || countInTimer.showing}
+                className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${countIn ? "bg-accent/90 text-primary-foreground" : ""}`}
+                onClick={() => {
+                  localStorageCountIn.set(String(!countIn));
+                }}
+              >
+                <CountIn className="size-5" />
+              </Button>
+            }
+          />
           <TooltipContent side={"bottom"}>
             <p>Count in</p>
           </TooltipContent>
@@ -1179,155 +1184,159 @@ function DesktopSettings() {
 
       <PlaybackMetronomeControl />
 
-      <TooltipProvider delayDuration={100}>
+      <TooltipProvider delay={100}>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={"outline"}
-              aria-label="Toggle color-coded chords"
-              className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${colorCodedChords ? "bg-accent/90 text-primary-foreground" : ""}`}
-              onClick={() => {
-                localStorageColorCodedChords.set(String(!colorCodedChords));
-              }}
-            >
-              <IoColorPalette className="size-5" />
-            </Button>
-          </TooltipTrigger>
+          <TooltipTrigger
+            render={
+              <Button
+                variant={"outline"}
+                aria-label="Toggle color-coded chords"
+                className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${colorCodedChords ? "bg-accent/90 text-primary-foreground" : ""}`}
+                onClick={() => {
+                  localStorageColorCodedChords.set(String(!colorCodedChords));
+                }}
+              >
+                <IoColorPalette className="size-5" />
+              </Button>
+            }
+          />
           <TooltipContent side={"bottom"}>
             <p>Color-coded chords</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
-      <TooltipProvider delayDuration={100}>
+      <TooltipProvider delay={100}>
         <Tooltip open={volumePopoverIsOpen ? false : undefined}>
-          <TooltipTrigger asChild>
-            {/* for whatever reason, this wrapper <div> is required to get tooltip
-                text to show */}
-            <div className="baseFlex">
-              <Popover
-                open={volumePopoverIsOpen}
-                onOpenChange={setVolumePopoverIsOpen}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="size-10 !p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
-                  >
-                    <AnimatePresence mode="popLayout" initial={false}>
-                      {volume === 0 && (
-                        <motion.div
-                          key="muteIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeMuteFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      )}
-                      {volume > 0 && volume < 1 ? (
-                        <motion.div
-                          key="lowVolumeIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeDownFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      ) : null}
-                      {volume >= 1 ? (
-                        <motion.div
-                          key="highVolumeIcon"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="baseFlex"
-                        >
-                          <BsFillVolumeUpFill
-                            size={"1.5rem"}
-                            className="shrink-0"
-                          />
-                        </motion.div>
-                      ) : null}
-                    </AnimatePresence>
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="baseVertFlex h-40 w-[54px] gap-2 pb-2 pt-4"
-                  side="top"
+          <TooltipTrigger
+            render={
+              <div className="baseFlex">
+                <Popover
+                  open={volumePopoverIsOpen}
+                  onOpenChange={setVolumePopoverIsOpen}
                 >
-                  <Range
-                    label="Slider to control the playback volume"
-                    direction={Direction.Up}
-                    min={0}
-                    max={100}
-                    step={1}
-                    values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
-                    onChange={(values) => {
-                      const volume = values[0]! / 50; // 100 felt too quiet/narrow of a volume range
-                      localStorageVolume.set(`${volume}`);
-                      updateMasterVolumeGainNode(volume);
-                    }}
-                    renderTrack={({ props, children }) => (
-                      <div
-                        onMouseDown={props.onMouseDown}
-                        onTouchStart={props.onTouchStart}
-                        style={{
-                          ...props.style,
-                          display: "flex",
-                          width: "100%",
-                          height: "100%",
-                          justifyContent: "center",
-                          margin: "0.25rem 0",
-                        }}
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        className="size-10 !p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
                       >
-                        <div
-                          ref={props.ref}
-                          style={{
-                            width: "8px",
-                            borderRadius: "4px",
-                            alignSelf: "center",
-                            background: getTrackBackground({
-                              values: [volume * 50],
-                              colors: [
-                                "hsl(var(--primary))",
-                                "hsl(var(--gray)/0.75)",
-                              ],
-                              min: 0,
-                              max: 100,
-                              direction: Direction.Up,
-                            }),
-                          }}
-                          className={`relative h-full`}
-                        >
-                          {children}
-                        </div>
-                      </div>
-                    )}
-                    renderThumb={({ props }) => {
-                      const { key, ...restOfProps } = props;
-                      return (
-                        <div
-                          key={key}
-                          {...restOfProps}
-                          className="!z-20 size-[18px] rounded-full border bg-primary"
-                        />
-                      );
-                    }}
+                        <AnimatePresence mode="popLayout" initial={false}>
+                          {volume === 0 && (
+                            <motion.div
+                              key="muteIcon"
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              className="baseFlex"
+                            >
+                              <BsFillVolumeMuteFill
+                                size={"1.5rem"}
+                                className="shrink-0"
+                              />
+                            </motion.div>
+                          )}
+                          {volume > 0 && volume < 1 ? (
+                            <motion.div
+                              key="lowVolumeIcon"
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              className="baseFlex"
+                            >
+                              <BsFillVolumeDownFill
+                                size={"1.5rem"}
+                                className="shrink-0"
+                              />
+                            </motion.div>
+                          ) : null}
+                          {volume >= 1 ? (
+                            <motion.div
+                              key="highVolumeIcon"
+                              initial={{ opacity: 0, scale: 0.5 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.5 }}
+                              className="baseFlex"
+                            >
+                              <BsFillVolumeUpFill
+                                size={"1.5rem"}
+                                className="shrink-0"
+                              />
+                            </motion.div>
+                          ) : null}
+                        </AnimatePresence>
+                      </Button>
+                    }
                   />
-                  <span>{Math.floor(volume * 50)}%</span>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </TooltipTrigger>
+                  <PopoverContent
+                    className="baseVertFlex h-40 w-[54px] gap-2 pb-2 pt-4"
+                    side="top"
+                  >
+                    <Range
+                      label="Slider to control the playback volume"
+                      direction={Direction.Up}
+                      min={0}
+                      max={100}
+                      step={1}
+                      values={[volume * 50]} // 100 felt too quiet/narrow of a volume range
+                      onChange={(values) => {
+                        const volume = values[0]! / 50; // 100 felt too quiet/narrow of a volume range
+                        localStorageVolume.set(`${volume}`);
+                        updateMasterVolumeGainNode(volume);
+                      }}
+                      renderTrack={({ props, children }) => (
+                        <div
+                          onMouseDown={props.onMouseDown}
+                          onTouchStart={props.onTouchStart}
+                          style={{
+                            ...props.style,
+                            display: "flex",
+                            width: "100%",
+                            height: "100%",
+                            justifyContent: "center",
+                            margin: "0.25rem 0",
+                          }}
+                        >
+                          <div
+                            ref={props.ref}
+                            style={{
+                              width: "8px",
+                              borderRadius: "4px",
+                              alignSelf: "center",
+                              background: getTrackBackground({
+                                values: [volume * 50],
+                                colors: [
+                                  "hsl(var(--primary))",
+                                  "hsl(var(--gray)/0.75)",
+                                ],
+                                min: 0,
+                                max: 100,
+                                direction: Direction.Up,
+                              }),
+                            }}
+                            className={`relative h-full`}
+                          >
+                            {children}
+                          </div>
+                        </div>
+                      )}
+                      renderThumb={({ props }) => {
+                        const { key, ...restOfProps } = props;
+                        return (
+                          <div
+                            key={key}
+                            {...restOfProps}
+                            className="!z-20 size-[18px] rounded-full border bg-primary"
+                          />
+                        );
+                      }}
+                    />
+                    <span>{Math.floor(volume * 50)}%</span>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            }
+          />
 
           <TooltipContent side={"bottom"}>
             <span>Volume</span>

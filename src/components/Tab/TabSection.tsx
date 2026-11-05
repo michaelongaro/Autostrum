@@ -822,7 +822,9 @@ function TabSection({
                   </Label>
                   <Select
                     value={subSection.baseNoteLength}
-                    onValueChange={handleBaseNoteLengthChange}
+                    onValueChange={(value) => {
+                      if (value !== null) handleBaseNoteLengthChange(value);
+                    }}
                   >
                     <SelectTrigger
                       id={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
@@ -918,22 +920,24 @@ function TabSection({
 
             <div className="baseVertFlex !items-start gap-2 sm:!flex-row lg:gap-4">
               <div className="baseFlex">
-                <TooltipProvider delayDuration={0}>
+                <TooltipProvider delay={0}>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        disabled={editingPalmMuteNodes}
-                        style={{
-                          borderRadius: editingPalmMuteNodes
-                            ? "0.375rem 0 0 0.375rem"
-                            : "0.375rem",
-                          transitionDelay: "0.1s",
-                        }}
-                        onClick={toggleEditingPalmMuteNodes}
-                      >
-                        PM Editor
-                      </Button>
-                    </TooltipTrigger>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          disabled={editingPalmMuteNodes}
+                          style={{
+                            borderRadius: editingPalmMuteNodes
+                              ? "0.375rem 0 0 0.375rem"
+                              : "0.375rem",
+                            transitionDelay: "0.1s",
+                          }}
+                          onClick={toggleEditingPalmMuteNodes}
+                        >
+                          PM Editor
+                        </Button>
+                      }
+                    />
                     <TooltipContent side={"bottom"}>
                       <p>
                         Toggle: <kbd className="ml-1">Alt</kbd> <kbd>p</kbd>
@@ -975,25 +979,27 @@ function TabSection({
               </div>
 
               <div className="baseFlex">
-                <TooltipProvider delayDuration={0}>
+                <TooltipProvider delay={0}>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        disabled={reorderingColumns}
-                        style={{
-                          borderRadius: reorderingColumns
-                            ? "0.375rem 0 0 0.375rem"
-                            : "0.375rem",
-                          transitionDelay: "0.1s",
-                        }}
-                        onClick={() => {
-                          setReorderingColumns(!reorderingColumns);
-                          setShowingDeleteColumnsButtons(false);
-                        }}
-                      >
-                        Reorder chords
-                      </Button>
-                    </TooltipTrigger>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          disabled={reorderingColumns}
+                          style={{
+                            borderRadius: reorderingColumns
+                              ? "0.375rem 0 0 0.375rem"
+                              : "0.375rem",
+                            transitionDelay: "0.1s",
+                          }}
+                          onClick={() => {
+                            setReorderingColumns(!reorderingColumns);
+                            setShowingDeleteColumnsButtons(false);
+                          }}
+                        >
+                          Reorder chords
+                        </Button>
+                      }
+                    />
                     <TooltipContent side={"bottom"}>
                       <p>
                         Toggle: <kbd className="ml-1">Alt</kbd> <kbd>r</kbd>
@@ -1038,29 +1044,31 @@ function TabSection({
               </div>
 
               <div className="baseFlex">
-                <TooltipProvider delayDuration={0}>
+                <TooltipProvider delay={0}>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={"destructive"}
-                        disabled={showingDeleteColumnsButtons}
-                        style={{
-                          borderRadius: showingDeleteColumnsButtons
-                            ? "0.375rem 0 0 0.375rem"
-                            : "0.375rem",
-                          transitionDelay: "0.1s",
-                        }}
-                        className="baseFlex"
-                        onClick={() => {
-                          setShowingDeleteColumnsButtons(
-                            !showingDeleteColumnsButtons,
-                          );
-                          setReorderingColumns(false);
-                        }}
-                      >
-                        Delete chords
-                      </Button>
-                    </TooltipTrigger>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          variant={"destructive"}
+                          disabled={showingDeleteColumnsButtons}
+                          style={{
+                            borderRadius: showingDeleteColumnsButtons
+                              ? "0.375rem 0 0 0.375rem"
+                              : "0.375rem",
+                            transitionDelay: "0.1s",
+                          }}
+                          className="baseFlex"
+                          onClick={() => {
+                            setShowingDeleteColumnsButtons(
+                              !showingDeleteColumnsButtons,
+                            );
+                            setReorderingColumns(false);
+                          }}
+                        >
+                          Delete chords
+                        </Button>
+                      }
+                    />
                     <TooltipContent side={"bottom"}>
                       <p>
                         Toggle: <kbd className="ml-1">Alt</kbd> <kbd>d</kbd>

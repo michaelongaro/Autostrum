@@ -59,64 +59,72 @@ function DesktopHeader() {
           <HeaderLogo width={175} height={28} />
         </Link>
 
-        <TooltipProvider delayDuration={150}>
+        <TooltipProvider delay={150}>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={"headerNavigation"}
-                size={"lg"}
-                asChild
-                style={{
-                  backgroundColor: asPath.includes("/tools")
-                    ? "hsl(var(--accent))"
-                    : undefined,
-                  color: asPath.includes("/tools")
-                    ? "hsl(var(--accent-foreground))"
-                    : undefined,
-                }}
-                className={classes.tools}
-              >
-                <Link
-                  prefetch={false}
-                  href={"/tools"}
-                  className="baseFlex !size-12 !rounded-full !p-0"
-                >
-                  <PiMetronome className="size-6" />
-                </Link>
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  role="link"
+                  variant={"headerNavigation"}
+                  size={"lg"}
+                  style={{
+                    backgroundColor: asPath.includes("/tools")
+                      ? "hsl(var(--accent))"
+                      : undefined,
+                    color: asPath.includes("/tools")
+                      ? "hsl(var(--accent-foreground))"
+                      : undefined,
+                  }}
+                  className={classes.tools}
+                  nativeButton={false}
+                  render={
+                    <Link
+                      prefetch={false}
+                      href={"/tools"}
+                      className="baseFlex !size-12 !rounded-full !p-0"
+                    >
+                      <PiMetronome className="size-6" />
+                    </Link>
+                  }
+                />
+              }
+            />
             <TooltipContent side={"bottom"}>
               <p>Tools</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
-        <TooltipProvider delayDuration={150}>
+        <TooltipProvider delay={150}>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={"headerNavigation"}
-                size={"lg"}
-                asChild
-                style={{
-                  backgroundColor: asPath.includes("/tuner")
-                    ? "hsl(var(--accent))"
-                    : undefined,
-                  color: asPath.includes("/tuner")
-                    ? "hsl(var(--accent-foreground))"
-                    : undefined,
-                }}
-                className={classes.tuner}
-              >
-                <Link
-                  prefetch={false}
-                  href={"/tuner"}
-                  className="baseFlex !size-12 !rounded-full !p-0"
-                >
-                  <TuningFork className="size-5" />
-                </Link>
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  role="link"
+                  variant={"headerNavigation"}
+                  size={"lg"}
+                  style={{
+                    backgroundColor: asPath.includes("/tuner")
+                      ? "hsl(var(--accent))"
+                      : undefined,
+                    color: asPath.includes("/tuner")
+                      ? "hsl(var(--accent-foreground))"
+                      : undefined,
+                  }}
+                  className={classes.tuner}
+                  nativeButton={false}
+                  render={
+                    <Link
+                      prefetch={false}
+                      href={"/tuner"}
+                      className="baseFlex !size-12 !rounded-full !p-0"
+                    >
+                      <TuningFork className="size-5" />
+                    </Link>
+                  }
+                />
+              }
+            />
             <TooltipContent side={"bottom"}>
               <p>Tuner</p>
             </TooltipContent>
@@ -129,99 +137,110 @@ function DesktopHeader() {
           <SearchInput />
         </div>
 
-        <TooltipProvider delayDuration={150}>
+        <TooltipProvider delay={150}>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={"headerNavigation"}
-                size={"lg"}
-                asChild
-                style={{
-                  backgroundColor: asPath.includes("/explore")
-                    ? "hsl(var(--accent))"
-                    : undefined,
-                  color: asPath.includes("/explore")
-                    ? "hsl(var(--accent-foreground))"
-                    : undefined,
-                }}
-                className={classes.explore}
-              >
-                <Link
-                  prefetch={false}
-                  href={"/explore"}
-                  className="baseFlex !size-12 !rounded-full !p-0"
-                >
-                  <CiCompass1 className="size-6 stroke-[0.5px]" />
-                </Link>
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  role="link"
+                  variant={"headerNavigation"}
+                  size={"lg"}
+                  style={{
+                    backgroundColor: asPath.includes("/explore")
+                      ? "hsl(var(--accent))"
+                      : undefined,
+                    color: asPath.includes("/explore")
+                      ? "hsl(var(--accent-foreground))"
+                      : undefined,
+                  }}
+                  className={classes.explore}
+                  nativeButton={false}
+                  render={
+                    <Link
+                      prefetch={false}
+                      href={"/explore"}
+                      className="baseFlex !size-12 !rounded-full !p-0"
+                    >
+                      <CiCompass1 className="size-6 stroke-[0.5px]" />
+                    </Link>
+                  }
+                />
+              }
+            />
             <TooltipContent side={"bottom"}>
               <p>Explore</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
-        <TooltipProvider delayDuration={150}>
+        <TooltipProvider delay={150}>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={"headerNavigation"}
-                size={"lg"}
-                asChild
-                style={{
-                  backgroundColor: asPath.includes("/create")
-                    ? "hsl(var(--accent))"
-                    : undefined,
-                  color: asPath.includes("/create")
-                    ? "hsl(var(--accent-foreground))"
-                    : undefined,
-                }}
-                className={classes.create}
-              >
-                <Link
-                  prefetch={false}
-                  href={"/create"}
-                  className="baseFlex !size-12 !rounded-full !p-0"
-                >
-                  <BsPlus className="size-8" />
-                </Link>
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  role="link"
+                  variant={"headerNavigation"}
+                  size={"lg"}
+                  style={{
+                    backgroundColor: asPath.includes("/create")
+                      ? "hsl(var(--accent))"
+                      : undefined,
+                    color: asPath.includes("/create")
+                      ? "hsl(var(--accent-foreground))"
+                      : undefined,
+                  }}
+                  className={classes.create}
+                  nativeButton={false}
+                  render={
+                    <Link
+                      prefetch={false}
+                      href={"/create"}
+                      className="baseFlex !size-12 !rounded-full !p-0"
+                    >
+                      <BsPlus className="size-8" />
+                    </Link>
+                  }
+                />
+              }
+            />
             <TooltipContent side={"bottom"}>
               <p>Create</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
-        <Popover>
-          <TooltipProvider delayDuration={150}>
+        <Popover
+          onOpenChange={(_open, details) => {
+            if (
+              details.reason === "outside-press" &&
+              isThemeTransitionPointerEvent(details.event)
+            ) {
+              details.cancel();
+            }
+          }}
+        >
+          <TooltipProvider delay={150}>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"headerNavigation"}
-                    size={"lg"}
-                    className={`${classes.theme} baseFlex !size-12 !rounded-full !p-0`}
-                  >
-                    <IoColorPalette className="size-6" />
-                  </Button>
-                </PopoverTrigger>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        variant={"headerNavigation"}
+                        size={"lg"}
+                        className={`${classes.theme} baseFlex !size-12 !rounded-full !p-0`}
+                      >
+                        <IoColorPalette className="size-6" />
+                      </Button>
+                    }
+                  />
+                }
+              />
               <TooltipContent side={"bottom"}>Theme</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
-          <PopoverContent
-            side={"bottom"}
-            className="baseFlex max-w-[275px]"
-            onPointerDownOutside={(event) => {
-              // Radix defers this callback until click, which can occur after
-              // the transition has finished. Check when the press began.
-              if (isThemeTransitionPointerEvent(event.detail.originalEvent)) {
-                event.preventDefault();
-              }
-            }}
-          >
+          <PopoverContent side={"bottom"} className="baseFlex max-w-[275px]">
             <ThemePicker />
           </PopoverContent>
         </Popover>
@@ -253,22 +272,24 @@ function DesktopHeader() {
               }}
               className={`${classes.authentication} baseFlex shrink-0`}
             >
-              <TooltipProvider delayDuration={150}>
+              <TooltipProvider delay={150}>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <SignInButton mode="modal">
-                      <Button
-                        variant={"headerNavigation"}
-                        className="!size-12 !rounded-full !p-0"
-                        onClick={() => {
-                          if (asPath.split("?")[0] === "/create")
-                            saveTabForSignIn(getTabDocument());
-                        }}
-                      >
-                        <FaUser className="size-5" />
-                      </Button>
-                    </SignInButton>
-                  </TooltipTrigger>
+                  <TooltipTrigger
+                    render={
+                      <SignInButton mode="modal">
+                        <Button
+                          variant={"headerNavigation"}
+                          className="!size-12 !rounded-full !p-0"
+                          onClick={() => {
+                            if (asPath.split("?")[0] === "/create")
+                              saveTabForSignIn(getTabDocument());
+                          }}
+                        >
+                          <FaUser className="size-5" />
+                        </Button>
+                      </SignInButton>
+                    }
+                  />
                   <TooltipContent side={"bottom"}>
                     <p>Sign in</p>
                   </TooltipContent>
@@ -289,13 +310,11 @@ function DesktopHeader() {
               className={`${classes.authentication} baseFlex shrink-0`}
             >
               <Popover open={userPopoverOpen} onOpenChange={setUserPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <div
-                    className={`${classes.authentication} baseFlex shrink-0`}
-                  >
+                <PopoverTrigger
+                  render={
                     <Button
                       variant={"ghost"}
-                      className="!size-12 !rounded-full !p-0"
+                      className={`${classes.authentication} baseFlex !size-12 shrink-0 !rounded-full !p-0`}
                     >
                       <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                         <Image
@@ -329,58 +348,69 @@ function DesktopHeader() {
                         </AnimatePresence>
                       </div>
                     </Button>
-                  </div>
-                </PopoverTrigger>
+                  }
+                />
                 <PopoverContent
                   side={"bottom"}
                   className="baseVertFlex w-[388px] !items-start gap-4"
                 >
                   <div className="baseFlex w-full !justify-between gap-4 px-1">
-                    <Button variant={"link"} size={"lg"} asChild>
-                      <Link
-                        prefetch={false}
-                        href={`
-                      /user/${currentUser.username}/filters
-                      `}
-                        onClick={() => {
-                          setUserPopoverOpen(false);
-                        }}
-                        className="baseFlex !h-10 gap-2 !px-0"
-                      >
-                        <Image
-                          src={currentUser.profileImageUrl}
-                          alt="User profile image"
-                          className="!size-8 rounded-full object-cover object-center"
-                          width={300}
-                          height={300}
-                        />
-                        <p className="text-lg font-medium">
-                          {currentUser.username}
-                        </p>
-                      </Link>
-                    </Button>
-
-                    <SignOutButton>
-                      <Button variant={"link"} asChild>
+                    <Button
+                      role="link"
+                      variant={"link"}
+                      size={"lg"}
+                      nativeButton={false}
+                      render={
                         <Link
                           prefetch={false}
-                          href={`/`}
+                          href={`
+                      /user/${currentUser.username}/filters
+                      `}
                           onClick={() => {
                             setUserPopoverOpen(false);
                           }}
-                          className="baseFlex !p-0"
+                          className="baseFlex !h-10 gap-2 !px-0"
                         >
-                          Sign out
+                          <Image
+                            src={currentUser.profileImageUrl}
+                            alt="User profile image"
+                            className="!size-8 rounded-full object-cover object-center"
+                            width={300}
+                            height={300}
+                          />
+                          <p className="text-lg font-medium">
+                            {currentUser.username}
+                          </p>
                         </Link>
-                      </Button>
+                      }
+                    />
+
+                    <SignOutButton>
+                      <Button
+                        role="link"
+                        variant={"link"}
+                        nativeButton={false}
+                        render={
+                          <Link
+                            prefetch={false}
+                            href={`/`}
+                            onClick={() => {
+                              setUserPopoverOpen(false);
+                            }}
+                            className="baseFlex !p-0"
+                          >
+                            Sign out
+                          </Link>
+                        }
+                      />
                     </SignOutButton>
                   </div>
 
                   <div className="baseFlex w-full gap-4">
                     <Button
+                      role="link"
                       variant={"headerNavigation"}
                       size={"lg"}
-                      asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/settings")
                           ? "hsl(var(--accent))"
@@ -389,24 +419,26 @@ function DesktopHeader() {
                           ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
-                    >
-                      <Link
-                        prefetch={false}
-                        href={`/profile/settings`}
-                        onClick={() => {
-                          setUserPopoverOpen(false);
-                        }}
-                        className="baseFlex w-[165px] gap-2"
-                      >
-                        <IoMdSettings className="size-[18px]" />
-                        Settings
-                      </Link>
-                    </Button>
+                      nativeButton={false}
+                      render={
+                        <Link
+                          prefetch={false}
+                          href={`/profile/settings`}
+                          onClick={() => {
+                            setUserPopoverOpen(false);
+                          }}
+                          className="baseFlex w-[165px] gap-2"
+                        >
+                          <IoMdSettings className="size-[18px]" />
+                          Settings
+                        </Link>
+                      }
+                    />
 
                     <Button
+                      role="link"
                       variant={"headerNavigation"}
                       size={"lg"}
-                      asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/statistics")
                           ? "hsl(var(--accent))"
@@ -415,26 +447,28 @@ function DesktopHeader() {
                           ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
-                    >
-                      <Link
-                        prefetch={false}
-                        href={`/profile/statistics`}
-                        onClick={() => {
-                          setUserPopoverOpen(false);
-                        }}
-                        className="baseFlex w-[165px] gap-2"
-                      >
-                        <IoStatsChart className="size-4" />
-                        Statistics
-                      </Link>
-                    </Button>
+                      nativeButton={false}
+                      render={
+                        <Link
+                          prefetch={false}
+                          href={`/profile/statistics`}
+                          onClick={() => {
+                            setUserPopoverOpen(false);
+                          }}
+                          className="baseFlex w-[165px] gap-2"
+                        >
+                          <IoStatsChart className="size-4" />
+                          Statistics
+                        </Link>
+                      }
+                    />
                   </div>
 
                   <div className="baseFlex w-full gap-4">
                     <Button
+                      role="link"
                       variant={"headerNavigation"}
                       size={"lg"}
-                      asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/tabs")
                           ? "hsl(var(--accent))"
@@ -443,24 +477,26 @@ function DesktopHeader() {
                           ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
-                    >
-                      <Link
-                        prefetch={false}
-                        href={`/profile/tabs/filters`}
-                        onClick={() => {
-                          setUserPopoverOpen(false);
-                        }}
-                        className="baseFlex w-[165px] gap-2"
-                      >
-                        <Logo className="size-3.5" />
-                        Tabs
-                      </Link>
-                    </Button>
+                      nativeButton={false}
+                      render={
+                        <Link
+                          prefetch={false}
+                          href={`/profile/tabs/filters`}
+                          onClick={() => {
+                            setUserPopoverOpen(false);
+                          }}
+                          className="baseFlex w-[165px] gap-2"
+                        >
+                          <Logo className="size-3.5" />
+                          Tabs
+                        </Link>
+                      }
+                    />
 
                     <Button
+                      role="link"
                       variant={"headerNavigation"}
                       size={"lg"}
-                      asChild
                       style={{
                         backgroundColor: asPath.includes("/profile/bookmarks")
                           ? "hsl(var(--accent))"
@@ -469,19 +505,21 @@ function DesktopHeader() {
                           ? "hsl(var(--accent-foreground))"
                           : undefined,
                       }}
-                    >
-                      <Link
-                        prefetch={false}
-                        href={`/profile/bookmarks/filters`}
-                        onClick={() => {
-                          setUserPopoverOpen(false);
-                        }}
-                        className="baseFlex w-[165px] gap-2 !px-0"
-                      >
-                        <IoBookmark className="size-4 shrink-0" />
-                        Bookmarks
-                      </Link>
-                    </Button>
+                      nativeButton={false}
+                      render={
+                        <Link
+                          prefetch={false}
+                          href={`/profile/bookmarks/filters`}
+                          onClick={() => {
+                            setUserPopoverOpen(false);
+                          }}
+                          className="baseFlex w-[165px] gap-2 !px-0"
+                        >
+                          <IoBookmark className="size-4 shrink-0" />
+                          Bookmarks
+                        </Link>
+                      }
+                    />
                   </div>
                 </PopoverContent>
               </Popover>

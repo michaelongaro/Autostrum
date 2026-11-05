@@ -589,9 +589,7 @@ try {
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(700);
   await selectedSlide.locator('button[aria-haspopup="dialog"]').click();
-  const popupBounds = await page
-    .locator("[data-radix-popper-content-wrapper]")
-    .boundingBox();
+  const popupBounds = await page.getByRole("dialog").boundingBox();
   assert.ok(
     popupBounds.x >= 0 && popupBounds.x + popupBounds.width <= 320,
     "Native speed popover fits narrow mobile screens",

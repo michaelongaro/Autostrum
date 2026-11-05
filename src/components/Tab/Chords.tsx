@@ -82,10 +82,8 @@ function Chords() {
   return (
     <div className="baseVertFlex relative w-1/2 min-w-[300px] max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton sm:min-w-[500px]">
       <Accordion
-        type="single"
-        collapsible
-        value={accordionValue}
-        onValueChange={(value) => {
+        value={[accordionValue]}
+        onValueChange={([value = "closed"]) => {
           setAccordionValue(value);
         }}
         className="baseVertFlex w-full !items-start gap-2 rounded-md px-2 sm:px-0"

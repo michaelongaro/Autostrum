@@ -84,31 +84,33 @@ function ArtistCombobox() {
         }
       }}
     >
-      <PopoverTrigger asChild>
-        <Button
-          id="artistCombobox"
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="h-10 w-full justify-between font-normal text-foreground tablet:max-w-72"
-        >
-          {artistName ? (
-            <span className="baseFlex max-w-full !justify-start gap-1.5">
-              {artistIsVerified && (
-                <Verified className="inline size-4 shrink-0" />
-              )}
-              <span
-                className={`truncate ${artistIsVerified ? "max-w-48" : "max-w-52"}`}
-              >
-                {artistName}
+      <PopoverTrigger
+        render={
+          <Button
+            id="artistCombobox"
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="h-10 w-full justify-between font-normal text-foreground tablet:max-w-72"
+          >
+            {artistName ? (
+              <span className="baseFlex max-w-full !justify-start gap-1.5">
+                {artistIsVerified && (
+                  <Verified className="inline size-4 shrink-0" />
+                )}
+                <span
+                  className={`truncate ${artistIsVerified ? "max-w-48" : "max-w-52"}`}
+                >
+                  {artistName}
+                </span>
               </span>
-            </span>
-          ) : (
-            <span>Select artist...</span>
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+            ) : (
+              <span>Select artist...</span>
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        }
+      />
       <PopoverContent side="bottom" className="w-[300px] p-0">
         <div className="baseFlex border-b px-3">
           <BiSearchAlt2 className="mt-1 size-5 shrink-0 opacity-50" />

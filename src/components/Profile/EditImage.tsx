@@ -143,7 +143,6 @@ interface EditImage {
   setZoom: Dispatch<SetStateAction<number>>;
   croppedAreaPixels: Area | null;
   setCroppedAreaPixels: Dispatch<SetStateAction<Area | null>>;
-  setActivelyEditingImage?: Dispatch<SetStateAction<boolean>>;
   setDrawerIsOpen?: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -159,7 +158,6 @@ function EditImage({
   setZoom,
   croppedAreaPixels,
   setCroppedAreaPixels,
-  setActivelyEditingImage,
   setDrawerIsOpen,
 }: EditImage) {
   const [localCrop, setLocalCrop] = useState<Point>(crop);
@@ -317,12 +315,6 @@ function EditImage({
               onRotationChange={setLocalRotation}
               onZoomChange={setLocalZoom}
               onCropComplete={onCropComplete}
-              onInteractionStart={() => {
-                setActivelyEditingImage?.(true);
-              }}
-              onInteractionEnd={() => {
-                setActivelyEditingImage?.(false);
-              }}
             />
           </div>
 

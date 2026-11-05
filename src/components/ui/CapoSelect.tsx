@@ -27,6 +27,7 @@ function CapoSelect({ triggerClassName = "w-[110px]" }: CapoSelectProps) {
     <Select
       value={capo.toString()}
       onValueChange={(value) => {
+        if (value === null) return;
         setCapo(Number(value));
       }}
     >

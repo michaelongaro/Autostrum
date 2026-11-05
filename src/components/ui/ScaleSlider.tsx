@@ -27,7 +27,13 @@ export default function ScaleSlider({
 }: ScaleSliderProps) {
   const labelId = useId();
   return (
-    <div className="baseVertFlex w-full gap-2" data-scale-slider="">
+    <div
+      className="baseVertFlex w-full gap-2"
+      data-scale-slider=""
+      // Opt out before touch-start: locking the drawer during the gesture is
+      // too late to stop its document listener from consuming react-range moves.
+      data-base-ui-swipe-ignore=""
+    >
       <div className="baseFlex w-full !justify-between gap-2 text-sm font-medium">
         <Label id={labelId}>{label}</Label>
         <output htmlFor={id}>{formatValue(value)}</output>

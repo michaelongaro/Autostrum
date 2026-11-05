@@ -50,21 +50,23 @@ export default function PlaybackMetronomeControl({ mobile = false }) {
   }
 
   return (
-    <TooltipProvider delayDuration={100}>
+    <TooltipProvider delay={100}>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            aria-label="Toggle metronome"
-            aria-pressed={enabled}
-            className={`baseFlex size-10 shrink-0 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${enabled ? "bg-accent/90 text-primary-foreground" : ""}`}
-            onClick={() => setEnabled(!enabled)}
-            {...keyboardProps}
-          >
-            <PiMetronome className="size-5" />
-          </Button>
-        </TooltipTrigger>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              aria-label="Toggle metronome"
+              aria-pressed={enabled}
+              className={`baseFlex size-10 shrink-0 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${enabled ? "bg-accent/90 text-primary-foreground" : ""}`}
+              onClick={() => setEnabled(!enabled)}
+              {...keyboardProps}
+            >
+              <PiMetronome className="size-5" />
+            </Button>
+          }
+        />
         <TooltipContent side="bottom">
           <p>Metronome</p>
         </TooltipContent>

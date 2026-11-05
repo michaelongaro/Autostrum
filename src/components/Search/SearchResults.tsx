@@ -41,7 +41,7 @@ import TableTabView from "./TableTabView";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import Link from "next/link";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import Spinner from "~/components/ui/Spinner";
 import { useAuth } from "@clerk/nextjs";
 import { api } from "~/utils/api";
@@ -410,9 +410,10 @@ function SearchResults({
           <Select
             disabled={disableFiltersAndLayoutToggle}
             value={localFilters.genre ? localFilters.genre : "allGenres"}
-            onValueChange={(value) =>
-              setLocalFilters((prev) => ({ ...prev, genre: value }))
-            }
+            onValueChange={(value) => {
+              if (value === null) return;
+              return setLocalFilters((prev) => ({ ...prev, genre: value }));
+            }}
           >
             <SelectTrigger
               id="genre"
@@ -470,6 +471,7 @@ function SearchResults({
               localFilters.tuning ? localFilters.tuning.toLowerCase() : "all"
             }
             onValueChange={(value) => {
+              if (value === null) return;
               setLocalFilters((prev) => ({
                 ...prev,
                 tuning: value,
@@ -534,6 +536,7 @@ function SearchResults({
                 : "all"
             }
             onValueChange={(value) => {
+              if (value === null) return;
               setLocalFilters((prev) => ({
                 ...prev,
                 capo:
@@ -572,6 +575,7 @@ function SearchResults({
                 : "all"
             }
             onValueChange={(value) => {
+              if (value === null) return;
               setLocalFilters((prev) => ({
                 ...prev,
                 difficulty: value === "all" ? undefined : parseInt(value),
@@ -666,17 +670,13 @@ function SearchResults({
           <Select
             disabled={disableFiltersAndLayoutToggle}
             value={localFilters.sortBy}
-            onValueChange={(value) =>
-              setLocalFilters((prev) => ({
+            onValueChange={(value) => {
+              if (value === null) return;
+              return setLocalFilters((prev) => ({
                 ...prev,
-                sortBy: value as
-                  | "newest"
-                  | "oldest"
-                  | "mostPopular"
-                  | "leastPopular"
-                  | "relevance",
-              }))
-            }
+                sortBy: value,
+              }));
+            }}
           >
             <SelectTrigger
               id="sortBy"
@@ -827,16 +827,18 @@ function SearchResults({
 
                   {/* filter drawer trigger */}
                   <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-                    <DrawerTrigger asChild>
-                      <Button
-                        variant="outline"
-                        aria-label="Search filters"
-                        disabled={disableFiltersAndLayoutToggle}
-                        className="baseFlex w-9 text-primary-foreground active:scale-95 motion-reduce:transform-none"
-                      >
-                        <LuFilter className="size-4 shrink-0" />
-                      </Button>
-                    </DrawerTrigger>
+                    <DrawerTrigger
+                      render={
+                        <Button
+                          variant="outline"
+                          aria-label="Search filters"
+                          disabled={disableFiltersAndLayoutToggle}
+                          className="baseFlex w-9 text-primary-foreground active:scale-95 motion-reduce:transform-none"
+                        >
+                          <LuFilter className="size-4 shrink-0" />
+                        </Button>
+                      }
+                    />
                     <DrawerContent className="max-h-[calc(100dvh-1rem)] !items-start !justify-start">
                       <VisuallyHidden>
                         <DrawerDescription>
@@ -1317,52 +1319,59 @@ function SearchResults({
                           </div>
 
                           {relatedArtists.length === 0 ? (
-                            <Button asChild className="baseFlex">
-                              <Link
-                                prefetch={false}
-                                href={"/create"}
-                                onClick={() => {
-                                  // TODO: add artistName to localStorage
-                                  // to pre-fill the artist name in the create tab form
-                                }}
-                                className="baseFlex gap-2"
-                              >
-                                <BsPlus className="size-5" />
-                                Create the first tab for this artist
-                              </Link>
-                            </Button>
+                            <Button
+                              role="link"
+                              className="baseFlex"
+                              nativeButton={false}
+                              render={
+                                <Link
+                                  prefetch={false}
+                                  href={"/create"}
+                                  onClick={() => {
+                                    // TODO: add artistName to localStorage
+                                    // to pre-fill the artist name in the create tab form
+                                  }}
+                                  className="baseFlex gap-2"
+                                >
+                                  <BsPlus className="size-5" />
+                                  Create the first tab for this artist
+                                </Link>
+                              }
+                            />
                           ) : (
                             <div className="baseVertFlex gap-4">
                               Related artists
                               <div className="baseVertFlex gap-4 sm:!flex-row">
                                 {relatedArtists.map((artist) => (
                                   <Button
+                                    role="link"
                                     key={artist.id}
                                     variant={"secondary"}
-                                    asChild
                                     className="baseFlex"
-                                  >
-                                    <Link
-                                      prefetch={false}
-                                      href={`/artist/${artist.name}/${artist.id}`}
-                                      className="baseFlex gap-1"
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-4 w-4"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                        aria-hidden="true"
+                                    nativeButton={false}
+                                    render={
+                                      <Link
+                                        prefetch={false}
+                                        href={`/artist/${artist.name}/${artist.id}`}
+                                        className="baseFlex gap-1"
                                       >
-                                        <path
-                                          fillRule="evenodd"
-                                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
-                                          clipRule="evenodd"
-                                        />
-                                      </svg>
-                                      {artist.name}
-                                    </Link>
-                                  </Button>
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-4 w-4"
+                                          viewBox="0 0 20 20"
+                                          fill="currentColor"
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm2.293-11.293a1 1 0 00-1.414 0L9.5 9.086l-.879-.879a1 1 0 10-1.414 1.414l1.793 1.793a1 1 0 001.414 0l3-3z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                        {artist.name}
+                                      </Link>
+                                    }
+                                  />
                                 ))}
                               </div>
                             </div>

@@ -290,11 +290,17 @@ function TabMarquee() {
                 players, and jump into anything that catches your ear.
               </p>
             </div>
-            <Button asChild size="lg" className="px-8">
-              <Link prefetch={false} href="/explore">
-                Browse the library
-              </Link>
-            </Button>
+            <Button
+              role="link"
+              size="lg"
+              className="px-8"
+              nativeButton={false}
+              render={
+                <Link prefetch={false} href="/explore">
+                  Browse the library
+                </Link>
+              }
+            />
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { FaUser } from "react-icons/fa";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import { useAuth, useClerk } from "@clerk/nextjs";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";

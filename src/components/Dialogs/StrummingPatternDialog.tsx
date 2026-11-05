@@ -36,7 +36,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 const xVariants = {
   hidden: { scale: 0, opacity: 0 },
@@ -301,7 +301,9 @@ function StrummingPatternDialog() {
                       Note length
                     </Label>
                     <Select
-                      onValueChange={handleBaseNoteLengthChange}
+                      onValueChange={(value) => {
+                        if (value !== null) handleBaseNoteLengthChange(value);
+                      }}
                       value={strummingPattern.value.baseNoteLength}
                     >
                       <SelectTrigger id="noteLength" className="w-[150px]">

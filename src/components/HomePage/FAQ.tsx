@@ -13,11 +13,7 @@ function FAQ() {
         <h2 className="text-2xl font-bold tracking-tight md:text-3xl">FAQ</h2>
       </div>
 
-      <Accordion
-        type="single"
-        collapsible
-        className="baseVertFlex w-full !items-start gap-4 rounded-md"
-      >
+      <Accordion className="baseVertFlex w-full !items-start gap-4 rounded-md">
         <AccordionItem value="muteSwitch" className="w-full">
           <AccordionTrigger
             forFAQ={true}
