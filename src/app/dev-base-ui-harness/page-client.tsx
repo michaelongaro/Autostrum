@@ -112,7 +112,7 @@ function ProfileImageFixture() {
   );
 }
 
-const subscribeToHydration = () => () => {};
+const subscribeToHydration = () => () => undefined;
 const clientHydrated = () => true;
 const serverHydrated = () => false;
 
