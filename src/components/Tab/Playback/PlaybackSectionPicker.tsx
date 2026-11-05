@@ -94,6 +94,7 @@ function TabPlaybackSectionPicker() {
           Section
         </Label>
         <Select
+          modal={false}
           value={currentSectionId}
           onValueChange={(value) => {
             if (value === null) return;
