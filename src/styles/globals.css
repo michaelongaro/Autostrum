@@ -117,20 +117,20 @@ html.disablePullToRefresh {
 .pageBackgroundGradient::before {
   z-index: -2;
   background: linear-gradient(145deg,
-      hsl(var(--gradient-primary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
-      hsl(var(--gradient-primary))) center / cover;
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary))) center / cover;
 }
 
-.pageBackgroundGradient::after {
+html[data-theme="dark"] .pageBackgroundGradient::after {
   z-index: -1;
   background-image: url('/ui/noise.svg');
   background-repeat: repeat;
   /* courtesy of https://www.fffuel.co/nnnoise/ */
 }
 
-.modalGradient::after {
+html[data-theme="dark"] .modalGradient::after {
   content: "";
   position: fixed;
   top: 0;
@@ -144,8 +144,8 @@ html.disablePullToRefresh {
   /* courtesy of https://www.fffuel.co/nnnoise/ */
 }
 
-.modalGradient::after,
-.playbackModalGradient::after {
+html[data-theme="dark"] .modalGradient::after,
+html[data-theme="dark"] .playbackModalGradient::after {
   content: "";
   position: absolute;
   top: 0;
@@ -228,13 +228,13 @@ kbd {
 
 .playbackModalGradient {
   background: linear-gradient(145deg,
-      hsl(var(--gradient-primary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
       hsl(var(--gradient-secondary)),
-      hsl(var(--gradient-primary)));
+      hsl(var(--gradient-secondary)),
+      hsl(var(--gradient-secondary)));
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -403,17 +403,9 @@ kbd {
   pointer-events: none;
 }
 
-.heroScreenshotTilt {
-  position: relative;
-  z-index: 1;
-  transform: rotateX(18deg) rotateY(-10deg) rotateZ(3deg) scale(0.94);
-  transform-origin: center center;
-  transform-style: preserve-3d;
-}
-
 .heroScreenshotApp {
   border-radius: 8px;
-  border: 1px solid hsl(var(--primary) / 0.22);
+  border: 1px solid hsl(var(--primary) / 0.12);
   box-shadow:
     0 0 0 1px hsl(var(--foreground) / 0.06) inset,
     0 0 48px -10px hsl(var(--primary) / 0.32),
@@ -429,33 +421,11 @@ html[data-theme="light"] .heroScreenshotStage::before {
 }
 
 html[data-theme="light"] .heroScreenshotApp {
+  border: 1px solid hsl(var(--primary) / 0.22);
   box-shadow:
     0 0 0 1px hsl(var(--foreground) / 0.06) inset,
     0 0 36px -12px hsl(var(--primary) / 0.12),
     0 20px 48px -20px hsl(0 0% 0% / 0.16);
-}
-
-.heroScreenshotApp::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      hsl(var(--primary) / 0.22) 18%,
-      hsl(var(--primary) / 0.95) 50%,
-      hsl(var(--primary) / 0.22) 82%,
-      transparent 100%);
-  z-index: 3;
-  pointer-events: none;
-}
-
-@media (max-width: 1023px) {
-  .heroScreenshotTilt {
-    transform: rotateX(14deg) rotateY(-6deg) rotateZ(2deg) scale(0.96);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -465,7 +435,4 @@ html[data-theme="light"] .heroScreenshotApp {
     animation: none !important;
   }
 
-  .heroScreenshotTilt {
-    transform: none;
-  }
 }

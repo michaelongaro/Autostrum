@@ -65,7 +65,7 @@ function MobileTabMetadataPreview() {
       aria-hidden="true"
       className="heroScreenshotStage playbackModalGradient pointer-events-none relative h-[350px] w-full select-none overflow-hidden px-4 pt-6 [-webkit-mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] [mask-image:linear-gradient(to_bottom,black_85%,transparent_100%)] sm:px-6 md:hidden"
     >
-      <div className="heroScreenshotTilt mx-auto max-w-sm">
+      <div className="mx-auto max-w-sm">
         <div className="baseFlex !justify-between gap-2 px-1 pb-4 pt-4 xs:gap-4 xs:px-4">
           <p className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             Create

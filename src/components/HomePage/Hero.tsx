@@ -6,18 +6,18 @@ import { Button } from "~/components/ui/button";
 function Hero() {
   return (
     // The homepage's 4rem section gap supplies the rest of the mobile bottom spacing.
-    <section className="baseVertFlex min-h-[calc(100svh-17rem)] w-full max-w-[1700px] overflow-x-clip px-4 pb-4 pt-20 md:min-h-[calc(100svh-20rem)] md:px-6 md:py-8 lg:px-10 lg:py-4 xl:px-12">
-      <div className="baseVertFlex w-full !flex-col-reverse gap-8 lg:!flex-row lg:!items-center lg:!justify-center">
-        <div className="baseVertFlex w-full max-w-xl shrink-0 gap-5 md:gap-6 lg:w-[clamp(22rem,32.5vw,29.125rem)] xl:!items-start">
-          <div className="baseVertFlex gap-3 md:gap-4 xl:!items-start">
+    <section className="baseVertFlex min-h-[calc(100svh-17rem)] w-full max-w-[1700px] overflow-x-clip px-4 pb-4 pt-20 md:min-h-[calc(100svh-20rem)] md:px-6 md:py-8 lg:px-12 lg:py-4">
+      <div className="baseVertFlex w-full !flex-col-reverse gap-8 lg:!flex-row lg:!items-center lg:!justify-center lg:gap-24">
+        <div className="baseVertFlex w-full max-w-xl shrink-0 gap-5 md:gap-6 lg:w-[clamp(22rem,32.5vw,29.125rem)] lg:!items-start">
+          <div className="baseVertFlex gap-3 md:gap-4 lg:!items-start">
             <h1 className="sr-only">Autostrum</h1>
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <HeaderLogo width={320} height={56} />
             </div>
-            <p className="max-w-lg whitespace-nowrap text-center text-xl font-semibold tracking-tight md:text-2xl xl:text-left xl:text-[clamp(1.5rem,1.875vw,1.75rem)]">
+            <p className="max-w-lg whitespace-nowrap text-center text-xl font-semibold tracking-tight md:text-2xl lg:text-left lg:text-[clamp(1.5rem,1.875vw,1.75rem)]">
               Find your next favorite song to play.
             </p>
-            <p className="max-w-sm text-center text-sm text-foreground/80 md:text-base xl:text-left">
+            <p className="max-w-sm text-center text-sm text-foreground/80 md:text-base lg:text-left">
               Discover guitar tabs, hear how they sound, and learn at your own
               pace.
             </p>
@@ -267,80 +267,78 @@ function MobileTablatureScreenshot() {
       className="heroScreenshotStage heroScreenshotMobile w-full min-w-0 max-w-[640px] md:max-w-[min(640px,50svh)] lg:max-w-[800px] lg:flex-1 xl:hidden"
       aria-hidden="true"
     >
-      <div className="heroScreenshotTilt">
-        <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative aspect-[2/1] w-full select-none !justify-between gap-0 overflow-hidden p-0 text-[2cqw] leading-[1.5]">
-          <div className="baseFlex w-full !justify-between px-[1em] pt-[0.75em]">
-            <div className="baseFlex !justify-start gap-[1em]">
-              <span className="whitespace-nowrap text-[1.25em] font-bold">
-                Let Her Go
-              </span>
-              <div className="h-[1.25em] w-[0.0625em] bg-foreground/50"></div>
-              <div className="baseFlex gap-[0.25em] whitespace-nowrap">
-                <QuarterNote className="h-[0.625em] w-[0.625em]" />
-                70 BPM
-              </div>
+      <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative aspect-[2/1] w-full select-none !justify-between gap-0 overflow-hidden p-0 text-[2cqw] leading-[1.5]">
+        <div className="baseFlex w-full !justify-between px-[1em] pt-[0.75em]">
+          <div className="baseFlex !justify-start gap-[1em]">
+            <span className="whitespace-nowrap text-[1.25em] font-bold">
+              Let Her Go
+            </span>
+            <div className="h-[1.25em] w-[0.0625em] bg-foreground/50"></div>
+            <div className="baseFlex gap-[0.25em] whitespace-nowrap">
+              <QuarterNote className="h-[0.625em] w-[0.625em]" />
+              70 BPM
+            </div>
+          </div>
+        </div>
+
+        <TablatureTrack layout="mobile" />
+
+        <div className="baseVertFlex w-full gap-[0.5em] pb-[0.5em]">
+          {/* Landscape playback controls stay together on one row. */}
+          <div className="baseFlex w-full gap-[1em] px-[1em]">
+            <div className="baseFlex size-[2em] shrink-0">
+              <PlayIcon style={{ width: "0.75em", height: "0.75em" }} />
+            </div>
+            <div className="baseFlex gap-[0.25em]">1x</div>
+            <span>0:23</span>
+            <div className="relative h-[0.5em] min-w-0 flex-1 rounded-full bg-[hsl(var(--gray)/0.5)]">
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: HERO_PLAYBACK_PROGRESS_PERCENT }}
+              />
+              <div
+                className="absolute top-1/2 size-[1.125em] -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/50 bg-primary"
+                style={{ left: HERO_PLAYBACK_PROGRESS_PERCENT }}
+              />
+            </div>
+            <span>4:12</span>
+            <div className="baseFlex size-[2em] shrink-0 rounded-[3px] border-[0.75px]">
+              <CgArrowsShrinkH className="size-[1.5em]" />
             </div>
           </div>
 
-          <TablatureTrack layout="mobile" />
-
-          <div className="baseVertFlex w-full gap-[0.5em] pb-[0.5em]">
-            {/* Landscape playback controls stay together on one row. */}
-            <div className="baseFlex w-full gap-[1em] px-[1em]">
-              <div className="baseFlex size-[2em] shrink-0">
-                <PlayIcon style={{ width: "0.75em", height: "0.75em" }} />
+          {/* Match the app's compact landscape metadata and settings row. */}
+          <div className="baseFlex w-full !justify-between gap-[1em] px-[1em]">
+            <div className="baseFlex gap-[1em]">
+              <div className="baseVertFlex !items-start">
+                <span className="text-[0.875em] font-medium">Tuning</span>
+                <span>Standard</span>
               </div>
-              <div className="baseFlex gap-[0.25em]">1x</div>
-              <span>0:23</span>
-              <div className="relative h-[0.5em] min-w-0 flex-1 rounded-full bg-[hsl(var(--gray)/0.5)]">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: HERO_PLAYBACK_PROGRESS_PERCENT }}
-                />
-                <div
-                  className="absolute top-1/2 size-[1.125em] -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/50 bg-primary"
-                  style={{ left: HERO_PLAYBACK_PROGRESS_PERCENT }}
-                />
+              <div className="baseVertFlex !items-start">
+                <span className="text-[0.875em] font-medium">Capo</span>
+                <span>None</span>
               </div>
-              <span>4:12</span>
-              <div className="baseFlex size-[2em] shrink-0 rounded-[3px] border">
-                <CgArrowsShrinkH className="size-[1.5em]" />
+              <div className="baseFlex h-[2.75em] gap-[0.5em] rounded-[3px] border-[0.75px] px-[1em] text-[0.875em] font-medium">
+                <TuningFork className="size-[1.125em]" />
+                Tuner
               </div>
             </div>
-
-            {/* Match the app's compact landscape metadata and settings row. */}
-            <div className="baseFlex w-full !justify-between gap-[1em] px-[1em]">
-              <div className="baseFlex gap-[1em]">
-                <div className="baseVertFlex !items-start">
-                  <span className="text-[0.875em] font-medium">Tuning</span>
-                  <span>Standard</span>
-                </div>
-                <div className="baseVertFlex !items-start">
-                  <span className="text-[0.875em] font-medium">Capo</span>
-                  <span>None</span>
-                </div>
-                <div className="baseFlex h-[2.75em] gap-[0.5em] rounded-[3px] border px-[1em] text-[0.875em] font-medium">
-                  <TuningFork className="size-[1.125em]" />
-                  Tuner
+            <div className="baseFlex gap-[1em]">
+              <div className="baseFlex gap-[0.5em] text-[0.875em]">
+                <span className="font-medium">Section</span>
+                <div className="baseFlex h-[2.75em] gap-[0.5em] rounded-[3px] border-[0.75px] px-[0.75em]">
+                  <span className="whitespace-nowrap">Full tab</span>
+                  <ChevronDown className="size-[1.125em] opacity-50" />
                 </div>
               </div>
-              <div className="baseFlex gap-[1em]">
-                <div className="baseFlex gap-[0.5em] text-[0.875em]">
-                  <span className="font-medium">Section</span>
-                  <div className="baseFlex h-[2.75em] gap-[0.5em] rounded-[3px] border px-[0.75em]">
-                    <span className="whitespace-nowrap">Full tab</span>
-                    <ChevronDown className="size-[1.125em] opacity-50" />
-                  </div>
-                </div>
-                <div className="baseFlex size-[2.25em] rounded-[3px] border">
-                  <IoMdSettings className="size-[1.25em]" />
-                </div>
-                <div className="baseFlex size-[2.25em] rounded-[3px] border">
-                  <FaListUl className="size-[1em]" />
-                </div>
-                <div className="baseFlex size-[2.25em] rounded-[3px] border">
-                  <FaBook className="size-[1em]" />
-                </div>
+              <div className="baseFlex size-[2.25em] rounded-[3px] border-[0.75px]">
+                <IoMdSettings className="size-[1.25em]" />
+              </div>
+              <div className="baseFlex size-[2.25em] rounded-[3px] border-[0.75px]">
+                <FaListUl className="size-[1em]" />
+              </div>
+              <div className="baseFlex size-[2.25em] rounded-[3px] border-[0.75px]">
+                <FaBook className="size-[1em]" />
               </div>
             </div>
           </div>
@@ -396,7 +394,7 @@ function TablatureScreenshot() {
             transform: "scale(0)",
           }}
         >
-          <div className="heroScreenshotTilt h-full">
+          <div className="h-full">
             <div className="heroScreenshotApp baseVertFlex playbackModalGradient pointer-events-none relative h-full w-full select-none !justify-between gap-0 overflow-hidden p-0">
               {/* Top Header Section */}
               <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
