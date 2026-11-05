@@ -58,11 +58,15 @@ export type FeatureId =
   | "hotkeys"
   | "tuning";
 
+// Keep lazy demo loads inside their own boundaries so switching features
+// cannot hide the homepage via the route's Suspense fallback and reset scroll.
 const EmbeddedPlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
+  { loading: () => <Spinner /> },
 );
 const DemoGlossaryDialog = dynamic(
   () => import("~/components/Dialogs/GlossaryDialog"),
+  { loading: () => null },
 );
 
 function DemoPlaybackButton({
