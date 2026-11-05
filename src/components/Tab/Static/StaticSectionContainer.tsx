@@ -60,10 +60,8 @@ function StaticSectionContainer({
       className="baseVertFlex w-full gap-4 px-2 md:px-7"
     >
       <Accordion
-        type="single"
-        collapsible
-        value={accordionOpen}
-        onValueChange={(value) => {
+        value={[accordionOpen]}
+        onValueChange={([value = "closed"]) => {
           setAccordionOpen(value === "opened" ? value : "closed");
         }}
         className="w-full"

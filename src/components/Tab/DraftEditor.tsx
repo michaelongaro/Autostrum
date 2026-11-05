@@ -343,9 +343,12 @@ function DraftEditorSession({
           <Button onClick={() => setAttempt((value) => value + 1)}>
             Retry
           </Button>
-          <Button variant="secondary" asChild>
-            <Link href="/profile/tabs/filters">My tabs</Link>
-          </Button>
+          <Button
+            role="link"
+            variant="secondary"
+            nativeButton={false}
+            render={<Link href="/profile/tabs/filters">My tabs</Link>}
+          />
         </div>
       </div>
     );

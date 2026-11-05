@@ -110,15 +110,20 @@ function Explore({ json }: { json: string }) {
                 <Separator className="w-full bg-primary" />
               </div>
 
-              <Button variant={"link"} asChild>
-                <Link
-                  prefetch={false}
-                  href={"/search/filters"}
-                  className="!h-6 !px-0 !py-0 text-foreground"
-                >
-                  View more
-                </Link>
-              </Button>
+              <Button
+                role="link"
+                variant={"link"}
+                nativeButton={false}
+                render={
+                  <Link
+                    prefetch={false}
+                    href={"/search/filters"}
+                    className="!h-6 !px-0 !py-0 text-foreground"
+                  >
+                    View more
+                  </Link>
+                }
+              />
             </div>
 
             <Carousel
@@ -165,15 +170,20 @@ function Explore({ json }: { json: string }) {
                 <Separator className="w-full bg-primary" />
               </div>
 
-              <Button variant={"link"} asChild>
-                <Link
-                  prefetch={false}
-                  href={"/search/filters?sortBy=mostPopular"}
-                  className="!h-6 !px-0 !py-0 text-foreground"
-                >
-                  View more
-                </Link>
-              </Button>
+              <Button
+                role="link"
+                variant={"link"}
+                nativeButton={false}
+                render={
+                  <Link
+                    prefetch={false}
+                    href={"/search/filters?sortBy=mostPopular"}
+                    className="!h-6 !px-0 !py-0 text-foreground"
+                  >
+                    View more
+                  </Link>
+                }
+              />
             </div>
 
             <Carousel

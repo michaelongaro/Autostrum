@@ -52,7 +52,8 @@ function PinnedTabList({
             disabled={isFetchingUserTabs}
             value={sortBy}
             onValueChange={(value) => {
-              setSortBy(value as "Newest" | "Oldest" | "Most popular");
+              if (value === null) return;
+              setSortBy(value);
             }}
           >
             <SelectTrigger id="sortBy" className="w-[140px]">

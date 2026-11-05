@@ -296,15 +296,17 @@ function TabMeasureLine({
           style={{ height: EDITING_TAB_FOOTER_HEIGHT_PX }}
         >
           <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
-                className="absolute left-[-10px] top-[-4px] z-10 size-5 shrink-0 rounded-full p-[0.125rem]"
-                onKeyDown={handleKeyDown}
-              >
-                <QuarterNote className="mr-[1px] h-[1rem]" />
-              </Button>
-            </PopoverTrigger>
+            <PopoverTrigger
+              render={
+                <Button
+                  id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-7`}
+                  className="absolute left-[-10px] top-[-4px] z-10 size-5 shrink-0 rounded-full p-[0.125rem]"
+                  onKeyDown={handleKeyDown}
+                >
+                  <QuarterNote className="mr-[1px] h-[1rem]" />
+                </Button>
+              }
+            />
             <PopoverContent
               data-tab-editor-history="document"
               className="baseVertFlex z-40 w-52 gap-4 p-2"

@@ -399,34 +399,35 @@ function MiscellaneousControls({
       )}
 
       <DropdownMenu modal={true}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            aria-label="Miscellaneous controls dropdown trigger"
-            variant={"ghost"}
-            style={{
-              marginRight:
-                subSectionIndex === undefined &&
-                chordSequenceIndex === undefined
-                  ? "2rem"
-                  : "0",
-            }}
-            className="px-0"
-          >
-            <LiaEllipsisVSolid className="h-8 w-8" />
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              aria-label="Miscellaneous controls dropdown trigger"
+              variant={"ghost"}
+              style={{
+                marginRight:
+                  subSectionIndex === undefined &&
+                  chordSequenceIndex === undefined
+                    ? "2rem"
+                    : "0",
+              }}
+              className="px-0"
+            >
+              <LiaEllipsisVSolid className="h-8 w-8" />
+            </Button>
+          }
+        />
 
         <DropdownMenuContent
           side={"bottom"}
-          onCloseAutoFocus={(event) => {
+          finalFocus={() => {
             setShowCopyCheckmark(false);
             setShowPasteCheckmark(false);
 
-            event.preventDefault();
-            event.stopPropagation();
             // not sure if this does a perfect job of preventing scrolling while
             // sections are moving to their new location post moveUp/Down, but it is
             // better than the default behavior
+            return false;
           }}
         >
           <DropdownMenuItem

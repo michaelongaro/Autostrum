@@ -1,17 +1,47 @@
+import type { StyledProps } from "./base-ui-types";
 import * as React from "react";
-import * as SelectPrimitive from "@radix-ui/react-select";
+import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "~/utils/cn";
 import { Separator } from "~/components/ui/separator";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 
-const Select = SelectPrimitive.Root;
+function Select<Value, Multiple extends boolean | undefined = false>({
+  children,
+  items,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  // Radix copied ItemText into Value automatically. Supply the same labels to
+  // Base UI, including before a lazy popup mounts and during server rendering.
+  const labels: { value: Value; label: React.ReactNode }[] = [];
+  function collectItems(nodes: React.ReactNode) {
+    React.Children.forEach(nodes, (child) => {
+      if (
+        !React.isValidElement<{ value: Value; children?: React.ReactNode }>(
+          child,
+        )
+      )
+        return;
+      if (child.type === SelectItem) {
+        labels.push({ value: child.props.value, label: child.props.children });
+      } else {
+        collectItems(child.props.children);
+      }
+    });
+  }
+  if (!items) collectItems(children);
+  return (
+    <SelectPrimitive.Root {...props} items={items ?? labels}>
+      {children}
+    </SelectPrimitive.Root>
+  );
+}
 
 const SelectGroup = SelectPrimitive.Group;
 
 const SelectValue = SelectPrimitive.Value;
 
-export interface SelectTriggerProps extends React.ComponentPropsWithoutRef<
+export interface SelectTriggerProps extends StyledProps<
   typeof SelectPrimitive.Trigger
 > {
   invalid?: boolean;
@@ -36,73 +66,99 @@ const SelectTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="size-4 shrink-0 opacity-50" />
+    <SelectPrimitive.Icon className="shrink-0">
+      <ChevronDown className="size-4 opacity-50" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+SelectTrigger.displayName = "SelectTrigger";
 
 const SelectContent = React.forwardRef<
-  React.ComponentRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-background text-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-        className,
-      )}
-      position={position}
-      {...props}
+  React.ComponentRef<typeof SelectPrimitive.Popup>,
+  StyledProps<typeof SelectPrimitive.Popup> &
+    Pick<
+      SelectPrimitive.Positioner.Props,
+      | "align"
+      | "alignOffset"
+      | "side"
+      | "sideOffset"
+      | "alignItemWithTrigger"
+      | "collisionPadding"
     >
-      <SelectPrimitive.Viewport
-        className={cn(
-          "p-1",
-          position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
-        )}
+>(
+  (
+    {
+      className,
+      children,
+      align = "start",
+      alignOffset = 0,
+      side = "bottom",
+      sideOffset = 4,
+      alignItemWithTrigger = false,
+      collisionPadding = 8,
+      ...props
+    },
+    ref,
+  ) => (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Positioner
+        align={align}
+        alignOffset={alignOffset}
+        side={side}
+        sideOffset={sideOffset}
+        alignItemWithTrigger={alignItemWithTrigger}
+        collisionPadding={collisionPadding}
+        className="isolate z-50"
       >
-        <OverlayScrollbarsComponent
-          options={{
-            scrollbars: { autoHide: "leave", autoHideDelay: 150 },
-            overflow: {
-              x: "hidden",
-              y: "scroll",
-            },
-          }}
-          defer
-          className="max-h-[300px] w-full"
+        <SelectPrimitive.Popup
+          ref={ref}
+          className={cn(
+            "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-background text-foreground shadow-md transition-[opacity,transform] duration-150 data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
+            "max-h-[var(--available-height)] min-w-[var(--anchor-width)]",
+            className,
+          )}
+          {...props}
         >
-          {children}
-        </OverlayScrollbarsComponent>
-      </SelectPrimitive.Viewport>
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-));
-SelectContent.displayName = SelectPrimitive.Content.displayName;
+          <SelectPrimitive.List className={cn("p-1", "w-full")}>
+            <OverlayScrollbarsComponent
+              options={{
+                scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+                overflow: {
+                  x: "hidden",
+                  y: "scroll",
+                },
+              }}
+              defer
+              className="max-h-[300px] w-full"
+            >
+              {children}
+            </OverlayScrollbarsComponent>
+          </SelectPrimitive.List>
+        </SelectPrimitive.Popup>
+      </SelectPrimitive.Positioner>
+    </SelectPrimitive.Portal>
+  ),
+);
+SelectContent.displayName = "SelectContent";
 
 const SelectLabel = React.forwardRef<
-  React.ComponentRef<typeof SelectPrimitive.Label>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+  React.ComponentRef<typeof SelectPrimitive.GroupLabel>,
+  StyledProps<typeof SelectPrimitive.GroupLabel>
 >(({ className, ...props }, ref) => (
-  <SelectPrimitive.Label
+  <SelectPrimitive.GroupLabel
     ref={ref}
     className={cn("ml-2 py-1.5 text-sm font-semibold", className)}
     {...props}
   >
     {props.children}
     <Separator className="-ml-2 mt-1 h-[1px] w-full bg-primary" />
-  </SelectPrimitive.Label>
+  </SelectPrimitive.GroupLabel>
 ));
-SelectLabel.displayName = SelectPrimitive.Label.displayName;
+SelectLabel.displayName = "SelectLabel";
 
 const SelectItem = React.forwardRef<
   React.ComponentRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & {
+  StyledProps<typeof SelectPrimitive.Item> & {
     indicator?: React.ReactNode;
   }
 >(({ className, children, indicator, ...props }, ref) => (
@@ -128,11 +184,11 @@ const SelectItem = React.forwardRef<
     )}
   </SelectPrimitive.Item>
 ));
-SelectItem.displayName = SelectPrimitive.Item.displayName;
+SelectItem.displayName = "SelectItem";
 
 const SelectSeparator = React.forwardRef<
   React.ComponentRef<typeof SelectPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+  StyledProps<typeof SelectPrimitive.Separator>
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
@@ -140,7 +196,7 @@ const SelectSeparator = React.forwardRef<
     {...props}
   />
 ));
-SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+SelectSeparator.displayName = "SelectSeparator";
 
 export {
   Select,

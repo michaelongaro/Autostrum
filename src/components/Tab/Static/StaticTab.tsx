@@ -11,13 +11,12 @@ import {
 } from "~/components/ui/tooltip";
 import {
   Drawer,
-  DrawerPortal,
   DrawerTrigger,
   DrawerContent,
   DrawerTitle,
   DrawerDescription,
 } from "~/components/ui/drawer";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import { Separator } from "~/components/ui/separator";
 import {
   Popover,
@@ -223,17 +222,19 @@ function StaticTab() {
                   transition={{ duration: 0.3, ease: "easeOut" }}
                   className="baseFlex sticky bottom-4 top-4 mb-4 gap-4 tablet:bottom-6"
                 >
-                  <TooltipProvider delayDuration={150}>
+                  <TooltipProvider delay={150}>
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={"secondary"}
-                          className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
-                          onClick={() => setShowGlossaryDialog(true)}
-                        >
-                          <FaBook className="size-4" />
-                        </Button>
-                      </TooltipTrigger>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            variant={"secondary"}
+                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                            onClick={() => setShowGlossaryDialog(true)}
+                          >
+                            <FaBook className="size-4" />
+                          </Button>
+                        }
+                      />
                       <TooltipContent side={"top"}>
                         <span>Glossary</span>
                       </TooltipContent>
@@ -260,78 +261,79 @@ function StaticTab() {
                       onOpenChange={(open) => {
                         setDrawerOpen(open);
                       }}
-                      dismissible={!pressingOnZoomSlider}
-                      // Scaling the background breaks position:sticky on the
-                      // section nav; keep the page unscaled so it stays visible.
-                      shouldScaleBackground={false}
+                      swipeDisabled={pressingOnZoomSlider}
+                      disablePointerDismissal={pressingOnZoomSlider}
                     >
-                      <DrawerTrigger asChild>
-                        <Button
-                          variant={"secondary"}
-                          className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
-                        >
-                          <IoMdSettings className="size-5" />
-                        </Button>
-                      </DrawerTrigger>
-                      <DrawerPortal>
-                        <DrawerContent className="baseVertFlex z-50 !items-start gap-2 p-4 pb-6">
-                          <VisuallyHidden>
-                            <DrawerTitle>Tab settings</DrawerTitle>
-                            <DrawerDescription>
-                              Change the tab zoom, whether chords and section
-                              navigation are pinned, and whether left-hand chord
-                              diagrams are shown.
-                            </DrawerDescription>
-                          </VisuallyHidden>
+                      <DrawerTrigger
+                        render={
+                          <Button
+                            variant={"secondary"}
+                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                          >
+                            <IoMdSettings className="size-5" />
+                          </Button>
+                        }
+                      />
 
-                          <div className="baseFlex gap-2 font-medium">
-                            <IoMdSettings className="size-4" />
-                            Tab settings
-                          </div>
-                          <Separator className="mb-2 w-full bg-primary" />
+                      <DrawerContent className="baseVertFlex z-50 !items-start gap-2 p-4 pb-6">
+                        <VisuallyHidden>
+                          <DrawerTitle>Tab settings</DrawerTitle>
+                          <DrawerDescription>
+                            Change the tab zoom, whether chords and section
+                            navigation are pinned, and whether left-hand chord
+                            diagrams are shown.
+                          </DrawerDescription>
+                        </VisuallyHidden>
 
-                          <TabSettings
-                            showPinnedChords={showPinnedChords}
-                            setShowPinnedChords={setShowPinnedChords}
-                            setPressingOnZoomSlider={setPressingOnZoomSlider}
-                          />
-                        </DrawerContent>
-                      </DrawerPortal>
+                        <div className="baseFlex gap-2 font-medium">
+                          <IoMdSettings className="size-4" />
+                          Tab settings
+                        </div>
+                        <Separator className="mb-2 w-full bg-primary" />
+
+                        <TabSettings
+                          showPinnedChords={showPinnedChords}
+                          setShowPinnedChords={setShowPinnedChords}
+                          setPressingOnZoomSlider={setPressingOnZoomSlider}
+                        />
+                      </DrawerContent>
                     </Drawer>
                   ) : (
-                    <TooltipProvider delayDuration={150}>
+                    <TooltipProvider delay={150}>
                       <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
-                        <TooltipTrigger asChild>
-                          {/* for whatever reason, this wrapper <div> is required to get tooltip
-                            text to show */}
-                          <div className="baseFlex">
-                            <Popover
-                              open={settingsPopoverIsOpen}
-                              onOpenChange={setSettingsPopoverIsOpen}
-                            >
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant={"secondary"}
-                                  className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
-                                >
-                                  <IoMdSettings className="size-5" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="baseVertFlex p-3"
-                                side="top"
+                        <TooltipTrigger
+                          render={
+                            <div className="baseFlex">
+                              <Popover
+                                open={settingsPopoverIsOpen}
+                                onOpenChange={setSettingsPopoverIsOpen}
                               >
-                                <TabSettings
-                                  showPinnedChords={showPinnedChords}
-                                  setShowPinnedChords={setShowPinnedChords}
-                                  setPressingOnZoomSlider={
-                                    setPressingOnZoomSlider
+                                <PopoverTrigger
+                                  render={
+                                    <Button
+                                      variant={"secondary"}
+                                      className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                                    >
+                                      <IoMdSettings className="size-5" />
+                                    </Button>
                                   }
                                 />
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                        </TooltipTrigger>
+                                <PopoverContent
+                                  className="baseVertFlex p-3"
+                                  side="top"
+                                >
+                                  <TabSettings
+                                    showPinnedChords={showPinnedChords}
+                                    setShowPinnedChords={setShowPinnedChords}
+                                    setPressingOnZoomSlider={
+                                      setPressingOnZoomSlider
+                                    }
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          }
+                        />
                         <TooltipContent side={"top"}>
                           <span>Settings</span>
                         </TooltipContent>

@@ -146,9 +146,10 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     } else {
       const pathname = "/search/filters";
       const newQuery = {
-        ...(searchType === "songs" && encodedSearchQuery && {
-          search: encodedSearchQuery,
-        }),
+        ...(searchType === "songs" &&
+          encodedSearchQuery && {
+            search: encodedSearchQuery,
+          }),
         ...(query.layout && { layout: query.layout }),
       };
 
@@ -402,13 +403,228 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                           {mostPopularDailyTabsAndArtists.tabs.map(
                             (song, idx) => (
                               <Button
+                                role="link"
                                 key={idx}
                                 id={`autofillResult${idx}`}
                                 tabIndex={-1}
                                 variant={"ghost"}
                                 className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
-                                asChild
-                              >
+                                nativeButton={false}
+                                render={
+                                  <Link
+                                    prefetch={false}
+                                    href={`/tab/${song.id}/${encodeURIComponent(
+                                      song.title,
+                                    )}`}
+                                    style={{
+                                      transition: "filter 150ms linear",
+                                    }}
+                                    className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none !px-3 py-2"
+                                    onClick={() => {
+                                      setShowAutofillResults(false);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        adjustQueryParams({
+                                          searchQuery: song.title,
+                                          tabId: song.id,
+                                        });
+                                      } else if (e.key === "Escape") {
+                                        setShowAutofillResults(false);
+                                      } else if (e.key === "ArrowDown") {
+                                        e.preventDefault();
+
+                                        const nextResult =
+                                          document.getElementById(
+                                            `autofillResult${idx + 1}`,
+                                          );
+                                        if (nextResult) {
+                                          nextResult.focus();
+                                        }
+                                      } else if (e.key === "ArrowUp") {
+                                        e.preventDefault();
+
+                                        if (idx === 0) {
+                                          searchInputRef.current?.focus();
+                                          return;
+                                        }
+
+                                        const prevResult =
+                                          document.getElementById(
+                                            `autofillResult${idx - 1}`,
+                                          );
+                                        if (prevResult) {
+                                          prevResult.focus();
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    <div className="baseFlex w-full !justify-between gap-2">
+                                      <span className="max-w-[70%] truncate">
+                                        {song.title}
+                                      </span>
+                                      <Badge
+                                        style={{
+                                          backgroundColor: genreColors
+                                            .get(song.genre)
+                                            ?.replace(/\)$/, " / 0.7)"),
+                                          border: "1px solid",
+                                          borderColor: genreColors.get(
+                                            song.genre,
+                                          ),
+                                        }}
+                                        className="text-primary-foreground"
+                                      >
+                                        {song.genre}
+                                      </Badge>
+                                    </div>
+
+                                    {song.artist.name && (
+                                      <div className="baseFlex ml-3 !items-start font-normal">
+                                        <div className="mt-1 h-[12px] w-[10px] rounded-bl-lg border border-r-0 border-t-0"></div>
+                                        <div className="baseFlex ml-1.5 mt-1 gap-1.5 text-sm">
+                                          {song.artist.isVerified && (
+                                            <Verified className="size-[18px]" />
+                                          )}
+                                          {song.artist.name}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </Link>
+                                }
+                              />
+                            ),
+                          )}
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key={"popularArtists"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="baseVertFlex mt-2 w-full !items-start gap-2"
+                      >
+                        <div className="baseFlex ml-3 gap-2">
+                          <IoStatsChart className="size-4" />
+                          <p className="font-medium">Popular Artists</p>
+                        </div>
+                        <div className="baseVertFlex w-full">
+                          {mostPopularDailyTabsAndArtists.artists.map(
+                            (artist, idx) => (
+                              <Button
+                                role="link"
+                                key={idx}
+                                id={`autofillResult${idx}`}
+                                tabIndex={-1}
+                                variant={"ghost"}
+                                className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
+                                nativeButton={false}
+                                render={
+                                  <Link
+                                    prefetch={false}
+                                    href={`/artist/${encodeURIComponent(
+                                      artist.name,
+                                    )}/${artist.id}/filters`}
+                                    style={{
+                                      transition: "filter 150ms linear",
+                                    }}
+                                    className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none !px-3 py-2"
+                                    onClick={() => {
+                                      setShowAutofillResults(false);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        adjustQueryParams({
+                                          searchQuery: artist.name,
+                                          artistId: artist.id,
+                                        });
+                                      } else if (e.key === "Escape") {
+                                        setShowAutofillResults(false);
+                                      } else if (e.key === "ArrowDown") {
+                                        e.preventDefault();
+
+                                        const nextResult =
+                                          document.getElementById(
+                                            `autofillResult${idx + 1}`,
+                                          );
+                                        if (nextResult) {
+                                          nextResult.focus();
+                                        }
+                                      } else if (e.key === "ArrowUp") {
+                                        e.preventDefault();
+
+                                        if (idx === 0) {
+                                          searchInputRef.current?.focus();
+                                          return;
+                                        }
+
+                                        const prevResult =
+                                          document.getElementById(
+                                            `autofillResult${idx - 1}`,
+                                          );
+                                        if (prevResult) {
+                                          prevResult.focus();
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    {artist.isVerified && (
+                                      <Verified className="size-[18px]" />
+                                    )}
+
+                                    <p className="max-w-[100%] truncate">
+                                      {artist.name}
+                                    </p>
+                                  </Link>
+                                }
+                              />
+                            ),
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </>
+                )}
+
+              {/* song query loaded, show autofill results */}
+              {searchType === "songs" &&
+                searchQuery.trim() !== "" &&
+                !isFetchingSongResults &&
+                songSearchResults !== undefined && (
+                  <>
+                    {songSearchResults.length === 0 ? (
+                      <motion.p
+                        key={"songNoResultsFound"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="mt-12 sm:mt-28"
+                      >
+                        No results found
+                      </motion.p>
+                    ) : (
+                      <>
+                        {songSearchResults.map((song, idx) => (
+                          <motion.div
+                            key={`songAutofillResult${idx}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="baseVertFlex w-full"
+                          >
+                            <Button
+                              role="link"
+                              key={idx}
+                              id={`autofillResult${idx}`}
+                              tabIndex={-1}
+                              variant={"ghost"}
+                              className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
+                              nativeButton={false}
+                              render={
                                 <Link
                                   prefetch={false}
                                   href={`/tab/${song.id}/${encodeURIComponent(
@@ -477,47 +693,64 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                     </Badge>
                                   </div>
 
-                                  {song.artist.name && (
+                                  {song.artistName && (
                                     <div className="baseFlex ml-3 !items-start font-normal">
                                       <div className="mt-1 h-[12px] w-[10px] rounded-bl-lg border border-r-0 border-t-0"></div>
                                       <div className="baseFlex ml-1.5 mt-1 gap-1.5 text-sm">
-                                        {song.artist.isVerified && (
+                                        {song.artistIsVerified && (
                                           <Verified className="size-[18px]" />
                                         )}
-                                        {song.artist.name}
+                                        {song.artistName}
                                       </div>
                                     </div>
                                   )}
                                 </Link>
-                              </Button>
-                            ),
-                          )}
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key={"popularArtists"}
+                              }
+                            />
+                          </motion.div>
+                        ))}
+                      </>
+                    )}
+                  </>
+                )}
+
+              {/* artist query loaded, show autofill results */}
+              {searchType === "artists" &&
+                searchQuery.trim() !== "" &&
+                !isFetchingArtistResults &&
+                artistSearchResults !== undefined && (
+                  <>
+                    {artistSearchResults.length === 0 ? (
+                      <motion.p
+                        key={"artistNoResultsFound"}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="baseVertFlex mt-2 w-full !items-start gap-2"
+                        className="mt-12 sm:mt-28"
                       >
-                        <div className="baseFlex ml-3 gap-2">
-                          <IoStatsChart className="size-4" />
-                          <p className="font-medium">Popular Artists</p>
-                        </div>
-                        <div className="baseVertFlex w-full">
-                          {mostPopularDailyTabsAndArtists.artists.map(
-                            (artist, idx) => (
-                              <Button
-                                key={idx}
-                                id={`autofillResult${idx}`}
-                                tabIndex={-1}
-                                variant={"ghost"}
-                                className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
-                                asChild
-                              >
+                        No results found
+                      </motion.p>
+                    ) : (
+                      <>
+                        {artistSearchResults.map((artist, idx) => (
+                          <motion.div
+                            key={`autofillResult${idx}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="baseVertFlex w-full"
+                          >
+                            <Button
+                              role="link"
+                              key={idx}
+                              id={`autofillResult${idx}`}
+                              tabIndex={-1}
+                              variant={"ghost"}
+                              className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
+                              nativeButton={false}
+                              render={
                                 <Link
                                   prefetch={false}
                                   href={`/artist/${encodeURIComponent(
@@ -574,226 +807,8 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                                     {artist.name}
                                   </p>
                                 </Link>
-                              </Button>
-                            ),
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </>
-                )}
-
-              {/* song query loaded, show autofill results */}
-              {searchType === "songs" &&
-                searchQuery.trim() !== "" &&
-                !isFetchingSongResults &&
-                songSearchResults !== undefined && (
-                  <>
-                    {songSearchResults.length === 0 ? (
-                      <motion.p
-                        key={"songNoResultsFound"}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="mt-12 sm:mt-28"
-                      >
-                        No results found
-                      </motion.p>
-                    ) : (
-                      <>
-                        {songSearchResults.map((song, idx) => (
-                          <motion.div
-                            key={`songAutofillResult${idx}`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.15 }}
-                            className="baseVertFlex w-full"
-                          >
-                            <Button
-                              key={idx}
-                              id={`autofillResult${idx}`}
-                              tabIndex={-1}
-                              variant={"ghost"}
-                              className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
-                              asChild
-                            >
-                              <Link
-                                prefetch={false}
-                                href={`/tab/${song.id}/${encodeURIComponent(
-                                  song.title,
-                                )}`}
-                                style={{
-                                  transition: "filter 150ms linear",
-                                }}
-                                className="baseVertFlex z-50 !size-full min-h-10 !items-start rounded-none !px-3 py-2"
-                                onClick={() => {
-                                  setShowAutofillResults(false);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    adjustQueryParams({
-                                      searchQuery: song.title,
-                                      tabId: song.id,
-                                    });
-                                  } else if (e.key === "Escape") {
-                                    setShowAutofillResults(false);
-                                  } else if (e.key === "ArrowDown") {
-                                    e.preventDefault();
-
-                                    const nextResult = document.getElementById(
-                                      `autofillResult${idx + 1}`,
-                                    );
-                                    if (nextResult) {
-                                      nextResult.focus();
-                                    }
-                                  } else if (e.key === "ArrowUp") {
-                                    e.preventDefault();
-
-                                    if (idx === 0) {
-                                      searchInputRef.current?.focus();
-                                      return;
-                                    }
-
-                                    const prevResult = document.getElementById(
-                                      `autofillResult${idx - 1}`,
-                                    );
-                                    if (prevResult) {
-                                      prevResult.focus();
-                                    }
-                                  }
-                                }}
-                              >
-                                <div className="baseFlex w-full !justify-between gap-2">
-                                  <span className="max-w-[70%] truncate">
-                                    {song.title}
-                                  </span>
-                                  <Badge
-                                    style={{
-                                      backgroundColor: genreColors
-                                        .get(song.genre)
-                                        ?.replace(/\)$/, " / 0.7)"),
-                                      border: "1px solid",
-                                      borderColor: genreColors.get(song.genre),
-                                    }}
-                                    className="text-primary-foreground"
-                                  >
-                                    {song.genre}
-                                  </Badge>
-                                </div>
-
-                                {song.artistName && (
-                                  <div className="baseFlex ml-3 !items-start font-normal">
-                                    <div className="mt-1 h-[12px] w-[10px] rounded-bl-lg border border-r-0 border-t-0"></div>
-                                    <div className="baseFlex ml-1.5 mt-1 gap-1.5 text-sm">
-                                      {song.artistIsVerified && (
-                                        <Verified className="size-[18px]" />
-                                      )}
-                                      {song.artistName}
-                                    </div>
-                                  </div>
-                                )}
-                              </Link>
-                            </Button>
-                          </motion.div>
-                        ))}
-                      </>
-                    )}
-                  </>
-                )}
-
-              {/* artist query loaded, show autofill results */}
-              {searchType === "artists" &&
-                searchQuery.trim() !== "" &&
-                !isFetchingArtistResults &&
-                artistSearchResults !== undefined && (
-                  <>
-                    {artistSearchResults.length === 0 ? (
-                      <motion.p
-                        key={"artistNoResultsFound"}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="mt-12 sm:mt-28"
-                      >
-                        No results found
-                      </motion.p>
-                    ) : (
-                      <>
-                        {artistSearchResults.map((artist, idx) => (
-                          <motion.div
-                            key={`autofillResult${idx}`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.15 }}
-                            className="baseVertFlex w-full"
-                          >
-                            <Button
-                              key={idx}
-                              id={`autofillResult${idx}`}
-                              tabIndex={-1}
-                              variant={"ghost"}
-                              className="focus-visible:bg-accent focus-visible:!text-primary-foreground focus-visible:ring-0"
-                              asChild
-                            >
-                              <Link
-                                prefetch={false}
-                                href={`/artist/${encodeURIComponent(
-                                  artist.name,
-                                )}/${artist.id}/filters`}
-                                style={{
-                                  transition: "filter 150ms linear",
-                                }}
-                                className="baseFlex z-50 min-h-10 w-full !justify-start gap-2 rounded-none !px-3 py-2"
-                                onClick={() => {
-                                  setShowAutofillResults(false);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    adjustQueryParams({
-                                      searchQuery: artist.name,
-                                      artistId: artist.id,
-                                    });
-                                  } else if (e.key === "Escape") {
-                                    setShowAutofillResults(false);
-                                  } else if (e.key === "ArrowDown") {
-                                    e.preventDefault();
-
-                                    const nextResult = document.getElementById(
-                                      `autofillResult${idx + 1}`,
-                                    );
-                                    if (nextResult) {
-                                      nextResult.focus();
-                                    }
-                                  } else if (e.key === "ArrowUp") {
-                                    e.preventDefault();
-
-                                    if (idx === 0) {
-                                      searchInputRef.current?.focus();
-                                      return;
-                                    }
-
-                                    const prevResult = document.getElementById(
-                                      `autofillResult${idx - 1}`,
-                                    );
-                                    if (prevResult) {
-                                      prevResult.focus();
-                                    }
-                                  }
-                                }}
-                              >
-                                {artist.isVerified && (
-                                  <Verified className="size-[18px]" />
-                                )}
-
-                                <p className="max-w-[100%] truncate">
-                                  {artist.name}
-                                </p>
-                              </Link>
-                            </Button>
+                              }
+                            />
                           </motion.div>
                         ))}
                       </>

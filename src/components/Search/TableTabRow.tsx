@@ -46,15 +46,20 @@ function TableTabRow({
             transition={{ duration: 0.3 }}
             className="w-full"
           >
-            <Button variant={"secondary"} asChild>
-              <Link
-                prefetch={false}
-                href={`/tab/${minimalTab.id}/edit`}
-                className="baseFlex size-10 !p-0"
-              >
-                <MdModeEditOutline className="size-5" />
-              </Link>
-            </Button>
+            <Button
+              role="link"
+              variant={"secondary"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={`/tab/${minimalTab.id}/edit`}
+                  className="baseFlex size-10 !p-0"
+                >
+                  <MdModeEditOutline className="size-5" />
+                </Link>
+              }
+            />
           </motion.div>
         </TableCell>
       )}
@@ -68,17 +73,22 @@ function TableTabRow({
           transition={{ duration: 0.3 }}
           className="w-full"
         >
-          <Button variant={"link"} asChild>
-            <Link
-              prefetch={false}
-              href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
-              className="!p-0 !text-base !font-semibold"
-            >
-              <span className="max-w-[230px] truncate sm:max-w-[300px]">
-                {minimalTab.title}
-              </span>
-            </Link>
-          </Button>
+          <Button
+            role="link"
+            variant={"link"}
+            nativeButton={false}
+            render={
+              <Link
+                prefetch={false}
+                href={`/tab/${minimalTab.id}/${encodeURIComponent(minimalTab.title)}`}
+                className="!p-0 !text-base !font-semibold"
+              >
+                <span className="max-w-[230px] truncate sm:max-w-[300px]">
+                  {minimalTab.title}
+                </span>
+              </Link>
+            }
+          />
         </motion.div>
       </TableCell>
 
@@ -93,34 +103,39 @@ function TableTabRow({
             className="w-full"
           >
             {minimalTab.artist || minimalTab.createdBy ? (
-              <Button variant={"link"} asChild>
-                <Link
-                  prefetch={false}
-                  href={
-                    minimalTab.artist
-                      ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}/filters`
-                      : minimalTab.createdBy
-                        ? `/user/${minimalTab.createdBy.username}/filters`
-                        : ""
-                  }
-                  className="baseFlex !h-6 max-w-[100%] !justify-start !p-0"
-                >
-                  {minimalTab.artist ? (
-                    <div className="baseFlex size-full !justify-start">
-                      {minimalTab.artist.isVerified && (
-                        <Verified className="mr-[5px] size-4 shrink-0" />
-                      )}
+              <Button
+                role="link"
+                variant={"link"}
+                nativeButton={false}
+                render={
+                  <Link
+                    prefetch={false}
+                    href={
+                      minimalTab.artist
+                        ? `/artist/${encodeURIComponent(minimalTab.artist.name)}/${minimalTab.artist.id}/filters`
+                        : minimalTab.createdBy
+                          ? `/user/${minimalTab.createdBy.username}/filters`
+                          : ""
+                    }
+                    className="baseFlex !h-6 max-w-[100%] !justify-start !p-0"
+                  >
+                    {minimalTab.artist ? (
+                      <div className="baseFlex size-full !justify-start">
+                        {minimalTab.artist.isVerified && (
+                          <Verified className="mr-[5px] size-4 shrink-0" />
+                        )}
+                        <span className="min-w-0 max-w-[165px] truncate">
+                          {minimalTab.artist.name}
+                        </span>
+                      </div>
+                    ) : (
                       <span className="min-w-0 max-w-[165px] truncate">
-                        {minimalTab.artist.name}
+                        {minimalTab.createdBy?.username ?? "Anonymous"}
                       </span>
-                    </div>
-                  ) : (
-                    <span className="min-w-0 max-w-[165px] truncate">
-                      {minimalTab.createdBy?.username ?? "Anonymous"}
-                    </span>
-                  )}
-                </Link>
-              </Button>
+                    )}
+                  </Link>
+                }
+              />
             ) : (
               <span className="text-sm italic">Anonymous</span>
             )}

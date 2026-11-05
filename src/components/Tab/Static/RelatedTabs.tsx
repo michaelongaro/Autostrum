@@ -95,27 +95,37 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
               {(showMoreArtistTabs || showBrowseAllTabs) && (
                 <div className="baseFlex shrink-0 gap-4">
                   {showMoreArtistTabs && artist && artistName && (
-                    <Button variant="link" asChild>
-                      <Link
-                        prefetch={false}
-                        href={artistTabsHref(artist)}
-                        className="hidden !h-6 !px-0 !py-0 text-foreground sm:block"
-                      >
-                        All tabs by {artistName}
-                      </Link>
-                    </Button>
+                    <Button
+                      role="link"
+                      variant="link"
+                      nativeButton={false}
+                      render={
+                        <Link
+                          prefetch={false}
+                          href={artistTabsHref(artist)}
+                          className="hidden !h-6 !px-0 !py-0 text-foreground sm:block"
+                        >
+                          All tabs by {artistName}
+                        </Link>
+                      }
+                    />
                   )}
 
                   {showBrowseAllTabs && (
-                    <Button variant="link" asChild>
-                      <Link
-                        prefetch={false}
-                        href="/search/filters"
-                        className="!h-6 !px-0 !py-0 text-foreground"
-                      >
-                        Browse all tabs
-                      </Link>
-                    </Button>
+                    <Button
+                      role="link"
+                      variant="link"
+                      nativeButton={false}
+                      render={
+                        <Link
+                          prefetch={false}
+                          href="/search/filters"
+                          className="!h-6 !px-0 !py-0 text-foreground"
+                        >
+                          Browse all tabs
+                        </Link>
+                      }
+                    />
                   )}
                 </div>
               )}

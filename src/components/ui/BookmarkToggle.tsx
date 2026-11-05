@@ -180,7 +180,6 @@ function BookmarkToggle({
       }}
     >
       <PopoverTrigger
-        asChild
         onClick={() => {
           if (!currentUser) {
             setShowUnregisteredPopover(true);
@@ -191,62 +190,64 @@ function BookmarkToggle({
             );
           }
         }}
-        className="baseFlex p-0"
-      >
-        <Button
-          aria-label={"Bookmark toggle"}
-          disabled={disabled}
-          variant={"secondary"}
-          className={customClassName}
-          onClick={() => {
-            if (!currentUser || !createdByUserId) return;
+        render={
+          <Button
+            aria-label={"Bookmark toggle"}
+            disabled={disabled}
+            variant={"secondary"}
+            className={customClassName}
+            onClick={() => {
+              if (!currentUser || !createdByUserId) return;
 
-            if (isBookmarked) {
-              removeBookmark({
-                tabId,
-                tabCreatorUserId: createdByUserId,
-              });
-            } else {
-              addBookmark({
-                tabId,
-                tabCreatorUserId: createdByUserId,
-              });
-            }
-          }}
-        >
-          <AnimatePresence mode="wait">
-            {isBookmarked ? (
-              <motion.div
-                key={`bookmark${tabId}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="baseFlex gap-2"
-              >
-                <IoBookmark className="h-[18px] w-[18px] md:h-5 md:w-5" />
+              if (isBookmarked) {
+                removeBookmark({
+                  tabId,
+                  tabCreatorUserId: createdByUserId,
+                });
+              } else {
+                addBookmark({
+                  tabId,
+                  tabCreatorUserId: createdByUserId,
+                });
+              }
+            }}
+          >
+            <AnimatePresence mode="wait">
+              {isBookmarked ? (
+                <motion.div
+                  key={`bookmark${tabId}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="baseFlex gap-2"
+                >
+                  <IoBookmark className="h-[18px] w-[18px] md:h-5 md:w-5" />
 
-                {showText && (
-                  <span className="hidden md:block">Bookmarked</span>
-                )}
-              </motion.div>
-            ) : (
-              <motion.div
-                key={`bookmarkOutline${tabId}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="baseFlex gap-2"
-              >
-                <IoBookmarkOutline className="h-[18px] w-[18px] md:h-5 md:w-5" />
+                  {showText && (
+                    <span className="hidden md:block">Bookmarked</span>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={`bookmarkOutline${tabId}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="baseFlex gap-2"
+                >
+                  <IoBookmarkOutline className="h-[18px] w-[18px] md:h-5 md:w-5" />
 
-                {showText && <span className="hidden md:block">Bookmark</span>}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Button>
-      </PopoverTrigger>
+                  {showText && (
+                    <span className="hidden md:block">Bookmark</span>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Button>
+        }
+      />
       <PopoverContent className="baseFlex w-full py-2 text-sm md:text-base">
         You must be logged in to bookmark a tab.
       </PopoverContent>

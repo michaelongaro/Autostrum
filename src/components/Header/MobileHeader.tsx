@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -91,15 +91,17 @@ function MobileHeader() {
             onOpenChange={setShowMobileSearch}
             modal={true}
           >
-            <DialogTrigger asChild>
-              <Button
-                variant="text"
-                onClick={() => setShowMobileSearch(true)}
-                className="!px-0"
-              >
-                <BiSearchAlt2 className="size-[26px]" />
-              </Button>
-            </DialogTrigger>
+            <DialogTrigger
+              render={
+                <Button
+                  variant="text"
+                  onClick={() => setShowMobileSearch(true)}
+                  className="!px-0"
+                >
+                  <BiSearchAlt2 className="size-[26px]" />
+                </Button>
+              }
+            />
 
             <VisuallyHidden>
               <DialogTitle>Search</DialogTitle>
@@ -110,7 +112,7 @@ function MobileHeader() {
 
             <DialogContent
               renderCloseButton={false}
-              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none border-none p-0 data-[state=closed]:!zoom-out-100 data-[state=open]:!zoom-in-100 data-[state=closed]:!slide-out-to-top-[50%] data-[state=open]:!slide-in-from-top-[50%]"
+              className="baseVertFlex size-full max-h-[100dvh] max-w-[100vw] !justify-start !rounded-none border-none p-0 data-[ending-style]:!scale-100 data-[starting-style]:!scale-100"
             >
               <SearchInput setShowMobileSearch={setShowMobileSearch} />
             </DialogContent>
@@ -157,9 +159,9 @@ function MobileHeader() {
             <div className="baseVertFlex my-4 h-full max-w-[348px] gap-4">
               <div className="baseFlex w-full gap-4">
                 <Button
+                  role="link"
                   variant={"headerNavigation"}
                   size={"lg"}
-                  asChild
                   style={{
                     backgroundColor: asPath.includes("/explore")
                       ? "hsl(var(--accent))"
@@ -168,21 +170,23 @@ function MobileHeader() {
                       ? "hsl(var(--accent-foreground))"
                       : undefined,
                   }}
-                >
-                  <Link
-                    prefetch={false}
-                    href={"/explore"}
-                    className="baseFlex w-[165px] gap-2.5 text-[1.13rem]"
-                  >
-                    <CiCompass1 className="size-5" />
-                    Explore
-                  </Link>
-                </Button>
+                  nativeButton={false}
+                  render={
+                    <Link
+                      prefetch={false}
+                      href={"/explore"}
+                      className="baseFlex w-[165px] gap-2.5 text-[1.13rem]"
+                    >
+                      <CiCompass1 className="size-5" />
+                      Explore
+                    </Link>
+                  }
+                />
 
                 <Button
+                  role="link"
                   variant={"headerNavigation"}
                   size={"lg"}
-                  asChild
                   style={{
                     backgroundColor: asPath.includes("/create")
                       ? "hsl(var(--accent))"
@@ -191,24 +195,26 @@ function MobileHeader() {
                       ? "hsl(var(--accent-foreground))"
                       : undefined,
                   }}
-                >
-                  <Link
-                    prefetch={false}
-                    href={"/create"}
-                    className="baseFlex w-[165px] gap-[0.14rem] text-[1.13rem]"
-                  >
-                    <BsPlus className="size-7" />
-                    Create
-                  </Link>
-                </Button>
+                  nativeButton={false}
+                  render={
+                    <Link
+                      prefetch={false}
+                      href={"/create"}
+                      className="baseFlex w-[165px] gap-[0.14rem] text-[1.13rem]"
+                    >
+                      <BsPlus className="size-7" />
+                      Create
+                    </Link>
+                  }
+                />
               </div>
 
               <div className="baseVertFlex w-full max-w-[348px] gap-2">
                 <div className="baseFlex w-full gap-4">
                   <Button
+                    role="link"
                     variant={"headerNavigation"}
                     size={"lg"}
-                    asChild
                     style={{
                       backgroundColor: asPath.includes("/tools")
                         ? "hsl(var(--accent))"
@@ -217,20 +223,22 @@ function MobileHeader() {
                         ? "hsl(var(--accent-foreground))"
                         : undefined,
                     }}
-                  >
-                    <Link
-                      prefetch={false}
-                      href={"/tools"}
-                      className="baseFlex w-[165px] gap-2"
-                    >
-                      <PiMetronome className="size-5 shrink-0" />
-                      Tools
-                    </Link>
-                  </Button>
+                    nativeButton={false}
+                    render={
+                      <Link
+                        prefetch={false}
+                        href={"/tools"}
+                        className="baseFlex w-[165px] gap-2"
+                      >
+                        <PiMetronome className="size-5 shrink-0" />
+                        Tools
+                      </Link>
+                    }
+                  />
                   <Button
+                    role="link"
                     variant={"headerNavigation"}
                     size={"lg"}
-                    asChild
                     style={{
                       backgroundColor: asPath.includes("/tuner")
                         ? "hsl(var(--accent))"
@@ -239,26 +247,24 @@ function MobileHeader() {
                         ? "hsl(var(--accent-foreground))"
                         : undefined,
                     }}
-                  >
-                    <Link
-                      prefetch={false}
-                      href={"/tuner"}
-                      className="baseFlex w-[165px] gap-2"
-                    >
-                      <TuningFork className="size-4" />
-                      Tuner
-                    </Link>
-                  </Button>
+                    nativeButton={false}
+                    render={
+                      <Link
+                        prefetch={false}
+                        href={"/tuner"}
+                        className="baseFlex w-[165px] gap-2"
+                      >
+                        <TuningFork className="size-4" />
+                        Tuner
+                      </Link>
+                    }
+                  />
                 </div>
               </div>
 
               <Separator className="h-[1px] w-full bg-foreground/75" />
 
-              <Accordion
-                type="single"
-                collapsible
-                className="w-full max-w-[348px]"
-              >
+              <Accordion className="w-full max-w-[348px]">
                 <AccordionItem
                   value="opened"
                   className="baseVertFlex relative w-full"
@@ -405,70 +411,81 @@ function MobileHeader() {
                     className="baseVertFlex w-full max-w-[348px] !items-start gap-4"
                   >
                     <div className="baseFlex w-full !justify-between gap-4">
-                      <Button variant={"link"} size={"lg"} asChild>
-                        <Link
-                          prefetch={false}
-                          href={`
-                /user/${currentUser.username}/filters
-                `}
-                          className="baseFlex !h-10 gap-2 !px-0"
-                        >
-                          <div className="grid shrink-0 grid-cols-1 grid-rows-1">
-                            <Image
-                              src={currentUser.profileImageUrl}
-                              alt={`${currentUser.username}'s profile picture`}
-                              width={300}
-                              height={300}
-                              onLoad={() => {
-                                setTimeout(() => {
-                                  setUserProfileImageLoaded(true);
-                                }, 100); // unsure if this is necessary, but it felt too flickery without it
-                              }}
-                              style={{
-                                opacity: userProfileImageLoaded ? 1 : 0,
-                                transition: "opacity 0.3s ease-in-out",
-                              }}
-                              className="col-start-1 col-end-2 row-start-1 row-end-2 !size-8 rounded-full object-cover object-center"
-                            />
-
-                            <AnimatePresence>
-                              {!userProfileImageLoaded && (
-                                <motion.div
-                                  key={"gridTabCardSkeletonImageLoader-lg"}
-                                  initial={{ opacity: 1 }}
-                                  animate={{ opacity: 0 }}
-                                  exit={{ opacity: 0 }}
-                                  transition={{ duration: 0.3 }}
-                                  className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full"
-                                ></motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          <p className="text-lg font-medium">
-                            {currentUser.username}
-                          </p>
-                        </Link>
-                      </Button>
-
-                      <SignOutButton>
-                        <Button variant={"link"} asChild>
+                      <Button
+                        role="link"
+                        variant={"link"}
+                        size={"lg"}
+                        nativeButton={false}
+                        render={
                           <Link
                             prefetch={false}
-                            href={`/`}
-                            className="baseFlex !p-0"
+                            href={`
+                /user/${currentUser.username}/filters
+                `}
+                            className="baseFlex !h-10 gap-2 !px-0"
                           >
-                            Sign out
+                            <div className="grid shrink-0 grid-cols-1 grid-rows-1">
+                              <Image
+                                src={currentUser.profileImageUrl}
+                                alt={`${currentUser.username}'s profile picture`}
+                                width={300}
+                                height={300}
+                                onLoad={() => {
+                                  setTimeout(() => {
+                                    setUserProfileImageLoaded(true);
+                                  }, 100); // unsure if this is necessary, but it felt too flickery without it
+                                }}
+                                style={{
+                                  opacity: userProfileImageLoaded ? 1 : 0,
+                                  transition: "opacity 0.3s ease-in-out",
+                                }}
+                                className="col-start-1 col-end-2 row-start-1 row-end-2 !size-8 rounded-full object-cover object-center"
+                              />
+
+                              <AnimatePresence>
+                                {!userProfileImageLoaded && (
+                                  <motion.div
+                                    key={"gridTabCardSkeletonImageLoader-lg"}
+                                    initial={{ opacity: 1 }}
+                                    animate={{ opacity: 0 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-8 rounded-full"
+                                  ></motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+
+                            <p className="text-lg font-medium">
+                              {currentUser.username}
+                            </p>
                           </Link>
-                        </Button>
+                        }
+                      />
+
+                      <SignOutButton>
+                        <Button
+                          role="link"
+                          variant={"link"}
+                          nativeButton={false}
+                          render={
+                            <Link
+                              prefetch={false}
+                              href={`/`}
+                              className="baseFlex !p-0"
+                            >
+                              Sign out
+                            </Link>
+                          }
+                        />
                       </SignOutButton>
                     </div>
 
                     <div className="baseFlex w-full gap-4">
                       <Button
+                        role="link"
                         variant={"headerNavigation"}
                         size={"lg"}
-                        asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/settings")
                             ? "hsl(var(--accent))"
@@ -477,21 +494,23 @@ function MobileHeader() {
                             ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
-                      >
-                        <Link
-                          prefetch={false}
-                          href={`/profile/settings`}
-                          className="baseFlex w-[165px] gap-2"
-                        >
-                          <IoMdSettings className="size-[18px]" />
-                          Settings
-                        </Link>
-                      </Button>
+                        nativeButton={false}
+                        render={
+                          <Link
+                            prefetch={false}
+                            href={`/profile/settings`}
+                            className="baseFlex w-[165px] gap-2"
+                          >
+                            <IoMdSettings className="size-[18px]" />
+                            Settings
+                          </Link>
+                        }
+                      />
 
                       <Button
+                        role="link"
                         variant={"headerNavigation"}
                         size={"lg"}
-                        asChild
                         style={{
                           backgroundColor: asPath.includes(
                             "/profile/statistics",
@@ -502,23 +521,25 @@ function MobileHeader() {
                             ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
-                      >
-                        <Link
-                          prefetch={false}
-                          href={`/profile/statistics`}
-                          className="baseFlex w-[165px] gap-2"
-                        >
-                          <IoStatsChart className="size-4" />
-                          Statistics
-                        </Link>
-                      </Button>
+                        nativeButton={false}
+                        render={
+                          <Link
+                            prefetch={false}
+                            href={`/profile/statistics`}
+                            className="baseFlex w-[165px] gap-2"
+                          >
+                            <IoStatsChart className="size-4" />
+                            Statistics
+                          </Link>
+                        }
+                      />
                     </div>
 
                     <div className="baseFlex w-full gap-4">
                       <Button
+                        role="link"
                         variant={"headerNavigation"}
                         size={"lg"}
-                        asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/tabs")
                             ? "hsl(var(--accent))"
@@ -527,21 +548,23 @@ function MobileHeader() {
                             ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
-                      >
-                        <Link
-                          prefetch={false}
-                          href={`/profile/tabs/filters`}
-                          className="baseFlex w-[165px] gap-2"
-                        >
-                          <Logo className="size-3.5" />
-                          Tabs
-                        </Link>
-                      </Button>
+                        nativeButton={false}
+                        render={
+                          <Link
+                            prefetch={false}
+                            href={`/profile/tabs/filters`}
+                            className="baseFlex w-[165px] gap-2"
+                          >
+                            <Logo className="size-3.5" />
+                            Tabs
+                          </Link>
+                        }
+                      />
 
                       <Button
+                        role="link"
                         variant={"headerNavigation"}
                         size={"lg"}
-                        asChild
                         style={{
                           backgroundColor: asPath.includes("/profile/bookmarks")
                             ? "hsl(var(--accent))"
@@ -550,16 +573,18 @@ function MobileHeader() {
                             ? "hsl(var(--accent-foreground))"
                             : undefined,
                         }}
-                      >
-                        <Link
-                          prefetch={false}
-                          href={`/profile/bookmarks/filters`}
-                          className="baseFlex w-[165px] gap-2 !px-0"
-                        >
-                          <IoBookmark className="size-4 shrink-0" />
-                          Bookmarks
-                        </Link>
-                      </Button>
+                        nativeButton={false}
+                        render={
+                          <Link
+                            prefetch={false}
+                            href={`/profile/bookmarks/filters`}
+                            className="baseFlex w-[165px] gap-2 !px-0"
+                          >
+                            <IoBookmark className="size-4 shrink-0" />
+                            Bookmarks
+                          </Link>
+                        }
+                      />
                     </div>
                   </motion.div>
                 )}

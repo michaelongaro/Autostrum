@@ -37,14 +37,16 @@ function Home() {
           </div>
 
           <Button
+            role="link"
             variant="link"
-            asChild
             className="!h-auto !px-0 text-foreground"
-          >
-            <Link prefetch={false} href="/search/filters">
-              View all tabs
-            </Link>
-          </Button>
+            nativeButton={false}
+            render={
+              <Link prefetch={false} href="/search/filters">
+                View all tabs
+              </Link>
+            }
+          />
         </div>
 
         <div className="grid w-full grid-cols-2 place-items-center gap-4 lg:grid-cols-3 2xl:grid-cols-4">

@@ -40,6 +40,7 @@ function TuningSelect({
       }}
       value={tuning}
       onValueChange={(value) => {
+        if (value === null) return;
         if (value) {
           setTuning(value);
         }

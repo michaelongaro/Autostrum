@@ -8,7 +8,6 @@ import {
   Drawer,
   DrawerContent,
   DrawerDescription,
-  DrawerPortal,
   DrawerTitle,
 } from "~/components/ui/drawer";
 import EditImage from "~/components/Profile/EditImage";
@@ -17,7 +16,7 @@ import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { AnimatePresence, motion } from "framer-motion";
 import type { LocalSettings } from "~/pages/profile/settings";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 // Helper to read file as data URL
 function readFile(file: File): Promise<string> {
@@ -73,9 +72,6 @@ function EditImageSelector({
 }: EditImageSelector) {
   const [profileImageLoaded, setProfileImageLoaded] = useState(false);
   const [drawerIsOpen, setDrawerIsOpen] = useState(false);
-
-  // used to prevent accidental closing of the drawer when editing an image
-  const [activelyEditingImage, setActivelyEditingImage] = useState(false);
 
   const isAboveLgViewport = useViewportWidthBreakpoint(1024);
 
@@ -191,16 +187,16 @@ function EditImageSelector({
               <Button
                 variant={"outline"}
                 disabled={!localSettings || !profileImageLoaded}
-                asChild
-              >
-                <label
-                  htmlFor="file-upload"
-                  className="baseFlex w-28 cursor-pointer gap-2"
-                >
-                  <FiUpload className="size-4" />
-                  Upload
-                </label>
-              </Button>
+                render={
+                  <label
+                    htmlFor="file-upload"
+                    className="baseFlex w-28 cursor-pointer gap-2"
+                  >
+                    <FiUpload className="size-4" />
+                    Upload
+                  </label>
+                }
+              />
             </>
           )}
 
@@ -225,39 +221,36 @@ function EditImageSelector({
       {!isAboveLgViewport && (
         <Drawer
           open={drawerIsOpen}
-          handleOnly={activelyEditingImage} // FYI: using this because "dismissable" prop wasn't fast enough in responding to user input
+          swipeHandleOnly // Body gestures always belong to the editor; dismiss by dragging the handle.
           onOpenChange={(open) => {
             setDrawerIsOpen(open);
           }}
         >
-          <DrawerPortal>
-            <DrawerContent className="baseVertFlex h-[75dvh] max-h-[500px] !items-start !justify-start">
-              <VisuallyHidden>
-                <DrawerTitle>Image editor</DrawerTitle>
-                <DrawerDescription>
-                  Use the controls below to edit your profile image. You can
-                  crop, rotate, and zoom in on the image. When you&apos;re done,
-                  click &ldquo;Save&rdquo; to apply the changes.
-                </DrawerDescription>
-              </VisuallyHidden>
+          <DrawerContent className="baseVertFlex h-[75dvh] max-h-[500px] !items-start !justify-start">
+            <VisuallyHidden>
+              <DrawerTitle>Image editor</DrawerTitle>
+              <DrawerDescription>
+                Use the controls below to edit your profile image. You can crop,
+                rotate, and zoom in on the image. When you&apos;re done, click
+                &ldquo;Save&rdquo; to apply the changes.
+              </DrawerDescription>
+            </VisuallyHidden>
 
-              <EditImage
-                imageBeingEdited={imageBeingEdited}
-                setNewProfileImage={setNewProfileImage}
-                setShowEditImageModal={setShowEditImageModal}
-                crop={crop}
-                setCrop={setCrop}
-                rotation={rotation}
-                setRotation={setRotation}
-                zoom={zoom}
-                setZoom={setZoom}
-                croppedAreaPixels={croppedAreaPixels}
-                setCroppedAreaPixels={setCroppedAreaPixels}
-                setActivelyEditingImage={setActivelyEditingImage}
-                setDrawerIsOpen={setDrawerIsOpen}
-              />
-            </DrawerContent>
-          </DrawerPortal>
+            <EditImage
+              imageBeingEdited={imageBeingEdited}
+              setNewProfileImage={setNewProfileImage}
+              setShowEditImageModal={setShowEditImageModal}
+              crop={crop}
+              setCrop={setCrop}
+              rotation={rotation}
+              setRotation={setRotation}
+              zoom={zoom}
+              setZoom={setZoom}
+              croppedAreaPixels={croppedAreaPixels}
+              setCroppedAreaPixels={setCroppedAreaPixels}
+              setDrawerIsOpen={setDrawerIsOpen}
+            />
+          </DrawerContent>
         </Drawer>
       )}
     </div>

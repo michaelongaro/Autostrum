@@ -905,7 +905,9 @@ let themeTransitionStart = -1;
 let themeTransitionEnd = -1;
 let latestThemeTransition: ViewTransition | undefined;
 
-function isThemeTransitionPointerEvent(event: PointerEvent): boolean {
+function isThemeTransitionPointerEvent(
+  event: Pick<Event, "timeStamp">,
+): boolean {
   return (
     event.timeStamp >= themeTransitionStart &&
     event.timeStamp <= themeTransitionEnd

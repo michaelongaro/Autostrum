@@ -18,7 +18,7 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 interface DeleteAccountModal {
   showDeleteAccountModal: boolean;
@@ -108,9 +108,7 @@ function DeleteAccountModal({
             <Checkbox
               id="deleteTabs"
               checked={anonymizeUserTabs}
-              onCheckedChange={(value) =>
-                setAnonymizeUserTabs(value === "indeterminate" ? false : value)
-              }
+              onCheckedChange={(value) => setAnonymizeUserTabs(value)}
               className="mt-1 h-5 w-5"
             />
             <div className="baseVertFlex !items-start gap-2">

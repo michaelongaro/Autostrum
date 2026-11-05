@@ -11,6 +11,8 @@ export default defineConfig(
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Installed skill examples are reference material, not application code.
+    ".agents/**",
   ]),
   {
     files: ["**/*.ts", "**/*.tsx"],

@@ -1,17 +1,18 @@
+import type { StyledProps } from "./base-ui-types";
 import * as React from "react";
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { Check } from "lucide-react";
 
 import { cn } from "~/utils/cn";
 
 const Checkbox = React.forwardRef<
   React.ComponentRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
+  StyledProps<typeof CheckboxPrimitive.Root>
 >(({ className, ...props }, ref) => (
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "peer size-4 shrink-0 rounded-sm border border-primary ring-offset-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+      "peer inline-flex size-4 shrink-0 items-center justify-center rounded-sm border border-primary ring-offset-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground/70 data-[disabled]:cursor-not-allowed data-[checked]:bg-primary data-[checked]:text-primary-foreground data-[disabled]:opacity-50",
       className,
     )}
     {...props}
@@ -23,6 +24,6 @@ const Checkbox = React.forwardRef<
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));
-Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+Checkbox.displayName = "Checkbox";
 
 export { Checkbox };

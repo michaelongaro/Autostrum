@@ -37,11 +37,18 @@ function SignupCTA() {
               Sign up
             </Button>
           </SignUpButton>
-          <Button variant="outline" asChild size="lg" className="px-8">
-            <Link prefetch={false} href="/create">
-              Start creating
-            </Link>
-          </Button>
+          <Button
+            role="link"
+            variant="outline"
+            size="lg"
+            className="px-8"
+            nativeButton={false}
+            render={
+              <Link prefetch={false} href="/create">
+                Start creating
+              </Link>
+            }
+          />
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "~/utils/cn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
@@ -52,18 +52,18 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    Omit<ButtonPrimitive.Props, "className" | "style">,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+const Button = React.forwardRef<HTMLElement, ButtonProps>(
+  ({ className, variant, size, ...props }, ref) => {
     const aboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
     return (
-      <Comp
+      <ButtonPrimitive
         {...(variant === "audio" ? { "aria-label": "Play/Pause" } : {})}
         className={cn(
           buttonVariants({

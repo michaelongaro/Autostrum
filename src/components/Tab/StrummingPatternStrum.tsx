@@ -281,7 +281,9 @@ function StrummingPatternStrum({
               <Select
                 open={chordSelectOpen}
                 onOpenChange={setChordSelectOpen}
-                onValueChange={handleChordSelect}
+                onValueChange={(value) => {
+                  if (value !== null) handleChordSelect(value);
+                }}
                 value={selectedChord}
               >
                 <SelectTrigger
@@ -306,11 +308,12 @@ function StrummingPatternStrum({
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent
-                  onCloseAutoFocus={(event) => {
+                  finalFocus={() => {
                     if (openingChordDialog.current) {
-                      event.preventDefault();
                       openingChordDialog.current = false;
+                      return false;
                     }
+                    return true;
                   }}
                 >
                   <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">
@@ -336,12 +339,12 @@ function StrummingPatternStrum({
                         <Button
                           variant="link"
                           className="h-auto cursor-pointer justify-center hover:bg-transparent hover:text-foreground focus:bg-transparent focus:text-foreground focus:underline"
-                          asChild
-                        >
-                          <SelectItem value="addChord" indicator={null}>
-                            Add one
-                          </SelectItem>
-                        </Button>
+                          render={
+                            <SelectItem value="addChord" indicator={null}>
+                              Add one
+                            </SelectItem>
+                          }
+                        />
                       </>
                     )}
                   </SelectGroup>

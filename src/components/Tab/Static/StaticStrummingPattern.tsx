@@ -101,35 +101,35 @@ function StaticStrummingPattern({
                 }}
               >
                 <PopoverTrigger
-                  asChild
                   className="baseFlex rounded-md transition-all hover:bg-primary/20 active:hover:bg-primary/10"
-                >
-                  <Button
-                    variant={"ghost"}
-                    style={{
-                      transform:
-                        strumChords[strumIndex]!.length > 4 &&
-                        strumIndex !== strumIndexPopoverOpen
-                          ? "rotate(-30deg)"
-                          : "rotate(0deg)",
-                      zIndex:
-                        strumIndex === strumIndexPopoverOpen ? 9 : undefined,
-                    }}
-                    className="baseFlex relative mb-1 h-7 px-1 py-0 hover:z-10"
-                  >
-                    <ChordName
-                      color={
-                        strumColors[strumIndex] ?? "hsl(var(--foreground))"
-                      }
-                      name={strumChords[strumIndex]!}
-                      truncate={true}
-                      rotate={false}
-                      screenshotColor={color}
-                      screenshotTheme={theme}
-                      showFullName={strumIndex === strumIndexPopoverOpen}
-                    />
-                  </Button>
-                </PopoverTrigger>
+                  render={
+                    <Button
+                      variant={"ghost"}
+                      style={{
+                        transform:
+                          strumChords[strumIndex]!.length > 4 &&
+                          strumIndex !== strumIndexPopoverOpen
+                            ? "rotate(-30deg)"
+                            : "rotate(0deg)",
+                        zIndex:
+                          strumIndex === strumIndexPopoverOpen ? 9 : undefined,
+                      }}
+                      className="baseFlex relative mb-1 h-7 px-1 py-0 hover:z-10"
+                    >
+                      <ChordName
+                        color={
+                          strumColors[strumIndex] ?? "hsl(var(--foreground))"
+                        }
+                        name={strumChords[strumIndex]!}
+                        truncate={true}
+                        rotate={false}
+                        screenshotColor={color}
+                        screenshotTheme={theme}
+                        showFullName={strumIndex === strumIndexPopoverOpen}
+                      />
+                    </Button>
+                  }
+                />
                 <PopoverContent
                   side="bottom"
                   sideOffset={0}

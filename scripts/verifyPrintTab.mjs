@@ -200,15 +200,13 @@ async function ready() {
     { timeout: 30000 },
   );
   // A fast preview can finish while the dialog is still animating in.
-  await page
-    .locator('[role="dialog"][data-state="open"]')
-    .evaluate(async (element) => {
-      await Promise.all(
-        element
-          .getAnimations()
-          .map((animation) => animation.finished.catch(() => {})),
-      );
-    });
+  await page.locator('[role="dialog"][data-open]').evaluate(async (element) => {
+    await Promise.all(
+      element
+        .getAnimations()
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
 }
 
 async function choosePrintOption(id, value) {
@@ -227,21 +225,27 @@ async function choosePrintOption(id, value) {
 }
 
 async function closePrintDialog(method = "close", checkAnimation = false) {
-  const dialog = page.locator('[role="dialog"][data-state]');
+  const dialog = page.locator(
+    '[role="dialog"][data-open], [role="dialog"][data-closed]',
+  );
   if (checkAnimation) {
-    // Sample inside the browser from animationstart; a tool round trip can
+    // Sample inside the browser from transitionstart; a tool round trip can
     // otherwise miss the middle of a short animation on a busy dev server.
     await dialog.evaluate((element) => {
       window.__printExitSamples = [];
       element.addEventListener(
-        "animationstart",
+        "transitionstart",
         (event) => {
-          if (event.target !== element || element.dataset.state !== "closed")
+          if (
+            event.target !== element ||
+            event.propertyName !== "opacity" ||
+            !element.hasAttribute("data-ending-style")
+          )
             return;
           const sample = () => {
             if (!element.isConnected) return;
             window.__printExitSamples.push({
-              state: element.dataset.state,
+              state: element.hasAttribute("data-closed") ? "closed" : "open",
               opacity: Number(getComputedStyle(element).opacity),
               duration: element.getAnimations()[0]?.effect.getTiming().duration,
             });
@@ -249,7 +253,8 @@ async function closePrintDialog(method = "close", checkAnimation = false) {
           };
           requestAnimationFrame(sample);
         },
-        { once: true },
+        // Descendant focus transitions can bubble before the popup exits.
+        { once: false },
       );
     });
   }
@@ -485,7 +490,7 @@ async function verifyIOSPrintHandoff() {
   await choosePrintOption("print-paper", "a4");
   await choosePrintOption("print-orientation", "landscape");
   await setPrintScale(110);
-  await page.getByLabel("3. Outro", { exact: true }).uncheck();
+  await page.getByRole("checkbox", { name: "3. Outro", exact: true }).uncheck();
   await ready();
   const expectedPages = await frame().locator("#print-pages").innerHTML();
   const expectedCount = (await metrics()).count;
@@ -730,7 +735,7 @@ try {
     `PASS compact preview: ${result.count} pages, every tab column and strum retained`,
   );
 
-  await page.locator("#print-colors").click();
+  await page.locator('label[for="print-colors"]').click();
   await ready();
   assert.notEqual(
     await frame()
@@ -747,7 +752,7 @@ try {
     "text",
     "print colors must not change the app setting",
   );
-  await page.locator("#print-left-handed").click();
+  await page.locator('label[for="print-left-handed"]').click();
   await ready();
   assert.ok(
     await frame()
@@ -776,7 +781,7 @@ try {
     384,
     "all section, subsection and sequence repeats must be expanded",
   );
-  await page.locator("#print-expand").click();
+  await page.locator('label[for="print-expand"]').click();
   await ready();
   result = await assertLayout();
   assert.equal(result.columns, 80);
@@ -790,7 +795,7 @@ try {
   await setPrintScale(140);
   await ready();
   result = await assertLayout();
-  await page.locator("#print-new-page").click();
+  await page.locator('label[for="print-new-page"]').click();
   await ready();
   const starts = await frame().evaluate(() =>
     [...document.querySelectorAll("#print-pages .print-section-heading")].map(
@@ -899,7 +904,7 @@ try {
     .getByRole("button", { name: "Reset settings", exact: true })
     .click();
   await ready();
-  await page.getByLabel("3. Outro", { exact: true }).uncheck();
+  await page.getByRole("checkbox", { name: "3. Outro", exact: true }).uncheck();
   await ready();
   assert.equal((await metrics()).headings.length, 2);
   await closePrintDialog("close", true);

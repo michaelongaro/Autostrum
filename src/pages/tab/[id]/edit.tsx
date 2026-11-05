@@ -187,16 +187,20 @@ function UserNotAllowedToEdit({ tabId }: { tabId: number }) {
           You must be logged in as the owner of the tab to edit it.
         </span>
 
-        <Button asChild>
-          <Link
-            prefetch={false}
-            href={`/tab/${tabId}`}
-            className="baseFlex gap-1 pr-6"
-          >
-            <BsArrowLeftShort className="h-6 w-8" />
-            Return to tab
-          </Link>
-        </Button>
+        <Button
+          role="link"
+          nativeButton={false}
+          render={
+            <Link
+              prefetch={false}
+              href={`/tab/${tabId}`}
+              className="baseFlex gap-1 pr-6"
+            >
+              <BsArrowLeftShort className="h-6 w-8" />
+              Return to tab
+            </Link>
+          }
+        />
       </div>
     </motion.div>
   );

@@ -19,22 +19,20 @@ export default function IPhoneSoundDrawer() {
       onOpenChange={(nextOpen) => {
         if (!nextOpen) closeDrawer();
       }}
-      shouldScaleBackground={false}
-      autoFocus
     >
       <DrawerContent
         className="max-h-[calc(100dvh-24px)] px-5 pb-[max(0.5rem,env(safe-area-inset-bottom))] motion-reduce:!animate-none motion-reduce:!transition-none"
-        onOpenAutoFocus={() => {
+        initialFocus={() => {
           settingsTriggerRef.current = returnFocusTo;
+          return true;
         }}
-        onCloseAutoFocus={(event) => {
-          if (settingsTriggerRef.current?.isConnected) {
-            event.preventDefault();
-            settingsTriggerRef.current.focus({ preventScroll: true });
-          }
-        }}
+        finalFocus={() =>
+          settingsTriggerRef.current?.isConnected
+            ? settingsTriggerRef.current
+            : true
+        }
       >
-        {/* Keep scrolling inside Vaul's shell so its drag extension stays clipped. */}
+        {/* Keep scrolling inside the drawer shell so swipe content stays clipped. */}
         <div className="min-h-0 overflow-y-auto overscroll-contain">
           <div className="mb-4 mt-3 text-center">
             <DrawerTitle className="baseFlex gap-2 text-[22px] leading-tight">

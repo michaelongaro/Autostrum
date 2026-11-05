@@ -30,7 +30,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 function SectionProgressionDialog() {
   const {
@@ -362,7 +362,12 @@ function Section({
 
         <div className="baseVertFlex gap-6 rounded-md py-1 text-foreground sm:!flex-row sm:!justify-between sm:gap-4">
           <div className="baseVertFlex !items-start gap-4 sm:!flex-row">
-            <Select value={sectionId} onValueChange={handleSectionChange}>
+            <Select
+              value={sectionId}
+              onValueChange={(value) => {
+                if (value !== null) handleSectionChange(value);
+              }}
+            >
               <SelectTrigger
                 id={`sectionIndex${index}`}
                 className="w-[218px] bg-background/50 sm:w-[218px]"

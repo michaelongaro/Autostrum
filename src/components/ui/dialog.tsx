@@ -1,5 +1,6 @@
+import type { StyledProps } from "./base-ui-types";
 import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 
 import { cn } from "~/utils/cn";
@@ -8,16 +9,16 @@ const Dialog = DialogPrimitive.Root;
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = ({ ...props }: DialogPrimitive.DialogPortalProps) => (
+const DialogPortal = ({ ...props }: DialogPrimitive.Portal.Props) => (
   <DialogPrimitive.Portal {...props} />
 );
-DialogPortal.displayName = DialogPrimitive.Portal.displayName;
+DialogPortal.displayName = "DialogPortal";
 
 const DialogOverlay = React.forwardRef<
-  React.ComponentRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+  React.ComponentRef<typeof DialogPrimitive.Backdrop>,
+  StyledProps<typeof DialogPrimitive.Backdrop>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
+  <DialogPrimitive.Backdrop
     ref={ref}
     style={{
       // had it as "!duration-300", and the !important overrode updateCSSThemeVars()
@@ -25,23 +26,21 @@ const DialogOverlay = React.forwardRef<
       animationDuration: "300ms",
     }}
     className={cn(
-      "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
       className,
     )}
     {...props}
   />
 ));
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+DialogOverlay.displayName = "DialogOverlay";
 
-type DialogContentProps = React.ComponentPropsWithoutRef<
-  typeof DialogPrimitive.Content
-> & {
+type DialogContentProps = StyledProps<typeof DialogPrimitive.Popup> & {
   closeButtonColor?: string;
   renderCloseButton?: boolean;
 };
 
 const DialogContent = React.forwardRef<
-  React.ComponentRef<typeof DialogPrimitive.Content>,
+  React.ComponentRef<typeof DialogPrimitive.Popup>,
   DialogContentProps
 >(
   (
@@ -56,7 +55,7 @@ const DialogContent = React.forwardRef<
   ) => (
     <DialogPortal>
       <DialogOverlay />
-      <DialogPrimitive.Content
+      <DialogPrimitive.Popup
         ref={ref}
         style={{
           // had it as "!duration-300", and the !important overrode updateCSSThemeVars()
@@ -64,7 +63,7 @@ const DialogContent = React.forwardRef<
           animationDuration: "300ms",
         }}
         className={cn(
-          "modalGradient fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 text-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg md:w-full",
+          "modalGradient fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 text-foreground shadow-lg transition-[opacity,transform] duration-150 data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 sm:rounded-lg md:w-full",
           className,
         )}
         {...props}
@@ -76,17 +75,17 @@ const DialogContent = React.forwardRef<
             style={{
               color: closeButtonColor,
             }}
-            className="baseFlex absolute right-4 top-4 size-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:pointer-events-none data-[state=open]:bg-primary data-[state=open]:text-foreground/75"
+            className="baseFlex absolute right-4 top-4 size-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:pointer-events-none"
           >
             <X className="size-5" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}
-      </DialogPrimitive.Content>
+      </DialogPrimitive.Popup>
     </DialogPortal>
   ),
 );
-DialogContent.displayName = DialogPrimitive.Content.displayName;
+DialogContent.displayName = "DialogContent";
 
 const DialogHeader = ({
   className,
@@ -118,7 +117,7 @@ DialogFooter.displayName = "DialogFooter";
 
 const DialogTitle = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+  StyledProps<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
@@ -129,11 +128,11 @@ const DialogTitle = React.forwardRef<
     {...props}
   />
 ));
-DialogTitle.displayName = DialogPrimitive.Title.displayName;
+DialogTitle.displayName = "DialogTitle";
 
 const DialogDescription = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+  StyledProps<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
@@ -141,7 +140,7 @@ const DialogDescription = React.forwardRef<
     {...props}
   />
 ));
-DialogDescription.displayName = DialogPrimitive.Description.displayName;
+DialogDescription.displayName = "DialogDescription";
 
 export {
   Dialog,

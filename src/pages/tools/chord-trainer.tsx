@@ -311,7 +311,9 @@ function ChordTrainerPage() {
                 <Select
                   value={strummingPatternId}
                   onOpenChange={handleSelectOpenChange}
-                  onValueChange={handleStrummingPatternChange}
+                  onValueChange={(value) => {
+                    if (value !== null) handleStrummingPatternChange(value);
+                  }}
                 >
                   <SelectTrigger
                     id="chord-trainer-strumming-pattern"
@@ -353,7 +355,9 @@ function ChordTrainerPage() {
                 <Select
                   value={audioOption}
                   onOpenChange={handleSelectOpenChange}
-                  onValueChange={handleAudioOptionChange}
+                  onValueChange={(value) => {
+                    if (value !== null) handleAudioOptionChange(value);
+                  }}
                 >
                   <SelectTrigger
                     id="chordTrainerInstrument"
@@ -457,7 +461,9 @@ function ChordTrainerPage() {
 
                 <Select
                   value={activeChordPresetId}
-                  onValueChange={handleChordPresetSelect}
+                  onValueChange={(value) => {
+                    if (value !== null) handleChordPresetSelect(value);
+                  }}
                 >
                   <SelectTrigger className="w-full bg-background xs:max-w-[320px]">
                     <SelectValue placeholder="Choose a chord preset" />

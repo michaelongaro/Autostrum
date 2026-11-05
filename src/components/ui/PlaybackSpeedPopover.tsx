@@ -48,44 +48,52 @@ function PlaybackSpeedPopover({
   }
 
   return (
-    <Popover onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        {triggerVariant === "link" ? (
-          <Button
-            id={id}
-            variant="link"
-            disabled={disabled}
-            className={cn("min-w-[42px] !px-0 tabular-nums", triggerClassName)}
-          >
-            {speedLabel}
-          </Button>
-        ) : (
-          <button
-            id={id}
-            type="button"
-            disabled={disabled}
-            className={cn(
-              "border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
-              triggerClassName,
-            )}
-          >
-            <span className="tabular-nums">{speedLabel}</span>
-            <ChevronDown className="size-4 shrink-0 opacity-50" />
-          </button>
-        )}
-      </PopoverTrigger>
+    <Popover
+      onOpenChange={(open, details) => {
+        // The playback modal's external focus trap can reclaim focus from this portal.
+        if (details.reason === "focus-out") {
+          details.cancel();
+          return;
+        }
+        onOpenChange?.(open);
+      }}
+    >
+      <PopoverTrigger
+        render={
+          triggerVariant === "link" ? (
+            <Button
+              id={id}
+              variant="link"
+              disabled={disabled}
+              className={cn(
+                "min-w-[42px] !px-0 tabular-nums",
+                triggerClassName,
+              )}
+            >
+              {speedLabel}
+            </Button>
+          ) : (
+            <button
+              id={id}
+              type="button"
+              disabled={disabled}
+              className={cn(
+                "border-input flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-transparent py-2 pl-3 pr-2 text-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
+                triggerClassName,
+              )}
+            >
+              <span className="tabular-nums">{speedLabel}</span>
+              <ChevronDown className="size-4 shrink-0 opacity-50" />
+            </button>
+          )
+        }
+      />
       <PopoverContent
         side={side}
         align={align}
         className="baseVertFlex w-80 max-w-[calc(100vw-2rem)] gap-4 p-4"
-        onOpenAutoFocus={(event) => event.preventDefault()}
-        onCloseAutoFocus={(event) => event.preventDefault()}
-        // PlaybackModal's FocusTrap does not contain this portaled content.
-        // react-range focuses its thumb on touch; the trap then reclaims focus
-        // onto the modal, which Radix treats as focus-outside and closes the
-        // popover (iOS). Pointer-outside / Escape still dismiss normally.
-        // The Drawer host has no FocusTrap, which is why it was unaffected.
-        onFocusOutside={(event) => event.preventDefault()}
+        initialFocus={false}
+        finalFocus={false}
       >
         <div className="baseVertFlex w-full">
           <div className="baseFlex w-full !justify-between text-sm">

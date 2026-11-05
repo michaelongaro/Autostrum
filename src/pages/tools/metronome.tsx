@@ -497,6 +497,7 @@ function MetronomeToolPage() {
               <Select
                 value={clickSound.value}
                 onValueChange={(value) => {
+                  if (value === null) return;
                   const sound = clickSounds.find((s) => s.value === value);
                   if (sound) setClickSound(sound);
                 }}
@@ -952,6 +953,7 @@ function MetronomeToolPage() {
             <Select
               value={clickSound.value}
               onValueChange={(value) => {
+                if (value === null) return;
                 const sound = clickSounds.find((s) => s.value === value);
                 if (sound) setClickSound(sound);
               }}
