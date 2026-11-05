@@ -1,6 +1,9 @@
+import { routeUrl } from "~/utils/routeUrl";
+import { useRouter } from "next/navigation";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
+
 import {
   OverlayScrollbarsComponent,
   type OverlayScrollbarsComponentRef,
@@ -86,7 +89,8 @@ function SearchResults({
   isFetchingRelatedArtists,
 }: SearchResults) {
   const { userId } = useAuth();
-  const { asPath, push, query, pathname } = useRouter();
+  const { asPath, query, pathname } = useRouteLocation();
+  const { push } = useRouter();
 
   const { viewportLabel, color, theme } = useTabStore((state) => ({
     viewportLabel: state.viewportLabel,
@@ -129,7 +133,7 @@ function SearchResults({
 
   function getInfiniteQueryParams(): InfiniteQueryParams {
     return {
-      searchQuery: decodeURIComponent(searchQuery ?? ""),
+      searchQuery: searchQuery ?? "",
       genre,
       tuning,
       capo: capo ?? undefined,
@@ -343,16 +347,7 @@ function SearchResults({
 
     setDrawerOpen(false);
 
-    void push(
-      {
-        pathname,
-        query: newQuery,
-      },
-      undefined,
-      {
-        scroll: false,
-      },
-    );
+    push(routeUrl(pathname, newQuery), { scroll: false });
   }
 
   function resetSearchFilters() {

@@ -33,10 +33,11 @@ const sideEffects = [];
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     const stubs = {
+      "next/cache": "export const revalidatePath = () => {};",
       "~/server/db": "export const prisma = globalThis.__auditDatabase;",
       "~/env": "export const env = {NODE_ENV:'development'};",
       "@clerk/nextjs/server":
-        "export const getAuth = () => ({userId:null}); export const clerkClient = async () => ({users:{deleteUser:async () => {}}});",
+        "export const auth = async () => ({userId:null}); export const clerkClient = async () => ({users:{deleteUser:async () => {}}});",
       "@vercel/functions": "export const waitUntil = () => {};",
       "@aws-sdk/client-s3":
         "export class S3Client { async send() {} } export class DeleteObjectCommand {} export class DeleteObjectsCommand {}",
@@ -88,8 +89,10 @@ function context(userId, ip = "192.0.2.1") {
   return {
     auth: { userId },
     prisma: db,
-    req: { headers: { "x-forwarded-for": ip }, socket: {} },
-    res: { revalidate: async () => {}, setHeader() {} },
+    req: new Request("http://localhost/api/trpc", {
+      headers: { "x-forwarded-for": ip },
+    }),
+    resHeaders: new Headers(),
     waitUntil(promise) {
       sideEffects.push(promise);
     },

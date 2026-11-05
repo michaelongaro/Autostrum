@@ -1,4 +1,4 @@
-import { type Section } from "../stores/TabStore";
+import type { Section } from "../stores/TabStore";
 
 function getSectionIndexFromId(tabData: Section[], sectionId: string) {
   for (let i = 0; i < tabData.length; i++) {

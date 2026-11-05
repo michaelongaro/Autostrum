@@ -1,8 +1,10 @@
+import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import Link from "next/link";
-import { useRouter } from "next/router";
+
 import {
   useEffect,
   useState,
@@ -101,7 +103,8 @@ type TabMetadata = {
 function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
   const draftActions = useDraftActions();
   const { userId } = useAuth();
-  const { push, asPath } = useRouter();
+  const asPath = usePathname();
+  const { push } = useRouter();
 
   const {
     originalTabData,

@@ -1,6 +1,7 @@
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { useRouter } from "next/router";
+
 import {
   createContext,
   useContext,
@@ -75,11 +76,11 @@ export default function DraftEditor({
   children: ReactNode;
 }) {
   const { isLoaded, userId } = useAuth();
-  const router = useRouter();
-  if (!isLoaded || !router.isReady) return <DraftEditorLoading />;
+  const location = useRouteLocation();
+  if (!isLoaded) return <DraftEditorLoading />;
   return (
     <DraftEditorSession
-      key={`${userId ?? "guest"}:${router.asPath}`}
+      key={`${userId ?? "guest"}:${location.asPath}`}
       ownerId={userId ?? null}
       fetchedTab={fetchedTab}
     >
@@ -97,7 +98,7 @@ function DraftEditorSession({
   fetchedTab?: TabWithArtistMetadata;
   children: ReactNode;
 }) {
-  const router = useRouter();
+  const location = useRouteLocation();
   const utils = api.useContext();
   const { mutateAsync: saveDraft } = api.draft.save.useMutation({
     retry: false,
@@ -127,10 +128,12 @@ function DraftEditorSession({
 
       const local = readRecoveryRecords(ownerId);
       const requestedId =
-        typeof router.query.draft === "string" ? router.query.draft : undefined;
+        typeof location.query.draft === "string"
+          ? location.query.draft
+          : undefined;
       const requestedWriter =
-        typeof router.query.recovery === "string"
-          ? router.query.recovery
+        typeof location.query.recovery === "string"
+          ? location.query.recovery
           : undefined;
       if (
         requestedId &&
@@ -273,7 +276,13 @@ function DraftEditorSession({
       session.start();
       if (conflict) session.block(conflict);
       unsubscribe = subscribeTabStore((next, previous) => {
-        if (!navigating && !applying.current && documentChanged(next, previous))
+        if (
+          !navigating &&
+          window.location.pathname + window.location.search ===
+            location.asPath &&
+          !applying.current &&
+          documentChanged(next, previous)
+        )
           session.update(getTabDocument(next));
       });
       setReady(true);
@@ -302,27 +311,16 @@ function DraftEditorSession({
     const visibilityChange = () => {
       if (document.visibilityState === "hidden") pageHide();
     };
-    // The layout resets the global tab store during navigation, sometimes while
-    // the outgoing editor is still animating. Never autosave that reset.
-    const routeChangeStart = () => {
-      navigating = true;
-      pageHide();
-    };
-    const routeChangeError = () => {
-      navigating = false;
-    };
-    router.events.on("routeChangeStart", routeChangeStart);
-    router.events.on("routeChangeError", routeChangeError);
     window.addEventListener("online", retry);
     window.addEventListener("pagehide", pageHide);
     window.addEventListener("beforeunload", beforeUnload);
     document.addEventListener("visibilitychange", visibilityChange);
     return () => {
+      navigating = true;
       cancelled = true;
       unsubscribe?.();
+      sessionRef.current?.retry();
       sessionRef.current?.dispose();
-      router.events.off("routeChangeStart", routeChangeStart);
-      router.events.off("routeChangeError", routeChangeError);
       window.removeEventListener("online", retry);
       window.removeEventListener("pagehide", pageHide);
       window.removeEventListener("beforeunload", beforeUnload);

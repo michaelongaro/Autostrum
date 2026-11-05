@@ -98,10 +98,10 @@ try {
     await import("../src/utils/createTabScreenshotThumbnails.ts");
   const { getTabScreenshotObjectKeys } =
     await import("../src/utils/tabScreenshotMasks.ts");
-  const { default: jpegHandler } =
-    await import("../src/pages/api/getTabScreenshot/[id]/[theme].ts");
-  const { default: maskHandler } =
-    await import("../src/pages/api/getTabScreenshotMasks/[id].ts");
+  const { GET: jpegHandler } =
+    await import("../src/app/api/getTabScreenshot/[id]/[theme]/route.ts");
+  const { GET: maskHandler } =
+    await import("../src/app/api/getTabScreenshotMasks/[id]/route.ts");
   const { default: TabScreenshotImage } =
     await import("../src/components/Search/TabScreenshotImage.tsx");
 
@@ -147,35 +147,29 @@ try {
   objects.set("42/masks-v1.png", { body: masks, version });
 
   async function request(handler, query, method = "GET") {
-    const response = {
-      statusCode: 200,
-      headers: {},
-      setHeader(name, value) {
-        this.headers[name] = value;
-        return this;
-      },
-      status(code) {
-        this.statusCode = code;
-        return this;
-      },
-      end() {
-        return this;
-      },
-      send(body) {
-        this.body = body;
-        return this;
-      },
-    };
+    const url = new URL("http://localhost/api/screenshot");
+    for (const [key, value] of Object.entries(query)) {
+      if (key === "id" || key === "theme") continue;
+      for (const item of Array.isArray(value) ? value : [value])
+        url.searchParams.append(key, item);
+    }
     reads.length = 0;
-    await handler({ method, query }, response);
-    return response;
+    const response = await handler(new Request(url, { method }), {
+      params: Promise.resolve({ id: query.id, theme: query.theme }),
+    });
+    return {
+      statusCode: response.status,
+      headers: Object.fromEntries(response.headers),
+      body: Buffer.from(await response.arrayBuffer()),
+    };
   }
+
   const query = { id: "42", theme: "light", v: version, width: "400" };
   for (const width of ["400", "800"]) {
     const response = await request(jpegHandler, { ...query, width });
     assert.equal(response.statusCode, 200);
     assert.equal((await sharp(response.body).metadata()).width, Number(width));
-    assert.match(response.headers["Cache-Control"], /immutable/);
+    assert.match(response.headers["cache-control"], /immutable/);
     assert.deepEqual(
       reads.map((read) => read.Key),
       [`42/card-v1/${width}/light.jpeg`],
@@ -183,7 +177,7 @@ try {
   }
   let response = await request(maskHandler, query);
   assert.equal((await sharp(response.body).metadata()).height, 187 * 7);
-  assert.match(response.headers["Cache-Control"], /immutable/);
+  assert.match(response.headers["cache-control"], /immutable/);
 
   // Existing tabs remain visible before backfill, without locking their
   // temporary fallback response into a year-long browser/CDN cache.
@@ -195,7 +189,7 @@ try {
     response = await request(handler, query);
     assert.equal(response.statusCode, 200);
     assert.equal((await sharp(response.body).metadata()).width, 1200);
-    assert.match(response.headers["Cache-Control"], /max-age=60/);
+    assert.match(response.headers["cache-control"], /max-age=60/);
     assert.equal(reads.length, 2);
   }
   objects.set("42/card-v1/400/masks-v1.png", { ...mask400, version: "old" });
@@ -211,7 +205,7 @@ try {
     404,
     "stale geometry must never be displayed",
   );
-  assert.equal(response.headers["Cache-Control"], "no-store");
+  assert.equal(response.headers["cache-control"], "no-store");
   objects.set("42/card-v1/400/masks-v1.png", mask400);
   objects.set("42/card-v1/400/light.jpeg", jpeg400);
   objects.set("42/masks-v1.png", { body: masks, version });
@@ -219,7 +213,7 @@ try {
   for (const handler of [jpegHandler, maskHandler]) {
     for (const invalid of [
       { width: "99999" },
-      { width: ["400"] },
+      { width: ["400", "800"] },
       { id: "../secret" },
       { v: "invalid" },
     ]) {
@@ -227,16 +221,13 @@ try {
       assert.equal(response.statusCode, 400);
       assert.equal(reads.length, 0);
     }
-    response = await request(handler, query, "POST");
-    assert.equal(response.statusCode, 405);
-    assert.equal(response.headers.Allow, "GET");
   }
   response = await request(jpegHandler, { id: "42", theme: "dark" });
   assert.equal(response.statusCode, 200, "legacy URLs still work");
   storageFailure = true;
   response = await request(jpegHandler, query);
   assert.equal(response.statusCode, 500);
-  assert.equal(response.headers["Cache-Control"], "no-store");
+  assert.equal(response.headers["cache-control"], "no-store");
   storageFailure = false;
 
   // Render the actual component with Next's default optimizer configuration

@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
+
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { type Dispatch, type SetStateAction } from "react";
 import { FaBook } from "react-icons/fa";
@@ -18,7 +19,7 @@ import { getTuningName } from "~/utils/tunings";
 import { type PlaybackSpeed } from "../../../utils/playbackSpeedControls";
 
 function PlaybackTopMetadata() {
-  const { asPath } = useRouter();
+  const asPath = usePathname();
 
   const {
     title,

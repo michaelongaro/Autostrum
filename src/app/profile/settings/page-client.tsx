@@ -1,0 +1,1051 @@
+"use client";
+
+import { useAuth, useUser } from "@clerk/nextjs";
+import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "~/components/ui/button";
+import { Separator } from "~/components/ui/separator";
+import { api } from "~/utils/api";
+import dynamic from "next/dynamic";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { IoClose } from "react-icons/io5";
+import { FaTrashAlt } from "react-icons/fa";
+import { MdOutlineInfo } from "react-icons/md";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { IoSunnyOutline, IoMoonOutline } from "react-icons/io5";
+import { HiMiniComputerDesktop } from "react-icons/hi2";
+import PinnedTabSelector from "~/components/Profile/PinnedTabSelector";
+import type { Area, Point } from "react-easy-crop";
+import { Check } from "lucide-react";
+import EditImageSelector from "~/components/Profile/EditImageSelector";
+import Ellipsis from "~/components/ui/icons/Ellipsis";
+import {
+  COLOR_HEX_VALUES,
+  NEAR_WHITE_COLOR_VALUES,
+  updateCSSThemeVars,
+} from "~/utils/updateCSSThemeVars";
+import { useTabStore } from "~/stores/TabStore";
+import Spinner from "~/components/ui/Spinner";
+
+const EditImageModal = dynamic(
+  () => import("~/components/modals/EditImageModal"),
+);
+const PinnedTabModal = dynamic(
+  () => import("~/components/modals/PinnedTabModal"),
+);
+const DeleteAccountModal = dynamic(
+  () => import("~/components/modals/DeleteAccountModal"),
+);
+
+const COLORS = [
+  "peony",
+  "coral",
+  "saffron",
+  "maple",
+  "pistachio",
+  "verdant",
+  "aqua",
+  "sapphire",
+  "amethyst",
+] as const;
+
+export interface LocalSettings {
+  emailAddress: string;
+  username: string;
+  passwordEnabled: boolean;
+  profileImageUrl: string;
+  pinnedTabId: number | null;
+  theme: string; // TODO: add user email + theme to user model
+}
+
+function UserSettings() {
+  const { userId } = useAuth();
+  const { user: clerkUser } = useUser();
+  const ctx = api.useUtils();
+
+  const {
+    color,
+    setColor,
+    theme,
+    setTheme,
+    followsDeviceTheme,
+    setFollowsDeviceTheme,
+  } = useTabStore((state) => ({
+    color: state.color,
+    setColor: state.setColor,
+    theme: state.theme,
+    setTheme: state.setTheme,
+    followsDeviceTheme: state.followsDeviceTheme,
+    setFollowsDeviceTheme: state.setFollowsDeviceTheme,
+  }));
+
+  const [localSettings, setLocalSettings] = useState<LocalSettings | null>(
+    null,
+  );
+
+  // separate so that we can just pass this specifically to the PinnedTabSelector
+  const [localPinnedTabId, setLocalPinnedTabId] = useState<number | null>(null);
+  const [usernameInputHasReceivedFocus, setUsernameInputHasReceivedFocus] =
+    useState(false);
+  const [saveButtonText, setSaveButtonText] = useState("Save");
+
+  const { data: currentUser } = api.user.getById.useQuery(userId!, {
+    enabled: !!userId,
+  });
+
+  const { mutate: updateUser } = api.user.update.useMutation({
+    onSuccess: async () => {
+      await ctx.user.getById.invalidate(userId!);
+
+      setTimeout(() => {
+        setSaveButtonText("");
+        setUsernameInputHasReceivedFocus(false);
+        setNewProfileImage(null);
+        setEditingPassword(false);
+      }, 2000);
+
+      setTimeout(() => {
+        setSaveButtonText("Save");
+      }, 4000);
+    },
+    onError: (e) => {
+      console.error(e);
+    },
+  });
+
+  const { mutate: updateDBColor } = api.user.updateColor.useMutation({
+    // FYI: I don't believe an onSuccess is necessary here
+    onError: (e) => {
+      console.error(e);
+    },
+  });
+
+  const [editingPassword, setEditingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
+
+  const [imageBeingEdited, setImageBeingEdited] = useState<string | null>(null);
+  // final image to be uploaded, stored in base64
+  const [newProfileImage, setNewProfileImage] = useState<string | null>(null);
+
+  // declaring here so that you can re-edit the image if needed
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState<number>(0);
+  const [zoom, setZoom] = useState<number>(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+  const [hoveredColor, setHoveredColor] = useState<string | null>(null);
+  const [hoveredTheme, setHoveredTheme] = useState<string | null>(null);
+
+  const [showEditImageModal, setShowEditImageModal] = useState(false);
+  const [showPinnedTabModal, setShowPinnedTabModal] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+
+  const [showExtraSettingsPopover, setShowExtraSettingsPopover] =
+    useState(false);
+
+  const usernameInputRef = useRef<HTMLInputElement>(null);
+  const newPasswordInputRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordInputRef = useRef<HTMLInputElement>(null);
+
+  // initialize the localSettings state with the currentUser settings
+  useEffect(() => {
+    if (localSettings !== null || !clerkUser || !currentUser) return;
+
+    setLocalSettings({
+      emailAddress: clerkUser.emailAddresses[0]?.emailAddress || "",
+      username: currentUser.username,
+      passwordEnabled: clerkUser.passwordEnabled,
+      profileImageUrl: currentUser.profileImageUrl,
+      pinnedTabId: currentUser.pinnedTabId,
+      theme: "Rose", //currentUser.theme, TODO: add user email + theme to user model
+    });
+
+    setLocalPinnedTabId(currentUser.pinnedTabId);
+  }, [clerkUser, currentUser, localSettings]);
+
+  return (
+    <motion.div
+      key={"userSettings"}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
+    >
+      <div className="baseVertFlex w-full gap-4">
+        <div className="baseFlex w-full !justify-between px-4 lg:px-0">
+          <span className="text-3xl font-semibold tracking-tight !text-foreground md:text-4xl lg:hidden">
+            Settings
+          </span>
+
+          <div className="baseFlex !hidden gap-4 lg:!flex">
+            <Button
+              role="link"
+              variant={"text"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={"/profile/settings"}
+                  className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+                >
+                  Settings
+                </Link>
+              }
+            />
+            <Button
+              role="link"
+              variant={"text"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={"/profile/statistics"}
+                  className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:text-foreground/75 lg:!text-4xl"
+                >
+                  Statistics
+                </Link>
+              }
+            />
+            <Button
+              role="link"
+              variant={"text"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={"/profile/tabs/filters"}
+                  className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+                >
+                  Tabs
+                </Link>
+              }
+            />
+            <Button
+              role="link"
+              variant={"text"}
+              nativeButton={false}
+              render={
+                <Link
+                  prefetch={false}
+                  href={"/profile/bookmarks/filters"}
+                  className="!p-0 !text-3xl font-semibold tracking-tight !text-foreground/50 hover:!text-foreground active:!text-foreground/75 lg:!text-4xl"
+                >
+                  Bookmarks
+                </Link>
+              }
+            />
+          </div>
+
+          <Popover
+            open={showExtraSettingsPopover}
+            onOpenChange={setShowExtraSettingsPopover}
+          >
+            <PopoverTrigger
+              render={
+                <Button variant={"text"} className="!p-0">
+                  <Ellipsis className="size-[18px] text-foreground lg:size-5" />
+                </Button>
+              }
+            />
+            <PopoverContent side={"bottom"} align="end" className="w-fit">
+              <Button
+                variant={"destructive"}
+                disabled={!localSettings}
+                onClick={() => {
+                  setShowExtraSettingsPopover(false);
+                  setShowDeleteAccountModal(true);
+                }}
+                className="baseFlex gap-2 p-4"
+              >
+                <FaTrashAlt className="size-4" />
+                Delete account
+              </Button>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="baseVertFlex w-full !items-start gap-12 border-y bg-background p-4 py-6 shadow-lg md:rounded-lg md:border md:p-8 lg:!flex-row lg:gap-12">
+          <div className="baseVertFlex w-full !items-start gap-12 lg:gap-12">
+            {/* email */}
+            <div className="baseVertFlex w-full !items-start gap-2 lg:!flex-row lg:!items-center lg:!justify-between">
+              <span className="text-xl font-medium !text-foreground lg:text-2xl">
+                Email
+              </span>
+
+              <motion.div
+                key={localSettings ? "loadedEmail" : "loadingEmail"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="baseFlex"
+              >
+                {localSettings ? (
+                  <span className="font-medium italic !text-foreground/75 no-underline lg:text-xl [&_a]:!text-inherit [&_a]:!no-underline">
+                    {localSettings.emailAddress}
+                  </span>
+                ) : (
+                  <div className="pulseAnimation h-6 w-48 rounded-md lg:h-7"></div>
+                )}
+              </motion.div>
+            </div>
+
+            <Separator
+              orientation="horizontal"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
+            />
+
+            {/* username */}
+            <div className="baseVertFlex w-full !items-start gap-4 lg:!flex-row lg:!justify-between">
+              <Label
+                htmlFor="username"
+                className="text-xl font-medium !text-foreground lg:text-2xl"
+              >
+                Username
+              </Label>
+
+              <div className="baseVertFlex w-full !items-start xs:w-auto">
+                <motion.div
+                  key={localSettings ? "loadedUsername" : "loadingUsername"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="baseFlex w-full xs:w-auto"
+                >
+                  {localSettings ? (
+                    <Input
+                      id="username"
+                      type="text"
+                      value={localSettings?.username}
+                      placeholder="Enter your username"
+                      className="w-full !text-foreground xs:w-[275px]"
+                      onFocus={() => setUsernameInputHasReceivedFocus(true)}
+                      onChange={(e) => {
+                        setLocalSettings((prev) => ({
+                          ...prev!,
+                          username: e.target.value,
+                        }));
+                      }}
+                    />
+                  ) : (
+                    <div className="pulseAnimation h-10 w-full rounded-md xs:w-[275px] lg:h-7"></div>
+                  )}
+                </motion.div>
+
+                <AnimatePresence>
+                  {usernameInputHasReceivedFocus && (
+                    <motion.div
+                      key={"usernameCriteria"}
+                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                      animate={{
+                        opacity: 1,
+                        height: "14px",
+                        marginTop: "0.5rem",
+                        transition: {
+                          opacity: {
+                            duration: 0.15,
+                            delay: 0.15,
+                          },
+                        },
+                      }}
+                      exit={{
+                        opacity: 0,
+                        height: 0,
+                        marginTop: 0,
+                        transition: {
+                          opacity: {
+                            duration: 0.15,
+                          },
+                        },
+                      }}
+                      transition={{ duration: 0.35 }}
+                      className="baseFlex gap-2 text-nowrap text-sm font-medium !text-foreground/75"
+                    >
+                      {localSettings &&
+                      (localSettings.username.length < 1 ||
+                        localSettings.username.length > 20) ? (
+                        <motion.div
+                          key={"usernameErrorIcon"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                          className="rounded-full bg-destructive p-0.5"
+                        >
+                          <IoClose className="size-3 text-primary-foreground" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={"usernameCheckIcon"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                          className="rounded-full bg-green-600 p-0.5"
+                        >
+                          <Check className="size-3 text-primary-foreground" />
+                        </motion.div>
+                      )}
+                      Must be between 1 - 20 characters
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <Separator
+              orientation="horizontal"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
+            />
+
+            {/* password */}
+            <div className="baseVertFlex relative w-full !items-start gap-4 lg:!flex-row lg:!items-start lg:!justify-between">
+              <span className="text-xl font-medium !text-foreground lg:text-2xl">
+                Password
+              </span>
+
+              <div
+                className={`baseVertFlex w-full !items-start xs:w-auto xs:!items-end ${editingPassword ? "gap-8" : "gap-2"}`}
+              >
+                {editingPassword ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="baseVertFlex w-full !items-start gap-2 xs:w-auto"
+                  >
+                    <Label
+                      htmlFor="newPassword"
+                      className="font-medium !text-foreground"
+                    >
+                      New password
+                    </Label>
+
+                    <div className="baseVertFlex relative w-full !items-start gap-2">
+                      <Input
+                        id="newPassword"
+                        type={showPasswords ? "text" : "password"}
+                        maxLength={128}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter your new password"
+                        className="w-full !text-foreground xs:w-[275px]"
+                      />
+
+                      <Button
+                        variant={"text"}
+                        className="absolute right-3 top-[14px] !size-4 !p-0"
+                        onClick={() => setShowPasswords(!showPasswords)}
+                      >
+                        <motion.div
+                          key={
+                            showPasswords
+                              ? "showNewPasswordIcon"
+                              : "hideNewPasswordIcon"
+                          }
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          {showPasswords ? (
+                            <FaRegEyeSlash className="size-5 text-foreground" />
+                          ) : (
+                            <FaRegEye className="size-5 text-foreground" />
+                          )}
+                        </motion.div>
+                      </Button>
+
+                      <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
+                        {newPassword.length < 8 ? (
+                          <motion.div
+                            key={"newPasswordErrorIcon"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="rounded-full bg-destructive p-0.5"
+                          >
+                            <IoClose className="size-3 text-primary-foreground" />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key={"newPasswordCheckIcon"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="rounded-full bg-green-600 p-0.5"
+                          >
+                            <Check className="size-3 text-primary-foreground" />
+                          </motion.div>
+                        )}
+                        Must be greater than 8 characters
+                      </div>
+                    </div>
+
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="mt-2 font-medium !text-foreground"
+                    >
+                      Confirm password
+                    </Label>
+
+                    <div className="baseVertFlex relative w-full !items-start gap-2">
+                      <Input
+                        id="confirmPassword"
+                        type={showPasswords ? "text" : "password"}
+                        value={confirmPassword}
+                        placeholder="Confirm your new password"
+                        maxLength={128}
+                        className="w-full !text-foreground xs:w-[275px]"
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+
+                      <Button
+                        variant={"text"}
+                        className="absolute right-3 top-[14px] !size-4 !p-0"
+                        onClick={() => setShowPasswords(!showPasswords)}
+                      >
+                        <motion.div
+                          key={
+                            showPasswords
+                              ? "showConfirmPasswordIcon"
+                              : "hideConfirmPasswordIcon"
+                          }
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          {showPasswords ? (
+                            <FaRegEyeSlash className="size-5 text-foreground" />
+                          ) : (
+                            <FaRegEye className="size-5 text-foreground" />
+                          )}
+                        </motion.div>
+                      </Button>
+
+                      <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
+                        {confirmPassword.length < 8 ? (
+                          <motion.div
+                            key={"confirmPasswordLengthErrorIcon"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="rounded-full bg-destructive p-0.5"
+                          >
+                            <IoClose className="size-3 text-primary-foreground" />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key={"confirmPasswordLengthCheckIcon"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="rounded-full bg-green-600 p-0.5"
+                          >
+                            <Check className="size-3 text-primary-foreground" />
+                          </motion.div>
+                        )}
+                        Must be greater than 8 characters
+                      </div>
+                      <div className="baseFlex gap-2 text-sm font-medium !text-foreground/75">
+                        {newPassword !== confirmPassword ? (
+                          <motion.div
+                            key={"confirmPasswordEqualityErrorIcon"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="rounded-full bg-destructive p-0.5"
+                          >
+                            <IoClose className="size-3 text-primary-foreground" />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key={"confirmPasswordEqualityCheckIcon"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="rounded-full bg-green-600 p-0.5"
+                          >
+                            <Check className="size-3 text-primary-foreground" />
+                          </motion.div>
+                        )}
+                        Passwords must match
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={localSettings ? "loadedPassword" : "loadingPassword"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="baseFlex"
+                  >
+                    {localSettings ? (
+                      <span
+                        className={`font-medium ${localSettings.passwordEnabled ? "!text-foreground lg:text-2xl" : "italic !text-foreground/75 lg:text-xl"} lg:text-xl`}
+                      >
+                        {localSettings.passwordEnabled
+                          ? "********"
+                          : "Controlled by attached Google account"}
+                      </span>
+                    ) : (
+                      <div className="pulseAnimation h-6 w-64 rounded-md lg:h-7"></div>
+                    )}
+                  </motion.div>
+                )}
+
+                {localSettings?.passwordEnabled && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute right-0 top-0 lg:relative lg:right-auto lg:top-auto"
+                  >
+                    <Button
+                      variant={"outline"}
+                      onClick={() => {
+                        setEditingPassword((prev) => !prev);
+                        if (editingPassword) {
+                          setNewPassword("");
+                          setConfirmPassword("");
+                        }
+                      }}
+                    >
+                      {editingPassword ? "Cancel" : "Edit"}
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+
+            <Separator
+              orientation="horizontal"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
+            />
+
+            {/* profile image */}
+            <EditImageSelector
+              imageBeingEdited={imageBeingEdited}
+              setNewProfileImage={setNewProfileImage}
+              setImageBeingEdited={setImageBeingEdited}
+              setShowEditImageModal={setShowEditImageModal}
+              crop={crop}
+              setCrop={setCrop}
+              rotation={rotation}
+              setRotation={setRotation}
+              zoom={zoom}
+              setZoom={setZoom}
+              croppedAreaPixels={croppedAreaPixels}
+              setCroppedAreaPixels={setCroppedAreaPixels}
+              newProfileImage={newProfileImage}
+              localSettings={localSettings}
+            />
+          </div>
+
+          <Separator
+            orientation="vertical"
+            className="hidden h-[550px] w-[1px] bg-foreground/50 lg:block"
+          />
+
+          <div className="baseVertFlex w-full !items-start gap-12 lg:gap-10">
+            {/* pinned tab */}
+            <PinnedTabSelector
+              localPinnedTabId={localPinnedTabId}
+              setLocalPinnedTabId={setLocalPinnedTabId}
+              setShowPinnedTabModal={setShowPinnedTabModal}
+              localSettings={localSettings}
+            />
+
+            <Separator
+              orientation="horizontal"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
+            />
+
+            {/* color selector */}
+            <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
+              <span className="text-xl font-medium !text-foreground lg:text-2xl">
+                Color
+              </span>
+
+              <div className="my-2 grid w-full max-w-[450px] grid-cols-3 grid-rows-3 gap-4 self-center sm:my-0">
+                {COLORS.map((colorString) => (
+                  <div key={colorString} className="baseVertFlex w-full gap-1">
+                    <Button
+                      variant={"theme"}
+                      onMouseEnter={() => setHoveredColor(colorString)}
+                      onMouseLeave={() => setHoveredColor(null)}
+                      onTouchStart={() => setHoveredColor(colorString)}
+                      onTouchEnd={() => setHoveredColor(null)}
+                      onTouchCancel={() => setHoveredColor(null)}
+                      onClick={() => {
+                        updateCSSThemeVars(colorString, theme, {
+                          animate: true,
+                        });
+                        setColor(colorString);
+                        window.localStorage.setItem(
+                          "autostrum-color",
+                          colorString,
+                        );
+
+                        if (userId) {
+                          updateDBColor(colorString);
+                        }
+                      }}
+                      style={{
+                        backgroundColor: COLOR_HEX_VALUES[colorString],
+                        borderColor: COLOR_HEX_VALUES[colorString],
+                      }}
+                      className={`relative !size-12 !rounded-full !p-0`}
+                    >
+                      <AnimatePresence>
+                        {(color === colorString ||
+                          hoveredColor === colorString) && (
+                          <motion.div
+                            key={`settings-hovered-color-${colorString}`}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            style={{
+                              borderColor: NEAR_WHITE_COLOR_VALUES[colorString],
+                            }}
+                            className="absolute inset-0 rounded-full border-2"
+                          ></motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Button>
+                    <span
+                      className={`text-sm font-medium transition-all ${color === colorString ? "opacity-100" : "opacity-50"}`}
+                    >
+                      {colorString.charAt(0).toUpperCase() +
+                        colorString.slice(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator
+              orientation="horizontal"
+              className="hidden h-[1px] w-full bg-foreground/50 lg:block"
+            />
+
+            {/* theme selector */}
+            <div className="baseVertFlex relative w-full !items-start gap-2 lg:!flex-row lg:!justify-between">
+              <div className="baseFlex gap-1 text-xl font-medium !text-foreground lg:gap-2 lg:text-2xl">
+                Theme
+                <Popover>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        className="mt-0.5 !size-7 !rounded-full !p-0 lg:mt-1 lg:!size-7"
+                      >
+                        <MdOutlineInfo className="size-[19px] lg:size-5" />
+                      </Button>
+                    }
+                  />
+                  <PopoverContent
+                    className="baseVertFlex p-2 text-center text-sm sm:text-base"
+                    side="bottom"
+                  >
+                    Chosen theme is tied to your device, not your account.
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="my-2 grid w-full max-w-[450px] grid-cols-3 grid-rows-1 gap-4 self-center sm:my-0">
+                <div className="baseVertFlex w-full gap-1">
+                  <Button
+                    variant={"theme"}
+                    onMouseEnter={() => setHoveredTheme("light")}
+                    onMouseLeave={() => setHoveredTheme(null)}
+                    onTouchStart={() => setHoveredTheme("light")}
+                    onTouchEnd={() => setHoveredTheme(null)}
+                    onTouchCancel={() => setHoveredTheme(null)}
+                    onClick={() => {
+                      updateCSSThemeVars(color, "light", { animate: true });
+                      setTheme("light");
+                      setFollowsDeviceTheme(false);
+                      window.localStorage.setItem("autostrum-theme", "light");
+                      window.localStorage.setItem(
+                        "autostrum-follows-device-theme",
+                        "false",
+                      );
+                    }}
+                    className="relative !size-12 !rounded-full !p-0"
+                  >
+                    <IoSunnyOutline className="size-6 text-foreground" />
+                    <AnimatePresence>
+                      {((theme === "light" && !followsDeviceTheme) ||
+                        hoveredTheme === "light") && (
+                        <motion.div
+                          key={"settings-hovered-theme-light"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute inset-0 rounded-full border-2 border-foreground"
+                        ></motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                  <span
+                    className={`text-sm font-medium ${!followsDeviceTheme && theme === "light" ? "" : "opacity-50"}`}
+                  >
+                    Light
+                  </span>
+                </div>
+
+                <div className="baseVertFlex w-full gap-1">
+                  <Button
+                    variant={"theme"}
+                    onMouseEnter={() => setHoveredTheme("dark")}
+                    onMouseLeave={() => setHoveredTheme(null)}
+                    onTouchStart={() => setHoveredTheme("dark")}
+                    onTouchEnd={() => setHoveredTheme(null)}
+                    onTouchCancel={() => setHoveredTheme(null)}
+                    onClick={() => {
+                      updateCSSThemeVars(color, "dark", { animate: true });
+                      setTheme("dark");
+                      setFollowsDeviceTheme(false);
+                      window.localStorage.setItem("autostrum-theme", "dark");
+                      window.localStorage.setItem(
+                        "autostrum-follows-device-theme",
+                        "false",
+                      );
+                    }}
+                    className="relative !size-12 !rounded-full !p-0"
+                  >
+                    <IoMoonOutline className="size-6 text-foreground" />
+                    <AnimatePresence>
+                      {((theme === "dark" && !followsDeviceTheme) ||
+                        hoveredTheme === "dark") && (
+                        <motion.div
+                          key={"settings-hovered-theme-dark"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute inset-0 rounded-full border-2 border-foreground"
+                        ></motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                  <span
+                    className={`text-sm font-medium ${!followsDeviceTheme && theme === "dark" ? "" : "opacity-50"}`}
+                  >
+                    Dark
+                  </span>
+                </div>
+
+                <div className="baseVertFlex w-full gap-1">
+                  <Button
+                    variant={"theme"}
+                    onMouseEnter={() => setHoveredTheme("system")}
+                    onMouseLeave={() => setHoveredTheme(null)}
+                    onTouchStart={() => setHoveredTheme("system")}
+                    onTouchEnd={() => setHoveredTheme(null)}
+                    onTouchCancel={() => setHoveredTheme(null)}
+                    onClick={() => {
+                      const systemTheme = window.matchMedia(
+                        "(prefers-color-scheme: dark)",
+                      ).matches
+                        ? "dark"
+                        : "light";
+                      updateCSSThemeVars(color, systemTheme, {
+                        animate: true,
+                      });
+                      setTheme(systemTheme);
+                      setFollowsDeviceTheme(true);
+                      window.localStorage.setItem(
+                        "autostrum-theme",
+                        systemTheme,
+                      );
+                      window.localStorage.setItem(
+                        "autostrum-follows-device-theme",
+                        "true",
+                      );
+                    }}
+                    className="relative !size-12 !rounded-full !p-0"
+                  >
+                    <HiMiniComputerDesktop className="size-6 text-foreground" />
+                    <AnimatePresence>
+                      {(hoveredTheme === "system" || followsDeviceTheme) && (
+                        <motion.div
+                          key={"settings-hovered-theme-system"}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute inset-0 rounded-full border-2 border-foreground"
+                        ></motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                  <span
+                    className={`text-sm font-medium ${followsDeviceTheme ? "" : "opacity-50"}`}
+                  >
+                    System
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* save button */}
+        <div className="baseFlex w-full sm:!justify-end">
+          <Button
+            disabled={
+              !localSettings ||
+              saveButtonText !== "Save" ||
+              (localSettings.username === currentUser?.username &&
+                newPassword === "" &&
+                confirmPassword === "" &&
+                newProfileImage === null &&
+                localPinnedTabId === currentUser?.pinnedTabId)
+            }
+            onClick={() => {
+              if (!localSettings || !userId) return;
+
+              if (
+                localSettings.username.length < 1 ||
+                localSettings.username.length > 20
+              ) {
+                usernameInputRef.current?.focus();
+                return;
+              } else if (editingPassword) {
+                if (
+                  newPassword.length < 8 ||
+                  newPassword.length > 128 ||
+                  newPassword !== confirmPassword
+                ) {
+                  newPasswordInputRef.current?.focus();
+                  return;
+                } else if (
+                  confirmPassword.length < 8 ||
+                  confirmPassword.length > 128
+                ) {
+                  confirmPasswordInputRef.current?.focus();
+                  return;
+                }
+              }
+
+              setSaveButtonText("Saving");
+
+              updateUser({
+                username: localSettings.username,
+                newPassword: editingPassword ? newPassword : undefined,
+                confirmPassword: editingPassword ? confirmPassword : undefined,
+                newProfileImage: newProfileImage ?? undefined,
+                pinnedTabId: localPinnedTabId,
+                // theme: localSettings?.theme,
+              });
+            }}
+            className="baseFlex mr-3 gap-2 overflow-hidden lg:mr-0"
+          >
+            <AnimatePresence mode={"wait"} initial={false}>
+              <motion.div
+                key={
+                  saveButtonText === ""
+                    ? "saveButtonText-empty"
+                    : saveButtonText
+                }
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{
+                  duration: 0.25,
+                }}
+                className="baseFlex w-[122.75px] gap-2 overflow-hidden"
+              >
+                {saveButtonText}
+
+                {saveButtonText === "Saving" && <Spinner className="size-4" />}
+
+                {saveButtonText === "" && (
+                  <svg
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    className="size-5"
+                  >
+                    <motion.path
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{
+                        delay: 0.2,
+                        type: "tween",
+                        ease: "easeOut",
+                        duration: 0.3,
+                      }}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </Button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {showEditImageModal && (
+          <EditImageModal
+            imageBeingEdited={imageBeingEdited}
+            setNewProfileImage={setNewProfileImage}
+            setShowEditImageModal={setShowEditImageModal}
+            crop={crop}
+            setCrop={setCrop}
+            rotation={rotation}
+            setRotation={setRotation}
+            zoom={zoom}
+            setZoom={setZoom}
+            croppedAreaPixels={croppedAreaPixels}
+            setCroppedAreaPixels={setCroppedAreaPixels}
+          />
+        )}
+
+        {showPinnedTabModal && (
+          <PinnedTabModal
+            localPinnedTabId={localPinnedTabId}
+            setLocalPinnedTabId={setLocalPinnedTabId}
+            setShowPinnedTabModal={setShowPinnedTabModal}
+          />
+        )}
+      </AnimatePresence>
+
+      <DeleteAccountModal
+        showDeleteAccountModal={showDeleteAccountModal}
+        setShowDeleteAccountModal={setShowDeleteAccountModal}
+      />
+    </motion.div>
+  );
+}
+
+export default UserSettings;

@@ -1,6 +1,7 @@
+import { useRouter } from "next/navigation";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
-import SEO from "~/components/SEO";
-import { useRouter } from "next/router";
+
 import { useEffect, useState } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
@@ -17,7 +18,8 @@ interface ArtistProfile {
 }
 
 function ArtistProfile({ uniqueKey }: ArtistProfile) {
-  const { query } = useRouter();
+  const { query } = useRouteLocation();
+  const { replace } = useRouter();
 
   const [artistHasBeenFound, setArtistHasBeenFound] = useState(false);
 
@@ -56,10 +58,10 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
     // if the id is not present in the url, add it after the name parameter
     // (used to limit search results to this specific artist)
     if (query.name && !query.id) {
-      currentUrl.pathname = `/artist/${query.name as string}/${artist?.id}/filters`;
-      window.history.replaceState({}, "", currentUrl);
+      currentUrl.pathname = `/artist/${encodeURIComponent(query.name as string)}/${artist.id}/filters`;
+      replace(currentUrl.pathname + currentUrl.search, { scroll: false });
     }
-  }, [artist, query]);
+  }, [artist, query, replace]);
 
   return (
     <motion.div
@@ -70,16 +72,6 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
       transition={{ duration: 0.5 }}
       className={`${styles.pageShell} baseVertFlex my-12 min-h-[650px] !justify-start md:my-24 md:p-0`}
     >
-      <SEO
-        title={`${artist?.name ?? (typeof query.name === "string" ? query.name : "Artist")} | Autostrum`}
-        description={`Discover guitar tabs by ${artist?.name ?? (typeof query.name === "string" ? query.name : "this artist")}. Listen to interactive playback and learn their songs at your own pace on Autostrum.`}
-        path={
-          artist
-            ? `/artist/${encodeURIComponent(artist.name)}/${artist.id}/filters`
-            : undefined
-        }
-      />
-
       <div className="baseVertFlex w-full gap-4">
         <AnimatePresence mode="popLayout">
           {isFetchingArtist ? (

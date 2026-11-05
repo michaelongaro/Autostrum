@@ -1,3 +1,4 @@
+import { revalidateTabPath } from "~/server/revalidateTabPath";
 import { deleteUserData } from "~/server/api/userDeletion";
 import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
@@ -550,11 +551,11 @@ export const userRouter = createTRPCRouter({
       ctx.waitUntil(
         Promise.all(
           tabs.map(({ id, title }) =>
-            ctx.res
-              .revalidate(`/tab/${id}/${encodeURIComponent(title)}`)
-              .catch((error: unknown) => {
+            revalidateTabPath(`/tab/${id}/${encodeURIComponent(title)}`).catch(
+              (error: unknown) => {
                 console.error("Error revalidating former user's tab:", error);
-              }),
+              },
+            ),
           ),
         ),
       );

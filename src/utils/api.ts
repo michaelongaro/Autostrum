@@ -1,12 +1,12 @@
 /**
  * This is the client-side entrypoint for your tRPC API. It is used to create the `api` object which
- * contains the Next.js App-wrapper, as well as your type-safe React Query hooks.
+ * contains your type-safe React Query hooks and App Router client factory.
  *
  * We also create a few inference helpers for input and output types.
  */
 import { QueryClient } from "@tanstack/react-query";
 import { httpBatchLink, loggerLink } from "@trpc/client";
-import { createTRPCNext } from "@trpc/next";
+import { createTRPCReact } from "@trpc/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import superjson from "superjson";
 
@@ -18,7 +18,7 @@ const getBaseUrl = () => {
   return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
 };
 
-const createQueryClient = () =>
+export const createQueryClient = () =>
   new QueryClient({
     defaultOptions: {
       queries: {
@@ -28,41 +28,20 @@ const createQueryClient = () =>
   });
 
 /** A set of type-safe react-query hooks for your tRPC API. */
-export const api = createTRPCNext<AppRouter>({
-  config() {
-    return {
-      queryClient: createQueryClient(),
-      /**
-       * Transformer used for data de-serialization from the server.
-       *
-       * @see https://trpc.io/docs/data-transformers
-       */
-      transformer: superjson,
+export const api = createTRPCReact<AppRouter>();
 
-      /**
-       * Links used to determine request flow from client to server.
-       *
-       * @see https://trpc.io/docs/links
-       */
-      links: [
-        loggerLink({
-          enabled: (opts) =>
-            process.env.NODE_ENV === "development" ||
-            (opts.direction === "down" && opts.result instanceof Error),
-        }),
-        httpBatchLink({
-          url: `${getBaseUrl()}/api/trpc`,
-        }),
-      ],
-    };
-  },
-  /**
-   * Whether tRPC should await queries when server rendering pages.
-   *
-   * @see https://trpc.io/docs/nextjs#ssr-boolean-default-false
-   */
-  ssr: false,
-});
+export const createTRPCClient = () =>
+  api.createClient({
+    transformer: superjson,
+    links: [
+      loggerLink({
+        enabled: (opts) =>
+          process.env.NODE_ENV === "development" ||
+          (opts.direction === "down" && opts.result instanceof Error),
+      }),
+      httpBatchLink({ url: `${getBaseUrl()}/api/trpc` }),
+    ],
+  });
 
 /**
  * Inference helper for inputs.

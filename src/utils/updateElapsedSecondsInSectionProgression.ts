@@ -1,11 +1,11 @@
 import { noteLengthMultipliers } from "./noteLengthMultipliers";
 import isEqual from "lodash.isequal";
 import { getSectionIndexFromId } from "~/utils/getSectionIndexFromId";
-import {
-  type ChordSection,
-  type Section,
-  type SectionProgression,
-  type TabSection,
+import type {
+  ChordSection,
+  Section,
+  SectionProgression,
+  TabSection,
 } from "../stores/TabStore";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";

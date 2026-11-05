@@ -6,7 +6,7 @@ import { tabDocumentSchema } from "~/utils/tabDocument";
 const idSchema = z.string().uuid();
 const revisionSchema = z.number().int().min(0);
 const privateDraftProcedure = protectedProcedure.use(({ ctx, next }) => {
-  ctx.res.setHeader("Cache-Control", "private, no-store");
+  ctx.resHeaders.set("Cache-Control", "private, no-store");
   return next();
 });
 const conflict = () =>

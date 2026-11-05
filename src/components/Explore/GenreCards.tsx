@@ -1,5 +1,7 @@
+import { routeUrl } from "~/utils/routeUrl";
+import { useRouter } from "next/navigation";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
-import { useRouter } from "next/router";
+
 import { useState } from "react";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
@@ -73,7 +75,7 @@ interface GenreCard {
 }
 
 function GenreCard({ name, color, image, totalTabs }: GenreCard) {
-  const { push, query } = useRouter();
+  const { push } = useRouter();
 
   const [darkenCard, setDarkenCard] = useState(false);
 
@@ -92,13 +94,7 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
   }
 
   function searchForSpecificGenre(genre: string) {
-    void push({
-      pathname: "search/filters",
-      query: {
-        ...query,
-        genre,
-      },
-    });
+    push(routeUrl("/search/filters", { genre }));
   }
 
   return (

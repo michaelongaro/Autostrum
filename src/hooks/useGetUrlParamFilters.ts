@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
+
 import { useState, useLayoutEffect } from "react";
 import { tuningNotes } from "~/utils/tunings";
 
@@ -27,7 +28,7 @@ interface UrlParamFilters {
 }
 
 function useGetUrlParamFilters() {
-  const { query, asPath } = useRouter();
+  const { query, asPath } = useRouteLocation();
 
   const [searchParams, setSearchParams] = useState<UrlParamFilters>({
     searchQuery: undefined,

@@ -1,3 +1,4 @@
+import { revalidateTabPath } from "~/server/revalidateTabPath";
 import { ensureSectionProgression } from "~/utils/sectionProgression";
 import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 import { DeleteObjectsCommand, S3Client } from "@aws-sdk/client-s3";
@@ -237,11 +238,9 @@ export const tabRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const forwarded = ctx.req.headers["x-forwarded-for"];
       const ipAddress =
-        (Array.isArray(forwarded) ? forwarded[0] : forwarded)
-          ?.split(",")[0]
-          ?.trim() || ctx.req.socket.remoteAddress;
+        ctx.req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        ctx.req.headers.get("x-real-ip");
       if (!ipAddress)
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -397,11 +396,11 @@ export const tabRouter = createTRPCRouter({
       if (replayed) return tab;
 
       // immediately revalidate the tab's url to improve end user experience
-      await ctx.res
-        .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
-        .catch((e) => {
-          console.error("Error revalidating tab page:", e);
-        });
+      await revalidateTabPath(
+        `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
+      ).catch((e) => {
+        console.error("Error revalidating tab page:", e);
+      });
 
       // Trigger screenshot capture in background (runs after response is sent)
       ctx.waitUntil(
@@ -560,11 +559,11 @@ export const tabRouter = createTRPCRouter({
       // immediately revalidate the tab's url to improve end user experience
       // using "await" since a user immediately clicking the "View tab" button
       // would show them a stale page
-      await ctx.res
-        .revalidate(`/tab/${tab.id}/${encodeURIComponent(tab.title)}`)
-        .catch((e) => {
-          console.error("Error revalidating tab page:", e);
-        });
+      await revalidateTabPath(
+        `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
+      ).catch((e) => {
+        console.error("Error revalidating tab page:", e);
+      });
 
       // Trigger screenshot capture in background (runs after response is sent)
       ctx.waitUntil(
@@ -623,10 +622,10 @@ export const tabRouter = createTRPCRouter({
         // return null;
       }
 
-      await ctx.res
-        .revalidate(`/tab/${idToDelete}/${encodeURIComponent(deleted.title)}`)
-        .catch((error: unknown) => {
-          console.error("Error revalidating deleted tab:", error);
-        });
+      await revalidateTabPath(
+        `/tab/${idToDelete}/${encodeURIComponent(deleted.title)}`,
+      ).catch((error: unknown) => {
+        console.error("Error revalidating deleted tab:", error);
+      });
     }),
 });

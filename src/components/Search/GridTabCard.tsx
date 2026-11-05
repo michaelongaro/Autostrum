@@ -1,3 +1,4 @@
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
@@ -15,7 +16,7 @@ import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
-import { useRouter } from "next/router";
+
 import { MdModeEditOutline } from "react-icons/md";
 import { TbPinned } from "react-icons/tb";
 import Verified from "~/components/ui/icons/Verified";
@@ -65,7 +66,7 @@ function GridTabCard({
   infiniteQueryParams,
   ref,
 }: GridTabCard) {
-  const { query, asPath } = useRouter();
+  const { query, asPath } = useRouteLocation();
 
   const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
   const screenshotFilterId = `tab-screenshot-${useId()}`;

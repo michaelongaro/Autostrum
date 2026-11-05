@@ -1,8 +1,9 @@
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/router";
+
 import {
   Tooltip,
   TooltipContent,
@@ -36,7 +37,7 @@ import { CiCompass1 } from "react-icons/ci";
 
 function DesktopHeader() {
   const { userId, isSignedIn } = useAuth();
-  const { asPath } = useRouter();
+  const asPath = usePathname();
 
   const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
     api.user.getById.useQuery(userId!, {

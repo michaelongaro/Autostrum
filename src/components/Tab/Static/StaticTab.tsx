@@ -1,3 +1,4 @@
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { FaBook } from "react-icons/fa";
@@ -38,7 +39,7 @@ import PinnedTabChrome, {
 } from "~/components/Tab/PinnedTabChrome";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibility";
-import { useRouter } from "next/router";
+
 import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
@@ -48,7 +49,7 @@ const PlaybackModal = dynamic(
 
 function StaticTab() {
   const store = useTabStoreApi();
-  const { asPath } = useRouter();
+  const { asPath } = useRouteLocation();
 
   const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
     {},

@@ -14,7 +14,7 @@ import {
 import { Separator } from "~/components/ui/separator";
 import PinnedTabList from "~/components/Profile/PinnedTabList";
 import { IoClose } from "react-icons/io5";
-import type { LocalSettings } from "~/pages/profile/settings";
+import type { LocalSettings } from "~/app/profile/settings/page-client";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 interface PinnedTabSelector {

@@ -1,5 +1,6 @@
+import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { useRouter } from "next/router";
+
 import { FaStar } from "react-icons/fa";
 import DifficultyBars from "~/components/ui/DifficultyBars";
 import { Badge } from "~/components/ui/badge";
@@ -32,7 +33,7 @@ function TableTabRow({
   infiniteQueryParams,
   ref,
 }: TableTabRow) {
-  const { asPath } = useRouter();
+  const asPath = usePathname();
 
   return (
     <TableRow ref={ref} className="w-full">

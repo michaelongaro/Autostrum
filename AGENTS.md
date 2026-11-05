@@ -2,7 +2,7 @@
 
 ## Cursor Cloud specific instructions
 
-Autostrum is a single Next.js 16 (Pages Router) T3-stack app at the repo root — there is no monorepo and no local service orchestration. Dependencies install with `npm install` (its `postinstall` runs `prisma generate`).
+Autostrum is a single Next.js 16 (App Router) T3-stack app at the repo root — there is no monorepo and no local service orchestration. Dependencies install with `npm install` (its `postinstall` runs `prisma generate`).
 
 ### Services and how they run
 - **Web app (dev):** `npm run dev` (Next.js dev server on Webpack, serves on port 3000). Webpack avoids missing client module factories in Next.js 16.4.0's Turbopack output for direct tab-page loads. `npm run dev:turbo` is available to retest Turbopack after an upgrade; stop the existing dev server before switching. This is the only long-running service you start locally.

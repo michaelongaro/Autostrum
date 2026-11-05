@@ -26,7 +26,7 @@ function NoResultsFound({ customKey, searchQuery }: NoResultsFound) {
         </span>
         {searchQuery && (
           <span className="text-lg sm:text-xl">
-            &quot; {decodeURIComponent(searchQuery)} &quot;
+            &quot; {searchQuery} &quot;
           </span>
         )}
       </div>

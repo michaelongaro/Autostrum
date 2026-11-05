@@ -3,7 +3,13 @@
 Run `npm run test:e2e` manually whenever you want to check the tab lifecycle.
 It is not part of CI/CD or the Vercel build.
 
-The Playwright test signs in, creates and publishes a tab in the editor, verifies
+The App Router smoke tests check client navigation, back/forward history, direct loads,
+metadata, Route Handler validation, and signed-out API/profile access. Scroll tests
+cover desktop/mobile page navigation, cached routes, back/forward restoration,
+hash links, and filter changes that preserve scroll. These checks do not create or
+modify tabs; visiting a published tab can update its normal page-view counters.
+
+The tab lifecycle test signs in, creates and publishes a tab in the editor, verifies
 its row and note data directly in PostgreSQL, deletes it through the editor's
 confirmation dialog, and verifies the row no longer exists.
 It uses a unique title for every run and checks the signed-in owner's ID.

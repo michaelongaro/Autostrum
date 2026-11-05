@@ -157,7 +157,9 @@ function compile(file) {
     code = "export const prisma = globalThis.__AUTOSTRUM_DRAFT_CHECK_DB__;";
   else if (file === "~/env") code = "export const env = {};";
   else if (file === "@clerk/nextjs/server")
-    code = "export const getAuth = () => ({userId:null});";
+    code = "export const auth = async () => ({userId:null});";
+  else if (file === "next/cache")
+    code = "export const revalidatePath = () => {};";
   else if (file === "@vercel/functions")
     code = "export const waitUntil = () => {};";
   else {
@@ -177,6 +179,7 @@ function compile(file) {
             "~/env",
             "@clerk/nextjs/server",
             "@vercel/functions",
+            "next/cache",
           ].includes(specifier)
         )
           dependency = pathToFileURL(compile(specifier)).href;
@@ -218,8 +221,8 @@ function context(userId) {
   return {
     auth: { userId },
     prisma: db,
-    req: {},
-    res: { revalidate: async () => {}, setHeader: () => {} },
+    req: new Request("http://localhost/api/trpc"),
+    resHeaders: new Headers(),
     waitUntil: () => {},
   };
 }

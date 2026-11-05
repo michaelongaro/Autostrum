@@ -25,6 +25,10 @@ try {
     });
     const fixture = page.getByTestId("base-ui-harness");
     await fixture.waitFor({ state: "visible" });
+    // App Router can stream the fixture's markup before its handlers hydrate.
+    await page
+      .locator('[data-testid="base-ui-harness"][data-ready="true"]')
+      .waitFor({ state: "visible" });
     // WebKit installations without Web Audio log a caught initialization error.
     // Next's development overlay then blocks pointer input. This fixture tests
     // UI primitives only; keep development chrome out of hit testing.

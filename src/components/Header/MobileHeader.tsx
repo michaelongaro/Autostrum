@@ -1,3 +1,4 @@
+import { usePathname } from "next/navigation";
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { BiSearchAlt2 } from "react-icons/bi";
@@ -14,7 +15,7 @@ import {
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/router";
+
 import { useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import { PiMetronome } from "react-icons/pi";
@@ -42,8 +43,7 @@ import { CiCompass1 } from "react-icons/ci";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
-  const { asPath } = useRouter();
-  const { events } = useRouter();
+  const asPath = usePathname();
 
   const { showMobileHeaderModal, setShowMobileHeaderModal, color, theme } =
     useTabStore((state) => ({
@@ -62,17 +62,9 @@ function MobileHeader() {
   const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
 
   useEffect(() => {
-    function handleRouteChange() {
-      setShowMobileSearch(false);
-      setShowMobileHeaderModal(false);
-    }
-
-    events.on("routeChangeStart", handleRouteChange);
-
-    return () => {
-      events.off("routeChangeStart", handleRouteChange);
-    };
-  }, [events]);
+    setShowMobileSearch(false);
+    setShowMobileHeaderModal(false);
+  }, [asPath, setShowMobileHeaderModal]);
 
   return (
     <nav className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full">

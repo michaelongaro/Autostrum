@@ -14,55 +14,20 @@
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
-import { getAuth } from "@clerk/nextjs/server";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { auth } from "@clerk/nextjs/server";
+import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { prisma } from "~/server/db";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { waitUntil } from "@vercel/functions";
 
-interface AuthContext {
-  auth: ReturnType<typeof getAuth>;
-  req: CreateNextContextOptions["req"];
-  res: CreateNextContextOptions["res"];
-  waitUntil: typeof waitUntil;
+export async function createTRPCContext({
+  req,
+  resHeaders,
+}: FetchCreateContextFnOptions) {
+  return { auth: await auth(), req, resHeaders, prisma, waitUntil };
 }
-
-/**
- * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
- * it from here.
- *
- * Examples of things you may need it for:
- * - testing, so we don't have to mock Next.js' req/res
- * - tRPC's `createSSGHelpers`, where we don't have req/res
- *
- * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
- */
-const createInnerTRPCContext = ({ auth, req, res, waitUntil }: AuthContext) => {
-  return {
-    auth,
-    req,
-    res,
-    prisma,
-    waitUntil,
-  };
-};
-
-/**
- * This is the actual context you will use in your router. It will be used to process every request
- * that goes through your tRPC endpoint.
- *
- * @see https://trpc.io/docs/context
- */
-export const createTRPCContext = (opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext({
-    auth: getAuth(opts.req),
-    req: opts.req,
-    res: opts.res,
-    waitUntil,
-  });
-};
 
 /**
  * 2. INITIALIZATION

@@ -1,6 +1,6 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
+
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { Button } from "~/components/ui/button";
@@ -29,7 +29,6 @@ function DeleteAccountModal({
   showDeleteAccountModal,
   setShowDeleteAccountModal,
 }: DeleteAccountModal) {
-  const { push, reload } = useRouter();
   const { userId } = useAuth();
   const ctx = api.useUtils();
 
@@ -49,9 +48,7 @@ function DeleteAccountModal({
       }, 2000);
 
       setTimeout(() => {
-        void push("/").then(() => {
-          void reload();
-        });
+        window.location.assign("/");
       }, 4000);
     },
     onError: (e) => {

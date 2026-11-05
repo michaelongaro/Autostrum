@@ -1,6 +1,6 @@
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
-import SEO from "~/components/SEO";
-import { useRouter } from "next/router";
+
 import { useEffect, useState } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
@@ -32,7 +32,7 @@ interface UserProfile {
 }
 
 function UserProfile({ uniqueKey }: UserProfile) {
-  const { query } = useRouter();
+  const { query } = useRouteLocation();
   const { userId: currentUserId } = useAuth();
 
   const { color, theme } = useTabStore((state) => ({
@@ -81,11 +81,6 @@ function UserProfile({ uniqueKey }: UserProfile) {
       transition={{ duration: 0.5 }}
       className={`${styles.pageShell} baseVertFlex my-12 min-h-[650px] !justify-start md:my-24 md:p-0`}
     >
-      <SEO
-        title={`${userMetadata?.user.username ?? (typeof query.username === "string" ? query.username : "User")} | Autostrum`}
-        description={`Explore guitar tabs created by ${userMetadata?.user.username ?? (typeof query.username === "string" ? query.username : "this creator")}. Listen, practice, and discover their music on Autostrum.`}
-      />
-
       <div className="baseVertFlex w-full gap-4">
         <AnimatePresence mode="popLayout">
           {!userMetadata ? (

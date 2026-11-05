@@ -1,6 +1,9 @@
+import { routeUrl } from "~/utils/routeUrl";
+import { useRouter } from "next/navigation";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
 import debounce from "lodash.debounce";
-import { useRouter } from "next/router";
+
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { BiSearchAlt2 } from "react-icons/bi";
 import { Button } from "~/components/ui/button";
@@ -25,7 +28,8 @@ interface SearchInput {
 }
 
 function SearchInput({ setShowMobileSearch }: SearchInput) {
-  const { push, query } = useRouter();
+  const { query } = useRouteLocation();
+  const { push } = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -63,7 +67,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
 
   useEffect(() => {
     startTransition(() => {
-      setSearchQuery(decodeURIComponent((query.search as string) ?? ""));
+      setSearchQuery((query.search as string) ?? "");
     });
   }, [query]);
 
@@ -148,16 +152,13 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       const newQuery = {
         ...(searchType === "songs" &&
           encodedSearchQuery && {
-            search: encodedSearchQuery,
+            search: searchQuery.trim(),
           }),
         ...(query.layout && { layout: query.layout }),
       };
 
       if (Object.keys(newQuery).length > 0) {
-        void push({
-          pathname: pathname,
-          query: newQuery,
-        });
+        push(routeUrl(pathname, newQuery));
       } else {
         void push(pathname);
       }

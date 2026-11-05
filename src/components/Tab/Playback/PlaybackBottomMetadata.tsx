@@ -1,3 +1,4 @@
+import { usePathname } from "next/navigation";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -63,7 +64,7 @@ import { IoMdSettings } from "react-icons/io";
 import { IoColorPalette } from "react-icons/io5";
 import CountIn from "~/components/ui/icons/CountIn";
 import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
-import { useRouter } from "next/router";
+
 import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
 import ChordName from "~/components/ui/ChordName";
 import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
@@ -78,7 +79,7 @@ function PlaybackBottomMetadata({
   showBackgroundBlur,
   setShowBackgroundBlur,
 }: PlaybackBottomMetadata) {
-  const { asPath } = useRouter();
+  const asPath = usePathname();
 
   const {
     capo,

@@ -1,7 +1,9 @@
+import { useRouter } from "next/navigation";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/router";
+
 import { useEffect } from "react";
 import { MdModeEditOutline } from "react-icons/md";
 import { IoIosShareAlt } from "react-icons/io";
@@ -29,7 +31,8 @@ const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
 function StaticTabMetadata() {
   const { userId } = useAuth();
-  const { push, asPath } = useRouter();
+  const { asPath } = useRouteLocation();
+  const { push } = useRouter();
 
   const {
     id,

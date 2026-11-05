@@ -1,17 +1,9 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  // Early sign-in redirect for navigation; each profile page also checks auth.
+  // Early sign-in redirect for navigation; the profile layout also checks auth.
   const pathname = req.nextUrl.pathname;
-  const isNavigation =
-    req.headers.get("accept")?.includes("text/html") ||
-    ["document", "iframe"].includes(req.headers.get("sec-fetch-dest") ?? "") ||
-    req.headers.has("x-nextjs-data");
-
-  if (
-    isNavigation &&
-    (pathname === "/profile" || pathname.startsWith("/profile/"))
-  ) {
+  if (pathname === "/profile" || pathname.startsWith("/profile/")) {
     const { isAuthenticated, redirectToSignIn } = await auth();
     if (!isAuthenticated) return redirectToSignIn();
   }

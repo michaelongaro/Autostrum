@@ -1,5 +1,6 @@
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
+
 import { useState } from "react";
 import {
   Popover,
@@ -37,7 +38,7 @@ function BookmarkToggle({
   const [unregisteredPopoverTimeoutId, setUnregisteredPopoverTimeoutId] =
     useState<NodeJS.Timeout | null>(null);
 
-  const { asPath } = useRouter();
+  const asPath = usePathname();
   const ctx = api.useUtils();
 
   const { mutate: addBookmark } = api.bookmark.addBookmark.useMutation({

@@ -15,7 +15,7 @@ import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { AnimatePresence, motion } from "framer-motion";
-import type { LocalSettings } from "~/pages/profile/settings";
+import type { LocalSettings } from "~/app/profile/settings/page-client";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 // Helper to read file as data URL

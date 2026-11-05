@@ -1,7 +1,6 @@
 import { AnimatePresence } from "framer-motion";
-import { useRouter } from "next/router";
+
 import { useEffect } from "react";
-import useDetectRouteChanges from "~/hooks/useDetectRouteChanges";
 import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import { useInitializeAudioContext } from "~/hooks/useInitializeAudioContext";
@@ -21,8 +20,6 @@ import IPhoneSoundDrawerController from "~/components/AudioControls/IPhoneSoundD
 // instead of the entire app.
 
 function GeneralLayoutStatefulShell() {
-  const { asPath } = useRouter();
-
   const looping = useGetLocalStorageValues().looping;
   const countIn = useGetLocalStorageValues().countIn;
   const colorCodedChords = useGetLocalStorageValues().colorCodedChords;
@@ -30,7 +27,6 @@ function GeneralLayoutStatefulShell() {
   useColorAndThemeController();
   useInitializeAudioContext();
   useFetchAndLoadSoundfonts();
-  useDetectRouteChanges();
   useGetViewportLabel();
   useScreenWakeLock();
 
@@ -38,26 +34,14 @@ function GeneralLayoutStatefulShell() {
     setLooping,
     setCountInTimerEnabled,
     setChordDisplayMode,
-    setShowingAudioControls,
-    resetStoreToInitValues,
-    setEditing,
-    setAudioMetadata,
-    setCurrentlyPlayingMetadata,
     showMobileHeaderModal,
     setShowMobileHeaderModal,
-    pauseAudio,
   } = useTabStore((state) => ({
     setLooping: state.setLooping,
     setCountInTimerEnabled: state.setCountInTimerEnabled,
     setChordDisplayMode: state.setChordDisplayMode,
-    setShowingAudioControls: state.setShowingAudioControls,
-    resetStoreToInitValues: state.resetStoreToInitValues,
-    setEditing: state.setEditing,
-    setAudioMetadata: state.setAudioMetadata,
-    setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     showMobileHeaderModal: state.showMobileHeaderModal,
     setShowMobileHeaderModal: state.setShowMobileHeaderModal,
-    pauseAudio: state.pauseAudio,
   }));
 
   const aboveLargeViewportWidth = useViewportWidthBreakpoint(1024);
@@ -76,26 +60,6 @@ function GeneralLayoutStatefulShell() {
   useEffect(() => {
     setChordDisplayMode(colorCodedChords ? "color" : "text");
   }, [colorCodedChords, setChordDisplayMode]);
-
-  // route change state reset handling
-  useEffect(() => {
-    pauseAudio(true);
-
-    setShowingAudioControls(
-      asPath.includes("/edit") || asPath.includes("/create"),
-    );
-    setEditing(asPath.includes("/create") || asPath.includes("edit"));
-
-    resetStoreToInitValues();
-  }, [
-    asPath,
-    pauseAudio,
-    resetStoreToInitValues,
-    setEditing,
-    setShowingAudioControls,
-    setAudioMetadata,
-    setCurrentlyPlayingMetadata,
-  ]);
 
   return (
     <>
