@@ -1068,6 +1068,7 @@ function DesktopSettings() {
       <div className="baseVertFlex !items-start gap-2">
         <Label htmlFor="instrument">Instrument</Label>
         <Select
+          modal={false}
           disabled={countInTimer.showing || audioMetadata.editingLoopRange}
           value={currentInstrumentName}
           onValueChange={(value) => {
@@ -1115,6 +1116,7 @@ function DesktopSettings() {
       <div className="baseVertFlex !items-start gap-2">
         <Label htmlFor="loopDelay">Loop delay</Label>
         <Select
+          modal={false}
           disabled={countInTimer.showing}
           value={`${loopDelay}s`}
           onValueChange={(value) => {

@@ -114,7 +114,7 @@ const SelectContent = React.forwardRef<
           ref={ref}
           className={cn(
             "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-background text-foreground shadow-md transition-[opacity,transform] duration-150 data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
-            "max-h-[var(--available-height)] min-w-[var(--anchor-width)]",
+            "max-h-[var(--available-height)] w-max min-w-[max(8rem,var(--anchor-width))] max-w-[var(--available-width)]",
             className,
           )}
           {...props}
@@ -165,14 +165,16 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center justify-between rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-default select-none items-center justify-between gap-2 rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     {...props}
   >
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    <SelectPrimitive.ItemText className="min-w-0 flex-1">
+      {children}
+    </SelectPrimitive.ItemText>
     {indicator !== null && (
-      <span className="relative right-2 flex h-3.5 w-3.5 items-center justify-center">
+      <span className="ml-auto flex size-4 shrink-0 items-center justify-center">
         {indicator !== undefined ? (
           indicator
         ) : (

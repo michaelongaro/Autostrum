@@ -37,6 +37,7 @@ function PracticePlaybackSectionPicker() {
           Exercise
         </Label>
         <Select
+          modal={false}
           value={selectedExerciseId}
           onValueChange={(value) => {
             if (value !== null) selectExercise(value);
