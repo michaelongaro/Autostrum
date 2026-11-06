@@ -107,9 +107,11 @@ const AccordionContent = React.forwardRef<
     <AccordionPrimitive.Panel
       ref={ref}
       className={cn(
+        // duration-* also sets animation-duration via tailwindcss-animate.
+        // Keep this a height transition, including on initially open panels.
         `overflow-hidden ${
           animated
-            ? "h-[var(--accordion-panel-height)] transition-[height] duration-200 data-[ending-style]:h-0 data-[starting-style]:h-0"
+            ? "h-[var(--accordion-panel-height)] transition-[height] [transition-duration:200ms] data-[ending-style]:h-0 data-[starting-style]:h-0"
             : ""
         } `,
         className,

@@ -1,3 +1,4 @@
+import { getProfileImageSrc } from "~/utils/profileImage";
 import Image from "next/image";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import type { Area, Point } from "react-easy-crop";
@@ -127,7 +128,9 @@ function EditImageSelector({
           {localSettings ? (
             <>
               <Image
-                src={newProfileImage ?? localSettings.profileImageUrl}
+                src={getProfileImageSrc(
+                  newProfileImage ?? localSettings.profileImageUrl,
+                )}
                 alt="User's profile image"
                 width={500}
                 height={500}
@@ -187,16 +190,12 @@ function EditImageSelector({
               <Button
                 variant={"outline"}
                 disabled={!localSettings || !profileImageLoaded}
-                render={
-                  <label
-                    htmlFor="file-upload"
-                    className="baseFlex w-28 cursor-pointer gap-2"
-                  >
-                    <FiUpload className="size-4" />
-                    Upload
-                  </label>
-                }
-              />
+                className="baseFlex w-28 gap-2"
+                onClick={() => document.getElementById("file-upload")?.click()}
+              >
+                <FiUpload className="size-4" />
+                Upload
+              </Button>
             </>
           )}
 

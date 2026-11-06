@@ -58,14 +58,16 @@ function GridTabView({
       <AnimatePresence mode="popLayout">
         {tabResults && tabResults.pages[0]?.count !== 0 && (
           <div
+            key="results"
             style={{ gridAutoRows: "minmax(min-content, max-content)" }}
             className="grid w-full grid-cols-[repeat(auto-fill,minmax(min(100%,330px),1fr))] place-items-center gap-4 p-4"
           >
-            {tabResults.pages.map((page) =>
+            {tabResults.pages.map((page, pageIndex) =>
               page.data.tabs.map((tab, index) => (
                 <GridTabCard
                   key={tab.id}
                   minimalTab={tab}
+                  eagerScreenshot={pageIndex === 0 && index < 9}
                   currentUser={currentUser}
                   color={color}
                   theme={theme}
@@ -82,6 +84,7 @@ function GridTabView({
         )}
 
         <SearchResultsSpinner
+          key="loading"
           hasResults={Boolean(tabResults?.pages[0]?.data.tabs.length)}
           hasNextPage={hasNextPage}
           isFetching={isFetching}
@@ -90,7 +93,7 @@ function GridTabView({
 
         {/* no results */}
         {!isFetching && tabResults?.pages?.[0]?.data.tabs.length === 0 && (
-          <div className="baseFlex grow">
+          <div key="empty" className="baseFlex grow">
             <NoResultsFound
               customKey={"gridTabViewNoResults"}
               searchQuery={searchQuery}

@@ -224,6 +224,14 @@ export function createAudioContextController(options: {
   }
 
   function initialize() {
+    // Some embedded browsers do not expose Web Audio. Keep navigation usable
+    // and let playback's existing unavailable state handle that environment.
+    if (typeof window === "undefined") return null;
+    const Constructor =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+    if (!Constructor) return null;
     if (
       context &&
       context.state !== "closed" &&
@@ -237,10 +245,6 @@ export function createAudioContextController(options: {
       // Mobile browsers can impose a small limit on live contexts.
       previous?.removeEventListener("statechange", onStateChange);
       if (previous) closeAudioContext(previous);
-      const Constructor =
-        window.AudioContext ??
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext;
       next = new Constructor();
       context = next;
       version++;

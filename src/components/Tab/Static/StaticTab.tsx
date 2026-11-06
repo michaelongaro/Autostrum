@@ -45,6 +45,7 @@ import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
+  { ssr: false },
 );
 
 function StaticTab() {

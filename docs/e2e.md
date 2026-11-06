@@ -9,6 +9,13 @@ cover desktop/mobile page navigation, cached routes, back/forward restoration,
 hash links, and filter changes that preserve scroll. These checks do not create or
 modify tabs; visiting a published tab can update its normal page-view counters.
 
+Console regression checks cover public routes, search filters/layouts, practice,
+tool sliders, editor accordions, and signed-in profiles (when the test account is
+configured). Run them with `npm run test:e2e -- navigation-console.spec.ts`.
+They check caught console errors and component warnings as well as uncaught
+exceptions; Clerk's normal development-key notice is expected. Offline avatar
+fallback checks run with `node scripts/verifyProfileImages.mjs`.
+
 The tab lifecycle test signs in, creates and publishes a tab in the editor, verifies
 its row and note data directly in PostgreSQL, deletes it through the editor's
 confirmation dialog, and verifies the row no longer exists.

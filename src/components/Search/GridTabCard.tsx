@@ -51,6 +51,7 @@ interface GridTabCard {
   color: COLORS;
   theme: THEME;
   largeVariant?: boolean | null;
+  eagerScreenshot?: boolean;
   pinnedTabType?: "full" | "withoutScreenshot";
   infiniteQueryParams?: InfiniteQueryParams;
   ref?: React.RefObject<HTMLDivElement>;
@@ -62,6 +63,7 @@ function GridTabCard({
   color,
   theme,
   largeVariant,
+  eagerScreenshot,
   pinnedTabType,
   infiniteQueryParams,
   ref,
@@ -250,6 +252,7 @@ function GridTabCard({
                   </defs>
                 </svg>
                 <TabScreenshotImage
+                  eager={eagerScreenshot}
                   tabId={minimalTab.id}
                   theme={theme}
                   version={screenshotVersion}

@@ -52,10 +52,10 @@ export default function ScaleSlider({
           step={step}
           values={[value]}
           onChange={(values) => onChange(values[0] ?? value)}
-          renderMark={({ props, index }) => (
+          renderMark={({ props: { key, ...props }, index }) => (
             <div
               {...props}
-              key={props.key}
+              key={key}
               data-scale-mark=""
               aria-hidden="true"
               style={{
@@ -103,10 +103,10 @@ export default function ScaleSlider({
               </div>
             </div>
           )}
-          renderThumb={({ props, index }) => (
+          renderThumb={({ props: { key, ...props } }) => (
             <div
               {...props}
-              key={`${props.key}-${index}`}
+              key={key}
               id={id}
               aria-valuetext={formatValue(value)}
               className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"

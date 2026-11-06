@@ -243,6 +243,24 @@ afterEach(async () => {
   originals.clear();
 });
 
+test("browsers without Web Audio leave initialization and playback unavailable", async () => {
+  delete win.AudioContext;
+  const errors = mock.method(console, "error", () => {});
+  const { owner, changes } = controller();
+  assert.equal(owner.initialize(), null);
+  assert.equal(await owner.ensureRunning(), null);
+  assert.deepEqual(changes, []);
+  assert.equal(errors.mock.callCount(), 0);
+  assert.equal(FakeContext.instances.length, 0);
+});
+
+test("legacy WebKit can initialize with its prefixed Web Audio constructor", () => {
+  delete win.AudioContext;
+  win.webkitAudioContext = FakeContext;
+  const { owner } = controller();
+  assert.ok(owner.initialize() instanceof FakeContext);
+});
+
 test("resume is synchronous, bounded, and shared; a new tap retries a hanging resume", async () => {
   const ctx = new FakeContext();
   ctx.resumeImpl = () => new Promise(() => {});

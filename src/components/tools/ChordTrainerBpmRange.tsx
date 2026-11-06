@@ -54,7 +54,7 @@ function ChordTrainerBpmRange({
           onChange={(values) => {
             onTempoChange(clampChordTrainerTempo(values[0] ?? clampedTempo));
           }}
-          renderMark={({ props, index }) => {
+          renderMark={({ props: { key, ...props }, index }) => {
             const markValue =
               CHORD_TRAINER_BPM_MIN + index * CHORD_TRAINER_BPM_STEP;
             const isMajorTick =
@@ -64,7 +64,7 @@ function ChordTrainerBpmRange({
             return (
               <div
                 {...props}
-                key={props.key}
+                key={key}
                 style={{
                   ...props.style,
                   marginTop: "0px",

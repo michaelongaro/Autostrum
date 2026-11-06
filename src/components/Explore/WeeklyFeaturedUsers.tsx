@@ -1,3 +1,4 @@
+import { getProfileImageSrc } from "~/utils/profileImage";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -49,7 +50,7 @@ function FeaturedUserAvatar({
         </span>
       ) : (
         <Image
-          src={src}
+          src={getProfileImageSrc(src)}
           alt={`${username}'s profile picture`}
           width={40}
           height={40}

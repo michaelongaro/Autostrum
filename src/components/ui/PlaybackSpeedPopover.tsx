@@ -110,7 +110,7 @@ function PlaybackSpeedPopover({
             onChange={(values) => {
               handleSpeedChange(values[0] ?? 1);
             }}
-            renderMark={({ props, index }) => {
+            renderMark={({ props: { key, ...props }, index }) => {
               const markValue =
                 PLAYBACK_SPEED_MIN + index * PLAYBACK_SPEED_STEP;
               const isMajorTick = index % 5 === 0; // 0.25, 0.5, 0.75, 1, 1.25, 1.5
@@ -119,7 +119,7 @@ function PlaybackSpeedPopover({
               return (
                 <div
                   {...props}
-                  key={props.key}
+                  key={key}
                   style={{
                     ...props.style,
                     marginTop: "0px",

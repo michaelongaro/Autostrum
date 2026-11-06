@@ -1,3 +1,4 @@
+import { getProfileImageSrc } from "~/utils/profileImage";
 import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -216,7 +217,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                             <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                               {userMetadata ? (
                                 <Image
-                                  src={userMetadata.user.profileImageUrl}
+                                  src={getProfileImageSrc(userMetadata.user.profileImageUrl)}
                                   alt={`${userMetadata.user.username}'s profile picture`}
                                   width={300} // TODO: tweak this
                                   height={300} // TODO: tweak this
@@ -388,7 +389,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                         {userMetadata ? (
                           <Image
-                            src={userMetadata.user.profileImageUrl}
+                            src={getProfileImageSrc(userMetadata.user.profileImageUrl)}
                             alt={`${userMetadata.user.username}'s profile picture`}
                             width={300} // TODO: tweak this
                             height={300} // TODO: tweak this

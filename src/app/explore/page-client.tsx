@@ -67,6 +67,7 @@ function Explore({ json }: { json: string }) {
 
           <Image
             src={GuitarImage}
+            loading="eager"
             alt={"Decorative acoustic guitar header"}
             className="h-24 w-full rounded-lg object-cover object-top md:h-36 md:rounded-xl"
           />

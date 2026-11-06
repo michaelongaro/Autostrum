@@ -57,6 +57,7 @@ import { useTabEditorHistory } from "~/hooks/useTabEditorHistory";
 
 const PlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
+  { ssr: false },
 );
 
 function Tab() {

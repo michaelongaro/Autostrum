@@ -130,7 +130,7 @@ function StrumSettingsDropdown({
               );
             }}
             onFinalChange={() => store.getState().breakEditorHistoryGroup()}
-            renderMark={({ props, index }) => {
+            renderMark={({ props: { key, ...props }, index }) => {
               const markValue = Number((min + index * step).toFixed(2));
               if (!markValues.some((v) => Math.abs(v - markValue) < 0.001)) {
                 return null;
@@ -138,7 +138,7 @@ function StrumSettingsDropdown({
               return (
                 <div
                   {...props}
-                  key={props.key}
+                  key={key}
                   className="h-2 w-[2px] rounded-full bg-foreground/40"
                 />
               );
@@ -173,10 +173,10 @@ function StrumSettingsDropdown({
                 </div>
               </div>
             )}
-            renderThumb={({ props }) => (
+            renderThumb={({ props: { key, ...props } }) => (
               <div
                 {...props}
-                key={props.key}
+                key={key}
                 className="z-10 size-[16px] rounded-full border border-foreground/50 bg-primary"
               />
             )}

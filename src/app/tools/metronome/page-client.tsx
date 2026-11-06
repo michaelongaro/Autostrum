@@ -620,8 +620,9 @@ function MetronomeToolPage() {
                           </div>
                         </div>
                       )}
-                      renderThumb={({ props }) => (
+                      renderThumb={({ props: { key, ...props } }) => (
                         <div
+                          key={key}
                           {...props}
                           className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
                         />
@@ -693,8 +694,9 @@ function MetronomeToolPage() {
                             </div>
                           </div>
                         )}
-                        renderThumb={({ props }) => (
+                        renderThumb={({ props: { key, ...props } }) => (
                           <div
+                            key={key}
                             {...props}
                             className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
                           />
@@ -749,8 +751,9 @@ function MetronomeToolPage() {
                             </div>
                           </div>
                         )}
-                        renderThumb={({ props }) => (
+                        renderThumb={({ props: { key, ...props } }) => (
                           <div
+                            key={key}
                             {...props}
                             className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
                           />
@@ -806,8 +809,9 @@ function MetronomeToolPage() {
                             </div>
                           </div>
                         )}
-                        renderThumb={({ props }) => (
+                        renderThumb={({ props: { key, ...props } }) => (
                           <div
+                            key={key}
                             {...props}
                             className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
                           />
@@ -864,8 +868,9 @@ function MetronomeToolPage() {
                             </div>
                           </div>
                         )}
-                        renderThumb={({ props }) => (
+                        renderThumb={({ props: { key, ...props } }) => (
                           <div
+                            key={key}
                             {...props}
                             className="z-10 size-[18px] rounded-full border border-foreground/50 bg-primary"
                           />

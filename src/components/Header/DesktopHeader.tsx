@@ -1,3 +1,4 @@
+import { getProfileImageSrc } from "~/utils/profileImage";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
@@ -319,7 +320,7 @@ function DesktopHeader() {
                     >
                       <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                         <Image
-                          src={currentUser.profileImageUrl}
+                          src={getProfileImageSrc(currentUser.profileImageUrl)}
                           alt={`${currentUser.username}'s profile picture`}
                           width={300}
                           height={300}
@@ -373,7 +374,7 @@ function DesktopHeader() {
                           className="baseFlex !h-10 gap-2 !px-0"
                         >
                           <Image
-                            src={currentUser.profileImageUrl}
+                            src={getProfileImageSrc(currentUser.profileImageUrl)}
                             alt="User profile image"
                             className="!size-8 rounded-full object-cover object-center"
                             width={300}

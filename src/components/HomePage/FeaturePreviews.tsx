@@ -62,7 +62,7 @@ export type FeatureId =
 // cannot hide the homepage via the route's Suspense fallback and reset scroll.
 const EmbeddedPlaybackModal = dynamic(
   () => import("~/components/Tab/Playback/PlaybackModal"),
-  { loading: () => <Spinner /> },
+  { ssr: false, loading: () => <Spinner /> },
 );
 const DemoGlossaryDialog = dynamic(
   () => import("~/components/Dialogs/GlossaryDialog"),

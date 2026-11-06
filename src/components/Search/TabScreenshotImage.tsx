@@ -12,6 +12,7 @@ interface TabScreenshotImageProps {
   title: string;
   filterId: string;
   onLoad: () => void;
+  eager?: boolean;
 }
 
 export default function TabScreenshotImage({
@@ -22,6 +23,7 @@ export default function TabScreenshotImage({
   title,
   filterId,
   onLoad,
+  eager = false,
 }: TabScreenshotImageProps) {
   const srcSet = TAB_SCREENSHOT_THUMBNAIL_WIDTHS.map(
     (size) => `${getTabScreenshotSrc(tabId, theme, version, size)} ${size}w`,
@@ -30,12 +32,13 @@ export default function TabScreenshotImage({
   // The browser selects a saved variant. Explicitly bypass Next's optimizer
   // even if the app later enables global image optimization for other images.
   return (
-    <picture>
+    <picture className="absolute inset-0">
       <source srcSet={srcSet} sizes={`${width}px`} type="image/jpeg" />
       <Image
         src={getTabScreenshotSrc(tabId, theme, version, 800)}
         alt={`screenshot of ${title}`}
         fill
+        loading={eager ? "eager" : "lazy"}
         unoptimized
         sizes={`${width}px`}
         onLoad={onLoad}

@@ -1,3 +1,4 @@
+import { getProfileImageSrc } from "~/utils/profileImage";
 import { usePathname } from "next/navigation";
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
@@ -427,7 +428,7 @@ function MobileHeader() {
                           >
                             <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                               <Image
-                                src={currentUser.profileImageUrl}
+                                src={getProfileImageSrc(currentUser.profileImageUrl)}
                                 alt={`${currentUser.username}'s profile picture`}
                                 width={300}
                                 height={300}
