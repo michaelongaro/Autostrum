@@ -440,7 +440,7 @@ function SearchResults({
               {[...genreColors.entries()].map(([name, color]) => {
                 return (
                   <SelectItem key={name} value={name}>
-                    <div className="baseFlex gap-2">
+                    <div className="baseFlex !justify-start gap-2">
                       <div
                         style={{
                           backgroundColor: color,
