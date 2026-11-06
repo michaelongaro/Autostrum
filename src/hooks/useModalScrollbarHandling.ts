@@ -1,14 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, type RefObject } from "react";
+import { registerModalTouchGuard } from "~/utils/modalTouchGuard";
 
-// iOS browsers don't reliably honor overflow/event scroll locks, and the
-// older position:fixed body pin triggers a full repaint / flicker. Skip
-// scroll locking on iOS unless forced (e.g. PlaybackModal).
+// Legacy, unscoped overlays opt out on iOS unless forced. Scoped overlays use
+// gesture interception on every platform without changing the page's styles.
 function isIOS() {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
   const iOS = /iP(ad|hone|od)/.test(ua);
-  const macTouch =
-    /Macintosh/.test(ua) && typeof (window as any).ontouchend !== "undefined";
+  const macTouch = ua.includes("Macintosh") && navigator.maxTouchPoints > 0;
   return iOS || macTouch;
 }
 
@@ -29,30 +28,18 @@ function getNearestScrollable(el: Element | null): Element | null {
   return null;
 }
 
-function useModalScrollbarHandling(force = false, enabled = true) {
+function useModalScrollbarHandling(
+  force = false,
+  enabled = true,
+  contentRef?: RefObject<HTMLElement | null>,
+) {
   useEffect(() => {
     if (!enabled) return;
-    // FYI: This allows scrolling to occur while modal is open on iOS,
-    // but I think the tradeoff is worth it to prevent the flicker.
-    if (!force && isIOS()) return;
-
-    // On iOS with force=true, event prevention is unreliable — fall back to
-    // the classic body pin. Elsewhere, lock via wheel/touch/key prevention so
-    // sticky header/AudioControls stay put and Framer layout="position" does
-    // not remeasure from overflow/position mutations.
-    if (force && isIOS()) {
-      const offsetY = window.scrollY;
-      document.body.style.top = `${-offsetY}px`;
-      document.body.classList.add("noScroll");
-
-      return () => {
-        const top = document.body.style.top;
-        const restoreY = Math.abs(parseInt(`${top || 0}`, 10)) || 0;
-        document.body.classList.remove("noScroll");
-        document.body.style.removeProperty("top");
-        window.scrollTo(0, restoreY);
-      };
-    }
+    const content = contentRef?.current;
+    if (!content && !force && isIOS()) return;
+    // Playback is a custom modal, not a Base UI Dialog. Give it the same
+    // boundary-aware guard instead of pinning the body on iOS.
+    const removeGuard = content ? registerModalTouchGuard(content) : undefined;
 
     const scrollKeys = new Set([
       "ArrowUp",
@@ -113,16 +100,19 @@ function useModalScrollbarHandling(force = false, enabled = true) {
       e.preventDefault();
     }
 
-    document.addEventListener("wheel", onWheel, { passive: false });
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
+    if (!removeGuard) {
+      document.addEventListener("wheel", onWheel, { passive: false });
+      document.addEventListener("touchmove", onTouchMove, { passive: false });
+    }
     document.addEventListener("keydown", onKeyDown);
 
     return () => {
+      removeGuard?.();
       document.removeEventListener("wheel", onWheel);
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [force, enabled]);
+  }, [force, enabled, contentRef]);
 }
 
 export default useModalScrollbarHandling;

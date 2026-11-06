@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 
 const backdropVariants = {
   expanded: {
@@ -15,10 +14,9 @@ interface MobileHeaderModal {
 }
 
 function MobileHeaderModal({ setShowMobileHeaderModal }: MobileHeaderModal) {
-  useModalScrollbarHandling();
-
   return (
     <motion.div
+      data-slot="mobile-header-backdrop"
       key={"MobileHeaderModalBackdrop"}
       className="baseFlex fixed left-0 top-0 z-40 h-[100dvh] w-[100vw] bg-black/60"
       variants={backdropVariants}

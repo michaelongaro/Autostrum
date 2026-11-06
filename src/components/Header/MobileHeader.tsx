@@ -16,7 +16,7 @@ import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import Image from "next/image";
 import Link from "next/link";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import { PiMetronome } from "react-icons/pi";
 import { useTabStore } from "~/stores/TabStore";
@@ -40,6 +40,7 @@ import { getTabDocument } from "~/utils/drafts/tabDraftState";
 import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 import Spinner from "~/components/ui/Spinner";
 import { CiCompass1 } from "react-icons/ci";
+import { registerModalTouchGuard } from "~/utils/modalTouchGuard";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
@@ -60,6 +61,11 @@ function MobileHeader() {
 
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
+  // The menu and backdrop are separate DOM branches. Scope scrolling to the
+  // actual menu and keep the guard attached until its exit animation unmounts.
+  const menuRef = useCallback((element: HTMLDivElement | null) => {
+    if (element) return registerModalTouchGuard(element);
+  }, []);
 
   useEffect(() => {
     setShowMobileSearch(false);
@@ -111,6 +117,7 @@ function MobileHeader() {
           </Dialog>
 
           <Hamburger
+            label="Toggle navigation menu"
             toggled={showMobileHeaderModal}
             onToggle={setShowMobileHeaderModal}
             easing="ease-in-out"
@@ -123,6 +130,8 @@ function MobileHeader() {
       <AnimatePresence mode="wait">
         {showMobileHeaderModal && (
           <motion.div
+            ref={menuRef}
+            data-slot="mobile-header-menu"
             key={"mobileHamburgerMenu"}
             initial={{
               opacity: 0,

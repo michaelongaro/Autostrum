@@ -1,11 +1,31 @@
+"use client";
+
 import type { StyledProps } from "./base-ui-types";
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 
 import { cn } from "~/utils/cn";
+import {
+  MobileModalContext,
+  useMobileModal,
+  useMobileModalRef,
+} from "./mobile-modal";
 
-const Dialog = DialogPrimitive.Root;
+function Dialog<Payload = unknown>({
+  modal = true,
+  ...props
+}: DialogPrimitive.Root.Props<Payload>) {
+  const mobileModal = useMobileModal(modal);
+  return (
+    <MobileModalContext.Provider value={mobileModal}>
+      <DialogPrimitive.Root
+        {...props}
+        modal={mobileModal ? "trap-focus" : modal}
+      />
+    </MobileModalContext.Provider>
+  );
+}
 
 const DialogTrigger = DialogPrimitive.Trigger;
 
@@ -52,38 +72,41 @@ const DialogContent = React.forwardRef<
       ...props
     },
     ref,
-  ) => (
-    <DialogPortal>
-      <DialogOverlay />
-      <DialogPrimitive.Popup
-        ref={ref}
-        style={{
-          // had it as "!duration-300", and the !important overrode updateCSSThemeVars()
-          transitionDuration: "300ms",
-          animationDuration: "300ms",
-        }}
-        className={cn(
-          "modalGradient fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 text-foreground shadow-lg transition-[opacity,transform] duration-150 data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 sm:rounded-lg md:w-full",
-          className,
-        )}
-        {...props}
-      >
-        {children}
+  ) => {
+    const popupRef = useMobileModalRef(ref);
+    return (
+      <DialogPortal>
+        <DialogOverlay />
+        <DialogPrimitive.Popup
+          ref={popupRef}
+          style={{
+            // had it as "!duration-300", and the !important overrode updateCSSThemeVars()
+            transitionDuration: "300ms",
+            animationDuration: "300ms",
+          }}
+          className={cn(
+            "modalGradient fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 text-foreground shadow-lg transition-[opacity,transform] duration-150 data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 sm:rounded-lg md:w-full",
+            className,
+          )}
+          {...props}
+        >
+          {children}
 
-        {renderCloseButton && (
-          <DialogPrimitive.Close
-            style={{
-              color: closeButtonColor,
-            }}
-            className="baseFlex absolute right-4 top-4 size-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:pointer-events-none"
-          >
-            <X className="size-5" />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Popup>
-    </DialogPortal>
-  ),
+          {renderCloseButton && (
+            <DialogPrimitive.Close
+              style={{
+                color: closeButtonColor,
+              }}
+              className="baseFlex absolute right-4 top-4 size-5 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:pointer-events-none"
+            >
+              <X className="size-5" />
+              <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
+          )}
+        </DialogPrimitive.Popup>
+      </DialogPortal>
+    );
+  },
 );
 DialogContent.displayName = "DialogContent";
 

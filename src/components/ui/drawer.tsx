@@ -4,6 +4,11 @@ import * as React from "react";
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import type { StyledProps } from "./base-ui-types";
 import { cn } from "~/utils/cn";
+import {
+  MobileModalContext,
+  useMobileModal,
+  useMobileModalRef,
+} from "./mobile-modal";
 
 const SwipeContext = React.createContext({
   disabled: false,
@@ -19,23 +24,28 @@ function Drawer({
   swipeDisabled = false,
   swipeHandleOnly = false,
   onOpenChange,
+  modal = true,
   ...props
 }: DrawerProps) {
+  const mobileModal = useMobileModal(modal);
   return (
-    <SwipeContext.Provider
-      value={{ disabled: swipeDisabled, handleOnly: swipeHandleOnly }}
-    >
-      <DrawerPrimitive.Root
-        {...props}
-        onOpenChange={(open, details) => {
-          if (swipeDisabled && details.reason === "swipe") {
-            details.cancel();
-            return;
-          }
-          onOpenChange?.(open, details);
-        }}
-      />
-    </SwipeContext.Provider>
+    <MobileModalContext.Provider value={mobileModal}>
+      <SwipeContext.Provider
+        value={{ disabled: swipeDisabled, handleOnly: swipeHandleOnly }}
+      >
+        <DrawerPrimitive.Root
+          {...props}
+          modal={mobileModal ? "trap-focus" : modal}
+          onOpenChange={(open, details) => {
+            if (swipeDisabled && details.reason === "swipe") {
+              details.cancel();
+              return;
+            }
+            onOpenChange?.(open, details);
+          }}
+        />
+      </SwipeContext.Provider>
+    </MobileModalContext.Provider>
   );
 }
 
@@ -73,12 +83,13 @@ const DrawerContent = React.forwardRef<
   DrawerContentProps
 >(({ className, children, forPlaybackModalTuner, ...props }, ref) => {
   const swipe = React.useContext(SwipeContext);
+  const popupRef = useMobileModalRef(ref);
   return (
     <DrawerPortal>
       <DrawerOverlay />
       <DrawerPrimitive.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-2 outline-none">
         <DrawerPrimitive.Popup
-          ref={ref}
+          ref={popupRef}
           data-slot="drawer-content"
           data-base-ui-swipe-ignore={swipe.disabled ? "" : undefined}
           style={drawerMotion}

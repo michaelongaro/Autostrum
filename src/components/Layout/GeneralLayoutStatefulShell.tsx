@@ -66,7 +66,7 @@ function GeneralLayoutStatefulShell() {
       {aboveLargeViewportWidth ? <DesktopHeader /> : <MobileHeader />}
 
       <AnimatePresence mode="wait">
-        {showMobileHeaderModal && (
+        {showMobileHeaderModal && !aboveLargeViewportWidth && (
           <MobileHeaderModal
             setShowMobileHeaderModal={setShowMobileHeaderModal}
           />

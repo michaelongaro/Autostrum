@@ -181,7 +181,11 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
       )
     : null;
 
-  useModalScrollbarHandling(true, props.presentation !== "embedded");
+  useModalScrollbarHandling(
+    true,
+    props.presentation !== "embedded",
+    modalContentRef,
+  );
 
   useEffect(() => {
     playingRef.current = audioMetadata.playing;
