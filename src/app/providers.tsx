@@ -18,9 +18,20 @@ function QueryProvider({ children }: { children: ReactNode }) {
 }
 
 function SessionProvider({ children }: { children: ReactNode }) {
-  const { userId } = useAuth();
-  // Discard private cached queries whenever the signed-in account changes.
-  return <QueryProvider key={userId ?? "guest"}>{children}</QueryProvider>;
+  const { isLoaded, userId } = useAuth();
+  const [session, setSession] = useState({ userId, cacheKey: 0 });
+
+  if (isLoaded && userId !== session.userId) {
+    setSession({
+      userId,
+      // An unresolved identity is not a guest session. Keep the initial page
+      // mounted when Clerk loads, but discard private caches on real changes.
+      cacheKey:
+        session.userId === undefined ? session.cacheKey : session.cacheKey + 1,
+    });
+  }
+
+  return <QueryProvider key={session.cacheKey}>{children}</QueryProvider>;
 }
 
 export default function Providers({ children }: { children: ReactNode }) {
