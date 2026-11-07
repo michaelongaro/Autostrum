@@ -103,6 +103,7 @@ function StaticTab() {
   const {
     // Read-only state
     id,
+    updatedAt,
     bpm,
     chords,
     tabData,
@@ -118,6 +119,7 @@ function StaticTab() {
   } = useTabStore((state) => ({
     // Read-only state
     id: state.id,
+    updatedAt: state.updatedAt,
     bpm: state.bpm,
     chords: state.chords,
     tabData: state.tabData,
@@ -347,6 +349,8 @@ function StaticTab() {
           <div className="size-full overflow-hidden">
             <div
               id="tabPreviewScreenshotLight"
+              data-tab-id={id}
+              data-tab-version={updatedAt?.toISOString()}
               data-color="maple"
               data-theme="light"
               style={{
@@ -364,6 +368,8 @@ function StaticTab() {
 
             <div
               id="tabPreviewScreenshotDark"
+              data-tab-id={id}
+              data-tab-version={updatedAt?.toISOString()}
               data-color="maple"
               data-theme="dark"
               style={{

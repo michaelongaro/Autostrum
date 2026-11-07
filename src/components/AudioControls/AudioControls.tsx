@@ -159,7 +159,6 @@ function AudioControls() {
   return (
     <AudioControlsFrame
       minimized={minimized}
-      desktop={!!aboveLargeViewportWidth}
       onExpand={() => setVisibility("expanded")}
     >
       <div className="baseVertFlex w-full p-2 lg:px-10 lg:py-2">
@@ -819,16 +818,14 @@ function AudioControls() {
 
 export default AudioControls;
 
-// Keep both views mounted at their final sizes and positions so they can
-// crossfade together without reflowing the controls or resetting their state.
+// Keep both views mounted so sliding them never reflows the tab or resets
+// playback/settings state. Clip translated controls without adding page overflow.
 function AudioControlsFrame({
   minimized,
-  desktop,
   onExpand,
   children,
 }: {
   minimized: boolean;
-  desktop: boolean;
   onExpand: () => void;
   children: ReactNode;
 }) {
@@ -837,6 +834,9 @@ function AudioControlsFrame({
     duration: reduceMotion ? 0 : 0.3,
     ease: "easeInOut" as const,
   };
+  // Matching calc() shapes let Motion interpolate continuously in both directions.
+  const visibleY = "calc(0% + 0rem)";
+  const offscreenY = `calc(100% + ${parseFloat(AUDIO_CONTROLS_BOTTOM_OFFSET) + 1.5}rem)`;
 
   return (
     <motion.div
@@ -844,49 +844,64 @@ function AudioControlsFrame({
       data-audio-controls={minimized ? "minimized" : "expanded"}
       variants={{
         expanded: {
-          opacity: 1,
-          bottom: AUDIO_CONTROLS_BOTTOM_OFFSET,
+          y: visibleY,
         },
         closed: {
-          opacity: 0,
-          bottom: desktop ? "-8rem" : "-4rem",
+          y: offscreenY,
         },
       }}
       initial="closed"
       animate="expanded"
       exit="closed"
       transition={transition}
+      style={{ bottom: AUDIO_CONTROLS_BOTTOM_OFFSET }}
       className="baseFlex pointer-events-none sticky z-30 w-[95vw] max-w-[500px] lg:max-w-[825px] xl:w-10/12"
     >
-      <motion.div
-        inert={minimized}
-        aria-hidden={minimized}
-        initial={false}
-        animate={{ opacity: minimized ? 0 : 1 }}
-        transition={transition}
-        className={`relative w-full overflow-hidden rounded-xl bg-accent text-primary-foreground shadow-xl lg:rounded-full ${minimized ? "pointer-events-none" : "pointer-events-auto"}`}
+      <div
+        className="w-full overflow-clip"
+        style={{ overflowClipMargin: "1.5rem" }}
       >
-        {children}
-      </motion.div>
-      <motion.div
-        inert={!minimized}
-        aria-hidden={!minimized}
-        initial={false}
-        animate={{ opacity: minimized ? 1 : 0 }}
-        transition={transition}
-        style={{ bottom: `calc(-1 * ${AUDIO_CONTROLS_BOTTOM_OFFSET})` }}
-        className={`baseFlex absolute w-16 rounded-t-xl bg-accent text-primary-foreground shadow-xl ${minimized ? "pointer-events-auto" : "pointer-events-none"}`}
-      >
-        <Button
-          variant="ghost"
-          aria-label="Expand audio controls"
-          aria-expanded={false}
-          className="h-7 w-12 p-0"
-          onClick={onExpand}
+        <motion.div
+          inert={minimized}
+          aria-hidden={minimized}
+          initial={false}
+          animate={{ y: minimized ? offscreenY : visibleY }}
+          transition={transition}
+          className={`relative w-full overflow-hidden rounded-xl bg-accent text-primary-foreground shadow-xl lg:rounded-full ${minimized ? "pointer-events-none" : "pointer-events-auto"}`}
         >
-          <GoChevronUp className="size-5" />
-        </Button>
-      </motion.div>
+          {children}
+        </motion.div>
+      </div>
+      <div
+        className="absolute w-16 overflow-clip"
+        style={{
+          bottom: `calc(-1 * ${AUDIO_CONTROLS_BOTTOM_OFFSET})`,
+          overflowClipMargin: "1.5rem",
+        }}
+      >
+        <motion.div
+          inert={!minimized}
+          aria-hidden={!minimized}
+          initial={false}
+          animate={{
+            y: minimized ? visibleY : offscreenY,
+            visibility: "visible",
+            transitionEnd: { visibility: minimized ? "visible" : "hidden" },
+          }}
+          transition={transition}
+          className={`baseFlex w-16 rounded-t-xl bg-accent text-primary-foreground shadow-xl ${minimized ? "pointer-events-auto" : "pointer-events-none"}`}
+        >
+          <Button
+            variant="ghost"
+            aria-label="Expand audio controls"
+            aria-expanded={false}
+            className="h-7 w-12 p-0"
+            onClick={onExpand}
+          >
+            <GoChevronUp className="size-5" />
+          </Button>
+        </motion.div>
+      </div>
     </motion.div>
   );
 }

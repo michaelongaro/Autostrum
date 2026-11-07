@@ -43,6 +43,26 @@ Deploy both the Autostrum app and screenshot server. Either order works because
 the original asset contract remains supported. New and edited tabs generate
 thumbnails automatically after the server deployment.
 
+### App Router revision contract
+
+The hydrated light/dark preview elements expose `data-tab-id` and
+`data-tab-version` (the rendered tab's ISO `updatedAt`). The screenshot server
+reads these attributes before capturing and checks the revision again before
+uploading. It must not read App Router props from `#__NEXT_DATA__`: that script
+belongs to Pages Router and is absent from App Router pages. Waiting for it
+caused captures to fail before any S3 uploads after the router migration.
+
+Deploy the app's preview attributes and the screenshot server's DOM revision
+reader together to restore capture. The worker retains a fallback for older
+Pages Router deployments, and rejects missing, invalid, or mismatched revisions.
+The bulk tool also checks the rendered revision against the selected database
+revision so a stale cached page cannot be uploaded as a current screenshot.
+
+Retry affected tabs after both deployments. For example, the latest production
+tab on November 7, 2026 was tab 179 (`test`); both its JPEG and mask were missing.
+Use the targeted backfill command below with `--tab=179` and production
+credentials to regenerate its nine assets without publishing another tab edit.
+
 To backfill existing tabs, run from this repository with the intended database
 and AWS credentials and a deployed app URL:
 

@@ -59,6 +59,7 @@ function GridTabView({
         {tabResults && tabResults.pages[0]?.count !== 0 && (
           <div
             key="results"
+            data-search-grid=""
             style={{ gridAutoRows: "minmax(min-content, max-content)" }}
             className="grid w-full grid-cols-[repeat(auto-fill,minmax(min(100%,330px),1fr))] place-items-center gap-4 p-4"
           >

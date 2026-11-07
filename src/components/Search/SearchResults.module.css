@@ -22,6 +22,87 @@
   display: none;
 }
 
+.tableTrack {
+  --table-sticky-top: 8rem;
+  --table-horizontal-travel: 0px;
+  timeline-scope: --table-pan;
+}
+
+.tableScroller {
+  overflow: auto;
+  overscroll-behavior-x: none;
+  scroll-timeline: --table-pan inline;
+}
+
+.tableHeader {
+  position: sticky;
+  top: var(--table-sticky-top);
+  z-index: 10;
+  box-shadow: 0 1px 0 hsl(var(--border));
+}
+
+.compatibilityHeader {
+  display: none;
+  position: sticky;
+  top: var(--table-sticky-top);
+  z-index: 10;
+  height: 32px;
+  overflow: hidden;
+  background: hsl(var(--accent));
+  color: hsl(var(--primary-foreground) / 0.75);
+  box-shadow: 0 1px 0 hsl(var(--border));
+}
+
+.headingStrip {
+  display: grid;
+  grid-template-columns: var(--table-columns);
+  width: max-content;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Newer engines can stick the actual thead to the document while its wrapper
+   scrolls horizontally. Safari needs the native sticky presentation above the
+   scroller; the real thead stays accessible, and is never duplicated as a table. */
+@supports named-feature(single-axis-scroll-container) {
+  .tableScroller {
+    overflow: auto clip;
+  }
+}
+
+@supports not named-feature(single-axis-scroll-container) {
+  .compatibilityHeader {
+    display: block;
+  }
+
+  .tableScroller {
+    /* Overlay the semantic thead without shrinking the sticky bar's own
+       margin box, which must still stop at the bottom of the table. */
+    margin-top: -32px;
+  }
+
+  .tableHeader {
+    position: static;
+    opacity: 0;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .headingStrip {
+      animation: panTableHeadings linear both;
+      animation-timeline: --table-pan;
+    }
+  }
+}
+
+@keyframes panTableHeadings {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--table-horizontal-travel));
+  }
+}
+
 /* Match the app's tablet breakpoint, including its minimum viewport height. */
 @media (min-width: 1024px) and (min-height: 700px) {
   .stickyHeader {

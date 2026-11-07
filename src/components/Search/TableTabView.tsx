@@ -1,12 +1,14 @@
 import type { InfiniteData } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
-import {
-  OverlayScrollbarsComponent,
-  type OverlayScrollbarsComponentRef,
-} from "overlayscrollbars-react";
-import { type RefObject } from "react";
+import { useLayoutEffect, useRef, type RefObject, type UIEvent } from "react";
 import { useInView } from "react-intersection-observer";
-import { Table, TableBody } from "~/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 import type {
   InfiniteQueryParams,
   MinimalTabRepresentation,
@@ -15,6 +17,7 @@ import type { UserMetadata } from "~/server/api/routers/user";
 import NoResultsFound from "./NoResultsFound";
 import TableTabRow from "./TableTabRow";
 import SearchResultsSpinner from "./SearchResultsSpinner";
+import styles from "./SearchResults.module.css";
 
 interface TableTabView {
   searchQuery?: string;
@@ -33,11 +36,7 @@ interface TableTabView {
   fetchNextPage: () => void;
   getInfiniteQueryParams: () => InfiniteQueryParams;
   currentUser: UserMetadata | null | undefined;
-  tableHeaderRef: RefObject<OverlayScrollbarsComponentRef<"div"> | null>;
-  tableBodyRef: RefObject<OverlayScrollbarsComponentRef<"div"> | null>;
-  activeScrollerRef: RefObject<"header" | "body" | null>;
-  handlePointerDown: (scroller: "header" | "body") => void;
-  handlePointerUp: () => void;
+  stickyToolbarRef: RefObject<HTMLDivElement | null>;
   asPath: string;
 }
 
@@ -50,13 +49,79 @@ function TableTabView({
   fetchNextPage,
   getInfiniteQueryParams,
   currentUser,
-  tableHeaderRef,
-  tableBodyRef,
-  activeScrollerRef,
-  handlePointerDown,
-  handlePointerUp,
+  stickyToolbarRef,
   asPath,
 }: TableTabView) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const headerRef = useRef<HTMLTableSectionElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const headingStripRef = useRef<HTMLDivElement>(null);
+  const headings = [
+    ...(asPath.includes("/profile/tabs")
+      ? [{ label: "Edit", hidden: true }]
+      : []),
+    { label: "Title" },
+    ...(!asPath.includes("/artist") ? [{ label: "Artist" }] : []),
+    { label: "Rating" },
+    { label: "Difficulty" },
+    { label: "Genre" },
+    { label: "Date" },
+    { label: "Bookmark", hidden: true },
+  ];
+
+  function syncLegacyHeadingPan(event: UIEvent<HTMLDivElement>) {
+    // Safari before CSS scroll timelines still gets native vertical sticking.
+    // Only its horizontal heading offset needs an event; page scroll is untouched.
+    if (
+      !CSS.supports("animation-timeline: scroll()") &&
+      headingStripRef.current
+    ) {
+      headingStripRef.current.style.transform = `translateX(${-event.currentTarget.scrollLeft}px)`;
+    }
+  }
+  const hasRows = Boolean(tabResults?.pages[0]?.data.tabs.length);
+
+  useLayoutEffect(() => {
+    const track = trackRef.current;
+    const table = tableRef.current;
+    const header = headerRef.current;
+    const toolbar = stickyToolbarRef.current;
+    const scroller = scrollerRef.current;
+    if (!track || !table || !header || !toolbar || !scroller) return;
+
+    // Observe layout sizes only. Vertical sticking is always handled by CSS.
+    const measure = () => {
+      const stickyTop =
+        parseFloat(getComputedStyle(toolbar).top) +
+        toolbar.getBoundingClientRect().height;
+      track.style.setProperty("--table-sticky-top", `${stickyTop}px`);
+      track.style.setProperty(
+        "--table-columns",
+        [...header.querySelectorAll("th")]
+          .map((cell) => `${cell.getBoundingClientRect().width}px`)
+          .join(" "),
+      );
+      track.style.setProperty(
+        "--table-horizontal-travel",
+        `${Math.min(0, scroller.clientWidth - scroller.scrollWidth)}px`,
+      );
+      if (
+        !CSS.supports("animation-timeline: scroll()") &&
+        headingStripRef.current
+      ) {
+        headingStripRef.current.style.transform = `translateX(${-scroller.scrollLeft}px)`;
+      }
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(table);
+    observer.observe(scroller);
+    observer.observe(header);
+    observer.observe(toolbar);
+    measure();
+    return () => observer.disconnect();
+  }, [hasRows, stickyToolbarRef]);
+
   const { ref } = useInView({
     threshold: 0.25,
     onChange: (inView) => {
@@ -66,88 +131,90 @@ function TableTabView({
     },
   });
 
-  // FYI: using separate <AnimatePresence> instead of wrapping entire output in one
-  // because <OverlayScrollbarsComponent> needs to be a direct child of the DOM element I guess?
-
   return (
     <div className="baseVertFlex relative min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] w-full !justify-start gap-4 transition-all md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]">
       {tabResults && tabResults.pages[0]?.count !== 0 && (
-        <OverlayScrollbarsComponent
-          ref={tableBodyRef}
-          options={{
-            scrollbars: { autoHide: "leave", autoHideDelay: 150 },
-          }}
-          events={{
-            scroll(instance) {
-              // Only sync if this is NOT the active scroller.
-              if (activeScrollerRef.current === "header") {
-                return;
-              }
-
-              const header = tableHeaderRef.current
-                ?.osInstance()
-                ?.elements().viewport;
-              if (!header) return;
-
-              header.scrollLeft = instance.elements().viewport.scrollLeft;
-            },
-            initialized(instance) {
-              const { viewport } = instance.elements();
-              viewport.addEventListener("pointerdown", () =>
-                handlePointerDown("body"),
-              );
-              viewport.addEventListener("pointerup", handlePointerUp);
-            },
-            destroyed(instance) {
-              const { viewport } = instance.elements();
-              viewport.removeEventListener("pointerdown", () =>
-                handlePointerDown("body"),
-              );
-              viewport.removeEventListener("pointerup", handlePointerUp);
-            },
-          }}
-          defer
-          className="w-full"
+        <div
+          ref={trackRef}
+          data-search-table=""
+          className={`w-full ${styles.tableTrack}`}
         >
-          <div className="relative w-[1160px] sm:w-[1158px]">
-            <Table>
-              <colgroup id="tableTabViewColGroup">
-                {/* Direct /edit page button */}
-                {asPath.includes("/profile/tabs") && (
-                  <col className="w-[72px] sm:!w-[90.95px]" />
-                )}
+          {/* Safari's overflow wrapper cannot support page-sticky descendants.
+              This non-interactive presentation reuses the real table's columns;
+              the actual thead remains in the single accessible table below. */}
+          <div
+            data-table-headings=""
+            className={styles.compatibilityHeader}
+            aria-hidden="true"
+          >
+            <div ref={headingStripRef} className={styles.headingStrip}>
+              {headings.map((heading) => (
+                <div key={heading.label} className="flex h-8 items-center px-4">
+                  {"hidden" in heading ? null : heading.label}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div
+            ref={scrollerRef}
+            className={styles.tableScroller}
+            onScroll={syncLegacyHeadingPan}
+          >
+            <div className="relative w-[1160px] sm:w-[1158px]">
+              <Table ref={tableRef} className="table-fixed">
+                <colgroup id="tableTabViewColGroup">
+                  {/* Direct /edit page button */}
+                  {asPath.includes("/profile/tabs") && (
+                    <col className="w-[72px] sm:!w-[90.95px]" />
+                  )}
 
-                {/* Title */}
-                <col className="w-[250px] sm:!w-[314.53px]" />
+                  {/* Title */}
+                  <col className="w-[250px] sm:!w-[314.53px]" />
 
-                {/* Artist */}
-                {!asPath.includes("/artist") && <col className="w-[200px]" />}
+                  {/* Artist */}
+                  {!asPath.includes("/artist") && <col className="w-[200px]" />}
 
-                {/* Rating */}
-                <col
-                  className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
-                />
+                  {/* Rating */}
+                  <col
+                    className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
+                  />
 
-                {/* Difficulty */}
-                <col
-                  className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
-                />
+                  {/* Difficulty */}
+                  <col
+                    className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
+                  />
 
-                {/* Genre */}
-                <col
-                  className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
-                />
+                  {/* Genre */}
+                  <col
+                    className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
+                  />
 
-                {/* Date */}
-                <col
-                  className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
-                />
+                  {/* Date */}
+                  <col
+                    className={`${asPath.includes("/profile/tabs") ? "w-[141.5px] sm:w-[115.89px]" : asPath.includes("/artist") ? "w-[209.5px] sm:w-[188.63px]" : "w-[159.5px] sm:w-[138.63px]"} `}
+                  />
 
-                {/* Bookmark toggle */}
-                <col className="w-[72px] sm:!w-[88.95px]" />
-              </colgroup>
+                  {/* Bookmark toggle */}
+                  <col className="w-[72px] sm:!w-[88.95px]" />
+                </colgroup>
 
-              <AnimatePresence mode="popLayout">
+                <TableHeader
+                  ref={headerRef}
+                  className={`bg-accent [&_th]:h-8 [&_th]:px-4 [&_th]:py-1 [&_th]:text-primary-foreground/75 ${styles.tableHeader}`}
+                >
+                  <TableRow className="hover:bg-accent">
+                    {headings.map((heading) => (
+                      <TableHead key={heading.label} scope="col">
+                        {"hidden" in heading ? (
+                          <span className="sr-only">{heading.label}</span>
+                        ) : (
+                          heading.label
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+
                 <TableBody className="w-full @container">
                   {tabResults.pages.map((page) =>
                     page.data.tabs?.map((tab, index) => (
@@ -165,10 +232,10 @@ function TableTabView({
                     )),
                   )}
                 </TableBody>
-              </AnimatePresence>
-            </Table>
+              </Table>
+            </div>
           </div>
-        </OverlayScrollbarsComponent>
+        </div>
       )}
 
       <SearchResultsSpinner

@@ -4,11 +4,8 @@ import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
 
-import {
-  OverlayScrollbarsComponent,
-  type OverlayScrollbarsComponentRef,
-} from "overlayscrollbars-react";
 import { useEffect, useLayoutEffect, useRef, useState, Fragment } from "react";
+import { flushSync } from "react-dom";
 import { BsGridFill, BsPlus } from "react-icons/bs";
 import { CiViewTable } from "react-icons/ci";
 import { LuFilter } from "react-icons/lu";
@@ -43,12 +40,12 @@ import SearchFilterCarousel from "./SearchFilterCarousel";
 import TableTabView from "./TableTabView";
 import Binoculars from "~/components/ui/icons/Binoculars";
 import Link from "next/link";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import Spinner from "~/components/ui/Spinner";
 import { useAuth } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import type { InfiniteQueryParams } from "~/server/api/routers/search";
+import { cn } from "~/utils/cn";
 import styles from "./SearchResults.module.css";
 
 const opacityVariants = {
@@ -89,6 +86,8 @@ function SearchResults({
   isFetchingRelatedArtists,
 }: SearchResults) {
   const { userId } = useAuth();
+  const mobileToolbarRef = useRef<HTMLDivElement>(null);
+  const desktopToolbarRef = useRef<HTMLDivElement>(null);
   const { asPath, query, pathname } = useRouteLocation();
   const { push } = useRouter();
 
@@ -179,6 +178,52 @@ function SearchResults({
     initializeWithValue: true,
   });
 
+  const layoutTransition = useRef<ViewTransition | null>(null);
+  const requestedLayout = useRef<"grid" | "table" | null>(null);
+
+  function changeLayout(nextLayout: "grid" | "table") {
+    if (nextLayout === (requestedLayout.current ?? layoutType.value)) return;
+    requestedLayout.current = nextLayout;
+    layoutTransition.current?.skipTransition();
+
+    const update = () => flushSync(() => layoutType.set(nextLayout));
+    if (
+      typeof document.startViewTransition !== "function" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      layoutTransition.current = null;
+      document.documentElement.removeAttribute("data-search-layout-transition");
+      update();
+      requestedLayout.current = null;
+      return;
+    }
+
+    // Keep the captured grid visible until the new layout is fully committed.
+    // Browser snapshots crossfade without repeatedly laying out the live grid,
+    // adding a transformed sticky ancestor, or leaving an empty fade-out gap.
+    document.documentElement.setAttribute("data-search-layout-transition", "");
+    const transition = document.startViewTransition(update);
+    layoutTransition.current = transition;
+    const finish = () => {
+      if (layoutTransition.current !== transition) return;
+      layoutTransition.current = null;
+      requestedLayout.current = null;
+      document.documentElement.removeAttribute("data-search-layout-transition");
+    };
+    void transition.ready.catch(() => undefined);
+    void transition.finished.then(finish, finish);
+  }
+
+  useEffect(
+    () => () => {
+      if (!layoutTransition.current) return;
+      layoutTransition.current.skipTransition();
+      layoutTransition.current = null;
+      document.documentElement.removeAttribute("data-search-layout-transition");
+    },
+    [],
+  );
+
   // it's really bad UX to immediately push() user to new route whenever they
   // select a new filter, as selecting multiple filters would mean the user
   // would have to wait for the page to reload multiple times. gating push()
@@ -229,14 +274,6 @@ function SearchResults({
     sortBy,
   ]);
 
-  const tableHeaderRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
-  const tableBodyRef = useRef<OverlayScrollbarsComponentRef<"div">>(null);
-
-  const activeScrollerRef = useRef<"header" | "body" | null>(null);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const isAboveSmViewport = useViewportWidthBreakpoint(640);
-
   const {
     ref: stickyStylesSentinelRef,
     inView: stickyHeaderNotActive, // TODO: find a better name for this
@@ -245,65 +282,6 @@ function SearchResults({
     initialInView: true,
     rootMargin: "-64px", // height of the sticky header
   });
-
-  function handlePointerDown(scroller: "header" | "body") {
-    // Clear any pending timeout from a previous momentum scroll
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = null;
-    }
-    activeScrollerRef.current = scroller;
-  }
-
-  function handlePointerUp() {
-    // To handle momentum scrolling, we don't clear the active scroller
-    // immediately. Instead, we set a timeout.
-    scrollTimeoutRef.current = setTimeout(() => {
-      activeScrollerRef.current = null;
-      scrollTimeoutRef.current = null;
-    }, 750);
-  }
-
-  function getDynamicGridTemplateColumns() {
-    let gridTemplateColumns = "";
-
-    // Direct /edit page button
-    if (asPath.includes("/profile/tabs")) {
-      gridTemplateColumns += isAboveSmViewport ? "90.95px " : "72px ";
-    }
-
-    // Title
-    gridTemplateColumns += isAboveSmViewport ? "314.53px " : "250px ";
-
-    // Artist
-    if (!asPath.includes("/artist")) {
-      gridTemplateColumns += "200px ";
-    }
-
-    // Rating / Difficulty / Genre / Date
-    gridTemplateColumns += "repeat(4, ";
-
-    if (isAboveSmViewport) {
-      gridTemplateColumns += asPath.includes("/profile/tabs")
-        ? "115.89px"
-        : asPath.includes("/artist")
-          ? "188.63px"
-          : "138.63px";
-    } else {
-      gridTemplateColumns += asPath.includes("/profile/tabs")
-        ? "141.5px"
-        : asPath.includes("/artist")
-          ? "209.5px"
-          : "159.5px";
-    }
-
-    gridTemplateColumns += ") ";
-
-    // Bookmark toggle: leave 2px for the results container's side borders.
-    gridTemplateColumns += isAboveSmViewport ? "88.95px" : "72px";
-
-    return gridTemplateColumns;
-  }
 
   // fyi: all param change handlers below will remove the param if it is getting set
   // to the "default" values that we have defined in the useGetUrlParamFilters hook
@@ -720,15 +698,14 @@ function SearchResults({
         {viewportLabel.includes("mobile") ? (
           // mobile: # of results / filter drawer trigger
           <motion.div
+            ref={mobileToolbarRef}
             initial={false}
             animate={{
-              paddingBottom:
-                layoutType.value === "table" ? "0.25rem" : "0.75rem",
+              paddingBottom: "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
             className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-accent pt-3 text-primary-foreground md:border-x tablet:!hidden ${stickyHeaderNotActive ? "md:rounded-t-lg" : "rounded-t-none"}`}
           >
-            {/* scroll area + only show on hover for BOTH the header + the table scrollbars */}
             <AnimatePresence initial={false}>
               <div className="baseFlex w-full !justify-between gap-2 px-4">
                 {/* # of results */}
@@ -763,59 +740,69 @@ function SearchResults({
                   {/* layout type selector */}
                   <div className="baseFlex gap-3">
                     <Label>Layout</Label>
-                    <div className="baseFlex relative overflow-y-hidden rounded-md border">
-                      <Button
-                        variant="toggle"
-                        size="sm"
-                        disabled={disableFiltersAndLayoutToggle}
-                        style={{
-                          color:
-                            theme === "light"
-                              ? layoutType.value === "grid"
-                                ? "hsl(var(--foreground))"
-                                : "hsl(var(--background))"
-                              : "hsl(var(--primary-foreground))",
-                        }}
-                        className="baseFlex relative gap-2 border-none"
-                        onClick={() => {
-                          layoutType.set("grid");
-                        }}
-                      >
-                        <BsGridFill className="size-4" />
-                      </Button>
+                    <div
+                      data-search-layout-toggle=""
+                      className="relative isolate overflow-hidden rounded-md border"
+                    >
+                      <div data-layout-labels="" className="grid grid-cols-2">
+                        <Button
+                          variant="toggle"
+                          aria-label="Grid view"
+                          aria-pressed={layoutType.value === "grid"}
+                          size="sm"
+                          disabled={disableFiltersAndLayoutToggle}
+                          style={{
+                            color:
+                              theme === "light"
+                                ? layoutType.value === "grid"
+                                  ? "hsl(var(--foreground))"
+                                  : "hsl(var(--background))"
+                                : "hsl(var(--primary-foreground))",
+                          }}
+                          className="baseFlex relative gap-2 border-none"
+                          onClick={() => {
+                            changeLayout("grid");
+                          }}
+                        >
+                          <BsGridFill className="size-4" />
+                        </Button>
 
-                      <Button
-                        variant="toggle"
-                        size="sm"
-                        disabled={disableFiltersAndLayoutToggle}
-                        style={{
-                          color:
-                            theme === "light"
-                              ? layoutType.value === "table"
-                                ? "hsl(var(--foreground))"
-                                : "hsl(var(--background))"
-                              : "hsl(var(--primary-foreground))",
-                        }}
-                        className="baseFlex relative gap-2 border-none"
-                        onClick={() => {
-                          layoutType.set("table");
-                        }}
-                      >
-                        <CiViewTable className="size-4 stroke-[0.5px]" />
-                      </Button>
+                        <Button
+                          variant="toggle"
+                          aria-label="Table view"
+                          aria-pressed={layoutType.value === "table"}
+                          size="sm"
+                          disabled={disableFiltersAndLayoutToggle}
+                          style={{
+                            color:
+                              theme === "light"
+                                ? layoutType.value === "table"
+                                  ? "hsl(var(--foreground))"
+                                  : "hsl(var(--background))"
+                                : "hsl(var(--primary-foreground))",
+                          }}
+                          className="baseFlex relative gap-2 border-none"
+                          onClick={() => {
+                            changeLayout("table");
+                          }}
+                        >
+                          <CiViewTable className="size-4 stroke-[0.5px]" />
+                        </Button>
+                      </div>
 
                       <div
                         style={{
                           transform:
                             layoutType.value === "grid"
                               ? "translateX(0)"
-                              : "translateX(40px)",
+                              : "translateX(100%)",
                           backgroundColor:
                             theme === "light"
-                              ? "hsl(var(--background)"
+                              ? "hsl(var(--background))"
                               : "hsl(var(--primary))",
                         }}
-                        className={`togglePill absolute inset-0 !z-[-1] w-[40px] ${layoutType.value === "grid" ? "rounded-l-sm" : "rounded-r-sm"}`}
+                        data-layout-pill=""
+                        className="togglePill pointer-events-none absolute inset-y-0 left-0 !z-[-1] w-1/2 rounded-sm"
                       ></div>
                     </div>
                   </div>
@@ -959,107 +946,11 @@ function SearchResults({
                   </Drawer>
                 </div>
               </div>
-
-              {layoutType.value === "table" && (
-                <motion.div
-                  key={"mobileTableTabHeader"}
-                  initial={{ opacity: 0, marginTop: "0", height: "0" }}
-                  animate={{
-                    opacity: 1,
-                    marginTop: "1rem",
-                    height: "20px",
-                  }}
-                  exit={{ opacity: 0, marginTop: "0", height: "0" }}
-                  transition={{
-                    ease: "linear",
-                    duration: 0.5,
-                    opacity: {
-                      duration: 0.15,
-                    },
-                  }}
-                  className="w-full"
-                >
-                  <OverlayScrollbarsComponent
-                    id="tableTabHeaderOverlayScrollbar"
-                    ref={tableHeaderRef}
-                    options={{
-                      scrollbars: { autoHide: "leave", autoHideDelay: 150 },
-                    }}
-                    events={{
-                      scroll(instance) {
-                        // Only sync if this is NOT the active scroller, or if no scroller is active.
-                        // This prevents the feedback loop. We allow `null` to handle programmatic scrolls.
-                        if (activeScrollerRef.current === "body") {
-                          return;
-                        }
-
-                        const body = tableBodyRef.current
-                          ?.osInstance()
-                          ?.elements().viewport;
-                        if (!body) return;
-
-                        body.scrollLeft =
-                          instance.elements().viewport.scrollLeft;
-                      },
-                      initialized(instance) {
-                        const { viewport } = instance.elements();
-                        viewport.addEventListener("pointerdown", () =>
-                          handlePointerDown("header"),
-                        );
-                        viewport.addEventListener("pointerup", handlePointerUp);
-                      },
-                      destroyed(instance) {
-                        const { viewport } = instance.elements();
-                        viewport.removeEventListener("pointerdown", () =>
-                          handlePointerDown("header"),
-                        );
-                        viewport.removeEventListener(
-                          "pointerup",
-                          handlePointerUp,
-                        );
-                      },
-                    }}
-                    defer
-                    className="w-full"
-                  >
-                    <div className="w-full bg-accent">
-                      <div
-                        className="grid grid-rows-1 items-center text-sm font-medium text-primary-foreground/70"
-                        style={{
-                          gridTemplateColumns: getDynamicGridTemplateColumns(),
-                        }}
-                      >
-                        {/* conditional empty header for direct /edit page button */}
-                        {asPath.includes("/profile/tabs") && (
-                          <div className="h-full px-4"></div>
-                        )}
-
-                        <div className="px-4">Title</div>
-
-                        {!asPath.includes("/artist") && (
-                          <div className="px-4">Artist</div>
-                        )}
-
-                        <div className="px-4">Rating</div>
-
-                        <div className="px-4">Difficulty</div>
-
-                        <div className="pl-8 pr-4">Genre</div>
-
-                        <div className="px-4">Date</div>
-
-                        {/* Empty header for bookmark toggle */}
-                        <div className="h-full px-4"></div>
-                      </div>
-                    </div>
-                  </OverlayScrollbarsComponent>
-                </motion.div>
-              )}
             </AnimatePresence>
           </motion.div>
         ) : (
           // tablet+: # of results / view type toggle
-          <div className={styles.stickyHeader}>
+          <div ref={desktopToolbarRef} className={styles.stickyHeader}>
             <div
               aria-hidden="true"
               className={`pageBackgroundGradient ${styles.backdrop}`}
@@ -1067,11 +958,13 @@ function SearchResults({
             <motion.div
               initial={false}
               animate={{
-                paddingBottom:
-                  layoutType.value === "table" ? "0.25rem" : "0.75rem",
+                paddingBottom: "0.75rem",
               }}
               transition={{ duration: 0.5, ease: "linear" }}
-              className="baseVertFlex w-full !justify-between rounded-t-lg border bg-accent pt-3 text-primary-foreground"
+              className={cn(
+                "baseVertFlex w-full !justify-between rounded-t-lg border bg-accent pt-3 text-primary-foreground",
+                layoutType.value === "table" && "border-b-0",
+              )}
             >
               <AnimatePresence initial={false}>
                 <div className="baseFlex w-full !justify-between gap-2 px-4">
@@ -1106,167 +999,75 @@ function SearchResults({
                   {/* layout type toggle */}
                   <div className="baseFlex gap-3">
                     <Label>Layout</Label>
-                    <div className="baseFlex relative isolate overflow-hidden rounded-md border">
-                      <Button
-                        variant="toggle"
-                        size="sm"
-                        disabled={disableFiltersAndLayoutToggle}
-                        style={{
-                          color:
-                            theme === "light"
-                              ? layoutType.value === "grid"
-                                ? "hsl(var(--foreground))"
-                                : "hsl(var(--background))"
-                              : "hsl(var(--primary-foreground))",
-                        }}
-                        className="baseFlex relative gap-2 rounded-sm"
-                        onClick={() => {
-                          layoutType.set("grid");
-                        }}
-                      >
-                        <BsGridFill className="size-4" />
-                        Grid
-                      </Button>
+                    <div
+                      data-search-layout-toggle=""
+                      className="relative isolate overflow-hidden rounded-md border"
+                    >
+                      <div data-layout-labels="" className="grid grid-cols-2">
+                        <Button
+                          variant="toggle"
+                          aria-label="Grid view"
+                          aria-pressed={layoutType.value === "grid"}
+                          size="sm"
+                          disabled={disableFiltersAndLayoutToggle}
+                          style={{
+                            color:
+                              theme === "light"
+                                ? layoutType.value === "grid"
+                                  ? "hsl(var(--foreground))"
+                                  : "hsl(var(--background))"
+                                : "hsl(var(--primary-foreground))",
+                          }}
+                          className="baseFlex relative gap-2 rounded-sm"
+                          onClick={() => {
+                            changeLayout("grid");
+                          }}
+                        >
+                          <BsGridFill className="size-4" />
+                          Grid
+                        </Button>
 
-                      <Button
-                        variant="toggle"
-                        size="sm"
-                        disabled={disableFiltersAndLayoutToggle}
-                        style={{
-                          color:
-                            theme === "light"
-                              ? layoutType.value === "table"
-                                ? "hsl(var(--foreground))"
-                                : "hsl(var(--background))"
-                              : "hsl(var(--primary-foreground))",
-                        }}
-                        className="baseFlex relative gap-2 rounded-sm"
-                        onClick={() => {
-                          layoutType.set("table");
-                        }}
-                      >
-                        <CiViewTable className="size-4 stroke-[0.5px]" />
-                        Table
-                      </Button>
+                        <Button
+                          variant="toggle"
+                          aria-label="Table view"
+                          aria-pressed={layoutType.value === "table"}
+                          size="sm"
+                          disabled={disableFiltersAndLayoutToggle}
+                          style={{
+                            color:
+                              theme === "light"
+                                ? layoutType.value === "table"
+                                  ? "hsl(var(--foreground))"
+                                  : "hsl(var(--background))"
+                                : "hsl(var(--primary-foreground))",
+                          }}
+                          className="baseFlex relative gap-2 rounded-sm"
+                          onClick={() => {
+                            changeLayout("table");
+                          }}
+                        >
+                          <CiViewTable className="size-4 stroke-[0.5px]" />
+                          Table
+                        </Button>
+                      </div>
 
                       <div
                         style={{
-                          width:
-                            layoutType.value === "grid" ? "76.5px" : "83px",
                           transform:
                             layoutType.value === "grid"
                               ? "translateX(0)"
-                              : "translateX(78px)",
+                              : "translateX(100%)",
                           backgroundColor:
                             theme === "light"
                               ? "hsl(var(--background))"
                               : "hsl(var(--primary))",
                         }}
-                        className={`togglePill absolute inset-0 !z-[-1] ${layoutType.value === "grid" ? "rounded-l-sm" : "rounded-r-sm"}`}
+                        data-layout-pill=""
+                        className="togglePill pointer-events-none absolute inset-y-0 left-0 !z-[-1] w-1/2 rounded-sm"
                       ></div>
                     </div>
                   </div>
                 </div>
-
-                {layoutType.value === "table" && (
-                  <motion.div
-                    key={"tabletTableTabHeader"}
-                    initial={{ opacity: 0, marginTop: "0", height: "0" }}
-                    animate={{
-                      opacity: 1,
-                      marginTop: "1rem",
-                      height: "20px",
-                    }}
-                    exit={{ opacity: 0, marginTop: "0", height: "0" }}
-                    transition={{
-                      ease: "linear",
-                      duration: 0.5,
-                      opacity: {
-                        duration: 0.15,
-                      },
-                    }}
-                    className="w-full"
-                  >
-                    <OverlayScrollbarsComponent
-                      id="tableTabHeaderOverlayScrollbar"
-                      ref={tableHeaderRef}
-                      options={{
-                        scrollbars: { autoHide: "leave", autoHideDelay: 150 },
-                      }}
-                      events={{
-                        scroll(instance) {
-                          // Only sync if this is NOT the active scroller, or if no scroller is active.
-                          // This prevents the feedback loop. We allow `null` to handle programmatic scrolls.
-                          if (activeScrollerRef.current === "body") {
-                            return;
-                          }
-
-                          const body = tableBodyRef.current
-                            ?.osInstance()
-                            ?.elements().viewport;
-                          if (!body) return;
-
-                          body.scrollLeft =
-                            instance.elements().viewport.scrollLeft;
-                        },
-                        initialized(instance) {
-                          const { viewport } = instance.elements();
-                          viewport.addEventListener("pointerdown", () =>
-                            handlePointerDown("header"),
-                          );
-                          viewport.addEventListener(
-                            "pointerup",
-                            handlePointerUp,
-                          );
-                        },
-                        destroyed(instance) {
-                          const { viewport } = instance.elements();
-                          viewport.removeEventListener("pointerdown", () =>
-                            handlePointerDown("header"),
-                          );
-                          viewport.removeEventListener(
-                            "pointerup",
-                            handlePointerUp,
-                          );
-                        },
-                      }}
-                      defer
-                      className="w-full"
-                    >
-                      <div className="w-full bg-accent">
-                        <div
-                          className="grid grid-rows-1 items-center text-sm font-medium text-primary-foreground/75"
-                          style={{
-                            gridTemplateColumns:
-                              getDynamicGridTemplateColumns(),
-                          }}
-                        >
-                          {/* conditional empty header for direct /edit page button */}
-                          {asPath.includes("/profile/tabs") && (
-                            <div className="h-full px-4"></div>
-                          )}
-
-                          <div className="px-4">Title</div>
-
-                          {!asPath.includes("/artist") && (
-                            <div className="px-4">Artist</div>
-                          )}
-
-                          <div className="px-4">Rating</div>
-
-                          <div className="px-4">Difficulty</div>
-
-                          <div className="pl-8 pr-4">Genre</div>
-
-                          <div className="px-4"> Date</div>
-
-                          {/* Empty header for bookmark toggle */}
-                          <div className="h-full px-4"></div>
-                        </div>
-                      </div>
-                    </OverlayScrollbarsComponent>
-                  </motion.div>
-                )}
               </AnimatePresence>
             </motion.div>
           </div>
@@ -1396,7 +1197,10 @@ function SearchResults({
                     {!relatedArtists &&
                       !userDoesNotExist &&
                       searchParamsParsed && (
-                        <>
+                        <div
+                          data-search-layout={layoutType.value}
+                          className="w-full min-w-0"
+                        >
                           {layoutType.value === "grid" && (
                             <GridTabView
                               searchQuery={searchQuery}
@@ -1422,15 +1226,15 @@ function SearchResults({
                               fetchNextPage={fetchNextPage}
                               getInfiniteQueryParams={getInfiniteQueryParams}
                               currentUser={currentUser}
-                              tableHeaderRef={tableHeaderRef}
-                              tableBodyRef={tableBodyRef}
-                              activeScrollerRef={activeScrollerRef}
-                              handlePointerDown={handlePointerDown}
-                              handlePointerUp={handlePointerUp}
+                              stickyToolbarRef={
+                                viewportLabel.includes("mobile")
+                                  ? mobileToolbarRef
+                                  : desktopToolbarRef
+                              }
                               asPath={asPath}
                             />
                           )}
-                        </>
+                        </div>
                       )}
                   </>
                 )}

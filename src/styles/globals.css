@@ -11,6 +11,52 @@
   animation-timing-function: ease;
 }
 
+/* A layout snapshot owns this fade. Reveal newly mounted rows/cards before
+   capture so their individual entrance fades don't produce a blank new view. */
+html[data-search-layout-transition] [data-search-grid] > *,
+html[data-search-layout-transition] [data-search-table] tbody > tr > td > div {
+  opacity: 1 !important;
+}
+
+html[data-search-layout-transition]::view-transition {
+  pointer-events: none;
+}
+
+/* Keep the switch's labels above a single moving pill. The browser owns the
+   pill's movement during a results snapshot transition; a simultaneous CSS
+   transition or a crossfade of two pill images would make it jump or ghost. */
+html[data-search-layout-transition] [data-layout-labels] {
+  view-transition-name: search-layout-toggle;
+}
+
+html[data-search-layout-transition] [data-layout-pill] {
+  view-transition-name: search-layout-pill;
+  transition: none;
+}
+
+html[data-search-layout-transition] [data-layout-labels] button {
+  transition: none !important;
+}
+
+html[data-search-layout-transition]::view-transition-group(search-layout-pill) {
+  z-index: 1;
+  animation-duration: 0.25s;
+  animation-timing-function: ease-in-out;
+}
+
+html[data-search-layout-transition]::view-transition-group(search-layout-toggle) {
+  z-index: 2;
+}
+
+html[data-search-layout-transition]::view-transition-old(search-layout-pill) {
+  display: none;
+}
+
+html[data-search-layout-transition]::view-transition-new(search-layout-pill) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 @media (prefers-reduced-motion: reduce) {
 
   ::view-transition-group(*),

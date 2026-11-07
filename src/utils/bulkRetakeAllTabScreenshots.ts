@@ -72,6 +72,17 @@ async function screenshotAndUpload(
     url.searchParams.set("screenshotRenderer", "gradient-map");
     await page.goto(url.href, { waitUntil: "networkidle", timeout: 120_000 });
     await page.locator("#tabPreviewScreenshotLight").waitFor();
+    const preview = page.locator("#tabPreviewScreenshotLight");
+    const [renderedId, renderedVersion] = await Promise.all([
+      preview.getAttribute("data-tab-id"),
+      preview.getAttribute("data-tab-version"),
+    ]);
+    if (
+      renderedId !== String(tab.id) ||
+      renderedVersion !== tab.updatedAt.toISOString()
+    ) {
+      throw new Error("The rendered preview does not match the tab revision");
+    }
     await page.addStyleTag({
       content: "nextjs-portal { display: none !important; }",
     });
