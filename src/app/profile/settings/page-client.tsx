@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { api } from "~/utils/api";
-import dynamic from "next/dynamic";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { IoClose } from "react-icons/io5";
@@ -34,15 +33,9 @@ import {
 import { useTabStore } from "~/stores/TabStore";
 import Spinner from "~/components/ui/Spinner";
 
-const EditImageModal = dynamic(
-  () => import("~/components/modals/EditImageModal"),
-);
-const PinnedTabModal = dynamic(
-  () => import("~/components/modals/PinnedTabModal"),
-);
-const DeleteAccountModal = dynamic(
-  () => import("~/components/modals/DeleteAccountModal"),
-);
+import EditImageModal from "~/components/modals/EditImageModal";
+import PinnedTabModal from "~/components/modals/PinnedTabModal";
+import DeleteAccountModal from "~/components/modals/DeleteAccountModal";
 
 const COLORS = [
   "peony",

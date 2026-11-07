@@ -16,7 +16,7 @@ import { useRouteLocation } from "~/hooks/useRouteLocation";
 //                             section CSS zoom matches (default: 1)
 import ErrorPage from "~/components/errors/NotFoundContent";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import StaticTab from "~/components/Tab/Static/StaticTab";
 import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
@@ -144,9 +144,17 @@ function buildFixture(fixture: string): Section[] {
   }));
 }
 
+const subscribeToHydration = () => () => undefined;
+const clientHydrated = () => true;
+const serverHydrated = () => false;
+
 export default function DevVirtualizationHarness() {
   const { query } = useRouteLocation();
-  const isReady = true;
+  const isReady = useSyncExternalStore(
+    subscribeToHydration,
+    clientHydrated,
+    serverHydrated,
+  );
 
   const { setId, setTabData, setBpm, color, theme, storeTabData } = useTabStore(
     (state) => ({

@@ -2,7 +2,7 @@ import { getProfileImageSrc } from "~/utils/profileImage";
 import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
 import SearchResults from "~/components/Search/SearchResults";
@@ -18,7 +18,6 @@ import { FaUser } from "react-icons/fa";
 import { TbPinned } from "react-icons/tb";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { Separator } from "~/components/ui/separator";
-import { Button } from "~/components/ui/button";
 import {
   Carousel,
   CarouselContent,
@@ -58,18 +57,39 @@ function UserProfile({ uniqueKey }: UserProfile) {
   const [mobileHeaderCarouselApi, setMobileHeaderCarouselApi] =
     useState<CarouselApi>();
   const [mobileHeaderSlide, setMobileHeaderSlide] = useState(0);
+  const mobileHeaderIndicatorRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
   useEffect(() => {
     if (!mobileHeaderCarouselApi) return;
 
-    setMobileHeaderSlide(mobileHeaderCarouselApi.selectedScrollSnap());
-
-    mobileHeaderCarouselApi.on("select", () => {
+    function updateProgress() {
+      if (!mobileHeaderCarouselApi) return;
+      const progress = Math.max(
+        0,
+        Math.min(1, mobileHeaderCarouselApi.scrollProgress()),
+      );
+      // Move the same highlight through both clipped markers, behind the gap.
+      mobileHeaderIndicatorRefs.current.forEach((indicator, index) => {
+        if (indicator) {
+          indicator.style.transform = `translateX(${(progress - index) * 125}%)`;
+        }
+      });
+    }
+    function updateSelection() {
+      if (!mobileHeaderCarouselApi) return;
       setMobileHeaderSlide(mobileHeaderCarouselApi.selectedScrollSnap());
-    });
+      updateProgress();
+    }
+
+    updateSelection();
+    mobileHeaderCarouselApi.on("scroll", updateProgress);
+    mobileHeaderCarouselApi.on("select", updateSelection);
+    mobileHeaderCarouselApi.on("reInit", updateSelection);
 
     return () => {
-      mobileHeaderCarouselApi.destroy(); // necessary?
+      mobileHeaderCarouselApi.off("scroll", updateProgress);
+      mobileHeaderCarouselApi.off("select", updateSelection);
+      mobileHeaderCarouselApi.off("reInit", updateSelection);
     };
   }, [mobileHeaderCarouselApi]);
 
@@ -217,7 +237,9 @@ function UserProfile({ uniqueKey }: UserProfile) {
                             <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                               {userMetadata ? (
                                 <Image
-                                  src={getProfileImageSrc(userMetadata.user.profileImageUrl)}
+                                  src={getProfileImageSrc(
+                                    userMetadata.user.profileImageUrl,
+                                  )}
                                   alt={`${userMetadata.user.username}'s profile picture`}
                                   width={300} // TODO: tweak this
                                   height={300} // TODO: tweak this
@@ -357,25 +379,32 @@ function UserProfile({ uniqueKey }: UserProfile) {
                     </CarouselContent>
                   </Carousel>
 
-                  <div className="baseFlex mt-[10px] gap-2">
-                    <Button
-                      nativeButton={false}
-                      render={
-                        <div
-                          className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 0 ? "!bg-primary" : "!bg-primary/50"}`}
-                          onClick={() => mobileHeaderCarouselApi?.scrollTo(0)}
-                        ></div>
-                      }
-                    />
-                    <Button
-                      nativeButton={false}
-                      render={
-                        <div
-                          className={`!h-2 !w-8 cursor-pointer rounded-full !p-0 ${mobileHeaderSlide === 1 ? "!bg-primary" : "!bg-primary/50"}`}
-                          onClick={() => mobileHeaderCarouselApi?.scrollTo(1)}
-                        ></div>
-                      }
-                    />
+                  <div
+                    className="baseFlex relative mt-[10px] gap-2"
+                    role="group"
+                    aria-label="Choose a profile pane"
+                  >
+                    {["User details", "Pinned tab"].map((label, index) => (
+                      <button
+                        key={label}
+                        type="button"
+                        className="relative h-2 w-8 overflow-hidden rounded-full bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        aria-label={`Show ${label.toLowerCase()}`}
+                        aria-current={
+                          mobileHeaderSlide === index ? "true" : undefined
+                        }
+                        onClick={() => mobileHeaderCarouselApi?.scrollTo(index)}
+                      >
+                        <span
+                          ref={(element) => {
+                            mobileHeaderIndicatorRefs.current[index] = element;
+                          }}
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 rounded-full bg-primary"
+                          style={{ transform: `translateX(${-index * 125}%)` }}
+                        />
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -389,7 +418,9 @@ function UserProfile({ uniqueKey }: UserProfile) {
                       <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                         {userMetadata ? (
                           <Image
-                            src={getProfileImageSrc(userMetadata.user.profileImageUrl)}
+                            src={getProfileImageSrc(
+                              userMetadata.user.profileImageUrl,
+                            )}
                             alt={`${userMetadata.user.username}'s profile picture`}
                             width={300} // TODO: tweak this
                             height={300} // TODO: tweak this

@@ -1,13 +1,10 @@
-import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import { Printer } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { Dialog } from "~/components/ui/dialog";
 import { useTabStoreApi } from "~/stores/TabStore";
 import type { PrintTabData } from "~/utils/printTab";
-
-const PrintTabDialog = dynamic(() => import("./PrintTabDialog"), {
-  ssr: false,
-});
+import PrintTabDialog from "./PrintTabDialog";
 
 export default function PrintTabButton({
   showLabel = false,
@@ -16,10 +13,20 @@ export default function PrintTabButton({
 }) {
   const store = useTabStoreApi();
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
   const [data, setData] = useState<PrintTabData | null>(null);
 
   return (
-    <>
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      onOpenChangeComplete={(isOpen) => {
+        if (!isOpen) {
+          setData(null);
+          buttonRef.current?.focus();
+        }
+      }}
+    >
       <Button
         ref={buttonRef}
         type="button"
@@ -59,20 +66,13 @@ export default function PrintTabButton({
               sectionProgression,
             }),
           );
+          setOpen(true);
         }}
       >
         <Printer className="size-4" strokeWidth={1.75} />
         {showLabel && "Print"}
       </Button>
-      {data && (
-        <PrintTabDialog
-          data={data}
-          onClose={() => {
-            setData(null);
-            buttonRef.current?.focus();
-          }}
-        />
-      )}
-    </>
+      {data && <PrintTabDialog data={data} />}
+    </Dialog>
   );
 }

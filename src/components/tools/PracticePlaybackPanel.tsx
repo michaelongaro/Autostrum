@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
@@ -30,10 +29,7 @@ import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 import { PracticePlaybackProvider } from "~/components/tools/PracticePlaybackContext";
 import { generateDefaultSectionProgression } from "~/utils/chordCompilationHelpers";
 
-const PlaybackModal = dynamic(
-  () => import("~/components/Tab/Playback/PlaybackModal"),
-  { ssr: false },
-);
+import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
 type PracticePlaybackPanelProps = {
   exercises: PracticeExercise[];

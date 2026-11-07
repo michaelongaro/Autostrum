@@ -24,7 +24,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 import StaticTabMetadata from "~/components/Tab/Static/StaticTabMetadata";
 import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
@@ -43,10 +42,7 @@ import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibili
 import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
-const PlaybackModal = dynamic(
-  () => import("~/components/Tab/Playback/PlaybackModal"),
-  { ssr: false },
-);
+import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
 function StaticTab() {
   const store = useTabStoreApi();

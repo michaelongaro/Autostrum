@@ -6,7 +6,6 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { CgArrowsShrinkH } from "react-icons/cg";
@@ -47,6 +46,8 @@ import {
 } from "~/utils/staticTabGeometry";
 import FeatureDemoSession, { useFeatureDemo } from "./FeatureDemoSession";
 import styles from "./FeatureShowcase.module.css";
+import EmbeddedPlaybackModal from "~/components/Tab/Playback/PlaybackModal";
+import DemoGlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 
 export type FeatureId =
   | "zoom"
@@ -57,17 +58,6 @@ export type FeatureId =
   | "autoscroll"
   | "hotkeys"
   | "tuning";
-
-// Keep lazy demo loads inside their own boundaries so switching features
-// cannot hide the homepage via the route's Suspense fallback and reset scroll.
-const EmbeddedPlaybackModal = dynamic(
-  () => import("~/components/Tab/Playback/PlaybackModal"),
-  { ssr: false, loading: () => <Spinner /> },
-);
-const DemoGlossaryDialog = dynamic(
-  () => import("~/components/Dialogs/GlossaryDialog"),
-  { loading: () => null },
-);
 
 function DemoPlaybackButton({
   presentation = "button",

@@ -45,6 +45,11 @@ async function open(path) {
   await page.addStyleTag({
     content: "nextjs-portal { display: none !important; }",
   });
+  if (path === "/dev-base-ui-harness") {
+    await page
+      .locator('[data-testid="base-ui-harness"][data-ready="true"]')
+      .waitFor();
+  }
   return { context, page, cdp: await context.newCDPSession(page) };
 }
 async function settle(locator) {

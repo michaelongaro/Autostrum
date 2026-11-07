@@ -15,10 +15,10 @@ function Hero() {
             <div className="hidden lg:block">
               <HeaderLogo width={320} height={56} />
             </div>
-            <p className="max-w-lg whitespace-nowrap text-center text-xl font-semibold tracking-tight md:text-2xl lg:text-left lg:text-[clamp(1.5rem,1.875vw,1.75rem)]">
+            <p className="max-w-lg text-nowrap text-center text-xl font-semibold tracking-tight md:text-2xl lg:text-left lg:text-[clamp(1.5rem,1.875vw,1.75rem)]">
               Find your next favorite song to play.
             </p>
-            <p className="max-w-sm text-center text-sm text-foreground/80 md:text-base lg:text-left">
+            <p className="max-w-sm text-balance text-center text-sm text-foreground/80 md:text-base lg:text-left">
               Discover guitar tabs, hear how they sound, and learn at your own
               pace.
             </p>

@@ -32,7 +32,6 @@ import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
 import StrummingPatterns from "./StrummingPatterns";
-import dynamic from "next/dynamic";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
 import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
@@ -55,10 +54,7 @@ import ChordDialog from "~/components/Dialogs/ChordDialog";
 import StrummingPatternDialog from "~/components/Dialogs/StrummingPatternDialog";
 import { useTabEditorHistory } from "~/hooks/useTabEditorHistory";
 
-const PlaybackModal = dynamic(
-  () => import("~/components/Tab/Playback/PlaybackModal"),
-  { ssr: false },
-);
+import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
 function Tab() {
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);

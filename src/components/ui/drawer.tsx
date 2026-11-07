@@ -87,14 +87,14 @@ const DrawerContent = React.forwardRef<
   return (
     <DrawerPortal>
       <DrawerOverlay />
-      <DrawerPrimitive.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-2 outline-none">
+      <DrawerPrimitive.Viewport className="fixed inset-0 z-50 flex items-end justify-center p-2 pb-[max(1rem,env(safe-area-inset-bottom))] outline-none">
         <DrawerPrimitive.Popup
           ref={popupRef}
           data-slot="drawer-content"
           data-base-ui-swipe-ignore={swipe.disabled ? "" : undefined}
           style={drawerMotion}
           className={cn(
-            "relative flex h-auto w-full max-w-md translate-y-[var(--drawer-swipe-movement-y)] flex-col overflow-hidden !rounded-[20px] bg-background pt-3 outline-none transition-transform data-[ending-style]:translate-y-[calc(100%_+_16px)] data-[starting-style]:translate-y-[calc(100%_+_16px)] data-[swiping]:select-none data-[swiping]:transition-none motion-reduce:transition-none",
+            "relative flex h-auto max-h-full w-full max-w-md translate-y-[var(--drawer-swipe-movement-y)] flex-col overflow-hidden !rounded-[20px] bg-background pt-3 outline-none transition-transform data-[ending-style]:translate-y-[calc(100%_+_max(1rem,env(safe-area-inset-bottom))_+_8px)] data-[starting-style]:translate-y-[calc(100%_+_max(1rem,env(safe-area-inset-bottom))_+_8px)] data-[swiping]:select-none data-[swiping]:transition-none motion-reduce:transition-none",
             className,
           )}
           {...props}
