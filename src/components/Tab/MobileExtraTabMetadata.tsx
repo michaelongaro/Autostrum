@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { useTabStore } from "~/stores/TabStore";
 import { motion, useReducedMotion } from "framer-motion";
@@ -52,6 +52,7 @@ function MobileExtraTabMetadata() {
   );
   const [tabContentExpanded, setTabContentExpanded] = useState(false);
   const reduceMotion = useReducedMotion();
+  const underlineId = useId();
   const { contentRef, height, hasOverflow, hasAnyOverflow } =
     useExtraTabMetadataLayout(activeTabName, tabContentExpanded);
 
@@ -135,10 +136,17 @@ function MobileExtraTabMetadata() {
               >
                 <BsMusicNoteList className="size-4" />
                 Section progression
-                <span
-                  aria-hidden="true"
-                  className={`absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground transition-opacity duration-200 motion-reduce:transition-none ${activeTabName === "Section progression" ? "opacity-100" : "opacity-0"}`}
-                />
+                {activeTabName === "Section progression" && (
+                  <motion.span
+                    aria-hidden="true"
+                    layoutId={underlineId}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.2,
+                      ease: "easeOut",
+                    }}
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
+                  />
+                )}
               </Button>
             </CarouselItem>
 
@@ -155,10 +163,17 @@ function MobileExtraTabMetadata() {
               >
                 <BsMusicNoteBeamed className="size-4" />
                 Chords
-                <span
-                  aria-hidden="true"
-                  className={`absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground transition-opacity duration-200 motion-reduce:transition-none ${activeTabName === "Chords" ? "opacity-100" : "opacity-0"}`}
-                />
+                {activeTabName === "Chords" && (
+                  <motion.span
+                    aria-hidden="true"
+                    layoutId={underlineId}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.2,
+                      ease: "easeOut",
+                    }}
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
+                  />
+                )}
               </Button>
             </CarouselItem>
 
@@ -175,10 +190,17 @@ function MobileExtraTabMetadata() {
               >
                 <Logo className="z-0 size-4" />
                 Strumming patterns
-                <span
-                  aria-hidden="true"
-                  className={`absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground transition-opacity duration-200 motion-reduce:transition-none ${activeTabName === "Strumming patterns" ? "opacity-100" : "opacity-0"}`}
-                />
+                {activeTabName === "Strumming patterns" && (
+                  <motion.span
+                    aria-hidden="true"
+                    layoutId={underlineId}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.2,
+                      ease: "easeOut",
+                    }}
+                    className="absolute bottom-0 left-0 z-0 h-[2px] w-full rounded-full bg-foreground"
+                  />
+                )}
               </Button>
             </CarouselItem>
           </CarouselContent>

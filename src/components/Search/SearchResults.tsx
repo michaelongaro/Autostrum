@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useLayoutEffect, useRef, useState, Fragment } from "react";
 import { flushSync } from "react-dom";
 import { BsGridFill, BsPlus } from "react-icons/bs";
-import { CiViewTable } from "react-icons/ci";
+import TableViewIcon from "~/components/ui/icons/TableViewIcon";
 import { LuFilter } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
 import {
@@ -764,7 +764,7 @@ function SearchResults({
                             changeLayout("grid");
                           }}
                         >
-                          <BsGridFill className="size-4" />
+                          <BsGridFill className="size-4 shrink-0" />
                         </Button>
 
                         <Button
@@ -786,7 +786,7 @@ function SearchResults({
                             changeLayout("table");
                           }}
                         >
-                          <CiViewTable className="size-4 stroke-[0.5px]" />
+                          <TableViewIcon className="size-4 shrink-0" />
                         </Button>
                       </div>
 
@@ -1023,7 +1023,7 @@ function SearchResults({
                             changeLayout("grid");
                           }}
                         >
-                          <BsGridFill className="size-4" />
+                          <BsGridFill className="size-4 shrink-0" />
                           Grid
                         </Button>
 
@@ -1046,7 +1046,7 @@ function SearchResults({
                             changeLayout("table");
                           }}
                         >
-                          <CiViewTable className="size-4 stroke-[0.5px]" />
+                          <TableViewIcon className="size-4 shrink-0" />
                           Table
                         </Button>
                       </div>

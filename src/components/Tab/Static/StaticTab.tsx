@@ -163,7 +163,7 @@ function StaticTab() {
       >
         <StaticTabMetadata />
 
-        <Separator className="mt-2 w-full bg-border tablet:mb-4 tablet:w-[96%]" />
+        <Separator className="mt-2 h-px w-full bg-border tablet:mb-4 tablet:h-[2px] tablet:w-[96%]" />
 
         {viewportLabel.includes("mobile") ? (
           <MobileExtraTabMetadata />
@@ -172,7 +172,7 @@ function StaticTab() {
         )}
 
         <Separator
-          className={`w-full bg-border tablet:w-[96%] ${showSectionNavigation ? "mt-2" : "my-2"}`}
+          className={`h-px w-full bg-border tablet:h-[2px] tablet:w-[96%] ${showSectionNavigation ? "mt-2" : "my-2"}`}
         />
 
         <div
