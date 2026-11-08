@@ -13,8 +13,8 @@
 
 /* A layout snapshot owns this fade. Reveal newly mounted rows/cards before
    capture so their individual entrance fades don't produce a blank new view. */
-html[data-search-layout-transition] [data-search-grid] > *,
-html[data-search-layout-transition] [data-search-table] tbody > tr > td > div {
+html[data-search-layout-transition] [data-search-grid]>*,
+html[data-search-layout-transition] [data-search-table] tbody>tr>td>div {
   opacity: 1 !important;
 }
 
@@ -231,7 +231,7 @@ kbd {
 /* Give segmented toggle pills a quick start and a soft settle. */
 .togglePill {
   transition-property: transform, width, background-color, border-radius;
-  transition-duration: 350ms;
+  transition-duration: 250ms;
   transition-timing-function: ease-in-out;
 }
 
