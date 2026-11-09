@@ -7,6 +7,7 @@ import { tabRouter } from "./routers/tab";
 import { searchRouter } from "./routers/search";
 import { tabRatingRouter } from "./routers/tabRating";
 import { draftRouter } from "./routers/draft";
+import { feedbackRouter } from "./routers/feedback";
 
 /**
  * This is the primary router for your server.
@@ -22,6 +23,7 @@ export const appRouter = createTRPCRouter({
   artist: artistRouter,
   bookmark: bookmarkRouter,
   draft: draftRouter,
+  feedback: feedbackRouter,
 });
 
 // export type definition of API

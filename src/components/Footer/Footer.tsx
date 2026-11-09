@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { MdOutlineMailOutline } from "react-icons/md";
 import { Button } from "~/components/ui/button";
 import { FaGithub } from "react-icons/fa";
 import { Separator } from "~/components/ui/separator";
+import FeedbackDialog from "./FeedbackDialog";
 
 function Footer() {
   return (
@@ -13,22 +13,7 @@ function Footer() {
       }}
       className="baseFlex z-20 h-16 w-full gap-2 bg-header xs:gap-4"
     >
-      <Button
-        role="link"
-        variant={"link"}
-        nativeButton={false}
-        render={
-          <a
-            href="mailto:michael.ongaro.dev@gmail.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="baseFlex gap-2"
-          >
-            <MdOutlineMailOutline className="size-5" />
-            <span>Contact</span>
-          </a>
-        }
-      />
+      <FeedbackDialog />
 
       <Separator
         orientation="vertical"

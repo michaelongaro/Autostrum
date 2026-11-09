@@ -8,6 +8,21 @@ datasource db {
   provider = "postgresql"
 }
 
+enum FeedbackCategory {
+  FEATURE_REQUEST
+  BUG
+  OTHER
+}
+
+model Feedback {
+  id        Int              @id @default(autoincrement())
+  createdAt DateTime         @default(now())
+  category  FeedbackCategory
+  message   String           @db.VarChar(5000)
+
+  @@index([createdAt])
+}
+
 // FYI: this model isn't technically necessary, but I am keeping it for debugging
 // purposes or if I need to change the weekly featured users for some reason.
 // (updated weekly by a cron job)
