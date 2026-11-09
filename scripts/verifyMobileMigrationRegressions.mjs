@@ -38,6 +38,12 @@ async function open(path) {
     });
   });
   const page = await context.newPage();
+  const styleWarnings = [];
+  page.on("console", (message) => {
+    if (message.text().includes("conflicting property")) {
+      styleWarnings.push(message.text());
+    }
+  });
   await page.goto(baseURL + path, {
     waitUntil: "domcontentloaded",
     timeout: 90_000,
@@ -50,7 +56,12 @@ async function open(path) {
       .locator('[data-testid="base-ui-harness"][data-ready="true"]')
       .waitFor();
   }
-  return { context, page, cdp: await context.newCDPSession(page) };
+  return {
+    context,
+    page,
+    cdp: await context.newCDPSession(page),
+    styleWarnings,
+  };
 }
 async function settle(locator) {
   await locator.waitFor();
@@ -85,6 +96,11 @@ async function check(name, path, run) {
   const session = await open(path);
   try {
     await run(session);
+    assert.deepEqual(
+      session.styleWarnings,
+      [],
+      "interactions must not mix conflicting React style properties",
+    );
     console.log(`PASS ${name}`);
   } catch (error) {
     failures.push(`${name}: ${error.message}`);
@@ -103,6 +119,14 @@ try {
         .click();
       const drawer = page.getByRole("dialog", { name: "Fixture drawer" });
       await settle(drawer);
+      assert.deepEqual(
+        await drawer.evaluate((element) => {
+          const style = getComputedStyle(element);
+          return [style.transitionDuration, style.transitionTimingFunction];
+        }),
+        ["0.5s", "cubic-bezier(0.32, 0.72, 0, 1)"],
+        "drawer preserves its entrance and exit timing without inline longhands",
+      );
       const slider = drawer.getByRole("slider", { name: "Zoom", exact: true });
       const thumb = await slider.boundingBox();
       const track = await drawer.locator("[data-scale-track]").boundingBox();

@@ -1,0 +1,7 @@
+.motion {
+  /* Base UI adds an inline transition shorthand while swiping. Keep these
+     longhands in CSS to avoid conflicting React style updates. */
+  transition-duration: 500ms;
+  /* Match Vaul's quick start and long, gentle settle on enter and exit. */
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}

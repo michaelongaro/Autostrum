@@ -5,6 +5,7 @@ import { DialogContentContext } from "./dialog-content-context";
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import type { StyledProps } from "./base-ui-types";
 import { cn } from "~/utils/cn";
+import styles from "./drawer.module.css";
 import {
   MobileModalContext,
   useMobileModal,
@@ -54,21 +55,15 @@ const DrawerTrigger = DrawerPrimitive.Trigger;
 const DrawerPortal = DrawerPrimitive.Portal;
 const DrawerClose = DrawerPrimitive.Close;
 
-// Match Vaul's quick start and long, gentle settle on both enter and exit.
-const drawerMotion: React.CSSProperties = {
-  transitionDuration: "500ms",
-  transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-};
-
 const DrawerOverlay = React.forwardRef<
   React.ComponentRef<typeof DrawerPrimitive.Backdrop>,
   StyledProps<typeof DrawerPrimitive.Backdrop>
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Backdrop
     ref={ref}
-    style={drawerMotion}
     className={cn(
       "fixed inset-0 z-50 bg-black/50 opacity-[calc(1_-_var(--drawer-swipe-progress,0))] transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 data-[swiping]:transition-none motion-reduce:transition-none",
+      styles.motion,
       className,
     )}
     {...props}
@@ -93,9 +88,9 @@ const DrawerContent = React.forwardRef<
           ref={popupRef}
           data-slot="drawer-content"
           data-base-ui-swipe-ignore={swipe.disabled ? "" : undefined}
-          style={drawerMotion}
           className={cn(
             "relative flex h-auto max-h-full w-full max-w-md translate-y-[var(--drawer-swipe-movement-y)] flex-col overflow-hidden !rounded-[20px] bg-background pt-3 outline-none transition-transform data-[ending-style]:translate-y-[calc(100%_+_max(1rem,env(safe-area-inset-bottom))_+_8px)] data-[starting-style]:translate-y-[calc(100%_+_max(1rem,env(safe-area-inset-bottom))_+_8px)] data-[swiping]:select-none data-[swiping]:transition-none motion-reduce:transition-none",
+            styles.motion,
             className,
           )}
           {...props}

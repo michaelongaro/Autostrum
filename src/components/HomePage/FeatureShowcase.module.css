@@ -7,14 +7,17 @@
   background-size: 16px 16px;
 }
 
+.practicePanel,
+.composePanel {
+  /* Keep both modes at Compose's height, including the panel's 32px padding. */
+  min-height: 440px;
+}
+
 .practicePanel {
-  /* Reserve the loop editor's full height, including the panel's 32px padding. */
-  min-height: 436px;
   --playback-practice-strip-height: 274px;
 }
 
 .composePanel {
-  min-height: 440px;
   --feature-editor-viewport-height: 408px;
   /* Leave room for the playback controls, their gap, and the panel padding. */
   --feature-autoscroll-viewport-height: 326px;
