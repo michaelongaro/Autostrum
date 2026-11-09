@@ -27,7 +27,10 @@ import {
   SixteenthNote,
   WholeNote,
 } from "~/utils/noteLengthIcons";
-import { traverseToRemoveHangingStrummingPatternPairNode } from "~/utils/palmMuteHelpers";
+import {
+  finishPalmMuteEdit,
+  recoverPendingPalmMuteEdit,
+} from "~/utils/palmMuteEditing";
 import StrummingPattern from "../Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import {
@@ -93,8 +96,13 @@ function StrummingPatternDialog() {
     return subscribeTabStore((state, previous) => {
       if (state.editorHistoryRevision === previous.editorHistoryRevision)
         return;
-      setLastModifiedPalmMuteNode(null);
-      setEditingPalmMuteNodes(false);
+      const pending = recoverPendingPalmMuteEdit(
+        state.strummingPatternBeingEdited?.value.strums.map(
+          (strum) => strum.palmMute,
+        ) ?? [],
+      );
+      setLastModifiedPalmMuteNode(pending);
+      setEditingPalmMuteNodes(Boolean(pending));
     });
   }, []);
 
@@ -151,31 +159,21 @@ function StrummingPatternDialog() {
     if (!editingPalmMuteNodes) {
       setEditingPalmMuteNodes(true);
       return;
-    } else if (lastModifiedPalmMuteNode) {
-      // if only had a hanging "start" node, then just revert
-      // start node to being empty
-      if (lastModifiedPalmMuteNode.prevValue === "") {
-        const newStrummingPattern = structuredClone(
-          strummingPatternBeingEdited,
-        );
-
-        newStrummingPattern.value.strums[
-          lastModifiedPalmMuteNode.columnIndex
-        ]!.palmMute = "";
-
-        setStrummingPatternBeingEdited(newStrummingPattern);
-      }
-      // otherwise need to traverse to find + remove pair node
-      else {
-        traverseToRemoveHangingStrummingPatternPairNode({
-          strummingPatternBeingEdited,
-          setStrummingPatternBeingEdited,
-          startColumnIndex: lastModifiedPalmMuteNode.columnIndex,
-          pairNodeToRemove:
-            lastModifiedPalmMuteNode.prevValue === "start" ? "end" : "start",
-        });
-      }
-
+    }
+    if (lastModifiedPalmMuteNode) {
+      const values = finishPalmMuteEdit(
+        strummingPatternBeingEdited.value.strums.map((strum) => strum.palmMute),
+        lastModifiedPalmMuteNode,
+      );
+      setStrummingPatternBeingEdited({
+        ...strummingPatternBeingEdited,
+        value: {
+          ...strummingPatternBeingEdited.value,
+          strums: strummingPatternBeingEdited.value.strums.map(
+            (strum, index) => ({ ...strum, palmMute: values[index] ?? "" }),
+          ),
+        },
+      });
       setLastModifiedPalmMuteNode(null);
     }
     setEditingPalmMuteNodes(false);
@@ -183,6 +181,18 @@ function StrummingPatternDialog() {
 
   function handleSaveStrummingPattern() {
     if (!strummingPatternBeingEdited) return;
+
+    const values = finishPalmMuteEdit(
+      strummingPatternBeingEdited.value.strums.map((strum) => strum.palmMute),
+      lastModifiedPalmMuteNode,
+    );
+    const savedPattern = {
+      ...strummingPatternBeingEdited.value,
+      strums: strummingPatternBeingEdited.value.strums.map((strum, index) => ({
+        ...strum,
+        palmMute: values[index] ?? "",
+      })),
+    };
 
     // updating chord sequences that use this strumming pattern
 
@@ -237,7 +247,7 @@ function StrummingPatternDialog() {
                   draft[sectionIndex]!.data[subSectionIndex]!.data[
                     chordSequenceIndex
                   ]! as ChordSequence
-                ).strummingPattern = strummingPatternBeingEdited.value;
+                ).strummingPattern = savedPattern;
               }
             }
           }
@@ -248,7 +258,7 @@ function StrummingPatternDialog() {
     const newStrummingPatterns = structuredClone(strummingPatterns);
 
     newStrummingPatterns[strummingPatternBeingEdited.index] = structuredClone({
-      ...strummingPatternBeingEdited.value,
+      ...savedPattern,
     });
 
     if (previewMetadata.playing) pauseAudio();
@@ -353,7 +363,10 @@ function StrummingPatternDialog() {
                           : "0.375rem",
                         transitionDelay: "0.1s",
                       }}
-                      onClick={toggleEditingPalmMuteNodes}
+                      onClick={() => {
+                        setShowingDeleteStrumsButtons(false);
+                        toggleEditingPalmMuteNodes();
+                      }}
                     >
                       PM Editor
                     </Button>
@@ -402,11 +415,12 @@ function StrummingPatternDialog() {
                         transitionDelay: "0.1s",
                       }}
                       className="baseFlex whitespace-nowrap"
-                      onClick={() =>
+                      onClick={() => {
+                        if (editingPalmMuteNodes) toggleEditingPalmMuteNodes();
                         setShowingDeleteStrumsButtons(
                           !showingDeleteStrumsButtons,
-                        )
-                      }
+                        );
+                      }}
                     >
                       Delete strums
                     </Button>

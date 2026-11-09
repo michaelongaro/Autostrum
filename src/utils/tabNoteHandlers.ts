@@ -1,3 +1,4 @@
+import { canDeleteTabNote, deleteTabNote } from "~/utils/tabColumnDeletion";
 import type { Section, FullNoteLengths } from "~/stores/TabStore";
 import { getTabData as getGlobalTabData } from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
@@ -354,12 +355,15 @@ export function handleTabNoteKeyDown(
     if (
       currentColumn &&
       isTabNote(currentColumn) &&
-      subSection.data.length > 1
+      canDeleteTabNote(subSection.data, columnIndex)
     ) {
       setTabData((draft) => {
         const draftSubSection = draft[sectionIndex]?.data[subSectionIndex];
         if (draftSubSection?.type === "tab") {
-          draftSubSection.data.splice(columnIndex, 1);
+          draftSubSection.data = deleteTabNote(
+            draftSubSection.data,
+            columnIndex,
+          );
         }
       });
 

@@ -11,6 +11,10 @@ import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
 import { beamBreaksAtTabColumn } from "~/utils/noteLengthBeaming";
 import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
 import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
+import {
+  getTabPalmMuteValues,
+  type PalmMuteValue,
+} from "~/utils/palmMuteEditing";
 
 /**
  * Fine-grained tabData selectors for the editing tree.
@@ -26,6 +30,21 @@ import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
 
 const EMPTY_STRING_ARRAY: string[] = [];
 const EMPTY_TYPE_ARRAY: ("tab" | "chord" | "note" | "measureLine")[] = [];
+const EMPTY_PALM_MUTE_ARRAY: (PalmMuteValue | null)[] = [];
+
+/** PM controls update on coverage/structure edits without subscribing to frets or playback. */
+export const useTabPalmMuteValues = (
+  sectionIndex: number,
+  subSectionIndex: number,
+  enabled: boolean,
+) =>
+  useTabStore((state) => {
+    if (!enabled) return EMPTY_PALM_MUTE_ARRAY;
+    const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
+    return sub?.type === "tab"
+      ? getTabPalmMuteValues(sub.data)
+      : EMPTY_PALM_MUTE_ARRAY;
+  });
 
 /**
  * Section IDs only — stable across nested note edits (immer structural sharing

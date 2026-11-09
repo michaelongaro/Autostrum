@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  getTabScreenshotMaskSrc,
   TAB_SCREENSHOT_MASK_HEIGHT,
   TAB_SCREENSHOT_MASK_ROLES,
   TAB_SCREENSHOT_MASK_WIDTH,
 } from "~/utils/tabScreenshotMasks";
-import { getTabScreenshotThumbnailWidth } from "~/utils/tabScreenshotThumbnails";
+import {
+  acquireMaskAtlas,
+  getCachedMaskAtlas,
+  getMaskAtlasSource,
+  type DecodedMaskAtlas,
+} from "~/utils/tabScreenshotMaskCache";
 
 interface TabScreenshotMasksProps {
   tabId: number;
@@ -25,13 +29,11 @@ function TabScreenshotMasks({
   onError,
 }: TabScreenshotMasksProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [atlas, setAtlas] = useState<{
-    url: string;
-    width: number;
-    height: number;
-  } | null>(null);
-  const [ready, setReady] = useState(false);
-  const src = getTabScreenshotMaskSrc(tabId, version);
+  const src = getMaskAtlasSource(tabId, version);
+  const [atlas, setAtlas] = useState<DecodedMaskAtlas | null>(
+    () => getCachedMaskAtlas(src) ?? null,
+  );
+  const [ready, setReady] = useState(() => Boolean(getCachedMaskAtlas(src)));
   // Use decoded dimensions: the API can return a legacy full-size atlas while
   // thumbnails are being backfilled. Its role boundaries must stay aligned.
   const atlasWidth = atlas?.width ?? TAB_SCREENSHOT_MASK_WIDTH;
@@ -41,48 +43,22 @@ function TabScreenshotMasks({
   const imageHeight = atlasHeight * scale;
 
   useEffect(() => {
-    const controller = new AbortController();
-    let objectURL: string | undefined;
-
-    async function loadAtlas() {
-      try {
-        // Every grid variant is at most 400 CSS pixels wide. One density tier
-        // per screen also lets normal and large cards share the same atlas.
-        const thumbnailWidth = getTabScreenshotThumbnailWidth(
-          400 * window.devicePixelRatio,
-        );
-        const response = await fetch(`${src}&width=${thumbnailWidth}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("Mask atlas unavailable");
-        const blob = await response.blob();
-        if (controller.signal.aborted) return;
-
-        objectURL = URL.createObjectURL(blob);
-        const image = new window.Image();
-        image.src = objectURL;
-        await image.decode();
-        const layerHeight =
-          image.naturalHeight / TAB_SCREENSHOT_MASK_ROLES.length;
-        if (
-          !image.naturalWidth ||
-          !Number.isInteger(layerHeight) ||
-          !layerHeight
-        ) {
-          throw new Error("Invalid mask atlas geometry");
-        }
-        if (!controller.signal.aborted) {
-          setAtlas({
-            url: objectURL,
-            width: image.naturalWidth,
-            height: layerHeight,
-          });
-        }
-      } catch {
-        if (!controller.signal.aborted) onError();
-      }
+    let cancelled = false;
+    let resource: ReturnType<typeof acquireMaskAtlas> | undefined;
+    function loadAtlas() {
+      resource = acquireMaskAtlas(src);
+      void resource.promise.then(
+        (decoded) => {
+          if (!cancelled) setAtlas(decoded);
+        },
+        () => {
+          if (!cancelled) onError();
+        },
+      );
     }
 
+    // Cached atlases skip intersection observation and the preparation delay.
+    if (getCachedMaskAtlas(src)) loadAtlas();
     // Keep lazy loading, including when the screenshot/skeleton is transparent.
     const observer = new IntersectionObserver(
       (entries) => {
@@ -92,31 +68,35 @@ function TabScreenshotMasks({
       },
       { rootMargin: "256px" },
     );
-    if (containerRef.current) observer.observe(containerRef.current);
+    if (!resource && containerRef.current)
+      observer.observe(containerRef.current);
 
     return () => {
       observer.disconnect();
-      controller.abort();
-      if (objectURL) URL.revokeObjectURL(objectURL);
+      cancelled = true;
+      resource?.release();
     };
   }, [src, onError]);
 
   useEffect(() => {
     if (!atlas) return;
+    if (ready) {
+      onLoad();
+      return;
+    }
     let revealFrame = 0;
     // Mount CSS masks using an already decoded, local resource. Let the browser
     // process those styles for a frame before exposing the black blend base.
     const prepareFrame = requestAnimationFrame(() => {
       revealFrame = requestAnimationFrame(() => {
         setReady(true);
-        onLoad();
       });
     });
     return () => {
       cancelAnimationFrame(prepareFrame);
       cancelAnimationFrame(revealFrame);
     };
-  }, [atlas, onLoad]);
+  }, [atlas, onLoad, ready]);
 
   return (
     <div

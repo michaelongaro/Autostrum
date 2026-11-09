@@ -24,6 +24,7 @@ registerHooks({
       const { outputText } = ts.transpileModule(
         readFileSync(new URL(url), "utf8"),
         {
+          fileName: new URL(url).pathname,
           compilerOptions: {
             target: ts.ScriptTarget.ES2022,
             module: ts.ModuleKind.ESNext,

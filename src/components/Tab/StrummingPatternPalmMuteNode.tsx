@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
 import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
-import { addOrRemoveStrummingPatternPalmMuteDashes } from "~/utils/palmMuteHelpers";
+import { editPalmMuteNode } from "~/utils/palmMuteEditing";
 import { Button } from "~/components/ui/button";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
@@ -21,23 +21,6 @@ interface StrummingPatternPalmMuteNodeProps {
   >;
   viewingInSelectDropdown: boolean;
   editing: boolean;
-}
-
-// Helper to create updated strumming pattern with new palm mute value
-function createUpdatedStrummingPattern(
-  strummingPattern: StrummingPatternPalmMuteNodeProps["strummingPatternBeingEdited"],
-  beatIndex: number,
-  newValue: "" | "start" | "end" | "-",
-) {
-  return {
-    ...strummingPattern,
-    value: {
-      ...strummingPattern.value,
-      strums: strummingPattern.value.strums.map((strum, i) =>
-        i === beatIndex ? { ...strum, palmMute: newValue } : strum,
-      ),
-    },
-  };
 }
 
 function StrummingPatternPalmMuteNode({
@@ -92,12 +75,17 @@ function StrummingPatternPalmMuteNode({
     while (currentIndex >= 0 && currentIndex < strums.length) {
       const palmMuteValue = strums[currentIndex]?.palmMute;
 
-      if (palmMuteValue !== "-" && getButtonOpacity() === "1") {
+      if (palmMuteValue !== "-") {
         const newNoteToFocus = document.getElementById(
           `input-strummingPatternModal-${currentIndex}-0`,
         );
-        newNoteToFocus?.focus();
-        return;
+        if (
+          newNoteToFocus instanceof HTMLButtonElement &&
+          !newNoteToFocus.disabled
+        ) {
+          newNoteToFocus.focus();
+          return;
+        }
       }
 
       currentIndex += direction;
@@ -113,108 +101,25 @@ function StrummingPatternPalmMuteNode({
   }
 
   function handlePalmMuteNodeClick() {
-    if (!editingPalmMuteNodes) setEditingPalmMuteNodes(true);
-
-    const isStartingFresh = lastModifiedPalmMuteNode === null;
-    const isClickingSameCell =
-      lastModifiedPalmMuteNode?.columnIndex === beatIndex;
-    const wasEmpty = lastModifiedPalmMuteNode?.prevValue === "";
-    const wasNode = lastModifiedPalmMuteNode?.prevValue !== "";
-    const isClickingNode = value === "start" || value === "end";
-
-    // Case 1: No active operation - starting fresh
-    if (isStartingFresh) {
-      if (value === "") {
-        // Start NEW palm mute section
-        setLastModifiedPalmMuteNode({
-          columnIndex: beatIndex,
-          prevValue: "",
-          currentValue: "start",
-        });
-        setStrummingPatternBeingEdited(
-          createUpdatedStrummingPattern(
-            strummingPatternBeingEdited,
-            beatIndex,
-            "start",
-          ),
-        );
-      } else {
-        // Begin REMOVAL operation on existing node
-        setLastModifiedPalmMuteNode({
-          columnIndex: beatIndex,
-          prevValue: value,
-          currentValue: "",
-        });
-        addOrRemoveStrummingPatternPalmMuteDashes({
-          strummingPatternBeingEdited,
-          setStrummingPatternBeingEdited,
-          startColumnIndex: beatIndex,
-          prevValue: value,
-        });
-      }
-      return;
-    }
-
-    // Case 2: Cancel adding new start - clicked same empty cell again
-    if (wasEmpty && isClickingSameCell) {
-      setStrummingPatternBeingEdited(
-        createUpdatedStrummingPattern(
-          strummingPatternBeingEdited,
-          beatIndex,
-          "",
+    const result = editPalmMuteNode(
+      strummingPatternBeingEdited.value.strums.map((strum) => strum.palmMute),
+      lastModifiedPalmMuteNode,
+      beatIndex,
+    );
+    setStrummingPatternBeingEdited({
+      ...strummingPatternBeingEdited,
+      value: {
+        ...strummingPatternBeingEdited.value,
+        strums: strummingPatternBeingEdited.value.strums.map(
+          (strum, index) => ({
+            ...strum,
+            palmMute: result.values[index] ?? "",
+          }),
         ),
-      );
-      setLastModifiedPalmMuteNode(null);
-      return;
-    }
-
-    // Case 3: Cancel removal - clicked same start/end node again
-    if (wasNode && isClickingSameCell) {
-      const prevValue = lastModifiedPalmMuteNode.prevValue as "start" | "end";
-      addOrRemoveStrummingPatternPalmMuteDashes({
-        strummingPatternBeingEdited,
-        setStrummingPatternBeingEdited,
-        startColumnIndex: beatIndex,
-        prevValue: lastModifiedPalmMuteNode.prevValue,
-        pairNodeValue: prevValue,
-      });
-      setLastModifiedPalmMuteNode(null);
-      return;
-    }
-
-    // Case 4: Complete removal - clicked on the PAIR node
-    if (wasNode && isClickingNode) {
-      const startIdx = Math.min(
-        lastModifiedPalmMuteNode.columnIndex,
-        beatIndex,
-      );
-      const endIdx = Math.max(lastModifiedPalmMuteNode.columnIndex, beatIndex);
-      const newStrummingPattern = {
-        ...strummingPatternBeingEdited,
-        value: {
-          ...strummingPatternBeingEdited.value,
-          strums: strummingPatternBeingEdited.value.strums.map((strum, i) =>
-            i >= startIdx && i <= endIdx
-              ? { ...strum, palmMute: "" as const }
-              : strum,
-          ),
-        },
-      };
-      setStrummingPatternBeingEdited(newStrummingPattern);
-      setLastModifiedPalmMuteNode(null);
-      return;
-    }
-
-    // Case 5: Complete palm mute section - adding end node with dashes
-    // (or moving a start/end after a removal was begun)
-    addOrRemoveStrummingPatternPalmMuteDashes({
-      strummingPatternBeingEdited,
-      setStrummingPatternBeingEdited,
-      startColumnIndex: beatIndex,
-      prevValue: value,
-      pairNodeValue: lastModifiedPalmMuteNode.prevValue,
+      },
     });
-    setLastModifiedPalmMuteNode(null);
+    setLastModifiedPalmMuteNode(result.pending);
+    setEditingPalmMuteNodes(true);
   }
 
   return (

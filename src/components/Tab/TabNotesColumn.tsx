@@ -1,3 +1,4 @@
+import { deleteTabNote } from "~/utils/tabColumnDeletion";
 import type {
   DraggableAttributes,
   DraggableSyntheticListeners,
@@ -20,10 +21,7 @@ import {
 } from "~/hooks/useTabDataSelectors";
 import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
-import {
-  getStringValue,
-  isTabNote,
-} from "~/utils/tabNoteHelpers";
+import { getStringValue, isTabNote } from "~/utils/tabNoteHelpers";
 import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
   EDITING_TAB_COLUMN_WIDTH_PX,
@@ -113,19 +111,14 @@ function TabNotesColumn({
     isDragging = false,
   } = drag ?? {};
 
-  const {
-    pauseAudio,
-    setTabData,
-    setHoveredChordLocation,
-    bpm,
-    playPreview,
-  } = useTabStore((state) => ({
-    pauseAudio: state.pauseAudio,
-    setTabData: state.setTabData,
-    setHoveredChordLocation: state.setHoveredChordLocation,
-    bpm: state.bpm,
-    playPreview: state.playPreview,
-  }));
+  const { pauseAudio, setTabData, setHoveredChordLocation, bpm, playPreview } =
+    useTabStore((state) => ({
+      pauseAudio: state.pauseAudio,
+      setTabData: state.setTabData,
+      setHoveredChordLocation: state.setHoveredChordLocation,
+      bpm: state.bpm,
+      playPreview: state.playPreview,
+    }));
 
   const chordPreviewPlaying = useTabStore(
     (state) =>
@@ -181,42 +174,10 @@ function TabNotesColumn({
       const currentColumn = currentSubSection.data[columnIndex];
       if (!currentColumn || !isTabNote(currentColumn)) return;
 
-      const currentPalmMuteNodeValue = currentColumn.palmMute;
-
-      const currentTabSectionLength =
-        draft[sectionIndex]?.data[subSectionIndex]?.data.length ?? 0;
-
-      if (currentPalmMuteNodeValue === "start") {
-        let index = 0;
-        while (index < currentTabSectionLength) {
-          const col = currentSubSection.data[index];
-          if (col && isTabNote(col)) {
-            if (col.palmMute === "end") {
-              col.palmMute = "";
-              break;
-            }
-            col.palmMute = "";
-          }
-
-          index++;
-        }
-      } else if (currentPalmMuteNodeValue === "end") {
-        let index = currentTabSectionLength - 1;
-        while (index >= 0) {
-          const col = currentSubSection.data[index];
-          if (col && isTabNote(col)) {
-            if (col.palmMute === "start") {
-              col.palmMute = "";
-              break;
-            }
-            col.palmMute = "";
-          }
-
-          index--;
-        }
-      }
-
-      draft[sectionIndex]?.data[subSectionIndex]?.data.splice(columnIndex, 1);
+      currentSubSection.data = deleteTabNote(
+        currentSubSection.data,
+        columnIndex,
+      );
     });
   }
 
@@ -452,9 +413,7 @@ function TabNotesColumn({
                 })
               }
               onPreview={handlePreviewStrum}
-              previewDisabled={
-                chordPreviewPlaying
-              }
+              previewDisabled={chordPreviewPlaying}
             />
           ) : (
             <div className="my-1 h-2.5 w-5"></div>

@@ -1,5 +1,9 @@
 import {
-  useCallback,
+  getPalmMuteOpacities,
+  finishPalmMuteEdit,
+  removePalmMuteEndpoint,
+} from "~/utils/palmMuteEditing";
+import {
   useEffect,
   useRef,
   useState,
@@ -104,7 +108,6 @@ function StrummingPattern({
   setLastModifiedPalmMuteNode,
 }: StrummingPattern) {
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
-  const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
   const strumPatternContainerRef = useRef<HTMLDivElement>(null);
   const strumPlayheadRef = useRef<HTMLDivElement>(null);
 
@@ -141,116 +144,10 @@ function StrummingPattern({
     }
   }, [inputIdToFocus]);
 
-  // React Compiler escape hatch: identity is an effect dependency that
-  // recomputes palm-mute node opacities.
-  const getPMNodeOpacities = useCallback(() => {
-    const strums = data.strums;
-
-    if (lastModifiedPalmMuteNode === null) {
-      return new Array(strums.length).fill("1") as string[];
-    }
-
-    const newOpacities = new Array(strums.length).fill("0.25") as string[];
-
-    const getPalmMute = (index: number) => strums[index]?.palmMute ?? "";
-
-    // Case 1: Added new "PM Start" node - show valid end positions
-    if (lastModifiedPalmMuteNode.prevValue === "") {
-      // The start node itself should be fully visible (to allow cancel)
-      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
-
-      // Find the nearest existing "start" node to the right (can't place end past it)
-      let nearestStartNodeIndex = strums.length;
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < strums.length;
-        i++
-      ) {
-        if (getPalmMute(i) === "start") {
-          nearestStartNodeIndex = i;
-          break;
-        }
-      }
-
-      // Enable all empty nodes between the new start and the nearest start node/end of section
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < nearestStartNodeIndex;
-        i++
-      ) {
-        const pm = getPalmMute(i);
-        if (pm === "") {
-          newOpacities[i] = "1";
-        }
-      }
-    }
-
-    // Case 2: Removed "PM Start" node - enable nodes left (until end) and right (until pair end)
-    else if (lastModifiedPalmMuteNode.prevValue === "start") {
-      // The removed start node should be visible (to allow cancel/restore)
-      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
-
-      // Enable all empty nodes to the left until an "end" node is found
-      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        const pm = getPalmMute(i);
-        if (pm === "end") {
-          break;
-        }
-        newOpacities[i] = "1";
-      }
-
-      // Enable all empty nodes to the right until the pair "end" node is found
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < strums.length;
-        i++
-      ) {
-        const pm = getPalmMute(i);
-        if (pm === "end") {
-          newOpacities[i] = "1";
-          break;
-        }
-        newOpacities[i] = "1";
-      }
-    }
-
-    // Case 3: Removed "PM End" node - enable nodes right (until start) and left (until pair start)
-    else if (lastModifiedPalmMuteNode.prevValue === "end") {
-      // The removed end node should be visible (to allow cancel/restore)
-      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
-
-      // Enable all empty nodes to the right until a "start" node is found
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < strums.length;
-        i++
-      ) {
-        const pm = getPalmMute(i);
-        if (pm === "start") {
-          break;
-        }
-        newOpacities[i] = "1";
-      }
-
-      // Enable all empty nodes to the left until the pair "start" node is found
-      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        const pm = getPalmMute(i);
-        if (pm === "start") {
-          newOpacities[i] = "1";
-          break;
-        }
-        newOpacities[i] = "1";
-      }
-    }
-
-    return newOpacities;
-  }, [data.strums, lastModifiedPalmMuteNode]);
-
-  useEffect(() => {
-    if (editingPalmMuteNodes) {
-      setPMNodeOpacities(getPMNodeOpacities());
-    }
-  }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
+  const pmNodeOpacities = getPalmMuteOpacities(
+    data.strums.map((strum) => strum.palmMute),
+    lastModifiedPalmMuteNode,
+  );
 
   function patternHasPalmMuting() {
     return data.strums.some((strum) => strum.palmMute !== "");
@@ -477,7 +374,15 @@ function StrummingPattern({
     if (data.strums.length >= 32) return;
 
     const newStrummingPattern = structuredClone(data);
-    const currentStrum = data.strums[atIndex];
+    const values = finishPalmMuteEdit(
+      newStrummingPattern.strums.map((strum) => strum.palmMute),
+      lastModifiedPalmMuteNode,
+    );
+    newStrummingPattern.strums.forEach((strum, i) => {
+      strum.palmMute = values[i] ?? "";
+    });
+    setLastModifiedPalmMuteNode(null);
+    const currentStrum = newStrummingPattern.strums[atIndex];
     const newPalmMuteValue: "" | "-" =
       currentStrum &&
       ((currentStrum.palmMute === "start" && after) ||
@@ -553,47 +458,28 @@ function StrummingPattern({
     newStrummingPattern: StrummingPatternType,
     strumIndex: number,
   ) {
-    // const newStrummingPattern = [...strummingPattern];
-
-    const currentPalmMuteNodeValue =
-      newStrummingPattern.strums[strumIndex]?.palmMute;
-    const currentStrummingPatternLength =
-      newStrummingPattern.strums.length ?? 0;
-
-    if (currentPalmMuteNodeValue === "start") {
-      let index = 0;
-      while (index < currentStrummingPatternLength) {
-        if (newStrummingPattern.strums[index]?.palmMute === "end") {
-          newStrummingPattern.strums[index]!.palmMute = "";
-          break;
-        }
-
-        newStrummingPattern.strums[index]!.palmMute = "";
-
-        index++;
-      }
-    } else if (currentPalmMuteNodeValue === "end") {
-      let index = currentStrummingPatternLength - 1;
-      while (index >= 0) {
-        if (newStrummingPattern.strums[index]?.palmMute === "start") {
-          newStrummingPattern.strums[index]!.palmMute = "";
-          break;
-        }
-
-        newStrummingPattern.strums[index]!.palmMute = "";
-
-        index--;
-      }
-    }
+    const values = removePalmMuteEndpoint(
+      newStrummingPattern.strums.map((strum) => strum.palmMute),
+      strumIndex,
+    );
+    newStrummingPattern.strums.forEach((strum, index) => {
+      strum.palmMute = values[index] ?? "";
+    });
 
     return newStrummingPattern;
   }
 
   function deleteStrum(beatIndex: number) {
-    const newStrummingPattern = handleDeletePalmMutedStrum(
-      structuredClone(data),
-      beatIndex,
+    const draft = structuredClone(data);
+    const values = finishPalmMuteEdit(
+      draft.strums.map((strum) => strum.palmMute),
+      lastModifiedPalmMuteNode,
     );
+    draft.strums.forEach((strum, i) => {
+      strum.palmMute = values[i] ?? "";
+    });
+    setLastModifiedPalmMuteNode(null);
+    const newStrummingPattern = handleDeletePalmMutedStrum(draft, beatIndex);
 
     newStrummingPattern.strums.splice(beatIndex, 1);
 

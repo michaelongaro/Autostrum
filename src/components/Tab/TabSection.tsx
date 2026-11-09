@@ -1,7 +1,6 @@
 import { type DragEndEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -23,14 +22,10 @@ import {
 import {
   useTabColumnIds,
   useTabColumnTypes,
+  useTabPalmMuteValues,
   useTabSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
-import {
-  useTabDataGetter,
-  useTabStoreApi,
-  useTabStore,
-  type TabSection as TabSectionType,
-} from "~/stores/TabStore";
+import { useTabStoreApi, useTabStore } from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import {
   EighthNote,
@@ -39,14 +34,15 @@ import {
   SixteenthNote,
   WholeNote,
 } from "~/utils/noteLengthIcons";
-import { traverseToRemoveHangingPairNode } from "~/utils/palmMuteHelpers";
 import {
-  createTabNote,
-  getPalmMuteValue,
-  isTabMeasureLine,
-  isTabNote,
-  setPalmMuteValue,
-} from "~/utils/tabNoteHelpers";
+  applyTabPalmMuteValues,
+  finishPalmMuteEdit,
+  getPalmMuteOpacities,
+  getTabPalmMuteValues,
+  recoverPendingPalmMuteEdit,
+} from "~/utils/palmMuteEditing";
+import { reorderTabColumns } from "~/utils/reorderTabColumns";
+import { createTabNote, isTabMeasureLine } from "~/utils/tabNoteHelpers";
 import MiscellaneousControls from "./MiscellaneousControls";
 
 const xVariants = {
@@ -110,11 +106,9 @@ function TabSection({
   className,
 }: TabSection) {
   const store = useTabStoreApi();
-  const getTabData = useTabDataGetter();
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
-  const [pmNodeOpacities, setPMNodeOpacities] = useState<string[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -127,10 +121,14 @@ function TabSection({
     return store.subscribe((state, previous) => {
       if (state.editorHistoryRevision === previous.editorHistoryRevision)
         return;
-      setLastModifiedPalmMuteNode(null);
-      setEditingPalmMuteNodes(false);
+      const subSection = state.tabData[sectionIndex]?.data[subSectionIndex];
+      const pending = recoverPendingPalmMuteEdit(
+        getTabPalmMuteValues(subSection?.type === "tab" ? subSection.data : []),
+      );
+      setLastModifiedPalmMuteNode(pending);
+      setEditingPalmMuteNodes(Boolean(pending));
     });
-  }, [store]);
+  }, [store, sectionIndex, subSectionIndex]);
 
   // Meta + column identity only — note edits must not re-render this section shell.
   const subSection = useTabSubSectionMeta(sectionIndex, subSectionIndex);
@@ -174,120 +172,15 @@ function TabSection({
     setTabData: state.setTabData,
   }));
 
-  // React Compiler escape hatch: identity is an effect dependency that
-  // recomputes palm-mute node opacities.
-  const getPMNodeOpacities = useCallback(() => {
-    const tabSubSection = getTabData()[sectionIndex]?.data[subSectionIndex];
-    const columns = tabSubSection?.type === "tab" ? tabSubSection.data : [];
-
-    if (lastModifiedPalmMuteNode === null) {
-      return new Array(columns.length).fill("1") as string[];
-    }
-
-    const newOpacities = new Array(columns.length).fill("0.25") as string[];
-
-    const getPalmMute = (index: number) => {
-      const col = columns[index];
-      return col && isTabNote(col) ? col.palmMute : "";
-    };
-
-    // Case 1: Added new "PM Start" node - show valid end positions
-    if (lastModifiedPalmMuteNode.prevValue === "") {
-      // The start node itself should be fully visible (to allow cancel)
-      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
-
-      // Find the nearest existing "start" node to the right (can't place end past it)
-      let nearestStartNodeIndex = columns.length;
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < columns.length;
-        i++
-      ) {
-        const pm = getPalmMute(i);
-        if (pm === "start") {
-          nearestStartNodeIndex = i;
-          break;
-        }
-      }
-
-      // Enable all empty nodes between the new start and the nearest start node/end of section
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < nearestStartNodeIndex;
-        i++
-      ) {
-        const pm = getPalmMute(i);
-        // Only enable empty nodes (and the start node we placed)
-        if (pm === "" || i === lastModifiedPalmMuteNode.columnIndex) {
-          newOpacities[i] = "1";
-        }
-      }
-    }
-
-    // Case 2: Removed "PM Start" node - enable all nodes to the left (until an end node is found) and all the way right until the pair end node is found.
-    else if (lastModifiedPalmMuteNode.prevValue === "start") {
-      // The removed start node should be visible (to allow cancel/restore)
-      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
-
-      // Enable all empty nodes to the left until an "end" node is found
-      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        const pm = getPalmMute(i);
-        if (pm === "end") {
-          break;
-        }
-        newOpacities[i] = "1";
-      }
-      // Enable all empty nodes to the right until the pair "end" node is found
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < columns.length;
-        i++
-      ) {
-        const pm = getPalmMute(i);
-        if (pm === "end") {
-          newOpacities[i] = "1";
-          break;
-        }
-        newOpacities[i] = "1";
-      }
-    }
-
-    // Case 3: Removed "PM End" node - enable all nodes to the right (until a start node is found) and all the way left until the pair start node is found.
-    else if (lastModifiedPalmMuteNode.prevValue === "end") {
-      // The removed end node should be visible (to allow cancel/restore)
-      newOpacities[lastModifiedPalmMuteNode.columnIndex] = "1";
-
-      // Enable all empty nodes to the right until a "start" node is found
-      for (
-        let i = lastModifiedPalmMuteNode.columnIndex + 1;
-        i < columns.length;
-        i++
-      ) {
-        const pm = getPalmMute(i);
-        if (pm === "start") {
-          break;
-        }
-        newOpacities[i] = "1";
-      }
-      // Enable all empty nodes to the left until the pair "start" node is found
-      for (let i = lastModifiedPalmMuteNode.columnIndex - 1; i >= 0; i--) {
-        const pm = getPalmMute(i);
-        if (pm === "start") {
-          newOpacities[i] = "1";
-          break;
-        }
-        newOpacities[i] = "1";
-      }
-    }
-
-    return newOpacities;
-  }, [sectionIndex, subSectionIndex, lastModifiedPalmMuteNode, getTabData]);
-
-  useEffect(() => {
-    if (editingPalmMuteNodes) {
-      setPMNodeOpacities(getPMNodeOpacities());
-    }
-  }, [editingPalmMuteNodes, lastModifiedPalmMuteNode, getPMNodeOpacities]);
+  const palmMuteValues = useTabPalmMuteValues(
+    sectionIndex,
+    subSectionIndex,
+    editingPalmMuteNodes,
+  );
+  const pmNodeOpacities = getPalmMuteOpacities(
+    palmMuteValues,
+    lastModifiedPalmMuteNode,
+  );
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -301,20 +194,13 @@ function TabSection({
 
       if (e.altKey && e.key === "r") {
         e.preventDefault();
-        setReorderingColumns((prev) => !prev);
-        setShowingDeleteColumnsButtons(false);
-        setEditingPalmMuteNodes(false);
+        toggleReorderingColumns();
       } else if (e.altKey && e.key === "d") {
         e.preventDefault();
-        setShowingDeleteColumnsButtons((prev) => !prev);
-        setReorderingColumns(false);
-        setEditingPalmMuteNodes(false);
+        toggleDeletingColumns();
       } else if (e.altKey && e.key === "p") {
         e.preventDefault();
-        setEditingPalmMuteNodes((prev) => !prev);
-        setLastModifiedPalmMuteNode(null);
-        setReorderingColumns(false);
-        setShowingDeleteColumnsButtons(false);
+        toggleEditingPalmMuteNodes();
       }
     }
 
@@ -322,7 +208,7 @@ function TabSection({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  });
 
   function addNewColumns() {
     setTabData((draft) => {
@@ -339,392 +225,55 @@ function TabSection({
     });
   }
 
-  interface TraverseSectionData {
-    newSectionData: TabSectionType;
-    endIndex: number;
-    pairPalmMuteIndex: number;
-    initialPalmMuteValue: "start" | "end";
-  }
-
-  function traverseSectionData({
-    newSectionData,
-    endIndex,
-    pairPalmMuteIndex,
-    initialPalmMuteValue,
-  }: TraverseSectionData) {
-    const step = endIndex <= pairPalmMuteIndex ? 1 : -1;
-    let action: "expand" | "destroy" = "expand";
-    let currentIndex = endIndex + step;
-
-    while (
-      (step > 0 && currentIndex <= pairPalmMuteIndex) ||
-      (step < 0 && currentIndex >= pairPalmMuteIndex)
-    ) {
-      const column = newSectionData.data[currentIndex];
-      const value = column ? getPalmMuteValue(column) : "";
-
-      // landed outside of a pm section, but broke prev pm section
-      if (value === initialPalmMuteValue) {
-        const endColumn = newSectionData.data[endIndex];
-        if (endColumn) setPalmMuteValue(endColumn, "");
-        action = "destroy";
-        break;
-      }
-
-      // landed inside of a pm section, but broke prev pm section
-      if (
-        ((initialPalmMuteValue === "start" && value === "end") ||
-          (initialPalmMuteValue === "end" && value === "start")) &&
-        currentIndex !== pairPalmMuteIndex
-      ) {
-        const endColumn = newSectionData.data[endIndex];
-        if (endColumn) setPalmMuteValue(endColumn, "-");
-        action = "destroy";
-        break;
-      }
-
-      // landed outside of a pm section, able to keep prev pm section
-      if (currentIndex === pairPalmMuteIndex) {
-        if (
-          (initialPalmMuteValue === "start" && endIndex > pairPalmMuteIndex) ||
-          (initialPalmMuteValue === "end" && endIndex < pairPalmMuteIndex)
-        ) {
-          const endColumn = newSectionData.data[endIndex];
-          if (endColumn) setPalmMuteValue(endColumn, "");
-          action = "destroy";
-        } else {
-          action = "expand";
+  function finishEditingPalmMuteNodes() {
+    if (lastModifiedPalmMuteNode) {
+      setTabData((draft) => {
+        const subSection = draft[sectionIndex]?.data[subSectionIndex];
+        if (subSection?.type === "tab") {
+          applyTabPalmMuteValues(
+            subSection.data,
+            finishPalmMuteEdit(
+              getTabPalmMuteValues(subSection.data),
+              lastModifiedPalmMuteNode,
+            ),
+          );
         }
-
-        break;
-      }
-
-      currentIndex += step;
+      });
     }
-
-    return { newSectionData, action };
-  }
-
-  interface MoveAndAssignNewPalmMuteValue {
-    sectionData: TabSectionType;
-    startIndex: number;
-    endIndex: number;
-  }
-
-  function moveAndAssignNewPalmMuteValue({
-    sectionData,
-    startIndex,
-    endIndex,
-  }: MoveAndAssignNewPalmMuteValue): {
-    newSectionData: TabSectionType;
-    action: "expand" | "shrink" | "destroy";
-    pairPalmMuteIndex: number;
-  } {
-    const startColumn = sectionData.data[startIndex];
-    const initialPalmMuteValue = startColumn
-      ? getPalmMuteValue(startColumn)
-      : "";
-    let pairPalmMuteIndex = -1;
-
-    if (initialPalmMuteValue === "start") {
-      // initial thought was to start +1 from startIndex, but I'm not sure that's necessary
-      let index = startIndex;
-      while (index < sectionData.data.length) {
-        const col = sectionData.data[index];
-        if (col && getPalmMuteValue(col) === "end") {
-          pairPalmMuteIndex = index;
-          break;
-        }
-        index++;
-      }
-    } else if (initialPalmMuteValue === "end") {
-      let index = startIndex;
-      while (index >= 0) {
-        const col = sectionData.data[index];
-        if (col && getPalmMuteValue(col) === "start") {
-          pairPalmMuteIndex = index;
-          break;
-        }
-        index--;
-      }
-    }
-
-    const newSectionData = {
-      ...sectionData,
-      data: arrayMove(sectionData.data, startIndex, endIndex),
-    };
-
-    let index = endIndex;
-    const action: "expand" | "shrink" | "destroy" = "expand";
-
-    if (initialPalmMuteValue === "" || initialPalmMuteValue === "-") {
-      while (index >= 0) {
-        const col = newSectionData.data[index];
-        const colValue = col ? getPalmMuteValue(col) : "";
-
-        if (colValue === "end") {
-          const endCol = newSectionData.data[endIndex];
-          if (endCol) setPalmMuteValue(endCol, "");
-          break;
-        }
-
-        if (colValue === "start") {
-          const endCol = newSectionData.data[endIndex];
-          if (endCol) setPalmMuteValue(endCol, "-");
-          break;
-        }
-
-        index--;
-      }
-    } else if (
-      initialPalmMuteValue === "start" ||
-      initialPalmMuteValue === "end"
-    ) {
-      let results: {
-        newSectionData: TabSectionType;
-        action: "expand" | "shrink" | "destroy";
-      };
-
-      if (
-        Math.min(startIndex, pairPalmMuteIndex) < endIndex &&
-        endIndex < Math.max(startIndex, pairPalmMuteIndex)
-      ) {
-        return {
-          newSectionData,
-          action: "shrink",
-          pairPalmMuteIndex,
-        };
-      } else if (endIndex === pairPalmMuteIndex) {
-        const endCol = newSectionData.data[endIndex];
-        if (endCol) setPalmMuteValue(endCol, "");
-        return {
-          newSectionData,
-          action: "destroy",
-          pairPalmMuteIndex,
-        };
-      } else {
-        results = traverseSectionData({
-          newSectionData,
-          endIndex,
-          pairPalmMuteIndex,
-          initialPalmMuteValue,
-        });
-      }
-
-      return {
-        newSectionData: results.newSectionData,
-        action: results.action,
-        pairPalmMuteIndex,
-      };
-    }
-
-    return { newSectionData, action, pairPalmMuteIndex };
-  }
-
-  interface HandlePreviousPalmMuteSection {
-    sectionData: TabSectionType;
-    startIndex: number;
-    endIndex: number;
-    direction: "left" | "right";
-    action: "expand" | "shrink" | "destroy";
-  }
-
-  function handlePreviousPalmMuteSection({
-    sectionData,
-    startIndex,
-    endIndex,
-    direction,
-    action,
-  }: HandlePreviousPalmMuteSection) {
-    let index = startIndex;
-
-    // may need to start with one index "forward"
-    // I think if endIndex < startIndex you don't have to go one forward though
-
-    // all edge cases are handled before this function is called
-    if (action === "expand") {
-      if (direction === "left") {
-        while (index > endIndex) {
-          const col = sectionData.data[index];
-          if (col) setPalmMuteValue(col, "-");
-
-          index--;
-        }
-      } else {
-        while (index < endIndex) {
-          const col = sectionData.data[index];
-          if (col) setPalmMuteValue(col, "-");
-
-          index++;
-        }
-      }
-    } else if (action === "shrink") {
-      // should basically be right, but is copilot generated
-      if (direction === "left") {
-        while (index > endIndex) {
-          const col = sectionData.data[index];
-          if (col) setPalmMuteValue(col, "");
-
-          index--;
-        }
-      } else {
-        while (index < endIndex) {
-          const col = sectionData.data[index];
-          if (col) setPalmMuteValue(col, "");
-
-          index++;
-        }
-      }
-    } else {
-      if (direction === "left") {
-        while (index >= 0) {
-          const col = sectionData.data[index];
-          if (col && getPalmMuteValue(col) === "start") {
-            setPalmMuteValue(col, "");
-            break;
-          }
-
-          if (col) setPalmMuteValue(col, "");
-
-          index--;
-        }
-      } else {
-        while (index < sectionData.data.length) {
-          const col = sectionData.data[index];
-          if (col && getPalmMuteValue(col) === "end") {
-            setPalmMuteValue(col, "");
-            break;
-          }
-
-          if (col) setPalmMuteValue(col, "");
-
-          index++;
-        }
-      }
-    }
-
-    return sectionData;
-  }
-
-  function toggleEditingPalmMuteNodes() {
-    if (!editingPalmMuteNodes) {
-      setEditingPalmMuteNodes(true);
-      return;
-    } else if (lastModifiedPalmMuteNode) {
-      // if only had a hanging "start" node, then just revert
-      // start node to being empty
-      if (lastModifiedPalmMuteNode.prevValue === "") {
-        setTabData((draft) => {
-          const subSection = draft[sectionIndex]!.data[subSectionIndex];
-
-          if (subSection?.type === "tab") {
-            const col = subSection.data[lastModifiedPalmMuteNode.columnIndex];
-            if (col) setPalmMuteValue(col, "");
-          }
-        });
-      }
-      // otherwise need to traverse to find + remove pair node
-      else {
-        traverseToRemoveHangingPairNode({
-          setTabData,
-          sectionIndex,
-          subSectionIndex,
-          startColumnIndex: lastModifiedPalmMuteNode.columnIndex,
-          pairNodeToRemove:
-            lastModifiedPalmMuteNode.prevValue === "start" ? "end" : "start",
-        });
-      }
-
-      setLastModifiedPalmMuteNode(null);
-    }
+    setLastModifiedPalmMuteNode(null);
     setEditingPalmMuteNodes(false);
   }
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+  function toggleEditingPalmMuteNodes() {
+    if (editingPalmMuteNodes) finishEditingPalmMuteNodes();
+    else {
+      setReorderingColumns(false);
+      setShowingDeleteColumnsButtons(false);
+      setEditingPalmMuteNodes(true);
+    }
+  }
 
+  function toggleReorderingColumns() {
+    finishEditingPalmMuteNodes();
+    setReorderingColumns((previous) => !previous);
+    setShowingDeleteColumnsButtons(false);
+  }
+
+  function toggleDeletingColumns() {
+    finishEditingPalmMuteNodes();
+    setShowingDeleteColumnsButtons((previous) => !previous);
+    setReorderingColumns(false);
+  }
+
+  function handleDragEnd({ active, over }: DragEndEvent) {
+    if (typeof active.id !== "string" || typeof over?.id !== "string") return;
+    const activeId = active.id;
+    const overId = over.id;
     setTabData((draft) => {
-      const prevSectionData = draft[sectionIndex]?.data[subSectionIndex];
-
-      if (
-        prevSectionData?.type !== "tab" ||
-        typeof active.id !== "string" ||
-        typeof over?.id !== "string" ||
-        active.id === over.id
-      ) {
-        return;
+      const subSection = draft[sectionIndex]?.data[subSectionIndex];
+      if (subSection?.type === "tab") {
+        subSection.data = reorderTabColumns(subSection.data, activeId, overId);
       }
-
-      let startIndex = 0;
-      let endIndex = 0;
-
-      for (let i = 0; i < prevSectionData.data.length; i++) {
-        if (prevSectionData.data[i]?.id === active.id) {
-          startIndex = i;
-        } else if (prevSectionData.data[i]?.id === over.id) {
-          endIndex = i;
-        }
-      }
-
-      const startColumn = prevSectionData.data[startIndex];
-      const startPalmMuteValue =
-        startColumn && isTabNote(startColumn) ? startColumn.palmMute : "";
-
-      // Get the result from your helpers, mutate in-place instead of reassigning
-      const { newSectionData, action, pairPalmMuteIndex } =
-        moveAndAssignNewPalmMuteValue({
-          sectionData: prevSectionData,
-          startIndex,
-          endIndex,
-        });
-
-      // Copy props from newSectionData into prevSectionData (immer mutability)
-      prevSectionData.data = newSectionData.data;
-
-      // Prevent two measure lines next to each other or on ends
-      for (let i = 0; i < prevSectionData.data.length - 2; i++) {
-        if (
-          (isTabMeasureLine(prevSectionData.data[i]!) &&
-            isTabMeasureLine(prevSectionData.data[i + 1]!)) ||
-          isTabMeasureLine(prevSectionData.data[0]!) ||
-          isTabMeasureLine(
-            prevSectionData.data[prevSectionData.data.length - 1]!,
-          )
-        ) {
-          return;
-        }
-      }
-
-      // If we are handling palm mute sections, perform the update in-draft
-      if (startPalmMuteValue === "start" || startPalmMuteValue === "end") {
-        let direction: "left" | "right" = "right";
-
-        if (startIndex > endIndex) {
-          direction = "left";
-        }
-
-        if (
-          action === "destroy" &&
-          ((startPalmMuteValue === "start" && endIndex < pairPalmMuteIndex) ||
-            (startPalmMuteValue === "end" && endIndex > pairPalmMuteIndex))
-        ) {
-          direction = direction === "left" ? "right" : "left";
-        }
-
-        // Call helper and mutate in place
-        const handledSection = handlePreviousPalmMuteSection({
-          sectionData: prevSectionData,
-          startIndex,
-          endIndex,
-          direction,
-          action,
-        });
-
-        // Copy data back to the draft's section
-        prevSectionData.data = handledSection.data;
-      }
-      // Otherwise, data was already mutated in-place above
-      // Draft is already mutably updated, just exit
     });
   }
 
@@ -799,7 +348,18 @@ function TabSection({
   return (
     <div
       ref={containerRef}
-
+      onKeyDownCapture={(event) => {
+        // Resolve the pending anchor before a shortcut changes column indices.
+        if (
+          lastModifiedPalmMuteNode &&
+          event.target instanceof HTMLInputElement &&
+          !event.altKey &&
+          (["q", "w", "|"].includes(event.key.toLowerCase()) ||
+            (event.ctrlKey && event.shiftKey && event.key === "Backspace"))
+        ) {
+          finishEditingPalmMuteNodes();
+        }
+      }}
       className={[
         presentation === "embedded"
           ? "baseVertFlex relative w-full !justify-start"
@@ -991,10 +551,7 @@ function TabSection({
                               : "0.375rem",
                             transitionDelay: "0.1s",
                           }}
-                          onClick={() => {
-                            setReorderingColumns(!reorderingColumns);
-                            setShowingDeleteColumnsButtons(false);
-                          }}
+                          onClick={toggleReorderingColumns}
                         >
                           Reorder chords
                         </Button>
@@ -1021,10 +578,7 @@ function TabSection({
                     >
                       <Button
                         className="rounded-l-none rounded-r-md px-2 py-0"
-                        onClick={() => {
-                          setReorderingColumns(!reorderingColumns);
-                          setShowingDeleteColumnsButtons(false);
-                        }}
+                        onClick={toggleReorderingColumns}
                       >
                         <motion.div
                           variants={xVariants}
@@ -1058,12 +612,7 @@ function TabSection({
                             transitionDelay: "0.1s",
                           }}
                           className="baseFlex"
-                          onClick={() => {
-                            setShowingDeleteColumnsButtons(
-                              !showingDeleteColumnsButtons,
-                            );
-                            setReorderingColumns(false);
-                          }}
+                          onClick={toggleDeletingColumns}
                         >
                           Delete chords
                         </Button>
@@ -1091,12 +640,7 @@ function TabSection({
                       <Button
                         variant={"destructive"}
                         className="rounded-l-none rounded-r-md px-2 py-0"
-                        onClick={() => {
-                          setShowingDeleteColumnsButtons(
-                            !showingDeleteColumnsButtons,
-                          );
-                          setReorderingColumns(false);
-                        }}
+                        onClick={toggleDeletingColumns}
                       >
                         <motion.div
                           variants={xVariants}

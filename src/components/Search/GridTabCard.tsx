@@ -26,6 +26,11 @@ import TabScreenshotMasks from "~/components/Search/TabScreenshotMasks";
 import { DEFAULT_TAB_SCREENSHOT_RENDERER } from "~/utils/tabScreenshotMasks";
 import TabScreenshotImage from "~/components/Search/TabScreenshotImage";
 
+import {
+  getCachedMaskAtlas,
+  getMaskAtlasSource,
+} from "~/utils/tabScreenshotMaskCache";
+
 const loadedTabScreenshotKeys = new Set<string>();
 const SCREENSHOT_REVEAL_DELAY_MS = 100;
 
@@ -90,11 +95,19 @@ function GridTabCard({
   const [maskState, setMaskState] = useState<{
     key: string;
     status: "ready" | "error";
-  } | null>(null);
+  } | null>(() =>
+    loadedTabScreenshotKeys.has(`${screenshotMaskCacheKey}:fallback`)
+      ? { key: screenshotMaskCacheKey, status: "error" }
+      : null,
+  );
   const revealMasks = useCallback(() => {
+    loadedTabScreenshotKeys.delete(`${screenshotMaskCacheKey}:fallback`);
     setMaskState({ key: screenshotMaskCacheKey, status: "ready" });
   }, [screenshotMaskCacheKey]);
   const handleMaskError = useCallback(() => {
+    // Legacy tabs may only have JPEGs. Reuse their loaded fallback while
+    // retrying the atlas instead of showing a skeleton on every grid visit.
+    loadedTabScreenshotKeys.add(`${screenshotMaskCacheKey}:fallback`);
     setMaskState({ key: screenshotMaskCacheKey, status: "error" });
   }, [screenshotMaskCacheKey]);
   const screenshotRevealTimeoutRef = useRef<number | null>(null);
@@ -106,14 +119,16 @@ function GridTabCard({
   const gradientScreenshotLoaded =
     loadedTabScreenshotKeys.has(screenshotCacheKey) ||
     revealedScreenshotCacheKey === screenshotCacheKey;
-  // Readiness belongs to this mounted mask surface, not just a cached network
-  // image. Keep the skeleton until the CSS masks are prepared, or until an
-  // atlas failure lets us reveal the decoded gradient-map fallback.
+  const cachedMaskAtlas = getCachedMaskAtlas(
+    getMaskAtlasSource(minimalTab.id, screenshotVersion),
+  );
+  // A retained, decoded atlas can be rendered immediately on a grid remount.
   const tabScreenshotLoaded =
     screenshotRenderer === "masks"
-      ? maskState?.key === screenshotMaskCacheKey &&
-        (maskState.status === "ready" ||
-          (maskState.status === "error" && gradientScreenshotLoaded))
+      ? Boolean(cachedMaskAtlas) ||
+        (maskState?.key === screenshotMaskCacheKey &&
+          (maskState.status === "ready" ||
+            (maskState.status === "error" && gradientScreenshotLoaded)))
       : gradientScreenshotLoaded;
 
   useEffect(() => {
@@ -185,7 +200,7 @@ function GridTabCard({
     <motion.div
       ref={ref}
       key={`${minimalTab.id}gridTabCard`}
-      initial={{ opacity: 0 }}
+      initial={tabScreenshotLoaded ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
@@ -263,7 +278,7 @@ function GridTabCard({
                 />
                 {screenshotRenderer === "masks" && (
                   <TabScreenshotMasks
-                    key={`${minimalTab.id}:${screenshotVersion}`}
+                    key={getMaskAtlasSource(minimalTab.id, screenshotVersion)}
                     tabId={minimalTab.id}
                     version={screenshotVersion}
                     width={getDynamicWidth()}
