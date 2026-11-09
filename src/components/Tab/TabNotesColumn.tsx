@@ -350,12 +350,12 @@ function TabNotesColumn({
           )}
 
           {reorderingColumns && (
-            <div className="baseFlex relative mt-1 h-8 w-full">
+            <div className="baseFlex relative mt-1 h-8 w-full !items-start">
               <div
                 ref={setActivatorNodeRef}
                 {...(attributes ?? {})}
                 {...(listeners ?? {})}
-                className={`hover:box-shadow-md w-[1.5rem] cursor-grab rounded-md text-foreground ${
+                className={`baseFlex relative h-6 w-[29px] shrink-0 cursor-grab rounded-md text-foreground ${
                   isDragging ? "cursor-grabbing" : "cursor-grab"
                 }`}
                 onMouseEnter={() => setHoveringOnHandle(true)}
@@ -369,27 +369,27 @@ function TabNotesColumn({
                   setHoveringOnHandle(false);
                 }}
               >
-                <RxDragHandleDots2 className="h-8 w-6" />
+                <RxDragHandleDots2 className="size-5" />
                 <div
                   style={{
                     opacity: hoveringOnHandle ? (grabbingHandle ? 0.5 : 1) : 0,
                   }}
-                  className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
+                  className="pointer-events-none absolute inset-0 rounded-md bg-primary/20 transition-colors"
                 ></div>
               </div>
             </div>
           )}
 
           {showingDeleteColumnsButtons && (
-            <div className="baseFlex mt-1 h-8 w-full">
+            <div className="baseFlex mt-1 h-8 w-full !items-start">
               <Button
                 variant={"destructive"}
                 size="sm"
                 disabled={deleteColumnButtonDisabled()}
-                className="h-[1.75rem] w-[1.75rem] p-1"
+                className="h-6 w-[29px] p-0"
                 onClick={handleDeleteChord}
               >
-                <IoClose className="size-6" />
+                <IoClose className="size-[18px] shrink-0" />
               </Button>
             </div>
           )}

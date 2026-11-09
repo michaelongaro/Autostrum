@@ -574,7 +574,7 @@ function TuningGutter({
         <Popover>
           <PopoverTrigger
             aria-label="Note lengths"
-            className="baseFlex absolute left-[-8px] top-4 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10"
+            className="baseFlex absolute left-[-6px] top-4 size-[22px] rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10"
           >
             <QuarterNote />
             <EighthNote />
@@ -599,7 +599,7 @@ function TuningGutter({
         <Popover>
           <PopoverTrigger
             aria-label="Chord modifiers"
-            className="absolute left-[-8px] top-2 size-6 rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10"
+            className="absolute left-[-8px] top-2 size-[22px] rounded-md transition-all hover:bg-primary-foreground/20 active:hover:bg-primary-foreground/10"
           >
             <BsArrowDown className="absolute left-0 top-1 size-4" />
             <BsArrowUp className="absolute left-2 top-1 size-4" />

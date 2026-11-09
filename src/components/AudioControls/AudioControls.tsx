@@ -895,7 +895,7 @@ function AudioControlsFrame({
             variant="ghost"
             aria-label="Expand audio controls"
             aria-expanded={false}
-            className="h-7 w-12 p-0"
+            className="h-7 w-full rounded-b-none rounded-t-xl p-0"
             onClick={onExpand}
           >
             <GoChevronUp className="size-5" />

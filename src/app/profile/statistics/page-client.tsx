@@ -81,7 +81,7 @@ function UserStatistics() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="baseVertFlex my-12 min-h-[650px] w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
+      className="baseVertFlex my-12 w-full max-w-[1400px] !justify-start md:my-24 md:w-3/4 md:p-0"
     >
       <div className="baseVertFlex w-full gap-4">
         <div className="baseFlex w-full !justify-start md:!hidden">
@@ -149,7 +149,7 @@ function UserStatistics() {
           />
         </div>
 
-        <div className="baseVertFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-12 border-y bg-background p-4 shadow-lg md:min-h-[calc(100dvh-4rem-12rem-56px)] md:rounded-lg md:border md:p-8 xl:!flex-row">
+        <div className="baseVertFlex w-full !items-start gap-12 border-y bg-background p-4 shadow-lg md:rounded-lg md:border md:p-8 xl:!flex-row">
           <AnimatePresence mode="popLayout">
             {/* main stats */}
             <div className="baseVertFlex w-full gap-4 xl:w-1/2">

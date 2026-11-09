@@ -62,8 +62,15 @@ const PopoverContent = React.forwardRef<
           {...props}
         >
           {showArrow && (
-            <PopoverPrimitive.Arrow className="fill-border data-[side=bottom]:-top-[5px] data-[side=left]:-right-[5px] data-[side=right]:-left-[5px] data-[side=top]:-bottom-[5px] data-[side=bottom]:rotate-180 data-[side=left]:-rotate-90 data-[side=right]:rotate-90">
-              <svg width="10" height={POPOVER_ARROW_HEIGHT} viewBox="0 0 10 5">
+            // Keep the measured box unrotated and sized for the resolved side.
+            // Rotating a 10x5 box moves its base away from the popup edge.
+            <PopoverPrimitive.Arrow className="group h-[5px] w-2.5 fill-border data-[side=bottom]:-top-[5px] data-[side=left]:-right-[5px] data-[side=right]:-left-[5px] data-[side=top]:-bottom-[5px] data-[side=left]:h-2.5 data-[side=right]:h-2.5 data-[side=left]:w-[5px] data-[side=right]:w-[5px]">
+              <svg
+                width="10"
+                height={POPOVER_ARROW_HEIGHT}
+                viewBox="0 0 10 5"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 group-data-[side=bottom]:rotate-180 group-data-[side=left]:-rotate-90 group-data-[side=right]:rotate-90"
+              >
                 <path d="M0 0H10L5 5Z" />
               </svg>
             </PopoverPrimitive.Arrow>

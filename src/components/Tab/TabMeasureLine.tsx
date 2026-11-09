@@ -354,9 +354,9 @@ function TabMeasureLine({
                   ref={setActivatorNodeRef}
                   {...(attributes ?? {})}
                   {...(listeners ?? {})}
-                  className={`hover:box-shadow-md ${
+                  className={`baseFlex ${
                     isDragging ? "cursor-grabbing" : "cursor-grab"
-                  } absolute top-[18px] z-20 cursor-grab rounded-md text-foreground active:cursor-grabbing`}
+                  } absolute top-[18px] z-20 h-6 w-[29px] cursor-grab rounded-md text-foreground active:cursor-grabbing`}
                   onMouseEnter={() => setHoveringOnHandle(true)}
                   onMouseDown={() => setGrabbingHandle(true)}
                   onMouseLeave={() => {
@@ -368,7 +368,7 @@ function TabMeasureLine({
                     setHoveringOnHandle(false);
                   }}
                 >
-                  <RxDragHandleDots2 className="h-8 w-6" />
+                  <RxDragHandleDots2 className="size-5" />
                   <div
                     style={{
                       opacity: hoveringOnHandle
@@ -377,7 +377,7 @@ function TabMeasureLine({
                           : 1
                         : 0,
                     }}
-                    className="absolute bottom-0 left-1/2 right-1/2 h-8 -translate-x-1/2 rounded-md bg-primary/20 p-4 transition-colors"
+                    className="pointer-events-none absolute inset-0 rounded-md bg-primary/20 transition-colors"
                   ></div>
                 </div>
               )}
@@ -387,10 +387,10 @@ function TabMeasureLine({
                   variant={"destructive"}
                   size="sm"
                   disabled={audioIsPlaying}
-                  className="absolute top-[20px] z-20 h-[1.75rem] w-[1.75rem] p-1"
+                  className="absolute top-[18px] z-20 h-6 w-[29px] p-0"
                   onClick={handleDeleteMeasureLine}
                 >
-                  <IoClose className="h-6 w-6" />
+                  <IoClose className="size-[21px] shrink-0" />
                 </Button>
               )}
             </div>

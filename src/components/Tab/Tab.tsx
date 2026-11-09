@@ -53,6 +53,7 @@ import SectionProgressionDialog from "~/components/Dialogs/SectionProgressionDia
 import ChordDialog from "~/components/Dialogs/ChordDialog";
 import StrummingPatternDialog from "~/components/Dialogs/StrummingPatternDialog";
 import { useTabEditorHistory } from "~/hooks/useTabEditorHistory";
+import { cn } from "~/utils/cn";
 
 import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
@@ -172,15 +173,19 @@ function Tab() {
       transition={{ duration: 0.5 }}
       className="baseVertFlex w-full"
     >
+      {/* Clip the sliding audio controls at the editor edge without creating a
+          scroll container, which would prevent viewport-based sticky positioning. */}
       <div
         id={"mainTabComponent"}
         data-tab-editor-history="document"
         style={{
           transition: "filter 0.5s ease-in-out",
         }}
-        className={`baseVertFlex relative w-full border-y bg-background shadow-lg md:rounded-xl md:border ${
-          isPublishingOrUpdating ? "pointer-events-none brightness-90" : ""
-        }`}
+        className={cn(
+          "baseVertFlex relative w-full border-y bg-background shadow-lg md:rounded-xl md:border",
+          editing && "overflow-clip",
+          isPublishingOrUpdating && "pointer-events-none brightness-90",
+        )}
       >
         <TabMetadata setIsPublishingOrUpdating={setIsPublishingOrUpdating} />
 
