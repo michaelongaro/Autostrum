@@ -98,6 +98,8 @@ html:not([data-color]) .headerLogoLayer[data-logo-color="maple"] {
   html {
     /* Keep the root background solid so Safari overscroll doesn't reveal the page gradient. */
     @apply bg-header;
+    /* Dialog scroll locks must not change the viewport used to center fixed modals. */
+    scrollbar-gutter: stable;
   }
 
   body {

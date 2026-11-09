@@ -59,7 +59,7 @@ export default function PlaybackMetronomeControl({ mobile = false }) {
               variant="outline"
               aria-label="Toggle metronome"
               aria-pressed={enabled}
-              className={`baseFlex size-10 shrink-0 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${enabled ? "bg-accent/90 text-primary-foreground" : ""}`}
+              className={`baseFlex size-10 shrink-0 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent active:!text-primary-foreground ${enabled ? "bg-accent/90 text-primary-foreground" : ""}`}
               onClick={() => setEnabled(!enabled)}
               {...keyboardProps}
             >

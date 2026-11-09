@@ -41,13 +41,8 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Backdrop
     ref={ref}
-    style={{
-      // had it as "!duration-300", and the !important overrode updateCSSThemeVars()
-      transitionDuration: "300ms",
-      animationDuration: "300ms",
-    }}
     className={cn(
-      "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
+      "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 data-[ending-style]:duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0",
       className,
     )}
     {...props}
@@ -80,13 +75,8 @@ const DialogContent = React.forwardRef<
         <DialogOverlay />
         <DialogPrimitive.Popup
           ref={popupRef}
-          style={{
-            // had it as "!duration-300", and the !important overrode updateCSSThemeVars()
-            transitionDuration: "300ms",
-            animationDuration: "300ms",
-          }}
           className={cn(
-            "modalGradient fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 text-foreground shadow-lg transition-[opacity,transform] duration-150 data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 sm:rounded-lg md:w-full",
+            "modalGradient fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 text-foreground shadow-lg transition-[opacity,transform] duration-300 data-[ending-style]:duration-150 data-[ending-style]:scale-95 data-[starting-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 sm:rounded-lg md:w-full",
             className,
           )}
           {...props}

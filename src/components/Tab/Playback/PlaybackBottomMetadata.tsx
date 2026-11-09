@@ -299,7 +299,7 @@ function MobileSettingsPopover({
               if (audioMetadata.playing) pauseAudio();
             }}
             style={{
-              backgroundColor: open ? "hsl(var(--background))" : "transparent",
+              backgroundColor: open ? "hsl(var(--background))" : undefined,
             }}
             className="z-50 !h-9"
           >
@@ -1117,7 +1117,7 @@ function DesktopSettings() {
                 variant={"outline"}
                 aria-label="Enter the loop range editor"
                 disabled={audioMetadata.playing || countInTimer.showing}
-                className="baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
+                className="baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent active:!text-primary-foreground"
                 onClick={() => {
                   enterPlaybackLoopRangeEditor();
                 }}
@@ -1140,7 +1140,7 @@ function DesktopSettings() {
                 variant={"outline"}
                 aria-label="Toggle count-in"
                 disabled={audioMetadata.playing || countInTimer.showing}
-                className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${countIn ? "bg-accent/90 text-primary-foreground" : ""}`}
+                className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent active:!text-primary-foreground ${countIn ? "bg-accent/90 text-primary-foreground" : ""}`}
                 onClick={() => {
                   localStorageCountIn.set(String(!countIn));
                 }}
@@ -1164,7 +1164,7 @@ function DesktopSettings() {
               <Button
                 variant={"outline"}
                 aria-label="Toggle color-coded chords"
-                className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent ${colorCodedChords ? "bg-accent/90 text-primary-foreground" : ""}`}
+                className={`baseFlex size-10 p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent active:!text-primary-foreground ${colorCodedChords ? "bg-accent/90 text-primary-foreground" : ""}`}
                 onClick={() => {
                   localStorageColorCodedChords.set(String(!colorCodedChords));
                 }}
@@ -1192,7 +1192,7 @@ function DesktopSettings() {
                     render={
                       <Button
                         variant="outline"
-                        className="size-10 !p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent"
+                        className="size-10 !p-0 hover:bg-accent/90 hover:!text-primary-foreground active:!bg-accent active:!text-primary-foreground"
                       >
                         <AnimatePresence mode="popLayout" initial={false}>
                           {volume === 0 && (

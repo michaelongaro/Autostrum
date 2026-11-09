@@ -620,7 +620,10 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
       variants={backdropVariants}
       initial="closed"
       animate="expanded"
-      exit="closed"
+      exit={{
+        opacity: 0,
+        transition: { duration: 0.15, ease: "easeOut" },
+      }}
       transition={{
         duration: 0.3,
         ease: "easeOut",
