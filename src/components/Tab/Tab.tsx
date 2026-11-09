@@ -185,7 +185,7 @@ function Tab() {
         <TabMetadata setIsPublishingOrUpdating={setIsPublishingOrUpdating} />
 
         <Separator
-          className={`mt-2 bg-border ${editing ? "w-[96%]" : "h-px w-full tablet:mb-4 tablet:h-[2px] tablet:w-[96%]"}`}
+          className={`mt-2 bg-border ${editing ? "w-[calc(100%-16px)] md:w-[calc(100%-56px)]" : "h-px w-[calc(100%-16px)] w-full tablet:mb-4 tablet:h-[2px] tablet:w-[calc(100%-56px)]"}`}
         />
 
         {editing ? (
@@ -245,7 +245,7 @@ function Tab() {
         )}
 
         <Separator
-          className={`bg-border ${editing ? "my-2 w-[96%]" : `h-px w-full tablet:h-[2px] tablet:w-[96%] ${showSectionNavigation ? "mt-2" : "my-2"}`}`}
+          className={`bg-border ${editing ? "my-2 w-[calc(100%-16px)] md:w-[calc(100%-56px)]" : `h-px w-[calc(100%-16px)] tablet:h-[2px] tablet:w-[calc(100%-56px)] ${showSectionNavigation ? "mt-2" : "my-2"}`}`}
         />
 
         <div

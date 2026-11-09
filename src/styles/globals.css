@@ -22,8 +22,8 @@ html[data-search-layout-transition]::view-transition {
   pointer-events: none;
 }
 
-/* Capture the entire switch together so its pill stays clipped to its container.
-   The new capture is live: the pill's local CSS transform owns the horizontal
+/* Capture the entire switch together so its mask stays clipped to its container.
+   The new capture is live: the mask's local CSS transition owns the horizontal
    slide, while page-height/scroll changes take effect without a vertical tween. */
 html[data-search-layout-transition] [data-search-layout-toggle] {
   view-transition-name: search-layout-toggle;
@@ -228,15 +228,51 @@ kbd {
   align-items: center;
 }
 
-/* Give segmented toggle pills a quick start and a soft settle. */
-.togglePill {
-  transition-property: transform, width, background-color, border-radius;
-  transition-duration: 250ms;
-  transition-timing-function: ease-in-out;
+/* A stationary copy of the labels is revealed by the moving highlight. */
+.maskedToggle {
+  --toggle-text: var(--foreground);
+  --toggle-highlight: var(--primary);
+  --toggle-highlight-text: var(--primary-foreground);
+  color: hsl(var(--toggle-text));
+}
+
+.maskedToggle[data-variant="accent"] {
+  --toggle-text: var(--primary-foreground);
+  --toggle-highlight: var(--background);
+  --toggle-highlight-text: var(--foreground);
+}
+
+.maskedToggle[data-variant="inverse"] {
+  --toggle-highlight: var(--accent);
+  --toggle-highlight-text: var(--background);
+  background: hsl(var(--background));
+}
+
+html[data-theme="dark"] .maskedToggle[data-variant="accent"],
+html[data-theme="dark"] .maskedToggle[data-variant="inverse"] {
+  --toggle-text: var(--primary-foreground);
+  --toggle-highlight: var(--primary);
+  --toggle-highlight-text: var(--primary-foreground);
+}
+
+html[data-theme="dark"] .maskedToggle[data-variant="inverse"] {
+  background: hsl(var(--accent));
+}
+
+.maskedToggleHighlight {
+  color: hsl(var(--toggle-highlight-text));
+  background: hsl(var(--toggle-highlight));
+  transition: clip-path 250ms ease-in-out;
+}
+
+/* The presentation layer must not cover keyboard focus feedback. */
+.maskedToggle:has(button:focus-visible) {
+  outline: 2px solid hsl(var(--foreground));
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .togglePill {
+  .maskedToggleHighlight {
     transition: none;
   }
 }

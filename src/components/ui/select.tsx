@@ -5,12 +5,15 @@ import { Check, ChevronDown } from "lucide-react";
 import { cn } from "~/utils/cn";
 import { Separator } from "~/components/ui/separator";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
+import { DialogContentContext } from "./dialog-content-context";
 
 function Select<Value, Multiple extends boolean | undefined = false>({
   children,
   items,
+  modal,
   ...props
 }: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const insideDialog = React.useContext(DialogContentContext);
   // Radix copied ItemText into Value automatically. Supply the same labels to
   // Base UI, including before a lazy popup mounts and during server rendering.
   const labels: { value: Value; label: React.ReactNode }[] = [];
@@ -31,7 +34,11 @@ function Select<Value, Multiple extends boolean | undefined = false>({
   }
   if (!items) collectItems(children);
   return (
-    <SelectPrimitive.Root {...props} items={items ?? labels}>
+    <SelectPrimitive.Root
+      {...props}
+      modal={insideDialog ? false : modal}
+      items={items ?? labels}
+    >
       {children}
     </SelectPrimitive.Root>
   );

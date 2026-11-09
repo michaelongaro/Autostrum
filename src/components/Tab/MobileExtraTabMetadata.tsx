@@ -31,7 +31,6 @@ function MobileExtraTabMetadata() {
     strummingPatterns,
     previewMetadata,
     currentInstrument,
-    audioMetadata,
     chordDisplayMode,
     pauseAudio,
     playPreview,
@@ -41,7 +40,6 @@ function MobileExtraTabMetadata() {
     strummingPatterns: state.strummingPatterns,
     previewMetadata: state.previewMetadata,
     currentInstrument: state.currentInstrument,
-    audioMetadata: state.audioMetadata,
     chordDisplayMode: state.chordDisplayMode,
     pauseAudio: state.pauseAudio,
     playPreview: state.playPreview,
@@ -335,26 +333,11 @@ function MobileExtraTabMetadata() {
                               }
                               size={"sm"}
                               onClick={() => {
-                                if (
-                                  audioMetadata.playing ||
-                                  previewMetadata.playing
-                                ) {
-                                  pauseAudio();
-                                }
-
-                                setTimeout(
-                                  () => {
-                                    void playPreview({
-                                      data: chord.frets,
-                                      index,
-                                      type: "chord",
-                                    });
-                                  },
-                                  audioMetadata.playing ||
-                                    previewMetadata.playing
-                                    ? 50
-                                    : 0,
-                                );
+                                void playPreview({
+                                  data: chord.frets,
+                                  index,
+                                  type: "chord",
+                                });
                               }}
                               className="baseFlex h-6 w-10 rounded-sm"
                             >
@@ -428,25 +411,11 @@ function MobileExtraTabMetadata() {
                                 });
                               }, 300);
                             } else {
-                              if (
-                                audioMetadata.playing ||
-                                previewMetadata.playing
-                              ) {
-                                pauseAudio();
-                              }
-
-                              setTimeout(
-                                () => {
-                                  void playPreview({
-                                    data: pattern,
-                                    index,
-                                    type: "strummingPattern",
-                                  });
-                                },
-                                audioMetadata.playing || previewMetadata.playing
-                                  ? 50
-                                  : 0,
-                              );
+                              void playPreview({
+                                data: pattern,
+                                index,
+                                type: "strummingPattern",
+                              });
                             }
                           }}
                           className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"

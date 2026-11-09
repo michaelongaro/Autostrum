@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { DialogContentContext } from "./dialog-content-context";
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import type { StyledProps } from "./base-ui-types";
 import { cn } from "~/utils/cn";
@@ -111,7 +112,9 @@ const DrawerContent = React.forwardRef<
             className="contents"
             data-base-ui-swipe-ignore={swipe.handleOnly ? "" : undefined}
           >
-            {children}
+            <DialogContentContext.Provider value={true}>
+              {children}
+            </DialogContentContext.Provider>
           </DrawerPrimitive.Content>
         </DrawerPrimitive.Popup>
       </DrawerPrimitive.Viewport>

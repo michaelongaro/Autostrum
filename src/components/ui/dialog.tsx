@@ -6,6 +6,7 @@ import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 
 import { cn } from "~/utils/cn";
+import { DialogContentContext } from "./dialog-content-context";
 import {
   MobileModalContext,
   useMobileModal,
@@ -90,7 +91,9 @@ const DialogContent = React.forwardRef<
           )}
           {...props}
         >
-          {children}
+          <DialogContentContext.Provider value={true}>
+            {children}
+          </DialogContentContext.Provider>
 
           {renderCloseButton && (
             <DialogPrimitive.Close

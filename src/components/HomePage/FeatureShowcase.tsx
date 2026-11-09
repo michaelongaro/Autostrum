@@ -1,3 +1,4 @@
+import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   AnimatePresence,
@@ -20,8 +21,6 @@ import { MdModeEditOutline } from "react-icons/md";
 import { PiMouseScroll } from "react-icons/pi";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { cn } from "~/utils/cn";
-import { Button } from "~/components/ui/button";
-import { useTabStore } from "~/stores/TabStore";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import FeaturePreview, { type FeatureId } from "./FeaturePreviews";
 import styles from "./FeatureShowcase.module.css";
@@ -271,7 +270,6 @@ function PracticeCarousel({ active }: { active: boolean }) {
 }
 
 export default function FeatureShowcase() {
-  const theme = useTabStore((state) => state.theme);
   const [mode, setMode] = useState<FeatureMode>("Practice");
   const desktop = useViewportWidthBreakpoint(768);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -325,55 +323,39 @@ export default function FeatureShowcase() {
 
       <div className="hidden gap-6 md:grid md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)] lg:gap-10">
         <div className="flex flex-col gap-3 self-start" data-feature-navigation>
-          <div
-            role="group"
+          <AnimatedToggleGroup
             aria-label="Choose platform features"
-            className={`relative z-10 mb-4 grid w-fit shrink-0 grid-cols-2 self-start overflow-hidden rounded-md border ${theme === "light" ? "bg-background" : "bg-accent"}`}
-          >
-            {(["Practice", "Compose"] as const).map((name) => {
-              return (
-                <Button
-                  key={name}
-                  type="button"
-                  variant="toggle"
-                  aria-pressed={mode === name}
-                  onClick={() => {
-                    if (name !== mode) {
-                      setMode(name);
-                      setSelectedIndex(0);
-                    }
-                  }}
-                  style={{
-                    color:
-                      theme === "light"
-                        ? mode === name
-                          ? "hsl(var(--background))"
-                          : "hsl(var(--foreground))"
-                        : "hsl(var(--primary-foreground))",
-                  }}
-                  className="baseFlex relative h-[38px] gap-2 border-none px-4 text-sm"
-                >
-                  {name === "Practice" ? (
+            variant="inverse"
+            className="mb-4 w-fit self-start"
+            value={mode}
+            onValueChange={(name) => {
+              if (name !== mode) {
+                setMode(name);
+                setSelectedIndex(0);
+              }
+            }}
+            itemClassName="h-[38px] px-4 text-sm"
+            options={[
+              {
+                value: "Practice",
+                label: (
+                  <>
                     <Play className="size-4" />
-                  ) : (
+                    Practice
+                  </>
+                ),
+              },
+              {
+                value: "Compose",
+                label: (
+                  <>
                     <MdModeEditOutline className="size-[18px]" />
-                  )}
-
-                  {name}
-                </Button>
-              );
-            })}
-            <div
-              aria-hidden="true"
-              style={{
-                backgroundColor:
-                  theme === "light"
-                    ? "hsl(var(--accent))"
-                    : "hsl(var(--primary))",
-              }}
-              className={`togglePill absolute inset-0 -z-10 w-1/2 ${mode === "Practice" ? "translate-x-0 rounded-l-sm" : "translate-x-full rounded-r-sm"}`}
-            />
-          </div>
+                    Compose
+                  </>
+                ),
+              },
+            ]}
+          />
 
           <div
             role="tablist"

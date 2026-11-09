@@ -1,3 +1,4 @@
+import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { HiOutlineInformationCircle } from "react-icons/hi";
@@ -227,54 +228,18 @@ function CustomTuningEditor({
 
       <div className="baseFlex gap-3">
         <Label>Mode</Label>
-        <div className="baseFlex relative isolate overflow-y-hidden rounded-md border">
-          <Button
-            disabled={isPreviewing}
-            aria-pressed={inputMode === "auto"}
-            variant="toggle"
-            size="sm"
-            style={{
-              color:
-                inputMode === "auto"
-                  ? "hsl(var(--primary-foreground))"
-                  : "hsl(var(--foreground))",
-            }}
-            className="baseFlex relative w-[55px] gap-2 border-none text-xs xs:text-sm"
-            onClick={() => {
-              handleInputModeChange("auto");
-            }}
-          >
-            Auto
-          </Button>
-
-          <Button
-            disabled={isPreviewing}
-            aria-pressed={inputMode === "manual"}
-            variant="toggle"
-            size="sm"
-            style={{
-              color:
-                inputMode === "manual"
-                  ? "hsl(var(--primary-foreground))"
-                  : "hsl(var(--foreground))",
-            }}
-            className="baseFlex relative w-[72px] gap-2 border-none text-xs xs:text-sm"
-            onClick={() => {
-              handleInputModeChange("manual");
-            }}
-          >
-            Manual
-          </Button>
-
-          <div
-            style={{
-              width: inputMode === "auto" ? "55px" : "72px",
-              transform:
-                inputMode === "auto" ? "translateX(0)" : "translateX(55px)",
-            }}
-            className={`togglePill absolute inset-0 !z-[-1] bg-primary ${inputMode === "auto" ? "rounded-l-sm" : "rounded-r-sm"}`}
-          ></div>
-        </div>
+        <AnimatedToggleGroup
+          aria-label="Tuning input mode"
+          value={inputMode}
+          onValueChange={handleInputModeChange}
+          disabled={isPreviewing}
+          size="sm"
+          itemClassName="text-xs xs:text-sm"
+          options={[
+            { value: "auto", label: "Auto", className: "w-[55px]" },
+            { value: "manual", label: "Manual", className: "w-[72px]" },
+          ]}
+        />
       </div>
 
       <AnimatePresence mode="wait" initial={false}>

@@ -1,6 +1,7 @@
 "use client";
 
-// Local-only interaction fixture. Does not read or write remote application data.
+// Development interaction fixture. Browser tests mock the pinned-tab read API;
+// the remaining controls use local data.
 import ErrorPage from "~/components/errors/NotFoundContent";
 import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
@@ -70,6 +71,8 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Toggle } from "~/components/ui/toggle";
+import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
+import PinnedTabModal from "~/components/modals/PinnedTabModal";
 import {
   Tooltip,
   TooltipProvider,
@@ -123,13 +126,15 @@ export default function DevBaseUiHarness() {
     serverHydrated,
   );
   const [value, setValue] = useState("item-0");
+  const [toggleValue, setToggleValue] = useState<"auto" | "manual">("auto");
+  const [showPinnedTabModal, setShowPinnedTabModal] = useState(false);
+  const [pinnedTabId, setPinnedTabId] = useState<number | null>(null);
   const [actionCount, setActionCount] = useState(0);
   const [noteLength, setNoteLength] = useState<FullNoteLengths>("quarter");
   const [swipeLocked, setSwipeLocked] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [zoomInteracting, setZoomInteracting] = useState(false);
-  if (process.env.NODE_ENV === "production")
-    return <ErrorPage />;
+  if (process.env.NODE_ENV === "production") return <ErrorPage />;
   return (
     <main
       className="mx-auto flex max-w-md flex-col gap-5 p-8"
@@ -137,6 +142,27 @@ export default function DevBaseUiHarness() {
       data-ready={hydrated}
     >
       <h1>Base UI interaction fixture</h1>
+      <Button onClick={() => setShowPinnedTabModal(true)}>
+        Open pinned tab modal
+      </Button>
+      {showPinnedTabModal && (
+        <PinnedTabModal
+          localPinnedTabId={pinnedTabId}
+          setLocalPinnedTabId={setPinnedTabId}
+          setShowPinnedTabModal={setShowPinnedTabModal}
+        />
+      )}
+      <AnimatedToggleGroup
+        aria-label="Masked toggle fixture"
+        value={toggleValue}
+        onValueChange={setToggleValue}
+        className="w-fit"
+        size="sm"
+        options={[
+          { value: "auto", label: "Auto", className: "w-[55px]" },
+          { value: "manual", label: "Manual", className: "w-[72px]" },
+        ]}
+      />
       <Button
         role="link"
         nativeButton={false}

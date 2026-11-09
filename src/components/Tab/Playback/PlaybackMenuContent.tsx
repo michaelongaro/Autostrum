@@ -16,7 +16,6 @@ function PlaybackMenuContent() {
     currentInstrument,
     chords,
     strummingPatterns,
-    audioMetadata,
     previewMetadata,
     playPreview,
     pauseAudio,
@@ -27,7 +26,6 @@ function PlaybackMenuContent() {
     currentInstrument: state.currentInstrument,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
-    audioMetadata: state.audioMetadata,
     previewMetadata: state.previewMetadata,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
@@ -130,25 +128,11 @@ function PlaybackMenuContent() {
                           }
                           size={"sm"}
                           onClick={() => {
-                            if (
-                              audioMetadata.playing ||
-                              previewMetadata.playing
-                            ) {
-                              pauseAudio();
-                            }
-
-                            setTimeout(
-                              () => {
-                                void playPreview({
-                                  data: chord.frets,
-                                  index,
-                                  type: "chord",
-                                });
-                              },
-                              audioMetadata.playing || previewMetadata.playing
-                                ? 50
-                                : 0,
-                            );
+                            void playPreview({
+                              data: chord.frets,
+                              index,
+                              type: "chord",
+                            });
                           }}
                           className="baseFlex mr-3 h-6 w-10 rounded-sm"
                         >
@@ -224,25 +208,11 @@ function PlaybackMenuContent() {
                               });
                             }, 300);
                           } else {
-                            if (
-                              audioMetadata.playing ||
-                              previewMetadata.playing
-                            ) {
-                              pauseAudio();
-                            }
-
-                            setTimeout(
-                              () => {
-                                void playPreview({
-                                  data: pattern,
-                                  index,
-                                  type: "strummingPattern",
-                                });
-                              },
-                              audioMetadata.playing || previewMetadata.playing
-                                ? 50
-                                : 0,
-                            );
+                            void playPreview({
+                              data: pattern,
+                              index,
+                              type: "strummingPattern",
+                            });
                           }
                         }}
                         className="baseFlex ml-2 h-6 w-20 gap-2 rounded-b-none"

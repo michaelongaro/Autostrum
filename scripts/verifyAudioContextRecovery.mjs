@@ -693,6 +693,126 @@ test("an interruption during sample loading cannot authorize a delayed preview",
   assert.equal(value.getState().previewMetadata.playing, false);
 });
 
+function previewFixture() {
+  const value = store();
+  const context = new FakeContext();
+  context.state = "running";
+  const param = () => ({
+    value: 0,
+    cancelScheduledValues() {},
+    setValueAtTime() {},
+    linearRampToValueAtTime() {},
+    exponentialRampToValueAtTime() {},
+  });
+  context.createGain = () => ({ gain: param(), connect() {}, disconnect() {} });
+  context.createBiquadFilter = () => ({
+    Q: param(), frequency: param(), connect() {}, disconnect() {},
+  });
+  context.createBufferSource = () => {
+    const source = {
+      context, detune: param(), connect() {}, disconnect() {},
+      stops: [],
+      start(time) { this.startedAt = time; },
+      stop(time) { this.stops.push(time); },
+    };
+    context.sources.push(source);
+    return source;
+  };
+  const instrument = {
+    stop() {},
+    buffers: Object.fromEntries(Array.from({ length: 128 }, (_, midi) => [midi, { duration: 4 }])),
+  };
+  const audioSystem = {
+    audioContext: context,
+    currentInstrument: instrument,
+    masterVolumeGainNode: context.createGain(),
+  };
+  value.setState({ ...audioSystem, ensureAudioSystemReady: async () => audioSystem });
+  return { value, context, audioSystem };
+}
+
+const previewChord = (index, extra = {}) => ({
+  data: ["0", "0", "0", "0", "0", "0"], index, type: "chord", ...extra,
+});
+
+test("a rapid chord preview stops sounding and queued notes; stale completion cannot reset the newer preview", async () => {
+  const { value, context } = previewFixture();
+  const first = value.getState().playPreview(previewChord(0, { customBpm: "120" }));
+  await flush();
+  const oldSources = [...context.sources];
+  assert.equal(oldSources.length, 6);
+  await advance(20);
+  const second = value.getState().playPreview(previewChord(1, { customBpm: "30" }));
+  await flush();
+  assert.equal(context.sources.length, 12);
+  for (const source of oldSources) {
+    const latestStop = source.stops.at(-1);
+    assert.ok(latestStop <= context.currentTime + 0.025, "old sounding voices stop within the audio fade");
+    if (source.startedAt > context.currentTime) {
+      assert.ok(latestStop < source.startedAt, "queued strum notes stop before their attack");
+    }
+  }
+  await advance(600);
+  await first;
+  assert.equal(value.getState().previewMetadata.indexOfPattern, 1);
+  assert.equal(value.getState().previewMetadata.playing, true);
+  value.getState().pauseAudio();
+  await advance(2200);
+  await second;
+  assert.equal(value.getState().previewMetadata.playing, false);
+});
+
+test("only the newest preview may start after asynchronous audio preparation", async () => {
+  const { value, context, audioSystem } = previewFixture();
+  const releases = [];
+  value.setState({ ensureAudioSystemReady: () => new Promise((resolve) => releases.push(resolve)) });
+  const first = value.getState().playPreview(previewChord(0));
+  const second = value.getState().playPreview(previewChord(1));
+  releases[1](audioSystem);
+  await flush();
+  releases[0](audioSystem);
+  await first;
+  assert.equal(context.sources.length, 6);
+  assert.equal(value.getState().previewMetadata.indexOfPattern, 1);
+  value.getState().pauseAudio();
+  await advance(1500);
+  await second;
+});
+
+test("replacing a tuning preview suppresses its queued note callbacks", async () => {
+  const { value } = previewFixture();
+  const notes = [];
+  const first = value.getState().playPreview(previewChord(0, {
+    forTuningPreview: true, onTuningPreviewNote: (index) => notes.push(index),
+  }));
+  await flush();
+  await advance(100);
+  assert.deepEqual(notes, [0]);
+  const second = value.getState().playPreview(previewChord(1));
+  await flush();
+  await advance(2300);
+  await Promise.all([first, second]);
+  assert.deepEqual(notes, [0]);
+});
+
+test("replacing a strumming preview cannot restart its old loop", async () => {
+  const { value, context } = previewFixture();
+  const pattern = {
+    id: "test-pattern", noteLength: "quarter",
+    strums: [{ palmMute: "", strum: "v" }, { palmMute: "", strum: "^" }],
+  };
+  const first = value.getState().playPreview({ data: pattern, index: 0, type: "strummingPattern" });
+  await flush();
+  assert.ok(context.sources.length > 0);
+  const second = value.getState().playPreview(previewChord(1));
+  await flush();
+  const totalSources = context.sources.length;
+  await advance(3500);
+  await Promise.all([first, second]);
+  assert.equal(context.sources.length, totalSources, "old loop schedules no more chords");
+  assert.equal(value.getState().previewMetadata.playing, false);
+});
+
 test("audio device allocation failure can be retried without opening manual sound help", async () => {
   const { useIPhoneSoundDrawerStore: drawer } =
     await import("../src/stores/IPhoneSoundDrawerStore.ts");

@@ -1817,18 +1817,18 @@ export const createTabStore = (
           chordEffects,
           strumSpreadCompileValue,
         }: PlayPreview) => {
-          if (get().countInTimer.showing) get().pauseAudio();
+          // Stop both sounding and future scheduled notes before replacing the
+          // node collections. Every continuation belongs to this request only.
+          get().pauseAudio();
           const startRequestId = ++audioStartRequestId;
+          const isCurrentPreview = () =>
+            startRequestId === audioStartRequestId &&
+            (!isPreviewValid || isPreviewValid());
           const { capo, tuning, previewMetadata, ensureAudioSystemReady } =
             get();
 
           const audioSystem = await ensureAudioSystemReady();
-          if (
-            !audioSystem ||
-            startRequestId !== audioStartRequestId ||
-            (isPreviewValid && !isPreviewValid())
-          )
-            return;
+          if (!audioSystem || !isCurrentPreview()) return;
 
           const { currentInstrument, audioContext, masterVolumeGainNode } =
             audioSystem;
@@ -1875,6 +1875,7 @@ export const createTabStore = (
             chordIndex < compiledChords.length;
             chordIndex++
           ) {
+            if (!isCurrentPreview()) return;
             set({
               previewMetadata: {
                 playing: true,
@@ -1912,14 +1913,14 @@ export const createTabStore = (
               acousticSteelOverrideForPreview:
                 instruments.acoustic_guitar_steel,
               forTuningPreview: forTuningPreview === true,
-              isSessionValid: isPreviewValid,
+              isSessionValid: isCurrentPreview,
               onNoteStart:
                 forTuningPreview && onTuningPreviewNote
                   ? (stringIndex) => onTuningPreviewNote(5 - stringIndex)
                   : undefined,
             });
 
-            if (isPreviewValid && !isPreviewValid()) return;
+            if (!isCurrentPreview()) return;
 
             const { breakOnNextPreviewChord } = get();
 

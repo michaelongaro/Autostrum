@@ -1,3 +1,4 @@
+import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -252,10 +253,9 @@ function TunerPanel({
   forPlaybackModal,
   playbackCapoToggle,
 }: TunerPanelProps) {
-  const { tuning, capo, theme } = useTabStore((state) => ({
+  const { tuning, capo } = useTabStore((state) => ({
     tuning: state.tuning,
     capo: state.capo,
-    theme: state.theme,
   }));
 
   const [mode, setMode] = useState<"guided" | "chromatic">("guided");
@@ -329,57 +329,29 @@ function TunerPanel({
               Type
             </Label>
 
-            <div className="baseFlex relative z-10 shrink-0 overflow-y-hidden rounded-md border">
-              <Button
-                variant="toggle"
-                style={{
-                  color:
-                    theme === "light"
-                      ? mode === "guided"
-                        ? "hsl(var(--foreground))"
-                        : "hsl(var(--background))"
-                      : "hsl(var(--primary-foreground))",
-                }}
-                className="baseFlex relative h-[30px] w-[123px] gap-2 border-none text-xs sm:h-[38px] sm:w-[72px] sm:text-sm"
-                onClick={() => {
-                  if (mode === "guided") return;
-                  setChromaticViewReady(false);
-                  setMode("guided");
-                }}
-              >
-                Guided
-              </Button>
-
-              <Button
-                variant="toggle"
-                style={{
-                  color:
-                    theme === "light"
-                      ? mode === "chromatic"
-                        ? "hsl(var(--foreground))"
-                        : "hsl(var(--background))"
-                      : "hsl(var(--primary-foreground))",
-                }}
-                className="baseFlex relative h-[30px] w-[123px] gap-2 border-none text-xs sm:h-[38px] sm:w-[93px] sm:text-sm"
-                onClick={() => {
-                  if (mode === "chromatic") return;
-                  setChromaticViewReady(false);
-                  setMode("chromatic");
-                }}
-              >
-                Chromatic
-              </Button>
-
-              <div
-                style={{
-                  backgroundColor:
-                    theme === "light"
-                      ? "hsl(var(--background)"
-                      : "hsl(var(--primary))",
-                }}
-                className={`togglePill absolute inset-0 !z-[-1] ${mode === "guided" ? "w-[123px] translate-x-0 rounded-l-sm sm:w-[72px]" : "w-[123px] translate-x-[123px] rounded-r-sm sm:w-[93px] sm:translate-x-[72px]"}`}
-              ></div>
-            </div>
+            <AnimatedToggleGroup
+              aria-label="Tuner type"
+              variant="accent"
+              value={mode}
+              onValueChange={(value) => {
+                if (value === mode) return;
+                setChromaticViewReady(false);
+                setMode(value);
+              }}
+              itemClassName="h-[30px] text-xs sm:h-[38px] sm:text-sm"
+              options={[
+                {
+                  value: "guided",
+                  label: "Guided",
+                  className: "w-[123px] sm:w-[72px]",
+                },
+                {
+                  value: "chromatic",
+                  label: "Chromatic",
+                  className: "w-[123px] sm:w-[93px]",
+                },
+              ]}
+            />
           </div>
         )}
 
@@ -444,51 +416,27 @@ function TunerPanel({
 
               {forPlaybackModal ? (
                 playbackCapoControl ? (
-                  <div className="baseFlex relative z-10 mt-1 shrink-0 overflow-y-hidden rounded-md border">
-                    <Button
-                      variant="toggle"
-                      style={{
-                        color:
-                          theme === "light"
-                            ? playbackCapoControl.selectedCapo === 0
-                              ? "hsl(var(--foreground))"
-                              : "hsl(var(--background))"
-                            : "hsl(var(--primary-foreground))",
-                      }}
-                      className="baseFlex relative h-[24px] w-[80px] gap-2 border-none sm:w-[90px]"
-                      onClick={() => playbackCapoControl.onSelectCapo(0)}
-                    >
-                      No capo
-                    </Button>
-
-                    <Button
-                      variant="toggle"
-                      style={{
-                        color:
-                          theme === "light"
-                            ? playbackCapoControl.selectedCapo !== 0
-                              ? "hsl(var(--foreground))"
-                              : "hsl(var(--background))"
-                            : "hsl(var(--primary-foreground))",
-                      }}
-                      className="baseFlex relative h-[24px] w-[80px] gap-2 border-none sm:w-[90px]"
-                      onClick={() =>
-                        playbackCapoControl.onSelectCapo(requiredPlaybackCapo)
-                      }
-                    >
-                      {`${getOrdinalSuffix(requiredPlaybackCapo)} fret`}
-                    </Button>
-
-                    <div
-                      style={{
-                        backgroundColor:
-                          theme === "light"
-                            ? "hsl(var(--background)"
-                            : "hsl(var(--primary))",
-                      }}
-                      className={`togglePill absolute inset-0 !z-[-1] ${playbackCapoControl.selectedCapo === 0 ? "w-[80px] translate-x-0 rounded-l-sm sm:w-[90px]" : "w-[80px] translate-x-[80px] rounded-r-sm sm:w-[90px] sm:translate-x-[90px]"}`}
-                    ></div>
-                  </div>
+                  <AnimatedToggleGroup
+                    aria-label="Preview capo"
+                    variant="accent"
+                    className="mt-1"
+                    value={
+                      playbackCapoControl.selectedCapo === 0 ? "none" : "capo"
+                    }
+                    onValueChange={(value) =>
+                      playbackCapoControl.onSelectCapo(
+                        value === "none" ? 0 : requiredPlaybackCapo,
+                      )
+                    }
+                    itemClassName="h-[24px] w-[80px] sm:w-[90px]"
+                    options={[
+                      { value: "none", label: "No capo" },
+                      {
+                        value: "capo",
+                        label: `${getOrdinalSuffix(requiredPlaybackCapo)} fret`,
+                      },
+                    ]}
+                  />
                 ) : (
                   <p className="text-primary-foreground">
                     {displayedCapo === 0
@@ -529,41 +477,27 @@ function TunerPanel({
             {playbackCapoControl && (
               <div className="baseFlex gap-3 tablet:hidden">
                 <Label>Capo</Label>
-                <div className="baseFlex relative z-10 shrink-0 overflow-y-hidden rounded-md border">
-                  <Button
-                    variant="toggle"
-                    style={{
-                      color:
-                        playbackCapoControl.selectedCapo === 0
-                          ? "hsl(var(--primary-foreground))"
-                          : "hsl(var(--foreground))",
-                    }}
-                    className="baseFlex relative h-[24px] w-[80px] gap-2 border-none sm:w-[90px]"
-                    onClick={() => playbackCapoControl.onSelectCapo(0)}
-                  >
-                    No capo
-                  </Button>
-
-                  <Button
-                    variant="toggle"
-                    style={{
-                      color:
-                        playbackCapoControl.selectedCapo !== 0
-                          ? "hsl(var(--primary-foreground))"
-                          : "hsl(var(--foreground))",
-                    }}
-                    className="baseFlex relative h-[24px] w-[80px] gap-2 border-none sm:w-[90px]"
-                    onClick={() =>
-                      playbackCapoControl.onSelectCapo(requiredPlaybackCapo)
-                    }
-                  >
-                    {`${getOrdinalSuffix(requiredPlaybackCapo)} fret`}
-                  </Button>
-
-                  <div
-                    className={`togglePill absolute inset-0 !z-[-1] bg-primary ${playbackCapoControl.selectedCapo === 0 ? "w-[80px] translate-x-0 rounded-l-sm sm:w-[90px]" : "w-[80px] translate-x-[80px] rounded-r-sm sm:w-[90px] sm:translate-x-[90px]"}`}
-                  ></div>
-                </div>
+                <AnimatedToggleGroup
+                  aria-label="Preview capo"
+                  variant="default"
+                  className=""
+                  value={
+                    playbackCapoControl.selectedCapo === 0 ? "none" : "capo"
+                  }
+                  onValueChange={(value) =>
+                    playbackCapoControl.onSelectCapo(
+                      value === "none" ? 0 : requiredPlaybackCapo,
+                    )
+                  }
+                  itemClassName="h-[24px] w-[80px] sm:w-[90px]"
+                  options={[
+                    { value: "none", label: "No capo" },
+                    {
+                      value: "capo",
+                      label: `${getOrdinalSuffix(requiredPlaybackCapo)} fret`,
+                    },
+                  ]}
+                />
               </div>
             )}
 

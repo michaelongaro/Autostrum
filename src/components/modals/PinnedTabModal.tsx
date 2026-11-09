@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import type { Dispatch, SetStateAction } from "react";
 import FocusLock from "react-focus-lock";
 import PinnedTabList from "~/components/Profile/PinnedTabList";
+import { DialogContentContext } from "~/components/ui/dialog-content-context";
 
 interface PinnedTabModal {
   localPinnedTabId: number | null;
@@ -33,11 +34,13 @@ function PinnedTabModal({
           tabIndex={-1}
           className="baseVertFlex modalGradient relative h-[500px] w-[500px] gap-4 rounded-lg border p-4 shadow-sm"
         >
-          <PinnedTabList
-            localPinnedTabId={localPinnedTabId}
-            setLocalPinnedTabId={setLocalPinnedTabId}
-            setShowPinnedTabModal={setShowPinnedTabModal}
-          />
+          <DialogContentContext.Provider value={true}>
+            <PinnedTabList
+              localPinnedTabId={localPinnedTabId}
+              setLocalPinnedTabId={setLocalPinnedTabId}
+              setShowPinnedTabModal={setShowPinnedTabModal}
+            />
+          </DialogContentContext.Provider>
         </div>
       </FocusLock>
     </motion.div>

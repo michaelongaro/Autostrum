@@ -1,3 +1,4 @@
+import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
 import { routeUrl } from "~/utils/routeUrl";
 import { useRouter } from "next/navigation";
 import { useRouteLocation } from "~/hooks/useRouteLocation";
@@ -740,71 +741,27 @@ function SearchResults({
                   {/* layout type selector */}
                   <div className="baseFlex gap-3">
                     <Label>Layout</Label>
-                    <div
+                    <AnimatedToggleGroup
                       data-search-layout-toggle=""
-                      className="relative isolate overflow-hidden rounded-md border"
-                    >
-                      <div data-layout-labels="" className="grid grid-cols-2">
-                        <Button
-                          variant="toggle"
-                          aria-label="Grid view"
-                          aria-pressed={layoutType.value === "grid"}
-                          size="sm"
-                          disabled={disableFiltersAndLayoutToggle}
-                          style={{
-                            color:
-                              theme === "light"
-                                ? layoutType.value === "grid"
-                                  ? "hsl(var(--foreground))"
-                                  : "hsl(var(--background))"
-                                : "hsl(var(--primary-foreground))",
-                          }}
-                          className="baseFlex relative gap-2 border-none"
-                          onClick={() => {
-                            changeLayout("grid");
-                          }}
-                        >
-                          <BsGridFill className="size-4 shrink-0" />
-                        </Button>
-
-                        <Button
-                          variant="toggle"
-                          aria-label="Table view"
-                          aria-pressed={layoutType.value === "table"}
-                          size="sm"
-                          disabled={disableFiltersAndLayoutToggle}
-                          style={{
-                            color:
-                              theme === "light"
-                                ? layoutType.value === "table"
-                                  ? "hsl(var(--foreground))"
-                                  : "hsl(var(--background))"
-                                : "hsl(var(--primary-foreground))",
-                          }}
-                          className="baseFlex relative gap-2 border-none"
-                          onClick={() => {
-                            changeLayout("table");
-                          }}
-                        >
-                          <TableViewIcon className="size-4 shrink-0" />
-                        </Button>
-                      </div>
-
-                      <div
-                        style={{
-                          transform:
-                            layoutType.value === "grid"
-                              ? "translateX(0)"
-                              : "translateX(100%)",
-                          backgroundColor:
-                            theme === "light"
-                              ? "hsl(var(--background))"
-                              : "hsl(var(--primary))",
-                        }}
-                        data-layout-pill=""
-                        className="togglePill pointer-events-none absolute inset-y-0 left-0 !z-[-1] w-1/2 rounded-sm"
-                      ></div>
-                    </div>
+                      aria-label="Search results layout"
+                      variant="accent"
+                      value={layoutType.value === "grid" ? "grid" : "table"}
+                      onValueChange={changeLayout}
+                      disabled={disableFiltersAndLayoutToggle}
+                      size="sm"
+                      options={[
+                        {
+                          value: "grid",
+                          ariaLabel: "Grid view",
+                          label: <BsGridFill className="size-4 shrink-0" />,
+                        },
+                        {
+                          value: "table",
+                          ariaLabel: "Table view",
+                          label: <TableViewIcon className="size-4 shrink-0" />,
+                        },
+                      ]}
+                    />
                   </div>
 
                   {/* filter drawer trigger */}
@@ -999,73 +956,37 @@ function SearchResults({
                   {/* layout type toggle */}
                   <div className="baseFlex gap-3">
                     <Label>Layout</Label>
-                    <div
+                    <AnimatedToggleGroup
                       data-search-layout-toggle=""
-                      className="relative isolate overflow-hidden rounded-md border"
-                    >
-                      <div data-layout-labels="" className="grid grid-cols-2">
-                        <Button
-                          variant="toggle"
-                          aria-label="Grid view"
-                          aria-pressed={layoutType.value === "grid"}
-                          size="sm"
-                          disabled={disableFiltersAndLayoutToggle}
-                          style={{
-                            color:
-                              theme === "light"
-                                ? layoutType.value === "grid"
-                                  ? "hsl(var(--foreground))"
-                                  : "hsl(var(--background))"
-                                : "hsl(var(--primary-foreground))",
-                          }}
-                          className="baseFlex relative gap-2 rounded-sm"
-                          onClick={() => {
-                            changeLayout("grid");
-                          }}
-                        >
-                          <BsGridFill className="size-4 shrink-0" />
-                          Grid
-                        </Button>
-
-                        <Button
-                          variant="toggle"
-                          aria-label="Table view"
-                          aria-pressed={layoutType.value === "table"}
-                          size="sm"
-                          disabled={disableFiltersAndLayoutToggle}
-                          style={{
-                            color:
-                              theme === "light"
-                                ? layoutType.value === "table"
-                                  ? "hsl(var(--foreground))"
-                                  : "hsl(var(--background))"
-                                : "hsl(var(--primary-foreground))",
-                          }}
-                          className="baseFlex relative gap-2 rounded-sm"
-                          onClick={() => {
-                            changeLayout("table");
-                          }}
-                        >
-                          <TableViewIcon className="size-4 shrink-0" />
-                          Table
-                        </Button>
-                      </div>
-
-                      <div
-                        style={{
-                          transform:
-                            layoutType.value === "grid"
-                              ? "translateX(0)"
-                              : "translateX(100%)",
-                          backgroundColor:
-                            theme === "light"
-                              ? "hsl(var(--background))"
-                              : "hsl(var(--primary))",
-                        }}
-                        data-layout-pill=""
-                        className="togglePill pointer-events-none absolute inset-y-0 left-0 !z-[-1] w-1/2 rounded-sm"
-                      ></div>
-                    </div>
+                      aria-label="Search results layout"
+                      variant="accent"
+                      value={layoutType.value === "grid" ? "grid" : "table"}
+                      onValueChange={changeLayout}
+                      disabled={disableFiltersAndLayoutToggle}
+                      size="sm"
+                      options={[
+                        {
+                          value: "grid",
+                          ariaLabel: "Grid view",
+                          label: (
+                            <>
+                              <BsGridFill className="size-4 shrink-0" />
+                              Grid
+                            </>
+                          ),
+                        },
+                        {
+                          value: "table",
+                          ariaLabel: "Table view",
+                          label: (
+                            <>
+                              <TableViewIcon className="size-4 shrink-0" />
+                              Table
+                            </>
+                          ),
+                        },
+                      ]}
+                    />
                   </div>
                 </div>
               </AnimatePresence>
