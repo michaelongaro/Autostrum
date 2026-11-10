@@ -439,6 +439,7 @@ function RateTabDrawer({
             aria-label="Rate toggle"
             disabled={disabled}
             variant={"secondary"}
+            size="default"
             className="baseFlex w-full gap-2 text-base"
           >
             <div className="baseFlex gap-1">
