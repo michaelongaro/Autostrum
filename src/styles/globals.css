@@ -498,6 +498,10 @@ html[data-theme="light"] [data-audio-toggle][data-pressed] {
   container-type: inline-size;
 }
 
+html[data-theme="dark"] .heroScreenshotApp.playbackModalGradient::after {
+  opacity: 0.15;
+}
+
 html[data-theme="light"] .heroScreenshotStage::before {
   opacity: 0.35;
 }

@@ -1,5 +1,4 @@
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { useState } from "react";
 import {
@@ -194,6 +193,7 @@ function BookmarkToggle({
         render={
           <Button
             aria-label={"Bookmark toggle"}
+            aria-pressed={isBookmarked}
             disabled={disabled}
             variant={"secondary"}
             className={customClassName}
@@ -213,39 +213,30 @@ function BookmarkToggle({
               }
             }}
           >
-            <AnimatePresence mode="wait">
-              {isBookmarked ? (
-                <motion.div
-                  key={`bookmark${tabId}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="baseFlex gap-2"
+            <span className="baseFlex gap-2">
+              <span
+                aria-hidden="true"
+                className="relative h-[18px] w-[18px] shrink-0 md:h-5 md:w-5"
+              >
+                <IoBookmarkOutline className="absolute inset-0 size-full" />
+                <span
+                  className="absolute inset-0 transition-[clip-path] duration-300 motion-reduce:transition-none"
+                  style={{
+                    clipPath: isBookmarked
+                      ? "inset(0 0 0 0)"
+                      : "inset(0 0 100% 0)",
+                    transitionTimingFunction: "ease-in-out",
+                  }}
                 >
-                  <IoBookmark className="h-[18px] w-[18px] md:h-5 md:w-5" />
-
-                  {showText && (
-                    <span className="hidden md:block">Bookmarked</span>
-                  )}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={`bookmarkOutline${tabId}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="baseFlex gap-2"
-                >
-                  <IoBookmarkOutline className="h-[18px] w-[18px] md:h-5 md:w-5" />
-
-                  {showText && (
-                    <span className="hidden md:block">Bookmark</span>
-                  )}
-                </motion.div>
+                  <IoBookmark className="size-full" />
+                </span>
+              </span>
+              {showText && (
+                <span className="hidden md:block">
+                  {isBookmarked ? "Bookmarked" : "Bookmark"}
+                </span>
               )}
-            </AnimatePresence>
+            </span>
           </Button>
         }
       />

@@ -7,7 +7,7 @@ import {
 } from "~/components/ui/popover";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,14 @@ import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import ArpeggiatedDownstrumIcon from "~/components/ui/icons/ArpeggiatedDownstrumIcon";
 import ArpeggiatedUpstrumIcon from "~/components/ui/icons/ArpeggiatedUpstrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "~/components/ui/carousel";
 import { Button } from "~/components/ui/button";
 import {
   Table,
@@ -42,6 +49,7 @@ import {
 } from "~/utils/noteLengthIcons";
 
 function GlossaryDialog() {
+  const desktop = useViewportWidthBreakpoint(768);
   const { editing, showGlossaryDialog, setShowGlossaryDialog } = useTabStore(
     (state) => ({
       editing: state.editing,
@@ -79,627 +87,753 @@ function GlossaryDialog() {
       </VisuallyHidden>
 
       <DialogContent className="baseVertFlex max-h-[90dvh] max-w-[350px] !justify-start gap-4 rounded-lg p-4 transition-all xs:max-w-[445px]">
-        <div className="baseFlex w-full !justify-start gap-4">
-          <Button
-            variant={"text"}
-            onClick={() => setCurrentPane("modifiers")}
-            className="relative h-8 px-0"
-          >
-            <span className="baseFlex gap-2 font-semibold">
-              Modifier Glossary
-            </span>
-            {currentPane === "modifiers" && (
-              <motion.span
-                layoutId="glossaryActiveTabUnderline"
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                className="absolute bottom-[0px] left-0 z-0 h-[2px] w-full rounded-full bg-primary"
-              />
-            )}
-          </Button>
-
-          <Button
-            variant={"text"}
-            onClick={() => setCurrentPane("noteLengths")}
-            className="relative h-8 px-0"
-          >
-            <span className="baseFlex gap-2 font-semibold">Note Lengths</span>
-            {currentPane === "noteLengths" && (
-              <motion.span
-                layoutId="glossaryActiveTabUnderline"
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                className="absolute bottom-[0px] left-0 z-0 h-[2px] w-full rounded-full bg-primary"
-              />
-            )}
-          </Button>
-        </div>
-
-        <motion.div
-          animate={{ height: targetMinHeight }}
-          transition={{ duration: 0.25, ease: "easeInOut" }}
-          className="w-full overflow-y-auto overflow-x-hidden md:overflow-y-hidden"
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            {currentPane === "modifiers" && (
-              <motion.div
-                key={"GlossaryDialogmodifiersPane"}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className={`baseVertFlex w-full !justify-start gap-4 ${editing ? "h-[475px]" : "h-[425px]"}`}
+        {desktop === false ? (
+          <MobileGlossary editing={editing} />
+        ) : (
+          <>
+            <div className="baseFlex w-full !justify-start gap-4">
+              <Button
+                variant={"text"}
+                onClick={() => setCurrentPane("modifiers")}
+                className="relative h-8 px-0"
               >
-                <div
-                  className={`baseFlex !items-start gap-4 xs:gap-8 ${editing ? "!flex-col xs:!flex-row" : ""}`}
-                >
-                  <div className={`baseVertFlex w-full gap-1`}>
-                    <span className="mt-2 text-sm font-medium">
-                      Note Modifiers
-                    </span>
+                <span className="baseFlex gap-2 font-semibold">
+                  Modifier Glossary
+                </span>
+                {currentPane === "modifiers" && (
+                  <motion.span
+                    layoutId="glossaryActiveTabUnderline"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    className="absolute bottom-[0px] left-0 z-0 h-[2px] w-full rounded-full bg-primary"
+                  />
+                )}
+              </Button>
 
-                    <Separator className="mb-2 h-px w-full bg-primary" />
-
-                    <div className="baseVertFlex w-full gap-2">
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span className="col-span-1">h</span>
-                        <span className="col-span-1">-</span>
-                        <span className="baseFlex col-span-3 !justify-start gap-2">
-                          Hammer-on
-                          {editing && (
-                            <Popover>
-                              <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
-                                <HiOutlineInformationCircle className="h-5 w-5" />
-                              </PopoverTrigger>
-                              <PopoverContent
-                                side={"bottom"}
-                                className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
-                              >
-                                <div className="font-semibold">
-                                  Notation variations
-                                </div>
-                                <Separator className="mb-2 h-px w-full bg-primary" />
-                                <div className="baseFlex gap-4">
-                                  <div className="baseVertFlex gap-2">
-                                    <p>Standard</p>
-                                    <div className="baseFlex rounded-md border bg-secondary p-2">
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        3h
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        5
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="baseVertFlex gap-2">
-                                    <p>Delayed</p>
-                                    <div className="baseFlex rounded-md border bg-secondary p-2">
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        3
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        h
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        5
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </span>
-                      </div>
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span className="col-span-1">p</span>
-                        <span className="col-span-1">-</span>
-                        <span className="baseFlex col-span-3 !justify-start gap-2">
-                          Pull-off
-                          {editing && (
-                            <Popover>
-                              <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
-                                <HiOutlineInformationCircle className="h-5 w-5" />
-                              </PopoverTrigger>
-                              <PopoverContent
-                                side={"bottom"}
-                                className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
-                              >
-                                <div className="font-semibold">
-                                  Notation variations
-                                </div>
-                                <Separator className="mb-2 h-px w-full bg-primary" />
-                                <div className="baseFlex gap-4">
-                                  <div className="baseVertFlex gap-2">
-                                    <p>Standard</p>
-                                    <div className="baseFlex rounded-md border bg-secondary p-2">
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        3p
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        5
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="baseVertFlex gap-2">
-                                    <p>Delayed</p>
-                                    <div className="baseFlex rounded-md border bg-secondary p-2">
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        3
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        p
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        5
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </span>
-                      </div>
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span className="col-span-1">/</span>
-                        <span className="col-span-1">-</span>
-                        <span className="baseFlex col-span-3 !justify-start gap-2">
-                          Slide up
-                          {editing && (
-                            <Popover>
-                              <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
-                                <HiOutlineInformationCircle className="h-5 w-5" />
-                              </PopoverTrigger>
-                              <PopoverContent
-                                side={"bottom"}
-                                className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
-                              >
-                                <div className="font-semibold">
-                                  Notation variations
-                                </div>
-                                <Separator className="mb-2 h-px w-full bg-primary" />
-                                <div className="baseFlex gap-4">
-                                  <div className="baseVertFlex gap-2">
-                                    <p>Standard</p>
-                                    <div className="baseFlex rounded-md border bg-secondary p-2">
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        3/
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        5
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="baseVertFlex gap-2">
-                                    <p>Delayed</p>
-                                    <div className="baseFlex rounded-md border bg-secondary p-2">
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        3
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        /
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        5
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </span>
-                      </div>
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span className="col-span-1">\</span>
-                        <span className="col-span-1">-</span>
-                        <span className="baseFlex col-span-3 !justify-start gap-2">
-                          Slide down
-                          {editing && (
-                            <Popover>
-                              <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
-                                <HiOutlineInformationCircle className="h-5 w-5" />
-                              </PopoverTrigger>
-                              <PopoverContent
-                                side={"bottom"}
-                                className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
-                              >
-                                <div className="font-semibold">
-                                  Notation variations
-                                </div>
-                                <Separator className="mb-2 h-px w-full bg-primary" />
-                                <div className="baseFlex gap-4">
-                                  <div className="baseVertFlex gap-2">
-                                    <p>Standard</p>
-                                    <div className="baseFlex rounded-md border bg-secondary p-2">
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        3\
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        5
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="baseVertFlex gap-2">
-                                    <p>Delayed</p>
-                                    <div className="baseFlex rounded-md border bg-secondary p-2">
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        3
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        \
-                                      </div>
-                                      <div className="h-[1px] w-2 bg-foreground"></div>
-                                      <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
-                                        5
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </span>
-                      </div>
-                      {editing && (
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">{">"}</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Accented</span>
-                        </div>
-                      )}
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span className="col-span-1">~</span>
-                        <span className="col-span-1">-</span>
-                        <span className="col-span-3">Vibrato</span>
-                      </div>
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span
-                          className={`col-span-1 ${editing ? "" : "relative bottom-[8.5px] text-[30px]"}`}
-                        >
-                          .
-                        </span>
-                        <span className="col-span-1">-</span>
-                        <span className="col-span-3">Stacatto</span>
-                      </div>
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span className="col-span-1">b</span>
-                        <span className="col-span-1">-</span>
-                        <span className="col-span-3">Bend</span>
-                      </div>
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span className="col-span-1">r</span>
-                        <span className="col-span-1">-</span>
-                        <span className="col-span-3">Release</span>
-                      </div>
-                      <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                        <span className="col-span-1">x</span>
-                        <span className="col-span-1">-</span>
-                        <span className="col-span-3">Muted note</span>
-                      </div>
-                    </div>
-
-                    <div className="baseVertFlex w-full gap-1">
-                      <span className="mt-4 text-sm font-medium">
-                        Section Modifiers
-                      </span>
-                      <Separator className="mb-2 h-px w-full bg-primary" />
-                    </div>
-
-                    <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                      <span className="col-span-1">PM</span>
-                      <span className="col-span-1 ml-1">-</span>
-                      <span className="col-span-3">Palm mute</span>
-                    </div>
-                  </div>
-
-                  <div className="baseVertFlex w-full gap-1">
-                    <span className="mt-2 text-sm font-medium">
-                      Chord Modifiers
-                    </span>
-                    <Separator className="mb-2 h-px w-full bg-primary" />
-
-                    {editing ? (
-                      <div className="baseVertFlex w-full gap-2">
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">^</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Upstrum</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">v</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Downstrum</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">^~</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">
-                            Arpeggiated upstrum
-                          </span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">v~</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">
-                            Arpeggiated downstrum
-                          </span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">{">"}</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Accented</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">s</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Slap</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">.</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Stacatto</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">r</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Rest</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="baseVertFlex w-full gap-2">
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1 -ml-1">
-                            <BsArrowUp className="size-4" />
-                          </span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Upstrum</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1 -ml-1">
-                            <BsArrowDown className="size-4" />
-                          </span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Downstrum</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1 -ml-1">
-                            <ArpeggiatedUpstrumIcon className="size-4" />
-                          </span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">
-                            Arpeggiated upstrum
-                          </span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1 -ml-1">
-                            <ArpeggiatedDownstrumIcon className="size-4" />
-                          </span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">
-                            Arpeggiated downstrum
-                          </span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">s</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Slap</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="relative bottom-[9px] col-span-1 text-[30px]">
-                            .
-                          </span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Stacatto</span>
-                        </div>
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">
-                            <PauseIcon className="mt-1.5 size-2.5" />
-                          </span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3">Rest</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {editing && (
-                      <>
-                        <div className="baseVertFlex w-full gap-1">
-                          <span className="mt-4 text-sm font-medium">
-                            Miscellaneous
-                          </span>
-                          <Separator className="mb-2 h-px w-full bg-primary" />
-                        </div>
-
-                        <div className="grid w-full grid-cols-5 pl-1 text-sm">
-                          <span className="col-span-1">|</span>
-                          <span className="col-span-1">-</span>
-                          <span className="col-span-3 whitespace-nowrap text-nowrap">
-                            Measure line
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="baseVertFlex mt-2 w-full gap-2 xs:mt-0">
-                  <Separator className="h-px w-full bg-primary" />
-                  <p className="text-sm">
-                    <span className="font-semibold">Bolded</span> modifiers are
-                    accented.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            {currentPane === "noteLengths" && (
-              <motion.div
-                key={"GlossaryDialogNoteLengthsPane"}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className={`baseVertFlex h-[425px] w-full !items-start gap-4 xs:gap-4`}
+              <Button
+                variant={"text"}
+                onClick={() => setCurrentPane("noteLengths")}
+                className="relative h-8 px-0"
               >
-                <div className="baseVertFlex !items-start gap-0">
-                  <div className="baseVertFlex gap-1">
-                    <p className="text-sm font-medium">
-                      Supported Note Lengths
-                    </p>
-                    <Separator className="mb-2 h-px w-full bg-primary" />
-                  </div>
+                <span className="baseFlex gap-2 font-semibold">
+                  Note Lengths
+                </span>
+                {currentPane === "noteLengths" && (
+                  <motion.span
+                    layoutId="glossaryActiveTabUnderline"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    className="absolute bottom-[0px] left-0 z-0 h-[2px] w-full rounded-full bg-primary"
+                  />
+                )}
+              </Button>
+            </div>
 
-                  <Table className="w-[300px] xs:w-full">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="h-8 px-0">Name</TableHead>
-                        <TableHead className="h-8 px-0">Duration</TableHead>
-                        <TableHead className="h-8 px-0">Notation</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell className="px-0 font-medium">
-                          Whole
-                        </TableCell>
-                        <TableCell className="px-0">Four beats</TableCell>
-                        <TableCell className="px-0">
-                          <div className="baseFlex !justify-start gap-4">
-                            <WholeNote className="scale-150" />
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <WholeRest />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="px-0 font-medium">Half</TableCell>
-                        <TableCell className="px-0">Two beats</TableCell>
-                        <TableCell className="px-0">
-                          <div className="baseFlex !justify-start gap-4">
-                            <HalfNote />
+            <motion.div
+              animate={{ height: targetMinHeight }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="w-full overflow-y-auto overflow-x-hidden md:overflow-y-hidden"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {currentPane === "modifiers" && (
+                  <motion.div
+                    key={"GlossaryDialogmodifiersPane"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className={`baseVertFlex w-full !justify-start gap-4 ${editing ? "h-[475px]" : "h-[425px]"}`}
+                  >
+                    <ModifiersPane editing={editing} />
+                  </motion.div>
+                )}
 
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <div className="h-2 w-[1px] bg-foreground"></div>
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <HalfRest />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="px-0 font-medium">
-                          Quarter
-                        </TableCell>
-                        <TableCell className="px-0">One beat</TableCell>
-                        <TableCell className="px-0">
-                          <div className="baseFlex !justify-start gap-4">
-                            <QuarterNote />
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <div className="h-4 w-[1px] bg-foreground"></div>
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <QuarterRest />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="px-0 font-medium">
-                          Eighth
-                        </TableCell>
-                        <TableCell className="px-0">1/2 beat</TableCell>
-                        <TableCell className="px-0">
-                          <div className="baseFlex !justify-start gap-4">
-                            <EighthNote />
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <div className="baseFlex relative !items-end">
-                              <div className="h-4 w-[1px] bg-foreground"></div>
-                              <div className="absolute bottom-0 left-0 h-[3px] w-2 bg-foreground"></div>
-                            </div>
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <EighthRest />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="px-0 font-medium">
-                          Sixteenth
-                        </TableCell>
-                        <TableCell className="px-0">1/4 beat</TableCell>
-                        <TableCell className="px-0">
-                          <div className="baseFlex !justify-start gap-4">
-                            <SixteenthNote />
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <div className="baseFlex relative !items-end">
-                              <div className="h-4 w-[1px] bg-foreground"></div>
-                              <div className="absolute bottom-[5px] left-0 h-[3px] w-2 bg-foreground"></div>
-                              <div className="absolute bottom-0 left-0 h-[3px] w-2 bg-foreground"></div>
-                            </div>
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-foreground/25"
-                            />
-                            <SixteenthRest />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
-
-                <div className="baseVertFlex !items-start gap-2">
-                  <div className="baseVertFlex gap-1">
-                    <p className="text-sm font-medium">Dotted notes</p>
-                    <Separator className="mb-2 h-px w-full bg-primary" />
-                  </div>
-
-                  <div>
-                    <p className="mb-2 text-sm">
-                      A dotted note increases the length of the base note by
-                      half, while a double-dotted note increases the length of
-                      the base note by three quarters.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+                {currentPane === "noteLengths" && (
+                  <motion.div
+                    key={"GlossaryDialogNoteLengthsPane"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className={`baseVertFlex h-[425px] w-full !items-start gap-4 xs:gap-4`}
+                  >
+                    <NoteLengthsPane />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
 }
 
 export default GlossaryDialog;
+
+function ModifiersPane({ editing }: { editing: boolean }) {
+  return (
+    <>
+      <div
+        className={`baseFlex !items-start gap-4 xs:gap-8 ${editing ? "!flex-col xs:!flex-row" : ""}`}
+      >
+        <div className={`baseVertFlex w-full gap-1`}>
+          <span className="mt-2 text-sm font-medium">Note Modifiers</span>
+
+          <Separator className="mb-2 h-px w-full bg-primary" />
+
+          <div className="baseVertFlex w-full gap-2">
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span className="col-span-1">h</span>
+              <span className="col-span-1">-</span>
+              <span className="baseFlex col-span-3 !justify-start gap-2">
+                Hammer-on
+                {editing && (
+                  <Popover>
+                    <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
+                      <HiOutlineInformationCircle className="h-5 w-5" />
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side={"bottom"}
+                      className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
+                    >
+                      <div className="font-semibold">Notation variations</div>
+                      <Separator className="mb-2 h-px w-full bg-primary" />
+                      <div className="baseFlex gap-4">
+                        <div className="baseVertFlex gap-2">
+                          <p>Standard</p>
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              3h
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              5
+                            </div>
+                          </div>
+                        </div>
+                        <div className="baseVertFlex gap-2">
+                          <p>Delayed</p>
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              3
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              h
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              5
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </span>
+            </div>
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span className="col-span-1">p</span>
+              <span className="col-span-1">-</span>
+              <span className="baseFlex col-span-3 !justify-start gap-2">
+                Pull-off
+                {editing && (
+                  <Popover>
+                    <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
+                      <HiOutlineInformationCircle className="h-5 w-5" />
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side={"bottom"}
+                      className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
+                    >
+                      <div className="font-semibold">Notation variations</div>
+                      <Separator className="mb-2 h-px w-full bg-primary" />
+                      <div className="baseFlex gap-4">
+                        <div className="baseVertFlex gap-2">
+                          <p>Standard</p>
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              3p
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              5
+                            </div>
+                          </div>
+                        </div>
+                        <div className="baseVertFlex gap-2">
+                          <p>Delayed</p>
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              3
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              p
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              5
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </span>
+            </div>
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span className="col-span-1">/</span>
+              <span className="col-span-1">-</span>
+              <span className="baseFlex col-span-3 !justify-start gap-2">
+                Slide up
+                {editing && (
+                  <Popover>
+                    <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
+                      <HiOutlineInformationCircle className="h-5 w-5" />
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side={"bottom"}
+                      className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
+                    >
+                      <div className="font-semibold">Notation variations</div>
+                      <Separator className="mb-2 h-px w-full bg-primary" />
+                      <div className="baseFlex gap-4">
+                        <div className="baseVertFlex gap-2">
+                          <p>Standard</p>
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              3/
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              5
+                            </div>
+                          </div>
+                        </div>
+                        <div className="baseVertFlex gap-2">
+                          <p>Delayed</p>
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              3
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              /
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              5
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </span>
+            </div>
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span className="col-span-1">\</span>
+              <span className="col-span-1">-</span>
+              <span className="baseFlex col-span-3 !justify-start gap-2">
+                Slide down
+                {editing && (
+                  <Popover>
+                    <PopoverTrigger className="rounded-md p-1 transition-colors hover:bg-primary/20 active:bg-primary/10">
+                      <HiOutlineInformationCircle className="h-5 w-5" />
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side={"bottom"}
+                      className="baseVertFlex max-w-[300px] gap-1 text-sm md:max-w-none"
+                    >
+                      <div className="font-semibold">Notation variations</div>
+                      <Separator className="mb-2 h-px w-full bg-primary" />
+                      <div className="baseFlex gap-4">
+                        <div className="baseVertFlex gap-2">
+                          <p>Standard</p>
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              3\
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              5
+                            </div>
+                          </div>
+                        </div>
+                        <div className="baseVertFlex gap-2">
+                          <p>Delayed</p>
+                          <div className="baseFlex rounded-md border bg-secondary p-2">
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              3
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              \
+                            </div>
+                            <div className="h-[1px] w-2 bg-foreground"></div>
+                            <div className="baseFlex h-9 w-9 rounded-full border text-sm text-foreground">
+                              5
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </span>
+            </div>
+            {editing && (
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">{">"}</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Accented</span>
+              </div>
+            )}
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span className="col-span-1">~</span>
+              <span className="col-span-1">-</span>
+              <span className="col-span-3">Vibrato</span>
+            </div>
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span
+                className={`col-span-1 ${editing ? "" : "relative bottom-[8.5px] text-[30px]"}`}
+              >
+                .
+              </span>
+              <span className="col-span-1">-</span>
+              <span className="col-span-3">Stacatto</span>
+            </div>
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span className="col-span-1">b</span>
+              <span className="col-span-1">-</span>
+              <span className="col-span-3">Bend</span>
+            </div>
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span className="col-span-1">r</span>
+              <span className="col-span-1">-</span>
+              <span className="col-span-3">Release</span>
+            </div>
+            <div className="grid w-full grid-cols-5 pl-1 text-sm">
+              <span className="col-span-1">x</span>
+              <span className="col-span-1">-</span>
+              <span className="col-span-3">Muted note</span>
+            </div>
+          </div>
+
+          <div className="baseVertFlex w-full gap-1">
+            <span className="mt-4 text-sm font-medium">Section Modifiers</span>
+            <Separator className="mb-2 h-px w-full bg-primary" />
+          </div>
+
+          <div className="grid w-full grid-cols-5 pl-1 text-sm">
+            <span className="col-span-1">PM</span>
+            <span className="col-span-1 ml-1">-</span>
+            <span className="col-span-3">Palm mute</span>
+          </div>
+        </div>
+
+        <div className="baseVertFlex w-full gap-1">
+          <span className="mt-2 text-sm font-medium">Chord Modifiers</span>
+          <Separator className="mb-2 h-px w-full bg-primary" />
+
+          {editing ? (
+            <div className="baseVertFlex w-full gap-2">
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">^</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Upstrum</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">v</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Downstrum</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">^~</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Arpeggiated upstrum</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">v~</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Arpeggiated downstrum</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">{">"}</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Accented</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">s</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Slap</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">.</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Stacatto</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">r</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Rest</span>
+              </div>
+            </div>
+          ) : (
+            <div className="baseVertFlex w-full gap-2">
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1 -ml-1">
+                  <BsArrowUp className="size-4" />
+                </span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Upstrum</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1 -ml-1">
+                  <BsArrowDown className="size-4" />
+                </span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Downstrum</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1 -ml-1">
+                  <ArpeggiatedUpstrumIcon className="size-4" />
+                </span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Arpeggiated upstrum</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1 -ml-1">
+                  <ArpeggiatedDownstrumIcon className="size-4" />
+                </span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Arpeggiated downstrum</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">s</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Slap</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="relative bottom-[9px] col-span-1 text-[30px]">
+                  .
+                </span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Stacatto</span>
+              </div>
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">
+                  <PauseIcon className="mt-1.5 size-2.5" />
+                </span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3">Rest</span>
+              </div>
+            </div>
+          )}
+
+          {editing && (
+            <>
+              <div className="baseVertFlex w-full gap-1">
+                <span className="mt-4 text-sm font-medium">Miscellaneous</span>
+                <Separator className="mb-2 h-px w-full bg-primary" />
+              </div>
+
+              <div className="grid w-full grid-cols-5 pl-1 text-sm">
+                <span className="col-span-1">|</span>
+                <span className="col-span-1">-</span>
+                <span className="col-span-3 whitespace-nowrap text-nowrap">
+                  Measure line
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="baseVertFlex mt-2 w-full gap-2 xs:mt-0">
+        <Separator className="h-px w-full bg-primary" />
+        <p className="text-sm">
+          <span className="font-semibold">Bolded</span> modifiers are accented.
+        </p>
+      </div>
+    </>
+  );
+}
+
+function NoteLengthsPane() {
+  return (
+    <>
+      <div className="baseVertFlex !items-start gap-0">
+        <div className="baseVertFlex gap-1">
+          <p className="text-sm font-medium">Supported Note Lengths</p>
+          <Separator className="mb-2 h-px w-full bg-primary" />
+        </div>
+
+        <Table className="w-[300px] xs:w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="h-8 px-0">Name</TableHead>
+              <TableHead className="h-8 px-0">Duration</TableHead>
+              <TableHead className="h-8 px-0">Notation</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell className="px-0 font-medium">Whole</TableCell>
+              <TableCell className="px-0">Four beats</TableCell>
+              <TableCell className="px-0">
+                <div className="baseFlex !justify-start gap-4">
+                  <WholeNote className="scale-150" />
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <WholeRest />
+                </div>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="px-0 font-medium">Half</TableCell>
+              <TableCell className="px-0">Two beats</TableCell>
+              <TableCell className="px-0">
+                <div className="baseFlex !justify-start gap-4">
+                  <HalfNote />
+
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <div className="h-2 w-[1px] bg-foreground"></div>
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <HalfRest />
+                </div>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="px-0 font-medium">Quarter</TableCell>
+              <TableCell className="px-0">One beat</TableCell>
+              <TableCell className="px-0">
+                <div className="baseFlex !justify-start gap-4">
+                  <QuarterNote />
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <div className="h-4 w-[1px] bg-foreground"></div>
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <QuarterRest />
+                </div>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="px-0 font-medium">Eighth</TableCell>
+              <TableCell className="px-0">1/2 beat</TableCell>
+              <TableCell className="px-0">
+                <div className="baseFlex !justify-start gap-4">
+                  <EighthNote />
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <div className="baseFlex relative !items-end">
+                    <div className="h-4 w-[1px] bg-foreground"></div>
+                    <div className="absolute bottom-0 left-0 h-[3px] w-2 bg-foreground"></div>
+                  </div>
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <EighthRest />
+                </div>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="px-0 font-medium">Sixteenth</TableCell>
+              <TableCell className="px-0">1/4 beat</TableCell>
+              <TableCell className="px-0">
+                <div className="baseFlex !justify-start gap-4">
+                  <SixteenthNote />
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <div className="baseFlex relative !items-end">
+                    <div className="h-4 w-[1px] bg-foreground"></div>
+                    <div className="absolute bottom-[5px] left-0 h-[3px] w-2 bg-foreground"></div>
+                    <div className="absolute bottom-0 left-0 h-[3px] w-2 bg-foreground"></div>
+                  </div>
+                  <Separator
+                    orientation="vertical"
+                    className="h-4 w-[1px] bg-foreground/25"
+                  />
+                  <SixteenthRest />
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="baseVertFlex !items-start gap-2">
+        <div className="baseVertFlex gap-1">
+          <p className="text-sm font-medium">Dotted notes</p>
+          <Separator className="mb-2 h-px w-full bg-primary" />
+        </div>
+
+        <div>
+          <p className="mb-2 text-sm">
+            A dotted note increases the length of the base note by half, while a
+            double-dotted note increases the length of the base note by three
+            quarters.
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function MobileGlossary({ editing }: { editing: boolean }) {
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const navigationRef = useRef<HTMLDivElement>(null);
+  const underlineLeft = useMotionValue(0);
+  const underlineWidth = useMotionValue(0);
+
+  useEffect(() => {
+    const navigation = navigationRef.current;
+    if (!carouselApi || !navigation) return;
+
+    const buttons = navigation.querySelectorAll("button");
+    const first = buttons[0];
+    const second = buttons[1];
+    if (!first || !second) return;
+
+    let firstLeft = 0;
+    let secondLeft = 0;
+    let firstWidth = 0;
+    let secondWidth = 0;
+
+    function updateUnderline() {
+      if (!carouselApi) return;
+      const progress = Math.max(0, Math.min(1, carouselApi.scrollProgress()));
+      underlineLeft.set(firstLeft + (secondLeft - firstLeft) * progress);
+      underlineWidth.set(firstWidth + (secondWidth - firstWidth) * progress);
+    }
+
+    function measure() {
+      if (!first || !second || !navigation) return;
+      const navigationBounds = navigation.getBoundingClientRect();
+      const firstBounds = first.getBoundingClientRect();
+      const secondBounds = second.getBoundingClientRect();
+      // Dialog entrance scales its children; store unscaled layout dimensions.
+      const scale = navigationBounds.width / navigation.offsetWidth || 1;
+      firstLeft = (firstBounds.left - navigationBounds.left) / scale;
+      secondLeft = (secondBounds.left - navigationBounds.left) / scale;
+      firstWidth = firstBounds.width / scale;
+      secondWidth = secondBounds.width / scale;
+      updateUnderline();
+    }
+
+    function onSelect() {
+      if (!carouselApi) return;
+      setSelectedIndex(carouselApi.selectedScrollSnap());
+    }
+
+    function onReInit() {
+      measure();
+      onSelect();
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(navigation);
+    observer.observe(first);
+    observer.observe(second);
+    onReInit();
+    carouselApi.on("scroll", updateUnderline);
+    carouselApi.on("select", onSelect);
+    carouselApi.on("reInit", onReInit);
+
+    return () => {
+      observer.disconnect();
+      carouselApi.off("scroll", updateUnderline);
+      carouselApi.off("select", onSelect);
+      carouselApi.off("reInit", onReInit);
+    };
+  }, [carouselApi, underlineLeft, underlineWidth]);
+
+  return (
+    <Carousel
+      setApi={setCarouselApi}
+      opts={{ align: "start", loop: false }}
+      aria-label="Modifier and note length glossary"
+      className="flex min-h-0 w-full flex-col gap-4"
+    >
+      <div
+        ref={navigationRef}
+        className="relative flex w-full items-center gap-4"
+      >
+        <Button
+          variant="text"
+          aria-pressed={selectedIndex === 0}
+          onClick={() => carouselApi?.scrollTo(0)}
+          className="relative h-8 px-0 font-semibold"
+        >
+          Modifier Glossary
+        </Button>
+        <Button
+          variant="text"
+          aria-pressed={selectedIndex === 1}
+          onClick={() => carouselApi?.scrollTo(1)}
+          className="relative h-8 px-0 font-semibold"
+        >
+          Note Lengths
+        </Button>
+        <motion.span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 left-0 h-[2px] rounded-full bg-primary"
+          style={{ x: underlineLeft, width: underlineWidth }}
+        />
+      </div>
+      <div
+        className="min-h-0"
+        style={{
+          height: `min(${editing ? 475 : 425}px, calc(90dvh - 82px))`,
+        }}
+      >
+        <CarouselContent className="ml-0 h-full touch-pan-y">
+          <CarouselItem
+            aria-label="Modifier Glossary"
+            className="h-full overflow-y-auto overscroll-y-contain pl-0"
+          >
+            <div
+              inert={selectedIndex !== 0}
+              className="baseVertFlex w-full !justify-start gap-4"
+            >
+              <ModifiersPane editing={editing} />
+            </div>
+          </CarouselItem>
+          <CarouselItem
+            aria-label="Note Lengths"
+            className="h-full overflow-y-auto overscroll-y-contain pl-0"
+          >
+            <div
+              inert={selectedIndex !== 1}
+              className="baseVertFlex w-full !items-start gap-4"
+            >
+              <NoteLengthsPane />
+            </div>
+          </CarouselItem>
+        </CarouselContent>
+      </div>
+    </Carousel>
+  );
+}

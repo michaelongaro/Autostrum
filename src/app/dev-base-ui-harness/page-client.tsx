@@ -70,6 +70,9 @@ import {
 import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
+import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
+import BookmarkToggle from "~/components/ui/BookmarkToggle";
+import { useTabStoreApi } from "~/stores/TabStore";
 import { Toggle } from "~/components/ui/toggle";
 import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
 import PinnedTabModal from "~/components/modals/PinnedTabModal";
@@ -79,6 +82,45 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "~/components/ui/tooltip";
+
+function GlossaryBookmarkFixture() {
+  const tabStore = useTabStoreApi();
+  const [bookmarked, setBookmarked] = useState(false);
+
+  return (
+    <section
+      data-testid="glossary-bookmark-fixture"
+      className="flex flex-col gap-4"
+    >
+      <Button onClick={() => setBookmarked((value) => !value)}>
+        Toggle bookmark visual
+      </Button>
+      <BookmarkToggle
+        tabId={0}
+        createdByUserId={null}
+        currentUser={null}
+        customClassName="w-fit gap-2 px-3 py-1"
+        showText
+        isBookmarked={bookmarked}
+      />
+      <Button
+        onClick={() => {
+          tabStore.setState({ editing: false, showGlossaryDialog: true });
+        }}
+      >
+        Open viewing glossary
+      </Button>
+      <Button
+        onClick={() => {
+          tabStore.setState({ editing: true, showGlossaryDialog: true });
+        }}
+      >
+        Open editing glossary
+      </Button>
+      <GlossaryDialog />
+    </section>
+  );
+}
 
 function ProfileImageFixture() {
   const image =
@@ -324,6 +366,7 @@ export default function DevBaseUiHarness() {
         </DrawerContent>
       </Drawer>
       <ProfileImageFixture />
+      <GlossaryBookmarkFixture />
       <div id="link-target">Link destination</div>
     </main>
   );

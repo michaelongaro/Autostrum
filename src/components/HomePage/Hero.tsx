@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import HeaderLogo from "~/components/Header/HeaderLogo";
+import HeroTablature from "~/components/HomePage/HeroTablature";
 import { Button } from "~/components/ui/button";
 
 function Hero() {
@@ -73,194 +74,6 @@ import { QuarterNote } from "~/utils/noteLengthIcons";
 const HERO_PLAYBACK_PROGRESS = 23 / (4 * 60 + 12);
 const HERO_PLAYBACK_PROGRESS_PERCENT = `${HERO_PLAYBACK_PROGRESS * 100}%`;
 
-// Use em units so both previews share the same staff at their viewport scale.
-const TAB_COLUMN_WIDTH = 2.125;
-
-// Visual-only recreation of main's <PlaybackTabChord> staff (no per-string
-// bordered rows; 1px start/end staff lines; my-3 string spacing).
-const TabColumn = ({
-  left,
-  strings,
-  beamCount,
-  startsBeam,
-  endsBeam,
-  startsMeasure,
-}: {
-  left: string;
-  strings: string[];
-  beamCount: number;
-  startsBeam: boolean;
-  endsBeam: boolean;
-  startsMeasure: boolean;
-}) => (
-  <div style={{ position: "absolute", width: "2.125em", left }}>
-    <div className="baseVertFlex relative w-[2.125em]">
-      <div className="baseVertFlex w-full">
-        <div className="baseVertFlex mb-[-1.125em]">
-          <div className="baseFlex h-[1.75em] w-full"></div>
-
-          <div className="baseVertFlex relative w-[2.125em]">
-            {startsMeasure && (
-              <div className="absolute left-0 top-[0.75em] h-[7.875em] w-[0.0625em] bg-foreground/50" />
-            )}
-            {strings.map((note, idx) => (
-              <div
-                key={idx}
-                className="baseFlex relative w-[2.125em] basis-[content]"
-              >
-                <div className="h-[0.0625em] flex-[1] bg-foreground/50"></div>
-                <div className="baseFlex w-[2.125em]">
-                  <div className="my-[0.75em] h-[0.0625em] flex-[1] bg-foreground/50"></div>
-                  <div className="baseFlex relative h-[1.25em]">
-                    <div>{note}</div>
-                  </div>
-                  <div className="my-[0.75em] h-[0.0625em] flex-[1] bg-foreground/50"></div>
-                </div>
-                <div className="h-[0.0625em] flex-[1] bg-foreground/50"></div>
-              </div>
-            ))}
-          </div>
-
-          <div className="baseFlex mt-[0.25em] h-[1em] w-full text-foreground">
-            <div className="relative size-full">
-              <div className="absolute left-1/2 h-full w-[0.0625em] bg-current" />
-              {Array.from({ length: beamCount }, (_, idx) => (
-                <div
-                  key={idx}
-                  className="absolute h-[0.125em] bg-current"
-                  style={{
-                    bottom: `${idx * 0.25}em`,
-                    left: startsBeam ? "50%" : 0,
-                    right: endsBeam ? "calc(50% - 0.0625em)" : 0,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="baseFlex relative mt-[0.5em] size-[1.25em]">
-            <div className="size-full"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Let Her Go, transcribed top string to bottom string from the reference.
-// Both desktop and mobile landscape previews share the same notes and rhythm.
-const tabData = [
-  ["", "", "0h", "", "", ""],
-  ["", "", "2", "", "", ""],
-  ["", "1", "", "3", "", ""],
-  ["", "", "", "", "", ""],
-  ["", "", "", "", "", "1"],
-  ["", "", "2", "", "", ""],
-  ["", "", "", "3", "", ""],
-  ["3", "", "", "", "", ""],
-  ["", "", "", "", "", "1"],
-  ["0", "", "", "", "", ""],
-  ["", "", "", "3", "", ""],
-  ["", "1", "", "", "", ""],
-  ["", "", "", "", "", "3"],
-  ["", "3", "", "", "", ""],
-  ["", "", "", "0", "", ""],
-  ["0", "", "", "", "", ""],
-  ["", "", "", "", "0", ""],
-  ["", "", "", "2", "", ""],
-  ["", "", "", "", "0", ""],
-  ["", "", "2", "", "", ""],
-  ["", "", "", "2", "", ""],
-  ["", "1", "", "", "", ""],
-  ["", "", "", "", "0", ""],
-  ["", "", "", "2", "", ""],
-  ["", "3", "", "", "", "3"],
-  ["0", "", "", "", "", ""],
-  ["", "3", "", "0", "", ""],
-  ["", "1", "", "", "", ""],
-  ["", "", "0h", "", "", "1"],
-  ["", "", "2", "", "", ""],
-  ["", "1", "", "3", "", ""],
-  ["", "", "", "", "", ""],
-  ["", "", "", "", "", "1"],
-  ["", "", "2", "", "", ""],
-  ["", "", "", "3", "", ""],
-];
-
-const beamGroups = [
-  [0, 3],
-  [4, 7],
-  [8, 11],
-  [12, 15],
-  [16, 17],
-  [18, 21],
-  [22, 23],
-  [24, 27],
-  [28, 31],
-  [32, 35],
-] as const;
-
-const tabColumns = tabData.map((strings, idx) => {
-  const beamGroup = beamGroups.find(
-    ([start, end]) => idx >= start && idx <= end,
-  );
-
-  return (
-    <TabColumn
-      key={idx}
-      left={`${idx * TAB_COLUMN_WIDTH}em`}
-      strings={strings}
-      beamCount={idx === 16 || idx === 17 || idx === 22 || idx === 23 ? 1 : 2}
-      startsBeam={idx === beamGroup?.[0]}
-      endsBeam={idx === beamGroup?.[1]}
-      startsMeasure={idx === 16 || idx === 28}
-    />
-  );
-});
-
-function TablatureTrack({
-  layout = "desktop",
-}: {
-  layout?: "desktop" | "mobile";
-}) {
-  return (
-    <div className="baseVertFlex relative min-h-0 w-full flex-1 select-none">
-      <div
-        className={`w-full overflow-hidden ${layout === "desktop" ? "h-full max-h-[315px]" : ""}`}
-      >
-        <div
-          className={`baseFlex relative w-full overflow-hidden ${layout === "mobile" ? "h-[15.9375em]" : "h-full"}`}
-        >
-          <div className="relative flex size-full overflow-hidden [--playhead-position:50%]">
-            {/* Complementary clips keep colors aligned with the playhead at every width. */}
-            {([false, true] as const).map((isHighlighted) => (
-              <div
-                key={String(isHighlighted)}
-                className={`absolute inset-0 ${isHighlighted ? "text-primary" : "text-foreground"}`}
-                style={{
-                  clipPath: isHighlighted
-                    ? "inset(0 calc(100% - var(--playhead-position)) 0 0)"
-                    : "inset(0 0 0 var(--playhead-position))",
-                }}
-              >
-                <div
-                  className="relative flex h-full items-center"
-                  style={{ width: `${tabData.length * TAB_COLUMN_WIDTH}em` }}
-                >
-                  {tabColumns}
-                </div>
-              </div>
-            ))}
-            <div
-              className="absolute top-1/2 z-10 h-[7.75em] w-[0.125em] -translate-x-1/2 -translate-y-1/2 bg-primary"
-              style={{ left: "var(--playhead-position)" }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // A scaled 800 × 400 landscape viewport, independent of the page's orientation.
 function MobileTablatureScreenshot() {
   return (
@@ -282,7 +95,7 @@ function MobileTablatureScreenshot() {
           </div>
         </div>
 
-        <TablatureTrack layout="mobile" />
+        <HeroTablature layout="mobile" />
 
         <div className="baseVertFlex w-full gap-[0.5em] pb-[0.5em]">
           {/* Landscape playback controls stay together on one row. */}
@@ -498,7 +311,7 @@ function TablatureScreenshot() {
               </div>
 
               {/* Tablature Track Section — desktop Practice view from main PlaybackModal */}
-              <TablatureTrack />
+              <HeroTablature />
 
               <div className="baseVertFlex w-full gap-2">
                 {/* Desktop (non-landscape) PlaybackAudioControls */}
