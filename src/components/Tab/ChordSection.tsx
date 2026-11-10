@@ -93,7 +93,7 @@ function ChordSection({
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  className="w-[52px] px-2.5"
+                  className="w-[52px] bg-background px-2.5 text-foreground placeholder:text-foreground/70"
                   placeholder={
                     subSection.bpm === -1
                       ? bpm === -1
@@ -114,7 +114,7 @@ function ChordSection({
                 Repetitions
               </Label>
               <div className="relative w-12">
-                <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
+                <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm text-foreground">
                   x
                 </span>
                 <Input
@@ -123,7 +123,7 @@ function ChordSection({
                   inputMode="numeric"
                   pattern="[0-9]*"
                   placeholder="1"
-                  className="w-[45px] px-2 pl-4"
+                  className="w-[45px] bg-background px-2 pl-4 text-foreground placeholder:text-foreground/70"
                   value={
                     subSection.repetitions === -1
                       ? ""

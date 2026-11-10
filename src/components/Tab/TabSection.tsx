@@ -388,7 +388,7 @@ function TabSection({
                   >
                     <SelectTrigger
                       id={`${sectionIndex}${subSectionIndex}noteLengthSelect`}
-                      className="w-[135px]"
+                      className="w-[135px] bg-background text-foreground"
                     >
                       <SelectValue placeholder="Select a length" />
                     </SelectTrigger>
@@ -439,7 +439,7 @@ function TabSection({
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className="w-[52px] px-2.5"
+                      className="w-[52px] bg-background px-2.5 text-foreground placeholder:text-foreground/70"
                       placeholder={bpm === -1 ? "" : bpm.toString()}
                       value={
                         subSection.bpm === -1 ? "" : subSection.bpm.toString()
@@ -456,7 +456,7 @@ function TabSection({
                     Repetitions
                   </Label>
                   <div className="relative w-12">
-                    <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm">
+                    <span className="pointer-events-none absolute bottom-[9px] left-2 text-sm text-foreground">
                       x
                     </span>
                     <Input
@@ -464,7 +464,7 @@ function TabSection({
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      className="w-[45px] px-2 pl-4"
+                      className="w-[45px] bg-background px-2 pl-4 text-foreground placeholder:text-foreground/70"
                       placeholder="1"
                       value={
                         subSection.repetitions === -1

@@ -290,6 +290,7 @@ function Tab() {
                     }}
                     className="w-full"
                   >
+                    {/* Keep focus rings inside the height-animation clip. */}
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -298,7 +299,7 @@ function Tab() {
                         duration: 0,
                       }}
                       style={{ transformOrigin: "center top" }}
-                      className="baseFlex w-full"
+                      className="baseFlex w-full py-0.5"
                     >
                       <SectionContainer
                         sectionIndex={index}

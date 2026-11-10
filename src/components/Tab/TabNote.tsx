@@ -70,7 +70,7 @@ function TabNote({
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[24px] w-[29px] -translate-x-1/2 -translate-y-1/2 rounded-md group-hover/note:border group-hover:border"
+        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[24px] w-[29px] -translate-x-1/2 -translate-y-1/2 rounded-md border-foreground/70 group-hover/note:border group-hover:border"
       />
       <Input
         id={`input-${sectionIndex}-${subSectionIndex}-${columnIndex}-${noteIndex}`}

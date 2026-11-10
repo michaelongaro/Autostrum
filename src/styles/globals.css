@@ -283,6 +283,13 @@ html[data-theme="dark"] .maskedToggle[data-variant="inverse"] {
   transition: clip-path 250ms ease-in-out;
 }
 
+/* A soft tint and accent outline distinguish pressed playback options. */
+html[data-theme="light"] [data-audio-toggle][data-pressed] {
+  background-color: hsl(var(--secondary-active));
+  color: hsl(var(--foreground));
+  outline-color: hsl(var(--primary) / 0.35);
+}
+
 /* The presentation layer must not cover keyboard focus feedback. */
 .maskedToggle:has(button:focus-visible) {
   outline: 2px solid hsl(var(--foreground));

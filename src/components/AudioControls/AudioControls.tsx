@@ -368,6 +368,7 @@ function AudioControls() {
             {/* autoscroll toggle + volume slider*/}
             <div className="baseFlex gap-2">
               <Toggle
+                data-audio-toggle=""
                 variant={"outline"}
                 pressed={autoscrollEnabled}
                 onPressedChange={(value) =>
@@ -659,6 +660,7 @@ function AudioControls() {
           {aboveLargeViewportWidth ? (
             <>
               <Toggle
+                data-audio-toggle=""
                 variant={"outline"}
                 aria-label="Loop toggle"
                 disabled={audioMetadata.playing}
