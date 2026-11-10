@@ -373,7 +373,12 @@ function SearchResults({
   return (
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
       {/* tablet+ filters sidebar */}
-      <div className="baseVertFlex sticky top-20 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-panel p-4 text-panel-foreground tablet:!flex">
+      <div
+        className={cn(
+          "baseVertFlex sticky top-20 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-panel p-4 text-panel-foreground tablet:!flex",
+          styles.accentPanel,
+        )}
+      >
         <div className="baseFlex gap-2">
           <LuFilter className="size-5" />
           <span className="text-lg font-medium">Filters</span>
@@ -391,7 +396,10 @@ function SearchResults({
           >
             <SelectTrigger
               id="genre"
-              className="w-full focus:ring-panel-foreground/75"
+              className={cn(
+                "w-full focus:ring-panel-foreground/75",
+                styles.filterSelect,
+              )}
             >
               <SelectValue placeholder="Select a genre">
                 {localFilters.genre && localFilters.genre !== "allGenres" ? (
@@ -454,7 +462,10 @@ function SearchResults({
           >
             <SelectTrigger
               id="tuning"
-              className="h-10 w-full focus:ring-panel-foreground/75"
+              className={cn(
+                "h-10 w-full focus:ring-panel-foreground/75",
+                styles.filterSelect,
+              )}
             >
               <SelectValue placeholder="Select tuning...">
                 {localFilters.tuning ? (
@@ -524,7 +535,10 @@ function SearchResults({
           >
             <SelectTrigger
               id="capo"
-              className="w-full focus:ring-panel-foreground/75"
+              className={cn(
+                "w-full focus:ring-panel-foreground/75",
+                styles.filterSelect,
+              )}
             >
               <SelectValue placeholder="All" />
             </SelectTrigger>
@@ -558,7 +572,10 @@ function SearchResults({
           >
             <SelectTrigger
               id="difficulty"
-              className="w-full focus:ring-panel-foreground/75"
+              className={cn(
+                "w-full focus:ring-panel-foreground/75",
+                styles.filterSelect,
+              )}
             >
               <SelectValue placeholder="Select a difficulty">
                 {localFilters.difficulty ? (
@@ -654,7 +671,10 @@ function SearchResults({
           >
             <SelectTrigger
               id="sortBy"
-              className="w-full focus:ring-panel-foreground/75"
+              className={cn(
+                "w-full focus:ring-panel-foreground/75",
+                styles.filterSelect,
+              )}
             >
               <SelectValue />
             </SelectTrigger>
@@ -684,7 +704,10 @@ function SearchResults({
             variant="outline"
             disabled={disableApplyFiltersButton()}
             onClick={() => applyFilters()}
-            className="text-panel-foreground hover:text-foreground"
+            className={cn(
+              "text-panel-foreground hover:text-foreground",
+              styles.panelAction,
+            )}
           >
             Apply
           </Button>
@@ -705,7 +728,11 @@ function SearchResults({
               paddingBottom: "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-panel pt-3 text-panel-foreground md:border-x tablet:!hidden ${stickyHeaderNotActive ? "md:rounded-t-lg" : "rounded-t-none"}`}
+            className={cn(
+              "baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-panel pt-3 text-panel-foreground md:border-x tablet:!hidden",
+              styles.accentPanel,
+              stickyHeaderNotActive ? "md:rounded-t-lg" : "rounded-t-none",
+            )}
           >
             <AnimatePresence initial={false}>
               <div className="baseFlex w-full !justify-between gap-2 px-4">
@@ -772,7 +799,10 @@ function SearchResults({
                           variant="outline"
                           aria-label="Search filters"
                           disabled={disableFiltersAndLayoutToggle}
-                          className="baseFlex w-9 text-panel-foreground active:scale-95 motion-reduce:transform-none"
+                          className={cn(
+                            "baseFlex w-9 text-panel-foreground active:scale-95 motion-reduce:transform-none",
+                            styles.panelAction,
+                          )}
                         >
                           <LuFilter className="size-4 shrink-0" />
                         </Button>
@@ -920,6 +950,7 @@ function SearchResults({
               transition={{ duration: 0.5, ease: "linear" }}
               className={cn(
                 "baseVertFlex w-full !justify-between rounded-t-lg border bg-panel pt-3 text-panel-foreground",
+                styles.accentPanel,
                 layoutType.value === "table" && "border-b-0",
               )}
             >

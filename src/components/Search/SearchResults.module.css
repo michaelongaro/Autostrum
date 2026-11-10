@@ -22,6 +22,37 @@
   display: none;
 }
 
+/* Keep the search chrome accent-filled without changing other app panels. */
+:global(html[data-theme="light"]) .accentPanel,
+:global(html[data-theme="light"]) .tableHeader,
+:global(html[data-theme="light"]) .compatibilityHeader {
+  --panel: var(--accent);
+  --panel-foreground: var(--background);
+}
+
+:global(html[data-theme="light"]) .filterSelect {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+:global(html[data-theme="dark"]) .filterSelect {
+  background-color: hsl(var(--background));
+}
+
+:global(html[data-theme="light"]) .accentPanel :global(.maskedToggle) {
+  --toggle-highlight: var(--panel-foreground);
+  --toggle-highlight-text: var(--accent);
+  border-color: hsl(var(--panel-foreground) / 0.65);
+}
+
+:global(html[data-theme="light"]) .accentPanel .panelAction {
+  outline-color: hsl(var(--panel-foreground) / 0.65);
+}
+
+:global(html[data-theme="light"]) .accentPanel button:focus-visible {
+  --tw-ring-color: hsl(var(--panel-foreground));
+}
+
 .tableTrack {
   --table-sticky-top: 8rem;
   --table-horizontal-travel: 0px;
@@ -105,6 +136,7 @@
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(var(--table-horizontal-travel));
   }
