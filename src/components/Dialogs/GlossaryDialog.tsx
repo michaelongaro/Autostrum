@@ -136,7 +136,7 @@ function GlossaryDialog() {
                       Note Modifiers
                     </span>
 
-                    <Separator className="mb-2 w-full bg-primary" />
+                    <Separator className="mb-2 h-px w-full bg-primary" />
 
                     <div className="baseVertFlex w-full gap-2">
                       <div className="grid w-full grid-cols-5 pl-1 text-sm">
@@ -156,7 +156,7 @@ function GlossaryDialog() {
                                 <div className="font-semibold">
                                   Notation variations
                                 </div>
-                                <Separator className="mb-2 w-full bg-primary" />
+                                <Separator className="mb-2 h-px w-full bg-primary" />
                                 <div className="baseFlex gap-4">
                                   <div className="baseVertFlex gap-2">
                                     <p>Standard</p>
@@ -209,7 +209,7 @@ function GlossaryDialog() {
                                 <div className="font-semibold">
                                   Notation variations
                                 </div>
-                                <Separator className="mb-2 w-full bg-primary" />
+                                <Separator className="mb-2 h-px w-full bg-primary" />
                                 <div className="baseFlex gap-4">
                                   <div className="baseVertFlex gap-2">
                                     <p>Standard</p>
@@ -262,7 +262,7 @@ function GlossaryDialog() {
                                 <div className="font-semibold">
                                   Notation variations
                                 </div>
-                                <Separator className="mb-2 w-full bg-primary" />
+                                <Separator className="mb-2 h-px w-full bg-primary" />
                                 <div className="baseFlex gap-4">
                                   <div className="baseVertFlex gap-2">
                                     <p>Standard</p>
@@ -315,7 +315,7 @@ function GlossaryDialog() {
                                 <div className="font-semibold">
                                   Notation variations
                                 </div>
-                                <Separator className="mb-2 w-full bg-primary" />
+                                <Separator className="mb-2 h-px w-full bg-primary" />
                                 <div className="baseFlex gap-4">
                                   <div className="baseVertFlex gap-2">
                                     <p>Standard</p>
@@ -393,7 +393,7 @@ function GlossaryDialog() {
                       <span className="mt-4 text-sm font-medium">
                         Section Modifiers
                       </span>
-                      <Separator className="mb-2 w-full bg-primary" />
+                      <Separator className="mb-2 h-px w-full bg-primary" />
                     </div>
 
                     <div className="grid w-full grid-cols-5 pl-1 text-sm">
@@ -407,7 +407,7 @@ function GlossaryDialog() {
                     <span className="mt-2 text-sm font-medium">
                       Chord Modifiers
                     </span>
-                    <Separator className="mb-2 w-full bg-primary" />
+                    <Separator className="mb-2 h-px w-full bg-primary" />
 
                     {editing ? (
                       <div className="baseVertFlex w-full gap-2">
@@ -518,7 +518,7 @@ function GlossaryDialog() {
                           <span className="mt-4 text-sm font-medium">
                             Miscellaneous
                           </span>
-                          <Separator className="mb-2 w-full bg-primary" />
+                          <Separator className="mb-2 h-px w-full bg-primary" />
                         </div>
 
                         <div className="grid w-full grid-cols-5 pl-1 text-sm">
@@ -534,7 +534,7 @@ function GlossaryDialog() {
                 </div>
 
                 <div className="baseVertFlex mt-2 w-full gap-2 xs:mt-0">
-                  <Separator className="h-[1px] w-full bg-primary" />
+                  <Separator className="h-px w-full bg-primary" />
                   <p className="text-sm">
                     <span className="font-semibold">Bolded</span> modifiers are
                     accented.
@@ -557,7 +557,7 @@ function GlossaryDialog() {
                     <p className="text-sm font-medium">
                       Supported Note Lengths
                     </p>
-                    <Separator className="mb-2 w-full bg-primary" />
+                    <Separator className="mb-2 h-px w-full bg-primary" />
                   </div>
 
                   <Table className="w-[300px] xs:w-full">
@@ -682,7 +682,7 @@ function GlossaryDialog() {
                 <div className="baseVertFlex !items-start gap-2">
                   <div className="baseVertFlex gap-1">
                     <p className="text-sm font-medium">Dotted notes</p>
-                    <Separator className="mb-2 w-full bg-primary" />
+                    <Separator className="mb-2 h-px w-full bg-primary" />
                   </div>
 
                   <div>
