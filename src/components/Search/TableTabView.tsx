@@ -200,11 +200,15 @@ function TableTabView({
 
                 <TableHeader
                   ref={headerRef}
-                  className={`bg-accent [&_th]:h-8 [&_th]:px-4 [&_th]:py-1 [&_th]:text-primary-foreground/75 ${styles.tableHeader}`}
+                  className={`bg-panel ${styles.tableHeader}`}
                 >
-                  <TableRow className="hover:bg-accent">
+                  <TableRow className="hover:bg-panel">
                     {headings.map((heading) => (
-                      <TableHead key={heading.label} scope="col">
+                      <TableHead
+                        key={heading.label}
+                        scope="col"
+                        className="h-8 px-4 py-1 text-inherit"
+                      >
                         {"hidden" in heading ? (
                           <span className="sr-only">{heading.label}</span>
                         ) : (

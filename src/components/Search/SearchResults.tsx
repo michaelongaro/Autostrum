@@ -373,7 +373,7 @@ function SearchResults({
   return (
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
       {/* tablet+ filters sidebar */}
-      <div className="baseVertFlex sticky top-20 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-accent p-4 text-primary-foreground tablet:!flex">
+      <div className="baseVertFlex sticky top-20 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-panel p-4 text-panel-foreground tablet:!flex">
         <div className="baseFlex gap-2">
           <LuFilter className="size-5" />
           <span className="text-lg font-medium">Filters</span>
@@ -391,7 +391,7 @@ function SearchResults({
           >
             <SelectTrigger
               id="genre"
-              className="w-full focus:ring-primary-foreground/75"
+              className="w-full focus:ring-panel-foreground/75"
             >
               <SelectValue placeholder="Select a genre">
                 {localFilters.genre && localFilters.genre !== "allGenres" ? (
@@ -454,7 +454,7 @@ function SearchResults({
           >
             <SelectTrigger
               id="tuning"
-              className="h-10 w-full focus:ring-primary-foreground/75"
+              className="h-10 w-full focus:ring-panel-foreground/75"
             >
               <SelectValue placeholder="Select tuning...">
                 {localFilters.tuning ? (
@@ -524,7 +524,7 @@ function SearchResults({
           >
             <SelectTrigger
               id="capo"
-              className="w-full focus:ring-primary-foreground/75"
+              className="w-full focus:ring-panel-foreground/75"
             >
               <SelectValue placeholder="All" />
             </SelectTrigger>
@@ -558,7 +558,7 @@ function SearchResults({
           >
             <SelectTrigger
               id="difficulty"
-              className="w-full focus:ring-primary-foreground/75"
+              className="w-full focus:ring-panel-foreground/75"
             >
               <SelectValue placeholder="Select a difficulty">
                 {localFilters.difficulty ? (
@@ -654,7 +654,7 @@ function SearchResults({
           >
             <SelectTrigger
               id="sortBy"
-              className="w-full focus:ring-primary-foreground/75"
+              className="w-full focus:ring-panel-foreground/75"
             >
               <SelectValue />
             </SelectTrigger>
@@ -684,7 +684,7 @@ function SearchResults({
             variant="outline"
             disabled={disableApplyFiltersButton()}
             onClick={() => applyFilters()}
-            className="text-primary-foreground hover:text-foreground"
+            className="text-panel-foreground hover:text-foreground"
           >
             Apply
           </Button>
@@ -705,7 +705,7 @@ function SearchResults({
               paddingBottom: "0.75rem",
             }}
             transition={{ duration: 0.5, ease: "linear" }}
-            className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-accent pt-3 text-primary-foreground md:border-x tablet:!hidden ${stickyHeaderNotActive ? "md:rounded-t-lg" : "rounded-t-none"}`}
+            className={`baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-panel pt-3 text-panel-foreground md:border-x tablet:!hidden ${stickyHeaderNotActive ? "md:rounded-t-lg" : "rounded-t-none"}`}
           >
             <AnimatePresence initial={false}>
               <div className="baseFlex w-full !justify-between gap-2 px-4">
@@ -725,7 +725,7 @@ function SearchResults({
                   >
                     <>
                       {isFetching && !isFetchingNextPage ? (
-                        <div className="pulseAnimation h-6 w-36 rounded-md !bg-primary-foreground/35"></div>
+                        <div className="pulseAnimation h-6 w-36 rounded-md !bg-panel-foreground/35"></div>
                       ) : (
                         <span>
                           {`${searchResultsCount} tab${
@@ -772,7 +772,7 @@ function SearchResults({
                           variant="outline"
                           aria-label="Search filters"
                           disabled={disableFiltersAndLayoutToggle}
-                          className="baseFlex w-9 text-primary-foreground active:scale-95 motion-reduce:transform-none"
+                          className="baseFlex w-9 text-panel-foreground active:scale-95 motion-reduce:transform-none"
                         >
                           <LuFilter className="size-4 shrink-0" />
                         </Button>
@@ -919,7 +919,7 @@ function SearchResults({
               }}
               transition={{ duration: 0.5, ease: "linear" }}
               className={cn(
-                "baseVertFlex w-full !justify-between rounded-t-lg border bg-accent pt-3 text-primary-foreground",
+                "baseVertFlex w-full !justify-between rounded-t-lg border bg-panel pt-3 text-panel-foreground",
                 layoutType.value === "table" && "border-b-0",
               )}
             >
@@ -941,7 +941,7 @@ function SearchResults({
                     >
                       <>
                         {isFetching && !isFetchingNextPage ? (
-                          <div className="pulseAnimation h-6 w-48 rounded-md !bg-primary-foreground/35"></div>
+                          <div className="pulseAnimation h-6 w-48 rounded-md !bg-panel-foreground/35"></div>
                         ) : (
                           <span>
                             {`${searchResultsCount} tab${

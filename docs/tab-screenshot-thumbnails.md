@@ -29,8 +29,11 @@ belongs to another tab revision, it tries the original asset. Masks must always
 match the requested revision; legacy JPEGs remain usable while capture is
 pending. Fallbacks cache for 60 seconds so subsequent loads can discover newly
 uploaded thumbnails. Matching final assets use revisioned URLs and immutable
-caching. The mask renderer uses the decoded atlas dimensions to support either
-thumbnail geometry or the full-size fallback without mixing up role positions.
+caching. URLs also include `TAB_SCREENSHOT_PALETTE_VERSION` so a palette-only
+retake can refresh cached images without changing tab content or `updatedAt`.
+Increment that version when changing screenshot palette values and retake the
+affected captures. The mask renderer uses the decoded atlas dimensions to support
+either thumbnail geometry or the full-size fallback without mixing up role positions.
 
 The atlas's seven roles are resized individually before being stacked. Never
 resize the complete atlas as one image: interpolation can bleed into adjacent
@@ -72,6 +75,8 @@ npx tsx src/utils/bulkRetakeAllTabScreenshots.ts --tab=123 --bucket=autostrum-sc
 
 Remove `--tab=123` to process every tab. For development, use the development
 database, `--bucket=autostrum-screenshots-dev`, and a local running app URL.
+The bulk tool loads `.env.local` and `.env` in the same order as the Next.js app.
+Captures skip page-view tracking and loading unrelated saved tab images.
 `--masks-only` refreshes the full atlas and mask thumbnails while preserving JPEGs;
 omit it when backfilling all six thumbnail variants. The script launches its own
 browser and does not need the capture server running.

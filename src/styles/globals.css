@@ -91,6 +91,22 @@ html:not([data-color]) .headerLogoLayer[data-logo-color="maple"] {
     --radius: 0.5rem;
   }
 
+  /* Structural panels use soft palette tints in light mode.
+     Keep the existing accent-filled panels and inverse text in dark mode. */
+  [data-theme="light"] {
+    --mobile-navigation: var(--secondary-active);
+    --panel: var(--secondary);
+    --panel-foreground: var(--foreground);
+    --panel-highlight: var(--primary);
+  }
+
+  [data-theme="dark"] {
+    --mobile-navigation: var(--secondary);
+    --panel: var(--accent);
+    --panel-foreground: var(--primary-foreground);
+    --panel-highlight: var(--primary-foreground);
+  }
+
   * {
     @apply border-border;
   }
@@ -239,9 +255,9 @@ kbd {
 }
 
 .maskedToggle[data-variant="accent"] {
-  --toggle-text: var(--primary-foreground);
-  --toggle-highlight: var(--background);
-  --toggle-highlight-text: var(--foreground);
+  --toggle-text: var(--panel-foreground);
+  --toggle-highlight: var(--primary);
+  --toggle-highlight-text: var(--primary-foreground);
 }
 
 .maskedToggle[data-variant="inverse"] {

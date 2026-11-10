@@ -42,6 +42,12 @@ module.exports = {
         border: "hsl(var(--border))",
         ring: "hsl(var(--ring))",
         header: "hsl(var(--header))",
+        "mobile-navigation": "hsl(var(--mobile-navigation))",
+        panel: {
+          DEFAULT: "hsl(var(--panel))",
+          foreground: "hsl(var(--panel-foreground))",
+          highlight: "hsl(var(--panel-highlight))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

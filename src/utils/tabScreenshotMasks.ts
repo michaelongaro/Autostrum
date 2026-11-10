@@ -1,6 +1,7 @@
 import {
   getTabScreenshotThumbnailKey,
   TAB_SCREENSHOT_THUMBNAIL_WIDTHS,
+  TAB_SCREENSHOT_PALETTE_VERSION,
   type TabScreenshotThumbnailWidth,
 } from "./tabScreenshotThumbnails";
 
@@ -43,7 +44,7 @@ export function getTabScreenshotMaskSrc(
   version: string,
   width?: TabScreenshotThumbnailWidth,
 ) {
-  return `/api/getTabScreenshotMasks/${tabId}?v=${encodeURIComponent(version)}${width ? `&width=${width}` : ""}`;
+  return `/api/getTabScreenshotMasks/${tabId}?v=${encodeURIComponent(version)}&palette=${TAB_SCREENSHOT_PALETTE_VERSION}${width ? `&width=${width}` : ""}`;
 }
 
 export function getTabScreenshotObjectKeys(tabId: number) {

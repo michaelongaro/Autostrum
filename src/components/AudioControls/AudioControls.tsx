@@ -382,7 +382,7 @@ function AudioControls() {
                   render={
                     <Button
                       variant="outline"
-                      className="p-2 text-primary-foreground"
+                      className="p-2 text-panel-foreground"
                     >
                       <AnimatePresence mode="popLayout" initial={false}>
                         {volume === 0 && (
@@ -707,7 +707,7 @@ function AudioControls() {
                     disabled={audioMetadata.editingLoopRange}
                     size="sm"
                     variant={"outline"}
-                    className="px-2 py-1 text-primary-foreground"
+                    className="px-2 py-1 text-panel-foreground"
                   >
                     <IoMdSettings className="size-[18px]" />
                   </Button>
@@ -867,7 +867,7 @@ function AudioControlsFrame({
           initial={false}
           animate={{ y: minimized ? offscreenY : visibleY }}
           transition={transition}
-          className={`relative w-full overflow-hidden rounded-xl bg-accent text-primary-foreground shadow-xl lg:rounded-full ${minimized ? "pointer-events-none" : "pointer-events-auto"}`}
+          className={`relative w-full overflow-hidden rounded-xl bg-panel text-panel-foreground shadow-xl lg:rounded-full ${minimized ? "pointer-events-none" : "pointer-events-auto"}`}
         >
           {children}
         </motion.div>
@@ -889,7 +889,7 @@ function AudioControlsFrame({
             transitionEnd: { visibility: minimized ? "visible" : "hidden" },
           }}
           transition={transition}
-          className={`baseFlex w-16 rounded-t-xl bg-accent text-primary-foreground shadow-xl ${minimized ? "pointer-events-auto" : "pointer-events-none"}`}
+          className={`baseFlex w-16 rounded-t-xl bg-panel text-panel-foreground shadow-xl ${minimized ? "pointer-events-auto" : "pointer-events-none"}`}
         >
           <Button
             variant="ghost"
@@ -941,7 +941,7 @@ function DesktopInstrumentAndSpeedSelects() {
         >
           <SelectTrigger
             id="instrument"
-            className="focus:ring-1 focus:ring-primary-foreground/75"
+            className="focus:ring-1 focus:ring-panel-foreground/75"
           >
             <SelectValue />
           </SelectTrigger>
@@ -974,7 +974,7 @@ function DesktopInstrumentAndSpeedSelects() {
           disabled={editingLoopRange}
           playbackSpeed={requestedPlaybackSpeed}
           onPlaybackSpeedChange={setPlaybackSpeed}
-          triggerClassName="w-[85px] focus-visible:ring-primary-foreground/75"
+          triggerClassName="w-[85px] focus-visible:ring-panel-foreground/75"
           side="top"
         />
       </div>

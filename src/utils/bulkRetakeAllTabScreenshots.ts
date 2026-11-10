@@ -1,4 +1,4 @@
-import "dotenv/config";
+import nextEnv from "@next/env";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { PrismaClient } from "../generated/client.js";
 import { env } from "node:process";
@@ -13,6 +13,9 @@ import {
   createTabScreenshotThumbnails,
   type TabScreenshotAsset,
 } from "./createTabScreenshotThumbnails";
+
+// Use the same .env.local / .env precedence as the app being captured.
+nextEnv.loadEnvConfig(process.cwd(), env.NODE_ENV !== "production");
 
 // npx tsx src/utils/bulkRetakeAllTabScreenshots.ts --masks-only
 // Options: --tab=123 --bucket=autostrum-screenshots-dev
@@ -63,6 +66,25 @@ async function screenshotAndUpload(
   });
 
   try {
+    if (
+      ["localhost", "127.0.0.1"].includes(baseURL.hostname) &&
+      env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith("pk_test_")
+    ) {
+      // Bypass Clerk's dev-browser handshake on the isolated local renderer.
+      await context.addCookies([
+        {
+          name: "__clerk_db_jwt",
+          value: "dev_browser_fake_jwt",
+          url: baseURL.origin,
+        },
+      ]);
+    }
+    // Capturing a tab must not count as a visitor viewing it.
+    await context.route("**/api/trpc/tab.processPageView**", (route) =>
+      route.abort(),
+    );
+    // Related cards are outside the capture. Don't load their saved images.
+    await context.route("**/api/getTabScreenshot**", (route) => route.abort());
     const page = await context.newPage();
     const url = new URL(
       `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,

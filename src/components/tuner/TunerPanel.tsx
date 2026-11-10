@@ -206,7 +206,7 @@ function ListeningControls({
             <Button
               disabled={resetDisabled}
               variant="outline"
-              className="baseFlex w-full gap-2 lg:w-auto lg:text-primary-foreground"
+              className="baseFlex w-full gap-2 lg:w-auto lg:text-panel-foreground"
               onClick={onResetProgress}
             >
               <VscDebugRestart />
@@ -319,12 +319,12 @@ function TunerPanel({
       className={`baseVertFlex h-full w-full gap-4 bg-background pb-3 shadow-sm md:rounded-lg md:border md:pb-6 ${forPlaybackModal ? "!justify-between !border-0" : "border-y"}`}
     >
       <div
-        className={`baseVertFlex w-full gap-3 bg-accent p-3 md:p-6 ${forPlaybackModal ? "!hidden !flex-col !items-start tablet:!flex tablet:rounded-t-lg" : "sm:flex-row sm:!items-center sm:!justify-between md:rounded-t-lg"}`}
+        className={`baseVertFlex w-full gap-3 bg-panel p-3 md:p-6 ${forPlaybackModal ? "!hidden !flex-col !items-start tablet:!flex tablet:rounded-t-lg" : "sm:flex-row sm:!items-center sm:!justify-between md:rounded-t-lg"}`}
       >
         {!forPlaybackModal && (
           <div className="baseFlex gap-3">
             <Label
-              className={`${forPlaybackModal ? "text-primary-foreground/80" : "text-primary-foreground"} `}
+              className={`${forPlaybackModal ? "text-panel-foreground/80" : "text-panel-foreground"} `}
             >
               Type
             </Label>
@@ -356,7 +356,7 @@ function TunerPanel({
         )}
 
         {forPlaybackModal && (
-          <div className="mb-2 hidden gap-2 text-primary-foreground xs:flex xs:items-center xs:justify-start">
+          <div className="mb-2 hidden gap-2 text-panel-foreground xs:flex xs:items-center xs:justify-start">
             <TuningFork className="mr-[2px] w-[10px]" />
             <p className="text-lg font-semibold">Guitar Tuner</p>
           </div>
@@ -373,7 +373,7 @@ function TunerPanel({
             >
               <Label
                 htmlFor="tuning"
-                className={`${forPlaybackModal ? "text-primary-foreground/80" : "text-primary-foreground"} `}
+                className={`${forPlaybackModal ? "text-panel-foreground/80" : "text-panel-foreground"} `}
               >
                 Tuning
               </Label>
@@ -392,14 +392,14 @@ function TunerPanel({
                         ? "text-base"
                         : "text-sm"
                     }
-                    color={"hsl(var(--primary-foreground))"}
+                    color={"hsl(var(--panel-foreground))"}
                     showScientificPitchNotation={true}
                   />
                 </div>
               ) : (
                 <TuningSelect
                   showScientificPitchNotationInTrigger={true}
-                  triggerTextColor="text-primary-foreground"
+                  triggerTextColor="text-panel-foreground"
                 />
               )}
             </div>
@@ -409,7 +409,7 @@ function TunerPanel({
             >
               <Label
                 htmlFor="capo"
-                className={`${forPlaybackModal ? "text-primary-foreground/80" : "text-primary-foreground"} `}
+                className={`${forPlaybackModal ? "text-panel-foreground/80" : "text-panel-foreground"} `}
               >
                 Capo
               </Label>
@@ -438,14 +438,14 @@ function TunerPanel({
                     ]}
                   />
                 ) : (
-                  <p className="text-primary-foreground">
+                  <p className="text-panel-foreground">
                     {displayedCapo === 0
                       ? "No capo"
                       : `${getOrdinalSuffix(displayedCapo)} fret`}
                   </p>
                 )
               ) : (
-                <CapoSelect triggerClassName="text-primary-foreground" />
+                <CapoSelect triggerClassName="text-panel-foreground" />
               )}
             </div>
           </div>

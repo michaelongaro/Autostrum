@@ -83,8 +83,8 @@ function PinnedTabList({
       </div>
 
       {/* table headers */}
-      <div className="w-full bg-accent">
-        <div className="grid h-8 grid-cols-[50px_auto_110px] grid-rows-1 items-center text-sm font-medium text-primary-foreground/70 sm:grid-cols-[50px_auto_150px]">
+      <div className="w-full bg-panel">
+        <div className="grid h-8 grid-cols-[50px_auto_110px] grid-rows-1 items-center text-sm font-medium text-panel-foreground/70 sm:grid-cols-[50px_auto_150px]">
           {/* "radio" selection status column */}
           <div className="h-full px-4"></div>
 

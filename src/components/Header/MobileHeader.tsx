@@ -162,7 +162,7 @@ function MobileHeader() {
               <div className="baseFlex w-full gap-4">
                 <Button
                   role="link"
-                  variant={"headerNavigation"}
+                  variant={"mobileNavigation"}
                   size={"lg"}
                   style={{
                     backgroundColor: asPath.includes("/explore")
@@ -187,7 +187,7 @@ function MobileHeader() {
 
                 <Button
                   role="link"
-                  variant={"headerNavigation"}
+                  variant={"mobileNavigation"}
                   size={"lg"}
                   style={{
                     backgroundColor: asPath.includes("/create")
@@ -215,7 +215,7 @@ function MobileHeader() {
                 <div className="baseFlex w-full gap-4">
                   <Button
                     role="link"
-                    variant={"headerNavigation"}
+                    variant={"mobileNavigation"}
                     size={"lg"}
                     style={{
                       backgroundColor: asPath.includes("/tools")
@@ -239,7 +239,7 @@ function MobileHeader() {
                   />
                   <Button
                     role="link"
-                    variant={"headerNavigation"}
+                    variant={"mobileNavigation"}
                     size={"lg"}
                     style={{
                       backgroundColor: asPath.includes("/tuner")
@@ -348,7 +348,7 @@ function MobileHeader() {
                   >
                     <SignInButton mode="modal">
                       <Button
-                        variant={"headerNavigation"}
+                        variant={"mobileNavigation"}
                         className="baseFlex h-10 gap-2 px-8"
                         onClick={() => {
                           if (asPath.split("?")[0] === "/create")
@@ -428,7 +428,9 @@ function MobileHeader() {
                           >
                             <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                               <Image
-                                src={getProfileImageSrc(currentUser.profileImageUrl)}
+                                src={getProfileImageSrc(
+                                  currentUser.profileImageUrl,
+                                )}
                                 alt={`${currentUser.username}'s profile picture`}
                                 width={300}
                                 height={300}
@@ -486,7 +488,7 @@ function MobileHeader() {
                     <div className="baseFlex w-full gap-4">
                       <Button
                         role="link"
-                        variant={"headerNavigation"}
+                        variant={"mobileNavigation"}
                         size={"lg"}
                         style={{
                           backgroundColor: asPath.includes("/profile/settings")
@@ -511,7 +513,7 @@ function MobileHeader() {
 
                       <Button
                         role="link"
-                        variant={"headerNavigation"}
+                        variant={"mobileNavigation"}
                         size={"lg"}
                         style={{
                           backgroundColor: asPath.includes(
@@ -540,7 +542,7 @@ function MobileHeader() {
                     <div className="baseFlex w-full gap-4">
                       <Button
                         role="link"
-                        variant={"headerNavigation"}
+                        variant={"mobileNavigation"}
                         size={"lg"}
                         style={{
                           backgroundColor: asPath.includes("/profile/tabs")
@@ -565,7 +567,7 @@ function MobileHeader() {
 
                       <Button
                         role="link"
-                        variant={"headerNavigation"}
+                        variant={"mobileNavigation"}
                         size={"lg"}
                         style={{
                           backgroundColor: asPath.includes("/profile/bookmarks")

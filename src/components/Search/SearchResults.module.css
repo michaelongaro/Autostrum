@@ -38,6 +38,7 @@
   position: sticky;
   top: var(--table-sticky-top);
   z-index: 10;
+  color: hsl(var(--panel-foreground) / 0.75);
   box-shadow: 0 1px 0 hsl(var(--border));
 }
 
@@ -48,8 +49,8 @@
   z-index: 10;
   height: 32px;
   overflow: hidden;
-  background: hsl(var(--accent));
-  color: hsl(var(--primary-foreground) / 0.75);
+  background: hsl(var(--panel));
+  color: hsl(var(--panel-foreground) / 0.75);
   box-shadow: 0 1px 0 hsl(var(--border));
 }
 
@@ -59,6 +60,12 @@
   width: max-content;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+/* Use the same readable text in both header implementations. */
+:global(html[data-theme="light"]) .tableHeader,
+:global(html[data-theme="light"]) .compatibilityHeader {
+  color: hsl(var(--panel-foreground));
 }
 
 /* Newer engines can stick the actual thead to the document while its wrapper
