@@ -534,7 +534,7 @@ function StaticTabMetadata() {
           orientation={
             viewportLabel.includes("mobile") ? "horizontal" : "vertical"
           }
-          className={`${classes.separator} my-4 h-[1px] w-full bg-foreground/70 lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
+          className={`${classes.separator} my-4 h-[1px] w-full bg-border lg:mx-4 lg:my-0 lg:h-full lg:w-[1px] xl:mx-8`}
         />
 
         <div className={`${classes.metadataGrid}`}>
