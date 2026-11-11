@@ -91,8 +91,8 @@ function PlaybackTopMetadata() {
           <div className="baseFlex w-full !items-end !justify-start gap-2">
             {/* title + auto tuner button */}
             <div className="baseVertFlex w-full !items-start gap-2">
-              <div className="baseFlex !justify-start gap-4">
-                <div className="baseFlex w-full !justify-start">
+              <div className="baseFlex w-full min-w-0 !justify-start gap-4">
+                <div className="baseFlex min-w-0 !justify-start">
                   <OverlayScrollbarsComponent
                     options={{
                       scrollbars: { autoHide: "leave", autoHideDelay: 150 },

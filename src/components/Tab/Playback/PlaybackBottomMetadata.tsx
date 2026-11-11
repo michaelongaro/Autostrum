@@ -143,7 +143,7 @@ function PlaybackBottomMetadata({
             <PlaybackTunerDrawer />
           </div>
 
-          <div className="baseFlex gap-4">
+          <div className="baseFlex min-w-0 gap-4">
             <PlaybackSectionPicker />
 
             <MobileSettingsPopover

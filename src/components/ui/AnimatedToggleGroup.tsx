@@ -51,7 +51,13 @@ export function AnimatedToggleGroup<Value extends string>({
       if (!selected || !labels.clientWidth) return;
       const left = selected.offsetLeft;
       const right = labels.clientWidth - left - selected.offsetWidth;
-      mask.style.clipPath = `inset(0 ${right}px 0 ${left}px round 2px)`;
+      const radius = getComputedStyle(
+        labels.parentElement ?? labels,
+      ).borderTopLeftRadius;
+      const leftRadius = selected === labels.firstElementChild ? radius : "0px";
+      const rightRadius = selected === labels.lastElementChild ? radius : "0px";
+      // Animate the corners with the inset so only the group's outer edges round.
+      mask.style.clipPath = `inset(0 ${right}px 0 ${left}px round ${leftRadius} ${rightRadius} ${rightRadius} ${leftRadius})`;
       mask.style.visibility = "visible";
     };
 
@@ -65,7 +71,7 @@ export function AnimatedToggleGroup<Value extends string>({
   function itemClasses(optionClassName?: string) {
     return cn(
       buttonVariants({ variant: "toggle", size: resolvedSize }),
-      "relative flex-1 gap-2 border-none",
+      "relative flex-1 gap-2 rounded-none border-none first:rounded-l-md last:rounded-r-md",
       itemClassName,
       optionClassName,
     );

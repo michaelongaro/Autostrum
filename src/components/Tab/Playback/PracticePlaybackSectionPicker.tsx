@@ -30,10 +30,13 @@ function PracticePlaybackSectionPicker() {
     .find((exercise) => exercise.id === selectedExerciseId);
 
   return (
-    <div className="baseFlex gap-4">
-      <Separator className="hidden h-6 w-[1px] bg-foreground/50 lg:block" />
-      <div className="baseFlex gap-2">
-        <Label htmlFor="practiceExercisePicker" className="text-sm font-medium">
+    <div className="baseFlex min-w-0 max-w-full gap-4">
+      <Separator className="hidden h-6 w-[1px] shrink-0 bg-foreground/50 lg:block" />
+      <div className="baseFlex min-w-0 flex-1 gap-2">
+        <Label
+          htmlFor="practiceExercisePicker"
+          className="shrink-0 text-sm font-medium"
+        >
           Exercise
         </Label>
         <Select
@@ -45,14 +48,17 @@ function PracticePlaybackSectionPicker() {
         >
           <SelectTrigger
             id="practiceExercisePicker"
-            className="!h-9 !max-w-48 lg:!max-w-none mobilePortrait:!h-8 max-lg:mobilePortrait:!max-w-[120px]"
+            className="max-lg:mobilePortrait:w-[120px] !h-9 w-48 min-w-0 max-w-full lg:w-64 mobilePortrait:!h-8"
           >
             <SelectValue
               placeholder="Select an exercise"
               render={
-                <p className="truncate">
+                <span
+                  className="min-w-0 flex-1 truncate text-left"
+                  title={selectedExercise?.title}
+                >
                   {selectedExercise?.title ?? "Select an exercise"}
-                </p>
+                </span>
               }
             />
           </SelectTrigger>
