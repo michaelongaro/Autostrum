@@ -161,7 +161,7 @@ function AudioControls() {
       minimized={minimized}
       onExpand={() => setVisibility("expanded")}
     >
-      <div className="baseVertFlex w-full p-2 lg:px-10 lg:py-2">
+      <div className="baseVertFlex w-full p-2 lg:px-6 lg:py-2">
         {/* mobile top layer: return to tab, minimize, audio slider */}
         {!aboveLargeViewportWidth && (
           <div className="grid w-full grid-cols-12 place-items-center">
@@ -563,9 +563,7 @@ function AudioControls() {
                   scrollChordIntoView({
                     location:
                       currentlyPlayingMetadata[currentChordIndex].location,
-                    align: isLargeViewport()
-                      ? "center"
-                      : "comfortable",
+                    align: isLargeViewport() ? "center" : "comfortable",
                   });
                 }
               }}
@@ -869,7 +867,7 @@ function AudioControlsFrame({
           initial={false}
           animate={{ y: minimized ? offscreenY : visibleY }}
           transition={transition}
-          className={`relative w-full overflow-hidden rounded-xl bg-panel text-panel-foreground shadow-xl lg:rounded-full ${minimized ? "pointer-events-none" : "pointer-events-auto"}`}
+          className={`relative w-full overflow-hidden rounded-xl bg-panel text-panel-foreground shadow-md ${minimized ? "pointer-events-none" : "pointer-events-auto"}`}
         >
           {children}
         </motion.div>
