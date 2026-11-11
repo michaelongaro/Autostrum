@@ -57,15 +57,7 @@ function StaticChordSection({
             {chordSequence.data.length > 0 ? (
               <div className="baseVertFlex !items-start">
                 {(showBpm(chordSequence) || chordSequence.repetitions > 1) && (
-                  <div
-                    style={{
-                      borderColor: "hsl(var(--screenshot-border))",
-                      backgroundColor:
-                        "hsl(var(--screenshot-secondary) / 0.15)",
-                      color: "hsl(var(--screenshot-foreground))",
-                    }}
-                    className="baseFlex ml-4 gap-3 rounded-t-md border border-b-0 px-2 py-1 text-sm !shadow-sm"
-                  >
+                  <div className="baseFlex gap-3 px-2 py-1 text-sm">
                     {showBpm(chordSequence) && (
                       <div className="baseFlex gap-1">
                         {getDynamicNoteLengthIcon({

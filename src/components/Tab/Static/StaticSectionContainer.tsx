@@ -105,15 +105,7 @@ function StaticSectionContainer({
                   {(subSection.type === "tab" ||
                     chordSequencesAllHaveSameNoteLength(subSection) ||
                     subSection.repetitions > 1) && (
-                    <div
-                      style={{
-                        borderColor: "hsl(var(--screenshot-border))",
-                        backgroundColor:
-                          "hsl(var(--screenshot-secondary) / 0.25)",
-                        color: "hsl(var(--screenshot-foreground))",
-                      }}
-                      className="baseFlex ml-4 gap-3 rounded-t-md border border-b-0 px-2 py-1 text-sm !shadow-sm"
-                    >
+                    <div className="baseFlex gap-3 px-2 py-1 text-sm">
                       {(subSection.type === "tab" ||
                         chordSequencesAllHaveSameNoteLength(subSection)) && (
                         <div className="baseFlex gap-1">

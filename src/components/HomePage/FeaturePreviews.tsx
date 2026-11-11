@@ -206,7 +206,7 @@ function PracticeSection({
 }) {
   return (
     <div className="flex w-full min-w-0 flex-col items-start">
-      <div className="ml-4 flex items-center gap-3 rounded-t-md border border-b-0 bg-secondary/25 px-2 py-1 text-sm">
+      <div className="flex items-center gap-3 px-2 py-1 text-sm">
         <span className="flex items-center gap-1">
           {getDynamicNoteLengthIcon({
             noteLength:
