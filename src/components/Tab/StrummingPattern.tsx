@@ -12,6 +12,7 @@ import {
 } from "react";
 import {
   useTabStore,
+  useTabStoreApi,
   type FullNoteLengths,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
@@ -110,6 +111,7 @@ function StrummingPattern({
   const [inputIdToFocus, setInputIdToFocus] = useState<string | null>(null);
   const strumPatternContainerRef = useRef<HTMLDivElement>(null);
   const strumPlayheadRef = useRef<HTMLDivElement>(null);
+  const tabStore = useTabStoreApi();
 
   const editingChordSequencePlayhead =
     mode === "editingChordSequence" &&
@@ -167,6 +169,24 @@ function StrummingPattern({
     e: React.KeyboardEvent<HTMLInputElement>,
     beatIndex: number,
   ) {
+    if (e.ctrlKey && e.key === "Backspace") {
+      e.preventDefault();
+      if (e.shiftKey) {
+        deleteStrum(beatIndex, true);
+      } else {
+        const newStrummingPattern = structuredClone(data);
+        newStrummingPattern.strums[beatIndex] = createStrum({
+          palmMute: data.strums[beatIndex]!.palmMute,
+          noteLength: data.baseNoteLength,
+        });
+        setStrummingPatternBeingEdited({
+          index: index ?? 0,
+          value: newStrummingPattern,
+        });
+      }
+      return;
+    }
+
     // q/w: add a strum before/after the focused beat (parity with TabNote)
     if (e.key.toLowerCase() === "q" || e.key.toLowerCase() === "w") {
       e.preventDefault();
@@ -469,7 +489,10 @@ function StrummingPattern({
     return newStrummingPattern;
   }
 
-  function deleteStrum(beatIndex: number) {
+  function deleteStrum(beatIndex: number, focusInput = false) {
+    if (data.strums.length <= 1 || tabStore.getState().previewMetadata.playing)
+      return;
+
     const draft = structuredClone(data);
     const values = finishPalmMuteEdit(
       draft.strums.map((strum) => strum.palmMute),
@@ -482,6 +505,14 @@ function StrummingPattern({
     const newStrummingPattern = handleDeletePalmMutedStrum(draft, beatIndex);
 
     newStrummingPattern.strums.splice(beatIndex, 1);
+
+    if (focusInput) {
+      const nextIndex = Math.min(
+        beatIndex,
+        newStrummingPattern.strums.length - 1,
+      );
+      setInputIdToFocus(`input-strummingPatternModal-${nextIndex}-1`);
+    }
 
     setStrummingPatternBeingEdited({
       index: index ?? 0,

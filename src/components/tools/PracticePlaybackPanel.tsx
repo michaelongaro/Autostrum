@@ -1,5 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
+import { Toggle } from "@base-ui/react/toggle";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
 import { Button } from "~/components/ui/button";
@@ -18,7 +33,6 @@ import {
   getPracticeExerciseTabSection,
   getPracticeExercisesTabData,
   groupPracticeExercisesByLevel,
-  PRACTICE_LEVEL_LABELS,
   PRACTICE_TUNING,
   type PracticeExercise,
 } from "~/data/tools/practiceExercises";
@@ -44,7 +58,28 @@ function PracticePlaybackPanel({
     exercises[0]?.id ?? "",
   );
 
-  const [selectedDifficulty, setSelectedDifficulty] = useState("Beginner");
+  const difficultyLayoutId = useId();
+  const reduceMotion = useReducedMotion();
+  const exerciseListRef = useRef<HTMLDivElement>(null);
+  const [exerciseListHeight, setExerciseListHeight] = useState<number | null>(
+    null,
+  );
+
+  useLayoutEffect(() => {
+    const exerciseList = exerciseListRef.current;
+    if (!exerciseList) return;
+
+    // Measure the incoming list in normal flow while the outgoing list fades
+    // out of flow, so the entire panel resizes without scaling its contents.
+    const measure = () => {
+      const height = exerciseList.offsetHeight;
+      setExerciseListHeight(height > 0 ? height : null);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(exerciseList);
+    return () => observer.disconnect();
+  }, [exercises]);
 
   const {
     showPlaybackModal,
@@ -106,6 +141,9 @@ function PracticePlaybackPanel({
   const selectedExerciseTabSection = selectedExercise
     ? getPracticeExerciseTabSection(selectedExercise)
     : null;
+  const selectedExerciseGroup = exerciseGroups.find(
+    (group) => group.level === selectedExercise?.level,
+  );
 
   const selectExercise = useCallback(
     (exerciseId: string) => {
@@ -121,7 +159,6 @@ function PracticePlaybackPanel({
       } = getTabStore();
 
       setSelectedExerciseId(exerciseId);
-      setSelectedDifficulty(PRACTICE_LEVEL_LABELS[exercise.level]);
 
       pauseAudio(true, true);
       setTitle(exercise.title);
@@ -263,54 +300,87 @@ function PracticePlaybackPanel({
                   <span className="text-sm font-medium text-foreground/75">
                     Difficulty
                   </span>
-                  <div className="baseFlex gap-2">
-                    {exerciseGroups.map((group) => (
-                      <Button
-                        key={group.level}
-                        variant={"text"}
-                        className="relative"
-                        onClick={() => {
-                          setSelectedDifficulty(group.label);
-                          const firstExerciseId = group.items.at(0)?.id;
-                          if (firstExerciseId) {
-                            selectExercise(firstExerciseId);
+                  <LayoutGroup id={difficultyLayoutId}>
+                    <ToggleGroup
+                      aria-label="Difficulty"
+                      value={[selectedExercise.level]}
+                      onValueChange={(levels) => {
+                        const firstExerciseId = exerciseGroups
+                          .find((group) => group.level === levels[0])
+                          ?.items.at(0)?.id;
+                        if (firstExerciseId) selectExercise(firstExerciseId);
+                      }}
+                      className="baseFlex gap-2"
+                    >
+                      {exerciseGroups.map((group) => (
+                        <Toggle
+                          key={group.level}
+                          value={group.level}
+                          render={
+                            <Button variant="text" className="relative" />
                           }
-                        }}
-                      >
-                        {group.label}
-                        {selectedDifficulty === group.label && (
-                          <span className="absolute bottom-0.5 left-1.5 right-1.5 z-0 h-[2px] rounded-full bg-foreground" />
-                        )}
-                      </Button>
-                    ))}
-                  </div>
+                        >
+                          {group.label}
+                          {selectedExercise.level === group.level && (
+                            <motion.span
+                              layoutId="practice-difficulty-indicator"
+                              transition={{
+                                duration: reduceMotion ? 0 : 0.25,
+                                ease: "easeInOut",
+                              }}
+                              aria-hidden="true"
+                              className="absolute bottom-0.5 left-1.5 right-1.5 h-[2px] rounded-full bg-foreground"
+                            />
+                          )}
+                        </Toggle>
+                      ))}
+                    </ToggleGroup>
+                  </LayoutGroup>
                 </div>
               </div>
-              {exerciseGroups.map((group) =>
-                selectedDifficulty === group.label ? (
-                  <div
-                    key={`exercises-${group.level}`}
-                    className="grid grid-cols-2 gap-2"
-                  >
-                    {group.items.map((item) => (
-                      <Button
-                        key={item.id}
-                        variant={
-                          item.id === selectedExerciseId ? "default" : "outline"
-                        }
-                        className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
-                        onClick={() => selectExercise(item.id)}
+              <motion.div
+                initial={false}
+                animate={{ height: exerciseListHeight ?? "auto" }}
+                transition={{
+                  duration: reduceMotion ? 0 : 0.25,
+                  ease: "easeInOut",
+                }}
+                className="-m-1 overflow-hidden"
+              >
+                <div ref={exerciseListRef} className="relative">
+                  <AnimatePresence initial={false} mode="popLayout">
+                    {selectedExerciseGroup && (
+                      <motion.div
+                        key={selectedExerciseGroup.level}
+                        initial={{ opacity: reduceMotion ? 1 : 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0, pointerEvents: "none" }}
+                        transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                        className="grid grid-cols-2 gap-2 p-1"
                       >
-                        <span className="baseVertFlex !items-start gap-0.5">
-                          <span className="text-sm font-medium transition">
-                            {item.title}
-                          </span>
-                        </span>
-                      </Button>
-                    ))}
-                  </div>
-                ) : null,
-              )}
+                        {selectedExerciseGroup.items.map((item) => (
+                          <Button
+                            key={item.id}
+                            variant={
+                              item.id === selectedExerciseId
+                                ? "default"
+                                : "outline"
+                            }
+                            className="!h-auto min-h-14 !justify-start px-3 py-2 text-left"
+                            onClick={() => selectExercise(item.id)}
+                          >
+                            <span className="baseVertFlex !items-start gap-0.5">
+                              <span className="text-sm font-medium transition">
+                                {item.title}
+                              </span>
+                            </span>
+                          </Button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
             </div>
           </div>
 
