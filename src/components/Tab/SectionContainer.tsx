@@ -1,5 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import {
   Accordion,
@@ -34,17 +34,11 @@ import { cn } from "~/utils/cn";
 
 interface SectionContainer {
   sectionIndex: number;
-  forceCloseSectionAccordions: boolean;
-  setForceCloseSectionAccordions: Dispatch<SetStateAction<boolean>>;
-  tabDataLength: number;
   presentation?: "full" | "embedded";
 }
 
 function SectionContainer({
   sectionIndex,
-  forceCloseSectionAccordions,
-  setForceCloseSectionAccordions,
-  tabDataLength,
   presentation = "full",
 }: SectionContainer) {
   const getTabData = useTabDataGetter();
@@ -81,13 +75,6 @@ function SectionContainer({
   const [accordionOpen, setAccordionOpen] = useState(
     presentation === "embedded" ? "closed" : "opened",
   );
-
-  useEffect(() => {
-    if (forceCloseSectionAccordions) {
-      setAccordionOpen("closed");
-      setForceCloseSectionAccordions(false);
-    }
-  }, [forceCloseSectionAccordions, setForceCloseSectionAccordions]);
 
   useEffect(() => {
     if (shouldOpenAccordionForPlayback && presentation === "full") {
@@ -202,12 +189,6 @@ function SectionContainer({
 
   return (
     <div
-      style={{
-        paddingBottom:
-          presentation === "full" && sectionIndex === tabDataLength - 1
-            ? "2rem"
-            : 0,
-      }}
       className={cn(
         "baseVertFlex w-full min-w-0 gap-4",
         presentation === "full" && "px-2 md:px-7",
@@ -276,11 +257,11 @@ function SectionContainer({
             aria-label={`Toggle ${sectionTitle} section`}
           ></AccordionTrigger>
 
-          <AccordionContent animated={true} className="w-full pt-4">
+          <AccordionContent animated={true} className="w-full">
             {/* map over tab/chord subSections */}
             <div
               id={`sectionIndex${sectionIndex}`}
-              className="baseVertFlex w-full !justify-start"
+              className="baseVertFlex w-full !justify-start pt-4"
             >
               <AnimatePresence initial={false}>
                 {subSectionIds.map((subSectionId, index) => (

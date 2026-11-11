@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState, useRef } from "react";
 import { FaBook } from "react-icons/fa";
 import { getTabData, useTabStore } from "~/stores/TabStore";
@@ -66,9 +66,7 @@ function Tab() {
   const [showPinnedChords, setShowPinnedChords] = useState(false);
   const [pressingOnZoomSlider, setPressingOnZoomSlider] = useState(false);
 
-  // true when creating new section, results in way less cpu/ram usage for arguably worse ux
-  const [forceCloseSectionAccordions, setForceCloseSectionAccordions] =
-    useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
     {},
@@ -160,8 +158,6 @@ function Tab() {
         data: [],
       });
     });
-
-    setForceCloseSectionAccordions(true);
   }
 
   return (
@@ -263,9 +259,13 @@ function Tab() {
             showPinnedChords={showPinnedChords}
           />
 
+          {/* Keep bottom padding stable; each entering section animates its own gap. */}
           <div
             ref={tabDataSectionRef}
-            className="baseVertFlex w-full !justify-start gap-4"
+            className={cn(
+              "baseVertFlex w-full !justify-start",
+              editing ? "pb-8" : "gap-4",
+            )}
           >
             {editing ? (
               <AnimatePresence initial={false}>
@@ -273,17 +273,16 @@ function Tab() {
                   <motion.div
                     key={sectionId}
                     layout={"position"}
-                    initial={{ height: 0 }}
-                    animate={{ height: "auto" }}
-                    exit={{ height: 0 }}
+                    layoutDependency={index}
+                    initial={{ height: 0, marginTop: 0 }}
+                    animate={{
+                      height: "auto",
+                      marginTop: index === 0 ? 0 : 16,
+                    }}
+                    exit={{ height: 0, marginTop: 0 }}
                     transition={{
-                      height: {
-                        ease: "easeInOut",
-                        duration: 0.35,
-                      },
-                      layout: {
-                        duration: 0.35,
-                      },
+                      ease: "easeInOut",
+                      duration: prefersReducedMotion ? 0 : 0.35,
                     }}
                     style={{
                       overflow: "hidden",
@@ -301,17 +300,7 @@ function Tab() {
                       style={{ transformOrigin: "center top" }}
                       className="baseFlex w-full py-0.5"
                     >
-                      <SectionContainer
-                        sectionIndex={index}
-                        forceCloseSectionAccordions={
-                          forceCloseSectionAccordions &&
-                          index !== tabDataLength - 1
-                        }
-                        setForceCloseSectionAccordions={
-                          setForceCloseSectionAccordions
-                        }
-                        tabDataLength={tabDataLength}
-                      />
+                      <SectionContainer sectionIndex={index} />
                     </motion.div>
                   </motion.div>
                 ))}

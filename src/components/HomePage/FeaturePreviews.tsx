@@ -537,7 +537,6 @@ function HotkeysPreview() {
 
 function ReorderingPreview() {
   const sectionIds = useTabStore((state) => state.tabData.map(({ id }) => id));
-  const [forceClose, setForceClose] = useState(false);
   return (
     <div className={styles.editorViewport} data-feature-editor-scroll>
       <div className="flex w-full min-w-0 flex-col gap-3">
@@ -546,9 +545,6 @@ function ReorderingPreview() {
             <SectionContainer
               key={`${sectionId}-${index}`}
               sectionIndex={index}
-              tabDataLength={sectionIds.length}
-              forceCloseSectionAccordions={forceClose}
-              setForceCloseSectionAccordions={setForceClose}
               presentation="embedded"
             />
           </AnimatedListItem>
