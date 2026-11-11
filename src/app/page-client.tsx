@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { BsGridFill } from "react-icons/bs";
 import GenreCards from "~/components/Explore/GenreCards";
@@ -17,14 +16,9 @@ import { Separator } from "~/components/ui/separator";
 
 function Home() {
   return (
-    <motion.div
-      key={"home"}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="baseVertFlex w-full gap-16 overflow-x-clip pb-16 md:gap-24 md:pb-24"
-    >
+    // Show server-rendered content immediately rather than fading the entire
+    // image grid through an additional compositing layer during hydration.
+    <div className="baseVertFlex w-full gap-16 overflow-x-clip pb-16 md:gap-24 md:pb-24">
       <div className="baseVertFlex w-full">
         <Hero />
 
@@ -63,7 +57,7 @@ function Home() {
       {/* <SignupCTA />
       <CustomizeLook /> */}
       <FAQ />
-    </motion.div>
+    </div>
   );
 }
 

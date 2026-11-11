@@ -2,7 +2,6 @@ import { routeUrl } from "~/utils/routeUrl";
 import { useRouter } from "next/navigation";
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 
-import { useState } from "react";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
 import { genreColors } from "~/utils/genreColors";
@@ -37,28 +36,20 @@ const genreNameToImageMap: Record<string, StaticImageData> = {
   Misc: miscImage,
 };
 
-const opacityVariants = {
-  expanded: {
-    opacity: 1,
-  },
-  closed: {
-    opacity: 0,
-  },
-};
-
 function GenreCards() {
-  const { data: genres, isLoading: genresAreLoading } =
-    api.genre.getAllWithTotalTabCount.useQuery();
+  const { data: genres } = api.genre.getAllWithTotalTabCount.useQuery();
 
   return (
     <>
-      {[...genreColors.entries()].map(([genre, color]) => (
+      {[...genreColors.entries()].map(([genre, color], index) => (
         <GenreCard
           key={genre}
           name={genre}
           color={color}
           image={genreNameToImageMap[genre] ?? miscImage}
           totalTabs={genres?.get(genre) ?? 0}
+          // Load the first row before hydration, including all four desktop columns.
+          eager={index < 4}
         />
       ))}
     </>
@@ -72,12 +63,11 @@ interface GenreCard {
   color: string;
   image: StaticImageData;
   totalTabs: number;
+  eager: boolean;
 }
 
-function GenreCard({ name, color, image, totalTabs }: GenreCard) {
-  const { push } = useRouter();
-
-  const [darkenCard, setDarkenCard] = useState(false);
+function GenreCard({ name, color, image, totalTabs, eager }: GenreCard) {
+  const router = useRouter();
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -94,31 +84,18 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
   }
 
   function searchForSpecificGenre(genre: string) {
-    push(routeUrl("/search/filters", { genre }));
+    router.push(routeUrl("/search/filters", { genre }));
   }
 
   return (
-    <motion.div
-      key={`genreCardButton${name}`}
+    // Keep the card visible from SSR onward. Nested entrance fades and an idle
+    // brightness filter force extra compositing of the filtered images on iOS.
+    <div
       tabIndex={0}
-      variants={opacityVariants}
-      initial="closed"
-      animate="expanded"
-      exit="closed"
-      transition={{
-        duration: 0.15,
-      }}
       style={{
         backgroundColor: color,
       }}
-      className={`baseVertFlex group relative h-28 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-all hover:shadow-lg sm:h-36 sm:p-6 ${
-        darkenCard ? "brightness-75" : "brightness-100"
-      }`}
-      onPointerLeave={() => {
-        setDarkenCard(false);
-      }}
-      onPointerDown={() => setDarkenCard(true)}
-      onPointerUp={() => setDarkenCard(false)}
+      className="baseVertFlex group relative isolate h-28 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-shadow hover:shadow-lg active:brightness-75 sm:h-36 sm:p-6"
       onMouseMove={handleMouseMove}
       onClick={() => {
         searchForSpecificGenre(name);
@@ -160,11 +137,11 @@ function GenreCard({ name, color, image, totalTabs }: GenreCard) {
 
       <Image
         src={image}
-        loading={name === "Rock" ? "eager" : "lazy"}
+        loading={eager ? "eager" : "lazy"}
         alt={`${name} genre thumbnail`}
         // had to do some magic number positioning/width/clip-path to reduce visible 1px of bg color on right side of desktop card
         className="pointer-events-none absolute bottom-0 right-[-1px] h-full w-[calc(100%+1px)] max-w-none select-none rounded-lg object-cover object-center opacity-75 grayscale lg:rounded-none lg:[clip-path:polygon(60%_0%,101%_0%,101%_100%,40%_100%)]"
       />
-    </motion.div>
+    </div>
   );
 }
