@@ -247,11 +247,6 @@ function PracticePlaybackPanel({
                           <span className="text-sm font-medium">
                             {item.title}
                           </span>
-                          <span
-                            className={`text-xs ${selectedExerciseId === item.id ? "text-primary-foreground/75" : "text-foreground"}`}
-                          >
-                            {item.description}
-                          </span>
                         </span>
                       </SelectItem>
                     ))}
@@ -310,11 +305,6 @@ function PracticePlaybackPanel({
                           <span className="text-sm font-medium transition">
                             {item.title}
                           </span>
-                          <span
-                            className={`text-xs transition ${item.id === selectedExerciseId ? "text-primary-foreground/80" : "text-foreground/80"}`}
-                          >
-                            {item.description}
-                          </span>
                         </span>
                       </Button>
                     ))}
@@ -341,7 +331,7 @@ function PracticePlaybackPanel({
             )}
           </div>
 
-          <div className="baseFlex my-2 w-full gap-2 sm:mb-2 sm:mt-0">
+          <div className="baseFlex my-2 w-full gap-4 sm:mb-2 sm:mt-0">
             <Button
               variant="outline"
               className="baseFlex gap-1 pl-2 pr-3 sm:hidden"
