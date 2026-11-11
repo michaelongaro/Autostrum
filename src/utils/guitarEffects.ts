@@ -6,13 +6,21 @@ export type PlaybackStrings = (
 
 export interface GuitarTransition {
   effect: "h" | "p" | "/" | "\\" | "b" | "r" | "arbitrarySlide";
+  // A destination can bend/release after an incoming slide or hammer/pull.
+  incomingEffect?: "h" | "p" | "/" | "\\";
   pluckBaseNote: boolean;
   transitionFromFret?: number;
   transitionToFret?: number;
 }
 
 type Point = { time: number; value: number };
-type Modulator = { source: AudioScheduledSourceNode; gain: GainNode };
+type Modulator = {
+  source: AudioScheduledSourceNode;
+  gain: GainNode;
+  points: Point[];
+  stopAt: number;
+  releasing: boolean;
+};
 type Voice = {
   source: AudioBufferSourceNode;
   gain: GainNode;
@@ -27,6 +35,7 @@ type Voice = {
   ended: boolean;
   gainPoints: Point[];
   pitchPoints: Point[];
+  filterPoints: Point[];
   modulators: Modulator[];
   extraNodes: AudioNode[];
   stopSource: (when: number) => void;
@@ -79,6 +88,9 @@ function holdAt(param: AudioParam, points: Point[], time: number) {
     param.cancelScheduledValues(time);
     param.linearRampToValueAtTime(value, time);
   }
+  // cancelAndHoldAtTime is a no-op when the parameter has no automation yet.
+  // Anchor the next ramp explicitly, or lookahead can bend a plain note early.
+  param.setValueAtTime(value, time);
   const nextPoint = points.findIndex((point) => point.time >= time);
   if (nextPoint >= 0) points.splice(nextPoint);
   points.push({ time, value });
@@ -97,15 +109,14 @@ function stopModulators(
 ) {
   const endTime =
     time <= voice.startTime ? time : Math.min(stopAt, time + RELEASE_SECONDS);
-  for (const { source, gain } of voice.modulators) {
-    if (typeof gain.gain.cancelAndHoldAtTime === "function") {
-      gain.gain.cancelAndHoldAtTime(time);
-    } else {
-      gain.gain.cancelScheduledValues(time);
-    }
-    gain.gain.setTargetAtTime(0, time, 0.003);
-    gain.gain.setValueAtTime(0, endTime);
-    source.stop(endTime);
+  for (const modulator of voice.modulators) {
+    if (time >= modulator.stopAt) continue;
+    const { source, gain, points } = modulator;
+    holdAt(gain.gain, points, time);
+    modulator.stopAt = Math.min(endTime, modulator.stopAt);
+    modulator.releasing = true;
+    ramp(gain.gain, points, 0, modulator.stopAt);
+    source.stop(modulator.stopAt);
   }
 }
 
@@ -113,8 +124,10 @@ function trackModulator(
   voice: Voice,
   source: AudioScheduledSourceNode,
   gain: GainNode,
+  points: Point[],
+  stopAt: number,
 ) {
-  const modulator = { source, gain };
+  const modulator = { source, gain, points, stopAt, releasing: false };
   voice.modulators.push(modulator);
   source.onended = () => {
     source.disconnect();
@@ -336,6 +349,7 @@ function createVoice({
     ended: false,
     gainPoints: [{ time: startTime, value: 0 }],
     pitchPoints: [{ time: startTime, value: 0 }],
+    filterPoints: [{ time: startTime, value: filter.frequency.value }],
     modulators: [],
     extraNodes: [],
     stopSource: source.stop.bind(source),
@@ -405,6 +419,7 @@ function shapeEnvelope(
   level: number,
   palmMuted: boolean,
   attack: number,
+  damping = 6,
 ) {
   holdAt(voice.gain.gain, voice.gainPoints, time);
   ramp(voice.gain.gain, voice.gainPoints, level, time + attack);
@@ -414,7 +429,7 @@ function shapeEnvelope(
       ramp(
         voice.gain.gain,
         voice.gainPoints,
-        Math.max(SILENCE, level * Math.exp(-6 * progress)),
+        Math.max(SILENCE, level * Math.exp(-damping * progress)),
         time + attack + (duration - attack) * progress,
       );
     }
@@ -439,26 +454,28 @@ function applyVibrato(voice: Voice, time: number, interval: number) {
   oscillator.frequency.setValueAtTime(4.8, startTime);
   oscillator.frequency.linearRampToValueAtTime(5.3, startTime + 0.6);
   const depth = context.createGain();
+  const depthPoints = [{ time: startTime, value: 0 }];
   depth.gain.setValueAtTime(0, startTime);
-  depth.gain.linearRampToValueAtTime(nylon ? 18 : 23, startTime + 0.12);
+  ramp(depth.gain, depthPoints, nylon ? 18 : 23, startTime + 0.12);
   oscillator.connect(depth);
   depth.connect(voice.source.detune);
   oscillator.start(startTime);
   oscillator.stop(voice.releaseAt + RELEASE_SECONDS);
-  trackModulator(voice, oscillator, depth);
+  trackModulator(voice, oscillator, depth, depthPoints, voice.stopAt);
   if (!nylon) {
     // Fretted steel/electric vibrato bends up and returns to pitch. Classical
     // nylon vibrato is shallower and can move to either side of the note.
     const bias = context.createConstantSource();
     const biasDepth = context.createGain();
+    const biasPoints = [{ time: startTime, value: 0 }];
     bias.offset.value = 1;
     biasDepth.gain.setValueAtTime(0, startTime);
-    biasDepth.gain.linearRampToValueAtTime(23, startTime + 0.12);
+    ramp(biasDepth.gain, biasPoints, 23, startTime + 0.12);
     bias.connect(biasDepth);
     biasDepth.connect(voice.source.detune);
     bias.start(startTime);
     bias.stop(voice.releaseAt + RELEASE_SECONDS);
-    trackModulator(voice, bias, biasDepth);
+    trackModulator(voice, bias, biasDepth, biasPoints, voice.stopAt);
   }
 }
 
@@ -504,11 +521,21 @@ export function playGuitarNote(
     voice = createVoice({ ...args, startTime: time, legato });
   }
   if (!voice) return;
-  stopModulators(voice, time);
+  const vibrato = effects.includes("~") && (args.fretted ?? fret > 0);
+  // Keep the hand's phase and depth through a connected phrase. Restarting
+  // the delayed onset on each fast note can suppress vibrato altogether.
+  const continueVibrato =
+    reuse &&
+    vibrato &&
+    voice.modulators.some(
+      (modulator) => !modulator.releasing && modulator.stopAt > time,
+    );
+  if (!continueVibrato) stopModulators(voice, time);
 
   let transitionEnd = time;
+  const incomingEffect = transition?.incomingEffect ?? transition?.effect;
   if (transition?.transitionFromFret !== undefined) {
-    const slide = transition.effect === "/" || transition.effect === "\\";
+    const slide = incomingEffect === "/" || incomingEffect === "\\";
     const duration = slide ? clamp(interval * 0.3, 0.025, 0.16) : 0.006;
     if (!reuse) {
       const initialCents = (transition.transitionFromFret - fret) * 100;
@@ -517,7 +544,12 @@ export function playGuitarNote(
     }
     transitionPitch(voice, midi, time, duration, slide);
     transitionEnd += duration;
-  } else if (legato && reuse && transition?.effect !== "r") {
+  } else if (
+    legato &&
+    reuse &&
+    transition?.effect !== "r" &&
+    transition?.effect !== "b"
+  ) {
     transitionPitch(voice, midi, time, 0.006, false);
   }
 
@@ -554,11 +586,7 @@ export function playGuitarNote(
     );
   }
   const legatoLevel =
-    transition?.effect === "h"
-      ? 0.85
-      : transition?.effect === "p"
-        ? 0.95
-        : 0.92;
+    incomingEffect === "h" ? 0.85 : incomingEffect === "p" ? 0.95 : 0.92;
   // Each articulation starts from the same musical level. Sample-decay
   // compensation is absolute, so neither attenuation nor accents compound.
   const level = 0.9 * (legato ? legatoLevel : 1) * accent * voice.sampleGain;
@@ -569,24 +597,48 @@ export function playGuitarNote(
     level,
     palmMuted,
     legato ? 0.006 : 0.003,
+    // Leave more pitched body audible while keeping the same short cutoff.
+    4.8,
   );
 
   const fundamental = 440 * 2 ** ((midi - 69) / 12);
-  voice.filter.frequency.cancelScheduledValues(time);
-  voice.filter.frequency.setValueAtTime(
-    palmMuted
-      ? clamp(fundamental * 5, 850, 6000)
-      : args.audioContext.sampleRate * 0.45,
-    time,
-  );
-  if (palmMuted) {
-    voice.filter.frequency.exponentialRampToValueAtTime(
-      clamp(fundamental * 2.5, 380, 3500),
-      time + Math.min(duration, 0.09),
-    );
+  const cutoff = palmMuted
+    ? clamp(fundamental * 6, 1000, 7000)
+    : args.audioContext.sampleRate * 0.45;
+  const filter = voice.filter.frequency;
+  // Preserve the preceding damping curve during lookahead and ease changes
+  // in hand pressure instead of stepping the tone on a still-vibrating string.
+  const filterAttack = reuse ? 0.008 : 0;
+  if (reuse) {
+    holdAt(filter, voice.filterPoints, time);
+    ramp(filter, voice.filterPoints, cutoff, time + filterAttack);
+  } else {
+    filter.setValueAtTime(cutoff, time);
+    voice.filterPoints = [{ time, value: cutoff }];
   }
-  if (effects.includes("~") && (args.fretted ?? fret > 0))
+  if (palmMuted) {
+    const endCutoff = clamp(fundamental * 3.2, 480, 4200);
+    for (let index = 1; index <= 12; index++) {
+      const progress = index / 12;
+      ramp(
+        filter,
+        voice.filterPoints,
+        cutoff * (endCutoff / cutoff) ** progress,
+        time +
+          filterAttack +
+          (Math.min(duration, 0.09) - filterAttack) * progress,
+      );
+    }
+  }
+  if (continueVibrato) {
+    for (const modulator of voice.modulators) {
+      if (modulator.releasing || modulator.stopAt <= time) continue;
+      modulator.stopAt = voice.stopAt;
+      modulator.source.stop(modulator.stopAt);
+    }
+  } else if (vibrato) {
     applyVibrato(voice, transitionEnd, interval);
+  }
   return voice.source;
 }
 
@@ -712,25 +764,30 @@ export function playGuitarPercussion(
     lowpass.Q.value = Math.SQRT1_2;
   }
   const noiseDuration = dead ? Math.min(duration * 0.65, 0.035) : duration;
+  const noisePoints = [{ time, value: 0 }];
   noiseGain.gain.setValueAtTime(0, time);
-  noiseGain.gain.linearRampToValueAtTime(
+  const noiseLevel =
     (dead?.noiseLevel ?? 0.09) *
-      (args.accented ? 1.22 : 1) *
-      (args.palmMuted ? 0.7 : 1),
-    time + attack,
-  );
-  noiseGain.gain.exponentialRampToValueAtTime(
-    SILENCE,
-    time + noiseDuration * 0.8,
-  );
-  if (dead) noiseGain.gain.linearRampToValueAtTime(0, time + noiseDuration);
+    (args.accented ? 1.22 : 1) *
+    (args.palmMuted ? 0.7 : 1);
+  ramp(noiseGain.gain, noisePoints, noiseLevel, time + attack);
+  for (let index = 1; index <= 12; index++) {
+    const progress = index / 12;
+    ramp(
+      noiseGain.gain,
+      noisePoints,
+      noiseLevel * (SILENCE / noiseLevel) ** progress,
+      time + attack + (noiseDuration * 0.8 - attack) * progress,
+    );
+  }
+  ramp(noiseGain.gain, noisePoints, 0, time + noiseDuration);
   noise.connect(highpass);
   highpass.connect(lowpass);
   lowpass.connect(noiseGain);
   noiseGain.connect(args.destination);
   noise.start(time, dead?.noiseOffset ?? 0);
   noise.stop(time + noiseDuration);
-  trackModulator(voice, noise, noiseGain);
+  trackModulator(voice, noise, noiseGain, noisePoints, time + noiseDuration);
   voice.extraNodes.push(highpass, lowpass);
   return voice.source;
 }

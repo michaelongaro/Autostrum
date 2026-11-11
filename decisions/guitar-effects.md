@@ -60,7 +60,7 @@ Scheduling, detune, and automation follow the [Web Audio specification](https://
 
 ## Verification
 
-- `node scripts/verifyGuitarEffects.mjs`: 22 checks against the actual production
+- `node scripts/verifyGuitarEffects.mjs`: 35 checks against the actual production
   parser/runtime, covering continuity, pitch targets, capo, effect combinations,
   onset timing, dynamics, strums, cancellation, and cleanup. Regression checks
   cover repeated attenuation, inherited accents, recorded decay, and bounded
@@ -81,5 +81,47 @@ Scheduling, detune, and automation follow the [Web Audio specification](https://
   own tuning); accent level was 1.22×, and muted/pause tails were silent.
 - Add `--level-probe` to the browser command for detailed destination-level
   measurements without the broader checks or audition panel.
+- `node scripts/verifyGuitarEffects.mjs --native` runs the same 280 native
+  audio checks in headless Playwright Chromium. Bundled samples are supplied
+  through request interception; no app server, external services, or database
+  are needed. Requires Playwright Chromium installed locally.
+- `--native --combinations` adds 256 assertions over four instruments, both
+  formats, 44.1/48 kHz, and 125/62.5 ms note spacing (sixteenths at 120/240 BPM).
+  These check continuous vibrato per ringing voice, slide/bend/release pitch,
+  mixed palm mute/accent/staccato/percussion phrases, pause cancellation, and
+  unchanged audio before a future transition. The last check runs with both
+  native `cancelAndHoldAtTime` and the automation-history fallback. Every render
+  also checks finite samples, headroom, and cancellation-registry cleanup.
+  All 256 assertions passed, along with the existing 280 checks, the 12 stop
+  configurations (`--native --stops`), and eight dead-note configurations
+  (`--native --dead-notes`). These are signal/scheduling checks, not a listening
+  evaluation or a guarantee about physical-device audio output.
 - The running chord trainer successfully started/stopped sample voices through
   its normal UI with no audio exceptions or unhandled rejections.
+
+## Close-succession articulation refinements
+
+- Listening feedback prompted a lighter palm mute: pitched notes use a gentler
+  exponential decay (4.8 instead of 6) and slightly higher low-pass cutoffs
+  (6× the fundamental at attack, falling to 3.2×). This retains more note body
+  and harmonic definition with the same short sustain and release deadlines.
+  Dead-note and slap damping retain their existing settings.
+- Incoming hammer-ons, pull-offs, and slides now have separate metadata from a
+  destination bend/release. A phrase such as `3/ 5b 7 r` keeps the slide's fret
+  crossings and the bend's hold and slower curve, rather than applying the
+  slide's timing to both gestures. Re-bends use the string's current pitch
+  instead of inserting a six-millisecond reset to its unbent pitch.
+- Every held audio parameter explicitly anchors its next ramp. With no previous
+  automation, a native hold alone left the first detune ramp free to begin
+  before the destination timestamp during lookahead. Native waveform comparisons
+  now catch this early pitch drift.
+- Consecutive vibrato-marked legato notes preserve oscillator phase and depth
+  on the same voice. Removing vibrato fades it out; later notes cannot extend
+  its canceled stop deadline. A necessary sample refresh still starts a new
+  voice and its delayed vibrato.
+- Palm-mute tone changes on a continuing string ease over eight milliseconds.
+  Damping and contact-noise envelopes retain a short piecewise-linear history
+  so interruption preserves the sound already scheduled, including on the hold
+  fallback. Noise reaches zero before its source stops, and subsequent stops
+  cannot prolong its lifetime. This follows Web Audio's rule that a later
+  [`stop()` call replaces a pending stop](https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode/stop).

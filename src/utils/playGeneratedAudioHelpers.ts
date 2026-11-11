@@ -345,6 +345,7 @@ function playNoteColumn({
 
       let transitionFromFret = undefined;
       let transitionToFret = undefined;
+      let incomingEffect: TetheredMetadata["incomingEffect"];
       let pluckBaseNote = true;
       let effect:
         "h" | "p" | "/" | "\\" | "b" | "r" | "arbitrarySlide" | undefined =
@@ -390,7 +391,8 @@ function playNoteColumn({
           prevNote === "p")
       ) {
         transitionFromFret = extractNumber(secondPrevNote) + capo;
-        effect = prevNote;
+        incomingEffect = prevNote;
+        effect ??= incomingEffect;
       }
 
       // pre-note arbitrary slide up/down
@@ -451,12 +453,14 @@ function playNoteColumn({
       // handling hp/\ tethered effects
       else if (prevNote && prevNoteHadTetherEffect) {
         transitionFromFret = extractNumber(prevNote) + capo;
-        effect = prevNote.at(-1)! as "h" | "p" | "/" | "\\";
+        incomingEffect = prevNote.at(-1)! as "h" | "p" | "/" | "\\";
+        effect ??= incomingEffect;
       }
 
       if (effect) {
         tetheredMetadata = {
           effect,
+          incomingEffect,
           pluckBaseNote,
           transitionFromFret,
           transitionToFret,

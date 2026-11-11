@@ -3,6 +3,7 @@
 // expression in .git/guitar-effects-audio-checks.js in the collaborative preview.
 // Add --dead-notes for focused dead-note checks and audition controls.
 // Add --stops for release-envelope checks and abrupt/faded stop auditions.
+// --native runs the same renders in headless Chromium, without an app/server.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -28,19 +29,51 @@ function moduleUrl(filename) {
   return url;
 }
 
-if (process.argv.includes("--browser")) {
+if (process.argv.includes("--browser") || process.argv.includes("--native")) {
   const url = moduleUrl("scripts/guitarEffectsAudioChecks.mjs");
-  const entry = process.argv.includes("--stops")
-    ? "runNoteStopAudioChecks"
-    : process.argv.includes("--dead-notes")
-      ? "runDeadNoteAudioChecks"
-      : process.argv.includes("--level-probe")
-        ? "measureLegatoLevels"
-        : "runAudioChecks";
-  fs.writeFileSync(
-    ".git/guitar-effects-audio-checks.js",
-    `import(${JSON.stringify(url)}).then(module => module.${entry}())`,
-  );
+  const entry = process.argv.includes("--combinations")
+    ? "runCombinationAudioChecks"
+    : process.argv.includes("--stops")
+      ? "runNoteStopAudioChecks"
+      : process.argv.includes("--dead-notes")
+        ? "runDeadNoteAudioChecks"
+        : process.argv.includes("--level-probe")
+          ? "measureLegatoLevels"
+          : "runAudioChecks";
+  const expression = `import(${JSON.stringify(url)}).then(module => module.${entry}())`;
+  if (process.argv.includes("--native")) {
+    const { chromium } = await import("playwright");
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const page = await browser.newPage();
+      await page.route("**/*", async (route) => {
+        const pathname = new URL(route.request().url()).pathname;
+        if (/^\/sounds\/instruments\/[a-z_]+-(ogg|mp3)\.js$/.test(pathname)) {
+          await route.fulfill({
+            path: path.resolve(`public${pathname}`),
+            contentType: "text/javascript",
+          });
+        } else if (pathname === "/") {
+          await route.fulfill({
+            contentType: "text/html",
+            body: "<!doctype html><title>Offline guitar checks</title>",
+          });
+        } else {
+          await route.abort();
+        }
+      });
+      await page.goto("https://guitar-effects.test/");
+      const result = await page.evaluate(
+        `${expression}.catch(error => ({ error: error.message }))`,
+      );
+      if (result.error) throw new Error(result.error);
+      console.log(JSON.stringify(result, null, 2));
+    } finally {
+      await browser.close();
+    }
+    process.exit(0);
+  }
+  fs.writeFileSync(".git/guitar-effects-audio-checks.js", expression);
   console.log(
     "Browser expression ready in .git/guitar-effects-audio-checks.js",
   );
@@ -78,7 +111,22 @@ class Param {
     this.add("target", value, time);
   }
   cancelAndHoldAtTime(time) {
+    let previous = { time: 0, value: this.value };
+    let value = previous.value;
+    for (const event of this.events) {
+      if (event.time > time) {
+        const fraction = (time - previous.time) / (event.time - previous.time);
+        value =
+          event.kind === "linear"
+            ? previous.value + (event.value - previous.value) * fraction
+            : previous.value;
+        break;
+      }
+      previous = event;
+      value = event.value;
+    }
     this.events = this.events.filter((event) => event.time < time);
+    this.add("linear", value, time);
   }
   cancelScheduledValues(time) {
     this.events = this.events.filter((event) => event.time < time);
@@ -516,6 +564,49 @@ test("Ended voices disconnect and leave the cancellation registry", () => {
   assert.equal(env.scheduled.length, 0);
   assert.ok(env.strings.every((node) => node === undefined));
   assert.equal(sampleNodes(env)[0].connections.length, 0);
+});
+test("An incoming hammer-on does not erase the destination bend's hold", () => {
+  const env = setup();
+  phrase(env, ["3h", "5b~", "7"], { bpm: 480 });
+  const source = sampleNodes(env)[0];
+  assert.equal(sampleNodes(env).length, 1);
+  const arrival = source.detune.events.find((event) => event.value === 200);
+  const bendStart = source.detune.events.find(
+    (event) => event.time > arrival.time && event.value > 200,
+  );
+  assert.ok(bendStart.time > arrival.time + 0.0075);
+  assert.equal(finalPitch(source), 400);
+});
+test("A slide into a bend retains the slower bend gesture", () => {
+  const env = setup();
+  phrase(env, ["3/", "5b", "7"]);
+  const end = sampleNodes(env)[0].detune.events.at(-1);
+  assert.ok(Math.abs(end.time - 1.125) < 0.000001);
+});
+test("Rapid legato vibrato keeps one hand motion instead of restarting its delay", () => {
+  const env = setup();
+  phrase(env, ["5~h", "7~p", "5~h", "7~"], { bpm: 960 });
+  const oscillators = env.nodes.filter((node) => node.kind === "oscillator");
+  assert.equal(oscillators.length, 1);
+  assert.ok(oscillators[0].startedAt < 0.3);
+  assert.equal(oscillators[0].stoppedAt, sampleNodes(env)[0].stoppedAt);
+});
+test("Later transitions cannot resurrect a canceled vibrato oscillator", () => {
+  const env = setup();
+  phrase(env, ["5~h", "7p", "5h", "7"], { bpm: 960 });
+  const oscillator = env.nodes.find((node) => node.kind === "oscillator");
+  assert.ok(oscillator.stoppedAt <= 0.274501);
+});
+test("Palm-mute changes preserve the earlier cutoff during lookahead", () => {
+  const env = setup();
+  phrase(env, [column("5h", { pm: "start" }), "7"], { bpm: 1200 });
+  assert.equal(sampleNodes(env).length, 1);
+  const cutoff = env.nodes.find((node) => node.kind === "filter").frequency;
+  const held = cutoff.events.find((event) => event.time === 0.25);
+  assert.ok(held && held.value < 2200);
+  assert.ok(
+    cutoff.events.some((event) => event.time > 0.25 && event.value === 21600),
+  );
 });
 globalThis.setTimeout = realSetTimeout;
 console.log(`Passed ${tests.length} guitar effect scheduling checks.`);

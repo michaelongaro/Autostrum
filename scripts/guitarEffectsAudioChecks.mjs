@@ -136,13 +136,26 @@ async function render(
     sampleRate,
   );
   if (holdFallback) {
-    const createGain = context.createGain.bind(context);
-    context.createGain = () => {
-      const gain = createGain();
-      gain.gain.cancelAndHoldAtTime = undefined;
-      return gain;
-    };
+    for (const [factory, param] of [
+      ["createGain", "gain"],
+      ["createBiquadFilter", "frequency"],
+      ["createBufferSource", "detune"],
+    ]) {
+      const create = context[factory].bind(context);
+      context[factory] = () => {
+        const node = create();
+        node[param].cancelAndHoldAtTime = undefined;
+        return node;
+      };
+    }
   }
+  const oscillators = [];
+  const createOscillator = context.createOscillator.bind(context);
+  context.createOscillator = () => {
+    const oscillator = createOscillator();
+    oscillators.push(oscillator);
+    return oscillator;
+  };
   let destination = context.destination;
   if (hardStopAt !== undefined) {
     destination = context.createGain();
@@ -210,6 +223,7 @@ async function render(
   return {
     buffer,
     guitarSourceCount: guitarSources.length,
+    oscillatorCount: oscillators.length,
     guitarStarts: sourceStarts.filter((event) =>
       guitarSources.includes(event.source),
     ),
@@ -614,6 +628,116 @@ export async function runNoteStopAudioChecks() {
   } catch (error) {
     await decodeContext.close();
     throw error;
+  }
+}
+
+export async function runCombinationAudioChecks() {
+  const decodeContext = new AudioContext();
+  const results = [];
+  try {
+    for (const name of [
+      "acoustic_guitar_nylon",
+      "acoustic_guitar_steel",
+      "electric_guitar_clean",
+      "electric_guitar_jazz",
+    ]) {
+      for (const format of ["ogg", "mp3"]) {
+        const instrument = await loadInstrument(decodeContext, name, format);
+        for (const sampleRate of [44100, 48000]) {
+          for (const bpm of [480, 960]) {
+            const options = { bpm, sampleRate };
+            const label = `${name}-${format}/${sampleRate}/${bpm}`;
+            const vibrato = await render(
+              instrument,
+              ["5~h", "7~p", "5~h", "7~"],
+              options,
+            );
+            assert(
+              vibrato.oscillatorCount === vibrato.guitarSourceCount,
+              `${label}: vibrato restarted without a sample refresh`,
+            );
+            const bend = await render(
+              instrument,
+              ["3/", "5b", "7", "r"],
+              options,
+            );
+            assert(
+              bend.guitarSourceCount === 1,
+              `${label}: slide/bend/release replayed pick attack`,
+            );
+            const pitchError = centsFromExpected(
+              bend.buffer,
+              0.2 + (4 * 60) / bpm,
+              440,
+            );
+            assert(
+              Math.abs(pitchError) < 18,
+              `${label}: release missed pitch: ${pitchError}`,
+            );
+            const mixed = [
+              column("5>h", { pm: "start" }),
+              "7~p",
+              "5.b",
+              "7",
+              "r",
+              "x",
+              column("", { chordEffects: "s>." }),
+              "5~",
+            ];
+            const rapid = await render(instrument, mixed, options);
+            const canceled = await render(instrument, mixed, {
+              ...options,
+              pauseAt: 0.2 + (1.5 * 60) / bpm,
+            });
+            assert(
+              rms(canceled.buffer, 0.2 + (1.5 * 60) / bpm + 0.026, 4.5) === 0,
+              `${label}: mixed effects survived pause`,
+            );
+            // A future transition must not rewrite the already-scheduled sound.
+            // Test both native holds and the explicit automation-history fallback.
+            for (const holdFallback of [false, true]) {
+              for (const first of [column("5h", { pm: "start" }), "5~h"]) {
+                const alone = await render(instrument, [first], {
+                  ...options,
+                  holdFallback,
+                });
+                const connected = await render(instrument, [first, "7p", "5"], {
+                  ...options,
+                  holdFallback,
+                });
+                let error = 0;
+                const end = Math.floor((0.2 + 60 / bpm - 0.002) * sampleRate);
+                for (let channel = 0; channel < 2; channel++) {
+                  const a = alone.buffer.getChannelData(channel);
+                  const b = connected.buffer.getChannelData(channel);
+                  for (let frame = 0; frame < end; frame++)
+                    error = Math.max(error, Math.abs(a[frame] - b[frame]));
+                }
+                assert(
+                  error < 0.00002,
+                  `${label}: future transition rewrote prior audio (${error}, fallback=${holdFallback}, note=${JSON.stringify(first)})`,
+                );
+              }
+            }
+            results.push({
+              instrument: name,
+              format,
+              sampleRate,
+              bpm,
+              peak: peak(rapid.buffer),
+              releaseErrorCents: pitchError,
+              checks: 8,
+            });
+          }
+        }
+      }
+    }
+    return {
+      passed: results.reduce((sum, result) => sum + result.checks, 0),
+      results,
+    };
+  } finally {
+    await decodeContext.close();
   }
 }
 
