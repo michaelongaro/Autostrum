@@ -56,8 +56,24 @@ S3 metadata records the captured tab's `updatedAt`. The API checks it against th
 card's version before serving a cached atlas. Missing masks, failed loads, and
 outdated revisions leave the gradient-map screenshot visible.
 
-The external screenshot service is outside this repository and currently only
-captures JPEGs. Until that service also calls `captureTabScreenshotMasks` and
-uploads the atlas with `tab-version` metadata, rerun the bulk script for new or
-edited tabs. They will use the gradient-map fallback in the meantime. Increment
-the mask format constant when changing the stored atlas layout or capture geometry.
+If neither the atlas nor the JPEG can load, the card stops its skeleton and shows
+"Preview unavailable". A failed JPEG does not hide a usable atlas, and a failed
+atlas still waits for the JPEG. Revisiting the grid retries missing images so a
+later capture can recover without changing the tab's content revision.
+
+The external screenshot service is outside this repository. Deploy its App Router
+revision reader along with mask/thumbnail capture support; see
+[the capture contract](./tab-screenshot-thumbnails.md#app-router-revision-contract).
+Until that worker is deployed, the bulk script can backfill new or edited tabs.
+Increment the mask format constant when changing the stored atlas layout or
+capture geometry.
+
+With the development server running, verify failure handling without remote writes:
+
+```sh
+node scripts/verifyTabScreenshotFailures.mjs
+```
+
+This mocks search results and image responses to cover missing assets, storage
+errors, either format succeeding independently, delayed responses, and recovery
+when returning to the grid after a successful capture.

@@ -12,6 +12,7 @@ interface TabScreenshotImageProps {
   title: string;
   filterId: string;
   onLoad: () => void;
+  onError?: () => void;
   eager?: boolean;
 }
 
@@ -23,6 +24,7 @@ export default function TabScreenshotImage({
   title,
   filterId,
   onLoad,
+  onError,
   eager = false,
 }: TabScreenshotImageProps) {
   const srcSet = TAB_SCREENSHOT_THUMBNAIL_WIDTHS.map(
@@ -42,6 +44,7 @@ export default function TabScreenshotImage({
         unoptimized
         sizes={`${width}px`}
         onLoad={onLoad}
+        onError={onError}
         style={{ filter: `url("#${filterId}")` }}
         className="pointer-events-none rounded-t-sm object-cover object-center"
       />

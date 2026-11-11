@@ -116,6 +116,9 @@ function GridTabCard({
   >(() =>
     loadedTabScreenshotKeys.has(screenshotCacheKey) ? screenshotCacheKey : null,
   );
+  const [failedScreenshotCacheKey, setFailedScreenshotCacheKey] = useState<
+    string | null
+  >(null);
   const gradientScreenshotLoaded =
     loadedTabScreenshotKeys.has(screenshotCacheKey) ||
     revealedScreenshotCacheKey === screenshotCacheKey;
@@ -130,6 +133,14 @@ function GridTabCard({
           (maskState.status === "ready" ||
             (maskState.status === "error" && gradientScreenshotLoaded)))
       : gradientScreenshotLoaded;
+  // A missing atlas can fall back to a JPEG, and a missing JPEG can still use
+  // masks. Only stop loading with an error once every usable source failed.
+  const tabScreenshotUnavailable =
+    !tabScreenshotLoaded &&
+    failedScreenshotCacheKey === screenshotCacheKey &&
+    (screenshotRenderer === "gradient-map" ||
+      (maskState?.key === screenshotMaskCacheKey &&
+        maskState.status === "error"));
 
   useEffect(() => {
     return () => {
@@ -141,6 +152,7 @@ function GridTabCard({
   }, [screenshotCacheKey]);
 
   function revealTabScreenshot(cacheKey: string) {
+    setFailedScreenshotCacheKey(null);
     loadedTabScreenshotKeys.add(cacheKey);
 
     if (screenshotRevealTimeoutRef.current !== null) {
@@ -151,6 +163,16 @@ function GridTabCard({
       setRevealedScreenshotCacheKey(cacheKey);
       screenshotRevealTimeoutRef.current = null;
     }, SCREENSHOT_REVEAL_DELAY_MS);
+  }
+
+  function handleScreenshotError() {
+    if (screenshotRevealTimeoutRef.current !== null) {
+      window.clearTimeout(screenshotRevealTimeoutRef.current);
+      screenshotRevealTimeoutRef.current = null;
+    }
+    loadedTabScreenshotKeys.delete(screenshotCacheKey);
+    setRevealedScreenshotCacheKey(null);
+    setFailedScreenshotCacheKey(screenshotCacheKey);
   }
 
   function allowedToRenderArtistLink() {
@@ -267,6 +289,7 @@ function GridTabCard({
                   </defs>
                 </svg>
                 <TabScreenshotImage
+                  key={screenshotCacheKey}
                   eager={eagerScreenshot}
                   tabId={minimalTab.id}
                   theme={theme}
@@ -275,6 +298,7 @@ function GridTabCard({
                   title={minimalTab.title}
                   filterId={screenshotFilterId}
                   onLoad={() => revealTabScreenshot(screenshotCacheKey)}
+                  onError={handleScreenshotError}
                 />
                 {screenshotRenderer === "masks" && (
                   <TabScreenshotMasks
@@ -290,8 +314,17 @@ function GridTabCard({
                 )}
               </div>
 
+              {tabScreenshotUnavailable && (
+                <span
+                  role="status"
+                  className="bg-muted text-muted-foreground absolute inset-0 flex items-center justify-center text-sm"
+                >
+                  Preview unavailable
+                </span>
+              )}
+
               <AnimatePresence>
-                {!tabScreenshotLoaded && (
+                {!tabScreenshotLoaded && !tabScreenshotUnavailable && (
                   <motion.div
                     key={`${minimalTab.id}gridTabCardSkeletonImageLoader`}
                     initial={{ opacity: 0 }}
