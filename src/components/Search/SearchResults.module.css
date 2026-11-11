@@ -142,8 +142,8 @@
   }
 }
 
-/* Match the app's tablet breakpoint, including its minimum viewport height. */
-@media (min-width: 1024px) and (min-height: 700px) {
+/* Match Tailwind lg, independently of viewport height. */
+@media (min-width: 1024px) {
   .stickyHeader {
     margin-top: -1rem;
     padding-top: 1rem;

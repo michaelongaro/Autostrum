@@ -70,7 +70,7 @@ function PlaybackTopMetadata() {
                 defer
                 className="size-full max-w-[60vw]"
               >
-                <span className="whitespace-nowrap text-xl font-bold tablet:text-2xl">
+                <span className="whitespace-nowrap text-xl font-bold lg:text-2xl">
                   {title}
                 </span>
               </OverlayScrollbarsComponent>
@@ -87,7 +87,7 @@ function PlaybackTopMetadata() {
           </div>
         </div>
       ) : (
-        <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4">
+        <div className="baseFlex mt-4 w-full !items-end !justify-between gap-2 px-4 lg:shrink-0">
           <div className="baseFlex w-full !items-end !justify-start gap-2">
             {/* title + auto tuner button */}
             <div className="baseVertFlex w-full !items-start gap-2">
@@ -102,9 +102,9 @@ function PlaybackTopMetadata() {
                       },
                     }}
                     defer
-                    className="size-full max-w-[80vw] tablet:max-w-[600px]"
+                    className="size-full max-w-[80vw] lg:max-w-[600px]"
                   >
-                    <span className="whitespace-nowrap text-xl font-bold tablet:text-2xl">
+                    <span className="whitespace-nowrap text-xl font-bold lg:text-2xl">
                       {title}
                     </span>
                   </OverlayScrollbarsComponent>

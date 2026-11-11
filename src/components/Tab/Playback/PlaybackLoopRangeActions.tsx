@@ -93,7 +93,7 @@ function PlaybackLoopRangeActions({
         presentation === "embedded"
           ? "baseFlex w-full"
           : // Match PlaybackBottomMetadata so switching modes keeps the staff fixed.
-            `baseFlex h-[68px] w-full shrink-0 gap-3 px-4 mobileNarrowLandscape:h-[52px] mobileLandscape:h-[52px] tablet:h-[94px] ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`
+            `baseFlex h-[68px] w-full shrink-0 gap-3 px-4 lg:h-[94px] max-lg:mobileNarrowLandscape:h-[52px] max-lg:mobileLandscape:h-[52px] ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`
       }
     >
       {viewportLabel.includes("Landscape") && <PlaybackSectionPicker />}

@@ -163,7 +163,7 @@ function StaticTab() {
       >
         <StaticTabMetadata />
 
-        <Separator className="mt-2 h-px w-full bg-border tablet:mb-4 tablet:h-[2px] tablet:w-[96%]" />
+        <Separator className="mt-2 h-px w-full bg-border lg:mb-4 lg:h-[2px] lg:w-[96%]" />
 
         {viewportLabel.includes("mobile") ? (
           <MobileExtraTabMetadata />
@@ -172,7 +172,7 @@ function StaticTab() {
         )}
 
         <Separator
-          className={`h-px w-full bg-border tablet:h-[2px] tablet:w-[96%] ${showSectionNavigation ? "mt-2" : "my-2"}`}
+          className={`h-px w-full bg-border lg:h-[2px] lg:w-[96%] ${showSectionNavigation ? "mt-2" : "my-2"}`}
         />
 
         <div
@@ -220,7 +220,7 @@ function StaticTab() {
                   animate={{ y: 0 }}
                   exit={{ y: 100 }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="baseFlex sticky bottom-4 top-4 mb-4 gap-4 tablet:bottom-6"
+                  className="baseFlex sticky bottom-4 top-4 mb-4 gap-4 lg:bottom-6"
                 >
                   <TooltipProvider delay={150}>
                     <Tooltip>
@@ -243,7 +243,7 @@ function StaticTab() {
 
                   <Button
                     variant="audio"
-                    className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
+                    className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 lg:px-10 lg:text-xl"
                     onClick={() => {
                       // Unlock AudioContext + preload the modal chunk inside this
                       // gesture so the first Play is not blocked on Safari resume/lazy JS.
@@ -251,7 +251,7 @@ function StaticTab() {
                       setShowPlaybackModal(true);
                     }}
                   >
-                    <Logo className="size-[18px] tablet:size-5" />
+                    <Logo className="size-[18px] lg:size-5" />
                     Practice
                   </Button>
 

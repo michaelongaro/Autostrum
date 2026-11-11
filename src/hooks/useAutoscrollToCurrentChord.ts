@@ -3,7 +3,7 @@ import { useTabStore } from "~/stores/TabStore";
 import scrollChordIntoView, {
   getChordElement,
   getChordViewportMargins,
-  isTabletOrLargerViewport,
+  isLargeViewport,
 } from "~/utils/scrollChordIntoView";
 
 function useAutoscrollToCurrentChord(
@@ -78,7 +78,7 @@ function useAutoscrollToCurrentChord(
     const { topMargin, bottomMargin } = getChordViewportMargins();
     const { sectionIndex, chordSequenceIndex, chordIndex } =
       currentChordLocation;
-    const isTabletOrLarger = isTabletOrLargerViewport();
+    const isLarge = isLargeViewport();
 
     if (
       previousChordYScrollValueRef.current !== -1 &&
@@ -104,17 +104,17 @@ function useAutoscrollToCurrentChord(
       previousChordSectionIndexRef.current !== sectionIndex &&
       chordIndex === 0;
 
-    // Tablet+: keep the active chord vertically centered whenever its row
+    // Large viewports: keep the active chord vertically centered whenever its row
     // changes. Smaller viewports keep the existing edge-margin behavior.
     if (
-      isTabletOrLarger ||
+      isLarge ||
       targetIsOutOfViewportWithMargins ||
       isFirstChordOfNewStrummingSection
     ) {
       scrollChordIntoView({
         location: currentChordLocation,
         duration: targetIsWayOutOfViewport ? 0 : 200,
-        align: isTabletOrLarger
+        align: isLarge
           ? "center"
           : isFirstChordOfNewStrummingSection
             ? "belowHeader"
@@ -124,7 +124,7 @@ function useAutoscrollToCurrentChord(
 
     // After a centered scroll, store the post-scroll target Y so same-row
     // chords (still near center) don't immediately trigger another scroll.
-    previousChordYScrollValueRef.current = isTabletOrLarger
+    previousChordYScrollValueRef.current = isLarge
       ? Math.round(window.innerHeight / 2 - rect.height / 2)
       : currentChordYScrollValue;
     previousChordSectionIndexRef.current = sectionIndex;

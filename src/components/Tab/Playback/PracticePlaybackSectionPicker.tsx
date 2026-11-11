@@ -31,7 +31,7 @@ function PracticePlaybackSectionPicker() {
 
   return (
     <div className="baseFlex gap-4">
-      <Separator className="hidden h-6 w-[1px] bg-foreground/50 tablet:block" />
+      <Separator className="hidden h-6 w-[1px] bg-foreground/50 lg:block" />
       <div className="baseFlex gap-2">
         <Label htmlFor="practiceExercisePicker" className="text-sm font-medium">
           Exercise
@@ -45,7 +45,7 @@ function PracticePlaybackSectionPicker() {
         >
           <SelectTrigger
             id="practiceExercisePicker"
-            className="!h-9 !max-w-48 mobilePortrait:!h-8 mobilePortrait:!max-w-[120px] tablet:!max-w-none"
+            className="!h-9 !max-w-48 lg:!max-w-none mobilePortrait:!h-8 max-lg:mobilePortrait:!max-w-[120px]"
           >
             <SelectValue
               placeholder="Select an exercise"

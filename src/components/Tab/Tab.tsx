@@ -190,11 +190,11 @@ function Tab() {
         <TabMetadata setIsPublishingOrUpdating={setIsPublishingOrUpdating} />
 
         <Separator
-          className={`mt-2 bg-border ${editing ? "w-[calc(100%-16px)] md:w-[calc(100%-56px)]" : "h-px w-[calc(100%-16px)] w-full tablet:mb-4 tablet:h-[2px] tablet:w-[calc(100%-56px)]"}`}
+          className={`mt-2 bg-border ${editing ? "w-[calc(100%-16px)] md:w-[calc(100%-56px)]" : "h-px w-[calc(100%-16px)] w-full lg:mb-4 lg:h-[2px] lg:w-[calc(100%-56px)]"}`}
         />
 
         {editing ? (
-          <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 tablet:mb-0 tablet:mt-4">
+          <div className="baseVertFlex relative mb-4 mt-6 w-full gap-4 lg:mb-0 lg:mt-4">
             <SectionProgression />
             <Chords />
             <StrummingPatterns />
@@ -250,7 +250,7 @@ function Tab() {
         )}
 
         <Separator
-          className={`bg-border ${editing ? "my-2 w-[calc(100%-16px)] md:w-[calc(100%-56px)]" : `h-px w-[calc(100%-16px)] tablet:h-[2px] tablet:w-[calc(100%-56px)] ${showSectionNavigation ? "mt-2" : "my-2"}`}`}
+          className={`bg-border ${editing ? "my-2 w-[calc(100%-16px)] md:w-[calc(100%-56px)]" : `h-px w-[calc(100%-16px)] lg:h-[2px] lg:w-[calc(100%-56px)] ${showSectionNavigation ? "mt-2" : "my-2"}`}`}
         />
 
         <div
@@ -367,7 +367,7 @@ function Tab() {
                     : 0,
                 transition: "opacity 0.2s ease-in-out",
               }}
-              className="baseFlex sticky bottom-4 mb-4 gap-4 tablet:bottom-6"
+              className="baseFlex sticky bottom-4 mb-4 gap-4 lg:bottom-6"
             >
               <TooltipProvider delay={150}>
                 <Tooltip>
@@ -390,13 +390,13 @@ function Tab() {
 
               <Button
                 variant="audio"
-                className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 tablet:px-10 tablet:text-xl"
+                className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 lg:px-10 lg:text-xl"
                 onClick={() => {
                   primePlaybackUserGesture();
                   setShowPlaybackModal(true);
                 }}
               >
-                <Logo className="size-[18px] tablet:size-5" />
+                <Logo className="size-[18px] lg:size-5" />
                 Practice
               </Button>
 

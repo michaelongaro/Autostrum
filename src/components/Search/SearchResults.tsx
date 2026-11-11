@@ -372,10 +372,10 @@ function SearchResults({
 
   return (
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
-      {/* tablet+ filters sidebar */}
+      {/* lg+ filters sidebar */}
       <div
         className={cn(
-          "baseVertFlex sticky top-20 !hidden h-fit w-56 shrink-0 !items-start !justify-start gap-4 rounded-lg border bg-panel p-4 text-panel-foreground tablet:!flex",
+          "baseVertFlex sticky top-20 !hidden h-fit max-h-[calc(100dvh-6rem)] w-56 shrink-0 !items-start !justify-start gap-4 overflow-y-auto rounded-lg border bg-panel p-4 text-panel-foreground lg:!flex [&>*]:shrink-0",
           styles.accentPanel,
         )}
       >
@@ -729,7 +729,7 @@ function SearchResults({
             }}
             transition={{ duration: 0.5, ease: "linear" }}
             className={cn(
-              "baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-panel pt-3 text-panel-foreground md:border-x tablet:!hidden",
+              "baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-panel pt-3 text-panel-foreground md:border-x lg:!hidden",
               styles.accentPanel,
               stickyHeaderNotActive ? "md:rounded-t-lg" : "rounded-t-none",
             )}
@@ -936,7 +936,7 @@ function SearchResults({
             </AnimatePresence>
           </motion.div>
         ) : (
-          // tablet+: # of results / view type toggle
+          // lg+: # of results / view type toggle
           <div ref={desktopToolbarRef} className={styles.stickyHeader}>
             <div
               aria-hidden="true"
@@ -961,8 +961,8 @@ function SearchResults({
                     <motion.div
                       key={
                         isFetching && !isFetchingNextPage
-                          ? "tabletSearchResultsCountSkeleton"
-                          : "tabletSearchResultsCount"
+                          ? "desktopSearchResultsCountSkeleton"
+                          : "desktopSearchResultsCount"
                       }
                       variants={opacityVariants}
                       initial="closed"

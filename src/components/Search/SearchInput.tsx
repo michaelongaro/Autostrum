@@ -184,7 +184,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         ease: "easeOut",
         duration: 0.35,
       }}
-      className="baseFlex relative z-50 max-w-lg bg-background py-0.5 tablet:rounded-md tablet:py-0"
+      className="baseFlex relative z-50 max-w-lg bg-background py-0.5 lg:rounded-md lg:py-0"
     >
       {isAboveLgViewportWidth === false && (
         <Button
@@ -276,7 +276,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
           }}
           className={`${enterButtonBeingPressed ? "!brightness-75" : ""}`}
         >
-          <BiSearchAlt2 className="mt-1 size-[22px] tablet:mt-0 tablet:size-6" />
+          <BiSearchAlt2 className="mt-1 size-[22px] lg:mt-0 lg:size-6" />
         </Button>
       </div>
 
@@ -365,7 +365,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="pr-1.5 tablet:pr-3"
+                    className="pr-1.5 lg:pr-3"
                   >
                     <Spinner className="size-4" />
                   </motion.div>

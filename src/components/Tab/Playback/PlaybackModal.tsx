@@ -645,7 +645,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
           ref={modalContentRef}
           tabIndex={-1}
           inert={closingStripPosition !== null}
-          className="baseVertFlex playbackModalGradient relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none p-0 mobileNarrowLandscape:!justify-center tablet:h-[650px] tablet:max-w-6xl tablet:!rounded-lg"
+          className="baseVertFlex playbackModalGradient relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none p-0 lg:h-[650px] lg:max-h-[calc(100dvh-2rem)] lg:max-w-6xl lg:overflow-y-auto lg:!rounded-lg max-lg:mobileNarrowLandscape:!justify-center"
         >
           <PlaybackTopMetadata />
 
@@ -671,7 +671,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="baseVertFlex relative size-full select-none"
+                className="baseVertFlex relative size-full select-none lg:min-h-[315px] lg:flex-1 lg:basis-0"
               >
                 {practiceStrip}
               </motion.div>
@@ -681,7 +681,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
           </AnimatePresence>
 
           {playbackModalViewingState === "Practice" && (
-            <div className="baseVertFlex w-full lg:gap-2 mobilePortrait:gap-1">
+            <div className="baseVertFlex w-full lg:shrink-0 lg:gap-2 mobilePortrait:gap-1">
               <PlaybackAudioControls
                 chordDurations={chordLayoutData?.durations ?? []}
                 setChordRepetitions={setChordRepetitions}

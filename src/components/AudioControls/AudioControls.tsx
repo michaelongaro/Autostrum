@@ -41,7 +41,7 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStore } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import scrollChordIntoView, {
-  isTabletOrLargerViewport,
+  isLargeViewport,
 } from "~/utils/scrollChordIntoView";
 import { AUDIO_CONTROLS_BOTTOM_OFFSET } from "./AudioControlsStickyBounds";
 import PlayButtonIcon from "./PlayButtonIcon";
@@ -137,7 +137,7 @@ function AudioControls() {
       if (currentlyPlayingMetadata?.[currentChordIndex] && autoscrollEnabled) {
         scrollChordIntoView({
           location: currentlyPlayingMetadata[currentChordIndex].location,
-          align: isTabletOrLargerViewport() ? "center" : "comfortable",
+          align: isLargeViewport() ? "center" : "comfortable",
         });
       }
 
@@ -563,7 +563,7 @@ function AudioControls() {
                   scrollChordIntoView({
                     location:
                       currentlyPlayingMetadata[currentChordIndex].location,
-                    align: isTabletOrLargerViewport()
+                    align: isLargeViewport()
                       ? "center"
                       : "comfortable",
                   });

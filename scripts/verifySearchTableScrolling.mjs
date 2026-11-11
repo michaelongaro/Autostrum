@@ -118,6 +118,9 @@ for (const [name, engine] of [
   try {
     for (const viewport of [
       { width: 390, height: 844 },
+      { width: 1023, height: 600 },
+      { width: 1024, height: 600 },
+      { width: 1366, height: 640 },
       { width: 1024, height: 900 },
       { width: 1440, height: 900 },
     ]) {

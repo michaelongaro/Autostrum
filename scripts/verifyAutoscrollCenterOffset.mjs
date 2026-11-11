@@ -1,5 +1,5 @@
 /**
- * Verifies editing autoscroll centers the active chord on tablet+ viewports.
+ * Verifies editing autoscroll centers the active chord on lg+ viewports.
  *
  * Usage:
  *   1. npm run dev
@@ -7,9 +7,10 @@
  */
 import { chromium } from "playwright";
 import fs from "node:fs";
+import ts from "typescript";
 
 const BASE = process.argv[2] ?? "http://127.0.0.1:3000";
-const ARTIFACT_DIR = "/opt/cursor/artifacts/autoscroll-center-verify";
+const ARTIFACT_DIR = "coverage/autoscroll-center-verify";
 fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
 
 const failures = [];
@@ -92,8 +93,24 @@ const draft = {
   sectionProgression: [],
 };
 
-function isTabletOrLargerViewport(width, height) {
-  return width >= 1024 && height >= 700;
+const scrollSource = fs.readFileSync(
+  new URL("../src/utils/scrollChordIntoView.ts", import.meta.url),
+  "utf8",
+);
+const scrollModule = await import(
+  `data:text/javascript;base64,${Buffer.from(
+    ts.transpileModule(
+      scrollSource.replace(
+        'import { scroller } from "react-scroll";',
+        "const scroller = {};",
+      ),
+      { compilerOptions: { module: ts.ModuleKind.ESNext } },
+    ).outputText,
+  ).toString("base64")}`
+);
+function isLargeViewport(width, height) {
+  globalThis.window = { innerWidth: width, innerHeight: height };
+  return scrollModule.isLargeViewport();
 }
 
 function getCenteredChordOffset(viewportHeight, chordHeight) {
@@ -101,14 +118,15 @@ function getCenteredChordOffset(viewportHeight, chordHeight) {
 }
 
 console.log("\n== Unit: viewport gating & offset math ==");
-assert(isTabletOrLargerViewport(1024, 700), "1024x700 is tablet+");
-assert(isTabletOrLargerViewport(1500, 800), "1500x800 is tablet+");
-assert(!isTabletOrLargerViewport(1023, 700), "width < 1024 is not tablet+");
-assert(!isTabletOrLargerViewport(1024, 699), "height < 700 is not tablet+");
-assert(!isTabletOrLargerViewport(390, 844), "mobile is not tablet+");
+assert(isLargeViewport(1024, 700), "1024x700 is lg+");
+assert(isLargeViewport(1500, 800), "1500x800 is lg+");
+assert(!isLargeViewport(1023, 700), "width < 1024 is not lg+");
+assert(isLargeViewport(1024, 699), "short laptops still use lg+");
+assert(!isLargeViewport(390, 844), "mobile is not lg+");
 const centerOffset = getCenteredChordOffset(800, 40);
 assert(centerOffset === 380, `center offset is ${centerOffset} (expected 380)`);
 assert(centerOffset + 20 === 400, "chord midpoint equals viewport midpoint");
+delete globalThis.window;
 
 async function ensureAutoscrollEnabled(page) {
   // Desktop (≥1024) uses a Toggle; mobile uses a Switch inside the settings drawer.
@@ -137,7 +155,9 @@ async function ensureAutoscrollEnabled(page) {
       (b) => (b.textContent || "").trim() === "Autoscroll",
     );
     if (autoBtn) return autoBtn.getAttribute("aria-pressed") === "true";
-    return localStorage.getItem("autostrum-autoscroll") === JSON.stringify("true");
+    return (
+      localStorage.getItem("autostrum-autoscroll") === JSON.stringify("true")
+    );
   });
   assert(enabled, "autoscroll enabled");
 }
@@ -254,15 +274,29 @@ async function runPlaybackViewportCheck({
   const pageErrors = [];
   page.on("pageerror", (err) => pageErrors.push(err.message));
 
-  await page.addInitScript((data) => {
-    localStorage.setItem("autostrum-tabData", JSON.stringify(data));
+  await page.addInitScript(() => {
     // useLocalStorageValue JSON-serializes values; raw "true" parses as boolean
     // and fails `value === "true"` in useGetLocalStorageValues.
     localStorage.setItem("autostrum-autoscroll", JSON.stringify("true"));
-  }, draft);
+  });
 
   await page.goto(`${BASE}/create`, { waitUntil: "networkidle" });
-  await page.locator("#section0-subSection0-chord0").waitFor({ timeout: 20000 });
+  await page.locator("#title").waitFor();
+  await page.evaluate((data) => {
+    const store = window.__AUTOSTRUM_GET_TAB_STORE__();
+    store.setTitle(data.title);
+    store.setBpm(data.bpm);
+    store.setTabData((sections) => {
+      sections.splice(0, sections.length, ...data.tabData);
+    });
+  }, draft);
+  await page.waitForFunction(
+    () =>
+      document.querySelectorAll("#section0-subSection0-chord0").length === 1,
+  );
+  await page
+    .locator("#section0-subSection0-chord0")
+    .waitFor({ timeout: 20000 });
   await waitForPlayReady(page);
   await ensureAutoscrollEnabled(page);
 
@@ -307,10 +341,7 @@ async function runPlaybackViewportCheck({
         .map((s) => s.deltaFromCenter)
         .sort((a, b) => a - b);
       const median = sortedDeltas[Math.floor(sortedDeltas.length / 2)];
-      assert(
-        median <= 8,
-        `${label}: median Δ=${median.toFixed(1)}px (≤8)`,
-      );
+      assert(median <= 8, `${label}: median Δ=${median.toFixed(1)}px (≤8)`);
       assert(
         settled.at(-1).deltaFromCenter <= 8,
         `${label}: a settled sample ends centered (Δ=${settled.at(-1).deltaFromCenter.toFixed(1)}px)`,
@@ -323,12 +354,14 @@ async function runPlaybackViewportCheck({
       `${label}: got ≥1 post-scroll sample (got ${scrolled.length})`,
     );
     if (scrolled.length >= 1) {
-      const avgMid =
-        scrolled.reduce((sum, s) => sum + s.midY, 0) / scrolled.length;
-      const viewportMid = scrolled[0].viewportMidY;
+      // Mobile only scrolls when the active row reaches the viewport margins;
+      // a row that already fits may remain below the viewport midpoint.
+      const comfortablyVisible = scrolled.filter(
+        (s) => s.top >= 64 && s.top + s.height <= s.viewportHeight - 24,
+      );
       assert(
-        avgMid < viewportMid - 40,
-        `${label}: comfortable align keeps chord above center (avgMid=${avgMid.toFixed(1)}, mid=${viewportMid})`,
+        comfortablyVisible.length >= Math.ceil(scrolled.length / 2),
+        `${label}: ≥50% of scrolled samples fit between header and bottom margin (${comfortablyVisible.length}/${scrolled.length})`,
       );
     }
   }
@@ -345,7 +378,14 @@ await runPlaybackViewportCheck({
   width: 1280,
   height: 800,
   expectCentered: true,
-  label: "tablet+",
+  label: "lg+",
+});
+
+await runPlaybackViewportCheck({
+  width: 1024,
+  height: 600,
+  expectCentered: true,
+  label: "short laptop",
 });
 
 await runPlaybackViewportCheck({

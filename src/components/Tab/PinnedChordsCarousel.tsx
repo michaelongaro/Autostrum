@@ -82,7 +82,7 @@ function PinnedChordsCarousel({
                     showFullName={true}
                   />
 
-                  <div className="h-[80px] tablet:h-[118px]">
+                  <div className="h-[80px] lg:h-[118px]">
                     <ChordDiagram originalFrets={chord.frets} />
                   </div>
                 </CarouselItem>

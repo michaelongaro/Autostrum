@@ -755,7 +755,7 @@ interface TabState {
     | "mobileNarrowLandscape"
     | "mobileLandscape"
     | "mobileLarge"
-    | "tablet"
+    | "lg"
     | "desktop";
   setViewportLabel: (
     viewportLabel:
@@ -763,7 +763,7 @@ interface TabState {
       | "mobileNarrowLandscape"
       | "mobileLandscape"
       | "mobileLarge"
-      | "tablet"
+      | "lg"
       | "desktop",
   ) => void;
 

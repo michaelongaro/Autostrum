@@ -16,7 +16,7 @@ function useGetViewportLabel() {
         | "mobileNarrowLandscape"
         | "mobileLandscape"
         | "mobileLarge"
-        | "tablet"
+        | "lg"
         | "desktop" = "mobile";
 
       if (window.innerHeight < 400) {
@@ -33,8 +33,8 @@ function useGetViewportLabel() {
       }
 
       // 1024 to match tailwind's lg breakpoint
-      if (window.innerWidth >= 1024 && window.innerHeight >= 700) {
-        viewportLabel = "tablet";
+      if (window.innerWidth >= 1024) {
+        viewportLabel = "lg";
       }
 
       if (window.innerWidth >= 1500 && window.innerHeight >= 800) {

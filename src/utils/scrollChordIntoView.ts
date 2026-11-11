@@ -34,9 +34,9 @@ export function getChordElement({
   );
 }
 
-/** Matches Tailwind `tablet` / `viewportLabel` tablet+: width ≥ 1024 and height ≥ 700. */
-export function isTabletOrLargerViewport(): boolean {
-  return window.innerWidth >= 1024 && window.innerHeight >= 700;
+/** Matches Tailwind `lg`: width ≥ 1024, regardless of viewport height. */
+export function isLargeViewport(): boolean {
+  return window.innerWidth >= 1024;
 }
 
 export function getChordViewportMargins(): {

@@ -59,7 +59,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
   const [hoveredTheme, setHoveredTheme] = useState<string | null>(null);
 
   return (
-    <div className="baseVertFlex mt-4 w-full !items-start tablet:mt-0">
+    <div className="baseVertFlex mt-4 w-full !items-start lg:mt-0">
       <span className="font-medium sm:text-lg">Color</span>
       <Separator className="h-[1px] bg-foreground/50" />
 

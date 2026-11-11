@@ -94,7 +94,7 @@ function StaticTabMetadata() {
 
   const isMetaFieldsLoading = fetchingTabCreator || !dynamicMetadata;
 
-  const overMediumViewportThreshold = useViewportWidthBreakpoint(768);
+  const overLargeViewportThreshold = useViewportWidthBreakpoint(1024);
 
   useEffect(() => {
     let processPageViewTimeout: NodeJS.Timeout | null = null;
@@ -116,21 +116,21 @@ function StaticTabMetadata() {
 
   return (
     <div className="min-h-[100px] w-full">
-      <div className="baseVertFlex !flex-start w-full !items-start gap-2 border-b bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-xl tablet:!px-6">
-        {overMediumViewportThreshold ? (
+      <div className="baseVertFlex !flex-start w-full !items-start gap-2 border-b bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-xl lg:!px-6">
+        {overLargeViewportThreshold ? (
           <div className="baseFlex w-full !justify-between gap-4">
-            <div className="baseFlex !items-baseline !justify-start gap-2">
+            <div className="baseFlex min-w-0 flex-1 flex-wrap !items-baseline !justify-start gap-2">
               <div
                 style={{
                   fontSize: getDynamicFontSize(title, 20, 24, 50),
                 }}
-                className="max-w-[100%] text-wrap font-bold"
+                className="max-w-full break-words font-bold [overflow-wrap:anywhere]"
               >
                 {title}
               </div>
 
               {artistName && (
-                <div className="baseFlex gap-2 text-lg">
+                <div className="baseFlex min-w-0 max-w-full gap-2 text-lg">
                   by
                   <Button
                     role="link"
@@ -140,9 +140,9 @@ function StaticTabMetadata() {
                       <Link
                         prefetch={false}
                         href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                        className="!h-6 !p-0"
+                        className="min-w-0 !h-6 !p-0"
                       >
-                        <div className="baseFlex gap-1 text-lg font-medium">
+                        <div className="baseFlex min-w-0 gap-1 text-lg font-medium">
                           {artistIsVerified && (
                             <Verified className="mr-[2px] size-5 shrink-0" />
                           )}
@@ -267,20 +267,20 @@ function StaticTabMetadata() {
             </div>
           </div>
         ) : (
-          <div className="baseVertFlex relative w-full !items-start gap-4 xs:!flex-row xs:!items-end">
-            <div className="baseVertFlex w-full !items-start gap-4">
+          <div className="baseVertFlex relative w-full min-w-0 !items-start gap-4 xs:!flex-row xs:!items-end">
+            <div className="baseVertFlex w-full min-w-0 !items-start gap-4">
               <div className="baseVertFlex w-full !items-start gap-2">
                 <div
                   style={{
                     fontSize: getDynamicFontSize(title, 20, 24, 50),
                   }}
-                  className="text-wrap font-bold"
+                  className="max-w-full break-words font-bold [overflow-wrap:anywhere]"
                 >
                   {title}
                 </div>
 
                 {artistName && (
-                  <div className="baseFlex w-full max-w-[100%] !justify-start gap-2 text-lg">
+                  <div className="baseFlex w-full min-w-0 !justify-start gap-2 text-lg">
                     by
                     <Button
                       role="link"
@@ -290,9 +290,9 @@ function StaticTabMetadata() {
                         <Link
                           prefetch={false}
                           href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                          className="baseFlex !h-6 !justify-start !p-0"
+                          className="baseFlex min-w-0 !h-6 !justify-start !p-0"
                         >
-                          <div className="baseFlex w-full gap-1 text-lg font-medium">
+                          <div className="baseFlex w-full min-w-0 gap-1 text-lg font-medium">
                             {artistIsVerified && (
                               <Verified className="mr-[2px] size-5 shrink-0" />
                             )}

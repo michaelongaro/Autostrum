@@ -319,7 +319,7 @@ function TunerPanel({
       className={`baseVertFlex h-full w-full gap-4 bg-background pb-3 shadow-sm md:rounded-lg md:border md:pb-6 ${forPlaybackModal ? "!justify-between !border-0" : "border-y"}`}
     >
       <div
-        className={`baseVertFlex w-full gap-3 bg-panel p-3 md:p-6 ${forPlaybackModal ? "!hidden !flex-col !items-start tablet:!flex tablet:rounded-t-lg" : "sm:flex-row sm:!items-center sm:!justify-between md:rounded-t-lg"}`}
+        className={`baseVertFlex w-full gap-3 bg-panel p-3 md:p-6 ${forPlaybackModal ? "!hidden !flex-col !items-start lg:!flex lg:rounded-t-lg" : "sm:flex-row sm:!items-center sm:!justify-between md:rounded-t-lg"}`}
       >
         {!forPlaybackModal && (
           <div className="baseFlex gap-3">
@@ -369,7 +369,7 @@ function TunerPanel({
             className={`flex w-full items-center justify-center sm:w-auto sm:items-center sm:justify-center ${forPlaybackModal ? "!items-end gap-8" : "mt-2 gap-4 sm:mt-0 sm:gap-6"}`}
           >
             <div
-              className={`baseVertFlex !items-start ${forPlaybackModal ? `!flex-col !items-start ${playbackCapoControl !== undefined ? "tablet:gap-1.5" : "gap-1"}` : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
+              className={`baseVertFlex !items-start ${forPlaybackModal ? `!flex-col !items-start ${playbackCapoControl !== undefined ? "lg:gap-1.5" : "gap-1"}` : "gap-2 sm:!flex-row sm:!items-center lg:gap-3"}`}
             >
               <Label
                 htmlFor="tuning"
@@ -475,7 +475,7 @@ function TunerPanel({
             className="baseVertFlex w-full gap-4"
           >
             {playbackCapoControl && (
-              <div className="baseFlex gap-3 tablet:hidden">
+              <div className="baseFlex gap-3 lg:hidden">
                 <Label>Capo</Label>
                 <AnimatedToggleGroup
                   aria-label="Preview capo"

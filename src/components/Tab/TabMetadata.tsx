@@ -712,7 +712,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
                 placeholder="My new tab"
                 value={title}
                 invalid={showInvalidTitle}
-                className={`w-full tablet:max-w-72 ${isMobile ? "text-base" : "text-sm"}`}
+                className={`w-full lg:max-w-72 ${isMobile ? "text-base" : "text-sm"}`}
                 onChange={(e) => {
                   if (e.target.value.length > 50) return;
                   setTitle(e.target.value);
@@ -990,7 +990,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
 
       {!editing && (
         <div className="min-h-[100px] w-full">
-          <div className="baseVertFlex !flex-start w-full !items-start gap-2 border-b bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-xl tablet:!px-6">
+          <div className="baseVertFlex !flex-start w-full !items-start gap-2 border-b bg-accent px-4 py-4 text-primary-foreground shadow-md sm:!flex-row sm:!items-center sm:gap-4 md:rounded-t-xl lg:!px-6">
             {overMediumViewportThreshold ? (
               <div className="baseFlex w-full !justify-between gap-4">
                 <div className="baseFlex !items-baseline !justify-start gap-2">
