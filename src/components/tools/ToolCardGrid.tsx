@@ -7,6 +7,7 @@ import Logo from "~/components/ui/icons/Logo";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import type { ToolDefinition } from "~/data/tools/toolDefinitions";
 import { useTabStore } from "~/stores/TabStore";
+import { cn } from "~/utils/cn";
 
 const toolIcons: Record<string, ReactNode> = {
   warmups: <IoMusicalNotes className="size-5" />,
@@ -33,12 +34,22 @@ function ToolCardGrid({ tools }: ToolCardGridProps) {
           key={tool.id}
           prefetch={false}
           href={tool.href}
-          className={`baseFlex h-full !items-start !justify-between gap-6 rounded-lg border bg-secondary p-4 shadow-md transition ${theme === "light" ? "hover:brightness-95 active:brightness-95" : "hover:brightness-90 active:brightness-90"}`}
+          className={cn(
+            "group/tool baseFlex h-full !items-start !justify-between gap-6 rounded-lg border bg-secondary p-4 shadow-md transition motion-reduce:transition-none",
+            theme === "light"
+              ? "hover:brightness-95 active:brightness-95"
+              : "hover:brightness-90 active:brightness-90",
+          )}
         >
           <div className="baseVertFlex !items-start gap-2">
             <div className="baseFlex gap-2">
               {toolIcons[tool.id] && (
-                <span className="text-foreground">{toolIcons[tool.id]}</span>
+                <span
+                  aria-hidden="true"
+                  className="inline-flex text-foreground motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover/tool:-rotate-6 motion-safe:group-focus-visible/tool:-rotate-6"
+                >
+                  {toolIcons[tool.id]}
+                </span>
               )}
               <p className="text-base font-semibold">{tool.title}</p>
 
@@ -52,7 +63,12 @@ function ToolCardGrid({ tools }: ToolCardGridProps) {
             <p className="text-sm text-foreground/80">{tool.description}</p>
           </div>
 
-          <IoChevronForward className="size-5 shrink-0 self-center text-foreground/60" />
+          <span
+            aria-hidden="true"
+            className="shrink-0 self-center motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover/tool:translate-x-1 motion-safe:group-focus-visible/tool:translate-x-1"
+          >
+            <IoChevronForward className="size-5 text-foreground/60" />
+          </span>
         </Link>
       ))}
     </div>

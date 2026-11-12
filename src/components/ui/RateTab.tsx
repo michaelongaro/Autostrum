@@ -27,6 +27,7 @@ import { useTabStore } from "~/stores/TabStore";
 import { SignInButton } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
+import SuccessCheckmark from "~/components/ui/SuccessCheckmark";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -633,6 +634,7 @@ function RateTabInternals({
             transition={{ duration: 0.25 }}
             className="baseFlex h-[44px] gap-2 text-center text-gray md:h-12"
           >
+            <SuccessCheckmark className="text-primary" />
             Thank you for your feedback!
           </motion.p>
         ) : (

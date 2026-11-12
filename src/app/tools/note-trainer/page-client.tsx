@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { IoEar } from "react-icons/io5";
 import { get } from "@tonaljs/note";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
@@ -19,6 +19,7 @@ import { Label } from "~/components/ui/label";
 import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import Spinner from "~/components/ui/Spinner";
 import { PrettyNote } from "~/components/ui/PrettyTuning";
+import SuccessCheckmark from "~/components/ui/SuccessCheckmark";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -100,6 +101,7 @@ function getRandomNote(notePool: readonly string[]) {
 }
 
 function NoteTrainerPage() {
+  const reduceMotion = useReducedMotion();
   const store = useTabStoreApi();
   const { instruments, setCurrentInstrumentName } = useTabStore((state) => ({
     instruments: state.instruments,
@@ -255,7 +257,10 @@ function NoteTrainerPage() {
 
   const feedbackMessage = selectedGuess ? (
     lastGuessCorrect ? (
-      "Correct!"
+      <span className="inline-flex items-center gap-1.5 text-primary">
+        <SuccessCheckmark />
+        Correct!
+      </span>
     ) : revealedNote ? (
       <div className="baseFlex">
         <span className="mr-1">Not quite, the answer was</span>
@@ -369,22 +374,17 @@ function NoteTrainerPage() {
 
           {/* Center: note guess buttons */}
           <div className="baseVertFlex w-full gap-2">
-            <AnimatePresence mode="popLayout">
-              <motion.p
-                key={
-                  typeof feedbackMessage === "string"
-                    ? feedbackMessage
-                    : revealedNote
-                }
-                initial={{ opacity: 0 }}
+            <div role="status" aria-atomic="true">
+              <motion.div
+                key={selectedGuess ? `answer-${roundsPlayed}` : "question"}
+                initial={{ opacity: reduceMotion ? 1 : 0 }}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="text-sm font-medium"
+                transition={{ duration: reduceMotion ? 0 : 0.2 }}
+                className="flex min-h-5 items-center justify-center text-sm font-medium"
               >
                 {feedbackMessage ?? "\u00a0"}
-              </motion.p>
-            </AnimatePresence>
+              </motion.div>
+            </div>
 
             <div
               className={`mx-auto grid w-full max-w-lg grid-cols-4 gap-2 xs:grid-cols-6 sm:grid-cols-6`}

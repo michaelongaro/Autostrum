@@ -1,6 +1,6 @@
 import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check } from "lucide-react";
+import SuccessCheckmark from "~/components/ui/SuccessCheckmark";
 import { useEffect, useState } from "react";
 import { get } from "@tonaljs/note";
 import { Button } from "~/components/ui/button";
@@ -598,7 +598,7 @@ function TunerPanel({
                     onClick={() => onSetCurrentTargetIndex(index)}
                     aria-current={selected ? "true" : "false"}
                   >
-                    <AnimatePresence mode="popLayout">
+                    <AnimatePresence mode="popLayout" initial={false}>
                       {tuned && (
                         <motion.span
                           key={`motion-${note}-${index}`}
@@ -608,7 +608,7 @@ function TunerPanel({
                           transition={{ duration: 0.25, ease: "easeOut" }}
                           className="baseFlex absolute right-1 top-1 rounded-full bg-primary p-[0.1rem] text-primary-foreground sm:p-0.5"
                         >
-                          <Check className="size-2 sm:size-2.5" />
+                          <SuccessCheckmark className="size-2 sm:size-2.5" />
                         </motion.span>
                       )}
                     </AnimatePresence>
