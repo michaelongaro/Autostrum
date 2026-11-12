@@ -95,7 +95,7 @@ function GenreCard({ name, color, image, totalTabs, eager }: GenreCard) {
       style={{
         backgroundColor: color,
       }}
-      className="baseVertFlex group relative isolate h-28 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition-shadow hover:shadow-lg active:brightness-75 sm:h-36 sm:p-6"
+      className="baseVertFlex group relative isolate h-28 w-full cursor-pointer !items-start !justify-start !overflow-hidden rounded-lg p-4 text-primary-foreground shadow-md transition hover:shadow-lg active:brightness-75 sm:h-36 sm:p-6"
       onMouseMove={handleMouseMove}
       onClick={() => {
         searchForSpecificGenre(name);
