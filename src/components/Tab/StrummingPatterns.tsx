@@ -115,6 +115,7 @@ function StrummingPatterns() {
       >
         <AccordionItem value="opened" className="w-full">
           <AccordionTrigger
+            headingLevel={2}
             extraTabMetadata={true}
             className="w-full p-2 sm:p-4"
           >

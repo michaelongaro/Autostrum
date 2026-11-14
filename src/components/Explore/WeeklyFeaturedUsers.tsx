@@ -49,7 +49,7 @@ function FeaturedUserAvatar({
           {username.charAt(0).toUpperCase()}
         </span>
       ) : (
-        <Image
+        <Image unoptimized
           src={getProfileImageSrc(src)}
           alt={`${username}'s profile picture`}
           width={40}

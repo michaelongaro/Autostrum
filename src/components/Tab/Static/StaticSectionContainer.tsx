@@ -83,6 +83,8 @@ function StaticSectionContainer({
           </div>
 
           <AccordionTrigger
+            headingLevel={2}
+            aria-label={`Toggle ${sectionData.title || `section ${sectionIndex + 1}`}`}
             showUnderline={false}
             editingSectionContainer={false}
             viewingSectionContainer={true}

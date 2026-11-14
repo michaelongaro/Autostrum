@@ -114,8 +114,10 @@ async function open(
   page.on("crash", () => console.error("Browser page crashed"));
   await page.goto(`${baseURL}${path}`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
-    () => window.__AUTOSTRUM_GET_TAB_STORE__?.().audioContext,
+    () => !!window.__AUTOSTRUM_GET_TAB_STORE__,
   );
+  assert.equal(await page.evaluate(() => window.__AUTOSTRUM_GET_TAB_STORE__().audioContext), null,
+    "Idle routes must not allocate audio hardware before an audio gesture");
   await page.getByRole("button").first().waitFor();
   return { context, page, errors };
 }
@@ -136,8 +138,7 @@ try {
       requireGestureUnlock: true,
     });
     await page
-      .getByRole("button", { name: "Play/Pause", exact: true })
-      .filter({ hasText: "Begin" })
+      .getByRole("button", { name: "Begin", exact: true })
       .click();
     const play = page
       .getByRole("button", { name: "Play/Pause", exact: true })
@@ -242,8 +243,7 @@ try {
       holdCountIn: true,
     });
     await page
-      .getByRole("button", { name: "Play/Pause", exact: true })
-      .filter({ hasText: "Begin" })
+      .getByRole("button", { name: "Begin", exact: true })
       .click();
     const play = page
       .getByRole("button", { name: "Play/Pause", exact: true })

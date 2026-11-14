@@ -77,11 +77,9 @@ function ToolsShowcase() {
             key={tool.id}
             prefetch={false}
             href={tool.href}
-            aria-labelledby={`${tool.id}-title`}
-            aria-describedby={`${tool.id}-description`}
             className="group flex h-full flex-col overflow-hidden rounded-xl border bg-background shadow-sm transition-[border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
           >
-            <div className="flex h-44 items-center justify-center border-b border-foreground/30 bg-secondary/60 p-3">
+            <div aria-hidden="true" className="flex h-44 items-center justify-center border-b border-foreground/30 bg-secondary/60 p-3">
               <div className="h-full w-full max-w-[320px] motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:-translate-y-1 motion-safe:group-focus-visible:-translate-y-1 motion-safe:group-active:-translate-y-1">
                 {tool.illustration}
               </div>

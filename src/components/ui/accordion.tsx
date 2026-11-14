@@ -34,6 +34,7 @@ interface AccordionTriggerProps extends StyledProps<
   viewingSectionContainer?: boolean;
   forFAQ?: boolean;
   extraTabMetadata?: boolean;
+  headingLevel?: 2 | 3;
 }
 
 const AccordionTrigger = React.forwardRef<
@@ -48,6 +49,7 @@ const AccordionTrigger = React.forwardRef<
       viewingSectionContainer,
       forFAQ,
       extraTabMetadata,
+      headingLevel = 3,
       className,
       children,
       ...props
@@ -55,6 +57,7 @@ const AccordionTrigger = React.forwardRef<
     ref,
   ) => (
     <AccordionPrimitive.Header
+      render={headingLevel === 2 ? <h2 /> : <h3 />}
       className={`w-full ${
         editingSectionContainer || viewingSectionContainer ? "relative" : ""
       } flex`}

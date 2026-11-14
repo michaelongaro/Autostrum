@@ -83,6 +83,7 @@ function DesktopHeader() {
                     <Link
                       prefetch={false}
                       href={"/tools"}
+                      aria-label="Tools"
                       className="baseFlex !size-12 !rounded-full !p-0"
                     >
                       <PiMetronome className="size-6" />
@@ -119,6 +120,7 @@ function DesktopHeader() {
                     <Link
                       prefetch={false}
                       href={"/tuner"}
+                      aria-label="Tuner"
                       className="baseFlex !size-12 !rounded-full !p-0"
                     >
                       <TuningFork className="size-5" />
@@ -161,6 +163,7 @@ function DesktopHeader() {
                     <Link
                       prefetch={false}
                       href={"/explore"}
+                      aria-label="Explore"
                       className="baseFlex !size-12 !rounded-full !p-0"
                     >
                       <CiCompass1 className="size-6 stroke-[0.5px]" />
@@ -197,6 +200,7 @@ function DesktopHeader() {
                     <Link
                       prefetch={false}
                       href={"/create"}
+                      aria-label="Create a tab"
                       className="baseFlex !size-12 !rounded-full !p-0"
                     >
                       <BsPlus className="size-8" />
@@ -228,6 +232,7 @@ function DesktopHeader() {
                   <PopoverTrigger
                     render={
                       <Button
+                        aria-label="Choose color and theme"
                         variant={"headerNavigation"}
                         size={"lg"}
                         className={`${classes.theme} baseFlex !size-12 !rounded-full !p-0`}
@@ -280,6 +285,7 @@ function DesktopHeader() {
                     render={
                       <SignInButton mode="modal">
                         <Button
+                          aria-label="Sign in"
                           variant={"headerNavigation"}
                           className="!size-12 !rounded-full !p-0"
                           onClick={() => {
@@ -315,11 +321,12 @@ function DesktopHeader() {
                 <PopoverTrigger
                   render={
                     <Button
+                      aria-label="Account menu"
                       variant={"ghost"}
                       className={`${classes.authentication} baseFlex !size-12 shrink-0 !rounded-full !p-0`}
                     >
                       <div className="grid shrink-0 grid-cols-1 grid-rows-1">
-                        <Image
+                        <Image unoptimized
                           src={getProfileImageSrc(currentUser.profileImageUrl)}
                           alt={`${currentUser.username}'s profile picture`}
                           width={300}
@@ -373,7 +380,7 @@ function DesktopHeader() {
                           }}
                           className="baseFlex !h-10 gap-2 !px-0"
                         >
-                          <Image
+                          <Image unoptimized
                             src={getProfileImageSrc(currentUser.profileImageUrl)}
                             alt="User profile image"
                             className="!size-8 rounded-full object-cover object-center"

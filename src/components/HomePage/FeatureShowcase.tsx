@@ -19,13 +19,54 @@ import {
 import { BsSpeedometer2 } from "react-icons/bs";
 import { MdModeEditOutline } from "react-icons/md";
 import { PiMouseScroll } from "react-icons/pi";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ComponentProps,
+} from "react";
+import dynamic from "next/dynamic";
 import { cn } from "~/utils/cn";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import FeaturePreview, { type FeatureId } from "./FeaturePreviews";
+import type { FeatureId } from "./FeaturePreviews";
 import styles from "./FeatureShowcase.module.css";
 
 import type { IconType } from "react-icons";
+
+const FeaturePreview = dynamic(() => import("./FeaturePreviews"), {
+  ssr: false,
+});
+
+// Keep the headings and controls server rendered. The offscreen editor demos
+// need neither their large bundle nor their notation DOM on the initial load.
+function DeferredFeaturePreview(props: ComponentProps<typeof FeaturePreview>) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className="w-full">
+      {ready ? (
+        <FeaturePreview {...props} />
+      ) : (
+        <div className="h-[312px]" aria-hidden="true" />
+      )}
+    </div>
+  );
+}
 
 type Feature = {
   id: FeatureId;
@@ -116,7 +157,10 @@ function FeaturePanel({
             : "max-w-[540px]",
         )}
       >
-        <FeaturePreview feature={feature.id} active={active && isPresent} />
+        <DeferredFeaturePreview
+          feature={feature.id}
+          active={active && isPresent}
+        />
       </div>
     </motion.div>
   );
@@ -155,7 +199,7 @@ function AnimatedPreview({
       transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeInOut" }}
       className={cn(
         styles.previewSurface,
-        "relative box-content min-w-0 self-start overflow-hidden rounded-xl border border-foreground/20",
+        "relative box-content min-h-[440px] min-w-0 self-start overflow-hidden rounded-xl border border-foreground/20",
       )}
     >
       <div ref={contentRef} className="relative min-w-0">
@@ -246,7 +290,7 @@ function PracticeCarousel({ active }: { active: boolean }) {
                   "flex min-h-[450px] flex-1 items-center justify-center border-b border-foreground/15 p-4",
                 )}
               >
-                <FeaturePreview
+                <DeferredFeaturePreview
                   feature={feature.id}
                   surface="mobile"
                   active={active && selected === index}
@@ -312,7 +356,7 @@ export default function FeatureShowcase() {
   return (
     <section
       aria-labelledby="platform-features-heading"
-      className="w-full md:max-w-[1200px] md:px-6 lg:px-8"
+      className="w-full [overflow-anchor:none] md:max-w-[1200px] md:px-6 lg:px-8"
     >
       <h2
         id="platform-features-heading"

@@ -343,7 +343,7 @@ function RateTabPopover({
         className="baseFlex p-0"
         render={
           <Button
-            aria-label={"Rate toggle"}
+            aria-label={`Rate this tab: ${averageRating.toFixed(1)} (${formatNumber(ratingsCount)})`}
             disabled={disabled}
             variant={"secondary"}
             className={customClassName}
@@ -437,7 +437,7 @@ function RateTabDrawer({
       <DrawerTrigger
         render={
           <Button
-            aria-label="Rate toggle"
+            aria-label={`Rate this tab: ${averageRating.toFixed(1)} (${formatNumber(ratingsCount)})`}
             disabled={disabled}
             variant={"secondary"}
             size="default"

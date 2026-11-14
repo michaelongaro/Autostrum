@@ -134,6 +134,7 @@ function PlaybackAudioControls({
           >
             <Button
               variant="audio"
+              aria-label="Play/Pause"
               size={aboveLargeViewportWidth ? "default" : "sm"}
               disabled={disablePlayButton}
               onPointerDown={handlePlayPointerDown}
@@ -271,6 +272,7 @@ function PlaybackAudioControls({
 
                 <Button
                   variant="audio"
+                  aria-label="Play/Pause"
                   size={aboveLargeViewportWidth ? "default" : "sm"}
                   disabled={disablePlayButton}
                   onPointerDown={handlePlayPointerDown}

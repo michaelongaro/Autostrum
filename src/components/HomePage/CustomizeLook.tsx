@@ -118,7 +118,7 @@ function CustomizeLook() {
                     aria-pressed={selected}
                     aria-label={`Select ${colorString} color`}
                   >
-                    <Image
+                    <Image unoptimized
                       src={COLOR_IMAGES[colorString]}
                       alt=""
                       fill

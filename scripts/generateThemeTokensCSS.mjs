@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { accessibleActionColor } from "./lib/accessibleActionColor.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const sourcePath = join(__dirname, "../src/utils/updateCSSThemeVars.ts");
@@ -57,6 +58,7 @@ function generateThemeTokensCSS(colorValues, screenshotColors) {
       for (const [token, value] of Object.entries(tokens)) {
         lines.push(`  --${token}: ${value};`);
       }
+      lines.push(`  --action: ${accessibleActionColor(tokens.primary, tokens["primary-foreground"])};`);
 
       const screenshotTokens = screenshotColors[color]?.[theme];
       if (screenshotTokens) {

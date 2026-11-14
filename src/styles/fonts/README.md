@@ -34,3 +34,8 @@ font.save("noto-sans.woff2")
 
 These tools are only needed when regenerating the assets; app builds use the
 committed WOFF2 files directly.
+
+The `*-latin.woff2` UI subsets are generated from these full fonts with
+`python scripts/subsetFonts.py` (requires `fonttools[woff]`). They retain Latin-1,
+common punctuation, currency, arrows and musical accidentals. The original
+files remain as CSS glyph fallbacks for other scripts and are not preloaded.

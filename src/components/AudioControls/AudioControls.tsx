@@ -382,6 +382,7 @@ function AudioControls() {
                 <PopoverTrigger
                   render={
                     <Button
+                      aria-label="Playback volume"
                       variant="outline"
                       className="p-2 text-panel-foreground"
                     >
@@ -506,6 +507,7 @@ function AudioControls() {
           {/* play/pause button */}
           <Button
             variant="audio"
+            aria-label="Play/Pause"
             size={aboveLargeViewportWidth ? "default" : "sm"}
             disabled={disablePlayButton}
             onClick={handlePlayButtonClick}
@@ -704,6 +706,7 @@ function AudioControls() {
               <DrawerTrigger
                 render={
                   <Button
+                    aria-label="Audio settings"
                     disabled={audioMetadata.editingLoopRange}
                     size="sm"
                     variant={"outline"}

@@ -11,15 +11,21 @@ import MobileHeader from "../Header/MobileHeader";
 import useGetViewportLabel from "~/hooks/useGetViewportLabel";
 import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 import useColorAndThemeController from "~/hooks/useColorAndThemeController";
-import PostSignupDialog from "~/components/Dialogs/PostSignupDialog";
+import dynamic from "next/dynamic";
+import { useAuth } from "@clerk/nextjs";
 import MobileHeaderModal from "~/components/modals/MobileHeaderModal";
 import IPhoneSoundDrawerController from "~/components/AudioControls/IPhoneSoundDrawerController";
+
+const PostSignupDialog = dynamic(
+  () => import("~/components/Dialogs/PostSignupDialog"),
+);
 
 // I had quite a bit of reactive logic in the GeneralLayout component, so I
 // moved it to this component to contain the rerenders to this component (+ children) only
 // instead of the entire app.
 
 function GeneralLayoutStatefulShell() {
+  const { isSignedIn } = useAuth();
   const looping = useGetLocalStorageValues().looping;
   const countIn = useGetLocalStorageValues().countIn;
   const colorCodedChords = useGetLocalStorageValues().colorCodedChords;
@@ -73,7 +79,7 @@ function GeneralLayoutStatefulShell() {
         )}
       </AnimatePresence>
 
-      <PostSignupDialog />
+      {isSignedIn && <PostSignupDialog />}
       <IPhoneSoundDrawerController />
     </>
   );

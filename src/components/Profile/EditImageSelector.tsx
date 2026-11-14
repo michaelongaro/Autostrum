@@ -127,7 +127,7 @@ function EditImageSelector({
         >
           {localSettings ? (
             <>
-              <Image
+              <Image unoptimized
                 src={getProfileImageSrc(
                   newProfileImage ?? localSettings.profileImageUrl,
                 )}

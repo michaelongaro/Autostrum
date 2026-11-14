@@ -236,7 +236,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                           <div className="baseFlex gap-2">
                             <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                               {userMetadata ? (
-                                <Image
+                                <Image unoptimized
                                   src={getProfileImageSrc(
                                     userMetadata.user.profileImageUrl,
                                   )}
@@ -417,7 +417,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
                     <div className="baseFlex gap-2">
                       <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                         {userMetadata ? (
-                          <Image
+                          <Image unoptimized
                             src={getProfileImageSrc(
                               userMetadata.user.profileImageUrl,
                             )}

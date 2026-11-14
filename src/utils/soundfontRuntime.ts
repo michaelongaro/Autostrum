@@ -1,4 +1,5 @@
-import Soundfont, { type InstrumentName } from "soundfont-player";
+import type Soundfont from "soundfont-player";
+import type { InstrumentName } from "soundfont-player";
 import { isIOS, isSafari } from "react-device-detect";
 import { withAudioLoadTimeout } from "~/utils/audioContextRecovery";
 
@@ -26,6 +27,7 @@ async function loadSoundfontFromCdn(
   instrumentName: InstrumentName,
   destination: AudioNode,
 ) {
+  const { default: Soundfont } = await import("soundfont-player");
   return await Soundfont.instrument(audioContext, instrumentName, {
     soundfont: "MusyngKite",
     format: getSoundfontFormat(),
@@ -38,6 +40,7 @@ async function loadSoundfontLocally(
   instrumentName: InstrumentName,
   destination: AudioNode,
 ) {
+  const { default: Soundfont } = await import("soundfont-player");
   return await Soundfont.instrument(audioContext, instrumentName, {
     soundfont: "MusyngKite",
     format: getSoundfontFormat(),

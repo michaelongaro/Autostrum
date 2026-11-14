@@ -93,6 +93,7 @@ function MobileHeader() {
             <DialogTrigger
               render={
                 <Button
+                  aria-label="Search"
                   variant="text"
                   onClick={() => setShowMobileSearch(true)}
                   className="!px-0"
@@ -427,7 +428,7 @@ function MobileHeader() {
                             className="baseFlex !h-10 gap-2 !px-0"
                           >
                             <div className="grid shrink-0 grid-cols-1 grid-rows-1">
-                              <Image
+                              <Image unoptimized
                                 src={getProfileImageSrc(
                                   currentUser.profileImageUrl,
                                 )}

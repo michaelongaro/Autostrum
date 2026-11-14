@@ -4,6 +4,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Full glyph coverage is fetched only when a name needs a glyph outside the
+   small UI subset. Keep the original fonts available for international tabs. */
+@font-face {
+  font-family: "Noto Sans Extended";
+  src: url("./fonts/noto-sans.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  unicode-range: U+0100-1FFF, U+2070-209F, U+20D0-20FF, U+2200-266C, U+2670-FFFC, U+FFFE-10FFFF;
+}
+@font-face {
+  font-family: "Noto Sans Extended";
+  src: url("./fonts/noto-sans-italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  unicode-range: U+0100-1FFF, U+2070-209F, U+20D0-20FF, U+2200-266C, U+2670-FFFC, U+FFFE-10FFFF;
+}
+
 /* Smooth color/theme swaps via document.startViewTransition. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -86,7 +105,7 @@ html:not([data-color]) .headerLogoLayer[data-logo-color="maple"] {
 
 @layer base {
   :root {
-    --audio: 151.03 54.72% 41.57%;
+    --audio: 151.03 54.72% 30%;
     --audio-foreground: 140 60% 99.02%;
     --radius: 0.5rem;
   }

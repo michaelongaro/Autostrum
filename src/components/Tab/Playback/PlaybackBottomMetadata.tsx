@@ -714,7 +714,7 @@ function MobileMenuDialog() {
                 <Button
                   variant={"text"}
                   onClick={() => selectPracticeMenuPane(0)}
-                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
+                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Section progression" ? "" : "opacity-80 hover:opacity-100"}`}
                 >
                   <BsMusicNoteList className="size-4" />
                   Section progression
@@ -736,7 +736,7 @@ function MobileMenuDialog() {
                 <Button
                   variant={"text"}
                   onClick={() => selectPracticeMenuPane(1)}
-                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
+                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Chords" ? "" : "opacity-80 hover:opacity-100"}`}
                 >
                   <BsMusicNoteBeamed className="size-4" />
                   Chords
@@ -758,7 +758,7 @@ function MobileMenuDialog() {
                 <Button
                   variant={"text"}
                   onClick={() => selectPracticeMenuPane(2)}
-                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
+                  className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Strumming patterns" ? "" : "opacity-80 hover:opacity-100"}`}
                 >
                   <Logo className="z-0 size-4" />
                   Strumming patterns
@@ -858,7 +858,7 @@ function MobileMenuDialog() {
 
                               {/* preview chord button */}
                               <Button
-                                variant={"audio"}
+                                variant={"audio"} aria-label="Play/Pause preview"
                                 disabled={
                                   previewMetadata.indexOfPattern === index &&
                                   previewMetadata.playing &&
@@ -910,7 +910,7 @@ function MobileMenuDialog() {
                         >
                           <div className="baseVertFlex !items-start">
                             <Button
-                              variant={"audio"}
+                              variant={"audio"} aria-label="Play/Pause preview"
                               size={"sm"}
                               disabled={artificalPlayButtonTimeout[index]}
                               onClick={() => {

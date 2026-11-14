@@ -12,7 +12,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary shadow-primaryButton text-primary-foreground hover:bg-primary/90 active:brightness-75",
+          "bg-action shadow-primaryButton text-primary-foreground hover:bg-action/90 active:brightness-75",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary-hover !shadow-primaryButton hover:text-secondary-foreground active:bg-secondary-active",
         outline:
@@ -66,7 +66,6 @@ const Button = React.forwardRef<HTMLElement, ButtonProps>(
 
     return (
       <ButtonPrimitive
-        {...(variant === "audio" ? { "aria-label": "Play/Pause" } : {})}
         className={cn(
           buttonVariants({
             variant,

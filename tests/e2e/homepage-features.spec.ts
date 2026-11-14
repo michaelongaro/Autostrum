@@ -63,6 +63,9 @@ test("Compose keeps the homepage visible and preserves scrolling while its demo 
     .getByRole("dialog")
     .getByRole("button", { name: "Close", exact: true })
     .click();
+  // Wait for the closing animation and scroll lock to finish before asking
+  // Playwright to scroll a background control into view.
+  await expect(page.getByRole("dialog", { name: "Modifier Glossary" })).toBeHidden();
   await page.getByRole("button", { name: "Practice", exact: true }).click();
   await expect(page.locator("#feature-panel-zoom")).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollY);

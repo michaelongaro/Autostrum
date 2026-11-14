@@ -65,7 +65,7 @@ function Explore({ json }: { json: string }) {
             Explore
           </h1>
 
-          <Image
+          <Image unoptimized
             src={GuitarImage}
             loading="eager"
             alt={"Decorative acoustic guitar header"}

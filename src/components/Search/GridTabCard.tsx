@@ -470,7 +470,7 @@ function GridTabCard({
             </Badge>
 
             {pinnedTabType && (
-              <Badge className="baseFlex gap-1 border border-primary bg-primary/70 text-primary-foreground">
+              <Badge className="baseFlex gap-1 border border-action bg-action text-primary-foreground">
                 <TbPinned className="size-3" />
                 Pinned
               </Badge>

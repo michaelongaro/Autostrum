@@ -138,6 +138,7 @@ function GenreCard({ name, color, image, totalTabs, eager }: GenreCard) {
       <Image
         src={image}
         loading={eager ? "eager" : "lazy"}
+        sizes="(min-width: 1536px) 280px, (min-width: 1024px) 380px, (min-width: 640px) 50vw, 50vw"
         alt={`${name} genre thumbnail`}
         // had to do some magic number positioning/width/clip-path to reduce visible 1px of bg color on right side of desktop card
         className="pointer-events-none absolute bottom-0 right-[-1px] h-full w-[calc(100%+1px)] max-w-none select-none rounded-lg object-cover object-center opacity-75 grayscale lg:rounded-none lg:[clip-path:polygon(60%_0%,101%_0%,101%_100%,40%_100%)]"

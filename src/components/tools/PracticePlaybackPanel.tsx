@@ -269,7 +269,10 @@ function PracticePlaybackPanel({
                 if (value !== null) selectExercise(value);
               }}
             >
-              <SelectTrigger className="sm:hidden">
+              <SelectTrigger
+                aria-label={`Choose an exercise: ${selectedExercise.title}`}
+                className="sm:hidden"
+              >
                 <SelectValue>{selectedExercise.title}</SelectValue>
               </SelectTrigger>
               <SelectContent className="sm:hidden">

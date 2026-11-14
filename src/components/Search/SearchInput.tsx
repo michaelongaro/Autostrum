@@ -188,6 +188,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     >
       {isAboveLgViewportWidth === false && (
         <Button
+          aria-label="Close search"
           variant={"text"}
           onClick={() => {
             setShowMobileSearch?.(false);
@@ -254,6 +255,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
         />
 
         <Button
+          aria-label="Submit search"
           variant={"text"}
           onClick={() => {
             debouncedSetSearch.flush();

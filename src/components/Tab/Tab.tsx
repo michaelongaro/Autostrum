@@ -215,7 +215,10 @@ function Tab() {
               </Button>
 
               <Popover>
-                <PopoverTrigger className="baseFlex mt-2 size-8 rounded-md transition-all hover:bg-primary-foreground/20 hover:text-yellow-300 active:hover:bg-primary-foreground/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6 lg:mt-0">
+                <PopoverTrigger
+                  aria-label="Editor tips"
+                  className="baseFlex mt-2 size-8 rounded-md transition-all hover:bg-primary-foreground/20 hover:text-yellow-300 active:hover:bg-primary-foreground/10 sm:absolute sm:bottom-0 sm:right-4 lg:right-6 lg:mt-0"
+                >
                   <HiOutlineLightBulb className="h-5 w-5" />
                 </PopoverTrigger>
                 <PopoverContent
@@ -363,6 +366,7 @@ function Tab() {
                   <TooltipTrigger
                     render={
                       <Button
+                        aria-label="Glossary"
                         variant={"secondary"}
                         className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                         onClick={() => setShowGlossaryDialog(true)}
@@ -401,6 +405,7 @@ function Tab() {
                   }}
                 >
                   <DrawerTrigger
+                    aria-label="Tab settings"
                     render={
                       <Button
                         variant={"secondary"}
@@ -447,6 +452,7 @@ function Tab() {
                             <PopoverTrigger
                               render={
                                 <Button
+                                  aria-label="Tab settings"
                                   variant={"secondary"}
                                   className="baseFlex !size-11 gap-2 !rounded-full border !p-0 shadow-lg"
                                 >

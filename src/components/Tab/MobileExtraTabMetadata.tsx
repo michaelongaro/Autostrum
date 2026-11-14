@@ -130,7 +130,7 @@ function MobileExtraTabMetadata() {
                   carouselContentApi?.scrollTo(0, !!reduceMotion);
                   setActiveTabName("Section progression");
                 }}
-                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
+                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Section progression" ? "" : "opacity-80 hover:opacity-100"}`}
               >
                 <BsMusicNoteList className="size-4" />
                 Section progression
@@ -157,7 +157,7 @@ function MobileExtraTabMetadata() {
                   carouselContentApi?.scrollTo(1, !!reduceMotion);
                   setActiveTabName("Chords");
                 }}
-                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
+                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Chords" ? "" : "opacity-80 hover:opacity-100"}`}
               >
                 <BsMusicNoteBeamed className="size-4" />
                 Chords
@@ -184,7 +184,7 @@ function MobileExtraTabMetadata() {
                   carouselContentApi?.scrollTo(2, !!reduceMotion);
                   setActiveTabName("Strumming patterns");
                 }}
-                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
+                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Strumming patterns" ? "" : "opacity-80 hover:opacity-100"}`}
               >
                 <Logo className="z-0 size-4" />
                 Strumming patterns
@@ -325,7 +325,7 @@ function MobileExtraTabMetadata() {
 
                             {/* preview chord button */}
                             <Button
-                              variant={"audio"}
+                              variant={"audio"} aria-label="Play/Pause preview"
                               disabled={
                                 previewMetadata.indexOfPattern === index &&
                                 previewMetadata.playing &&
@@ -383,7 +383,7 @@ function MobileExtraTabMetadata() {
                         className="baseVertFlex max-w-full !items-start"
                       >
                         <Button
-                          variant={"audio"}
+                          variant={"audio"} aria-label="Play/Pause preview"
                           size={"sm"}
                           disabled={artificalPlayButtonTimeout[index]}
                           onClick={() => {

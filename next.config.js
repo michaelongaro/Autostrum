@@ -32,8 +32,9 @@ const config = {
     ];
   },
   images: {
-    unoptimized: true,
+    unoptimized: false,
     localPatterns: [
+      { pathname: "/_next/static/media/**" },
       {
         pathname: "/api/getTabScreenshot/**",
       },

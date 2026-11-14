@@ -6,10 +6,8 @@ export function useInitializeAudioContext() {
   const store = useTabStoreApi();
   const audioContext = useTabStore((state) => state.audioContext);
 
-  useEffect(() => {
-    store.getState().initializeAudioSystem();
-  }, [store]);
-
+  // Playback and microphone handlers create/unlock the graph synchronously in
+  // their user gesture. Merely visiting a page must not download/decode audio.
   useEffect(() => {
     if (!audioContext || audioContext.state === "closed") return;
     void loadCountInBuffer(audioContext)

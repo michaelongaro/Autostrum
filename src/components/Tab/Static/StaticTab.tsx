@@ -229,6 +229,7 @@ function StaticTab() {
                           <Button
                             variant={"secondary"}
                             className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                            aria-label="Glossary"
                             onClick={() => setShowGlossaryDialog(true)}
                           >
                             <FaBook className="size-4" />
@@ -265,6 +266,7 @@ function StaticTab() {
                       disablePointerDismissal={pressingOnZoomSlider}
                     >
                       <DrawerTrigger
+                        aria-label="Tab settings"
                         render={
                           <Button
                             variant={"secondary"}
@@ -309,6 +311,7 @@ function StaticTab() {
                                 onOpenChange={setSettingsPopoverIsOpen}
                               >
                                 <PopoverTrigger
+                                  aria-label="Tab settings"
                                   render={
                                     <Button
                                       variant={"secondary"}

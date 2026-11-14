@@ -120,7 +120,7 @@ function PlaybackMenuContent() {
 
                         {/* preview chord button */}
                         <Button
-                          variant={"audio"}
+                          variant={"audio"} aria-label="Play/Pause preview"
                           disabled={
                             previewMetadata.indexOfPattern === index &&
                             previewMetadata.playing &&
@@ -182,7 +182,7 @@ function PlaybackMenuContent() {
                   <div key={pattern.id} className="shrink-0 overflow-hidden">
                     <div className="baseVertFlex !items-start">
                       <Button
-                        variant={"audio"}
+                        variant={"audio"} aria-label="Play/Pause preview"
                         size={"sm"}
                         disabled={artificalPlayButtonTimeout[index]}
                         onClick={() => {

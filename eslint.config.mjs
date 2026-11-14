@@ -13,6 +13,8 @@ export default defineConfig(
     "next-env.d.ts",
     // Installed skill examples are reference material, not application code.
     ".agents/**",
+    // Generated Lighthouse reports and one-off audit tooling are local artifacts.
+    "reports/**",
   ]),
   {
     files: ["**/*.ts", "**/*.tsx"],

@@ -457,7 +457,10 @@ function MetronomeToolPage() {
                   if (sound) setClickSound(sound);
                 }}
               >
-                <SelectTrigger className="!h-10 w-36 bg-background">
+                <SelectTrigger
+                  aria-label={`Click sound: ${clickSound.label}`}
+                  className="!h-10 w-36 bg-background"
+                >
                   <SelectValue placeholder="Click sound">
                     <div className="baseFlex gap-2">
                       <BsFillVolumeUpFill className="size-5" />
@@ -918,7 +921,10 @@ function MetronomeToolPage() {
                 if (sound) setClickSound(sound);
               }}
             >
-              <SelectTrigger className="!h-10 w-36 bg-background">
+              <SelectTrigger
+                aria-label={`Click sound: ${clickSound.label}`}
+                className="!h-10 w-36 bg-background"
+              >
                 <SelectValue placeholder="Click sound">
                   <div className="baseFlex gap-2">
                     <BsFillVolumeUpFill className="size-5" />

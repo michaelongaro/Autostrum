@@ -460,7 +460,10 @@ function ChordTrainerPage() {
                     if (value !== null) handleChordPresetSelect(value);
                   }}
                 >
-                  <SelectTrigger className="w-full bg-background xs:max-w-[320px]">
+                  <SelectTrigger
+                    aria-label={`Chord presets: ${CHORD_PRESET_OPTIONS.find((preset) => preset.id === activeChordPresetId)?.label ?? "Choose a chord preset"}`}
+                    className="w-full bg-background xs:max-w-[320px]"
+                  >
                     <SelectValue placeholder="Choose a chord preset" />
                   </SelectTrigger>
 
@@ -497,7 +500,7 @@ function ChordTrainerPage() {
                         "baseVertFlex gap-2 transition-opacity duration-150",
                         selected
                           ? "opacity-100"
-                          : "opacity-35 hover:opacity-100",
+                          : "opacity-80 hover:opacity-100",
                       )}
                     >
                       <Button
