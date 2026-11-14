@@ -1,6 +1,6 @@
 # Private drafts and recovery
 
-Editing `/create` or an owned tab creates a private working copy. Incomplete
+Changing `/create` or an owned tab creates a private working copy. Incomplete
 titles, metadata, sections, and music can all be saved. Published tabs, search,
 statistics, screenshots, and public profiles change only after explicit
 publication. The Drafts dialog on `/profile/tabs/filters` lists account drafts
@@ -11,6 +11,18 @@ and browser recovery copies.
 - Every document change writes a versioned browser recovery record immediately.
   Each editor instance has its own writer ID, so multiple tabs cannot overwrite
   each other's recovery records.
+- Opening `/create`, opening an unchanged published tab, and changing playback
+  or display settings do not create drafts. Generated progression IDs and
+  calculated playback timings do not count as edits. A title, metadata change,
+  chord, strumming pattern, or section edit is enough to start saving, even
+  without playable music.
+- A new tab returned to its original defaults has no draft. Before its first
+  account request, its browser copy is removed immediately; after saving has
+  started, the reset is synced using the same revision and retry protections as
+  other edits. A cleared account draft is tombstoned, and further edits use a new
+  draft ID. Default-only drafts from older sessions are cleared when reopened.
+  Changes to published tabs remain drafts even when their new content matches
+  the create-page defaults, since that is an edit to the published version.
 - Signed-in editors debounce account saves for 1.2 seconds, with a five-second
   maximum wait. One request runs at a time. Edits made during a request are sent
   afterward using the acknowledged revision.
@@ -28,16 +40,16 @@ and browser recovery copies.
 - Edits to published tabs retain their base publication timestamp. Publishing
   against a changed public version fails without consuming the private draft.
 
-Guest drafts stay in the browser. The guest draft active in the same browser tab
-is handed to the signed-in account after sign-in. Other guest drafts can be
-copied explicitly from the Drafts dialog on My Tabs. Account drafts never become guest
-drafts on sign-out or move to another account automatically.
+Autosave requires an account. Signing in from `/create` hands the current guest
+document to the signed-in account through the `autostrum-tabData` snapshot.
+Untouched defaults are neither handed off nor saved as a draft. Account drafts
+never become guest drafts on sign-out or move to another account automatically.
 
-Refresh resumes the active editor's recovery copy. The dialog can also reopen
-copies, recover a draft as a new tab, and discard individual copies. Invalid
-browser records are preserved for recovery. The old
-`autostrum-tabData` snapshot migrates to a guest recovery record and is removed
-only after its replacement is durably written.
+Visiting bare `/create` starts fresh; use an explicit draft or recovery link from
+the dialog to resume a new tab. Edit routes can resume the active recovery copy
+or account draft for that published tab. Invalid browser records are preserved
+for recovery. A sign-in snapshot containing edits is removed only after its
+replacement is durably written; a default-only snapshot is removed immediately.
 
 If browser storage fails, the editor shows a warning and prevents an unnoticed
 unload until account sync succeeds. Browser copies are lost if site storage is
@@ -54,6 +66,10 @@ Run `node scripts/verifyPrivateDrafts.mjs` for isolated checks of the actual
 storage code, save coordinator, authentication middleware, draft router, and
 publication routes. The script substitutes an in-memory database and external
 service stubs; it does not access shared services.
+
+Run `node scripts/verifyDraftEditorChanges.mjs` for checks using the real editor
+store and subscription, including untouched defaults, UI-only updates,
+calculated timings, undo/redo, and adding/removing sections.
 
 Browser checks: edit an unfinished tab, refresh, open the Drafts dialog on My Tabs,
 recover a copy and refresh its URL, create another draft, and verify that the

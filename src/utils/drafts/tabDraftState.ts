@@ -2,31 +2,12 @@ import { ensureSectionProgression } from "~/utils/sectionProgression";
 import { getTabStore } from "~/stores/TabStore";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import type { TabDocument } from "~/utils/tabDocument";
-import { DEFAULT_TUNING } from "~/utils/tunings";
+import { emptyTabDocument } from "./draftDocument";
 import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 
-export function emptyTabDocument(): TabDocument {
-  const tabData = [{ id: crypto.randomUUID(), title: "Section 1", data: [] }];
-  return {
-    title: "",
-    artistId: null,
-    artistName: undefined,
-    artistIsVerified: false,
-    description: null,
-    genre: "",
-    tuning: DEFAULT_TUNING,
-    bpm: 75,
-    capo: 0,
-    key: null,
-    difficulty: 1,
-    chords: [],
-    strummingPatterns: [],
-    sectionProgression: ensureSectionProgression(tabData, []),
-    tabData,
-  };
-}
+export { emptyTabDocument } from "./draftDocument";
 
-export function getTabDocument(store = getTabStore()): TabDocument {
+function storedTabDocument(store: ReturnType<typeof getTabStore>): TabDocument {
   return {
     title: store.title,
     artistId: store.artistId,
@@ -41,11 +22,19 @@ export function getTabDocument(store = getTabStore()): TabDocument {
     difficulty: store.difficulty,
     chords: store.chords,
     strummingPatterns: store.strummingPatterns,
-    sectionProgression: ensureSectionProgression(
-      store.tabData,
-      store.sectionProgression,
-    ),
+    sectionProgression: store.sectionProgression,
     tabData: store.tabData,
+  };
+}
+
+export function getTabDocument(store = getTabStore()): TabDocument {
+  const document = storedTabDocument(store);
+  return {
+    ...document,
+    sectionProgression: ensureSectionProgression(
+      document.tabData,
+      document.sectionProgression,
+    ),
   };
 }
 
@@ -53,10 +42,10 @@ export function documentChanged(
   next: ReturnType<typeof getTabStore>,
   previous: ReturnType<typeof getTabStore>,
 ) {
-  const a = getTabDocument(next);
-  const b = getTabDocument(previous);
-  return (Object.keys(a) as (keyof TabDocument)[]).some(
-    (key) => a[key] !== b[key],
+  // Compare stored fields before normalizing: generating a fallback progression
+  // during this check would make unrelated UI updates look like document edits.
+  return (Object.keys(storedTabDocument(next)) as (keyof TabDocument)[]).some(
+    (key) => next[key] !== previous[key],
   );
 }
 

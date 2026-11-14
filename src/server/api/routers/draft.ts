@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { tabDocumentSchema } from "~/utils/tabDocument";
+import { isDefaultTabDocument } from "~/utils/drafts/draftDocument";
 
 const idSchema = z.string().uuid();
 const revisionSchema = z.number().int().min(0);
@@ -95,12 +96,16 @@ export const draftRouter = createTRPCRouter({
         const previous = await tx.tabDraft.findFirst({
           where: { id: input.id, ownerId },
         });
-        if (
-          previous &&
-          !previous.deletedAt &&
-          previous.lastMutationId === input.mutationId
-        ) {
-          return { revision: previous.revision, updatedAt: previous.updatedAt };
+        const isDefaultNewTab =
+          input.sourceTabId === null && isDefaultTabDocument(input.document);
+        if (previous?.lastMutationId === input.mutationId) {
+          if (!previous.deletedAt)
+            return {
+              revision: previous.revision,
+              updatedAt: previous.updatedAt,
+            };
+          if (isDefaultNewTab && previous.publishedTabId === null)
+            return { revision: 0, updatedAt: previous.updatedAt };
         }
         if (
           previous &&
@@ -109,6 +114,34 @@ export const draftRouter = createTRPCRouter({
               input.baseUpdatedAt?.getTime())
         ) {
           throw conflict();
+        }
+
+        if (isDefaultNewTab) {
+          if (!previous && input.expectedRevision === 0)
+            return { revision: 0, updatedAt: new Date() };
+
+          // Clearing a new tab back to defaults also clears its account draft.
+          // Keep a tombstone so a delayed writer cannot resurrect older work.
+          const cleared = await tx.tabDraft.updateMany({
+            where: {
+              id: input.id,
+              ownerId,
+              revision: input.expectedRevision,
+              deletedAt: null,
+            },
+            data: {
+              deletedAt: new Date(),
+              revision: { increment: 1 },
+              document: {},
+              title: "",
+              lastMutationId: input.mutationId,
+            },
+          });
+          if (cleared.count !== 1) throw conflict();
+          const saved = await tx.tabDraft.findFirstOrThrow({
+            where: { id: input.id, ownerId },
+          });
+          return { revision: 0, updatedAt: saved.updatedAt };
         }
 
         if (input.expectedRevision === 0) {

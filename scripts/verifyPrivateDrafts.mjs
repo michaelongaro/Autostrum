@@ -254,9 +254,92 @@ try {
     pathToFileURL(compile(resolve(root, "src/utils/drafts/DraftSession.ts")))
       .href
   );
+  const { emptyTabDocument, isDefaultTabDocument, serializeDraftDocument } =
+    await import(
+      pathToFileURL(compile(resolve(root, "src/utils/drafts/draftDocument.ts")))
+        .href
+    );
   const owner = drafts.createCaller(context("owner-a"));
   const stranger = drafts.createCaller(context("owner-b"));
   const guest = drafts.createCaller(context(null));
+  const pristine = emptyTabDocument();
+  assert.equal(isDefaultTabDocument(pristine), true);
+  assert.equal(
+    serializeDraftDocument(pristine),
+    serializeDraftDocument(emptyTabDocument()),
+    "fresh section and progression IDs do not count as edits",
+  );
+  assert.equal(
+    isDefaultTabDocument({
+      ...pristine,
+      artistName: "",
+      artistIsVerified: undefined,
+      description: "",
+      sectionProgression: [],
+    }),
+    true,
+    "empty input values and an uncompiled progression are still defaults",
+  );
+  for (const edit of [
+    { title: "An idea" },
+    { artistId: 1 },
+    { artistName: "An artist" },
+    { description: "Work in progress" },
+    { genre: "Rock" },
+    { tuning: "d2 a2 d3 g3 b3 e4" },
+    { bpm: 80 },
+    { capo: 2 },
+    { key: "A minor" },
+    { difficulty: 2 },
+    { tabData: [{ ...pristine.tabData[0], title: "Intro" }] },
+    { tabData: [...pristine.tabData, emptyTabDocument().tabData[0]] },
+    {
+      chords: [
+        { id: crypto.randomUUID(), name: "C", color: "#ffffff", frets: [] },
+      ],
+    },
+    {
+      strummingPatterns: [
+        { id: crypto.randomUUID(), baseNoteLength: "quarter", strums: [] },
+      ],
+    },
+    {
+      sectionProgression: [
+        { ...pristine.sectionProgression[0], repetitions: 2 },
+      ],
+    },
+  ])
+    assert.equal(isDefaultTabDocument({ ...pristine, ...edit }), false);
+
+  const emptyInput = {
+    id: crypto.randomUUID(),
+    mutationId: crypto.randomUUID(),
+    expectedRevision: 0,
+    sourceTabId: null,
+    baseUpdatedAt: null,
+    document: pristine,
+  };
+  assert.equal((await owner.save(emptyInput)).revision, 0);
+  assert.equal(
+    rows.has(emptyInput.id),
+    false,
+    "defaults never create an account row",
+  );
+  handoff.saveTabForSignIn({ ...pristine, title: "Stale sign-in attempt" });
+  handoff.saveTabForSignIn(pristine);
+  assert.equal(handoff.readTabForSignIn(), null);
+  assert.equal(storage.has("autostrum-tabData"), false);
+  storage.set("autostrum-tabData", JSON.stringify(pristine));
+  assert.equal(
+    handoff.readTabForSignIn(),
+    null,
+    "legacy empty handoffs are ignored",
+  );
+  assert.equal(storage.has("autostrum-tabData"), false);
+  console.log(
+    "PASS: default detection, incomplete edits, no empty account rows or sign-in drafts",
+  );
+
   const first = {
     id: crypto.randomUUID(),
     mutationId: crypto.randomUUID(),
@@ -404,6 +487,17 @@ try {
     (await owner.get({ id: edit.id, ownerId: "owner-a" })).document.title,
     "Private edit",
     "failed publication must roll back draft consumption",
+  );
+  const clearedPublishedEdit = {
+    ...edit,
+    id: crypto.randomUUID(),
+    mutationId: crypto.randomUUID(),
+    document: pristine,
+  };
+  assert.equal((await owner.save(clearedPublishedEdit)).revision, 1);
+  assert.ok(
+    await owner.get({ id: clearedPublishedEdit.id, ownerId: "owner-a" }),
+    "resetting a published tab to create-page defaults is an edit worth saving",
   );
   const freshEdit = {
     ...edit,
@@ -612,6 +706,213 @@ try {
     instance.start();
     return { instance, states };
   }
+  let emptySaves = 0;
+  let emptyWrites = 0;
+  const untouched = session({
+    record: persistence.newRecoveryRecord("owner-a", pristine),
+    save: async () => {
+      emptySaves++;
+      return { revision: 1, updatedAt: new Date() };
+    },
+    write: () => {
+      emptyWrites++;
+      return true;
+    },
+  });
+  untouched.instance.update(emptyTabDocument());
+  untouched.instance.retry();
+  await untouched.instance.flush();
+  assert.equal(await untouched.instance.preparePublication(), undefined);
+  assert.equal(emptySaves, 0);
+  assert.equal(emptyWrites, 0);
+  assert.equal(untouched.instance.needsUnloadWarning(), false);
+
+  // Simulate a default-only account draft written by an older app version.
+  const legacyInput = {
+    ...emptyInput,
+    id: crypto.randomUUID(),
+    document: { ...pristine, title: "Old draft" },
+  };
+  await owner.save(legacyInput);
+  rows.get(legacyInput.id).document = pristine;
+  rows.get(legacyInput.id).title = "";
+  const legacyRecord = {
+    ...persistence.newRecoveryRecord("owner-a", pristine),
+    id: legacyInput.id,
+    revision: 1,
+    synced: true,
+  };
+  const legacy = session({
+    record: legacyRecord,
+    hasRecovery: true,
+    save: owner.save,
+  });
+  await legacy.instance.flush();
+  assert.equal(
+    await owner.get({ id: legacyInput.id, ownerId: "owner-a" }),
+    null,
+  );
+  assert.equal(storage.has(persistence.recoveryKey(legacyRecord)), false);
+
+  const reverted = session({
+    record: persistence.newRecoveryRecord("owner-a", pristine),
+    save: owner.save,
+  });
+  const draftId = reverted.instance.record.id;
+  reverted.instance.update({ ...pristine, title: "An idea" });
+  assert.equal(
+    storage.has(persistence.recoveryKey(reverted.instance.record)),
+    true,
+  );
+  reverted.instance.update({ ...pristine, description: "" });
+  await reverted.instance.flush();
+  assert.equal(rows.has(draftId), false);
+  assert.equal(
+    storage.has(persistence.recoveryKey(reverted.instance.record)),
+    false,
+  );
+  assert.equal(reverted.states.at(-1).status, "idle");
+
+  reverted.instance.update({ ...pristine, title: "Keep this idea" });
+  await reverted.instance.flush();
+  assert.equal(
+    (await owner.get({ id: draftId, ownerId: "owner-a" })).document.title,
+    "Keep this idea",
+  );
+  const revision = reverted.instance.record.revision;
+  const snapshot = reverted.instance.record.document;
+  reverted.instance.update({
+    ...snapshot,
+    sectionProgression: snapshot.sectionProgression.map((entry) => ({
+      ...entry,
+      id: crypto.randomUUID(),
+      startSeconds: 12,
+      endSeconds: 24,
+    })),
+  });
+  await reverted.instance.flush();
+  assert.equal(
+    reverted.instance.record.revision,
+    revision,
+    "derived timing and progression IDs do not autosave",
+  );
+  const clearInput = {
+    ...emptyInput,
+    id: draftId,
+    expectedRevision: revision,
+    mutationId: crypto.randomUUID(),
+  };
+  await rejectsWith(stranger.save(clearInput), "CONFLICT");
+  assert.equal((await owner.save(clearInput)).revision, 0);
+  assert.equal(
+    (await owner.save(clearInput)).revision,
+    0,
+    "reset replay is idempotent",
+  );
+  await rejectsWith(
+    owner.save({
+      ...clearInput,
+      document: snapshot,
+      mutationId: crypto.randomUUID(),
+    }),
+    "CONFLICT",
+  );
+  assert.equal(await owner.get({ id: draftId, ownerId: "owner-a" }), null);
+
+  let finishReset;
+  let resetStarted;
+  const resetReady = new Promise((resolveReset) => {
+    resetStarted = resolveReset;
+  });
+  const resetCalls = [];
+  const resetting = session({
+    record: persistence.newRecoveryRecord("owner-a", pristine),
+    save: async (input) => {
+      resetCalls.push(input);
+      const result = await owner.save(input);
+      if (result.revision === 0 && resetCalls.length === 2)
+        await new Promise((resolveSave) => {
+          finishReset = resolveSave;
+          resetStarted();
+        });
+      return result;
+    },
+  });
+  resetting.instance.update({ ...pristine, title: "First idea" });
+  await resetting.instance.flush();
+  const resetId = resetting.instance.record.id;
+  resetting.instance.update(pristine);
+  const clearing = resetting.instance.flush();
+  await resetReady;
+  resetting.instance.update({ ...pristine, title: "Typed during reset" });
+  finishReset();
+  await clearing;
+  assert.notEqual(resetting.instance.record.id, resetId);
+  assert.equal(resetting.instance.record.revision, 1);
+  assert.equal(resetCalls.at(-1).expectedRevision, 0);
+  assert.equal(await owner.get({ id: resetId, ownerId: "owner-a" }), null);
+  assert.equal(
+    (await owner.get({ id: resetting.instance.record.id, ownerId: "owner-a" }))
+      .document.title,
+    "Typed during reset",
+  );
+  resetting.instance.update(pristine);
+  await resetting.instance.flush();
+  assert.equal(resetting.states.at(-1).status, "idle");
+  assert.equal(resetting.instance.record.revision, 0);
+  assert.equal(
+    persistence
+      .readRecoveryRecords("owner-a")
+      .records.some(
+        (record) =>
+          record.id === resetting.instance.record.id || record.id === resetId,
+      ),
+    false,
+  );
+  console.log(
+    "PASS: untouched sessions, undo to defaults, derived updates, safe account reset and edits during reset",
+  );
+
+  let finishCreate;
+  let createStarted;
+  const createReady = new Promise((resolveCreate) => {
+    createStarted = resolveCreate;
+  });
+  const revertingDuringCreate = session({
+    record: persistence.newRecoveryRecord("owner-a", pristine),
+    save: async (input) => {
+      const result = await owner.save(input);
+      if (input.expectedRevision === 0)
+        await new Promise((resolveSave) => {
+          finishCreate = resolveSave;
+          createStarted();
+        });
+      return result;
+    },
+  });
+  revertingDuringCreate.instance.update({
+    ...pristine,
+    title: "Temporary idea",
+  });
+  const initialId = revertingDuringCreate.instance.record.id;
+  const creating = revertingDuringCreate.instance.flush();
+  await createReady;
+  revertingDuringCreate.instance.update(pristine);
+  finishCreate();
+  await creating;
+  assert.equal(await owner.get({ id: initialId, ownerId: "owner-a" }), null);
+  assert.equal(revertingDuringCreate.instance.record.revision, 0);
+  assert.equal(revertingDuringCreate.states.at(-1).status, "idle");
+  assert.equal(
+    persistence
+      .readRecoveryRecords("owner-a")
+      .records.some((record) => record.id === initialId),
+    false,
+  );
+  console.log(
+    "PASS: reset during the first account request leaves no active draft",
+  );
+
   let finishFirst;
   const calls = [];
   const coordinated = session({

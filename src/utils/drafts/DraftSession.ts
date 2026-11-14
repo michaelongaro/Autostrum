@@ -1,4 +1,5 @@
 import type { DraftReference, TabDocument } from "~/utils/tabDocument";
+import { isDefaultTabDocument, serializeDraftDocument } from "./draftDocument";
 import {
   newRecoveryRecord,
   recoveryKey,
@@ -65,15 +66,19 @@ export class DraftSession {
   private timer: ReturnType<typeof setTimeout> | undefined;
   private maxTimer: ReturnType<typeof setTimeout> | undefined;
   private inFlight: Promise<void> | null = null;
+  private saveAttempted: boolean;
   private retryCount = 0;
   private recovered: RecoveryRecord | undefined;
   private state: DraftSaveState;
 
   constructor(private readonly options: SessionOptions) {
     this.record = options.record;
-    this.dirty = options.needsSave;
-    this.serialized = JSON.stringify(this.record.document);
+    this.dirty = this.isDefaultNewTab()
+      ? this.record.revision > 0
+      : options.needsSave;
+    this.serialized = serializeDraftDocument(this.record.document);
     this.recovered = options.recovered;
+    this.saveAttempted = options.hasRecovery || this.record.revision > 0;
     this.state = {
       status: "idle",
       message: "Your edits will be saved privately.",
@@ -83,6 +88,11 @@ export class DraftSession {
   }
 
   start() {
+    if (this.isDefaultNewTab() && !this.dirty) {
+      this.removeLocalCopy();
+      this.report("idle");
+      return;
+    }
     if (this.options.hasRecovery || this.dirty) this.persist();
     if (this.dirty) this.schedule();
     this.report(
@@ -92,7 +102,7 @@ export class DraftSession {
 
   update(document: TabDocument) {
     if (this.disposed || this.published) return;
-    const serialized = JSON.stringify(document);
+    const serialized = serializeDraftDocument(document);
     if (serialized === this.serialized) return;
     this.serialized = serialized;
     this.record = {
@@ -103,10 +113,41 @@ export class DraftSession {
       synced: false,
     };
     this.dirty = true;
+    // An edit undone before the first request needs no account draft. If a
+    // request is already running, flush the reset afterward to clear its result.
+    if (
+      this.isDefaultNewTab() &&
+      this.record.revision === 0 &&
+      !this.inFlight &&
+      !this.saveAttempted &&
+      !this.blocked
+    ) {
+      this.dirty = false;
+      this.clearTimers();
+      this.removeLocalCopy();
+      this.report("idle");
+      return;
+    }
     this.persist();
     if (this.blocked) this.report("conflict", this.state.message);
     else this.report("saving");
     this.schedule();
+  }
+
+  private isDefaultNewTab() {
+    return (
+      this.record.sourceTabId === null &&
+      isDefaultTabDocument(this.record.document)
+    );
+  }
+
+  private removeLocalCopy() {
+    (this.options.remove ?? removeRecoveryRecord)(this.record);
+    if (this.recovered) {
+      (this.options.retire ?? removeUnchangedRecoveryRecord)(this.recovered);
+      this.recovered = undefined;
+    }
+    this.localSaved = false;
   }
 
   private persist() {
@@ -190,6 +231,7 @@ export class DraftSession {
       const snapshot = this.record;
       this.report("saving");
       try {
+        this.saveAttempted = true;
         const result = await this.options.save({
           id: snapshot.id,
           mutationId: snapshot.mutationId,
@@ -202,6 +244,25 @@ export class DraftSession {
         });
         this.retryCount = 0;
         this.dirty = this.record.mutationId !== snapshot.mutationId;
+        if (result.revision === 0) {
+          // The server cleared default-only content. Its tombstoned identity
+          // cannot be reused, including for edits typed during this request.
+          const previous = this.record;
+          if (!this.dirty) this.removeLocalCopy();
+          this.record = newRecoveryRecord(
+            previous.ownerId,
+            previous.document,
+            previous.sourceTabId,
+            previous.baseUpdatedAt,
+          );
+          this.saveAttempted = false;
+          if (this.dirty) {
+            this.recovered = previous;
+            this.persist();
+          }
+          this.report(this.dirty ? "saving" : "idle");
+          continue;
+        }
         this.record = {
           ...this.record,
           revision: result.revision,
