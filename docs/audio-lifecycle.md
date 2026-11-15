@@ -87,12 +87,23 @@ level to zero over 25 ms. Queued notes and percussion are canceled before their
 attack; repeated stops cannot extend a release that is already ending. Playback
 state changes immediately while the short audio tail finishes on the context clock.
 
+Palm-muted picks enter each recording just before its attack peak. This prevents
+slow-building samples from spending most of the short mute envelope in their
+quiet lead-in. Their scheduled onset, pitch, short decay and cutoff are preserved;
+ordinary picks and post-attack legato entry keep their existing behavior. Attack
+offsets are cached per decoded buffer.
+
 ## Verification
 
 - `node scripts/verifyGuitarEffects.mjs`: note scheduling and release deadlines.
   Add `--browser --stops` and evaluate the generated expression in the browser
   for native waveform checks at 44.1/48 kHz, all four guitar soundfonts in both
   formats, queued percussion cancellation, and abrupt/faded stop auditions.
+- `node scripts/verifyGuitarEffects.mjs --native --palm-mutes`: audible attacks and
+  short cutoffs across guitar pitches, all four soundfonts, OGG/MP3 and 44.1/48 kHz,
+  including sixteenth notes at 91 BPM and fast playback. Optionally add
+  `--import-file "path/to/tab.gp" --track-id 2:0` to render the selected staff's
+  imported palm-muted columns with their tuning, capo, durations and tempos.
 - `node scripts/verifyAudioContextRecovery.mjs` (Node 22.15+): deterministic faults,
   resume timing, clock stalls, graph ownership, asset timeouts, stale sample loads,
   instrument changes, and count-in cancellation.

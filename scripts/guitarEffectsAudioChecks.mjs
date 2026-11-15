@@ -4,6 +4,7 @@ import {
   playNoteColumn,
   stopActivePlaybackStrings,
 } from "~/utils/playGeneratedAudioHelpers";
+import { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
 
 const tuning = [64, 59, 55, 50, 45, 40];
 function column(note, { pm = "", chordEffects = "", string = 0 } = {}) {
@@ -79,7 +80,14 @@ function centsFromExpected(buffer, start, expectedHz) {
   return 1200 * Math.log2(buffer.sampleRate / lag / expectedHz);
 }
 
-async function loadInstrument(context, name, format) {
+async function loadInstrument(
+  context,
+  name,
+  format,
+  midiNumbers = [
+    36, 38, 40, 42, 45, 47, 50, 52, 55, 57, 59, 61, 64, 66, 67, 69, 71, 73,
+  ],
+) {
   const response = await fetch(`/sounds/instruments/${name}-${format}.js`);
   assert(response.ok, `Unable to fetch ${name}-${format}`);
   const script = await response.text();
@@ -89,9 +97,7 @@ async function loadInstrument(context, name, format) {
     `${script}; return MIDI.Soundfont[${JSON.stringify(name)}];`,
   )({ Soundfont: {} });
   const buffers = {};
-  for (const midi of [
-    36, 38, 40, 42, 45, 47, 50, 52, 55, 57, 59, 61, 64, 66, 67, 69, 71, 73,
-  ]) {
+  for (const midi of midiNumbers) {
     const pitchClasses = [
       "C",
       "Db",
@@ -128,6 +134,7 @@ async function render(
     capo = 0,
     sampleRate = 48000,
     isolateString = false,
+    useColumnRhythm = false,
   } = {},
 ) {
   const context = new OfflineAudioContext(
@@ -185,12 +192,16 @@ async function render(
   const columns = notes.map((note) =>
     typeof note === "string" ? column(note) : note,
   );
+  let nextStart = 0.2;
   columns.forEach((currColumn, index) => {
+    const effectiveBpm = useColumnRhythm
+      ? Number(currColumn[9]) / noteLengthMultipliers[currColumn[8]]
+      : bpm;
     void playNoteColumn({
       tuning: noteTuning,
       capo,
-      bpm,
-      targetStartTime: 0.2 + (index * 60) / bpm,
+      bpm: effectiveBpm,
+      targetStartTime: nextStart,
       thirdPrevColumn: columns[index - 3],
       secondPrevColumn: columns[index - 2],
       prevColumn: columns[index - 1],
@@ -202,6 +213,7 @@ async function render(
       currentlyPlayingStrings: strings,
       scheduledNodes,
     });
+    nextStart += 60 / effectiveBpm;
   });
   if (pauseAt !== undefined) stopActivePlaybackStrings(strings, pauseAt);
   if (hardStopAt !== undefined) stopActivePlaybackStrings(strings, hardStopAt);
@@ -738,6 +750,121 @@ export async function runCombinationAudioChecks() {
     };
   } finally {
     await decodeContext.close();
+  }
+}
+
+export async function runPalmMuteAudioChecks(importedPhrase) {
+  const context = new AudioContext();
+  const results = [];
+  const importedResults = [];
+  try {
+    for (const name of [
+      "acoustic_guitar_nylon",
+      "acoustic_guitar_steel",
+      "electric_guitar_clean",
+      "electric_guitar_jazz",
+    ]) {
+      for (const format of ["ogg", "mp3"]) {
+        const pitches = new Set(
+          Array.from({ length: 47 }, (_, index) => 40 + index),
+        );
+        for (const note of importedPhrase?.notes ?? []) {
+          for (let string = 0; string < 6; string++) {
+            const fret = Number.parseInt(note[string + 1]);
+            if (Number.isFinite(fret))
+              pitches.add(
+                importedPhrase.tuning[string] + importedPhrase.capo + fret,
+              );
+          }
+        }
+        const instrument = await loadInstrument(context, name, format, [
+          ...pitches,
+        ]);
+        for (const sampleRate of [44100, 48000]) {
+          for (const midi of pitches) {
+            const noteTuning = [midi, 59, 55, 50, 45, 40];
+            const dry = await render(instrument, ["0"], {
+              duration: 0.7,
+              hardStopAt: 0.6,
+              tuning: noteTuning,
+              sampleRate,
+            });
+            const dryLevel = rms(dry.buffer, 0.2, 0.5);
+            for (const bpm of [364, 960]) {
+              const muted = await render(
+                instrument,
+                [column("0", { pm: "start" })],
+                { bpm, duration: 0.7, tuning: noteTuning, sampleRate },
+              );
+              const attack = rms(muted.buffer, 0.2, 0.275);
+              const ratio = attack / dryLevel;
+              assert(
+                attack > 0.0001 && ratio >= 0.1,
+                `${name}-${format}/${sampleRate}/${bpm}: palm-muted MIDI ${midi} loses its attack (level ratio ${ratio})`,
+              );
+              assert(
+                rms(muted.buffer, 0.55, 0.65) === 0,
+                `${name}-${format}: palm-muted note rings past its cutoff`,
+              );
+              results.push({
+                instrument: name,
+                format,
+                midi,
+                sampleRate,
+                bpm,
+                ratio,
+              });
+            }
+          }
+          if (importedPhrase) {
+            const length = importedPhrase.notes.reduce(
+              (sum, note) =>
+                sum + (60 * noteLengthMultipliers[note[8]]) / Number(note[9]),
+              0,
+            );
+            const rendered = await render(instrument, importedPhrase.notes, {
+              tuning: importedPhrase.tuning,
+              capo: importedPhrase.capo,
+              sampleRate,
+              useColumnRhythm: true,
+              duration: length + 0.7,
+            });
+            let start = 0.2;
+            let minimumAttack = Infinity;
+            for (const note of importedPhrase.notes) {
+              const interval =
+                (60 * noteLengthMultipliers[note[8]]) / Number(note[9]);
+              const attack = rms(
+                rendered.buffer,
+                start,
+                start + Math.min(interval, 0.075),
+              );
+              assert(
+                attack > 0.0001,
+                `${name}-${format}/${sampleRate}: imported palm-muted column is silent at ${start}s`,
+              );
+              minimumAttack = Math.min(minimumAttack, attack);
+              start += interval;
+            }
+            importedResults.push({
+              instrument: name,
+              format,
+              sampleRate,
+              columns: importedPhrase.notes.length,
+              sampleAttacks: rendered.guitarSourceCount,
+              minimumAttack,
+            });
+          }
+        }
+      }
+    }
+    return {
+      passed: results.length * 2,
+      minimumAttackRatio: Math.min(...results.map((result) => result.ratio)),
+      importedResults,
+    };
+  } finally {
+    await context.close();
   }
 }
 

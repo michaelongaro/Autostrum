@@ -76,6 +76,7 @@ import Spinner from "~/components/ui/Spinner";
 import { useDraftActions } from "~/components/Tab/DraftEditor";
 import type { DraftReference } from "~/utils/tabDocument";
 import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
+import GuitarProImport from "~/components/Tab/GuitarProImport";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -567,7 +568,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
     <>
       {editing && (
         <div className="baseVertFlex w-full gap-2">
-          <div className="baseFlex w-full flex-wrap !justify-end gap-2 p-4 sm:gap-3">
+          <div className="baseFlex w-full flex-wrap-reverse !justify-end gap-2 p-4 sm:gap-3">
             {!asPath.includes("create") && (
               <DropdownMenu modal={true}>
                 <DropdownMenuTrigger
@@ -608,93 +609,101 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
               </DropdownMenu>
             )}
 
-            <Button
-              variant={"secondary"}
-              onClick={handlePreview}
-              className="baseFlex gap-2"
-            >
-              <FaEye className="h-4 w-4" />
-              Preview
-            </Button>
+            {asPath.includes("create") && (
+              <div className="flex shrink-0">
+                <GuitarProImport />
+              </div>
+            )}
 
-            <Popover
-              open={publishPopoverStatus.includes("show")}
-              onOpenChange={(open) => {
-                if (open === false) {
-                  setPublishPopoverStatus("hidden");
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <Button
+                variant={"secondary"}
+                onClick={handlePreview}
+                className="baseFlex gap-2"
+              >
+                <FaEye className="h-4 w-4" />
+                Preview
+              </Button>
 
-                  if (publishErrorOccurred) {
-                    setPublishErrorOccurred(false);
-                  }
-                }
-              }}
-            >
-              <PopoverTrigger
-                render={
-                  <Button
-                    disabled={
-                      audioMetadata.playing || // helps with performance when playing audio (while editing)
-                      isLoadingARoute ||
-                      isPublishing ||
-                      isUpdating ||
-                      isDeleting ||
-                      (asPath.includes("create") &&
-                        saveButtonText !== "Publish") ||
-                      (asPath.includes("edit") && saveButtonText !== "Save")
+              <Popover
+                open={publishPopoverStatus.includes("show")}
+                onOpenChange={(open) => {
+                  if (open === false) {
+                    setPublishPopoverStatus("hidden");
+
+                    if (publishErrorOccurred) {
+                      setPublishErrorOccurred(false);
                     }
-                    onClick={() => void handleSave()}
-                    className="baseFlex overflow-hidden"
-                  >
-                    <AnimatePresence mode={"wait"} initial={false}>
-                      <motion.div
-                        key={saveButtonText}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{
-                          duration: 0.25,
-                        }}
-                        className="baseFlex w-[100px] gap-2 overflow-hidden"
-                      >
-                        {saveButtonText}
+                  }
+                }}
+              >
+                <PopoverTrigger
+                  render={
+                    <Button
+                      disabled={
+                        audioMetadata.playing || // helps with performance when playing audio (while editing)
+                        isLoadingARoute ||
+                        isPublishing ||
+                        isUpdating ||
+                        isDeleting ||
+                        (asPath.includes("create") &&
+                          saveButtonText !== "Publish") ||
+                        (asPath.includes("edit") && saveButtonText !== "Save")
+                      }
+                      onClick={() => void handleSave()}
+                      className="baseFlex overflow-hidden"
+                    >
+                      <AnimatePresence mode={"wait"} initial={false}>
+                        <motion.div
+                          key={saveButtonText}
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 20 }}
+                          transition={{
+                            duration: 0.25,
+                          }}
+                          className="baseFlex w-[100px] gap-2 overflow-hidden"
+                        >
+                          {saveButtonText}
 
-                        {(saveButtonText === "Publishing" ||
-                          saveButtonText === "Saving") && (
-                          <Spinner className="size-4" />
-                        )}
+                          {(saveButtonText === "Publishing" ||
+                            saveButtonText === "Saving") && (
+                            <Spinner className="size-4" />
+                          )}
 
-                        {saveButtonText === "" && (
-                          <svg
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                            className="size-5"
-                          >
-                            <motion.path
-                              initial={{ pathLength: 0 }}
-                              animate={{ pathLength: 1 }}
-                              transition={{
-                                delay: 0.2,
-                                type: "tween",
-                                ease: "easeOut",
-                                duration: 0.3,
-                              }}
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        )}
-                      </motion.div>
-                    </AnimatePresence>
-                  </Button>
-                }
-              />
-              <PopoverContent className="w-full p-0">
-                {renderSavePopoverContent(popoverContentIsForSave)}
-              </PopoverContent>
-            </Popover>
+                          {saveButtonText === "" && (
+                            <svg
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                              className="size-5"
+                            >
+                              <motion.path
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{
+                                  delay: 0.2,
+                                  type: "tween",
+                                  ease: "easeOut",
+                                  duration: 0.3,
+                                }}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                        </motion.div>
+                      </AnimatePresence>
+                    </Button>
+                  }
+                />
+                <PopoverContent className="w-full p-0">
+                  {renderSavePopoverContent(popoverContentIsForSave)}
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           <div className={classes.editingMetadataContainer}>
