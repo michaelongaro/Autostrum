@@ -463,6 +463,7 @@ interface TabState {
   setUpdatedAt: (updatedAt: Date | null) => void;
   title: string;
   setTitle: (title: string) => void;
+  importDocument: (document: TabDocument) => void;
 
   artistId: number | null;
   setArtistId: (artistId: number | null) => void;
@@ -1031,6 +1032,22 @@ export const createTabStore = (
         setUpdatedAt: (updatedAt) => set({ updatedAt }),
         title: "",
         setTitle: (title) => editDocument({ title }),
+        importDocument: (document) => {
+          get().pauseAudio(true, true);
+          histories.forEach((history) => history.breakGroup());
+          if (get() === getTabStore()) setHoveredChordLocationValue(null);
+          editDocument({
+            ...document,
+            currentlyCopiedData: null,
+            currentlyCopiedChord: null,
+            audioMetadata: { ...initialStoreState.audioMetadata },
+            previewMetadata: { ...initialStoreState.previewMetadata },
+            draftLoopStartIndex: null,
+            draftLoopEndIndex: null,
+            chordPulse: null,
+            editorHistoryRevision: get().editorHistoryRevision + 1,
+          });
+        },
 
         setTabData: (updater) =>
           editDocument((draft) => {

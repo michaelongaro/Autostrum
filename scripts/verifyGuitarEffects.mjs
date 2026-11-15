@@ -4,6 +4,8 @@
 // Add --dead-notes for focused dead-note checks and audition controls.
 // Add --stops for release-envelope checks and abrupt/faded stop auditions.
 // --native runs the same renders in headless Chromium, without an app/server.
+// --palm-mutes checks all standard guitar pitches; optionally add
+// --import-file <path> --track-id <track:staff> to check an imported muted passage.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -31,16 +33,72 @@ function moduleUrl(filename) {
 
 if (process.argv.includes("--browser") || process.argv.includes("--native")) {
   const url = moduleUrl("scripts/guitarEffectsAudioChecks.mjs");
-  const entry = process.argv.includes("--combinations")
-    ? "runCombinationAudioChecks"
-    : process.argv.includes("--stops")
-      ? "runNoteStopAudioChecks"
-      : process.argv.includes("--dead-notes")
-        ? "runDeadNoteAudioChecks"
-        : process.argv.includes("--level-probe")
-          ? "measureLegatoLevels"
-          : "runAudioChecks";
-  const expression = `import(${JSON.stringify(url)}).then(module => module.${entry}())`;
+  const entry = process.argv.includes("--palm-mutes")
+    ? "runPalmMuteAudioChecks"
+    : process.argv.includes("--combinations")
+      ? "runCombinationAudioChecks"
+      : process.argv.includes("--stops")
+        ? "runNoteStopAudioChecks"
+        : process.argv.includes("--dead-notes")
+          ? "runDeadNoteAudioChecks"
+          : process.argv.includes("--level-probe")
+            ? "measureLegatoLevels"
+            : "runAudioChecks";
+  let importedPhrase;
+  const importFileIndex = process.argv.indexOf("--import-file");
+  if (importFileIndex >= 0) {
+    assert.equal(
+      entry,
+      "runPalmMuteAudioChecks",
+      "Use --palm-mutes with --import-file",
+    );
+    const importPath = process.argv[importFileIndex + 1];
+    const trackId = process.argv[process.argv.indexOf("--track-id") + 1];
+    assert.ok(
+      importPath && /^\d+:\d+$/.test(trackId ?? ""),
+      "Provide --import-file <path> --track-id <track:staff>",
+    );
+    await import("./lib/registerTypeScript.mjs");
+    const { readGuitarProScore } =
+      await import("../src/utils/guitarPro/readScore.ts");
+    const { convertScore } =
+      await import("../src/utils/guitarPro/convertScore.ts");
+    const { parse } = await import("../src/utils/tunings.ts");
+    const { tabNoteToArray } = await import("../src/utils/tabNoteHelpers.ts");
+    const score = readGuitarProScore(
+      new Uint8Array(fs.readFileSync(importPath)),
+      path.basename(importPath),
+    );
+    const { document } = convertScore(
+      score,
+      trackId,
+      path.basename(importPath),
+    );
+    const notes = [];
+    for (const section of document.tabData) {
+      for (const sub of section.data) {
+        if (sub.type !== "tab") continue;
+        let bpm = sub.bpm > 0 ? sub.bpm : document.bpm;
+        for (const column of sub.data) {
+          if (column.type === "measureLine") {
+            if (column.bpmAfterLine) bpm = column.bpmAfterLine;
+            continue;
+          }
+          if (!column.palmMute || column.chordEffects === "r") continue;
+          const compiled = tabNoteToArray(column);
+          compiled[9] = `${bpm}`;
+          notes.push(compiled);
+        }
+      }
+    }
+    assert.ok(notes.length, "No palm-muted notes on the selected track");
+    importedPhrase = {
+      notes,
+      tuning: parse(document.tuning),
+      capo: document.capo,
+    };
+  }
+  const expression = `import(${JSON.stringify(url)}).then(module => module.${entry}(${importedPhrase ? JSON.stringify(importedPhrase) : ""}))`;
   if (process.argv.includes("--native")) {
     const { chromium } = await import("playwright");
     const browser = await chromium.launch({ headless: true });
@@ -355,6 +413,23 @@ test("Palm mute uses one bounded signal path and decays before the next beat", (
     assert.ok(node.gain.events.every((event) => event.value <= 1.1));
   assert.ok(sampleNodes(env)[0].stoppedAt < 0.5);
 });
+test("Short palm mutes retain delayed sample attacks without shifting ordinary picks", () => {
+  const env = setup();
+  const samples = env.buffer.getChannelData(0);
+  samples.fill(0);
+  samples.fill(
+    0.25,
+    0.064 * env.context.sampleRate,
+    0.068 * env.context.sampleRate,
+  );
+  phrase(env, [column("5", { pm: "start" }), "5"], { bpm: 960 });
+  const [muted, plain] = sampleNodes(env);
+  assert.ok(muted.sampleOffset >= 0.05 && muted.sampleOffset < 0.064);
+  assert.equal(plain.sampleOffset, 0);
+  assert.equal(muted.startedAt, 0.2);
+  assert.ok(muted.stoppedAt <= 0.287001);
+});
+
 test("Staccato duration follows note spacing, including legato notes", () => {
   for (const bpm of [60, 240]) {
     const env = setup();

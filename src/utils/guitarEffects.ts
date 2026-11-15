@@ -47,7 +47,10 @@ const STOP_RELEASE_SECONDS = 0.025;
 const MAX_LEGATO_SAMPLE_GAIN = 3;
 const voices = new WeakMap<AudioBufferSourceNode, Voice>();
 const stringVoices = new WeakMap<PlaybackStrings, Set<Voice>>();
-const attackOffsets = new WeakMap<AudioBuffer, number>();
+const attackOffsets = new WeakMap<
+  AudioBuffer,
+  { body: number; mutedPick: number }
+>();
 const sampleEnergy = new WeakMap<
   AudioBuffer,
   {
@@ -177,9 +180,9 @@ function getBuffer(instrument: Soundfont.Player, midi: number) {
   ).buffers?.[midi];
 }
 
-function getAttackOffset(buffer: AudioBuffer) {
+function getAttackOffset(buffer: AudioBuffer, mutedPick = false) {
   const cached = attackOffsets.get(buffer);
-  if (cached !== undefined) return cached;
+  if (cached !== undefined) return mutedPick ? cached.mutedPick : cached.body;
   const samples = buffer.getChannelData(0);
   const windowSize = Math.max(1, Math.floor(buffer.sampleRate * 0.004));
   const limit = Math.min(samples.length, Math.floor(buffer.sampleRate * 0.08));
@@ -201,12 +204,19 @@ function getAttackOffset(buffer: AudioBuffer) {
   }
   // Locate the post-attack body for legato entry and dead-note resonance,
   // instead of jumping 0.1–0.5 s into every recording.
-  const offset = Math.min(
+  const body = Math.min(
     (peakFrame + windowSize) / buffer.sampleRate + 0.018,
     buffer.duration * 0.2,
   );
-  attackOffsets.set(buffer, offset);
-  return offset;
+  // A short palm-mute envelope can expire while a recording is still building
+  // up to its pick attack. Enter just before that attack, retaining its transient
+  // rather than borrowing the post-attack body used for hammer-ons/pull-offs.
+  const offsets = {
+    body,
+    mutedPick: Math.max(0, peakFrame / buffer.sampleRate - 0.008),
+  };
+  attackOffsets.set(buffer, offsets);
+  return mutedPick ? offsets.mutedPick : offsets.body;
 }
 
 function sampleRms(buffer: AudioBuffer, start: number, end: number) {
@@ -308,6 +318,7 @@ interface SampleArgs {
   strings: PlaybackStrings;
   scheduledNodes?: { stop(when?: number): void }[];
   legato?: boolean;
+  mutedPick?: boolean;
 }
 
 function createVoice({
@@ -320,6 +331,7 @@ function createVoice({
   strings,
   scheduledNodes,
   legato,
+  mutedPick,
 }: SampleArgs) {
   const buffer = getBuffer(instrument, midi);
   if (!buffer) return;
@@ -341,7 +353,11 @@ function createVoice({
     filter,
     instrument,
     sampleMidi: midi,
-    sampleOffset: legato ? getAttackOffset(buffer) : 0,
+    sampleOffset: legato
+      ? getAttackOffset(buffer)
+      : mutedPick
+        ? getAttackOffset(buffer, true)
+        : 0,
     startTime,
     releaseAt: Infinity,
     stopAt: Infinity,
@@ -492,6 +508,7 @@ export function playGuitarNote(
   const { midi, fret, bpm, effects, transition, strings, stringIdx } = args;
   const time = Math.max(args.audioContext.currentTime, args.startTime);
   const interval = 60 / bpm;
+  const palmMuted = effects.includes("PM");
   const legato =
     transition?.transitionFromFret !== undefined || !args.pluckBaseNote;
   const previous = strings[stringIdx];
@@ -518,7 +535,12 @@ export function playGuitarNote(
     reuse = false;
   }
   if (!reuse) {
-    voice = createVoice({ ...args, startTime: time, legato });
+    voice = createVoice({
+      ...args,
+      startTime: time,
+      legato,
+      mutedPick: palmMuted,
+    });
   }
   if (!voice) return;
   const vibrato = effects.includes("~") && (args.fretted ?? fret > 0);
@@ -573,7 +595,6 @@ export function playGuitarNote(
     transitionEnd = pitchStart + duration;
   }
 
-  const palmMuted = effects.includes("PM");
   let duration = palmMuted ? clamp(interval * 0.7, 0.075, 0.28) : 3;
   if (effects.includes("."))
     duration = Math.min(duration, clamp(interval * 0.45, 0.035, 0.22));
