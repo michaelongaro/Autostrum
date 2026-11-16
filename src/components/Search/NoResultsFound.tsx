@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { BsPlus } from "react-icons/bs";
 import Binoculars from "~/components/ui/icons/Binoculars";
+import { saveNewTabTitle } from "~/utils/newTabTitleHandoff";
 
 interface NoResultsFound {
   customKey: string;
@@ -36,7 +37,12 @@ function NoResultsFound({ customKey, searchQuery }: NoResultsFound) {
           role="link"
           nativeButton={false}
           render={
-            <Link prefetch={false} href="/create" className="baseFlex gap-1.5">
+            <Link
+              prefetch={false}
+              href="/create"
+              onClick={() => saveNewTabTitle(searchQuery)}
+              className="baseFlex gap-1.5"
+            >
               <BsPlus className="size-5" />
               Create the first tab for this song
             </Link>

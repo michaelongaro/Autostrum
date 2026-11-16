@@ -50,6 +50,90 @@ function StaticSectionContainer({
 
   const zoom = useGetLocalStorageValues().zoom;
 
+  const sectionHeading = (
+    <div className="baseFlex w-full !justify-start gap-4">
+      <div
+        style={{
+          backgroundColor: "hsl(var(--screenshot-accent))",
+          color: "hsl(var(--screenshot-primary-foreground))",
+        }}
+        className="baseFlex gap-4 rounded-md px-4 py-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-semibold md:text-xl">
+          {sectionData.title}
+        </h2>
+      </div>
+    </div>
+  );
+
+  const sectionContent = (
+    <div
+      style={{
+        zoom: zoom,
+      }}
+      className="baseVertFlex w-full gap-3"
+    >
+      {sectionData.data.map((subSection, subSectionIndex) => (
+        <div
+          key={subSection.id}
+          className="baseVertFlex w-full !items-start pb-2"
+        >
+          {(subSection.type === "tab" ||
+            chordSequencesAllHaveSameNoteLength(subSection) ||
+            subSection.repetitions > 1) && (
+            <div className="baseFlex gap-3 px-2 py-1 text-sm">
+              {(subSection.type === "tab" ||
+                chordSequencesAllHaveSameNoteLength(subSection)) && (
+                <div className="baseFlex gap-1">
+                  {getDynamicNoteLengthIcon({
+                    noteLength:
+                      subSection.type === "tab"
+                        ? "quarter"
+                        : (subSection.data[0]?.strummingPattern
+                            .baseNoteLength ?? "quarter"),
+                  })}
+                  {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
+                </div>
+              )}
+
+              {subSection.repetitions > 1 && (
+                <div className="baseFlex gap-3">
+                  {(subSection.type === "tab" ||
+                    chordSequencesAllHaveSameNoteLength(subSection)) && (
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 w-[1px] bg-gray/50"
+                    />
+                  )}
+
+                  <span>Repeat {subSection.repetitions}x</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {subSection.type === "chord" ? (
+            <StaticChordSection
+              subSectionData={subSection}
+              color={color}
+              theme={theme}
+            />
+          ) : (
+            <StaticTabSection
+              subSectionData={subSection}
+              sectionIndex={sectionIndex}
+              subSectionIndex={subSectionIndex}
+              color={color}
+              theme={theme}
+              virtualized={virtualized}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div
       id={`sectionIndex${sectionIndex}`}
@@ -59,109 +143,37 @@ function StaticSectionContainer({
       }}
       className="baseVertFlex w-full gap-4 px-2 md:px-7"
     >
-      <Accordion
-        value={[accordionOpen]}
-        onValueChange={([value = "closed"]) => {
-          setAccordionOpen(value === "opened" ? value : "closed");
-        }}
-        className="w-full"
-      >
-        <AccordionItem value="opened" className="baseVertFlex w-full">
-          <div className="baseFlex w-full !justify-start gap-4">
-            <div
-              style={{
-                backgroundColor: "hsl(var(--screenshot-accent))",
-                color: "hsl(var(--screenshot-primary-foreground))",
-              }}
-              className="baseFlex gap-4 rounded-md px-4 py-2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <span className="text-lg font-semibold md:text-xl">
-                {sectionData.title}
-              </span>
-            </div>
-          </div>
+      {tabDataLength === 1 ? (
+        <>
+          {sectionHeading}
+          {sectionContent}
+        </>
+      ) : (
+        <Accordion
+          value={[accordionOpen]}
+          onValueChange={([value = "closed"]) => {
+            setAccordionOpen(value === "opened" ? value : "closed");
+          }}
+          className="w-full"
+        >
+          <AccordionItem value="opened" className="baseVertFlex w-full">
+            {sectionHeading}
 
-          <AccordionTrigger
-            headingLevel={2}
-            aria-label={`Toggle ${sectionData.title || `section ${sectionIndex + 1}`}`}
-            showUnderline={false}
-            editingSectionContainer={false}
-            viewingSectionContainer={true}
-            className="w-full"
-          ></AccordionTrigger>
+            <AccordionTrigger
+              headingLevel={2}
+              aria-label={`Toggle ${sectionData.title || `section ${sectionIndex + 1}`}`}
+              showUnderline={false}
+              editingSectionContainer={false}
+              viewingSectionContainer={true}
+              className="w-full"
+            ></AccordionTrigger>
 
-          <AccordionContent animated={true} className="w-full pt-4">
-            {/* map over tab/chord subSections */}
-            <div
-              style={{
-                zoom: zoom,
-              }}
-              className="baseVertFlex w-full gap-3"
-            >
-              {sectionData.data.map((subSection, subSectionIndex) => (
-                <div
-                  key={subSection.id}
-                  className="baseVertFlex w-full !items-start pb-2"
-                >
-                  {(subSection.type === "tab" ||
-                    chordSequencesAllHaveSameNoteLength(subSection) ||
-                    subSection.repetitions > 1) && (
-                    <div className="baseFlex gap-3 px-2 py-1 text-sm">
-                      {(subSection.type === "tab" ||
-                        chordSequencesAllHaveSameNoteLength(subSection)) && (
-                        <div className="baseFlex gap-1">
-                          {getDynamicNoteLengthIcon({
-                            noteLength:
-                              subSection.type === "tab"
-                                ? "quarter"
-                                : (subSection.data[0]?.strummingPattern
-                                    .baseNoteLength ?? "quarter"),
-                          })}
-                          {subSection.bpm === -1 ? bpm : subSection.bpm} BPM
-                        </div>
-                      )}
-
-                      {subSection.repetitions > 1 && (
-                        <div className="baseFlex gap-3">
-                          {(subSection.type === "tab" ||
-                            chordSequencesAllHaveSameNoteLength(
-                              subSection,
-                            )) && (
-                            <Separator
-                              orientation="vertical"
-                              className="h-4 w-[1px] bg-gray/50"
-                            />
-                          )}
-
-                          <span>Repeat {subSection.repetitions}x</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {subSection.type === "chord" ? (
-                    <StaticChordSection
-                      subSectionData={subSection}
-                      color={color}
-                      theme={theme}
-                    />
-                  ) : (
-                    <StaticTabSection
-                      subSectionData={subSection}
-                      sectionIndex={sectionIndex}
-                      subSectionIndex={subSectionIndex}
-                      color={color}
-                      theme={theme}
-                      virtualized={virtualized}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            <AccordionContent animated={true} className="w-full pt-4">
+              {sectionContent}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
 
       {sectionIndex < tabDataLength - 1 && <Separator />}
     </div>

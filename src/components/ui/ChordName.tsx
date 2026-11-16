@@ -1,4 +1,5 @@
 import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
+import { cn } from "~/utils/cn";
 
 function dynamicFontSize(chordNameLength: number): number {
   const inMin = 1;
@@ -23,6 +24,7 @@ interface ChordName {
   showFullName?: boolean;
   rotate?: boolean;
   hideColor?: boolean;
+  className?: string;
 }
 
 function ChordName({
@@ -35,6 +37,7 @@ function ChordName({
   showFullName,
   rotate = true,
   hideColor,
+  className,
 }: ChordName) {
   const chordDisplayMode = useTabStore((state) => {
     return state.chordDisplayMode;
@@ -61,7 +64,7 @@ function ChordName({
     <div
       style={{
         color: textColor,
-        fontSize: truncate ? `${dynamicFontSize(name.length)}px` : "16px",
+        fontSize: truncate ? `${dynamicFontSize(name.length)}px` : undefined,
         lineHeight: "1.25rem",
         zIndex: showFullName ? 9 : undefined, // I still want hover to take priority over chord popover being open
         rotate:
@@ -72,7 +75,10 @@ function ChordName({
       }}
       // FYI: I am still unsure why adding "isolate" fixes the issue where the chord name
       // would sometimes not change color when highlighted on iOS
-      className="baseFlex isolate h-5 shrink-0 px-1 font-semibold hover:z-10"
+      className={cn(
+        "baseFlex isolate h-5 shrink-0 px-1 text-base font-semibold hover:z-10",
+        className,
+      )}
     >
       {modifiedChordName}
     </div>

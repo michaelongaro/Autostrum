@@ -18,6 +18,7 @@ import NoResultsFound from "./NoResultsFound";
 import TableTabRow from "./TableTabRow";
 import SearchResultsSpinner from "./SearchResultsSpinner";
 import styles from "./SearchResults.module.css";
+import { cn } from "~/utils/cn";
 
 interface TableTabView {
   searchQuery?: string;
@@ -149,7 +150,13 @@ function TableTabView({
           >
             <div ref={headingStripRef} className={styles.headingStrip}>
               {headings.map((heading) => (
-                <div key={heading.label} className="flex h-8 items-center px-4">
+                <div
+                  key={heading.label}
+                  className={cn(
+                    "flex h-8 items-center px-4",
+                    heading.label === "Genre" && "pl-8",
+                  )}
+                >
                   {"hidden" in heading ? null : heading.label}
                 </div>
               ))}
@@ -207,7 +214,10 @@ function TableTabView({
                       <TableHead
                         key={heading.label}
                         scope="col"
-                        className="h-8 px-4 py-1 text-inherit"
+                        className={cn(
+                          "h-8 px-4 py-1 text-inherit",
+                          heading.label === "Genre" && "pl-8",
+                        )}
                       >
                         {"hidden" in heading ? (
                           <span className="sr-only">{heading.label}</span>

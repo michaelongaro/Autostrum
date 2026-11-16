@@ -449,7 +449,7 @@ function MobileSettingsPopover({
 
         <div className="baseFlex w-full !justify-between gap-2">
           <Label htmlFor="colorCodedChordsMobile" className="baseFlex gap-2">
-            <IoColorPalette className="size-4" />
+            <IoColorPalette className="size-[18px]" />
             Color-coded chords
           </Label>
 
@@ -464,7 +464,7 @@ function MobileSettingsPopover({
 
         <div className="baseFlex w-full !justify-between gap-2">
           <Label htmlFor="countInMobile" className="baseFlex gap-2">
-            <CountIn className="size-4" />
+            <CountIn className="size-[18px]" />
             Count in
           </Label>
 
@@ -858,7 +858,8 @@ function MobileMenuDialog() {
 
                               {/* preview chord button */}
                               <Button
-                                variant={"audio"} aria-label="Play/Pause preview"
+                                variant={"audio"}
+                                aria-label="Play/Pause preview"
                                 disabled={
                                   previewMetadata.indexOfPattern === index &&
                                   previewMetadata.playing &&
@@ -910,7 +911,8 @@ function MobileMenuDialog() {
                         >
                           <div className="baseVertFlex !items-start">
                             <Button
-                              variant={"audio"} aria-label="Play/Pause preview"
+                              variant={"audio"}
+                              aria-label="Play/Pause preview"
                               size={"sm"}
                               disabled={artificalPlayButtonTimeout[index]}
                               onClick={() => {

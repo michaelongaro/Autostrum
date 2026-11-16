@@ -33,6 +33,7 @@ import {
 } from "~/utils/drafts/tabDraftState";
 import { tabDocumentSchema, type DraftReference } from "~/utils/tabDocument";
 import { clearTabForSignIn, readTabForSignIn } from "~/utils/tabSignInHandoff";
+import { clearNewTabTitle, readNewTabTitle } from "~/utils/newTabTitleHandoff";
 
 interface DraftActions {
   preparePublication: () => Promise<DraftReference | undefined>;
@@ -104,6 +105,7 @@ function DraftEditorSession({
     retry: false,
   });
   const sessionRef = useRef<DraftSession | null>(null);
+  const titlePrefillRef = useRef<ReturnType<typeof readNewTabTitle>>(null);
   const applying = useRef(false);
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -121,12 +123,6 @@ function DraftEditorSession({
       setReady(false);
       hydratePublishedTab(fetchedTab);
       getTabStore().setEditing(true);
-      if (!ownerId) {
-        setReady(true);
-        return;
-      }
-
-      const local = readRecoveryRecords(ownerId);
       const requestedId =
         typeof location.query.draft === "string"
           ? location.query.draft
@@ -135,6 +131,25 @@ function DraftEditorSession({
         typeof location.query.recovery === "string"
           ? location.query.recovery
           : undefined;
+      const signInTab =
+        ownerId && !requestedId && sourceTabId === null
+          ? readTabForSignIn()
+          : null;
+      // Apply the search handoff before taking the initial draft snapshot.
+      // Retain it across effect replays/retries after the storage key is cleared.
+      const titlePrefill =
+        !requestedId && sourceTabId === null && !signInTab
+          ? (titlePrefillRef.current ??= readNewTabTitle())
+          : null;
+      if (titlePrefill) getTabStore().setTitle(titlePrefill.title);
+
+      if (!ownerId) {
+        if (titlePrefill) clearNewTabTitle(titlePrefill);
+        setReady(true);
+        return;
+      }
+
+      const local = readRecoveryRecords(ownerId);
       if (
         requestedId &&
         !recoveryRecordSchema.shape.id.safeParse(requestedId).success
@@ -144,8 +159,6 @@ function DraftEditorSession({
       // Visiting /create always starts fresh. Only an explicit draft link or
       // an edit route can resume an existing account draft.
       const active = requestedId || sourceTabId ? getActiveDraft(route) : null;
-      const signInTab =
-        !requestedId && sourceTabId === null ? readTabForSignIn() : null;
       let recovered = requestedId
         ? (local.records.find(
             (record) =>
@@ -200,7 +213,7 @@ function DraftEditorSession({
         sourceTabId,
         fetchedTab?.updatedAt.toISOString() ?? null,
       );
-      let needsSave = !!signInTab;
+      let needsSave = !!signInTab || !!titlePrefill;
       let conflict: string | null = null;
       let hasRecovery = !!recovered || !!cloud;
       const sameDocument =
@@ -274,6 +287,7 @@ function DraftEditorSession({
       });
       sessionRef.current = session;
       session.start();
+      if (titlePrefill) clearNewTabTitle(titlePrefill);
       if (conflict) session.block(conflict);
       unsubscribe = subscribeTabStore((next, previous) => {
         if (

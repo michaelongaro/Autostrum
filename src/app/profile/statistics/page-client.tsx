@@ -635,14 +635,26 @@ function UserStatistics() {
                                       transition={{ duration: 0.25 }}
                                       className="baseFlex w-full !justify-start gap-1"
                                     >
-                                      {miscStatsSlide === 4 &&
-                                        currentUser?.artistIsVerified.get(
-                                          category,
-                                        ) && (
-                                          <Verified className="size-4 shrink-0" />
-                                        )}
-                                      {category}
-                                      <span className="font-semibold text-foreground"></span>
+                                      {miscStatsSlide === 4 ? (
+                                        <Link
+                                          prefetch={false}
+                                          href={
+                                            currentUser.artistIds.has(category)
+                                              ? `/artist/${encodeURIComponent(category)}/${currentUser.artistIds.get(category)}/filters`
+                                              : `/user/${currentUser.username}/filters`
+                                          }
+                                          className="baseFlex gap-1 rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+                                        >
+                                          {currentUser.artistIsVerified.get(
+                                            category,
+                                          ) && (
+                                            <Verified className="size-4 shrink-0" />
+                                          )}
+                                          {category}
+                                        </Link>
+                                      ) : (
+                                        category
+                                      )}
                                     </motion.div>
                                   </TableCell>
 

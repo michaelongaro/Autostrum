@@ -327,6 +327,7 @@ export const userRouter = createTRPCRouter({
         difficulty: true,
         artist: {
           select: {
+            id: true,
             name: true,
             isVerified: true,
           },
@@ -466,6 +467,7 @@ export const userRouter = createTRPCRouter({
 
     const artists = new Map<string, number>();
     const artistIsVerified = new Map<string, boolean>();
+    const artistIds = new Map<string, number>();
 
     const difficultyIntToString = {
       1: "Beginner",
@@ -517,6 +519,7 @@ export const userRouter = createTRPCRouter({
 
       if (stat.artist && !artistIsVerified.has(artistName)) {
         artistIsVerified.set(artistName, stat.artist.isVerified);
+        artistIds.set(artistName, stat.artist.id);
       }
     }
 
@@ -537,6 +540,7 @@ export const userRouter = createTRPCRouter({
       topFiveStats,
       miscStats,
       artistIsVerified,
+      artistIds,
     };
   }),
 

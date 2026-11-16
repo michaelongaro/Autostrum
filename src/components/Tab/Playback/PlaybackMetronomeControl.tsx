@@ -35,7 +35,7 @@ export default function PlaybackMetronomeControl({ mobile = false }) {
           htmlFor={id}
           className="flex items-center gap-2 whitespace-nowrap"
         >
-          <PiMetronome className="size-4 shrink-0" />
+          <PiMetronome className="size-[18px] shrink-0" />
           Metronome
         </Label>
         <Switch

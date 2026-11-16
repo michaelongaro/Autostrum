@@ -443,7 +443,7 @@ function TunerPanel({
                         value === "none" ? 0 : requiredPlaybackCapo,
                       )
                     }
-                    itemClassName="h-[24px] w-[80px] sm:w-[90px]"
+                    itemClassName="h-[24px] min-w-[90px] whitespace-nowrap"
                     options={[
                       { value: "none", label: "No capo" },
                       {
@@ -506,7 +506,7 @@ function TunerPanel({
                     value === "none" ? 0 : requiredPlaybackCapo,
                   )
                 }
-                itemClassName="h-[24px] w-[80px] sm:w-[90px]"
+                itemClassName="h-[24px] min-w-[90px] whitespace-nowrap"
                 options={[
                   { value: "none", label: "No capo" },
                   {

@@ -80,6 +80,7 @@ function PinnedChordsCarousel({
                     color={chord.color}
                     truncate={false}
                     showFullName={true}
+                    className="text-sm md:text-base"
                   />
 
                   <div className="h-[80px] lg:h-[118px]">

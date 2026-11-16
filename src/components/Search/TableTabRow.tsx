@@ -182,7 +182,7 @@ function TableTabRow({
       </TableCell>
 
       {/* Genre */}
-      <TableCell>
+      <TableCell className="pl-8">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
