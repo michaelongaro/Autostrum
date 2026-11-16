@@ -2,7 +2,7 @@
 import "./lib/registerTypeScript.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { midi, model, Settings } from "@coderline/alphatab/core";
+import { exporter, midi, model, Settings } from "@coderline/alphatab/core";
 const { readGuitarProScore } =
   await import("../src/utils/guitarPro/readScore.ts");
 const { convertScore, getImportTracks, getMeasureOrder } =
@@ -40,6 +40,195 @@ const keys = [
   "fifthString",
   "sixthString",
 ];
+
+// Small scores with real alphaTab timing and tie resolution, independent of the
+// bundled file fixtures, make attacks, continuations and rests unambiguous.
+function sustainScore(measures) {
+  const score = new model.Score();
+  const track = new model.Track();
+  const staff = new model.Staff();
+  score.addTrack(track);
+  track.addStaff(staff);
+  staff.stringTuning.tunings = [64, 59, 55, 50, 45, 40];
+  for (const voices of measures) {
+    score.addMasterBar(new model.MasterBar());
+    const bar = new model.Bar();
+    staff.addBar(bar);
+    for (const beats of voices) {
+      const voice = new model.Voice();
+      bar.addVoice(voice);
+      for (const { duration, notes = [], ...effects } of beats) {
+        const beat = new model.Beat();
+        Object.assign(beat, { duration, ...effects });
+        voice.addBeat(beat);
+        for (const properties of notes) {
+          const note = new model.Note();
+          Object.assign(note, properties);
+          beat.addNote(note);
+        }
+      }
+    }
+  }
+  score.finish(new Settings());
+  return score;
+}
+
+function noteColumns(score) {
+  return columns(convert(score).document).filter((c) => c.type === "note");
+}
+
+function assertSustain(column) {
+  assert.ok(keys.every((key) => column[key] === ""));
+  assert.equal(column.chordEffects, "", "a sustain must not stop the strings");
+  assert.equal(column.palmMute, "");
+}
+
+{
+  const score = sustainScore([
+    [
+      [
+        { duration: model.Duration.Quarter, notes: [{ string: 6, fret: 5 }] },
+        {
+          duration: model.Duration.Quarter,
+          notes: [
+            { string: 6, fret: 5, isTieDestination: true, isPalmMute: true },
+          ],
+          brushType: model.BrushType.BrushDown,
+        },
+        {
+          duration: model.Duration.Quarter,
+          notes: [{ string: 6, fret: 5, isTieDestination: true }],
+        },
+        { duration: model.Duration.Quarter },
+      ],
+    ],
+  ]);
+  const notes = noteColumns(score);
+  assert.equal(notes.length, 4);
+  assert.equal(notes[0].firstString, "5");
+  assertSustain(notes[1]);
+  assertSustain(notes[2]);
+  assert.equal(
+    notes[3].chordEffects,
+    "r",
+    "a true rest must still silence playback",
+  );
+  assert.ok(
+    convert(score).warnings.every((w) => !/picked again|shortened/.test(w)),
+  );
+  console.log(
+    "PASS tie chains: one attack, empty continuations, no copied effects and a true rest",
+  );
+}
+
+{
+  const score = sustainScore([
+    [[{ duration: model.Duration.Whole, notes: [{ string: 6, fret: 5 }] }]],
+    [
+      [
+        {
+          duration: model.Duration.Half,
+          notes: [{ string: 6, fret: 5, isTieDestination: true }],
+        },
+        {
+          duration: model.Duration.Quarter,
+          notes: [{ string: 6, fret: 5, isTieDestination: true }],
+        },
+        { duration: model.Duration.Quarter, notes: [{ string: 6, fret: 5 }] },
+      ],
+    ],
+  ]);
+  const notes = noteColumns(score);
+  assert.deepEqual(
+    notes.map((c) => c.noteLength),
+    ["whole", "half", "quarter", "quarter"],
+  );
+  assert.equal(notes[0].firstString, "5");
+  assertSustain(notes[1]);
+  assertSustain(notes[2]);
+  assert.equal(
+    notes[3].firstString,
+    "5",
+    "an untied repeated pitch needs a fresh attack",
+  );
+  console.log(
+    "PASS cross-measure ties preserve timing and untied repeated notes still pick",
+  );
+}
+
+{
+  const score = sustainScore([
+    [
+      [
+        { duration: model.Duration.Half, notes: [{ string: 1, fret: 3 }] },
+        { duration: model.Duration.Half },
+      ],
+      [
+        { duration: model.Duration.Eighth },
+        { duration: model.Duration.Eighth, notes: [{ string: 6, fret: 7 }] },
+        { duration: model.Duration.Quarter },
+        { duration: model.Duration.Half },
+      ],
+    ],
+  ]);
+  const notes = noteColumns(score);
+  assert.deepEqual(
+    notes.map((c) => c.noteLength),
+    ["eighth", "eighth", "quarter", "half"],
+  );
+  assert.equal(notes[0].sixthString, "3");
+  assert.equal(notes[1].firstString, "7");
+  assert.equal(
+    notes[1].sixthString,
+    "",
+    "another voice must not replay the held bass",
+  );
+  assertSustain(notes[2]);
+  assert.equal(
+    notes[3].chordEffects,
+    "r",
+    "rest only once every voice has finished",
+  );
+  assert.ok(convert(score).warnings.every((w) => !w.includes("shortened")));
+  console.log(
+    "PASS independent voices: onsets pick once, intervening rests allow sustained strings to ring",
+  );
+}
+
+{
+  const score = sustainScore([
+    [
+      [
+        {
+          duration: model.Duration.Quarter,
+          notes: [
+            { string: 1, fret: 3 },
+            { string: 6, fret: 5 },
+          ],
+        },
+        {
+          duration: model.Duration.Quarter,
+          notes: [
+            { string: 1, fret: 3, isTieDestination: true, isPalmMute: true },
+            { string: 6, fret: 7 },
+          ],
+        },
+        { duration: model.Duration.Half },
+      ],
+    ],
+  ]);
+  const notes = noteColumns(score);
+  assert.equal(notes[1].sixthString, "");
+  assert.equal(notes[1].firstString, "7");
+  assert.equal(
+    notes[1].palmMute,
+    "",
+    "a tied note's mute must not affect new attacks",
+  );
+  console.log(
+    "PASS mixed chords import new attacks while leaving tied strings empty",
+  );
+}
 
 for (const name of [
   "guitarpro3-notes.gp3",
@@ -159,13 +348,8 @@ for (const name of [
         ),
         null,
       );
-  assert.ok(
-    notes
-      .filter((c) => keys.every((key) => !c[key]))
-      .every((c) => c.chordEffects === "r"),
-  );
   console.log(
-    "PASS effects: dead notes, vibrato, fallback report, closed palm-mute runs and silent rests",
+    "PASS effects: dead notes, vibrato, fallback report and closed palm-mute runs",
   );
 }
 
@@ -266,6 +450,40 @@ assert.throws(
 );
 console.log(
   "PASS invalid extensions, empty/oversized files, uppercase extensions and corrupt bytes",
+);
+
+// Read capo settings from actual GP file bytes, then apply the resulting
+// document to an editor with a different capo (including resetting it to zero).
+for (const capo of [0, 3, 12, 22]) {
+  const score = load();
+  score.tracks[0].staves[0].capo = capo;
+  const bytes = new exporter.Gp7Exporter().export(score);
+  const parsed = readGuitarProScore(bytes, "capo.gp");
+  assert.equal(parsed.tracks[0].staves[0].capo, capo);
+  const { document } = convert(parsed);
+  assert.equal(document.capo, capo);
+  assert.equal(
+    columns(document)[0].sixthString,
+    "1",
+    "capo must not shift written frets",
+  );
+  const store = createTabStore({ editing: true }, () => {});
+  store.getState().setCapo(7);
+  await Promise.resolve();
+  store.getState().clearEditorHistory();
+  store.getState().importDocument(document);
+  assert.equal(
+    store.getState().capo,
+    capo,
+    "import must set the file's capo on the tab",
+  );
+  store.getState().undo();
+  assert.equal(store.getState().capo, 7);
+  store.getState().redo();
+  assert.equal(store.getState().capo, capo);
+}
+console.log(
+  "PASS capo: GP file bytes preserve frets and capo through parsing, conversion, editor import, undo and redo",
 );
 
 {
