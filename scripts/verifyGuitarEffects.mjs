@@ -143,6 +143,9 @@ const {
   stopActivePlaybackStrings,
   stopAllScheduledPlaybackNodes,
 } = await import(moduleUrl("src/utils/playGeneratedAudioHelpers.ts"));
+const { buildPlaybackTimeline } = await import(
+  moduleUrl("src/utils/playbackScheduler.ts")
+);
 
 class Param {
   value = 0;
@@ -303,20 +306,30 @@ function phrase(
     tuning = [64, 59, 55, 50, 45, 40],
   } = {},
 ) {
-  const columns = notes.map((note) =>
-    typeof note === "string" ? column(note) : note,
-  );
-  columns.forEach((currColumn, index) => {
+  const columns = notes.map((note) => {
+    const col = typeof note === "string" ? column(note) : [...note];
+    if (col.length > 0) col[9] = String(bpm);
+    return col;
+  });
+  const timeline = buildPlaybackTimeline({
+    compiledChords: columns,
+    fromChordIndex: 0,
+    adjChordCount: columns.length,
+    playbackSpeed: 1,
+    startTime,
+  });
+  timeline.forEach((entry) => {
+    if (entry.startTime === null) return;
     void playNoteColumn({
       tuning,
       capo,
-      bpm,
-      targetStartTime: startTime + (index * 60) / bpm,
-      thirdPrevColumn: columns[index - 3],
-      secondPrevColumn: columns[index - 2],
-      prevColumn: columns[index - 1],
-      currColumn,
-      nextColumn: columns[index + 1],
+      bpm: entry.effectiveBpm,
+      targetStartTime: entry.startTime,
+      thirdPrevColumn: entry.thirdPrevColumn,
+      secondPrevColumn: entry.secondPrevColumn,
+      prevColumn: entry.prevColumn,
+      currColumn: entry.currColumn,
+      nextColumn: entry.nextColumn,
       audioContext: env.context,
       masterVolumeGainNode: env.context.destination,
       currentInstrument: env.instrument,
@@ -355,6 +368,67 @@ test("Slides, bends, and releases stay on the original voice", () => {
   phrase(env, ["3/", "5b", "7", "r", "5b", "7r"]);
   assert.equal(sampleNodes(env).length, 1);
   assert.equal(finalPitch(sampleNodes(env)[0]), 200);
+});
+
+test("Measure lines preserve tethered pitch, timing, and the original attack", () => {
+  const phrases = [
+    ["7/", "9"],
+    ["7/", "12"],
+    ["9\\", "7"],
+    ["7h", "9"],
+    ["9p", "7"],
+    ["7", "/", "9"],
+    ["9", "\\", "7"],
+    ["7", "h", "9"],
+    ["9", "p", "7"],
+    ["7b", "10", "r"],
+    ["7b", "10r"],
+    ["7b", "r", "7b"],
+    ["5/", "7b", "10", "r"],
+  ];
+  const snapshot = (env) =>
+    sampleNodes(env).map((node) => ({
+      pitch: node.detune.events,
+      startedAt: node.startedAt,
+      stoppedAt: node.stoppedAt,
+      sampleOffset: node.sampleOffset,
+    }));
+
+  for (const notes of phrases) {
+    for (const capo of [0, 3]) {
+      const expected = setup();
+      phrase(expected, notes, { capo });
+      assert.equal(sampleNodes(expected).length, 1, notes.join(" "));
+      for (let index = 1; index < notes.length; index++) {
+        for (const lineCount of [1, 2]) {
+          const withLines = notes.toSpliced(
+            index,
+            0,
+            ...Array.from({ length: lineCount }, () => []),
+          );
+          const actual = setup();
+          phrase(actual, withLines, { capo });
+          assert.deepEqual(
+            snapshot(actual),
+            snapshot(expected),
+            `${notes.join(" ")}: ${lineCount} measure line(s) at ${index}, capo ${capo}`,
+          );
+        }
+      }
+    }
+  }
+});
+
+test("Tethers across measure lines still stop at empty beats and rests", () => {
+  for (const gap of [column(), column("", { chordEffects: "r" })]) {
+    const env = setup();
+    phrase(env, ["7h", [], gap, [], "9"]);
+    const samples = sampleNodes(env);
+    assert.equal(samples.length, 2);
+    assert.equal(samples[1].sampleOffset, 0, "the destination is plucked");
+    assert.deepEqual(samples[1].detune.events, []);
+    assert.equal(samples[1].startedAt, 1.2, "the gap keeps its full duration");
+  }
 });
 test("Vibrato starts after the scheduled note, independent of note subdivision", () => {
   const env = setup({ currentTime: 10 });

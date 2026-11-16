@@ -1,5 +1,6 @@
 import type Soundfont from "soundfont-player";
-import { noteLengthMultipliers, type FullNoteLengths } from "~/stores/TabStore";
+import type { FullNoteLengths } from "~/stores/TabStore";
+import { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
 import {
   playNoteColumn,
   stopActivePlaybackStrings,
@@ -46,6 +47,15 @@ export function buildPlaybackTimeline({
   loopDelayChordCount = 0,
 }: BuildPlaybackTimelineArgs): PlaybackTimelineEntry[] {
   const entries: PlaybackTimelineEntry[] = [];
+  // Measure lines compile to [] and have no duration. Keep their timeline
+  // indexes for highlighting, but resolve effects across them. Real empty
+  // beats and rests still count as musical columns and must not be skipped.
+  const musicalColumns: string[][] = [];
+  const musicalColumnIndices = compiledChords.map((column) => {
+    if (column.length === 0) return undefined;
+    musicalColumns.push(column);
+    return musicalColumns.length - 1;
+  });
   let nextStartTime = startTime;
   const loopDelayStart = compiledChords.length - loopDelayChordCount;
   const lastMusicalBpm = Number(
@@ -61,6 +71,7 @@ export function buildPlaybackTimeline({
   ) {
     const adjChordIndex = chordIndex % compiledChords.length;
     const currColumn = compiledChords[adjChordIndex];
+    const musicalColumnIndex = musicalColumnIndices[adjChordIndex];
 
     let entryStartTime: number | null = null;
     let duration = 0;
@@ -93,11 +104,15 @@ export function buildPlaybackTimeline({
       duration,
       effectiveBpm,
       metronomeBpm,
-      thirdPrevColumn: compiledChords[adjChordIndex - 3],
-      secondPrevColumn: compiledChords[adjChordIndex - 2],
-      prevColumn: compiledChords[adjChordIndex - 1],
+      ...(musicalColumnIndex === undefined
+        ? {}
+        : {
+            thirdPrevColumn: musicalColumns[musicalColumnIndex - 3],
+            secondPrevColumn: musicalColumns[musicalColumnIndex - 2],
+            prevColumn: musicalColumns[musicalColumnIndex - 1],
+            nextColumn: musicalColumns[musicalColumnIndex + 1],
+          }),
       currColumn: currColumn ?? [],
-      nextColumn: compiledChords[adjChordIndex + 1],
       isLastInCompiledSequence: adjChordIndex === compiledChords.length - 1,
     });
   }

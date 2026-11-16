@@ -96,7 +96,7 @@ async function verifyScheduler({
   const scheduler = loadTypeScript(
     "src/utils/playbackScheduler.ts",
     {
-      "~/stores/TabStore": {
+      "~/utils/noteLengthMultipliers": {
         noteLengthMultipliers: { quarter: 1, eighth: 0.5 },
       },
       "~/utils/playGeneratedAudioHelpers": {
@@ -332,6 +332,21 @@ assert.equal(
   ghostColumns.notes.length,
   10,
   "zero-duration entries do not drop or repeat notes",
+);
+
+const measureLines = await verifyScheduler({
+  columns: [[], column("7/"), [], [], column("9", 90), []],
+  changes: [],
+});
+assert.equal(measureLines.notes.length, 2, "measure lines do not play notes");
+const [slideOrigin, slideTarget] = measureLines.notes;
+assert.equal(slideOrigin.nextColumn, slideTarget.currColumn);
+assert.equal(slideTarget.prevColumn, slideOrigin.currColumn);
+close(slideTarget.targetStartTime, 0.53, "measure lines add no time");
+assert.equal(slideTarget.bpm, 90, "tempo changes at measure lines still apply");
+assert.ok(
+  measureLines.updates.some((update) => update.currentChordIndex === 4),
+  "highlighting keeps the original column indexes",
 );
 
 // A click already in the 150 ms metronome buffer must move with the note
