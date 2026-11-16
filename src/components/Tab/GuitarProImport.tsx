@@ -27,12 +27,14 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import Spinner from "~/components/ui/Spinner";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
 import { getTabDocument } from "~/utils/drafts/tabDraftState";
 import { isDefaultTabDocument } from "~/utils/drafts/draftDocument";
 import { useTabStoreApi } from "~/stores/TabStore";
 import { cn } from "~/utils/cn";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import {
   GUITAR_PRO_ACCEPT,
   validateGuitarProFile,
@@ -51,7 +53,6 @@ export default function GuitarProImport() {
   const [busy, setBusy] = useState(false);
   const [applying, setApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fileName, setFileName] = useState("");
   const [tracks, setTracks] = useState<ImportTrack[]>([]);
   const [trackId, setTrackId] = useState("");
   const [preview, setPreview] = useState<ImportPreview | null>(null);
@@ -113,14 +114,12 @@ export default function GuitarProImport() {
     setPreview(null);
     setTracks([]);
     setTrackId("");
-    setFileName("");
     setImported(false);
     try {
       if (files.length !== 1)
         throw new Error("Choose one Guitar Pro file at a time.");
       const file = files[0]!;
       validateGuitarProFile(file);
-      setFileName(file.name);
       setBusy(true);
       startTimeout();
       const currentGeneration = generation.current;
@@ -176,7 +175,6 @@ export default function GuitarProImport() {
       setApplying(false);
       setPreview(null);
       setTracks([]);
-      setFileName("");
       setTrackId("");
       setError(null);
       setDragging(false);
@@ -242,6 +240,7 @@ export default function GuitarProImport() {
           className={cn(
             "max-h-[90dvh] overflow-y-auto",
             isDesktop && "sm:max-w-xl",
+            !isDesktop && "pb-3",
           )}
           onDragOver={(event) => {
             event.preventDefault();
@@ -296,7 +295,6 @@ export default function GuitarProImport() {
               Files are read on your device. For older .gtp files, export to GP5
               first.
             </p>
-            {fileName && <p className="break-all text-sm">{fileName}</p>}
             {tracks.length > 0 && (
               <div className="flex flex-col gap-2">
                 <span
@@ -342,35 +340,28 @@ export default function GuitarProImport() {
               <div className="flex flex-col gap-3 text-sm" role="status">
                 <p>
                   <strong>{preview.document.title}</strong> · {preview.measures}{" "}
-                  measures · {preview.document.bpm} BPM · Capo{" "}
-                  {preview.document.capo}
+                  measures · {preview.document.bpm} BPM ·{" "}
+                  {preview.document.capo === 0
+                    ? "No capo"
+                    : `Capo: ${getOrdinalSuffix(preview.document.capo)} fret`}
                 </p>
-                <p>
-                  Tuning (low to high): {preview.document.tuning.toUpperCase()}
-                </p>
-                <details>
-                  <summary className="cursor-pointer font-medium">
-                    Review import adjustments ({preview.warnings.length})
-                  </summary>
-                  <ul className="mt-2 flex list-disc flex-col gap-2 pl-5 text-foreground/75">
-                    {preview.warnings.map((warning) => (
-                      <li key={warning}>{warning}</li>
-                    ))}
-                  </ul>
-                </details>
-                {replacesDraft && (
-                  <p>
-                    This replaces the tab and metadata in your current draft.
-                    You can undo the import in the editor.
-                  </p>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span>Tuning (low to high):</span>
+                  <PrettyTuning
+                    tuning={preview.document.tuning}
+                    displayWithFlex
+                  />
+                </div>
               </div>
             )}
             <SurfaceFooter className="gap-2 p-0">
-              <Button variant="secondary" onClick={() => changeOpen(false)}>
-                Cancel
-              </Button>
+              {isDesktop && (
+                <Button variant="secondary" onClick={() => changeOpen(false)}>
+                  Cancel
+                </Button>
+              )}
               <Button
+                className={cn(!isDesktop && "w-full")}
                 disabled={!preview || busy || applying}
                 onClick={() => void importTrack()}
               >

@@ -149,10 +149,6 @@ function noteText(
   if (note.isDead) return "x";
   if (note.isHarmonic)
     warnings.add("Harmonics use ordinary fretted notes at the written fret.");
-  if (note.isTieDestination)
-    warnings.add(
-      "Tied notes are picked again; independent voice sustains are shortened at the next column.",
-    );
   if (note.isGhost || note.dynamics !== model.DynamicValue.F)
     warnings.add(
       "Ghost-note volume and dynamics use the editor’s standard volume; accents are kept.",
@@ -300,7 +296,7 @@ export function convertScore(
     )
   )
     warnings.add(
-      "Voices are combined at their note onsets. Independent sustains are shortened; conflicting notes on one string keep the first voice.",
+      "Voices are combined at their note onsets; conflicting notes on one string keep the first voice.",
     );
 
   const sections: Section[] = [];
@@ -379,9 +375,16 @@ export function convertScore(
     );
     let automationIndex = 0;
     let currentTempo = barTempo;
+    let soundingUntil = 0;
     for (let index = 0; index < starts.length; index++) {
       const start = starts[index]!;
       const beats = events.get(start)!;
+      // Empty cells let existing strings ring. A rest stops every string, so
+      // only insert one after all voices' written sustains have ended. Tied
+      // beats extend that span without creating another pick attack.
+      for (const beat of beats)
+        if (beat.notes.length > 0)
+          soundingUntil = Math.max(soundingUntil, start + beat.displayDuration);
       while (
         automations[automationIndex] &&
         automations[automationIndex]!.ratioPosition * duration <= start
@@ -408,7 +411,10 @@ export function convertScore(
       if (ticks <= 0) continue;
       const column = blankNote(nearestLength(ticks, warnings));
       const occupied = new Set<number>();
-      const notes = beats.flatMap((beat) => beat.notes);
+      const notes = beats
+        .flatMap((beat) => beat.notes)
+        .filter((note) => !note.isTieDestination);
+      const sounding: model.Note[] = [];
       // Reserve original playable strings before revoicing extra strings.
       notes.sort(
         (a, b) =>
@@ -443,9 +449,9 @@ export function convertScore(
         if (stringIndex !== originalString || fret !== note.fret)
           value = note.isDead ? "x" : `${fret}`;
         column[stringKeys[stringIndex]!] = value;
+        sounding.push(note);
         hasNotes = true;
       }
-      const sounding = notes;
       if (sounding.some((note) => note.isPalmMute)) {
         column.palmMute = "start";
         if (!sounding.every((note) => note.isPalmMute))
@@ -453,7 +459,7 @@ export function convertScore(
             "Partial palm muting is applied to the entire note column.",
           );
       }
-      for (const beat of beats) {
+      for (const beat of new Set(sounding.map((note) => note.beat))) {
         if (beat.isLetRing)
           warnings.add("Let-ring notes use the editor’s normal sustain.");
         if (beat.brushType !== model.BrushType.None) {
@@ -491,7 +497,8 @@ export function convertScore(
             "Tremolo picking, fades, crescendos, tapping, slap/pop, rasgueado and pedal effects use ordinary picked notes.",
           );
       }
-      if (stringKeys.every((key) => !column[key])) column.chordEffects = "r";
+      if (stringKeys.every((key) => !column[key]))
+        column.chordEffects = start < soundingUntil ? "" : "r";
       subSection.data.push(column);
       if (++columnCount > MAX_COLUMNS)
         throw new Error(
