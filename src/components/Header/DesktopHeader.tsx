@@ -1,6 +1,6 @@
 import { getProfileImageSrc } from "~/utils/profileImage";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
@@ -36,7 +36,7 @@ import Logo from "~/components/ui/icons/Logo";
 import { isThemeTransitionPointerEvent } from "~/utils/updateCSSThemeVars";
 import { CiCompass1 } from "react-icons/ci";
 
-function DesktopHeader() {
+function DesktopHeader({ prefetchSearch }: { prefetchSearch: boolean }) {
   const { userId, isSignedIn } = useAuth();
   const asPath = usePathname();
 
@@ -51,7 +51,7 @@ function DesktopHeader() {
   return (
     <nav
       id={"desktopHeader"}
-      className="baseFlex sticky left-0 top-0 z-[49] h-16 w-full bg-header shadow-sm shadow-primary/20"
+      className="sticky left-0 top-0 z-[49] hidden h-16 w-full items-center justify-center bg-header shadow-sm shadow-primary/20 lg:flex"
     >
       <div className={classes.desktopHeader}>
         <Link
@@ -138,7 +138,16 @@ function DesktopHeader() {
         <div
           className={`${classes.search} baseFlex !w-full min-w-[350px] max-w-[450px]`}
         >
-          <SearchInput />
+          <Suspense
+            fallback={
+              <div
+                aria-hidden="true"
+                className="h-[46px] w-[98%] rounded-md border bg-background"
+              />
+            }
+          >
+            <SearchInput prefetchSuggestions={prefetchSearch} />
+          </Suspense>
         </div>
 
         <TooltipProvider delay={150}>
@@ -252,7 +261,7 @@ function DesktopHeader() {
           </PopoverContent>
         </Popover>
 
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence initial={false} mode="popLayout">
           {(isSignedIn === undefined || isLoadingCurrentUser) && (
             <motion.div
               key={"loadingAuth"}

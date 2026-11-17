@@ -18,28 +18,28 @@ import { Separator } from "~/components/ui/separator";
 import Verified from "~/components/ui/icons/Verified";
 import Link from "next/link";
 import Spinner from "~/components/ui/Spinner";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { PiChartLineUpBold } from "react-icons/pi";
 import { LuTrendingUp } from "react-icons/lu";
 import { IoStatsChart } from "react-icons/io5";
 
 interface SearchInput {
+  prefetchSuggestions?: boolean;
   setShowMobileSearch?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function SearchInput({ setShowMobileSearch }: SearchInput) {
+function SearchInput({
+  prefetchSuggestions = false,
+  setShowMobileSearch,
+}: SearchInput) {
   const { query } = useRouteLocation();
   const { push } = useRouter();
+  const isMobileSearch = setShowMobileSearch !== undefined;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<"songs" | "artists">("songs");
 
-  const isAboveLgViewportWidth = useViewportWidthBreakpoint(1024);
-
-  const [showAutofillResults, setShowAutofillResults] = useState(
-    isAboveLgViewportWidth === false,
-  );
+  const [showAutofillResults, setShowAutofillResults] = useState(false);
   const [enterButtonBeingPressed, setEnterButtonBeingPressed] = useState(false);
 
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -48,7 +48,9 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
   const {
     data: mostPopularDailyTabsAndArtists,
     isFetching: isFetchingMostPopularDailyTabsAndArtists,
-  } = api.search.getMostPopularDailyTabsAndArtists.useQuery();
+  } = api.search.getMostPopularDailyTabsAndArtists.useQuery(undefined, {
+    enabled: prefetchSuggestions || isMobileSearch || showAutofillResults,
+  });
 
   const { data: songSearchResults, isFetching: isFetchingSongResults } =
     api.search.getTabTitlesBySearchQuery.useQuery(debouncedSearchQuery, {
@@ -98,7 +100,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       // Do nothing if the results aren't showing
-      if (!showAutofillResults || isAboveLgViewportWidth === false) return;
+      if (!showAutofillResults || isMobileSearch) return;
 
       if (
         searchContainerRef.current &&
@@ -113,7 +115,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showAutofillResults, isAboveLgViewportWidth]);
+  }, [showAutofillResults, isMobileSearch]);
 
   // React Compiler escape hatch: lodash debounce is stateful; stable identity
   // preserves pending timers and pairs with the cancel() cleanup effect.
@@ -169,16 +171,9 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
     <motion.div
       key={"searchContainer"}
       ref={searchContainerRef}
-      initial={{
-        width: isAboveLgViewportWidth === false ? "100%" : "95%",
-      }}
+      initial={false}
       animate={{
-        width:
-          isAboveLgViewportWidth === false
-            ? "100%"
-            : showAutofillResults
-              ? "100%"
-              : "98%",
+        width: isMobileSearch || showAutofillResults ? "100%" : "98%",
       }}
       transition={{
         ease: "easeOut",
@@ -186,7 +181,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       }}
       className="baseFlex relative z-50 max-w-lg bg-background py-0.5 lg:rounded-md lg:py-0"
     >
-      {isAboveLgViewportWidth === false && (
+      {isMobileSearch && (
         <Button
           aria-label="Close search"
           variant={"text"}
@@ -200,7 +195,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       )}
 
       <div
-        className={`baseFlex w-full gap-2 transition-[border-radius] ${isAboveLgViewportWidth ? "rounded-md border" : "rounded-none border-none"} ${showAutofillResults ? "rounded-b-none" : ""}`}
+        className={`baseFlex w-full gap-2 transition-[border-radius] ${isMobileSearch ? "rounded-none border-none" : "rounded-md border"} ${showAutofillResults ? "rounded-b-none" : ""}`}
       >
         <Input
           ref={searchInputRef}
@@ -283,11 +278,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
       </div>
 
       <AnimatePresence mode="popLayout">
-        {/* songs/artists toggle and autofill results */}
-        {/* FYI: this is a bit hacky, since "showAutofillResults" doesn't apply to mobile dialog,
-            since they are always showing */}
-        {(isAboveLgViewportWidth === false ||
-          (isAboveLgViewportWidth && showAutofillResults)) && (
+        {(isMobileSearch || showAutofillResults) && (
           <motion.div
             key={"searchAutofillContainer"}
             id="searchTypeContainer"
@@ -306,7 +297,7 @@ function SearchInput({ setShowMobileSearch }: SearchInput) {
             transition={{
               duration: 0.2,
             }}
-            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${isAboveLgViewportWidth ? "top-[45px] border !shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.2)]" : "top-11 border-t"}`}
+            className={`absolute left-0 z-50 w-full overflow-hidden rounded-md rounded-t-none border-border bg-background ${isMobileSearch ? "top-11 border-t" : "top-[45px] border !shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.2)]"}`}
           >
             <div className="baseFlex w-full !justify-between p-2 text-sm">
               <div className="baseFlex ml-1 gap-3">

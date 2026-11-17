@@ -69,7 +69,11 @@ function GeneralLayoutStatefulShell() {
 
   return (
     <>
-      {aboveLargeViewportWidth ? <DesktopHeader /> : <MobileHeader />}
+      {/* CSS picks the visible header until the browser viewport is known. */}
+      {aboveLargeViewportWidth !== false && (
+        <DesktopHeader prefetchSearch={aboveLargeViewportWidth === true} />
+      )}
+      {aboveLargeViewportWidth !== true && <MobileHeader />}
 
       <AnimatePresence mode="wait">
         {showMobileHeaderModal && !aboveLargeViewportWidth && (
