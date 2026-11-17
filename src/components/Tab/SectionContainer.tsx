@@ -17,6 +17,7 @@ import {
   useSubSectionIds,
   useSubSectionTypes,
 } from "~/hooks/useTabDataSelectors";
+import { useEditorSectionContainment } from "~/hooks/useEditorSectionContainment";
 import {
   useTabDataGetter,
   useTabStoreShallow,
@@ -74,6 +75,10 @@ function SectionContainer({
 
   const [accordionOpen, setAccordionOpen] = useState(
     presentation === "embedded" ? "closed" : "opened",
+  );
+  const sectionBodyRef = useEditorSectionContainment(
+    presentation === "full" && accordionOpen === "opened",
+    sectionIndex,
   );
 
   useEffect(() => {
@@ -260,6 +265,8 @@ function SectionContainer({
           <AccordionContent animated={true} className="w-full">
             {/* map over tab/chord subSections */}
             <div
+              ref={sectionBodyRef}
+              data-editor-section-body=""
               id={`sectionIndex${sectionIndex}`}
               className="baseVertFlex w-full !justify-start pt-4"
             >

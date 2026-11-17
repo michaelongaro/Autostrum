@@ -156,6 +156,7 @@ function EditingTabStaff({
   const [pinnedColumn, setPinnedColumn] = useState<RevealColumnDetail | null>(
     null,
   );
+  const [focusedColumnId, setFocusedColumnId] = useState<string | null>(null);
 
   const { tuning, setShowGlossaryDialog } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
@@ -442,7 +443,10 @@ function EditingTabStaff({
       }
     }
 
-    const pinnedIndexes = [pinnedColumn?.columnIndex ?? -1];
+    const pinnedIndexes = [
+      pinnedColumn?.columnIndex ?? -1,
+      focusedColumnId === null ? -1 : columnIds.indexOf(focusedColumnId),
+    ];
     if (playbackColumnIndex >= 0) {
       pinnedIndexes.push(playbackColumnIndex, playbackColumnIndex + 1);
     }
@@ -466,6 +470,17 @@ function EditingTabStaff({
       ref={staffRef}
       data-editing-tab-staff=""
       data-editing-tab-virtualized={isVirtualized ? "true" : "false"}
+      onFocusCapture={(event) => {
+        const column = (event.target as HTMLElement).closest<HTMLElement>(
+          "[data-editing-tab-column]",
+        );
+        setFocusedColumnId(column?.dataset.editingTabColumn ?? null);
+      }}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setFocusedColumnId(null);
+        }
+      }}
       style={
         isVirtualized && virtualizedLayout
           ? { height: virtualizedLayout.totalHeight }

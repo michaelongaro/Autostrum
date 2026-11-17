@@ -87,4 +87,4 @@ export const EDITING_TAB_TUNING_GAP_PX = 8;
  * a handful of columns costs more than it saves, and keeps short tabs on the
  * exact layout the playhead already measures.
  */
-export const EDITING_TAB_VIRTUALIZE_MIN_COLUMNS = 48;
+export const EDITING_TAB_VIRTUALIZE_MIN_COLUMNS = 24;

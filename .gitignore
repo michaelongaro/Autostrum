@@ -18,6 +18,7 @@
 
 # next.js
 /.next/
+/.next-perf/
 /out/
 next-env.d.ts
 

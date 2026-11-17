@@ -225,6 +225,7 @@ function TabNotesColumn({
   return (
     <motion.div
       key={columnData.id}
+      data-editing-tab-column={columnData.id}
       ref={setNodeRef}
       style={{
         transform: transform
