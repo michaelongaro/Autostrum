@@ -585,7 +585,7 @@ function AutoscrollPreview() {
           presentation="embedded"
         />
       </div>
-      <div className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3">
+      <div className="flex w-full items-center justify-between gap-3 self-center rounded-lg border bg-background p-3 md:w-3/4">
         <DemoPlaybackButton />
         <div className="flex items-center gap-2">
           <Label htmlFor={switchId}>Autoscroll</Label>

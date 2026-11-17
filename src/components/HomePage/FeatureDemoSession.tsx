@@ -479,7 +479,7 @@ function createSession(
       editing: feature !== "loop",
       looping: feature === "loop",
       showPlaybackModal: feature === "loop",
-      playbackSpeed: feature === "speed" ? 0.75 : 1,
+      playbackSpeed: 1,
       chordDisplayMode:
         feature === "colors" || feature === "loop" ? "color" : "text",
       chords: (practiceChords
