@@ -7,7 +7,10 @@ import {
 import { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
 
 const tuning = [64, 59, 55, 50, 45, 40];
-function column(note, { pm = "", chordEffects = "", string = 0 } = {}) {
+function column(
+  note,
+  { pm = "", chordEffects = "", string = 0, palmMuteSettings } = {},
+) {
   const col = [
     pm,
     "",
@@ -22,6 +25,7 @@ function column(note, { pm = "", chordEffects = "", string = 0 } = {}) {
     "auto",
   ];
   col[string + 1] = note;
+  if (palmMuteSettings) col[11] = JSON.stringify(palmMuteSettings);
   return col;
 }
 
@@ -753,10 +757,197 @@ export async function runCombinationAudioChecks() {
   }
 }
 
+async function checkPalmMuteArticulation(instrument, sampleRate) {
+  const label = `${instrument.name}/${sampleRate}`;
+  let checks = 0;
+  const check = (condition, message) => {
+    assert(condition, `${label}: ${message}`);
+    checks++;
+  };
+  const options = { duration: 0.9, sampleRate };
+  const picked = column("0", { pm: "start" });
+  const slow = await render(instrument, [picked], { ...options, bpm: 120 });
+  const fast = await render(instrument, [picked], { ...options, bpm: 960 });
+  const regular = await render(instrument, ["0"], {
+    ...options,
+    hardStopAt: 0.7,
+  });
+  // Compare equal early-note windows: full-note energy would penalize a
+  // deliberately short articulation simply for having less sustain.
+  const levelRatio =
+    rms(slow.buffer, 0.2, 0.275) / rms(regular.buffer, 0.2, 0.275);
+  check(
+    levelRatio >= 0.75 && levelRatio <= 1.05,
+    `palm-muted attack should be close to regular-note level (ratio ${levelRatio})`,
+  );
+  check(
+    relativeDifference(slow.buffer, 0.2, fast.buffer, 0.2, 0.6) < 1e-7,
+    "note spacing changes the palm damping curve",
+  );
+
+  for (const holdFallback of [false, true]) {
+    const contactOptions = {
+      ...options,
+      bpm: 480,
+      hardStopAt: 0.85,
+      holdFallback,
+    };
+    const low = column("0", { string: 5 });
+    const control = await render(instrument, [low, column("")], contactOptions);
+    const contact = await render(
+      instrument,
+      [low, column("", { pm: "start" })],
+      contactOptions,
+    );
+    check(
+      relativeDifference(control.buffer, 0.2, contact.buffer, 0.2, 0.124) <
+        1e-6,
+      "future palm contact changes the preceding audio during lookahead",
+    );
+    check(
+      rms(contact.buffer, 0.7, 0.8) === 0 &&
+        rms(control.buffer, 0.7, 0.8) > 0.00001,
+      "palm contact fails to damp a previously ringing unpicked string",
+    );
+    const selective = await render(
+      instrument,
+      [
+        low,
+        column("", {
+          pm: "start",
+          palmMuteSettings: { strings: [0] },
+        }),
+      ],
+      contactOptions,
+    );
+    check(
+      relativeDifference(control.buffer, 0.2, selective.buffer, 0.2, 0.6) <
+        1e-7,
+      "selective palm contact damps an uncovered string",
+    );
+    const paused = await render(instrument, [picked, picked], {
+      ...options,
+      bpm: 480,
+      pauseAt: 0.27,
+      holdFallback,
+    });
+    check(
+      rms(paused.buffer, 0.3, 0.8) === 0,
+      "palm bands or queued notes survive pause",
+    );
+  }
+
+  const repeats = await render(instrument, [picked, picked], {
+    ...options,
+    bpm: 240,
+  });
+  check(
+    relativeDifference(repeats.buffer, 0.2, repeats.buffer, 0.45, 0.2) > 0.005,
+    "repeated palm plucks have identical waveforms",
+  );
+  check(
+    Math.abs(repeats.guitarStarts[1].time - 0.45) < 1e-9 &&
+      repeats.guitarStarts[0].offset === repeats.guitarStarts[1].offset,
+    "palm variation shifts timing or sample onset",
+  );
+
+  for (const effect of ["/", "h", "p"]) {
+    const phrase = await render(
+      instrument,
+      [column(`0${effect}`, { pm: "start" }), column("2", { pm: "end" })],
+      { ...options, bpm: 480 },
+    );
+    check(
+      phrase.guitarSourceCount === 1,
+      `muted ${effect} unnecessarily refreshes its live string`,
+    );
+  }
+  const light = await render(
+    instrument,
+    [
+      column("0", {
+        pm: "start",
+        palmMuteSettings: { depth: 0.05 },
+      }),
+    ],
+    options,
+  );
+  const firm = await render(
+    instrument,
+    [
+      column("0", {
+        pm: "start",
+        palmMuteSettings: { depth: 0.95 },
+      }),
+    ],
+    options,
+  );
+  check(
+    rms(light.buffer, 0.35, 0.45) > rms(firm.buffer, 0.35, 0.45) * 2,
+    "mute depth does not control the decay",
+  );
+
+  const chord = column("0", { pm: "start", chordEffects: "v>" });
+  for (let string = 1; string <= 6; string++) chord[string] = "0";
+  await render(
+    instrument,
+    Array.from({ length: 8 }, () => chord),
+    {
+      ...options,
+      bpm: 960,
+      duration: 1.2,
+    },
+  ); // render also asserts finite audio, headroom and complete cleanup.
+  checks++;
+
+  // A controlled harmonic probe verifies the DSP itself rather than relying
+  // on an unmuted recording's pre-existing spectral decay.
+  const fundamental = 440 * 2 ** ((64 - 69) / 12);
+  const context = new OfflineAudioContext(2, sampleRate, sampleRate);
+  const probe = context.createBuffer(2, sampleRate, sampleRate);
+  for (let channel = 0; channel < 2; channel++) {
+    const samples = probe.getChannelData(channel);
+    for (let index = 0; index < samples.length; index++) {
+      const phase = (2 * Math.PI * fundamental * index) / sampleRate;
+      samples[index] = 0.2 * Math.sin(phase) + 0.08 * Math.sin(phase * 8);
+    }
+  }
+  const synthetic = {
+    ...instrument,
+    buffers: { ...instrument.buffers, 64: probe },
+  };
+  const shaped = await render(synthetic, [picked], options);
+  const amplitude = (start, end, hz) => {
+    const samples = shaped.buffer.getChannelData(0);
+    let real = 0,
+      imaginary = 0;
+    const from = Math.round(start * sampleRate),
+      to = Math.round(end * sampleRate);
+    for (let index = from; index < to; index++) {
+      const phase = (2 * Math.PI * hz * index) / sampleRate;
+      real += samples[index] * Math.cos(phase);
+      imaginary += samples[index] * Math.sin(phase);
+    }
+    return Math.hypot(real, imaginary) / (to - from);
+  };
+  const ratio = (start, end) =>
+    amplitude(start, end, fundamental * 8) / amplitude(start, end, fundamental);
+  check(
+    ratio(0.28, 0.31) < ratio(0.205, 0.225) * 0.5,
+    "upper harmonics fail to decay faster than the fundamental",
+  );
+  check(
+    Math.abs(centsFromExpected(shaped.buffer, 0.26, fundamental)) < 5,
+    `palm shaping shifts the fundamental pitch (${centsFromExpected(shaped.buffer, 0.26, fundamental)} cents)`,
+  );
+  return checks;
+}
+
 export async function runPalmMuteAudioChecks(importedPhrase) {
   const context = new AudioContext();
   const results = [];
   const importedResults = [];
+  let articulationChecks = 0;
   try {
     for (const name of [
       "acoustic_guitar_nylon",
@@ -816,6 +1007,10 @@ export async function runPalmMuteAudioChecks(importedPhrase) {
               });
             }
           }
+          articulationChecks += await checkPalmMuteArticulation(
+            instrument,
+            sampleRate,
+          );
           if (importedPhrase) {
             const length = importedPhrase.notes.reduce(
               (sum, note) =>
@@ -859,7 +1054,8 @@ export async function runPalmMuteAudioChecks(importedPhrase) {
       }
     }
     return {
-      passed: results.length * 2,
+      passed: results.length * 2 + articulationChecks,
+      articulationChecks,
       minimumAttackRatio: Math.min(...results.map((result) => result.ratio)),
       importedResults,
     };

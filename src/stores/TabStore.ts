@@ -1,4 +1,5 @@
 import { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
+import type { PalmMuteSettings } from "~/utils/palmMuteAudio";
 export { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
 import { ensureSectionProgression } from "~/utils/sectionProgression";
 import { appendNewlyAddedSectionsToProgression } from "~/utils/appendNewlyAddedSectionsToProgression";
@@ -74,6 +75,7 @@ export interface StrummingPattern {
 
 export interface Strum {
   palmMute: "" | "-" | "start" | "end";
+  palmMuteSettings?: PalmMuteSettings;
   strum: string; // effects are v, ^, v~, ^~, >, s, ., r
   noteLength: FullNoteLengths;
   /**
@@ -104,6 +106,7 @@ export interface ChordSection {
 export interface TabNote {
   type: "note";
   palmMute: "" | "-" | "start" | "end";
+  palmMuteSettings?: PalmMuteSettings;
   firstString: string; // low E
   secondString: string; // A
   thirdString: string; // D

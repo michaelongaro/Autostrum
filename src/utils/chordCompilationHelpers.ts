@@ -17,6 +17,7 @@ import getRepetitions from "./getRepetitions";
 import { applyStickyMeasureLineBpm } from "./measureLineBpm";
 import { isTabMeasureLine, tabNoteToArray } from "./tabNoteHelpers";
 import { encodeStrumSpreadForCompile } from "./strumEffectHelpers";
+import { encodePalmMuteSettings } from "./palmMuteAudio";
 
 interface CompileFullTab {
   tabData: Section[];
@@ -492,7 +493,7 @@ function compileChord({
 
   if (chordName === "" || !chordFrets || isRestChord) {
     return [
-      "",
+      strummingPattern.strums[chordIdx]!.palmMute,
       "",
       "",
       "",
@@ -503,6 +504,9 @@ function compileChord({
       strummingPattern.strums[chordIdx]!.noteLength,
       `${bpm}`,
       "",
+      ...encodePalmMuteSettings(
+        strummingPattern.strums[chordIdx]!.palmMuteSettings,
+      ),
     ];
   }
 
@@ -520,6 +524,7 @@ function compileChord({
       strumSpreadAuto: strum.strumSpreadAuto,
       strumSpreadSeconds: strum.strumSpreadSeconds,
     }),
+    ...encodePalmMuteSettings(strum.palmMuteSettings),
   ];
 }
 

@@ -34,7 +34,7 @@ Each import reports the relevant adjustments before applying them:
 | Harmonics, trills | Ordinary fretted note. |
 | Multiple note effects | Prefer an adjacent transition, vibrato, accent, then staccato. |
 | Slide-ins and pick slides | Ordinary fretted note. |
-| Partial palm muting | Mute the whole column; isolated muted notes use a short mute line. |
+| Partial palm muting | Preserve the muted strings in playback metadata; isolated muted notes use a short mute line. The editor's mute line still marks the column. |
 | Brush/arpeggio speed | Automatic Autostrum strum timing. |
 | Let ring | Normal editor sustain. |
 | Mid-measure tempo | Step at the next note boundary, shown with a measure line. |

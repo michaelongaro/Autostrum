@@ -14,7 +14,7 @@ The soundfont loader and recorded samples are unchanged.
 | Bend / release (`b`, `r`)               | Linear detune ramps could start during lookahead; releases restarted a sample 0.5 s into its recording.                                              | Anchors an eased pitch curve to the note's actual timestamp and preserves the same string through bend, held target, release, and repeated bends. A short initial hold retains the picked onset. Typical bends take up to 340 ms, scaled to note spacing.                                                                                             |
 | Fretted / entry / exit slide (`/`, `\`) | Restarted the sample at 0.2 s with an arbitrary volume boost; entry targets omitted capo.                                                            | Continues the string through a 25–160 ms glide with subtle fret crossings and compensates destination levels for recorded decay. Refreshes faded samples without their pick attack. Corrects capo-relative targets and allows an exit slide at the end of the sequence.                                                                               |
 | Vibrato (`~` on a fret)                 | Full-depth modulation appeared abruptly; standalone vibrato ignored the scheduled note delay; modulation oscillators had no lifetime bound.          | Fades depth in after the note/transition, with a roughly 5 Hz hand rate independent of rhythmic subdivision. Steel/electric vibrato bends up and returns (0–46 cents); nylon vibrato is shallower and symmetric (±18 cents). Stops modulation with its voice and supports bend plus vibrato and legato combinations. Open strings remain unmodulated. |
-| Palm mute (`PM`)                        | Almost silenced the original voice, then applied 70–100× gain, resonant filtering, and up to 20 dB of bass boost; a dry path could remain connected. | Uses one signal path, a pitch-aware low-pass cutoff that darkens during the attack, and a rapid decay over 75–280 ms. Preserves the recorded pick attack without resonant gain compensation.                                                                                                                                                          |
+| Palm mute (`PM`)                        | Almost silenced the original voice, then applied 70–100× gain, resonant filtering, and up to 20 dB of bass boost; a dry path could remain connected. | Uses one signal path with tempo-independent, instrument/string/depth-aware decay, separate upper-harmonic losses, onset detection, and persistent selective palm contact. Repeated plucks vary slightly; muted legato preserves remaining energy.                                                                                                                                                          |
 | Dead string (`x`)                       | Generated a pitched sine thunk unrelated to the instrument/tuning.                                                                                   | Uses the selected guitar's string attack, strongly damps its pitched sustain, and adds quiet filtered contact noise over 45–75 ms. Dead strings keep their position in a strum.                                                                                                                                                                       |
 | Percussive slap (`s`)                   | Mixed a fixed 100 Hz sine and white noise with a large mid boost.                                                                                    | Uses the tuned low-string sample for body resonance, filtered contact noise, and a 65–130 ms damped envelope. Mutes ringing strings at its scheduled timestamp.                                                                                                                                                                                       |
 | Staccato (`.`)                          | Fixed 250 ms duration plus the player's default 300 ms release; replacements sometimes bypassed it.                                                  | Shortens every articulation to 45% of its note spacing, bounded to 35–220 ms, followed by a 12 ms anti-click release.                                                                                                                                                                                                                                 |
@@ -25,6 +25,8 @@ The soundfont loader and recorded samples are unchanged.
 ## Voice lifecycle and sample limits
 
 Each voice has one recorded buffer source, a low-pass filter, and a gain envelope.
+Palm contact adds two serial shelving filters for independent upper-partial and
+pick-band damping; ordinary voices do not allocate them.
 An ending voice disconnects its graph and removes itself from the cancellation
 registry. Modulation and contact-noise sources end and disconnect independently.
 Noise buffers, analyzed attack offsets, and sample energy profiles are cached, and guitar samples never
@@ -60,7 +62,7 @@ Scheduling, detune, and automation follow the [Web Audio specification](https://
 
 ## Verification
 
-- `node scripts/verifyGuitarEffects.mjs`: 35 checks against the actual production
+- `node scripts/verifyGuitarEffects.mjs`: 49 checks against the actual production
   parser/runtime, covering continuity, pitch targets, capo, effect combinations,
   onset timing, dynamics, strums, cancellation, and cleanup. Regression checks
   cover repeated attenuation, inherited accents, recorded decay, and bounded
@@ -125,3 +127,54 @@ Scheduling, detune, and automation follow the [Web Audio specification](https://
   fallback. Noise reaches zero before its source stops, and subsequent stops
   cannot prolong its lifetime. This follows Web Audio's rule that a later
   [`stop()` call replaces a pending stop](https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode/stop).
+
+## Palm-contact synthesis refinement
+
+This supersedes the tempo-scaled palm-mute settings above. It uses only the
+existing recorded buffers; no new samples, contact noise, detuning, or timing
+jitter are introduced.
+
+- `palmMuteAudio.ts` defines synthesis profiles for nylon, steel, clean electric
+  and jazz electric, with physical-string color independent of tuning. The
+  exponential decay constant and upper-band losses depend on contact depth,
+  not rhythmic spacing or practice speed. Explicit staccato remains a gate.
+- The source enters at the first meaningful stereo attack energy, with 4 ms of
+  pre-roll. This avoids treating a later loud bass cycle as the pick onset.
+- Two serial high shelves and the low-pass model faster upper-harmonic/pick-band
+  loss while preserving a short pitched body. Accents brighten the excitation.
+  A bounded four-step pressure/level cycle decorrelates repeated plucks without
+  altering pitch or onset; it is not a substitute for alternate recorded takes.
+- Contact changes act on already ringing covered strings, even on empty
+  columns. They preserve already scheduled audio during lookahead. Lifting the
+  hand stops additional damping without restoring lost partials or energy.
+- Slides, bends and releases preserve the remaining envelope and stop deadline
+  instead of re-exciting the note. Hammer-ons/pull-offs add bounded finger energy
+  and can continue a live source; exhausted muted slides stay silent. Finger
+  excitation after contact lifts can ring with the recording's natural decay.
+- Tab notes and strums accept optional `palmMuteSettings: { depth?, strings? }`.
+  Depth ranges from 0 (light) to 1 (firm), defaulting to 0.55. String indexes are
+  **playback order: high E = 0, low E = 5**, including retuned strings. Omitted
+  coverage means all strings; `[]` means none. Document validation preserves
+  these optional fields, and compiled slot 11 carries their JSON. Legacy columns
+  retain their format and default behavior. Clearing a mute via the shared
+  editing helpers clears its settings. No new editor controls were added.
+- Guitar Pro partial mutes retain their actual destination strings after
+  revoicing, rather than muting the whole chord. Their visual line still spans
+  the column; deleting and re-adding that mute uses normal full-column defaults.
+
+Muted plucks include 1.9× makeup gain (3.1× for clean electric) to compensate for
+energy lost to the short envelope and harmonic damping. This lifts their audible
+level toward regular notes without lengthening the decay or changing the tone.
+Native checks compare equal first-75-ms windows for a representative note across
+all instruments, formats and sample rates, alongside the full-pitch audibility
+and dense-chord headroom checks. This short-window comparison does not claim that
+a muted note has the same total energy as a sustained ordinary note.
+
+Verification: 49 scheduling checks, 3,312 focused native palm assertions
+(including 304 articulation assertions), the existing 280 native general
+checks, 256 combination assertions, eight dead-note and twelve stop
+configurations pass. Import/schema/compilation and palm-editing invariants pass.
+The controlled harmonic probe separates the DSP's spectral decay from that of
+the source recording. These are engineering checks, not measured acoustic
+calibration or a blind listening evaluation. The constants remain synthesis
+tuning choices; the original unmuted recordings still limit realism.

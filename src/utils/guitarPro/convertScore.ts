@@ -415,6 +415,7 @@ export function convertScore(
         .flatMap((beat) => beat.notes)
         .filter((note) => !note.isTieDestination);
       const sounding: model.Note[] = [];
+      const mutedStrings: number[] = [];
       // Reserve original playable strings before revoicing extra strings.
       notes.sort(
         (a, b) =>
@@ -449,15 +450,14 @@ export function convertScore(
         if (stringIndex !== originalString || fret !== note.fret)
           value = note.isDead ? "x" : `${fret}`;
         column[stringKeys[stringIndex]!] = value;
+        if (note.isPalmMute) mutedStrings.push(5 - stringIndex);
         sounding.push(note);
         hasNotes = true;
       }
       if (sounding.some((note) => note.isPalmMute)) {
         column.palmMute = "start";
         if (!sounding.every((note) => note.isPalmMute))
-          warnings.add(
-            "Partial palm muting is applied to the entire note column.",
-          );
+          column.palmMuteSettings = { strings: mutedStrings };
       }
       for (const beat of new Set(sounding.map((note) => note.beat))) {
         if (beat.isLetRing)

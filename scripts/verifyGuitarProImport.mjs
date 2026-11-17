@@ -15,6 +15,8 @@ const { recoverPendingPalmMuteEdit } =
   await import("../src/utils/palmMuteEditing.ts");
 const { parse: playbackTuning } = await import("../src/utils/tunings.ts");
 const { tabNoteToArray } = await import("../src/utils/tabNoteHelpers.ts");
+const { compileChord } =
+  await import("../src/utils/chordCompilationHelpers.ts");
 
 function load(name = "guitarpro5-notes.gp5") {
   return readGuitarProScore(
@@ -81,6 +83,66 @@ function assertSustain(column) {
   assert.ok(keys.every((key) => column[key] === ""));
   assert.equal(column.chordEffects, "", "a sustain must not stop the strings");
   assert.equal(column.palmMute, "");
+}
+
+{
+  const score = sustainScore([
+    [
+      [
+        {
+          duration: model.Duration.Whole,
+          notes: [
+            { string: 6, fret: 3, isPalmMute: true },
+            { string: 1, fret: 0 },
+          ],
+        },
+      ],
+    ],
+  ]);
+  const imported = convert(score);
+  const note = columns(imported.document).find(
+    (column) => column.type === "note",
+  );
+  assert.deepEqual(note.palmMuteSettings, { strings: [0] });
+  assert.ok(
+    !imported.warnings.some((warning) => /Partial palm muting/.test(warning)),
+  );
+  const parsed = tabDocumentSchema.parse(imported.document);
+  const persisted = columns(parsed).find((column) => column.type === "note");
+  assert.deepEqual(persisted.palmMuteSettings, { strings: [0] });
+  assert.deepEqual(JSON.parse(tabNoteToArray(persisted)[11]), {
+    depth: 0.55,
+    strings: [0],
+  });
+  const invalid = structuredClone(imported.document);
+  columns(invalid).find((column) => column.type === "note").palmMuteSettings = {
+    depth: 2,
+  };
+  assert.equal(tabDocumentSchema.safeParse(invalid).success, false);
+  const strum = {
+    palmMute: "-",
+    palmMuteSettings: { depth: 0.3, strings: [4, 5] },
+    strum: "v",
+    noteLength: "eighth",
+  };
+  const args = {
+    chordIdx: 0,
+    bpm: 120,
+    strummingPattern: { strums: [strum] },
+    chords: [{ name: "E", frets: ["0", "0", "1", "2", "2", "0"] }],
+  };
+  const chord = compileChord({ ...args, chordName: "E" });
+  assert.equal(chord[7], "v");
+  assert.equal(chord[8], "eighth");
+  assert.deepEqual(JSON.parse(chord[11]), { depth: 0.3, strings: [4, 5] });
+  const empty = compileChord({ ...args, chordName: "" });
+  assert.equal(empty[0], "-");
+  assert.ok(empty.slice(1, 7).every((value) => value === ""));
+  assert.equal(empty[8], "eighth");
+  assert.deepEqual(JSON.parse(empty[11]), { depth: 0.3, strings: [4, 5] });
+  console.log(
+    "PASS selective palm muting: source string coverage survives document validation and audio compilation",
+  );
 }
 
 {

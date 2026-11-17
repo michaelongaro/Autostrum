@@ -1,11 +1,16 @@
 import extractNumber from "~/utils/extractNumber";
 import type Soundfont from "soundfont-player";
 import {
+  applyPalmMuteContact,
   playGuitarNote,
   playGuitarPercussion,
   stopGuitarStrings,
   type GuitarTransition as TetheredMetadata,
 } from "~/utils/guitarEffects";
+import {
+  normalizePalmMuteSettings,
+  parsePalmMuteSettings,
+} from "~/utils/palmMuteAudio";
 import {
   calculateAutomaticStrumSpreadSeconds,
   chordEffectCharsForNoteAudio,
@@ -52,6 +57,7 @@ interface PlayNote {
   bpm: number;
   startTime: number;
   effects: string[];
+  palmMuteDepth?: number;
   tetheredMetadata?: TetheredMetadata;
   pluckBaseNote: boolean;
   audioContext: AudioContext;
@@ -72,6 +78,7 @@ function playNote({
   bpm,
   startTime,
   effects,
+  palmMuteDepth,
   tetheredMetadata,
   pluckBaseNote,
   audioContext,
@@ -92,6 +99,7 @@ function playNote({
     bpm,
     startTime,
     effects,
+    palmMuteDepth,
     transition: tetheredMetadata,
     pluckBaseNote,
     audioContext,
@@ -231,6 +239,11 @@ function playNoteColumn({
       resolve();
     }, resolveDelayMs);
 
+    const palmMute = currColumn[0]
+      ? normalizePalmMuteSettings(parsePalmMuteSettings(currColumn[11]))
+      : undefined;
+    applyPalmMuteContact(currentlyPlayingStrings, scheduledStartTime, palmMute);
+
     // I think it's better to group "r" and "s" here
     // because I don't think you want to be super aggresive on deleting the prev
     // notes if they exist in column ux wise if someone were to add an "s" to [7]
@@ -250,7 +263,7 @@ function playNoteColumn({
             stringIdx: 5,
             accented: currColumn[7].includes(">"),
             staccato: currColumn[7].includes("."),
-            palmMuted: Boolean(currColumn[0]),
+            palmMuted: Boolean(palmMute?.strings.includes(5)),
             startTime: scheduledStartTime,
             audioContext,
             destination: masterVolumeGainNode,
@@ -298,7 +311,7 @@ function playNoteColumn({
               currColumn[stringIdx]?.includes(">"),
             ),
             staccato: currColumn[stringIdx]?.includes("."),
-            palmMuted: Boolean(currColumn[0]),
+            palmMuted: Boolean(palmMute?.strings.includes(adjustedStringIdx)),
             startTime:
               scheduledStartTime + chordDelayMultiplier * notesPlayedSoFar,
             audioContext,
@@ -467,7 +480,9 @@ function playNoteColumn({
         };
       }
 
-      const effects = [...(currColumn[0] ? ["PM"] : [])];
+      const effects = [
+        ...(palmMute?.strings.includes(adjustedStringIdx) ? ["PM"] : []),
+      ];
 
       if (currNoteEffects) {
         currNoteEffects.forEach((effect) => {
@@ -504,6 +519,7 @@ function playNoteColumn({
         bpm,
         startTime: scheduledStartTime + chordDelayMultiplier * notesPlayedSoFar,
         effects,
+        palmMuteDepth: palmMute?.depth,
         tetheredMetadata,
         pluckBaseNote,
         audioContext,

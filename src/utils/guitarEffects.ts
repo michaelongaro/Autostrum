@@ -1,4 +1,10 @@
 import type Soundfont from "soundfont-player";
+import {
+  normalizePalmMuteSettings,
+  palmMuteProfile,
+  type PalmMuteProfile,
+  type PalmMuteSettings,
+} from "~/utils/palmMuteAudio";
 
 export type PlaybackStrings = (
   Soundfont.Player | AudioBufferSourceNode | undefined
@@ -27,6 +33,7 @@ type Voice = {
   filter: BiquadFilterNode;
   instrument: Soundfont.Player;
   sampleMidi: number;
+  stringIdx: number;
   sampleOffset: number;
   startTime: number;
   releaseAt: number;
@@ -38,6 +45,13 @@ type Voice = {
   filterPoints: Point[];
   modulators: Modulator[];
   extraNodes: AudioNode[];
+  palmContactDepth?: number;
+  damping?: PalmMuteProfile;
+  palmTone?: {
+    filter: BiquadFilterNode;
+    points: Point[];
+    frequencyPoints: Point[];
+  }[];
   stopSource: (when: number) => void;
 };
 
@@ -60,6 +74,7 @@ const sampleEnergy = new WeakMap<
 >();
 const noiseBuffers = new WeakMap<BaseAudioContext, AudioBuffer>();
 const deadNoteHits = new WeakMap<PlaybackStrings, Uint8Array>();
+const palmMuteHits = new WeakMap<PlaybackStrings, Uint8Array>();
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -183,11 +198,15 @@ function getBuffer(instrument: Soundfont.Player, midi: number) {
 function getAttackOffset(buffer: AudioBuffer, mutedPick = false) {
   const cached = attackOffsets.get(buffer);
   if (cached !== undefined) return mutedPick ? cached.mutedPick : cached.body;
-  const samples = buffer.getChannelData(0);
+  const channels = Array.from({ length: buffer.numberOfChannels }, (_, index) =>
+    buffer.getChannelData(index),
+  );
+  const samples = channels[0]!;
   const windowSize = Math.max(1, Math.floor(buffer.sampleRate * 0.004));
   const limit = Math.min(samples.length, Math.floor(buffer.sampleRate * 0.08));
   let peakEnergy = 0;
   let peakFrame = 0;
+  const energies: { frame: number; energy: number }[] = [];
   for (let frame = 0; frame < limit; frame += windowSize) {
     let energy = 0;
     for (
@@ -195,12 +214,14 @@ function getAttackOffset(buffer: AudioBuffer, mutedPick = false) {
       index < Math.min(frame + windowSize, limit);
       index++
     ) {
-      energy += samples[index]! ** 2;
+      for (const channel of channels)
+        energy += channel[index]! ** 2 / channels.length;
     }
     if (energy > peakEnergy) {
       peakEnergy = energy;
       peakFrame = frame;
     }
+    energies.push({ frame, energy });
   }
   // Locate the post-attack body for legato entry and dead-note resonance,
   // instead of jumping 0.1–0.5 s into every recording.
@@ -208,12 +229,13 @@ function getAttackOffset(buffer: AudioBuffer, mutedPick = false) {
     (peakFrame + windowSize) / buffer.sampleRate + 0.018,
     buffer.duration * 0.2,
   );
-  // A short palm-mute envelope can expire while a recording is still building
-  // up to its pick attack. Enter just before that attack, retaining its transient
-  // rather than borrowing the post-attack body used for hammer-ons/pull-offs.
+  // Find the first meaningful attack energy, not the loudest later cycle of a
+  // bass string. Retain 4 ms of pre-roll and ignore only near-silent lead-in.
+  const onsetFrame =
+    energies.find(({ energy }) => energy >= peakEnergy * 0.015)?.frame ?? 0;
   const offsets = {
     body,
-    mutedPick: Math.max(0, peakFrame / buffer.sampleRate - 0.008),
+    mutedPick: Math.max(0, onsetFrame / buffer.sampleRate - 0.004),
   };
   attackOffsets.set(buffer, offsets);
   return mutedPick ? offsets.mutedPick : offsets.body;
@@ -319,6 +341,7 @@ interface SampleArgs {
   scheduledNodes?: { stop(when?: number): void }[];
   legato?: boolean;
   mutedPick?: boolean;
+  palmMuteDepth?: number;
 }
 
 function createVoice({
@@ -353,6 +376,7 @@ function createVoice({
     filter,
     instrument,
     sampleMidi: midi,
+    stringIdx,
     sampleOffset: legato
       ? getAttackOffset(buffer)
       : mutedPick
@@ -458,6 +482,220 @@ function shapeEnvelope(
   voice.stopSource(voice.stopAt);
 }
 
+function instrumentName(voice: Voice) {
+  return (
+    (voice.instrument as Soundfont.Player & { name?: string }).name ??
+    "acoustic_guitar_steel"
+  );
+}
+
+function shapePalmEnvelope(
+  voice: Voice,
+  time: number,
+  profile: PalmMuteProfile,
+  level: number,
+  attack: number,
+  deadline = Infinity,
+) {
+  const releaseAt = Math.min(time + attack + profile.duration, deadline);
+  holdAt(voice.gain.gain, voice.gainPoints, time);
+  ramp(
+    voice.gain.gain,
+    voice.gainPoints,
+    level,
+    Math.min(time + attack, releaseAt),
+  );
+  // Fixed intervals and a physical decay constant: rhythmic subdivision and
+  // playback speed never stretch this curve. Explicit staccato can gate it.
+  for (
+    let elapsed = 0.008;
+    time + attack + elapsed < releaseAt;
+    elapsed += 0.008
+  ) {
+    ramp(
+      voice.gain.gain,
+      voice.gainPoints,
+      level * Math.exp(-elapsed / profile.decay),
+      time + attack + elapsed,
+    );
+  }
+  ramp(
+    voice.gain.gain,
+    voice.gainPoints,
+    level * Math.exp(-Math.max(0, releaseAt - time - attack) / profile.decay),
+    releaseAt,
+  );
+  ramp(voice.gain.gain, voice.gainPoints, 0, releaseAt + RELEASE_SECONDS);
+  voice.releaseAt = releaseAt;
+  voice.stopAt = releaseAt + RELEASE_SECONDS;
+  voice.stopSource(voice.stopAt);
+  voice.damping = profile;
+}
+
+function ensurePalmTone(voice: Voice) {
+  if (voice.palmTone) return voice.palmTone;
+  const context = voice.source.context;
+  const filters = [context.createBiquadFilter(), context.createBiquadFilter()];
+  voice.filter.disconnect();
+  voice.filter.connect(filters[0]!);
+  filters[0]!.connect(filters[1]!);
+  filters[1]!.connect(voice.gain);
+  voice.palmTone = filters.map((filter) => {
+    filter.type = "highshelf";
+    filter.gain.value = 0;
+    voice.extraNodes.push(filter);
+    return {
+      filter,
+      points: [{ time: voice.startTime, value: 0 }],
+      frequencyPoints: [
+        { time: voice.startTime, value: filter.frequency.value },
+      ],
+    };
+  });
+  return voice.palmTone;
+}
+
+function shapePalmTone(
+  voice: Voice,
+  time: number,
+  profile: PalmMuteProfile,
+  picked: boolean,
+) {
+  const context = voice.source.context;
+  const nyquist = context.sampleRate * 0.45;
+  const tone = ensurePalmTone(voice);
+  const cutoff = voice.filter.frequency;
+  const from = holdAt(cutoff, voice.filterPoints, time);
+  if (picked) {
+    cutoff.setValueAtTime(Math.min(nyquist, profile.attackCutoff), time);
+    voice.filterPoints[voice.filterPoints.length - 1]!.value = Math.min(
+      nyquist,
+      profile.attackCutoff,
+    );
+  }
+  const start = picked ? Math.min(nyquist, profile.attackCutoff) : from;
+  const end = Math.min(
+    nyquist,
+    picked ? profile.bodyCutoff : Math.min(start, profile.bodyCutoff),
+  );
+  for (let index = 1; index <= 24; index++) {
+    const elapsed = index * 0.008;
+    const blend = 1 - Math.exp(-elapsed / (profile.decay * 1.3));
+    ramp(
+      cutoff,
+      voice.filterPoints,
+      start * (end / start) ** blend,
+      time + elapsed,
+    );
+  }
+  // Two shelving stages model separate upper-harmonic and pick-band losses.
+  // The fundamental remains in the one serial path; no dry branch or noise.
+  tone.forEach((band, index) => {
+    const frequency = Math.min(
+      nyquist,
+      index === 0 ? profile.overtoneHz : profile.pickHz,
+    );
+    holdAt(band.filter.frequency, band.frequencyPoints, time);
+    ramp(
+      band.filter.frequency,
+      band.frequencyPoints,
+      frequency,
+      time + (picked ? 0 : 0.008),
+    );
+    const initial = holdAt(band.filter.gain, band.points, time);
+    const loss = index === 0 ? profile.overtoneLoss : profile.pickLoss;
+    const target = Math.min(initial, -loss);
+    for (let point = 1; point <= 24; point++) {
+      const elapsed = point * 0.008;
+      const decay = profile.decay * (index === 0 ? 2.4 : 0.65);
+      ramp(
+        band.filter.gain,
+        band.points,
+        initial + (target - initial) * (1 - Math.exp(-elapsed / decay)),
+        time + elapsed,
+      );
+    }
+  });
+}
+
+function releasePalmTone(voice: Voice, time: number) {
+  // Damping has already removed energy from these partials. Lifting the hand
+  // stops further loss; opening a filter here would resurrect the unmuted
+  // recording's overtones. A fresh pick gets its own unfiltered voice.
+  holdAt(voice.filter.frequency, voice.filterPoints, time);
+  for (const band of voice.palmTone ?? []) {
+    holdAt(band.filter.gain, band.points, time);
+  }
+}
+
+function retunePalmTone(voice: Voice, time: number, profile: PalmMuteProfile) {
+  const ratio =
+    profile.bodyCutoff / (voice.damping?.bodyCutoff ?? profile.bodyCutoff);
+  const future = voice.filterPoints.filter(
+    (point) => point.time > time + 0.008,
+  );
+  const cutoff = holdAt(voice.filter.frequency, voice.filterPoints, time);
+  const limit = voice.source.context.sampleRate * 0.45;
+  ramp(
+    voice.filter.frequency,
+    voice.filterPoints,
+    Math.min(limit, cutoff * ratio),
+    time + 0.008,
+  );
+  for (const point of future) {
+    ramp(
+      voice.filter.frequency,
+      voice.filterPoints,
+      Math.min(limit, point.value * ratio),
+      point.time,
+    );
+  }
+  voice.palmTone?.forEach((band, index) => {
+    holdAt(band.filter.frequency, band.frequencyPoints, time);
+    ramp(
+      band.filter.frequency,
+      band.frequencyPoints,
+      Math.min(limit, index === 0 ? profile.overtoneHz : profile.pickHz),
+      time + 0.008,
+    );
+  });
+}
+
+/** Apply the planted hand before any pluck/strum, including empty columns. */
+export function applyPalmMuteContact(
+  strings: PlaybackStrings,
+  time: number,
+  settings?: PalmMuteSettings,
+) {
+  const contact = settings ? normalizePalmMuteSettings(settings) : undefined;
+  for (const voice of stringVoices.get(strings) ?? []) {
+    if (voice.ended || voice.startTime >= time || voice.releaseAt <= time)
+      continue;
+    const covered = contact?.strings.includes(voice.stringIdx);
+    if (contact && covered && voice.palmContactDepth !== contact.depth) {
+      const midi = voice.sampleMidi + valueAt(voice.pitchPoints, time) / 100;
+      const profile = palmMuteProfile(
+        instrumentName(voice),
+        midi,
+        voice.stringIdx,
+        contact.depth,
+      );
+      const level = valueAt(voice.gainPoints, time);
+      shapePalmEnvelope(voice, time, profile, level, 0, voice.releaseAt);
+      shapePalmTone(voice, time, profile, false);
+      voice.palmContactDepth = contact.depth;
+    } else if (!covered && voice.palmContactDepth !== undefined) {
+      // Removing contact preserves the energy already lost. Hold the remaining
+      // level; the recording's own decay and the existing stop still apply.
+      const level = holdAt(voice.gain.gain, voice.gainPoints, time);
+      ramp(voice.gain.gain, voice.gainPoints, level, voice.releaseAt);
+      ramp(voice.gain.gain, voice.gainPoints, 0, voice.stopAt);
+      releasePalmTone(voice, time);
+      voice.palmContactDepth = undefined;
+    }
+  }
+}
+
 function applyVibrato(voice: Voice, time: number, interval: number) {
   const startTime = time + clamp(interval * 0.14, 0.075, 0.18);
   if (startTime >= voice.releaseAt - 0.025) return;
@@ -509,12 +747,15 @@ export function playGuitarNote(
   const time = Math.max(args.audioContext.currentTime, args.startTime);
   const interval = 60 / bpm;
   const palmMuted = effects.includes("PM");
+  const depth = normalizePalmMuteSettings({ depth: args.palmMuteDepth }).depth;
+  const incomingEffect = transition?.incomingEffect ?? transition?.effect;
   const legato =
     transition?.transitionFromFret !== undefined || !args.pluckBaseNote;
   const previous = strings[stringIdx];
   let voice = previous
     ? voices.get(previous as AudioBufferSourceNode)
     : undefined;
+  const previousDamping = voice?.damping;
   let reuse =
     legato &&
     voice &&
@@ -528,6 +769,8 @@ export function playGuitarNote(
     reuse &&
     voice &&
     tetheredLegato &&
+    !palmMuted &&
+    !voice.damping &&
     legatoSampleGain(voice, midi, time, true) > MAX_LEGATO_SAMPLE_GAIN
   ) {
     // A nearly silent tail would need an excessive boost. Refresh from the
@@ -535,6 +778,15 @@ export function playGuitarNote(
     reuse = false;
   }
   if (!reuse) {
+    // A slide/bend cannot excite an already damped-away string. Hammer-ons
+    // and pull-offs can add a quiet body attack, without replaying a pick.
+    if (
+      legato &&
+      (palmMuted || voice?.damping) &&
+      incomingEffect !== "h" &&
+      incomingEffect !== "p"
+    )
+      return;
     voice = createVoice({
       ...args,
       startTime: time,
@@ -555,7 +807,6 @@ export function playGuitarNote(
   if (!continueVibrato) stopModulators(voice, time);
 
   let transitionEnd = time;
-  const incomingEffect = transition?.incomingEffect ?? transition?.effect;
   if (transition?.transitionFromFret !== undefined) {
     const slide = incomingEffect === "/" || incomingEffect === "\\";
     const duration = slide ? clamp(interval * 0.3, 0.025, 0.16) : 0.006;
@@ -595,11 +846,11 @@ export function playGuitarNote(
     transitionEnd = pitchStart + duration;
   }
 
-  let duration = palmMuted ? clamp(interval * 0.7, 0.075, 0.28) : 3;
+  let duration = 3;
   if (effects.includes("."))
     duration = Math.min(duration, clamp(interval * 0.45, 0.035, 0.22));
   const accent = effects.includes(">") ? 1.22 : 1;
-  if (tetheredLegato) {
+  if (tetheredLegato && !palmMuted && !voice.damping) {
     voice.sampleGain = clamp(
       legatoSampleGain(voice, midi, time),
       0.25,
@@ -611,45 +862,82 @@ export function playGuitarNote(
   // Each articulation starts from the same musical level. Sample-decay
   // compensation is absolute, so neither attenuation nor accents compound.
   const level = 0.9 * (legato ? legatoLevel : 1) * accent * voice.sampleGain;
-  shapeEnvelope(
-    voice,
-    time,
-    duration,
-    level,
-    palmMuted,
-    legato ? 0.006 : 0.003,
-    // Leave more pitched body audible while keeping the same short cutoff.
-    4.8,
-  );
-
-  const fundamental = 440 * 2 ** ((midi - 69) / 12);
-  const cutoff = palmMuted
-    ? clamp(fundamental * 6, 1000, 7000)
-    : args.audioContext.sampleRate * 0.45;
-  const filter = voice.filter.frequency;
-  // Preserve the preceding damping curve during lookahead and ease changes
-  // in hand pressure instead of stepping the tone on a still-vibrating string.
-  const filterAttack = reuse ? 0.008 : 0;
-  if (reuse) {
-    holdAt(filter, voice.filterPoints, time);
-    ramp(filter, voice.filterPoints, cutoff, time + filterAttack);
-  } else {
-    filter.setValueAtTime(cutoff, time);
-    voice.filterPoints = [{ time, value: cutoff }];
-  }
-  if (palmMuted) {
-    const endCutoff = clamp(fundamental * 3.2, 480, 4200);
-    for (let index = 1; index <= 12; index++) {
-      const progress = index / 12;
-      ramp(
-        filter,
-        voice.filterPoints,
-        cutoff * (endCutoff / cutoff) ** progress,
-        time +
-          filterAttack +
-          (Math.min(duration, 0.09) - filterAttack) * progress,
-      );
+  const dampedLegato =
+    legato && (palmMuted || Boolean(previousDamping) || Boolean(voice.damping));
+  if (palmMuted || dampedLegato) {
+    let hits = palmMuteHits.get(strings);
+    if (!hits) {
+      hits = new Uint8Array(6);
+      palmMuteHits.set(strings, hits);
     }
+    const hit = hits[stringIdx]!;
+    if (!legato) hits[stringIdx] = (hit + 1) % 4;
+    const profile = palmMuteProfile(
+      instrumentName(voice),
+      midi,
+      stringIdx,
+      palmMuted ? depth : (previousDamping?.depth ?? depth),
+      legato ? 0 : hit,
+      accent > 1,
+    );
+    const deadline = effects.includes(".") ? time + duration : Infinity;
+    if (!legato) {
+      shapePalmEnvelope(
+        voice,
+        time,
+        profile,
+        level * profile.level,
+        profile.attack,
+        deadline,
+      );
+      shapePalmTone(voice, time, profile, true);
+    } else if (incomingEffect === "h" || incomingEffect === "p") {
+      const remaining = reuse ? valueAt(voice.gainPoints, time) : 0;
+      const excitation =
+        level * (incomingEffect === "h" ? 0.16 : 0.21) * profile.level;
+      // A bounded finger excitation, not normal picked-note RMS compensation.
+      if (reuse) retunePalmTone(voice, time, profile);
+      if (palmMuted) {
+        shapePalmEnvelope(
+          voice,
+          time,
+          profile,
+          Math.min(level, remaining + excitation),
+          0.006,
+          deadline,
+        );
+        if (!reuse) shapePalmTone(voice, time, profile, false);
+      } else {
+        // Finger excitation after the hand lifts may ring naturally, at its
+        // bounded level, rather than inheriting a fresh palm decay.
+        shapeEnvelope(
+          voice,
+          time,
+          duration,
+          Math.min(level, remaining + excitation),
+          false,
+          0.006,
+        );
+        voice.damping = profile;
+      }
+    } else {
+      // Sliding/holding/releasing a bend preserves the remaining decay and
+      // deadline. Retune its tone without opening the attack bands again.
+      retunePalmTone(voice, time, profile);
+      if (deadline < voice.releaseAt) {
+        holdAt(voice.gain.gain, voice.gainPoints, deadline);
+        ramp(voice.gain.gain, voice.gainPoints, 0, deadline + RELEASE_SECONDS);
+        voice.releaseAt = deadline;
+        voice.stopAt = deadline + RELEASE_SECONDS;
+        voice.stopSource(voice.stopAt);
+      }
+      voice.damping = profile;
+    }
+    voice.palmContactDepth = palmMuted ? depth : undefined;
+    if (!palmMuted) releasePalmTone(voice, time);
+  } else {
+    shapeEnvelope(voice, time, duration, level, false, legato ? 0.006 : 0.003);
+    releasePalmTone(voice, time);
   }
   if (continueVibrato) {
     for (const modulator of voice.modulators) {

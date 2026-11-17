@@ -52,7 +52,13 @@ export const chordSchema = z.object({
 // -----------------------------
 // Strum
 // -----------------------------
+const palmMuteSettingsSchema = z.object({
+  depth: z.number().finite().min(0).max(1).optional(),
+  strings: z.array(z.number().int().min(0).max(5)).max(6).optional(),
+});
+
 const strumSchema = z.object({
+  palmMuteSettings: palmMuteSettingsSchema.optional(),
   palmMute: z.union([
     z.literal(""),
     z.literal("-"),
@@ -100,6 +106,7 @@ const chordSectionSchema = z.object({
 // Tab Note
 // -----------------------------
 const tabNoteSchema = z.object({
+  palmMuteSettings: palmMuteSettingsSchema.optional(),
   type: z.literal("note"),
   palmMute: z.union([
     z.literal(""),

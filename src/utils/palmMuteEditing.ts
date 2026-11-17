@@ -42,7 +42,10 @@ export function applyTabPalmMuteValues(
   let start = -1;
   columns.forEach((column, index) => {
     if (column.type === "measureLine") column.isInPalmMuteSection = false;
-    else column.palmMute = values[index] ?? "";
+    else {
+      column.palmMute = values[index] ?? "";
+      if (!column.palmMute) delete column.palmMuteSettings;
+    }
   });
   values.forEach((value, index) => {
     if (value === "start") start = index;

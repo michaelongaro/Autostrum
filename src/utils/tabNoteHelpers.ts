@@ -6,6 +6,10 @@ import type {
   TabNote,
 } from "~/stores/TabStore";
 import { encodeStrumSpreadForCompile } from "~/utils/strumEffectHelpers";
+import {
+  encodePalmMuteSettings,
+  type PalmMuteSettings,
+} from "~/utils/palmMuteAudio";
 
 // Type guards
 export function isTabNote(item: TabNote | TabMeasureLine): item is TabNote {
@@ -21,6 +25,7 @@ export function isTabMeasureLine(
 // Factory functions
 export function createTabNote(options?: {
   palmMute?: "" | "-" | "start" | "end";
+  palmMuteSettings?: PalmMuteSettings;
   firstString?: string;
   secondString?: string;
   thirdString?: string;
@@ -35,6 +40,9 @@ export function createTabNote(options?: {
   return {
     type: "note",
     palmMute: options?.palmMute ?? "",
+    ...(options?.palmMuteSettings
+      ? { palmMuteSettings: options.palmMuteSettings }
+      : {}),
     firstString: options?.firstString ?? "",
     secondString: options?.secondString ?? "",
     thirdString: options?.thirdString ?? "",
@@ -51,6 +59,7 @@ export function createTabNote(options?: {
 
 export function createStrum(options?: {
   palmMute?: "" | "-" | "start" | "end";
+  palmMuteSettings?: PalmMuteSettings;
   strum?: string;
   noteLength?: FullNoteLengths;
   strumSpreadAuto?: boolean;
@@ -58,6 +67,9 @@ export function createStrum(options?: {
 }): Strum {
   return {
     palmMute: options?.palmMute ?? "",
+    ...(options?.palmMuteSettings
+      ? { palmMuteSettings: options.palmMuteSettings }
+      : {}),
     strum: options?.strum ?? "",
     noteLength: options?.noteLength ?? "quarter",
     strumSpreadAuto: options?.strumSpreadAuto ?? true,
@@ -120,7 +132,7 @@ export function setStringValue(
 // Legacy array conversion for playGeneratedAudioHelpers.ts
 // Array format: [0]=palmMute, [1]=firstString(lowE), [2]=secondString, ..., [6]=sixthString(highE),
 //               [7]=chordEffects, [8]=noteLength, [9]=id (overwritten with bpm at compile),
-//               [10]=strumSpread ("auto" | seconds | "")
+//               [10]=strumSpread ("auto" | seconds | ""), [11]=optional palm-mute settings JSON
 export function tabNoteToArray(note: TabNote): string[] {
   return [
     note.palmMute,
@@ -138,6 +150,7 @@ export function tabNoteToArray(note: TabNote): string[] {
       strumSpreadAuto: note.strumSpreadAuto,
       strumSpreadSeconds: note.strumSpreadSeconds,
     }),
+    ...encodePalmMuteSettings(note.palmMuteSettings),
   ];
 }
 
@@ -199,6 +212,7 @@ export function setPalmMuteValue(
 ): void {
   if (isTabNote(column)) {
     column.palmMute = value;
+    if (!value) delete column.palmMuteSettings;
   } else {
     // Measure lines can only be inside or outside a palm mute section
     column.isInPalmMuteSection = value === "-";

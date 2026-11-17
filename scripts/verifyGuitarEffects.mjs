@@ -146,6 +146,8 @@ const {
 const { buildPlaybackTimeline } = await import(
   moduleUrl("src/utils/playbackScheduler.ts")
 );
+const { parsePalmMuteSettings, normalizePalmMuteSettings, palmMuteProfile } =
+  await import(moduleUrl("src/utils/palmMuteAudio.ts"));
 
 class Param {
   value = 0;
@@ -278,7 +280,10 @@ function setup({
   };
 }
 
-function column(note = "", { string = 0, chordEffects = "", pm = "" } = {}) {
+function column(
+  note = "",
+  { string = 0, chordEffects = "", pm = "", palmMuteSettings } = {},
+) {
   const col = [
     pm,
     "",
@@ -293,6 +298,7 @@ function column(note = "", { string = 0, chordEffects = "", pm = "" } = {}) {
     "auto",
   ];
   col[string + 1] = note;
+  if (palmMuteSettings) col[11] = JSON.stringify(palmMuteSettings);
   return col;
 }
 
@@ -304,6 +310,7 @@ function phrase(
     bpm = 120,
     capo = 0,
     tuning = [64, 59, 55, 50, 45, 40],
+    playbackSpeed = 1,
   } = {},
 ) {
   const columns = notes.map((note) => {
@@ -315,7 +322,7 @@ function phrase(
     compiledChords: columns,
     fromChordIndex: 0,
     adjChordCount: columns.length,
-    playbackSpeed: 1,
+    playbackSpeed,
     startTime,
   });
   timeline.forEach((entry) => {
@@ -484,10 +491,10 @@ test("Palm mute uses one bounded signal path and decays before the next beat", (
   phrase(env, [column("5>", { pm: "start" })]);
   assert.equal(sampleNodes(env)[0].connections.length, 1);
   for (const node of env.nodes.filter((node) => node.kind === "gain"))
-    assert.ok(node.gain.events.every((event) => event.value <= 1.1));
+    assert.ok(node.gain.events.every((event) => event.value <= 3.4));
   assert.ok(sampleNodes(env)[0].stoppedAt < 0.5);
 });
-test("Short palm mutes retain delayed sample attacks without shifting ordinary picks", () => {
+test("Palm mutes retain delayed sample attacks without shifting ordinary picks", () => {
   const env = setup();
   const samples = env.buffer.getChannelData(0);
   samples.fill(0);
@@ -501,7 +508,7 @@ test("Short palm mutes retain delayed sample attacks without shifting ordinary p
   assert.ok(muted.sampleOffset >= 0.05 && muted.sampleOffset < 0.064);
   assert.equal(plain.sampleOffset, 0);
   assert.equal(muted.startedAt, 0.2);
-  assert.ok(muted.stoppedAt <= 0.287001);
+  assert.ok(muted.stoppedAt < 0.55);
 });
 
 test("Staccato duration follows note spacing, including legato notes", () => {
@@ -752,11 +759,220 @@ test("Palm-mute changes preserve the earlier cutoff during lookahead", () => {
   assert.equal(sampleNodes(env).length, 1);
   const cutoff = env.nodes.find((node) => node.kind === "filter").frequency;
   const held = cutoff.events.find((event) => event.time === 0.25);
-  assert.ok(held && held.value < 2200);
+  assert.ok(held && held.value < cutoff.events[1].value);
   assert.ok(
-    cutoff.events.some((event) => event.time > 0.25 && event.value === 21600),
+    cutoff.events
+      .filter((event) => event.time >= 0.25)
+      .every((event) => event.value <= held.value * 1.13),
   );
 });
+test("Palm damping is independent of subdivision and practice playback speed", () => {
+  const reference = setup();
+  phrase(reference, [column("0", { pm: "start" })]);
+  const fast = setup();
+  phrase(fast, [column("0", { pm: "start" })], {
+    bpm: 960,
+    playbackSpeed: 1.5,
+  });
+  const parameters = (env) =>
+    env.nodes
+      .filter((node) => ["gain", "filter"].includes(node.kind))
+      .map((node) => ({
+        gain: node.gain.events,
+        frequency: node.frequency.events,
+      }));
+  assert.deepEqual(parameters(fast), parameters(reference));
+  assert.equal(
+    sampleNodes(fast)[0].stoppedAt,
+    sampleNodes(reference)[0].stoppedAt,
+  );
+});
+
+test("Palm onset detection preserves a quiet pick before a later energy peak", () => {
+  const env = setup();
+  const data = env.buffer.getChannelData(0);
+  data.fill(0);
+  data.fill(0.06, 768, 960);
+  data.fill(0.25, 3072, 3264);
+  phrase(env, [column("0", { pm: "start" })]);
+  assert.ok(sampleNodes(env)[0].sampleOffset <= 0.012001);
+});
+
+test("A planted palm damps earlier strings even on an empty column", () => {
+  const env = setup();
+  phrase(env, [column("0", { string: 5 }), column("", { pm: "start" })], {
+    bpm: 480,
+  });
+  const source = sampleNodes(env)[0];
+  assert.equal(sampleNodes(env).length, 1);
+  assert.ok(source.stoppedAt < 0.67);
+  assert.ok(source.stoppedAt > 0.325);
+  assert.equal(source.connections.length, 1);
+  const shelves = env.nodes.filter((node) => node.type === "highshelf");
+  assert.equal(shelves.length, 2);
+  assert.ok(shelves.every((node) => node.gain.events.at(-1).value < -10));
+});
+
+test("Selective contact leaves uncovered ringing strings and new plucks open", () => {
+  const env = setup();
+  phrase(
+    env,
+    [
+      column("0", { string: 5 }),
+      column("0", {
+        pm: "start",
+        palmMuteSettings: { strings: [0] },
+      }),
+    ],
+    { bpm: 480 },
+  );
+  assert.ok(sampleNodes(env)[0].stoppedAt > 3);
+  assert.ok(sampleNodes(env)[1].stoppedAt < 0.7);
+  const opposite = setup();
+  phrase(
+    opposite,
+    [
+      column("0", { string: 5 }),
+      column("0", {
+        pm: "start",
+        palmMuteSettings: { strings: [5] },
+      }),
+    ],
+    { bpm: 480 },
+  );
+  assert.ok(sampleNodes(opposite)[0].stoppedAt < 0.7);
+  assert.ok(sampleNodes(opposite)[1].stoppedAt > 3);
+});
+
+test("Removing palm contact cannot replenish the lost string energy", () => {
+  const env = setup();
+  phrase(env, [column("0", { pm: "start" }), column("")], { bpm: 480 });
+  const gain = env.nodes.find((node) => node.kind === "gain").gain;
+  const held = gain.events.find(
+    (event) => event.time === 0.325 && event.kind === "set",
+  );
+  assert.ok(held.value > 0 && held.value < 0.1);
+  assert.ok(
+    gain.events
+      .filter((event) => event.time >= 0.325)
+      .every((event) => event.value <= held.value),
+  );
+  for (const band of env.nodes.filter((node) => node.type === "highshelf")) {
+    const heldBand = band.gain.events.find(
+      (event) => event.time === 0.325 && event.kind === "set",
+    );
+    assert.ok(heldBand.value < 0);
+    assert.ok(
+      band.gain.events
+        .filter((event) => event.time >= 0.325)
+        .every((event) => event.value <= heldBand.value),
+    );
+  }
+});
+
+test("Repeated palm picks vary their pressure and tone without pitch/onset jitter", () => {
+  const env = setup();
+  phrase(
+    env,
+    Array.from({ length: 5 }, () => column("0", { pm: "-" })),
+  );
+  const sources = sampleNodes(env);
+  const gains = env.nodes
+    .filter((node) => node.kind === "gain")
+    .map((node) => node.gain.events);
+  assert.notEqual(gains[0][2].value, gains[1][2].value);
+  assert.equal(gains[0][2].value, gains[4][2].value);
+  sources.forEach((source, index) => {
+    assert.equal(source.startedAt, 0.2 + index * 0.5);
+    assert.equal(source.sampleOffset, sources[0].sampleOffset);
+    assert.equal(source.detune.events.length, 0);
+  });
+});
+
+test("Palm profiles retain string identity, instrument color, depth and accent brightness", () => {
+  const profile = (name, string, depth, accent = false) =>
+    palmMuteProfile(name, 52, string, depth, 0, accent);
+  const steel = profile("acoustic_guitar_steel", 5, 0.55);
+  assert.notEqual(steel.decay, profile("acoustic_guitar_steel", 0, 0.55).decay);
+  assert.notEqual(steel.decay, profile("acoustic_guitar_nylon", 5, 0.55).decay);
+  assert.ok(profile("acoustic_guitar_steel", 5, 0).duration > steel.duration);
+  assert.ok(profile("acoustic_guitar_steel", 5, 1).duration < steel.duration);
+  assert.ok(
+    profile("acoustic_guitar_steel", 5, 0.55, true).attackCutoff >
+      steel.attackCutoff,
+  );
+});
+
+test("Muted slides retain their energy envelope and cannot revive an expired string", () => {
+  const env = setup();
+  const reference = setup();
+  phrase(reference, [column("0/", { pm: "start" })], { bpm: 480 });
+  phrase(env, [column("0/", { pm: "start" }), column("2", { pm: "end" })], {
+    bpm: 480,
+  });
+  assert.equal(sampleNodes(env).length, 1);
+  assert.deepEqual(
+    env.nodes.find((node) => node.kind === "gain").gain.events,
+    reference.nodes.find((node) => node.kind === "gain").gain.events,
+  );
+  assert.equal(
+    sampleNodes(env)[0].stoppedAt,
+    sampleNodes(reference)[0].stoppedAt,
+  );
+  const expired = setup();
+  phrase(expired, [column("0/", { pm: "start" }), column("2", { pm: "end" })]);
+  assert.equal(sampleNodes(expired).length, 1);
+});
+
+test("Muted hammer-ons add bounded finger energy while retaining a live sample", () => {
+  const env = setup();
+  phrase(env, [column("0h", { pm: "start" }), column("2", { pm: "end" })], {
+    bpm: 480,
+  });
+  assert.equal(sampleNodes(env).length, 1);
+  const gain = env.nodes.find((node) => node.kind === "gain").gain;
+  const attack = gain.events.find(
+    (event) => event.kind === "linear" && Math.abs(event.time - 0.331) < 1e-6,
+  );
+  const pickedPeak = Math.max(
+    ...gain.events
+      .filter((event) => event.time < 0.325)
+      .map((event) => event.value),
+  );
+  assert.ok(attack.value > 0.1 && attack.value < pickedPeak * 0.4);
+});
+
+test("Staccato and pause still gate fixed-rate palm damping, including the hold fallback", () => {
+  for (const fallback of [false, true]) {
+    const env = setup();
+    if (fallback) {
+      const create = env.context.createGain;
+      env.context.createGain = () => {
+        const node = create();
+        node.gain.cancelAndHoldAtTime = undefined;
+        return node;
+      };
+    }
+    phrase(env, [column("0.", { pm: "start" })], { bpm: 960 });
+    assert.ok(sampleNodes(env)[0].stoppedAt <= 0.247001);
+    stopActivePlaybackStrings(env.strings, 0.21);
+    assert.ok(sampleNodes(env)[0].stoppedAt <= 0.235001);
+  }
+});
+
+test("Compiled palm metadata validates masks and safely falls back for legacy/malformed data", () => {
+  assert.equal(parsePalmMuteSettings("{bad"), undefined);
+  assert.equal(parsePalmMuteSettings('{"strings":"all"}'), undefined);
+  assert.deepEqual(normalizePalmMuteSettings(), {
+    depth: 0.55,
+    strings: [0, 1, 2, 3, 4, 5],
+  });
+  assert.deepEqual(
+    parsePalmMuteSettings('{"depth":2,"strings":[5,0,5,-1,9]}'),
+    { depth: 1, strings: [5, 0] },
+  );
+});
+
 globalThis.setTimeout = realSetTimeout;
 console.log(`Passed ${tests.length} guitar effect scheduling checks.`);
 for (const name of tests) console.log(`  ${name}`);
