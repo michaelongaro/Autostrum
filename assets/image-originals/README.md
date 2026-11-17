@@ -17,8 +17,7 @@ The current sizes preserve aspect ratio and the existing CSS crop:
 - Genre thumbnails cover a 500 by 144 CSS-pixel card at 2x density.
 - Guitar photos cover a 384 by 192 CSS-pixel card at 2x density.
 - The Explore header covers its maximum 1400 by 144 CSS-pixel banner at 2x density.
-- Unused legacy desktop hero screenshots are limited to 1920 pixels wide.
-- Mobile screenshots, signup screenshots, the social preview, icons, and SVGs
+- The social preview, icons, and SVGs
   already have suitable dimensions and retain their original bytes.
 
 JPEGs use quality 84 and WebP thumbnails quality 82. PNG screenshots remain

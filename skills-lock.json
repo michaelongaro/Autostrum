@@ -1,12 +1,6 @@
 {
   "version": 1,
   "skills": {
-    "migrate-radix-to-base": {
-      "source": "shadcn/ui",
-      "sourceType": "github",
-      "skillPath": "skills/migrate-radix-to-base/SKILL.md",
-      "computedHash": "4fdc31bf287f674ba6bf91a648120f7b34cd7ef370f998f2cc116fed067789c5"
-    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",

@@ -22,9 +22,7 @@ export interface PlaybackChordLayoutData {
 }
 
 type PlaybackChord =
-  | PlaybackTabChord
-  | PlaybackStrummedChord
-  | PlaybackLoopDelaySpacerChord;
+  PlaybackTabChord | PlaybackStrummedChord | PlaybackLoopDelaySpacerChord;
 
 function getChordWidth(chord: PlaybackChord | undefined): number {
   const isMeasureLine =
@@ -38,28 +36,6 @@ function getChordWidth(chord: PlaybackChord | undefined): number {
   if (isSpacerChord) return 16;
   if (chord?.type === "tab" || chord?.type === "loopDelaySpacer") return 34;
   return 40;
-}
-
-function fillRepetitions(length: number, value: number): number[] {
-  return new Array(length).fill(value) as number[];
-}
-
-function halfShiftedRepetitions(
-  length: number,
-  virtualizationStartIndex: number,
-  firstHalfValue: number,
-  secondHalfValue: number,
-): number[] {
-  const firstHalfLength = Math.min(
-    Math.max(0, virtualizationStartIndex),
-    length,
-  );
-  const secondHalfLength = Math.max(0, length - firstHalfLength);
-
-  return [
-    ...fillRepetitions(firstHalfLength, firstHalfValue),
-    ...fillRepetitions(secondHalfLength, secondHalfValue),
-  ];
 }
 
 /**
@@ -188,95 +164,4 @@ export function computePlaybackChordLayoutData({
     virtualizationCatchupIndex,
     canVirtualize,
   };
-}
-
-/**
- * After a large currentChordIndex jump (background-tab timer throttling),
- * reconstruct the chordRepetitions shape that the incremental primary/catchup
- * effects would have reached by walking through every index.
- */
-export function resyncChordRepetitionsAfterIndexJump({
-  length,
-  previousRepetitions,
-  currentChordIndex,
-  previousChordIndex,
-  virtualizationIndex,
-  virtualizationStartIndex,
-  virtualizationCatchupIndex,
-  canVirtualize,
-  wrappedForward,
-}: {
-  length: number;
-  previousRepetitions: number[];
-  currentChordIndex: number;
-  previousChordIndex: number;
-  virtualizationIndex: number;
-  virtualizationStartIndex: number;
-  virtualizationCatchupIndex: number;
-  canVirtualize: boolean;
-  wrappedForward: boolean;
-}): number[] {
-  if (length <= 0) return [];
-
-  const prevFirst = previousRepetitions[0] ?? 0;
-  const prevLast =
-    previousRepetitions[previousRepetitions.length - 1] ?? prevFirst;
-  const wasPrimaryPending = prevFirst !== prevLast;
-
-  if (!canVirtualize) {
-    const base = Math.max(prevFirst, prevLast) + (wrappedForward ? 1 : 0);
-    return fillRepetitions(length, base);
-  }
-
-  // Completed at least one visual loop without stepping through thresholds.
-  if (wrappedForward) {
-    // Post-loop first-half value: if primary already ran, keep that bump;
-    // otherwise advance from the previous caught-up base.
-    const postLoopFirstHalf = wasPrimaryPending ? prevFirst : prevFirst + 1;
-    const postLoopSecondHalf = postLoopFirstHalf - 1;
-
-    if (currentChordIndex >= virtualizationCatchupIndex) {
-      // Past catchup — fully caught up on the new loop.
-      return fillRepetitions(length, postLoopFirstHalf);
-    }
-
-    // Still before catchup — primary shape for the new loop.
-    return halfShiftedRepetitions(
-      length,
-      virtualizationStartIndex,
-      postLoopFirstHalf,
-      postLoopSecondHalf,
-    );
-  }
-
-  // Forward jump within the same loop.
-  if (currentChordIndex >= virtualizationIndex) {
-    if (wasPrimaryPending) {
-      return previousRepetitions.slice(0, length);
-    }
-
-    return halfShiftedRepetitions(
-      length,
-      virtualizationStartIndex,
-      prevFirst + 1,
-      prevFirst,
-    );
-  }
-
-  if (
-    currentChordIndex >= virtualizationCatchupIndex &&
-    wasPrimaryPending
-  ) {
-    return fillRepetitions(length, prevFirst);
-  }
-
-  // No threshold crossed by the jump — keep prior reps (resized if needed).
-  if (previousRepetitions.length === length) {
-    return previousRepetitions;
-  }
-
-  return fillRepetitions(length, prevFirst);
-
-  // previousChordIndex is accepted for API clarity / future multi-wrap math.
-  void previousChordIndex;
 }

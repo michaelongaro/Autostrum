@@ -3,45 +3,11 @@
  * Run: node scripts/verifyMeasureLineBpm.mjs
  */
 
-function getBpmForChord(chordBpm, baselineBpm, subSectionBpm) {
-  if (chordBpm !== -1) return chordBpm;
-  if (subSectionBpm && subSectionBpm !== -1) return subSectionBpm;
-  return baselineBpm;
-}
-
-function applyStickyMeasureLineBpm(currentBpm, bpmAfterLine) {
-  return bpmAfterLine !== null ? bpmAfterLine : currentBpm;
-}
-
-function getMeasureLineBpmDisplay({
-  columns,
-  measureLineIndex,
-  subSectionBpm,
-  baselineBpm,
-}) {
-  let currentBpm = getBpmForChord(subSectionBpm, baselineBpm);
-
-  for (let i = 0; i < measureLineIndex; i++) {
-    const column = columns[i];
-    if (column?.type === "measureLine" && column.bpmAfterLine !== null) {
-      currentBpm = column.bpmAfterLine;
-    }
-  }
-
-  const bpmBefore = currentBpm;
-  const measureLine = columns[measureLineIndex];
-  const bpmAfter =
-    measureLine?.type === "measureLine" && measureLine.bpmAfterLine !== null
-      ? measureLine.bpmAfterLine
-      : bpmBefore;
-
-  return {
-    show: bpmBefore !== bpmAfter,
-    bpm: bpmAfter,
-    bpmBefore,
-    bpmAfter,
-  };
-}
+import "./lib/registerTypeScript.mjs";
+const { default: getBpmForChord } =
+  await import("../src/utils/getBpmForChord.ts");
+const { getMeasureLineBpmDisplay, applyStickyMeasureLineBpm } =
+  await import("../src/utils/measureLineBpm.ts");
 
 function resolveNoteBpms(columns, subSectionBpm, baselineBpm) {
   let currentBpm = getBpmForChord(subSectionBpm, baselineBpm);

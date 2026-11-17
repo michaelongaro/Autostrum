@@ -6,15 +6,22 @@ export default defineConfig(
   ...nextCoreWebVitals,
   // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
+    // Build output and generated declarations.
     ".next/**",
+    ".next-perf/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "src/generated/**",
     // Installed skill examples are reference material, not application code.
     ".agents/**",
-    // Generated Lighthouse reports and one-off audit tooling are local artifacts.
+    // Local reports, test output, and Python tooling.
     "reports/**",
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
+    ".venv*/**",
+    ".pytest_cache/**",
   ]),
   {
     files: ["**/*.ts", "**/*.tsx"],

@@ -42,10 +42,6 @@ function resizeOptions(image) {
   if (image === "explore/header.jpg") {
     return { width: 2800, height: 288, fit: "outside" };
   }
-  // Legacy desktop screenshots are unused; retain a full-HD version in public.
-  if (image.startsWith("homepage/hero/goodDesktopHero")) {
-    return { width: 1920 };
-  }
   return null;
 }
 

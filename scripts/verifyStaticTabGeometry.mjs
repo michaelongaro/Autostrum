@@ -7,6 +7,7 @@
 // measurement helpers are exercised against lightweight element stubs.
 
 import assert from "node:assert/strict";
+import "./lib/registerTypeScript.mjs";
 
 const failures = [];
 let checks = 0;
@@ -22,187 +23,13 @@ function check(name, fn) {
   }
 }
 
-// Inline the pure helpers (kept in sync with src/utils/staticTabGeometry.ts)
-// so this script has zero build/transpile dependency. The browser e2e script
-// exercises the real module; this catches math regressions fast.
-
-const STATIC_TAB_ROW_HEIGHT_PX = 221;
-const STATIC_TAB_TUNING_GUTTER_WIDTH_PX = 25;
-const STATIC_TAB_NOTES_COLUMN_WIDTH_PX = 34;
-const STATIC_TAB_END_LINE_WIDTH_PX = 1;
-const STATIC_TAB_MEASURE_LINE_WIDTH_PX = 1;
-const STATIC_TAB_OVERSCAN_PX = 300;
-const ROW_PACKING_EPSILON_PX = 0.1;
-const CSS_ZOOM_RATIO_EPSILON = 0.001;
-
-function getStaticTabColumnWidthPx(column, isLastColumn) {
-  const baseWidth =
-    column.type === "measureLine"
-      ? STATIC_TAB_MEASURE_LINE_WIDTH_PX
-      : STATIC_TAB_NOTES_COLUMN_WIDTH_PX;
-  return isLastColumn ? baseWidth + STATIC_TAB_END_LINE_WIDTH_PX : baseWidth;
-}
-
-function buildStaticTabRowLayout(columns, innerWidthPx) {
-  const rows = [];
-  if (columns.length === 0 || innerWidthPx <= 0) {
-    return { rows, totalHeight: 0 };
-  }
-
-  const maxRowWidth = innerWidthPx + ROW_PACKING_EPSILON_PX;
-  let startIndex = 0;
-  let rowWidth = STATIC_TAB_TUNING_GUTTER_WIDTH_PX;
-  let columnsInRow = 0;
-
-  const pushRow = (endIndex) => {
-    rows.push({
-      rowIndex: rows.length,
-      startIndex,
-      endIndex,
-      width: rowWidth,
-      top: rows.length * STATIC_TAB_ROW_HEIGHT_PX,
-    });
-  };
-
-  for (const [index, column] of columns.entries()) {
-    const columnWidth = getStaticTabColumnWidthPx(
-      column,
-      index === columns.length - 1,
-    );
-    if (columnsInRow > 0 && rowWidth + columnWidth > maxRowWidth) {
-      pushRow(index - 1);
-      startIndex = index;
-      rowWidth = 0;
-      columnsInRow = 0;
-    }
-    rowWidth += columnWidth;
-    columnsInRow++;
-  }
-  pushRow(columns.length - 1);
-  return { rows, totalHeight: rows.length * STATIC_TAB_ROW_HEIGHT_PX };
-}
-
-function getVisibleRowRange(
-  layout,
-  bodyTopPx,
-  viewportHeightPx,
-  zoom,
-  overscanPx = STATIC_TAB_OVERSCAN_PX,
-  viewportTopPx = 0,
-) {
-  const safeZoom = zoom > 0 ? zoom : 1;
-  const bodyHeight = layout.totalHeight * safeZoom;
-  return getVisibleRowRangeFromBodyRect(
-    layout,
-    {
-      top: bodyTopPx,
-      bottom: bodyTopPx + bodyHeight,
-      height: bodyHeight,
-    },
-    viewportHeightPx,
-    overscanPx,
-    viewportTopPx,
-  );
-}
-
-function getStaticTabLayoutWidthPx(element) {
-  const offsetWidth = element.offsetWidth;
-  if (offsetWidth <= 0) return 0;
-  const rect = element.getBoundingClientRect();
-  const offsetHeight = element.offsetHeight;
-  if (
-    rect.width > 0 &&
-    rect.height > 0 &&
-    offsetHeight > 0 &&
-    Number.isFinite(rect.width) &&
-    Number.isFinite(rect.height)
-  ) {
-    const heightZoom = rect.height / offsetHeight;
-    if (
-      Number.isFinite(heightZoom) &&
-      heightZoom > 0 &&
-      Math.abs(heightZoom - 1) >= CSS_ZOOM_RATIO_EPSILON
-    ) {
-      const widthLooksVisual =
-        Math.abs(offsetWidth - rect.width) / rect.width < 0.02;
-      if (widthLooksVisual) {
-        const layoutWidth = rect.width / heightZoom;
-        if (Number.isFinite(layoutWidth) && layoutWidth > 0) {
-          return layoutWidth;
-        }
-      }
-    }
-  }
-  return offsetWidth;
-}
-
-function getVisibleRowRangeFromBodyRect(
-  layout,
-  bodyRect,
-  viewportHeightPx,
-  overscanPx = STATIC_TAB_OVERSCAN_PX,
-  viewportTopPx = 0,
-) {
-  const rowCount = layout.rows.length;
-  if (rowCount === 0 || layout.totalHeight <= 0) return null;
-  const bodyHeight = bodyRect.height;
-  if (!(bodyHeight > 0) || !Number.isFinite(bodyHeight)) return null;
-  const safeViewportHeight =
-    Number.isFinite(viewportHeightPx) && viewportHeightPx > 0
-      ? viewportHeightPx
-      : 0;
-  const safeViewportTop = Number.isFinite(viewportTopPx) ? viewportTopPx : 0;
-  const viewStart = safeViewportTop - overscanPx;
-  const viewEnd = safeViewportTop + safeViewportHeight + overscanPx;
-  const overlapStart = Math.max(viewStart, bodyRect.top);
-  const overlapEnd = Math.min(viewEnd, bodyRect.bottom);
-  if (!(overlapEnd > overlapStart)) return null;
-  const layoutStart =
-    ((overlapStart - bodyRect.top) / bodyHeight) * layout.totalHeight;
-  const layoutEnd =
-    ((overlapEnd - bodyRect.top) / bodyHeight) * layout.totalHeight;
-  const clamp = (value) => Math.min(Math.max(value, 0), rowCount - 1);
-  const startRow = clamp(Math.floor(layoutStart / STATIC_TAB_ROW_HEIGHT_PX));
-  const endRow = clamp(Math.ceil(layoutEnd / STATIC_TAB_ROW_HEIGHT_PX) - 1);
-  if (endRow < startRow) return null;
-  return { startRow, endRow };
-}
-
-function normalizeCssZoomRatio(measured) {
-  if (Math.abs(measured - 1) < CSS_ZOOM_RATIO_EPSILON) return 1;
-  return measured;
-}
-
-function getElementCssZoomForRect(
-  element,
-  fallbackZoom = 1,
-  layoutHeightPx,
-) {
-  const safeFallback = fallbackZoom > 0 ? fallbackZoom : 1;
-  const rect = element.getBoundingClientRect();
-
-  if (
-    layoutHeightPx !== undefined &&
-    layoutHeightPx > 0 &&
-    Number.isFinite(layoutHeightPx)
-  ) {
-    const visualHeight = rect.height;
-    if (visualHeight > 0 && Number.isFinite(visualHeight)) {
-      const measured = visualHeight / layoutHeightPx;
-      if (Number.isFinite(measured) && measured > 0) {
-        return normalizeCssZoomRatio(measured);
-      }
-    }
-  }
-
-  const layoutWidth = element.offsetWidth;
-  if (layoutWidth <= 0) return safeFallback;
-  const visualWidth = rect.width;
-  if (visualWidth <= 0 || !Number.isFinite(visualWidth)) return safeFallback;
-  const measured = visualWidth / layoutWidth;
-  if (!Number.isFinite(measured) || measured <= 0) return safeFallback;
-  return normalizeCssZoomRatio(measured);
-}
+const {
+  buildStaticTabRowLayout,
+  getVisibleRowRange,
+  getStaticTabLayoutWidthPx,
+  getVisibleRowRangeFromBodyRect,
+  getElementCssZoomForRect,
+} = await import("../src/utils/staticTabGeometry.ts");
 
 function stubElement({
   offsetWidth,
@@ -320,27 +147,33 @@ check("zoom=1: body at top of viewport shows early rows", () => {
   assert.ok(range.endRow >= 2);
 });
 
-check("zoom=2 with scaled rect: same layout rows as zoom=1 for equivalent visual", () => {
-  // Body visually twice as tall; rect.top is in visual px. Converting with
-  // measured zoom=2 should yield the same layout window as an unzoomed body.
-  const unzoomed = getVisibleRowRange(wideLayout, 0, 800, 1, 0);
-  const zoomed = getVisibleRowRange(wideLayout, 0, 800, 2, 0);
-  assert.ok(unzoomed && zoomed);
-  // At zoom=2 the same viewport covers fewer layout rows
-  assert.ok(zoomed.endRow < unzoomed.endRow);
-});
+check(
+  "zoom=2 with scaled rect: same layout rows as zoom=1 for equivalent visual",
+  () => {
+    // Body visually twice as tall; rect.top is in visual px. Converting with
+    // measured zoom=2 should yield the same layout window as an unzoomed body.
+    const unzoomed = getVisibleRowRange(wideLayout, 0, 800, 1, 0);
+    const zoomed = getVisibleRowRange(wideLayout, 0, 800, 2, 0);
+    assert.ok(unzoomed && zoomed);
+    // At zoom=2 the same viewport covers fewer layout rows
+    assert.ok(zoomed.endRow < unzoomed.endRow);
+  },
+);
 
-check("old-WebKit path: unscaled rect + measuredZoom=1 keeps full viewport window", () => {
-  // If we wrongly passed app zoom=2 while rect.top is unscaled, the window
-  // would shrink and hide rows that are still on screen.
-  const correct = getVisibleRowRange(wideLayout, 0, 800, 1, 0);
-  const doubleDivided = getVisibleRowRange(wideLayout, 0, 800, 2, 0);
-  assert.ok(correct && doubleDivided);
-  assert.ok(
-    correct.endRow > doubleDivided.endRow,
-    "double-dividing zoom hides rows that should stay mounted",
-  );
-});
+check(
+  "old-WebKit path: unscaled rect + measuredZoom=1 keeps full viewport window",
+  () => {
+    // If we wrongly passed app zoom=2 while rect.top is unscaled, the window
+    // would shrink and hide rows that are still on screen.
+    const correct = getVisibleRowRange(wideLayout, 0, 800, 1, 0);
+    const doubleDivided = getVisibleRowRange(wideLayout, 0, 800, 2, 0);
+    assert.ok(correct && doubleDivided);
+    assert.ok(
+      correct.endRow > doubleDivided.endRow,
+      "double-dividing zoom hides rows that should stay mounted",
+    );
+  },
+);
 
 check("packing width must not be divided by zoom on unscaled rects", () => {
   // Simulate the old bug: rect.width/appZoom when rect is already unscaled.
@@ -358,44 +191,56 @@ check("packing width must not be divided by zoom on unscaled rects", () => {
   );
 });
 
-check("scaled top + collapsed width zoom empties mid-section (regression)", () => {
-  // Tall zoomed body scrolled deep into its visual height: treating the
-  // scaled bodyTop as layout px (measuredZoom=1) walks past
-  // layout.totalHeight → null range while the card is still on screen.
-  const tallLayout = buildStaticTabRowLayout(makeNotes(200), 216);
-  assert.ok(tallLayout.rows.length >= 30);
-  const appZoom = 1.5;
-  const visualHeight = tallLayout.totalHeight * appZoom;
-  // Place the viewport near the bottom of the visual body.
-  const visualTop = -(visualHeight - 400);
-  const visuallyIn =
-    visualTop + visualHeight > 0 && visualTop < 844;
-  assert.ok(visuallyIn, "fixture should still be on screen");
+check(
+  "scaled top + collapsed width zoom empties mid-section (regression)",
+  () => {
+    // Tall zoomed body scrolled deep into its visual height: treating the
+    // scaled bodyTop as layout px (measuredZoom=1) walks past
+    // layout.totalHeight → null range while the card is still on screen.
+    const tallLayout = buildStaticTabRowLayout(makeNotes(200), 216);
+    assert.ok(tallLayout.rows.length >= 30);
+    const appZoom = 1.5;
+    const visualHeight = tallLayout.totalHeight * appZoom;
+    // Place the viewport near the bottom of the visual body.
+    const visualTop = -(visualHeight - 400);
+    const visuallyIn = visualTop + visualHeight > 0 && visualTop < 844;
+    assert.ok(visuallyIn, "fixture should still be on screen");
 
-  const buggy = getVisibleRowRange(tallLayout, visualTop, 844, 1, 300);
-  const fixed = getVisibleRowRange(tallLayout, visualTop, 844, appZoom, 300);
-  assert.equal(
-    buggy,
-    null,
-    "collapsed zoom must reproduce the empty-section bug",
-  );
-  assert.ok(fixed, "height-derived zoom must keep mid-section rows mounted");
-  assert.ok(fixed.endRow >= fixed.startRow);
-});
+    const buggy = getVisibleRowRange(tallLayout, visualTop, 844, 1, 300);
+    const fixed = getVisibleRowRange(tallLayout, visualTop, 844, appZoom, 300);
+    assert.equal(
+      buggy,
+      null,
+      "collapsed zoom must reproduce the empty-section bug",
+    );
+    assert.ok(fixed, "height-derived zoom must keep mid-section rows mounted");
+    assert.ok(fixed.endRow >= fixed.startRow);
+  },
+);
 
-check("layout-viewport top stays at 0 (no visualViewport offset double-shift)", () => {
-  // Document-scroll virtualization must not add visualViewport.offsetTop —
-  // getBoundingClientRect is already layout-viewport relative on iOS.
-  const bodyTop = -1000;
-  const atZero = getVisibleRowRange(wideLayout, bodyTop, 800, 1, 0, 0);
-  const wronglyShifted = getVisibleRowRange(wideLayout, bodyTop, 800, 1, 0, 500);
-  assert.ok(atZero && wronglyShifted);
-  assert.notDeepEqual(
-    atZero,
-    wronglyShifted,
-    "offsetTop shift changes the window — callers must pass 0 for document scroll",
-  );
-});
+check(
+  "layout-viewport top stays at 0 (no visualViewport offset double-shift)",
+  () => {
+    // Document-scroll virtualization must not add visualViewport.offsetTop —
+    // getBoundingClientRect is already layout-viewport relative on iOS.
+    const bodyTop = -1000;
+    const atZero = getVisibleRowRange(wideLayout, bodyTop, 800, 1, 0, 0);
+    const wronglyShifted = getVisibleRowRange(
+      wideLayout,
+      bodyTop,
+      800,
+      1,
+      0,
+      500,
+    );
+    assert.ok(atZero && wronglyShifted);
+    assert.notDeepEqual(
+      atZero,
+      wronglyShifted,
+      "offsetTop shift changes the window — callers must pass 0 for document scroll",
+    );
+  },
+);
 
 check("rect-fraction keeps in-viewport rows without an explicit zoom", () => {
   const tallLayout = buildStaticTabRowLayout(makeNotes(200), 216);
