@@ -1,4 +1,5 @@
 import { useState } from "react";
+import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
 import {
   Accordion,
@@ -6,16 +7,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { useTabStore, type Section } from "~/stores/TabStore";
+import { Separator } from "~/components/ui/separator";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { useSectionData } from "~/hooks/useTabDataSelectors";
+import type { COLORS, THEME } from "~/stores/TabStore";
+import { useTabStoreShallow, type Section } from "~/stores/TabStore";
 import {
   chordSequencesAllHaveSameNoteLength,
   getDynamicNoteLengthIcon,
 } from "~/utils/noteLengthIcons";
-import { Separator } from "~/components/ui/separator";
-import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
-import type { COLORS, THEME } from "~/stores/TabStore";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { useSectionData } from "~/hooks/useTabDataSelectors";
 
 interface StaticSectionContainer {
   /** When omitted, section data is read from the store by sectionIndex. */
@@ -41,7 +41,7 @@ function StaticSectionContainer({
 }: StaticSectionContainer) {
   const [accordionOpen, setAccordionOpen] = useState("opened");
 
-  const { bpm } = useTabStore((state) => ({
+  const { bpm } = useTabStoreShallow((state) => ({
     bpm: state.bpm,
   }));
 

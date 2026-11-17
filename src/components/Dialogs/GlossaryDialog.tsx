@@ -1,40 +1,40 @@
-import { useTabStore } from "~/stores/TabStore";
-import { Separator } from "~/components/ui/separator";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+import { AnimatePresence, motion, useMotionValue } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import { HiOutlineInformationCircle } from "react-icons/hi";
-import { AnimatePresence, motion, useMotionValue } from "framer-motion";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import { VisuallyHidden } from "~/components/ui/visually-hidden";
-import ArpeggiatedDownstrumIcon from "~/components/ui/icons/ArpeggiatedDownstrumIcon";
-import ArpeggiatedUpstrumIcon from "~/components/ui/icons/ArpeggiatedUpstrumIcon";
-import PauseIcon from "~/components/ui/icons/PauseIcon";
-import { useEffect, useRef, useState } from "react";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { Button } from "~/components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   type CarouselApi,
 } from "~/components/ui/carousel";
-import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import ArpeggiatedDownstrumIcon from "~/components/ui/icons/ArpeggiatedDownstrumIcon";
+import ArpeggiatedUpstrumIcon from "~/components/ui/icons/ArpeggiatedUpstrumIcon";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { Separator } from "~/components/ui/separator";
 import {
   Table,
-  TableHeader,
-  TableHead,
-  TableRow,
-  TableCell,
   TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "~/components/ui/table";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import {
   EighthNote,
   EighthRest,
@@ -50,13 +50,12 @@ import {
 
 function GlossaryDialog() {
   const desktop = useViewportWidthBreakpoint(768);
-  const { editing, showGlossaryDialog, setShowGlossaryDialog } = useTabStore(
-    (state) => ({
+  const { editing, showGlossaryDialog, setShowGlossaryDialog } =
+    useTabStoreShallow((state) => ({
       editing: state.editing,
       showGlossaryDialog: state.showGlossaryDialog,
       setShowGlossaryDialog: state.setShowGlossaryDialog,
-    }),
-  );
+    }));
 
   const [currentPane, setCurrentPane] = useState<"modifiers" | "noteLengths">(
     "modifiers",

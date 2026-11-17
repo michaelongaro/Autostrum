@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { IoEar } from "react-icons/io5";
 import { get } from "@tonaljs/note";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { BsFillVolumeUpFill } from "react-icons/bs";
+import { IoEar } from "react-icons/io5";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
 import PlayIcon from "~/components/ui/icons/PlayIcon";
+import { Label } from "~/components/ui/label";
+import { PrettyNote } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
@@ -14,12 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { BsFillVolumeUpFill } from "react-icons/bs";
-import { Label } from "~/components/ui/label";
-import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import Spinner from "~/components/ui/Spinner";
-import { PrettyNote } from "~/components/ui/PrettyTuning";
 import SuccessCheckmark from "~/components/ui/SuccessCheckmark";
+import { useTabStoreApi, useTabStoreShallow } from "~/stores/TabStore";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -103,10 +103,12 @@ function getRandomNote(notePool: readonly string[]) {
 function NoteTrainerPage() {
   const reduceMotion = useReducedMotion();
   const store = useTabStoreApi();
-  const { instruments, setCurrentInstrumentName } = useTabStore((state) => ({
-    instruments: state.instruments,
-    setCurrentInstrumentName: state.setCurrentInstrumentName,
-  }));
+  const { instruments, setCurrentInstrumentName } = useTabStoreShallow(
+    (state) => ({
+      instruments: state.instruments,
+      setCurrentInstrumentName: state.setCurrentInstrumentName,
+    }),
+  );
 
   const currentPlaybackRef = useRef<PlaybackHandle>(null);
   const playbackRequestIdRef = useRef(0);

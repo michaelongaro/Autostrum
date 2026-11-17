@@ -1,17 +1,18 @@
+import { HiMiniComputerDesktop } from "react-icons/hi2";
+import { IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
-import { IoSunnyOutline, IoMoonOutline } from "react-icons/io5";
-import { HiMiniComputerDesktop } from "react-icons/hi2";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { api } from "~/utils/api";
 import {
   COLOR_HEX_VALUES,
   NEAR_WHITE_COLOR_VALUES,
   updateCSSThemeVars,
 } from "~/utils/updateCSSThemeVars";
-import { api } from "~/utils/api";
-import { useTabStore } from "~/stores/TabStore";
+
 import { useAuth } from "@clerk/nextjs";
-import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 const COLORS = [
   "peony",
@@ -39,7 +40,7 @@ function ThemePicker({ allowUpdateOfDBColor = true }: ThemePicker) {
     setTheme,
     followsDeviceTheme,
     setFollowsDeviceTheme,
-  } = useTabStore((state) => ({
+  } = useAppPreferencesStore((state) => ({
     color: state.color,
     setColor: state.setColor,
     theme: state.theme,

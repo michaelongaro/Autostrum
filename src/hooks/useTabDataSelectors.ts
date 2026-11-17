@@ -1,20 +1,22 @@
+import { useMemo } from "react";
 import {
   useTabStore,
-  type TabSection,
+  useTabStoreShallow,
   type ChordSection,
   type ChordSequence,
-  type TabNote,
-  type TabMeasureLine,
   type FullNoteLengths,
+  type TabMeasureLine,
+  type TabNote,
+  type TabSection,
 } from "~/stores/TabStore";
-import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
-import { beamBreaksAtTabColumn } from "~/utils/noteLengthBeaming";
-import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
 import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
+import { beamBreaksAtTabColumn } from "~/utils/noteLengthBeaming";
 import {
   getTabPalmMuteValues,
   type PalmMuteValue,
 } from "~/utils/palmMuteEditing";
+import sectionIsEffectivelyEmpty from "~/utils/sectionIsEffectivelyEmpty";
+import { isTabMeasureLine, isTabNote } from "~/utils/tabNoteHelpers";
 
 /**
  * Fine-grained tabData selectors for the editing tree.
@@ -22,9 +24,9 @@ import {
  * Rules of thumb (keep re-renders local):
  * - Parents map by ID/type lists, never by full section/subsection objects.
  * - Leaves select only the column/fields they render.
- * - Event handlers that need more data should call `getTabData()` /
- *   `getTabStore()` instead of widening a React subscription.
- * - Prefer primitives / ID arrays so `useShallow` (applied in `useTabStore`)
+ * - Event handlers should read their session through `useTabDataGetter()` or
+ *   `useTabStoreApi().getState()` instead of widening a React subscription.
+ * - Prefer primitives / ID arrays so `useTabStoreShallow`
  *   keeps results stable across unrelated immer updates.
  */
 
@@ -38,7 +40,7 @@ export const useTabPalmMuteValues = (
   subSectionIndex: number,
   enabled: boolean,
 ) =>
-  useTabStore((state) => {
+  useTabStoreShallow((state) => {
     if (!enabled) return EMPTY_PALM_MUTE_ARRAY;
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     return sub?.type === "tab"
@@ -51,7 +53,7 @@ export const useTabPalmMuteValues = (
  * keeps sibling section objects intact; useShallow keeps this ID list stable).
  */
 export const useSectionIds = () => {
-  return useTabStore(
+  return useTabStoreShallow(
     (state) => state.tabData.map((section) => section.id) ?? EMPTY_STRING_ARRAY,
   );
 };
@@ -61,22 +63,34 @@ export const useSectionIds = () => {
  * note edits (sibling section objects are structurally shared by immer).
  */
 export const useSectionTitles = () => {
-  return useTabStore(
+  return useTabStoreShallow(
     (state) =>
       state.tabData.map((section) => section.title) ?? EMPTY_STRING_ARRAY,
   );
 };
 
+/** Stable choices: fret edits do not invalidate section-picker UI. */
+export const useSectionOptions = () => {
+  const ids = useSectionIds();
+  const titles = useSectionTitles();
+  return useMemo(
+    () => ids.map((id, index) => ({ id, title: titles[index] ?? "" })),
+    [ids, titles],
+  );
+};
+
 export const useSectionTitle = (sectionIndex: number) => {
-  return useTabStore((state) => state.tabData[sectionIndex]?.title ?? "");
+  return useTabStoreShallow(
+    (state) => state.tabData[sectionIndex]?.title ?? "",
+  );
 };
 
 export const useSectionId = (sectionIndex: number) => {
-  return useTabStore((state) => state.tabData[sectionIndex]?.id ?? "");
+  return useTabStoreShallow((state) => state.tabData[sectionIndex]?.id ?? "");
 };
 
 export const useSubSectionIds = (sectionIndex: number) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const section = state.tabData[sectionIndex];
     if (!section) return EMPTY_STRING_ARRAY;
     return section.data.map((sub) => sub.id);
@@ -84,7 +98,7 @@ export const useSubSectionIds = (sectionIndex: number) => {
 };
 
 export const useSubSectionTypes = (sectionIndex: number) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const section = state.tabData[sectionIndex];
     if (!section) return EMPTY_TYPE_ARRAY as ("tab" | "chord")[];
     return section.data.map((sub) => sub.type);
@@ -92,18 +106,20 @@ export const useSubSectionTypes = (sectionIndex: number) => {
 };
 
 export const useSectionDataLength = (sectionIndex: number) => {
-  return useTabStore((state) => state.tabData[sectionIndex]?.data.length ?? 0);
+  return useTabStoreShallow(
+    (state) => state.tabData[sectionIndex]?.data.length ?? 0,
+  );
 };
 
 export const useSectionData = (sectionIndex: number) => {
-  return useTabStore((state) => state.tabData[sectionIndex]!);
+  return useTabStoreShallow((state) => state.tabData[sectionIndex]!);
 };
 
 export const useSubSectionData = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     // May be undefined while AnimatePresence keeps an exiting child mounted.
     return state.tabData[sectionIndex]?.data[subSectionIndex];
   });
@@ -113,7 +129,7 @@ export const useTabSubSectionData = (
   sectionIndex: number,
   subSectionIndex: number,
 ): TabSection | undefined => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     return sub?.type === "tab" ? sub : undefined;
   });
@@ -124,7 +140,7 @@ export const useTabSubSectionMeta = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "tab") {
       return {
@@ -150,7 +166,7 @@ export const useTabSubSectionBpm = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     return sub?.type === "tab" ? sub.bpm : -1;
   });
@@ -165,7 +181,7 @@ export const useMeasureLineBpmDisplay = (
   subSectionIndex: number,
   columnIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "tab") {
       return {
@@ -189,7 +205,7 @@ export const useTabColumnIds = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "tab") return EMPTY_STRING_ARRAY;
     return sub.data.map((column) => column.id);
@@ -200,7 +216,7 @@ export const useTabColumnTypes = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "tab") {
       return EMPTY_TYPE_ARRAY as ("note" | "measureLine")[];
@@ -215,7 +231,7 @@ export const useTabNoteColumnData = (
   subSectionIndex: number,
   columnIndex: number,
 ): TabNote | undefined => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "tab") return undefined;
     const column = sub.data[columnIndex];
@@ -228,7 +244,7 @@ export const useTabMeasureLineColumnData = (
   subSectionIndex: number,
   columnIndex: number,
 ): TabMeasureLine | undefined => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "tab") return undefined;
     const column = sub.data[columnIndex];
@@ -246,7 +262,7 @@ export const useTabColumnNeighborMeta = (
   subSectionIndex: number,
   columnIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "tab") {
       return {
@@ -310,7 +326,7 @@ export const useChordSubSectionData = (
   sectionIndex: number,
   subSectionIndex: number,
 ): ChordSection | undefined => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     return sub?.type === "chord" ? sub : undefined;
   });
@@ -320,7 +336,7 @@ export const useChordSubSectionMeta = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "chord") {
       return {
@@ -343,7 +359,7 @@ export const useChordSequenceIds = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "chord") return EMPTY_STRING_ARRAY;
     return sub.data.map((sequence) => sequence.id);
@@ -355,7 +371,7 @@ export const useChordSequenceData = (
   subSectionIndex: number,
   chordSequenceIndex: number,
 ): ChordSequence | undefined => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     // May be undefined while AnimatePresence keeps an exiting child mounted
     // after the chord subsection / sequence was deleted from the store.
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
@@ -368,7 +384,7 @@ export const useChordSequenceParentBpm = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     return sub?.type === "chord" ? sub.bpm : -1;
   });
@@ -379,7 +395,7 @@ export const useColumnData = (
   subSectionIndex: number,
   columnIndex: number,
 ): string[] | undefined => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     if (sub?.type !== "chord") return undefined;
     return sub.data[columnIndex]?.data;
@@ -387,7 +403,7 @@ export const useColumnData = (
 };
 
 export const useTabDataSubSectionLength = (sectionIndex: number) => {
-  return useTabStore(
+  return useTabStoreShallow(
     (state) => state.tabData[sectionIndex]?.data.length ?? 0,
   );
 };
@@ -400,7 +416,7 @@ export const useChordSequenceLength = (
   sectionIndex: number,
   subSectionIndex: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const sub = state.tabData[sectionIndex]?.data[subSectionIndex];
     return sub?.type === "chord" ? sub.data.length : 0;
   });
@@ -411,7 +427,7 @@ export const useSectionIsEffectivelyEmpty = (
   sectionIndex: number,
   subSectionIndex?: number,
 ) => {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     const section = state.tabData[sectionIndex];
     if (!section) return true;
     return sectionIsEffectivelyEmpty(section, subSectionIndex);

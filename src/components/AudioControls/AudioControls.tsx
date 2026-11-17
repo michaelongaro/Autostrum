@@ -8,23 +8,25 @@ import {
   BsFillVolumeUpFill,
 } from "react-icons/bs";
 import { GoChevronDown, GoChevronUp } from "react-icons/go";
+import { IoMdSettings } from "react-icons/io";
 import { RiArrowGoBackFill } from "react-icons/ri";
 import { TiArrowLoop } from "react-icons/ti";
+import { Button } from "~/components/ui/button";
 import {
   Drawer,
-  DrawerTrigger,
   DrawerContent,
-  DrawerTitle,
   DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
 } from "~/components/ui/drawer";
-import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
+import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
+import { Direction, getTrackBackground, Range } from "~/components/ui/Range";
 import {
   Select,
   SelectContent,
@@ -35,19 +37,17 @@ import {
 import { Separator } from "~/components/ui/separator";
 import { Switch } from "~/components/ui/switch";
 import { Toggle } from "~/components/ui/toggle";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import scrollChordIntoView, {
   isLargeViewport,
 } from "~/utils/scrollChordIntoView";
 import { AUDIO_CONTROLS_BOTTOM_OFFSET } from "./AudioControlsStickyBounds";
 import PlayButtonIcon from "./PlayButtonIcon";
-import { VisuallyHidden } from "~/components/ui/visually-hidden";
-import { Direction, getTrackBackground, Range } from "~/components/ui/Range";
-import { IoMdSettings } from "react-icons/io";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -100,7 +100,7 @@ function AudioControls() {
     fetchingFullTabData,
     tabIsEffectivelyEmpty,
     updateMasterVolumeGainNode,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     bpm: state.bpm,
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
@@ -917,7 +917,7 @@ function DesktopInstrumentAndSpeedSelects() {
     setPlaybackSpeed,
     editingLoopRange,
     pauseAudio,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
     requestedPlaybackSpeed: state.requestedPlaybackSpeed,

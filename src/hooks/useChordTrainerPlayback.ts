@@ -3,7 +3,7 @@ import { useIsomorphicLayoutEffect } from "@react-hookz/web";
 import type Soundfont from "soundfont-player";
 import type { ChordTrainerPreset } from "~/data/tools/chordTrainerPresets";
 import type { ChordTrainerStrummingPattern } from "~/data/tools/chordTrainerStrummingPatterns";
-import { getTabStore, useTabStoreApi } from "~/stores/TabStore";
+import { useTabStoreApi, type TabState } from "~/stores/TabStore";
 import {
   APPEND_CHUNK_SIZE,
   CHORD_ITEM_WIDTH,
@@ -49,8 +49,8 @@ function stopPlayingStrings(
   currentlyPlayingStrings: (
     Soundfont.Player | AudioBufferSourceNode | undefined
   )[],
+  audioContext: AudioContext | null,
 ) {
-  const { audioContext } = getTabStore();
   stopActivePlaybackStrings(
     currentlyPlayingStrings,
     audioContext?.currentTime ?? 0,
@@ -63,7 +63,12 @@ function playQueuedChord({
   strum,
   audioEnabled,
   currentlyPlayingStrings,
+  audioSystem,
 }: {
+  audioSystem: Pick<
+    TabState,
+    "audioContext" | "masterVolumeGainNode" | "currentInstrument"
+  >;
   chord: ChordTrainerPreset;
   bpm: number;
   strum: string;
@@ -74,8 +79,7 @@ function playQueuedChord({
 }) {
   if (!strum || !audioEnabled) return;
 
-  const { audioContext, masterVolumeGainNode, currentInstrument } =
-    getTabStore();
+  const { audioContext, masterVolumeGainNode, currentInstrument } = audioSystem;
 
   if (
     audioContext?.state !== "running" ||
@@ -227,9 +231,13 @@ function useChordTrainerPlayback({
       ? getPatternVisualScrollX(currentIndex, patternLength)
       : scrollXRef.current;
     updateStreamStyles(visualScrollXRef.current);
-    stopPlayingStrings(currentlyPlayingStringsRef.current);
+    stopPlayingStrings(
+      currentlyPlayingStringsRef.current,
+      store.getState().audioContext,
+    );
     setIsPlaying(false);
   }, [
+    store,
     commitItemIndex,
     isPatternVisualizer,
     patternLength,
@@ -253,12 +261,15 @@ function useChordTrainerPlayback({
     stopAnimationFrame();
     resetPlaybackHead();
     queueRef.current = [];
-    stopPlayingStrings(currentlyPlayingStringsRef.current);
+    stopPlayingStrings(
+      currentlyPlayingStringsRef.current,
+      store.getState().audioContext,
+    );
     setQueue([]);
     setCurrentItemIndex(0);
     setIsPlaying(false);
     updateStreamStyles(0);
-  }, [resetPlaybackHead, stopAnimationFrame, updateStreamStyles]);
+  }, [store, resetPlaybackHead, stopAnimationFrame, updateStreamStyles]);
 
   const rebuildQueue = useCallback(
     (chords: ChordTrainerPreset[], pattern: ChordTrainerStrummingPattern) => {
@@ -266,7 +277,10 @@ function useChordTrainerPlayback({
       isPlayingRef.current = false;
       stopAnimationFrame();
       resetPlaybackHead();
-      stopPlayingStrings(currentlyPlayingStringsRef.current);
+      stopPlayingStrings(
+        currentlyPlayingStringsRef.current,
+        store.getState().audioContext,
+      );
 
       const nextQueue = buildInitialQueue(chords, pattern);
       queueRef.current = nextQueue;
@@ -274,7 +288,7 @@ function useChordTrainerPlayback({
       setCurrentItemIndex(0);
       setIsPlaying(false);
     },
-    [resetPlaybackHead, stopAnimationFrame],
+    [store, resetPlaybackHead, stopAnimationFrame],
   );
 
   const prevPatternIdRef = useRef(patternId);
@@ -364,7 +378,7 @@ function useChordTrainerPlayback({
 
     const tick = (time: number) => {
       if (!isPlayingRef.current) return;
-      if (audioEnabled && getTabStore().audioContext?.state !== "running") {
+      if (audioEnabled && store.getState().audioContext?.state !== "running") {
         pausePlayback();
         return;
       }
@@ -389,6 +403,7 @@ function useChordTrainerPlayback({
           const targetChord = queueRef.current[index];
           if (targetChord) {
             playQueuedChord({
+              audioSystem: store.getState(),
               chord: targetChord.chord,
               bpm: tempo,
               strum: targetChord.strum,
@@ -499,6 +514,7 @@ function useChordTrainerPlayback({
       stopAnimationFrame();
     };
   }, [
+    store,
     audioEnabled,
     commitItemIndex,
     isPatternVisualizer,
@@ -521,9 +537,12 @@ function useChordTrainerPlayback({
       if (rafRef.current !== null) {
         window.cancelAnimationFrame(rafRef.current);
       }
-      stopPlayingStrings(currentlyPlayingStrings);
+      stopPlayingStrings(
+        currentlyPlayingStrings,
+        store.getState().audioContext,
+      );
     };
-  }, []);
+  }, [store]);
 
   useEffect(
     () =>
@@ -545,13 +564,13 @@ function useChordTrainerPlayback({
 
     const requestId = ++playRequestIdRef.current;
     if (audioEnabled) {
-      const ready = await getTabStore().ensureAudioSystemReady();
+      const ready = await store.getState().ensureAudioSystemReady();
       if (!ready || requestId !== playRequestIdRef.current) return;
     }
 
     isPlayingRef.current = true;
     setIsPlaying(true);
-  }, [audioEnabled, pausePlayback, selectedChords.length]);
+  }, [store, audioEnabled, pausePlayback, selectedChords.length]);
 
   return {
     stageRef,

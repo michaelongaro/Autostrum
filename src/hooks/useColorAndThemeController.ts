@@ -1,6 +1,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { type COLORS, type THEME } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { updateCSSThemeVars } from "~/utils/updateCSSThemeVars";
 
@@ -35,7 +36,7 @@ function useColorAndThemeController() {
     setTheme,
     followsDeviceTheme,
     setFollowsDeviceTheme,
-  } = useTabStore((state) => ({
+  } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
     setColor: state.setColor,
@@ -72,9 +73,7 @@ function useColorAndThemeController() {
     followsDevice: boolean,
   ) {
     const systemTheme = getSystemTheme();
-    const effectiveTheme = followsDevice
-      ? systemTheme
-      : (storedTheme as THEME);
+    const effectiveTheme = followsDevice ? systemTheme : (storedTheme as THEME);
 
     // Update CSS and store state
     updateCSSThemeVars(storedColor as COLORS, effectiveTheme);

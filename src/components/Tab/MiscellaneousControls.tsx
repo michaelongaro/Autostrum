@@ -1,9 +1,10 @@
 import { arrayMove } from "@dnd-kit/sortable";
+import { Check } from "lucide-react";
 import { useState } from "react";
-import { LiaEllipsisVSolid } from "react-icons/lia";
 import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
 import { FaTrashAlt } from "react-icons/fa";
 import { HiOutlineClipboardCopy } from "react-icons/hi";
+import { LiaEllipsisVSolid } from "react-icons/lia";
 import { LuClipboardPaste } from "react-icons/lu";
 import { Button } from "~/components/ui/button";
 import {
@@ -14,31 +15,30 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import {
-  useTabDataGetter,
-  useTabStore,
-  useTabStoreApi,
-  type ChordSection,
-  type ChordSequence,
-  type Section,
-  type TabSection,
-} from "~/stores/TabStore";
-import {
-  replaceIdInChordSequence,
-  replaceIdInChordSection,
-  replaceIdInTabSection,
-  replaceIdInSection,
-} from "~/utils/replaceWithUniqueIdHelpers";
-import { playbackScopesMatch } from "~/utils/playbackScope";
-import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
-import { Check } from "lucide-react";
-import {
   useChordSequenceLength,
   useSectionDataLength,
   useSectionId,
   useSectionIsEffectivelyEmpty,
   useTabDataLength,
 } from "~/hooks/useTabDataSelectors";
+import {
+  useTabDataGetter,
+  useTabStoreApi,
+  useTabStoreShallow,
+  type ChordSection,
+  type ChordSequence,
+  type Section,
+  type TabSection,
+} from "~/stores/TabStore";
 import { cn } from "~/utils/cn";
+import { playbackScopesMatch } from "~/utils/playbackScope";
+import {
+  replaceIdInChordSection,
+  replaceIdInChordSequence,
+  replaceIdInSection,
+  replaceIdInTabSection,
+} from "~/utils/replaceWithUniqueIdHelpers";
+import PlayButtonIcon from "../AudioControls/PlayButtonIcon";
 
 interface MiscellaneousControls {
   type: "section" | "tab" | "chord" | "chordSequence";
@@ -70,7 +70,7 @@ function MiscellaneousControls({
     setCurrentlyCopiedData,
     pauseAudio,
     setTabData,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     bpm: state.bpm,
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,

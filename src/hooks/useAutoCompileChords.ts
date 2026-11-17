@@ -1,222 +1,30 @@
-import { useEffect, useRef } from "react";
-import {
-  compileFullTab,
-  compileSpecificChordGrouping,
-  generateDefaultSectionProgression,
-} from "~/utils/chordCompilationHelpers";
-import { useTabStoreApi, useTabStore } from "../stores/TabStore";
-import { expandFullTab } from "~/utils/playbackChordCompilationHelpers";
 import debounce from "lodash.debounce";
-import isEqual from "lodash.isequal";
-import tabIsEffectivelyEmpty from "~/utils/tabIsEffectivelyEmpty";
-import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
+import { useEffect } from "react";
+import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
+import {
+  compileTabPlayback,
+  playbackCompilationInputsChanged,
+} from "~/stores/tab/compilation";
 
-/**
- * Recompiles playback metadata when tab content / playback settings change.
- *
- * Intentionally does NOT select `tabData` (or other large trees) through React:
- * that would re-render the host component (often `<Tab />`) on every nested
- * edit and cascade through the whole editing tree. Instead we subscribe
- * imperatively and read fresh state from the current session's store.
- */
-function useAutoCompileChords() {
+/** Imperative compilation keeps document edits out of the host's React subscriptions. */
+export default function useAutoCompileChords() {
   const store = useTabStoreApi();
   const editing = useTabStore((state) => state.editing);
-
-  // Keep a stable debounced runner; recreate when editing toggles delay.
-  const debouncedRef = useRef<ReturnType<typeof debounce> | null>(null);
-
   useEffect(() => {
-    const handleTabLogic = (preservePlaybackStrip = false) => {
-      const {
-        editing: isEditing,
-        playbackSpeed,
-        audioMetadata,
-        bpm,
-        sectionProgression: rawSectionProgression,
-        chords,
-        strummingPatterns,
-        visiblePlaybackContainerWidth,
-        loopDelay,
-        tabData,
-        setCurrentlyPlayingMetadata,
-        setAudioMetadata,
-        atomicallyUpdateAudioMetadata,
-        setExpandedTabData,
-        setPlaybackMetadata,
-        setSectionProgression,
-        setTabIsEffectivelyEmpty,
-      } = store.getState();
-
-      const isEffectivelyEmpty = tabIsEffectivelyEmpty(tabData);
-
-      setTabIsEffectivelyEmpty(isEffectivelyEmpty);
-
-      if (isEffectivelyEmpty) {
-        setAudioMetadata({
-          playing: false,
-          location: null,
-          startLoopIndex: 0,
-          endLoopIndex: -1,
-          editingLoopRange: false,
-          fullTabMetadataLength: -1,
-        });
-        setCurrentlyPlayingMetadata(null);
-        return;
-      }
-
-      const isPlaybackModalSectionOverride =
-        !editing && audioMetadata.location?.sectionIndex !== undefined;
-
-      const sectionProgression = isPlaybackModalSectionOverride
-        ? // just for when playing back specific section within PlaybackModal
-          [
-            {
-              id: "",
-              sectionId:
-                tabData[audioMetadata.location!.sectionIndex]?.id ?? "",
-              title: "",
-              repetitions: 1,
-              startSeconds: 0,
-              endSeconds: 0,
-            },
-          ]
-        : // all other use-cases
-          rawSectionProgression.length > 0
-          ? rawSectionProgression
-          : generateDefaultSectionProgression(tabData);
-
-      if (isEditing && audioMetadata.location) {
-        compileSpecificChordGrouping({
-          tabData,
-          location: audioMetadata.location,
-          chords,
-          strummingPatterns,
-          baselineBpm: bpm,
-          playbackSpeed,
-          setCurrentlyPlayingMetadata,
-          // While editing the loop range the strip shows the full selected
-          // tab/section, so slider bounds/timestamps must match that scope.
-          startLoopIndex: audioMetadata.editingLoopRange
-            ? 0
-            : audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.editingLoopRange
-            ? -1
-            : audioMetadata.endLoopIndex,
-          atomicallyUpdateAudioMetadata,
-          forMetadataOnly: true,
-        });
+    const run = debounce(() => compileTabPlayback(store), editing ? 1000 : 0);
+    run();
+    const unsubscribe = store.subscribe((state, previous) => {
+      if (!playbackCompilationInputsChanged(state, previous)) return;
+      if (state.playbackSpeed !== previous.playbackSpeed) {
+        run.cancel();
+        compileTabPlayback(store, true);
       } else {
-        compileFullTab({
-          tabData,
-          sectionProgression: sectionProgression,
-          chords,
-          strummingPatterns,
-          baselineBpm: bpm,
-          playbackSpeed,
-          setCurrentlyPlayingMetadata,
-          startLoopIndex: audioMetadata.editingLoopRange
-            ? 0
-            : audioMetadata.startLoopIndex,
-          endLoopIndex: audioMetadata.editingLoopRange
-            ? -1
-            : audioMetadata.endLoopIndex,
-          atomicallyUpdateAudioMetadata,
-          forMetadataOnly: true,
-          forPlayback: isEditing ? undefined : { loopDelay },
-        });
-      }
-
-      if (editing) {
-        updateElapsedSecondsInSectionProgression({
-          tabData,
-          sectionProgression: sectionProgression,
-          baselineBpm: bpm,
-          // Playback timings are derived; they must not create history entries
-          // or clear redo after a document is restored.
-          setSectionProgression: (progression) =>
-            setSectionProgression(progression, { recordHistory: false }),
-        });
-      } else {
-        const startLoopIndex = audioMetadata.editingLoopRange
-          ? 0
-          : audioMetadata.startLoopIndex;
-        const endLoopIndex = audioMetadata.editingLoopRange
-          ? -1
-          : audioMetadata.endLoopIndex;
-        const expandedTabData = expandFullTab({
-          tabData,
-          location: audioMetadata.location,
-          sectionProgression: sectionProgression,
-          chords,
-          baselineBpm: bpm,
-          playbackSpeed,
-          setPlaybackMetadata,
-          startLoopIndex,
-          endLoopIndex,
-          visiblePlaybackContainerWidth,
-          loopDelay,
-        });
-
-        // Tempo only changes timestamps. Preserve strip geometry/repetitions
-        // so PlaybackModal does not replace the scheduler's precise anchor
-        // with its generic geometry-change reanchor.
-        if (
-          !preservePlaybackStrip ||
-          !isEqual(expandedTabData.chords, store.getState().expandedTabData)
-        ) {
-          setExpandedTabData(expandedTabData.chords);
-        }
-      }
-    };
-
-    const debouncedHandleTabLogic = debounce(
-      handleTabLogic,
-      editing ? 1000 : 0,
-    );
-    debouncedRef.current = debouncedHandleTabLogic;
-
-    // Run once for current state, then on relevant store changes only.
-    debouncedHandleTabLogic();
-
-    const unsubscribe = store.subscribe((state, prevState) => {
-      if (
-        state.tabData === prevState.tabData &&
-        state.playbackSpeed === prevState.playbackSpeed &&
-        state.bpm === prevState.bpm &&
-        state.sectionProgression === prevState.sectionProgression &&
-        state.chords === prevState.chords &&
-        state.strummingPatterns === prevState.strummingPatterns &&
-        state.visiblePlaybackContainerWidth ===
-          prevState.visiblePlaybackContainerWidth &&
-        state.loopDelay === prevState.loopDelay &&
-        state.editing === prevState.editing &&
-        state.audioMetadata.endLoopIndex ===
-          prevState.audioMetadata.endLoopIndex &&
-        state.audioMetadata.startLoopIndex ===
-          prevState.audioMetadata.startLoopIndex &&
-        state.audioMetadata.editingLoopRange ===
-          prevState.audioMetadata.editingLoopRange &&
-        state.audioMetadata.location === prevState.audioMetadata.location
-      ) {
-        return;
-      }
-
-      if (state.playbackSpeed !== prevState.playbackSpeed) {
-        // A live tempo boundary also reanchors the playhead. Its timestamps
-        // must use the new speed immediately, including in the editor.
-        debouncedHandleTabLogic.cancel();
-        handleTabLogic(true);
-      } else {
-        debouncedHandleTabLogic();
+        run();
       }
     });
-
     return () => {
       unsubscribe();
-      debouncedHandleTabLogic.cancel();
+      run.cancel();
     };
   }, [editing, store]);
 }
-
-export default useAutoCompileChords;

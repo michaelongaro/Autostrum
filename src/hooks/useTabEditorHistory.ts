@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { getTabStore } from "~/stores/TabStore";
+import { useTabStoreApi } from "~/stores/TabStore";
 import {
   getEditorHistoryInputAction,
   getEditorHistoryShortcut,
@@ -7,6 +7,7 @@ import {
 
 /** One listener for the editor, including its portaled editing controls. */
 export function useTabEditorHistory(disabled: boolean) {
+  const store = useTabStoreApi();
   useEffect(() => {
     function isEditorTarget(target: EventTarget | null) {
       if (!(target instanceof Element)) return false;
@@ -21,7 +22,7 @@ export function useTabEditorHistory(disabled: boolean) {
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      const state = getTabStore();
+      const state = store.getState();
       if (!state.editing || !isEditorTarget(event.target)) return;
       if (state.showCustomTuningDialog || state.showSectionProgressionDialog)
         return;
@@ -44,18 +45,18 @@ export function useTabEditorHistory(disabled: boolean) {
     }
 
     function handleInput(event: Event) {
-      if (!getTabStore().editing || !isEditorTarget(event.target)) return;
+      if (!store.getState().editing || !isEditorTarget(event.target)) return;
       const inputType = (event as InputEvent).inputType;
       if (inputType === "insertFromPaste" || inputType === "deleteByCut") {
-        getTabStore().breakEditorHistoryGroup();
+        store.getState().breakEditorHistoryGroup();
       } else {
-        getTabStore().groupEditorHistoryInput(event.target, inputType);
+        store.getState().groupEditorHistoryInput(event.target, inputType);
       }
     }
 
     function handleBeforeInput(event: InputEvent) {
       const action = getEditorHistoryInputAction(event.inputType);
-      const state = getTabStore();
+      const state = store.getState();
       if (!action || !state.editing || !isEditorTarget(event.target)) return;
       if (state.showCustomTuningDialog || state.showSectionProgressionDialog)
         return;
@@ -67,7 +68,7 @@ export function useTabEditorHistory(disabled: boolean) {
     }
 
     function breakGroup() {
-      getTabStore().breakEditorHistoryGroup();
+      store.getState().breakEditorHistoryGroup();
     }
 
     window.addEventListener("keydown", handleKeyDown, true);
@@ -83,5 +84,5 @@ export function useTabEditorHistory(disabled: boolean) {
       window.removeEventListener("focusin", breakGroup, true);
       breakGroup();
     };
-  }, [disabled]);
+  }, [disabled, store]);
 }

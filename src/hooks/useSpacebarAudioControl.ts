@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
+import { useTabStoreApi } from "~/stores/TabStore";
 import { getHoveredChordLocationValue } from "~/utils/hoveredChordLocation";
 
 interface UseSpacebarAudioControlOptions {
@@ -20,24 +20,6 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
   const useHoveredChordLocation = options?.useHoveredChordLocation ?? false;
   const disabled = options?.disabled ?? false;
 
-  const {
-    audioMetadata,
-    playTab,
-    pauseAudio,
-    countInTimer,
-    playTabWithCountIn,
-    showPlaybackModal,
-    editing,
-  } = useTabStore((state) => ({
-    audioMetadata: state.audioMetadata,
-    playTab: state.playTab,
-    pauseAudio: state.pauseAudio,
-    countInTimer: state.countInTimer,
-    playTabWithCountIn: state.playTabWithCountIn,
-    showPlaybackModal: state.showPlaybackModal,
-    editing: state.editing,
-  }));
-
   const isSpacebarPressed = useRef(false);
 
   useEffect(
@@ -51,39 +33,18 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
 
   const countIn = useGetLocalStorageValues().countIn;
 
-  // React Compiler escape hatch: identity is a keydown effect dependency.
-  const toggleAudioPlayingState = useCallback(() => {
-    if (audioMetadata.playing) {
-      pauseAudio();
-      return;
-    }
-
-    if (useHoveredChordLocation) {
-      // Editing: match AudioControls — no count-in; prefer hovered chord.
-      // Read imperatively so hovering a column does not re-render Tab.
-      const hoveredChordLocation = getHoveredChordLocationValue();
-      if (hoveredChordLocation) {
-        void playTab({ location: hoveredChordLocation });
-      } else {
-        void playTab({});
-      }
-      return;
-    }
-
-    void playTabWithCountIn({ location: audioMetadata.location, countIn });
-  }, [
-    audioMetadata.location,
-    audioMetadata.playing,
-    pauseAudio,
-    playTab,
-    playTabWithCountIn,
-    useHoveredChordLocation,
-    countIn,
-  ]);
-
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (disabled || useIPhoneSoundDrawerStore.getState().open) return;
+      const {
+        editing,
+        showPlaybackModal,
+        countInTimer,
+        audioMetadata,
+        pauseAudio,
+        playTab,
+        playTabWithCountIn,
+      } = store.getState();
 
       if (useHoveredChordLocation) {
         if (!editing || showPlaybackModal) return;
@@ -111,7 +72,19 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
         if (useHoveredChordLocation) {
           e.preventDefault();
         }
-        void toggleAudioPlayingState();
+        if (audioMetadata.playing) {
+          pauseAudio();
+        } else if (useHoveredChordLocation) {
+          const hoveredChordLocation = getHoveredChordLocationValue();
+          void playTab(
+            hoveredChordLocation ? { location: hoveredChordLocation } : {},
+          );
+        } else {
+          void playTabWithCountIn({
+            location: audioMetadata.location,
+            countIn,
+          });
+        }
       }
     }
 
@@ -128,14 +101,7 @@ function useSpacebarAudioControl(options?: UseSpacebarAudioControlOptions) {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [
-    toggleAudioPlayingState,
-    countInTimer.showing,
-    useHoveredChordLocation,
-    editing,
-    showPlaybackModal,
-    disabled,
-  ]);
+  }, [store, countIn, useHoveredChordLocation, disabled]);
 }
 
 export default useSpacebarAudioControl;

@@ -1,43 +1,48 @@
-import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { FaBook } from "react-icons/fa";
-import { useTabStore, useTabStoreApi, type Section } from "~/stores/TabStore";
+import { IoMdSettings } from "react-icons/io";
+import { useInView } from "react-intersection-observer";
+import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
+import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
+import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
+import PinnedTabChrome, {
+  getSectionScrollMarginTop,
+} from "~/components/Tab/PinnedTabChrome";
+import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
+import StaticTabMetadata from "~/components/Tab/Static/StaticTabMetadata";
+import TabSettings from "~/components/Tab/TabSettings";
 import { Button } from "~/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/ui/drawer";
+import Logo from "~/components/ui/icons/Logo";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { Separator } from "~/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import {
-  Drawer,
-  DrawerTrigger,
-  DrawerContent,
-  DrawerTitle,
-  DrawerDescription,
-} from "~/components/ui/drawer";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
-import { Separator } from "~/components/ui/separator";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
-import StaticTabMetadata from "~/components/Tab/Static/StaticTabMetadata";
-import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
-import Logo from "~/components/ui/icons/Logo";
-import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
-import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
-import { useInView } from "react-intersection-observer";
-import { IoMdSettings } from "react-icons/io";
-import TabSettings from "~/components/Tab/TabSettings";
-import PinnedTabChrome, {
-  getSectionScrollMarginTop,
-} from "~/components/Tab/PinnedTabChrome";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
 import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibility";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import {
+  useTabStoreApi,
+  useTabStoreShallow,
+  type Section,
+} from "~/stores/TabStore";
 
 import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
@@ -101,37 +106,30 @@ function StaticTab() {
   }, []);
 
   const {
-    // Read-only state
     id,
     updatedAt,
     bpm,
     chords,
     tabData,
     audioMetadata,
-    viewportLabel,
-    color,
-    theme,
-    // Playback controls
     showPlaybackModal,
     setShowPlaybackModal,
-    // UI controls
     setShowGlossaryDialog,
-  } = useTabStore((state) => ({
-    // Read-only state
+  } = useTabStoreShallow((state) => ({
     id: state.id,
     updatedAt: state.updatedAt,
     bpm: state.bpm,
     chords: state.chords,
     tabData: state.tabData,
     audioMetadata: state.audioMetadata,
+    showPlaybackModal: state.showPlaybackModal,
+    setShowPlaybackModal: state.setShowPlaybackModal,
+    setShowGlossaryDialog: state.setShowGlossaryDialog,
+  }));
+  const { viewportLabel, color, theme } = useAppPreferencesStore((state) => ({
     viewportLabel: state.viewportLabel,
     color: state.color,
     theme: state.theme,
-    // Playback controls
-    showPlaybackModal: state.showPlaybackModal,
-    setShowPlaybackModal: state.setShowPlaybackModal,
-    // UI controls
-    setShowGlossaryDialog: state.setShowGlossaryDialog,
   }));
 
   useAutoCompileChords();

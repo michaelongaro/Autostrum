@@ -7,7 +7,8 @@ import {
   CarouselContent,
   CarouselItem,
 } from "~/components/ui/carousel";
-import { useTabStore } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+
 import { api } from "~/utils/api";
 import {
   relatedTabSectionHeading,
@@ -50,7 +51,7 @@ function sectionHasMoreArtistTabs(
 
 function RelatedTabs({ sections, artist }: RelatedTabsProps) {
   const { userId } = useAuth();
-  const { color, theme } = useTabStore((state) => ({
+  const { color, theme } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
   }));

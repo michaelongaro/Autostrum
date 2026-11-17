@@ -1,26 +1,27 @@
-import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
-import { routeUrl } from "~/utils/routeUrl";
-import { useRouter } from "next/navigation";
-import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { routeUrl } from "~/utils/routeUrl";
 
-import { useEffect, useLayoutEffect, useRef, useState, Fragment } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { BsGridFill, BsPlus } from "react-icons/bs";
-import TableViewIcon from "~/components/ui/icons/TableViewIcon";
 import { LuFilter } from "react-icons/lu";
 import { useInView } from "react-intersection-observer";
-import {
-  Drawer,
-  DrawerTrigger,
-  DrawerContent,
-  DrawerTitle,
-  DrawerDescription,
-} from "~/components/ui/drawer";
 import Render404Page from "~/components/Search/Render404Page";
 import { Button } from "~/components/ui/button";
 import DifficultyBars from "~/components/ui/DifficultyBars";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/ui/drawer";
+import TableViewIcon from "~/components/ui/icons/TableViewIcon";
 import { Label } from "~/components/ui/label";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
@@ -33,21 +34,21 @@ import {
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import useGetUrlParamFilters from "~/hooks/useGetUrlParamFilters";
-import { useTabStore } from "~/stores/TabStore";
+
+import { useAuth } from "@clerk/nextjs";
+import Link from "next/link";
+import Binoculars from "~/components/ui/icons/Binoculars";
+import Spinner from "~/components/ui/Spinner";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
+import type { InfiniteQueryParams } from "~/server/api/routers/search";
+import { api } from "~/utils/api";
+import { cn } from "~/utils/cn";
 import { genreColors } from "~/utils/genreColors";
 import { tunings } from "~/utils/tunings";
 import GridTabView from "./GridTabView";
 import SearchFilterCarousel from "./SearchFilterCarousel";
-import TableTabView from "./TableTabView";
-import Binoculars from "~/components/ui/icons/Binoculars";
-import Link from "next/link";
-import { VisuallyHidden } from "~/components/ui/visually-hidden";
-import Spinner from "~/components/ui/Spinner";
-import { useAuth } from "@clerk/nextjs";
-import { api } from "~/utils/api";
-import type { InfiniteQueryParams } from "~/server/api/routers/search";
-import { cn } from "~/utils/cn";
 import styles from "./SearchResults.module.css";
+import TableTabView from "./TableTabView";
 
 const opacityVariants = {
   expanded: {
@@ -92,7 +93,7 @@ function SearchResults({
   const { asPath, query, pathname } = useRouteLocation();
   const { push } = useRouter();
 
-  const { viewportLabel, color, theme } = useTabStore((state) => ({
+  const { viewportLabel, color, theme } = useAppPreferencesStore((state) => ({
     viewportLabel: state.viewportLabel,
     color: state.color,
     theme: state.theme,

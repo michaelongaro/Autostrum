@@ -1,25 +1,23 @@
 import {
-  getPalmMuteOpacities,
-  finishPalmMuteEdit,
-  removePalmMuteEndpoint,
-} from "~/utils/palmMuteEditing";
-import {
   useEffect,
   useRef,
   useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { useEditingStrumPlayhead } from "~/hooks/useEditingStrumPlayhead";
 import {
-  useTabStore,
   useTabStoreApi,
+  useTabStoreShallow,
   type FullNoteLengths,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
-import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
-import { useEditingStrumPlayhead } from "~/hooks/useEditingStrumPlayhead";
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
-import { createStrum } from "~/utils/tabNoteHelpers";
+import {
+  finishPalmMuteEdit,
+  getPalmMuteOpacities,
+  removePalmMuteEndpoint,
+} from "~/utils/palmMuteEditing";
 import {
   isArpeggiatedStrum,
   isStrumEffect,
@@ -28,6 +26,8 @@ import {
   setStrumDirectionInEffects,
   toggleArpeggioInEffects,
 } from "~/utils/strumEffectHelpers";
+import { createStrum } from "~/utils/tabNoteHelpers";
+import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
 import StrummingPatternStrum from "./StrummingPatternStrum";
 
 const noteLengthCycle = [
@@ -131,7 +131,7 @@ function StrummingPattern({
   // Intentionally omit currentChordIndex / currentlyPlayingMetadata /
   // previewMetadata: each strum subscribes with useStrumHighlight so playback
   // and pattern-preview ticks don't re-render the whole pattern.
-  const { setStrummingPatternBeingEdited, setTabData } = useTabStore(
+  const { setStrummingPatternBeingEdited, setTabData } = useTabStoreShallow(
     (state) => ({
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
       setTabData: state.setTabData,

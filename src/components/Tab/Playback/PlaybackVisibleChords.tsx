@@ -1,9 +1,9 @@
 import { useLayoutEffect, useMemo, useState, type RefObject } from "react";
 import {
+  useTabStoreShallow,
   type PlaybackLoopDelaySpacerChord,
   type PlaybackStrummedChord,
   type PlaybackTabChord,
-  useTabStore,
 } from "~/stores/TabStore";
 import { isLoopRangeChordDimmed } from "~/utils/loopRangeHelpers";
 import {
@@ -59,7 +59,7 @@ function PlaybackVisibleChords({
     visiblePlaybackContainerWidth,
     draftLoopStartIndex,
     draftLoopEndIndex,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     currentChordIndex: state.currentChordIndex,
     audioMetadata: state.audioMetadata,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,

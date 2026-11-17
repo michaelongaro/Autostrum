@@ -1,4 +1,4 @@
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import { playbackMetadataHasColumn } from "~/utils/playbackColumnIndex";
 
 const IDLE_HIGHLIGHT = {
@@ -27,7 +27,7 @@ export function useColumnPlaybackHighlight(
   subSectionIndex: number,
   columnIndex: number,
 ) {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     if (
       !state.audioMetadata.playing ||
       state.audioMetadata.editingLoopRange ||

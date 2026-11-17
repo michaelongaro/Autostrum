@@ -3,7 +3,7 @@ import { BsBarChartLine } from "react-icons/bs";
 import { GiMusicalScore } from "react-icons/gi";
 import { HiOutlineLightBulb } from "react-icons/hi";
 import { IoChevronForward } from "react-icons/io5";
-import { useTabStore } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 const pillars = [
   {
@@ -44,9 +44,7 @@ const pillars = [
 ] as const;
 
 function PillarCards() {
-  const { theme } = useTabStore((state) => ({
-    theme: state.theme,
-  }));
+  const { theme } = useAppPreferencesStore((state) => ({ theme: state.theme }));
 
   return (
     <section className="baseVertFlex w-full max-w-[1200px] gap-6 px-4 md:px-6 lg:px-8">
@@ -84,7 +82,10 @@ function PillarCards() {
 
                 <ul className="baseVertFlex w-full !items-start gap-1.5 text-sm text-foreground/75">
                   {pillar.bullets.map((bullet) => (
-                    <li key={bullet} className="baseFlex !items-start !justify-start gap-2">
+                    <li
+                      key={bullet}
+                      className="baseFlex !items-start !justify-start gap-2"
+                    >
                       <span className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
                       <span>{bullet}</span>
                     </li>

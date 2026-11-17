@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 
 type CapoSelectProps = {
@@ -18,7 +18,7 @@ const capoOptions = Array.from({ length: 13 }, (_, fret) => ({
 }));
 
 function CapoSelect({ triggerClassName = "w-[110px]" }: CapoSelectProps) {
-  const { capo, setCapo } = useTabStore((state) => ({
+  const { capo, setCapo } = useTabStoreShallow((state) => ({
     capo: state.capo,
     setCapo: state.setCapo,
   }));

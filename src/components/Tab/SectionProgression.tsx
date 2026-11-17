@@ -1,16 +1,16 @@
-import { useTabStore } from "~/stores/TabStore";
-import { Button } from "~/components/ui/button";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { BsMusicNoteList } from "react-icons/bs";
+import { MdModeEditOutline } from "react-icons/md";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
+import { Button } from "~/components/ui/button";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import { useState } from "react";
-import { BsMusicNoteList } from "react-icons/bs";
-import { motion } from "framer-motion";
-import { MdModeEditOutline } from "react-icons/md";
 
 const opacityVariants = {
   closed: {
@@ -24,12 +24,11 @@ const opacityVariants = {
 function SectionProgression() {
   const [accordionValue, setAccordionValue] = useState("closed");
 
-  const { sectionProgression, setShowSectionProgressionDialog } = useTabStore(
-    (state) => ({
+  const { sectionProgression, setShowSectionProgressionDialog } =
+    useTabStoreShallow((state) => ({
       sectionProgression: state.sectionProgression,
       setShowSectionProgressionDialog: state.setShowSectionProgressionDialog,
-    }),
-  );
+    }));
 
   return (
     <div className="baseVertFlex relative w-1/2 min-w-[300px] max-w-[91.7%] !items-start gap-4 rounded-md bg-secondary text-secondary-foreground !shadow-primaryButton sm:min-w-[500px]">

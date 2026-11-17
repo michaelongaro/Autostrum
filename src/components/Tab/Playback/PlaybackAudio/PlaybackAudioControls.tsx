@@ -1,12 +1,13 @@
 import { type Dispatch, type SetStateAction, useState } from "react";
 import { CgArrowsShrinkH } from "react-icons/cg";
-import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
+import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import { Button } from "~/components/ui/button";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { useTabStoreApi, useTabStoreShallow } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
@@ -40,11 +41,10 @@ function PlaybackAudioControls({
     pauseAudio,
     fetchingFullTabData,
     countInTimer,
-    viewportLabel,
     tabIsEffectivelyEmpty,
     countInTimerEnabled,
     enterPlaybackLoopRangeEditor,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     bpm: state.bpm,
     playbackSpeed: state.requestedPlaybackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
@@ -57,10 +57,12 @@ function PlaybackAudioControls({
     pauseAudio: state.pauseAudio,
     fetchingFullTabData: state.fetchingFullTabData,
     countInTimer: state.countInTimer,
-    viewportLabel: state.viewportLabel,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     countInTimerEnabled: state.countInTimerEnabled,
     enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
+  }));
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
+    viewportLabel: state.viewportLabel,
   }));
 
   // One compiled cycle of whatever scope the strip is showing (committed loop,

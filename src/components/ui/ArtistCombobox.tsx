@@ -1,26 +1,26 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
+import debounce from "lodash.debounce";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { useEffect, useMemo, useState } from "react";
 import { BiSearchAlt2 } from "react-icons/bi";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "~/utils/cn";
 import { BsPlus } from "react-icons/bs";
 import { GiMicrophone } from "react-icons/gi";
+import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
+import Verified from "~/components/ui/icons/Verified";
+import { Input } from "~/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { useTabStore } from "~/stores/TabStore";
-import { IoClose } from "react-icons/io5";
-import { api } from "~/utils/api";
-import debounce from "lodash.debounce";
-import { Input } from "~/components/ui/input";
-import { AnimatePresence, motion } from "framer-motion";
-import Verified from "~/components/ui/icons/Verified";
-import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import Spinner from "~/components/ui/Spinner";
+import { useTabStoreShallow } from "~/stores/TabStore";
+import { api } from "~/utils/api";
+import { cn } from "~/utils/cn";
 
 function ArtistCombobox() {
   const {
@@ -30,7 +30,7 @@ function ArtistCombobox() {
     setArtistId,
     setArtistName,
     setArtistIsVerified,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     artistId: state.artistId,
     artistName: state.artistName,
     artistIsVerified: state.artistIsVerified,

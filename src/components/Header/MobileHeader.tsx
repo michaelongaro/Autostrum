@@ -1,11 +1,12 @@
-import { getProfileImageSrc } from "~/utils/profileImage";
-import { usePathname } from "next/navigation";
 import { SignInButton, SignOutButton, useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
-import { BiSearchAlt2 } from "react-icons/bi";
 import { Squash as Hamburger } from "hamburger-react";
-import { IoColorPalette } from "react-icons/io5";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { BiSearchAlt2 } from "react-icons/bi";
 import { FaUser } from "react-icons/fa";
+import { IoColorPalette } from "react-icons/io5";
 import {
   Dialog,
   DialogContent,
@@ -14,46 +15,48 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
-import Image from "next/image";
-import Link from "next/link";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { getProfileImageSrc } from "~/utils/profileImage";
 
 import { useCallback, useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
-import { PiMetronome } from "react-icons/pi";
-import { useTabStore } from "~/stores/TabStore";
+import { CiCompass1 } from "react-icons/ci";
 import { IoMdSettings } from "react-icons/io";
 import { IoBookmark, IoStatsChart } from "react-icons/io5";
-import Logo from "~/components/ui/icons/Logo";
-import { Button } from "~/components/ui/button";
+import { PiMetronome } from "react-icons/pi";
+import HeaderLogo from "~/components/Header/HeaderLogo";
+import ThemePicker from "~/components/Header/ThemePicker";
+import SearchInput from "~/components/Search/SearchInput";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { Separator } from "~/components/ui/separator";
+import { Button } from "~/components/ui/button";
+import Logo from "~/components/ui/icons/Logo";
 import TuningFork from "~/components/ui/icons/TuningFork";
-import SearchInput from "~/components/Search/SearchInput";
-import { api } from "~/utils/api";
-import ThemePicker from "~/components/Header/ThemePicker";
-import HeaderLogo from "~/components/Header/HeaderLogo";
-import { getTabDocument } from "~/utils/drafts/tabDraftState";
-import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
+import { Separator } from "~/components/ui/separator";
 import Spinner from "~/components/ui/Spinner";
-import { CiCompass1 } from "react-icons/ci";
+import { useTabStoreShallow } from "~/stores/TabStore";
+import { api } from "~/utils/api";
+import { getTabDocument } from "~/utils/drafts/tabDraftState";
 import { registerModalTouchGuard } from "~/utils/modalTouchGuard";
+import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 
 function MobileHeader() {
   const { userId, isSignedIn } = useAuth();
   const asPath = usePathname();
 
-  const { showMobileHeaderModal, setShowMobileHeaderModal, color, theme } =
-    useTabStore((state) => ({
+  const { showMobileHeaderModal, setShowMobileHeaderModal } =
+    useTabStoreShallow((state) => ({
       showMobileHeaderModal: state.showMobileHeaderModal,
       setShowMobileHeaderModal: state.setShowMobileHeaderModal,
-      color: state.color,
-      theme: state.theme,
     }));
+  const { color, theme } = useAppPreferencesStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
     api.user.getById.useQuery(userId!, {
@@ -428,7 +431,8 @@ function MobileHeader() {
                             className="baseFlex !h-10 gap-2 !px-0"
                           >
                             <div className="grid shrink-0 grid-cols-1 grid-rows-1">
-                              <Image unoptimized
+                              <Image
+                                unoptimized
                                 src={getProfileImageSrc(
                                   currentUser.profileImageUrl,
                                 )}

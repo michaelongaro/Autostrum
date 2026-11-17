@@ -1,23 +1,24 @@
+import { useAuth, useClerk } from "@clerk/nextjs";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { FaUser } from "react-icons/fa";
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { FaUser } from "react-icons/fa";
-import { VisuallyHidden } from "~/components/ui/visually-hidden";
-import { useAuth, useClerk } from "@clerk/nextjs";
-import { useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { AnimatePresence, motion } from "framer-motion";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 import { api } from "~/utils/api";
-import { useTabStore } from "~/stores/TabStore";
-import { IoClose } from "react-icons/io5";
-import { Check } from "lucide-react";
-import { Label } from "~/components/ui/label";
-import { Input } from "~/components/ui/input";
+
 import debounce from "lodash.debounce";
+import { Check } from "lucide-react";
+import { IoClose } from "react-icons/io5";
 import ThemePicker from "~/components/Header/ThemePicker";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import Spinner from "~/components/ui/Spinner";
 
 function PostSignupDialog() {
@@ -25,9 +26,7 @@ function PostSignupDialog() {
   const { isLoaded, isSignedIn } = useAuth();
   const ctx = api.useUtils();
 
-  const { color } = useTabStore((state) => ({
-    color: state.color,
-  }));
+  const { color } = useAppPreferencesStore((state) => ({ color: state.color }));
 
   const { data: userIsRegistered, isLoading: isLoadingUserRegistrationStatus } =
     api.user.isUserRegistered.useQuery(undefined, {

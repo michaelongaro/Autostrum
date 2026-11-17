@@ -1,5 +1,10 @@
 import { useEffect, useRef, type RefObject } from "react";
-import { useTabStoreApi, useTabStore, type Metadata } from "~/stores/TabStore";
+import {
+  useTabStore,
+  useTabStoreApi,
+  useTabStoreShallow,
+  type Metadata,
+} from "~/stores/TabStore";
 import {
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STAFF_LINE_HEIGHT_PX,
@@ -188,10 +193,10 @@ export function useEditingTabPlayhead({
 
   // Stable `null` while playing so TabSection does not re-render every tick.
   // While paused, tracks scrubbing / pause position for parking.
-  const pausedChordIndex = useTabStore((state) =>
+  const pausedChordIndex = useTabStoreShallow((state) =>
     state.audioMetadata.playing ? null : state.currentChordIndex,
   );
-  const hasPlaybackMetadata = useTabStore(
+  const hasPlaybackMetadata = useTabStoreShallow(
     (state) => state.currentlyPlayingMetadata != null,
   );
 

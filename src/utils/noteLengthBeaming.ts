@@ -1,19 +1,18 @@
-import {
-  noteLengthMultipliers,
-  type FullNoteLengths,
-  type PlaybackLoopDelaySpacerChord,
-  type PlaybackStrummedChord,
-  type PlaybackTabChord,
-  type TabMeasureLine,
-  type TabNote,
-} from "~/stores/TabStore";
+import { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
+import type {
+  FullNoteLengths,
+  PlaybackLoopDelaySpacerChord,
+  PlaybackStrummedChord,
+  PlaybackTabChord,
+  TabMeasureLine,
+  TabNote,
+} from "~/stores/tab/types";
 import {
   beamBreaksForNoteSpans,
   resolveBeamBreaks,
   type BeamBreakFlags,
   type BeamSpanEvent,
 } from "~/utils/noteLengthBeamingCore";
-import { isTabNote } from "~/utils/tabNoteHelpers";
 
 export {
   beamBreaksForNoteSpans,
@@ -39,36 +38,28 @@ const playbackBeamCache = new WeakMap<
   BeamBreakFlags[]
 >();
 
+const tabBeamCache = new WeakMap<
+  readonly (TabNote | TabMeasureLine)[],
+  BeamBreakFlags[]
+>();
+
+/** Resolve each immutable editor array once, including across playback ticks. */
 export function beamBreaksForTabColumns(
   columns: readonly (TabNote | TabMeasureLine)[],
 ): BeamBreakFlags[] {
-  return beamBreaksForNoteSpans(columns);
+  let flags = tabBeamCache.get(columns);
+  if (!flags) {
+    flags = beamBreaksForNoteSpans(columns);
+    tabBeamCache.set(columns, flags);
+  }
+  return flags;
 }
 
 export function beamBreaksAtTabColumn(
   columns: readonly (TabNote | TabMeasureLine)[],
   columnIndex: number,
 ): BeamBreakFlags {
-  const column = columns[columnIndex];
-  if (!column || !isTabNote(column)) return CLOSED_BREAKS;
-
-  let start = columnIndex;
-  while (start > 0 && isTabNote(columns[start - 1]!)) start--;
-
-  let end = columnIndex;
-  while (end < columns.length - 1 && isTabNote(columns[end + 1]!)) end++;
-
-  const events: BeamSpanEvent[] = [];
-  for (let cursor = start; cursor <= end; cursor++) {
-    const note = columns[cursor];
-    if (!note || !isTabNote(note)) continue;
-    events.push({
-      noteLength: note.noteLength,
-      isRest: note.chordEffects === "r",
-    });
-  }
-
-  return resolveBeamBreaks(events)[columnIndex - start] ?? CLOSED_BREAKS;
+  return beamBreaksForTabColumns(columns)[columnIndex] ?? CLOSED_BREAKS;
 }
 
 function isPlaybackMeasureLine(chord: PlaybackBeamChord): boolean {

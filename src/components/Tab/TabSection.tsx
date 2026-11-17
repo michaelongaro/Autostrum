@@ -5,7 +5,6 @@ import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import EditingTabStaff from "./EditingTabStaff";
 import {
   Select,
   SelectContent,
@@ -25,7 +24,7 @@ import {
   useTabPalmMuteValues,
   useTabSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
-import { useTabStoreApi, useTabStore } from "~/stores/TabStore";
+import { useTabStoreApi, useTabStoreShallow } from "~/stores/TabStore";
 import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import {
   EighthNote,
@@ -43,6 +42,7 @@ import {
 } from "~/utils/palmMuteEditing";
 import { reorderTabColumns } from "~/utils/reorderTabColumns";
 import { createTabNote, isTabMeasureLine } from "~/utils/tabNoteHelpers";
+import EditingTabStaff from "./EditingTabStaff";
 import MiscellaneousControls from "./MiscellaneousControls";
 
 const xVariants = {
@@ -167,7 +167,7 @@ function TabSection({
   // Intentionally omit currentChordIndex / currentlyPlayingMetadata / playback
   // fields: columns subscribe to those with fine-grained selectors so playback
   // ticks don't re-render the whole section (and invalidate DndContext).
-  const { bpm, setTabData } = useTabStore((state) => ({
+  const { bpm, setTabData } = useTabStoreShallow((state) => ({
     bpm: state.bpm,
     setTabData: state.setTabData,
   }));

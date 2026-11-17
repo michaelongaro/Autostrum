@@ -9,11 +9,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 
 export default function PlaybackMetronomeControl({ mobile = false }) {
   const id = useId();
-  const { enabled, setEnabled } = useTabStore((state) => ({
+  const { enabled, setEnabled } = useTabStoreShallow((state) => ({
     enabled: state.playbackMetronomeEnabled,
     setEnabled: state.setPlaybackMetronomeEnabled,
   }));

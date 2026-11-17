@@ -1,13 +1,14 @@
 import { BsArrowLeftShort } from "react-icons/bs";
-import { Button } from "~/components/ui/button";
-import { useTabStore } from "~/stores/TabStore";
 import { VscDebugRestart } from "react-icons/vsc";
+import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
+import { Button } from "~/components/ui/button";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import {
   isDraftLoopRangeComplete,
   isDraftLoopRangeEmpty,
   isDraftLoopRangeUnchanged,
 } from "~/utils/loopRangeHelpers";
-import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 
 function PlaybackLoopRangeActions({
   presentation = "full",
@@ -23,8 +24,7 @@ function PlaybackLoopRangeActions({
     setDraftLoopRange,
     cancelPlaybackLoopRangeEditor,
     sectionProgressionLength,
-    viewportLabel,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
@@ -33,6 +33,8 @@ function PlaybackLoopRangeActions({
     setDraftLoopRange: state.setDraftLoopRange,
     cancelPlaybackLoopRangeEditor: state.cancelPlaybackLoopRangeEditor,
     sectionProgressionLength: state.sectionProgression.length,
+  }));
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
     viewportLabel: state.viewportLabel,
   }));
 
@@ -93,7 +95,7 @@ function PlaybackLoopRangeActions({
         presentation === "embedded"
           ? "baseFlex w-full"
           : // Match PlaybackBottomMetadata so switching modes keeps the staff fixed.
-            `baseFlex h-[68px] w-full shrink-0 gap-3 px-4 lg:h-[94px] max-lg:mobileNarrowLandscape:h-[52px] max-lg:mobileLandscape:h-[52px] ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`
+            `baseFlex max-lg:mobileNarrowLandscape:h-[52px] max-lg:mobileLandscape:h-[52px] h-[68px] w-full shrink-0 gap-3 px-4 lg:h-[94px] ${viewportLabel.includes("Landscape") && sectionProgressionLength > 1 ? "!justify-between" : ""}`
       }
     >
       {viewportLabel.includes("Landscape") && <PlaybackSectionPicker />}

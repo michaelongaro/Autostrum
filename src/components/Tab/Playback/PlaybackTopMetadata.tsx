@@ -1,4 +1,5 @@
 import { usePathname } from "next/navigation";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
 import { type Dispatch, type SetStateAction } from "react";
@@ -12,7 +13,11 @@ import { Label } from "~/components/ui/label";
 import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import { Separator } from "~/components/ui/separator";
-import { useTabStore, type PlaybackMetadata } from "~/stores/TabStore";
+import {
+  useTabStore,
+  useTabStoreShallow,
+  type PlaybackMetadata,
+} from "~/stores/TabStore";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import { getTuningName } from "~/utils/tunings";
@@ -27,26 +32,27 @@ function PlaybackTopMetadata() {
     capo,
     audioMetadata,
     playbackMetadata,
-    viewportLabel,
     countInTimer,
     playbackSpeed,
     requestedPlaybackSpeed,
     pauseAudio,
     setPlaybackSpeed,
     setShowGlossaryDialog,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     title: state.title,
     tuning: state.tuning,
     capo: state.capo,
     audioMetadata: state.audioMetadata,
     playbackMetadata: state.playbackMetadata,
-    viewportLabel: state.viewportLabel,
     countInTimer: state.countInTimer,
     playbackSpeed: state.playbackSpeed,
     requestedPlaybackSpeed: state.requestedPlaybackSpeed,
     pauseAudio: state.pauseAudio,
     setPlaybackSpeed: state.setPlaybackSpeed,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
+  }));
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
+    viewportLabel: state.viewportLabel,
   }));
 
   if (playbackMetadata === null || viewportLabel === "mobileNarrowLandscape") {
@@ -195,7 +201,7 @@ export default PlaybackTopMetadata;
 
 function Menu() {
   const { playbackModalViewingState, setPlaybackModalViewingState } =
-    useTabStore((state) => ({
+    useTabStoreShallow((state) => ({
       playbackModalViewingState: state.playbackModalViewingState,
       setPlaybackModalViewingState: state.setPlaybackModalViewingState,
     }));

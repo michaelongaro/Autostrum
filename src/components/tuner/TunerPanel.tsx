@@ -1,23 +1,23 @@
-import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
-import { motion, AnimatePresence } from "framer-motion";
-import SuccessCheckmark from "~/components/ui/SuccessCheckmark";
-import { useEffect, useState } from "react";
 import { get } from "@tonaljs/note";
-import { Button } from "~/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { FaMicrophone } from "react-icons/fa";
-import StopIcon from "~/components/ui/icons/StopIcon";
 import { VscDebugRestart } from "react-icons/vsc";
-import CapoSelect from "~/components/ui/CapoSelect";
-import TuningSelect from "~/components/ui/TuningSelect";
-import TuningFork from "~/components/ui/icons/TuningFork";
-import { useTabStore } from "~/stores/TabStore";
-import { PrettyNote, PrettyTuning } from "~/components/ui/PrettyTuning";
-import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import ChromaticPitchScroller from "~/components/tuner/ChromaticPitchScroller";
-import { formatNoteLabel, frequencyFromMidi } from "~/utils/tunerMath";
-import { TUNER_DEFAULTS, type TunerReading } from "~/hooks/useTuner";
+import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
+import CapoSelect from "~/components/ui/CapoSelect";
+import { PrettyNote, PrettyTuning } from "~/components/ui/PrettyTuning";
+import SuccessCheckmark from "~/components/ui/SuccessCheckmark";
+import TuningSelect from "~/components/ui/TuningSelect";
+import { Button } from "~/components/ui/button";
+import StopIcon from "~/components/ui/icons/StopIcon";
+import TuningFork from "~/components/ui/icons/TuningFork";
 import { Label } from "~/components/ui/label";
+import { TUNER_DEFAULTS, type TunerReading } from "~/hooks/useTuner";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import { cn } from "~/utils/cn";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import { formatNoteLabel, frequencyFromMidi } from "~/utils/tunerMath";
 
 const CENTS_TICKS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50];
 const MOBILE_LABEL_TICKS = [-50, -25, 0, 25, 50];
@@ -254,7 +254,7 @@ function TunerPanel({
   forPlaybackModal,
   playbackCapoToggle,
 }: TunerPanelProps) {
-  const { tuning, capo } = useTabStore((state) => ({
+  const { tuning, capo } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
     capo: state.capo,
   }));

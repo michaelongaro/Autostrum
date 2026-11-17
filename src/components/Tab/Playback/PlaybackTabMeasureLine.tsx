@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
@@ -27,13 +27,12 @@ function PlaybackTabMeasureLine({
   showBpm,
   bpmToShow,
 }: PlaybackTabMeasureLine) {
-  const { audioMetadata, draftLoopStartIndex, draftLoopEndIndex } = useTabStore(
-    (state) => ({
+  const { audioMetadata, draftLoopStartIndex, draftLoopEndIndex } =
+    useTabStoreShallow((state) => ({
       audioMetadata: state.audioMetadata,
       draftLoopStartIndex: state.draftLoopStartIndex,
       draftLoopEndIndex: state.draftLoopEndIndex,
-    }),
-  );
+    }));
 
   const editingLoopRange = audioMetadata.editingLoopRange;
   const loopNodePresentation =

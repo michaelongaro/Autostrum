@@ -1,5 +1,5 @@
 import { useEffect, useRef, type RefObject } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import scrollChordIntoView, {
   getChordElement,
   getChordViewportMargins,
@@ -23,7 +23,7 @@ function useAutoscrollToCurrentChord(
     currentChordIndex,
     audioMetadata,
     interactingWithAudioProgressSlider,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     editing: state.editing,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     currentChordIndex: state.currentChordIndex,

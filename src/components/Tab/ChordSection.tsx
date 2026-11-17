@@ -2,15 +2,15 @@ import { AnimatePresence } from "framer-motion";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
-import { QuarterNote } from "~/utils/noteLengthIcons";
-import AnimatedListItem from "./AnimatedListItem";
-import ChordSequence from "./ChordSequence";
-import MiscellaneousControls from "./MiscellaneousControls";
 import {
   useChordSequenceIds,
   useChordSubSectionMeta,
 } from "~/hooks/useTabDataSelectors";
+import { useTabStoreShallow, type StrummingPattern } from "~/stores/TabStore";
+import { QuarterNote } from "~/utils/noteLengthIcons";
+import AnimatedListItem from "./AnimatedListItem";
+import ChordSequence from "./ChordSequence";
+import MiscellaneousControls from "./MiscellaneousControls";
 
 export interface ChordSection {
   sectionIndex: number;
@@ -23,7 +23,7 @@ function ChordSection({
   subSectionIndex,
   presentation = "full",
 }: ChordSection) {
-  const { bpm, setTabData } = useTabStore((state) => ({
+  const { bpm, setTabData } = useTabStoreShallow((state) => ({
     bpm: state.bpm,
     setTabData: state.setTabData,
   }));

@@ -1,8 +1,8 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
-import { useTabStore, type StrummingPattern } from "~/stores/TabStore";
-import { editPalmMuteNode } from "~/utils/palmMuteEditing";
 import { Button } from "~/components/ui/button";
+import { useTabStoreShallow, type StrummingPattern } from "~/stores/TabStore";
+import { editPalmMuteNode } from "~/utils/palmMuteEditing";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 interface StrummingPatternPalmMuteNodeProps {
@@ -35,7 +35,7 @@ function StrummingPatternPalmMuteNode({
   viewingInSelectDropdown,
   editing,
 }: StrummingPatternPalmMuteNodeProps) {
-  const { setStrummingPatternBeingEdited } = useTabStore((state) => ({
+  const { setStrummingPatternBeingEdited } = useTabStoreShallow((state) => ({
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
   }));
 

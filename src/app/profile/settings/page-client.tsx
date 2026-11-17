@@ -1,41 +1,40 @@
 "use client";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import { useAuth, useUser } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import type { Area, Point } from "react-easy-crop";
+import { FaRegEye, FaRegEyeSlash, FaTrashAlt } from "react-icons/fa";
+import { HiMiniComputerDesktop } from "react-icons/hi2";
+import { IoClose, IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
+import { MdOutlineInfo } from "react-icons/md";
+import EditImageSelector from "~/components/Profile/EditImageSelector";
+import PinnedTabSelector from "~/components/Profile/PinnedTabSelector";
 import { Button } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
-import { api } from "~/utils/api";
+import Ellipsis from "~/components/ui/icons/Ellipsis";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { IoClose } from "react-icons/io5";
-import { FaTrashAlt } from "react-icons/fa";
-import { MdOutlineInfo } from "react-icons/md";
-import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { IoSunnyOutline, IoMoonOutline } from "react-icons/io5";
-import { HiMiniComputerDesktop } from "react-icons/hi2";
-import PinnedTabSelector from "~/components/Profile/PinnedTabSelector";
-import type { Area, Point } from "react-easy-crop";
-import { Check } from "lucide-react";
-import EditImageSelector from "~/components/Profile/EditImageSelector";
-import Ellipsis from "~/components/ui/icons/Ellipsis";
+import { Separator } from "~/components/ui/separator";
+import { api } from "~/utils/api";
 import {
   COLOR_HEX_VALUES,
   NEAR_WHITE_COLOR_VALUES,
   updateCSSThemeVars,
 } from "~/utils/updateCSSThemeVars";
-import { useTabStore } from "~/stores/TabStore";
+
 import Spinner from "~/components/ui/Spinner";
 
+import DeleteAccountModal from "~/components/modals/DeleteAccountModal";
 import EditImageModal from "~/components/modals/EditImageModal";
 import PinnedTabModal from "~/components/modals/PinnedTabModal";
-import DeleteAccountModal from "~/components/modals/DeleteAccountModal";
 
 const COLORS = [
   "peony",
@@ -70,7 +69,7 @@ function UserSettings() {
     setTheme,
     followsDeviceTheme,
     setFollowsDeviceTheme,
-  } = useTabStore((state) => ({
+  } = useAppPreferencesStore((state) => ({
     color: state.color,
     setColor: state.setColor,
     theme: state.theme,

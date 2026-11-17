@@ -1,14 +1,23 @@
-import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { HiOutlineInformationCircle } from "react-icons/hi";
-import { useTabStoreApi, useTabStore } from "~/stores/TabStore";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { IoSettingsSharp } from "react-icons/io5";
-import { BsFillPlayFill } from "react-icons/bs";
 import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { BsFillPlayFill } from "react-icons/bs";
+import { HiOutlineInformationCircle } from "react-icons/hi";
 import { HiOutlineSparkles } from "react-icons/hi2";
+import { IoSettingsSharp } from "react-icons/io5";
+import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
+import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
+import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
+import { useTabStoreApi, useTabStoreShallow } from "~/stores/TabStore";
 import {
   formatTuningInput,
   getDisplayTuningNotes,
@@ -18,15 +27,6 @@ import {
   stripTuningOctaves,
   tuningNotes,
 } from "~/utils/tunings";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import { VisuallyHidden } from "~/components/ui/visually-hidden";
-import { Label } from "~/components/ui/label";
-import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
 
 function CustomTuningEditor({
   presentation = "dialog",
@@ -35,13 +35,13 @@ function CustomTuningEditor({
 }) {
   const store = useTabStoreApi();
   const {
-    previewMetadata,
+    previewPlaying,
     playPreview,
     tuning,
     setTuning,
     setShowCustomTuningDialog,
-  } = useTabStore((state) => ({
-    previewMetadata: state.previewMetadata,
+  } = useTabStoreShallow((state) => ({
+    previewPlaying: state.previewMetadata.playing,
     playPreview: state.playPreview,
     tuning: state.tuning,
     setTuning: state.setTuning,
@@ -410,7 +410,7 @@ function CustomTuningEditor({
 
       <div className="baseFlex w-full !justify-between">
         <Button
-          disabled={!activeTuning || isPreviewing || previewMetadata.playing}
+          disabled={!activeTuning || isPreviewing || previewPlaying}
           variant={"audio"}
           className="baseFlex gap-2"
           onClick={() => void handlePreviewNotes()}
@@ -452,12 +452,11 @@ function CustomTuningDialog({
 }: {
   presentation?: "dialog" | "inline";
 }) {
-  const { showCustomTuningDialog, setShowCustomTuningDialog } = useTabStore(
-    (state) => ({
+  const { showCustomTuningDialog, setShowCustomTuningDialog } =
+    useTabStoreShallow((state) => ({
       showCustomTuningDialog: state.showCustomTuningDialog,
       setShowCustomTuningDialog: state.setShowCustomTuningDialog,
-    }),
-  );
+    }));
 
   if (presentation === "inline")
     return <CustomTuningEditor presentation="inline" />;

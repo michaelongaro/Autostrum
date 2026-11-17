@@ -42,7 +42,7 @@ const unsubscribe = store.subscribe((next, previous) => {
 });
 
 try {
-  store.getState().setViewportLabel("desktop");
+  store.preferences.getState().setViewportLabel("desktop");
   store.getState().setEditing(false);
   store.getState().setEditing(true);
   store.getState().setDescription("");

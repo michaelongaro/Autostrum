@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
+import { useTabStoreApi, useTabStoreShallow } from "~/stores/TabStore";
 import { ensureSoundfontPlayer } from "~/utils/soundfontRuntime";
 
 function useFetchAndLoadSoundfonts() {
   const store = useTabStoreApi();
   const { audioContext, masterVolumeGainNode, currentInstrumentName } =
-    useTabStore((state) => ({
+    useTabStoreShallow((state) => ({
       audioContext: state.audioContext,
       masterVolumeGainNode: state.masterVolumeGainNode,
       currentInstrumentName: state.currentInstrumentName,

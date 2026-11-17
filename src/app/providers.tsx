@@ -1,10 +1,11 @@
 "use client";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { dark } from "@clerk/ui/themes";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
-import { useTabStore } from "~/stores/TabStore";
+
 import { api, createQueryClient, createTRPCClient } from "~/utils/api";
 
 function QueryProvider({ children }: { children: ReactNode }) {
@@ -35,7 +36,7 @@ function SessionProvider({ children }: { children: ReactNode }) {
 }
 
 export default function Providers({ children }: { children: ReactNode }) {
-  const theme = useTabStore((state) => state.theme);
+  const theme = useAppPreferencesStore((state) => state.theme);
   return (
     <ClerkProvider
       appearance={{

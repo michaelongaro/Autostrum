@@ -1,3 +1,6 @@
+import { FocusTrap } from "focus-trap-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -9,39 +12,37 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
+import PlaybackAnimatedStrip from "~/components/Tab/Playback/PlaybackAnimatedStrip";
 import PlaybackAudioControls from "~/components/Tab/Playback/PlaybackAudio/PlaybackAudioControls";
 import PlaybackBottomMetadata from "~/components/Tab/Playback/PlaybackBottomMetadata";
 import PlaybackLoopRangeActions from "~/components/Tab/Playback/PlaybackLoopRangeActions";
+import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
+import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
 import PlaybackStrummedChord from "~/components/Tab/Playback/PlaybackStrummedChord";
 import PlaybackTabChord from "~/components/Tab/Playback/PlaybackTabChord";
 import PlaybackTabMeasureLine from "~/components/Tab/Playback/PlaybackTabMeasureLine";
 import PlaybackTopMetadata from "~/components/Tab/Playback/PlaybackTopMetadata";
-import { AnimatePresence, motion } from "framer-motion";
-import { FocusTrap } from "focus-trap-react";
+import { Button } from "~/components/ui/button";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
 import {
-  type PlaybackTabChord as PlaybackTabChordType,
-  type PlaybackStrummedChord as PlaybackStrummedChordType,
-  type PlaybackLoopDelaySpacerChord,
   useTabStoreApi,
-  useTabStore,
+  useTabStoreShallow,
   type FullNoteLengths,
+  type PlaybackLoopDelaySpacerChord,
+  type PlaybackStrummedChord as PlaybackStrummedChordType,
+  type PlaybackTabChord as PlaybackTabChordType,
 } from "~/stores/TabStore";
-import PlaybackMenuContent from "~/components/Tab/Playback/PlaybackMenuContent";
-import PlaybackScrollingContainer from "~/components/Tab/Playback/PlaybackScrollingContainer";
-import { X } from "lucide-react";
-import { Button } from "~/components/ui/button";
-import PlaybackAnimatedStrip from "~/components/Tab/Playback/PlaybackAnimatedStrip";
-import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
-import {
-  computePlaybackChordLayoutData,
-  type PlaybackChordLayoutData,
-} from "~/utils/playbackModalLayout";
 import {
   getLoopRangePrompt,
   getLoopRangeSelectionStep,
 } from "~/utils/loopRangeHelpers";
 import { beamBreaksForPlaybackIndex } from "~/utils/noteLengthBeaming";
+import {
+  computePlaybackChordLayoutData,
+  type PlaybackChordLayoutData,
+} from "~/utils/playbackModalLayout";
 
 const backdropVariants = {
   expanded: {
@@ -101,7 +102,6 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
     visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth,
     playbackModalViewingState,
-    viewportLabel,
     loopDelay,
     currentlyPlayingMetadata,
     pauseAudio,
@@ -110,7 +110,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
     resetPlaybackModalSession,
     draftLoopStartIndex,
     draftLoopEndIndex,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     currentChordIndex: state.currentChordIndex,
     expandedTabData: state.expandedTabData,
     playbackSpeed: state.playbackSpeed,
@@ -121,7 +121,6 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
     visiblePlaybackContainerWidth: state.visiblePlaybackContainerWidth,
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     playbackModalViewingState: state.playbackModalViewingState,
-    viewportLabel: state.viewportLabel,
     loopDelay: state.loopDelay,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,
     pauseAudio: state.pauseAudio,
@@ -130,6 +129,9 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
     resetPlaybackModalSession: state.resetPlaybackModalSession,
     draftLoopStartIndex: state.draftLoopStartIndex,
     draftLoopEndIndex: state.draftLoopEndIndex,
+  }));
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
+    viewportLabel: state.viewportLabel,
   }));
 
   // Always track the latest strip container — a one-shot ref goes stale when
@@ -645,7 +647,7 @@ function PlaybackModal(props: PlaybackModalProps = {}) {
           ref={modalContentRef}
           tabIndex={-1}
           inert={closingStripPosition !== null}
-          className="baseVertFlex playbackModalGradient relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none p-0 lg:h-[650px] lg:max-h-[calc(100dvh-2rem)] lg:max-w-6xl lg:overflow-y-auto lg:!rounded-lg max-lg:mobileNarrowLandscape:!justify-center"
+          className="baseVertFlex playbackModalGradient max-lg:mobileNarrowLandscape:!justify-center relative h-dvh w-screen max-w-none !justify-between gap-0 !rounded-none p-0 lg:h-[650px] lg:max-h-[calc(100dvh-2rem)] lg:max-w-6xl lg:overflow-y-auto lg:!rounded-lg"
         >
           <PlaybackTopMetadata />
 

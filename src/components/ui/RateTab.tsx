@@ -6,28 +6,29 @@ import {
   useRef,
   useState,
 } from "react";
+import { FaRegStar, FaStar } from "react-icons/fa6";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/ui/drawer";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import {
-  Drawer,
-  DrawerTrigger,
-  DrawerContent,
-  DrawerTitle,
-  DrawerDescription,
-} from "~/components/ui/drawer";
 import type { UserMetadata } from "~/server/api/routers/user";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
 import { Button } from "./button";
-import { FaRegStar, FaStar } from "react-icons/fa6";
-import { useTabStore } from "~/stores/TabStore";
+
 import { SignInButton } from "@clerk/nextjs";
 import { FaUser } from "react-icons/fa";
-import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import SuccessCheckmark from "~/components/ui/SuccessCheckmark";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 const opacityAndScaleVariants = {
   expanded: {
@@ -71,7 +72,7 @@ function RateTab({
   tabCreatorUserId,
   customClassName,
 }: RateTab) {
-  const { viewportLabel } = useTabStore((state) => ({
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
     viewportLabel: state.viewportLabel,
   }));
 

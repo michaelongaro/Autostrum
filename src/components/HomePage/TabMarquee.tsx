@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { motion } from "framer-motion";
 import { useAuth } from "@clerk/nextjs";
+import { motion } from "framer-motion";
+import Link from "next/link";
 import { useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import GridTabCard from "~/components/Search/GridTabCard";
@@ -8,7 +8,8 @@ import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
 import { Button } from "~/components/ui/button";
 import type { MinimalTabRepresentation } from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
-import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { type COLORS, type THEME } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 
 const DIGIT_VALUES = Array.from({ length: 10 }, (_, index) => index.toString());
@@ -148,7 +149,7 @@ function TabMarquee() {
     triggerOnce: true,
   });
 
-  const { color, theme, viewportLabel } = useTabStore((state) => ({
+  const { color, theme, viewportLabel } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
     viewportLabel: state.viewportLabel,

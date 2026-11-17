@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import type Soundfont from "soundfont-player";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import PlayIcon from "~/components/ui/icons/PlayIcon";

@@ -1,17 +1,17 @@
 import { generateDefaultSectionProgression } from "./sectionProgression";
 import { getSectionIndexFromId } from "~/utils/getSectionIndexFromId";
-import {
-  noteLengthMultipliers,
-  type AudioMetadata,
-  type Chord,
-  type ChordSection,
-  type ChordSequence,
-  type Metadata,
-  type Section,
-  type SectionProgression,
-  type StrummingPattern,
-  type TabSection,
-} from "../stores/TabStore";
+import { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
+import type {
+  AudioMetadata,
+  Chord,
+  ChordSection,
+  ChordSequence,
+  Metadata,
+  Section,
+  SectionProgression,
+  StrummingPattern,
+  TabSection,
+} from "~/stores/tab/types";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
 import { applyStickyMeasureLineBpm } from "./measureLineBpm";

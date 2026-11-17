@@ -1,20 +1,20 @@
 import { useState } from "react";
+import TunerPanel from "~/components/tuner/TunerPanel";
+import { Button } from "~/components/ui/button";
 import {
   Drawer,
-  DrawerTrigger,
   DrawerContent,
-  DrawerTitle,
   DrawerDescription,
   DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
 } from "~/components/ui/drawer";
-import { useTuner } from "~/hooks/useTuner";
-import TunerPanel from "~/components/tuner/TunerPanel";
-import { useTabStore } from "~/stores/TabStore";
-import { Button } from "~/components/ui/button";
 import TuningFork from "~/components/ui/icons/TuningFork";
+import { useTuner } from "~/hooks/useTuner";
+import { useTabStoreShallow } from "~/stores/TabStore";
 
 function PlaybackTunerDrawer() {
-  const { tuning, capo, pauseAudio } = useTabStore((state) => ({
+  const { tuning, capo, pauseAudio } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
     capo: state.capo,
     pauseAudio: state.pauseAudio,

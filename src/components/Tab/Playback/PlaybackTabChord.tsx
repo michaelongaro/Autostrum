@@ -1,16 +1,16 @@
 import { Fragment } from "react";
-import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
+import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
-import { type FullNoteLengths, useTabStore } from "~/stores/TabStore";
+import { type FullNoteLengths, useTabStoreShallow } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
 import { QuarterNote } from "~/utils/noteLengthIcons";
-import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
   PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX,
   PLAYBACK_TAB_STRINGS_HEIGHT_PX,
 } from "~/utils/playbackTabGeometry";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 
 interface PlaybackTabChord {
   columnData: string[];
@@ -57,7 +57,7 @@ function PlaybackTabChord({
     draftLoopStartIndex,
     draftLoopEndIndex,
     selectPlaybackLoopRangeChord,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     audioMetadata: state.audioMetadata,
     draftLoopStartIndex: state.draftLoopStartIndex,
     draftLoopEndIndex: state.draftLoopEndIndex,

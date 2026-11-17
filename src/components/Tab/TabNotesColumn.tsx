@@ -1,4 +1,3 @@
-import { deleteTabNote } from "~/utils/tabColumnDeletion";
 import type {
   DraggableAttributes,
   DraggableSyntheticListeners,
@@ -6,22 +5,17 @@ import type {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS, type Transform } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { Element } from "react-scroll";
 import { memo, useState, type Dispatch, type SetStateAction } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
-import { useTabStore } from "~/stores/TabStore";
+import { Element } from "react-scroll";
 import { Button } from "~/components/ui/button";
-import PalmMuteNode from "./PalmMuteNode";
-import TabNote from "./TabNote";
-import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
 import {
   useTabColumnNeighborMeta,
   useTabNoteColumnData,
 } from "~/hooks/useTabDataSelectors";
-import { useColumnPlaybackHighlight } from "~/hooks/useColumnPlaybackHighlight";
-import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
-import { getStringValue, isTabNote } from "~/utils/tabNoteHelpers";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
   EDITING_TAB_COLUMN_WIDTH_PX,
@@ -29,11 +23,17 @@ import {
   EDITING_TAB_PALM_MUTE_HEIGHT_PX,
   EDITING_TAB_STRING_ROW_HEIGHT_PX,
 } from "~/utils/editingTabGeometry";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
   encodeStrumSpreadForCompile,
   isStrumEffect,
 } from "~/utils/strumEffectHelpers";
+import { deleteTabNote } from "~/utils/tabColumnDeletion";
+import { getStringValue, isTabNote } from "~/utils/tabNoteHelpers";
+import PalmMuteNode from "./PalmMuteNode";
 import StrumSettingsDropdown from "./StrumSettingsDropdown";
+import TabNote from "./TabNote";
+import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 interface TabNotesColumnProps {
   sectionIndex: number;
@@ -112,7 +112,7 @@ function TabNotesColumn({
   } = drag ?? {};
 
   const { pauseAudio, setTabData, setHoveredChordLocation, bpm, playPreview } =
-    useTabStore((state) => ({
+    useTabStoreShallow((state) => ({
       pauseAudio: state.pauseAudio,
       setTabData: state.setTabData,
       setHoveredChordLocation: state.setHoveredChordLocation,
@@ -120,7 +120,7 @@ function TabNotesColumn({
       playPreview: state.playPreview,
     }));
 
-  const chordPreviewPlaying = useTabStore(
+  const chordPreviewPlaying = useTabStoreShallow(
     (state) =>
       state.previewMetadata.playing && state.previewMetadata.type === "chord",
   );

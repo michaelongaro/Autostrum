@@ -1,6 +1,6 @@
-import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
 import { Input } from "~/components/ui/input";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
+import { useTabStoreShallow, type Chord as ChordType } from "~/stores/TabStore";
 import { cn } from "~/utils/cn";
 import {
   EDITING_TAB_COLUMN_WIDTH_PX,
@@ -77,7 +77,7 @@ function ChordNoteInput({
 }
 
 function Chord({ chordBeingEdited, highlightChord }: Chord) {
-  const { tuning, setChordBeingEdited } = useTabStore((state) => ({
+  const { tuning, setChordBeingEdited } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
     setChordBeingEdited: state.setChordBeingEdited,
   }));

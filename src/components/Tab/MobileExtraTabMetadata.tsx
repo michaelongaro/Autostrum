@@ -1,16 +1,12 @@
-import { useEffect, useId, useState } from "react";
-import { Button } from "~/components/ui/button";
-import { useTabStore } from "~/stores/TabStore";
 import { motion, useReducedMotion } from "framer-motion";
-import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import ChordDiagram from "~/components/Tab/ChordDiagram";
-import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import { ChevronDown } from "lucide-react";
-import { BsMusicNoteBeamed } from "react-icons/bs";
+import { useEffect, useId, useState } from "react";
+import { BsMusicNoteBeamed, BsMusicNoteList } from "react-icons/bs";
+import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
+import ChordDiagram from "~/components/Tab/ChordDiagram";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
-import { BsMusicNoteList } from "react-icons/bs";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
-import Logo from "~/components/ui/icons/Logo";
+import { Button } from "~/components/ui/button";
 import {
   Carousel,
   CarouselContent,
@@ -18,11 +14,14 @@ import {
   type CarouselApi,
 } from "~/components/ui/carousel";
 import ChordName from "~/components/ui/ChordName";
-import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
-import styles from "./ExtraTabMetadataPane.module.css";
+import Logo from "~/components/ui/icons/Logo";
 import useExtraTabMetadataLayout, {
   type MetadataPane,
 } from "~/hooks/useExtraTabMetadataLayout";
+import { useTabStoreShallow } from "~/stores/TabStore";
+import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
+import styles from "./ExtraTabMetadataPane.module.css";
 
 function MobileExtraTabMetadata() {
   const {
@@ -34,7 +33,7 @@ function MobileExtraTabMetadata() {
     chordDisplayMode,
     pauseAudio,
     playPreview,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
@@ -325,7 +324,8 @@ function MobileExtraTabMetadata() {
 
                             {/* preview chord button */}
                             <Button
-                              variant={"audio"} aria-label="Play/Pause preview"
+                              variant={"audio"}
+                              aria-label="Play/Pause preview"
                               disabled={
                                 previewMetadata.indexOfPattern === index &&
                                 previewMetadata.playing &&
@@ -383,7 +383,8 @@ function MobileExtraTabMetadata() {
                         className="baseVertFlex max-w-full !items-start"
                       >
                         <Button
-                          variant={"audio"} aria-label="Play/Pause preview"
+                          variant={"audio"}
+                          aria-label="Play/Pause preview"
                           size={"sm"}
                           disabled={artificalPlayButtonTimeout[index]}
                           onClick={() => {

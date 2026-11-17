@@ -1,17 +1,17 @@
-import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
 import PlaybackLoopRangeNode from "~/components/Tab/Playback/PlaybackLoopRangeNode";
-import { QuarterNote } from "~/utils/noteLengthIcons";
-import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
-import type { FullNoteLengths } from "~/stores/TabStore";
+import PlaybackPalmMuteNode from "~/components/Tab/Playback/PlaybackPalmMuteNode";
+import ChordName from "~/components/ui/ChordName";
 import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
-import { useTabStore } from "~/stores/TabStore";
-import ChordName from "~/components/ui/ChordName";
+import type { FullNoteLengths } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import { getLoopRangeNodePresentation } from "~/utils/loopRangeHelpers";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
   PLAYBACK_LOOP_RANGE_ROW_OFFSET_PX,
   PLAYBACK_TAB_STRINGS_HEIGHT_PX,
 } from "~/utils/playbackTabGeometry";
+import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 
 interface PlaybackStrummedChord {
   strum: string;
@@ -66,7 +66,7 @@ function PlaybackStrummedChord({
     draftLoopStartIndex,
     draftLoopEndIndex,
     selectPlaybackLoopRangeChord,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     chordDisplayMode: state.chordDisplayMode,
     audioMetadata: state.audioMetadata,
     draftLoopStartIndex: state.draftLoopStartIndex,

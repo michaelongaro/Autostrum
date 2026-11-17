@@ -1,4 +1,4 @@
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import { playbackMetadataHasColumn } from "~/utils/playbackColumnIndex";
 
 type UseStrumHighlightArgs = {
@@ -27,7 +27,7 @@ export function useStrumHighlight({
   subSectionIndex,
   chordSequenceIndex,
 }: UseStrumHighlightArgs): boolean {
-  return useTabStore((state) => {
+  return useTabStoreShallow((state) => {
     if (forPreview) {
       return (
         state.previewMetadata.type === "strummingPattern" &&

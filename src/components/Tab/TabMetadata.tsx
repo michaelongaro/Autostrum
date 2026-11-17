@@ -1,9 +1,9 @@
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import {
   useEffect,
@@ -12,15 +12,33 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { FaEye } from "react-icons/fa";
+import { isMobile } from "react-device-detect";
 import { BsPlus } from "react-icons/bs";
-import { FaTrashAlt } from "react-icons/fa";
+import { FaEye, FaTrashAlt } from "react-icons/fa";
+import { HiOutlineExternalLink } from "react-icons/hi";
+import { IoIosShareAlt } from "react-icons/io";
+import { LiaEllipsisVSolid } from "react-icons/lia";
 import { MdModeEditOutline } from "react-icons/md";
+import { useDraftActions } from "~/components/Tab/DraftEditor";
+import GuitarProImport from "~/components/Tab/GuitarProImport";
+import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
+import ArtistCombobox from "~/components/ui/ArtistCombobox";
+import BookmarkToggle from "~/components/ui/BookmarkToggle";
+import DifficultyBars from "~/components/ui/DifficultyBars";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import RateTab from "~/components/ui/RateTab";
+import Spinner from "~/components/ui/Spinner";
+import TuningSelect from "~/components/ui/TuningSelect";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,17 +46,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore, getTabData } from "~/stores/TabStore";
-import { api } from "~/utils/api";
-import { genreColors } from "~/utils/genreColors";
-import { getTuningName } from "~/utils/tunings";
-import ArtistCombobox from "~/components/ui/ArtistCombobox";
-import BookmarkToggle from "~/components/ui/BookmarkToggle";
-import { Button } from "~/components/ui/button";
+import Verified from "~/components/ui/icons/Verified";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { IoIosShareAlt } from "react-icons/io";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -50,33 +65,17 @@ import {
 } from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
-import classes from "./TabMetadata.module.css";
-import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { PrettyTuning } from "~/components/ui/PrettyTuning";
-import { QuarterNote } from "~/utils/noteLengthIcons";
-import RateTab from "~/components/ui/RateTab";
-import DifficultyBars from "~/components/ui/DifficultyBars";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { useTabDataGetter, useTabStoreShallow } from "~/stores/TabStore";
+import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
-import TuningSelect from "~/components/ui/TuningSelect";
-import Verified from "~/components/ui/icons/Verified";
+import { genreColors } from "~/utils/genreColors";
 import getDynamicFontSize from "~/utils/getDynamicFontSize";
-import { LiaEllipsisVSolid } from "react-icons/lia";
-import { HiOutlineExternalLink } from "react-icons/hi";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
-import { Badge } from "~/components/ui/badge";
-import { isMobile } from "react-device-detect";
-import Spinner from "~/components/ui/Spinner";
-import { useDraftActions } from "~/components/Tab/DraftEditor";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import { QuarterNote } from "~/utils/noteLengthIcons";
 import type { DraftReference } from "~/utils/tabDocument";
-import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
-import GuitarProImport from "~/components/Tab/GuitarProImport";
+import { getTuningName } from "~/utils/tunings";
+import classes from "./TabMetadata.module.css";
 
 const KEYS_BY_LETTER = {
   A: ["A major", "A minor", "A# minor", "A♭ major", "A♭ minor"],
@@ -102,6 +101,7 @@ type TabMetadata = {
 };
 
 function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
+  const getTabData = useTabDataGetter();
   const draftActions = useDraftActions();
   const { userId } = useAuth();
   const asPath = usePathname();
@@ -142,9 +142,8 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
     isLoadingARoute,
     setCurrentlyPlayingMetadata,
     setCurrentChordIndex,
-    viewportLabel,
     tabIsEffectivelyEmpty,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     originalTabData: state.originalTabData,
     id: state.id,
     createdByUserId: state.createdByUserId,
@@ -179,8 +178,10 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
     isLoadingARoute: state.isLoadingARoute,
     setCurrentlyPlayingMetadata: state.setCurrentlyPlayingMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,
-    viewportLabel: state.viewportLabel,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
+  }));
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
+    viewportLabel: state.viewportLabel,
   }));
 
   const isEditorPreview = asPath.includes("create") || asPath.includes("edit");

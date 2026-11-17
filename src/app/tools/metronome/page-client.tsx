@@ -2,13 +2,13 @@
 
 import { AnimatedToggleGroup } from "~/components/ui/AnimatedToggleGroup";
 
-import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { BsFillVolumeUpFill } from "react-icons/bs";
 import { PiMetronome } from "react-icons/pi";
-import { getTrackBackground, Range } from "~/components/ui/Range";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
-import { BsFillVolumeUpFill } from "react-icons/bs";
+import { getTrackBackground, Range } from "~/components/ui/Range";
 import {
   Select,
   SelectContent,
@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
+import { useTabStoreApi, useTabStoreShallow } from "~/stores/TabStore";
 
 type Subdivision = 1 | 2 | 4;
 
@@ -128,7 +128,7 @@ const TAP_RESET_MS = 2000;
 const MAX_TAP_INTERVALS = 8;
 
 function MetronomeToolPage() {
-  const { audioContext } = useTabStore((state) => ({
+  const { audioContext } = useTabStoreShallow((state) => ({
     audioContext: state.audioContext,
   }));
 

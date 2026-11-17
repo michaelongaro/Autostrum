@@ -11,10 +11,10 @@ import {
 } from "~/components/ui/dialog";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import { useTuner } from "~/hooks/useTuner";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 
 function PlaybackTunerDialog() {
-  const { tuning, capo, pauseAudio } = useTabStore((state) => ({
+  const { tuning, capo, pauseAudio } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
     capo: state.capo,
     pauseAudio: state.pauseAudio,

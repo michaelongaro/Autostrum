@@ -1,15 +1,15 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
-import { useTabDataGetter, useTabStore } from "~/stores/TabStore";
+import { Button } from "~/components/ui/button";
+import { useTabDataGetter, useTabStoreShallow } from "~/stores/TabStore";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
 import {
   applyTabPalmMuteValues,
   editPalmMuteNode,
   getTabPalmMuteValues,
 } from "~/utils/palmMuteEditing";
-import { Button } from "~/components/ui/button";
+import { getPalmMuteValue, isTabMeasureLine } from "~/utils/tabNoteHelpers";
 import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
-import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
-import { isTabMeasureLine, getPalmMuteValue } from "~/utils/tabNoteHelpers";
 
 interface PalmMuteNode {
   value: string;
@@ -37,7 +37,7 @@ function PalmMuteNode({
   setLastModifiedPalmMuteNode,
 }: PalmMuteNode) {
   const getTabData = useTabDataGetter();
-  const { setTabData } = useTabStore((state) => ({
+  const { setTabData } = useTabStoreShallow((state) => ({
     setTabData: state.setTabData,
   }));
 

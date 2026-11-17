@@ -1,4 +1,3 @@
-import { getProfileImageSrc } from "~/utils/profileImage";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -18,7 +17,9 @@ import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import useWeeklyFeaturedUsersCarousel from "~/hooks/useWeeklyFeaturedUsersCarousel";
 import type { MinimalTabRepresentation } from "~/server/api/routers/search";
 import type { UserMetadata } from "~/server/api/routers/user";
-import { useTabStore } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { getProfileImageSrc } from "~/utils/profileImage";
+
 import { formatNumber } from "~/utils/formatNumber";
 
 interface WeeklyFeaturedUsers {
@@ -49,7 +50,8 @@ function FeaturedUserAvatar({
           {username.charAt(0).toUpperCase()}
         </span>
       ) : (
-        <Image unoptimized
+        <Image
+          unoptimized
           src={getProfileImageSrc(src)}
           alt={`${username}'s profile picture`}
           width={40}
@@ -75,7 +77,7 @@ function WeeklyFeaturedUsers({
   weeklyFeaturedUsers,
   currentUser,
 }: WeeklyFeaturedUsers) {
-  const { color, theme } = useTabStore((state) => ({
+  const { color, theme } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
   }));

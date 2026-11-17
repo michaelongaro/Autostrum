@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { BsFillVolumeUpFill } from "react-icons/bs";
 import { Paintbrush } from "lucide-react";
+import { useMemo, useState } from "react";
+import { BsFillVolumeUpFill } from "react-icons/bs";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
 import ChordTrainerBpmRange, {
   clampChordTrainerTempo,
@@ -12,6 +12,7 @@ import ChordTrainerStrumPreview from "~/components/tools/ChordTrainerStrumPrevie
 import ChordTrainerVisualizer from "~/components/tools/ChordTrainerVisualizer";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
 import { Button } from "~/components/ui/button";
+import Logo from "~/components/ui/icons/Logo";
 import PauseIcon from "~/components/ui/icons/PauseIcon";
 import { Label } from "~/components/ui/label";
 import {
@@ -28,9 +29,8 @@ import {
   NONE_CHORD_TRAINER_STRUMMING_PATTERN,
 } from "~/data/tools/chordTrainerStrummingPatterns";
 import useChordTrainerPlayback from "~/hooks/useChordTrainerPlayback";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import { cn } from "~/utils/cn";
-import Logo from "~/components/ui/icons/Logo";
-import { useTabStore } from "~/stores/TabStore";
 
 type AudioOption =
   | "none"
@@ -137,7 +137,7 @@ const CHORD_PRESET_OPTIONS = [
 ];
 
 function ChordTrainerPage() {
-  const { setCurrentInstrumentName } = useTabStore((state) => ({
+  const { setCurrentInstrumentName } = useTabStoreShallow((state) => ({
     setCurrentInstrumentName: state.setCurrentInstrumentName,
   }));
 

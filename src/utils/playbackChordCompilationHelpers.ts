@@ -1,19 +1,19 @@
 import { generateBeatLabels } from "~/utils/getBeatIndicator";
 import { getSectionIndexFromId } from "~/utils/getSectionIndexFromId";
-import {
-  type Chord,
-  type ChordSection,
-  type ChordSequence,
-  type FullNoteLengths,
-  noteLengthMultipliers,
-  type PlaybackLoopDelaySpacerChord,
-  type PlaybackMetadata,
-  type PlaybackStrummedChord,
-  type PlaybackTabChord,
-  type Section,
-  type SectionProgression,
-  type TabSection,
-} from "../stores/TabStore";
+import { noteLengthMultipliers } from "~/utils/noteLengthMultipliers";
+import type {
+  Chord,
+  ChordSection,
+  ChordSequence,
+  FullNoteLengths,
+  PlaybackLoopDelaySpacerChord,
+  PlaybackMetadata,
+  PlaybackStrummedChord,
+  PlaybackTabChord,
+  Section,
+  SectionProgression,
+  TabSection,
+} from "~/stores/tab/types";
 import getBpmForChord from "./getBpmForChord";
 import getRepetitions from "./getRepetitions";
 import { applyStickyMeasureLineBpm } from "./measureLineBpm";

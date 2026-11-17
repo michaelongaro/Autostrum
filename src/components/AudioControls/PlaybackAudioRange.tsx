@@ -1,6 +1,6 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { Range } from "~/components/ui/Range";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 
 interface PlaybackAudioRange {
   disabled: boolean;
@@ -23,7 +23,7 @@ function PlaybackAudioRange({
     currentlyPlayingMetadata,
     audioMetadata,
     pauseAudio,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     currentChordIndex: state.currentChordIndex,
     setCurrentChordIndex: state.setCurrentChordIndex,
     currentlyPlayingMetadata: state.currentlyPlayingMetadata,

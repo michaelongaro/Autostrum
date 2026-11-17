@@ -6,7 +6,8 @@ import { PiMetronome } from "react-icons/pi";
 import Logo from "~/components/ui/icons/Logo";
 import TuningFork from "~/components/ui/icons/TuningFork";
 import type { ToolDefinition } from "~/data/tools/toolDefinitions";
-import { useTabStore } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+
 import { cn } from "~/utils/cn";
 
 const toolIcons: Record<string, ReactNode> = {
@@ -23,9 +24,7 @@ type ToolCardGridProps = {
 };
 
 function ToolCardGrid({ tools }: ToolCardGridProps) {
-  const { theme } = useTabStore((state) => ({
-    theme: state.theme,
-  }));
+  const { theme } = useAppPreferencesStore((state) => ({ theme: state.theme }));
 
   return (
     <div className="grid w-full gap-4 sm:grid-cols-2">

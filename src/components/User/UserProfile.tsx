@@ -1,31 +1,30 @@
-import { getProfileImageSrc } from "~/utils/profileImage";
-import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { getProfileImageSrc } from "~/utils/profileImage";
 
-import { useEffect, useRef, useState } from "react";
-import { BsMusicNoteBeamed } from "react-icons/bs";
-import { FaEye } from "react-icons/fa";
-import SearchResults from "~/components/Search/SearchResults";
-import styles from "~/components/Search/SearchResults.module.css";
-import { FaStar } from "react-icons/fa6";
-import { IoBookmark } from "react-icons/io5";
-import { api } from "~/utils/api";
-import { formatNumber } from "~/utils/formatNumber";
-import GridTabCard from "~/components/Search/GridTabCard";
 import { useAuth } from "@clerk/nextjs";
 import Image from "next/image";
-import { FaUser } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
+import { BsMusicNoteBeamed } from "react-icons/bs";
+import { FaEye, FaUser } from "react-icons/fa";
+import { FaStar } from "react-icons/fa6";
+import { IoBookmark } from "react-icons/io5";
 import { TbPinned } from "react-icons/tb";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { Separator } from "~/components/ui/separator";
+import GridTabCard from "~/components/Search/GridTabCard";
+import SearchResults from "~/components/Search/SearchResults";
+import styles from "~/components/Search/SearchResults.module.css";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   type CarouselApi,
 } from "~/components/ui/carousel";
+import { Separator } from "~/components/ui/separator";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { api } from "~/utils/api";
+import { formatNumber } from "~/utils/formatNumber";
 import getDynamicFontSize from "~/utils/getDynamicFontSize";
-import { useTabStore } from "~/stores/TabStore";
 
 interface UserProfile {
   uniqueKey: string;
@@ -35,7 +34,7 @@ function UserProfile({ uniqueKey }: UserProfile) {
   const { query } = useRouteLocation();
   const { userId: currentUserId } = useAuth();
 
-  const { color, theme } = useTabStore((state) => ({
+  const { color, theme } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
   }));
@@ -236,7 +235,8 @@ function UserProfile({ uniqueKey }: UserProfile) {
                           <div className="baseFlex gap-2">
                             <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                               {userMetadata ? (
-                                <Image unoptimized
+                                <Image
+                                  unoptimized
                                   src={getProfileImageSrc(
                                     userMetadata.user.profileImageUrl,
                                   )}
@@ -417,7 +417,8 @@ function UserProfile({ uniqueKey }: UserProfile) {
                     <div className="baseFlex gap-2">
                       <div className="grid shrink-0 grid-cols-1 grid-rows-1">
                         {userMetadata ? (
-                          <Image unoptimized
+                          <Image
+                            unoptimized
                             src={getProfileImageSrc(
                               userMetadata.user.profileImageUrl,
                             )}

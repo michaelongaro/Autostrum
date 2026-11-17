@@ -1,14 +1,15 @@
+import { Input } from "~/components/ui/input";
 import {
   useTabDataGetter,
-  useTabStoreApi,
   useTabStore,
+  useTabStoreApi,
+  useTabStoreShallow,
 } from "~/stores/TabStore";
-import { Input } from "~/components/ui/input";
+import { cn } from "~/utils/cn";
 import {
   handleTabNoteChange,
   handleTabNoteKeyDown,
 } from "~/utils/tabNoteHandlers";
-import { cn } from "~/utils/cn";
 
 interface TabNote {
   note: string;
@@ -34,7 +35,7 @@ function TabNote({
   const setChordPulse = useTabStore((state) => state.setChordPulse);
 
   // Only this column's pulse should re-render the input chrome.
-  const isPulsing = useTabStore((state) => {
+  const isPulsing = useTabStoreShallow((state) => {
     const pulse = state.chordPulse;
     return (
       pulse?.location.sectionIndex === sectionIndex &&

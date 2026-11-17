@@ -1,23 +1,23 @@
 import { useState } from "react";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
+import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
+import { Button } from "~/components/ui/button";
+import ChordName from "~/components/ui/ChordName";
 import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import type { COLORS, THEME } from "~/stores/TabStore";
 import {
-  useTabStore,
+  useTabStoreShallow,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
-import { Button } from "~/components/ui/button";
-import StaticPalmMuteNode from "~/components/Tab/Static/StaticPalmMuteNode";
-import type { COLORS, THEME } from "~/stores/TabStore";
+import { generateBeatLabels } from "~/utils/getBeatIndicator";
 import { beamBreaksForStrums } from "~/utils/noteLengthBeaming";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
-import PauseIcon from "~/components/ui/icons/PauseIcon";
-import { generateBeatLabels } from "~/utils/getBeatIndicator";
-import ChordName from "~/components/ui/ChordName";
 import { STATIC_STRUMMING_PATTERN_STRUM_WIDTH_PX } from "~/utils/staticTabGeometry";
 
 interface StaticStrummingPattern {
@@ -33,7 +33,7 @@ function StaticStrummingPattern({
   color,
   theme,
 }: StaticStrummingPattern) {
-  const { chords, chordDisplayMode } = useTabStore((state) => ({
+  const { chords, chordDisplayMode } = useTabStoreShallow((state) => ({
     chords: state.chords,
     chordDisplayMode: state.chordDisplayMode,
   }));

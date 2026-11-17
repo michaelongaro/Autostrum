@@ -6,7 +6,7 @@ import {
   type SetStateAction,
 } from "react";
 import usePlaybackGlideScrub from "~/hooks/usePlaybackGlideScrub";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import type { PlaybackChordLayoutData } from "~/utils/playbackModalLayout";
 
 interface PlaybackScrollingContainerProps {
@@ -42,7 +42,7 @@ function PlaybackScrollingContainer({
     setCurrentChordIndex,
     countInTimer,
     visiblePlaybackContainerWidth,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     playing: state.audioMetadata.playing,
     pauseAudio: state.pauseAudio,
     currentChordIndex: state.currentChordIndex,

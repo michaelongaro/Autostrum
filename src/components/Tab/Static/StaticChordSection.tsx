@@ -1,7 +1,9 @@
 import { Fragment } from "react";
+import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
 import { Separator } from "~/components/ui/separator";
+import type { COLORS, THEME } from "~/stores/TabStore";
 import {
-  useTabStore,
+  useTabStoreShallow,
   type ChordSection as ChordSectionType,
   type ChordSequence as ChordSequenceType,
 } from "~/stores/TabStore";
@@ -9,8 +11,6 @@ import {
   chordSequencesAllHaveSameNoteLength,
   getDynamicNoteLengthIcon,
 } from "~/utils/noteLengthIcons";
-import StaticChordSequence from "~/components/Tab/Static/StaticChordSequence";
-import type { COLORS, THEME } from "~/stores/TabStore";
 
 export interface StaticChordSection {
   subSectionData: ChordSectionType;
@@ -25,7 +25,7 @@ function StaticChordSection({
   theme,
   presentation = "card",
 }: StaticChordSection) {
-  const { bpm } = useTabStore((state) => ({
+  const { bpm } = useTabStoreShallow((state) => ({
     bpm: state.bpm,
   }));
 

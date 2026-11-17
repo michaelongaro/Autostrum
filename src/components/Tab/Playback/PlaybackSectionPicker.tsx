@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import PracticePlaybackSectionPicker from "~/components/Tab/Playback/PracticePlaybackSectionPicker";
+import { usePracticePlayback } from "~/components/tools/PracticePlaybackContext";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -7,10 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
-import { usePracticePlayback } from "~/components/tools/PracticePlaybackContext";
-import PracticePlaybackSectionPicker from "~/components/Tab/Playback/PracticePlaybackSectionPicker";
+import { useTabStoreShallow } from "~/stores/TabStore";
 
 function PlaybackSectionPicker() {
   const practicePlayback = usePracticePlayback();
@@ -29,7 +29,7 @@ function TabPlaybackSectionPicker() {
     setCurrentChordIndex,
     setDraftLoopRange,
     sectionProgression,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     audioMetadata: state.audioMetadata,
     setAudioMetadata: state.setAudioMetadata,
     setCurrentChordIndex: state.setCurrentChordIndex,

@@ -1,3 +1,4 @@
+import { useIsomorphicLayoutEffect } from "@react-hookz/web";
 import {
   useCallback,
   useEffect,
@@ -5,21 +6,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useIsomorphicLayoutEffect } from "@react-hookz/web";
 import StaticTabMeasureLine from "~/components/Tab/Static/StaticTabMeasureLine";
 import StaticTabNotesColumn from "~/components/Tab/Static/StaticTabNotesColumn";
 import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
+import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import type { COLORS, THEME } from "~/stores/TabStore";
 import {
-  useTabStore,
+  useTabStoreShallow,
   type TabMeasureLine,
   type TabNote,
   type TabSection,
 } from "~/stores/TabStore";
-import type { COLORS, THEME } from "~/stores/TabStore";
-import { beamBreaksForTabColumns } from "~/utils/noteLengthBeaming";
-import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 import { getMeasureLineBpmDisplay } from "~/utils/measureLineBpm";
-import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import { beamBreaksForTabColumns } from "~/utils/noteLengthBeaming";
 import {
   buildStaticTabRowLayout,
   getStaticTabLayoutWidthPx,
@@ -41,6 +40,7 @@ import {
   type StaticTabRowLayout,
   type VisibleRowRange,
 } from "~/utils/staticTabGeometry";
+import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 
 export interface LastModifiedPalmMuteNodeLocation {
   columnIndex: number;
@@ -85,7 +85,7 @@ function FullStaticTabSection({
   height,
   highlightedThroughColumn = -1,
 }: StaticTabSection) {
-  const { tuning, bpm } = useTabStore((state) => ({
+  const { tuning, bpm } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
     bpm: state.bpm,
   }));
@@ -119,7 +119,7 @@ function VirtualizedStaticTabSection({
   presentation = "card",
   highlightedThroughColumn = -1,
 }: StaticTabSection) {
-  const { tuning, bpm } = useTabStore((state) => ({
+  const { tuning, bpm } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
     bpm: state.bpm,
   }));

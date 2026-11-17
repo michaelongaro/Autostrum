@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect } from "react";
-import { useTabStore } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 function useGetViewportLabel() {
-  const { setViewportLabel } = useTabStore((state) => ({
+  const { setViewportLabel } = useAppPreferencesStore((state) => ({
     setViewportLabel: state.setViewportLabel,
   }));
 

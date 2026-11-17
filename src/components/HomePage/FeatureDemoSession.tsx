@@ -1,3 +1,4 @@
+import { TabStoreProvider } from "~/stores/TabStoreProvider";
 import {
   createContext,
   useContext,
@@ -5,10 +6,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 import {
   createTabStore,
-  TabStoreContext,
-  useTabStore,
   useTabStoreApi,
   type ChordSection,
   type Section,
@@ -554,7 +554,7 @@ export default function FeatureDemoSession({
   active: boolean;
   children: ReactNode;
 }) {
-  const { color, theme } = useTabStore((state) => ({
+  const { color, theme } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
   }));
@@ -566,7 +566,7 @@ export default function FeatureDemoSession({
   );
 
   useEffect(() => {
-    session.store.setState({ color, theme });
+    session.store.preferences.setState({ color, theme });
   }, [session, color, theme]);
   useEffect(() => {
     session.setEnabled(active);
@@ -578,12 +578,12 @@ export default function FeatureDemoSession({
   }, [session, active]);
 
   return (
-    <TabStoreContext.Provider value={session.store}>
+    <TabStoreProvider store={session.store}>
       <FeatureDemoContext.Provider value={{ sectionIndex, feature, active }}>
         <div className={styles.demoRoot} data-feature-demo={feature}>
           {children}
         </div>
       </FeatureDemoContext.Provider>
-    </TabStoreContext.Provider>
+    </TabStoreProvider>
   );
 }

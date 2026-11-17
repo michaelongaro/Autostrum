@@ -1,46 +1,55 @@
+import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
+import { X } from "lucide-react";
 import { useRef } from "react";
 import { BsFillPlayFill, BsKeyboard } from "react-icons/bs";
-import { Label } from "~/components/ui/label";
-import { useTabStore, type Chord as ChordType } from "~/stores/TabStore";
-import Chord from "../Tab/Chord";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { X } from "lucide-react";
-import {
-  CHORD_COLORS,
-  getContrastTextColor,
-  getColorForChordName,
-} from "~/utils/chordColors";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  useTabStore,
+  useTabStoreApi,
+  useTabStoreShallow,
+  type Chord as ChordType,
+} from "~/stores/TabStore";
+import {
+  CHORD_COLORS,
+  getColorForChordName,
+  getContrastTextColor,
+} from "~/utils/chordColors";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import Chord from "../Tab/Chord";
 
-function ChordDialog() {
+function ChordDialogContent() {
+  const previewMetadata = useTabStoreShallow((state) => ({
+    playing: state.previewMetadata.playing,
+    type: state.previewMetadata.type,
+    indexOfPattern: state.previewMetadata.indexOfPattern,
+  }));
   const {
     chords,
     setChords,
     chordBeingEdited,
     setChordBeingEdited,
-    audioMetadata,
-    previewMetadata,
+    audioPlaying,
     capo,
     playPreview,
     pauseAudio,
     setTabData,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     chords: state.chords,
     setChords: state.setChords,
     chordBeingEdited: state.chordBeingEdited,
     setChordBeingEdited: state.setChordBeingEdited,
-    audioMetadata: state.audioMetadata,
-    previewMetadata: state.previewMetadata,
+    audioPlaying: state.audioMetadata.playing,
+
     capo: state.capo,
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
@@ -154,194 +163,205 @@ function ChordDialog() {
       frets: [...newChord.frets],
       color: newChord.color,
     };
-    if (audioMetadata.playing) pauseAudio();
+    if (audioPlaying) pauseAudio();
     setChordBeingEdited(null);
     setChords(newChords);
   }
 
   return (
-    <Dialog
-      onOpenChange={(open) => {
-        if (!open) {
-          if (audioMetadata.playing) pauseAudio();
-          setChordBeingEdited(null);
-        }
-      }}
-      open={chordBeingEdited !== null}
-    >
+    <>
       <VisuallyHidden>
         <DialogTitle>Chord editor dialog</DialogTitle>
         <DialogDescription>
           Edit the name, color, and fretting of a chord.
         </DialogDescription>
       </VisuallyHidden>
+      {chord && (
+        <>
+          {/* chord title */}
+          <div className="baseFlex w-full !items-start !justify-between">
+            <div className="baseVertFlex !items-start gap-2">
+              <div className="baseFlex gap-2">
+                <Label htmlFor="chordName">Chord name</Label>
+                <Input
+                  id="chordName"
+                  placeholder="(e.g. Em, Cmaj7)"
+                  value={chord.value.name}
+                  onChange={handleChordNameChange}
+                  className="w-[150px] placeholder:pb-px"
+                />
+              </div>
 
+              <div className="baseFlex mt-1 !items-start gap-3">
+                <Label className="mt-1">Chord color</Label>
+
+                <div className="z-10 grid grid-cols-6 gap-2">
+                  {CHORD_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => handleColorChange(color)}
+                      style={{
+                        backgroundColor: color,
+                        color: getContrastTextColor(color),
+                      }}
+                      className={`baseFlex size-7 rounded-full transition-all ${
+                        chord.value.color === color ? "" : "hover:scale-110"
+                      }`}
+                    >
+                      <AnimatePresence mode="popLayout">
+                        {chord.value.color === color && (
+                          <motion.svg
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="size-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={3}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </motion.svg>
+                        )}
+                      </AnimatePresence>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <Button
+              variant={"modalClose"}
+              onClick={() => {
+                if (audioPlaying) pauseAudio();
+                setChordBeingEdited(null);
+              }}
+            >
+              <X className="size-5" />
+              <span className="sr-only">Close</span>
+            </Button>
+          </div>
+
+          <div className="baseVertFlex my-2 w-full gap-2 sm:my-1">
+            <div className="baseFlex w-full !items-start !justify-between gap-4 xs:px-4">
+              <Chord
+                chordBeingEdited={chord}
+                highlightChord={
+                  previewMetadata.indexOfPattern === chord.index &&
+                  previewMetadata.playing &&
+                  previewMetadata.type === "chord"
+                }
+              />
+
+              {/* ml here seems hacky */}
+              <div className="baseVertFlex h-full w-48 gap-4">
+                <div className="baseVertFlex w-full !items-start gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm">
+                  <div className="baseFlex w-[160px] gap-2 font-semibold">
+                    <BsKeyboard className="h-6 w-6" />
+                    Hotkeys
+                  </div>
+
+                  <div className="grid w-full grid-cols-[45px_5px_90px] gap-2">
+                    <div className="baseFlex gap-1">
+                      <kbd>A</kbd> - <kbd>G</kbd>
+                    </div>
+                    <span>-</span>
+                    <span>Major chords</span>
+
+                    <div className="baseFlex gap-1">
+                      <kbd>a</kbd> - <kbd>g</kbd>
+                    </div>
+                    <span>-</span>
+                    <span>Minor chords</span>
+
+                    <kbd className="h-min w-min place-self-end">x</kbd>
+                    <span>-</span>
+                    <span>Muted string</span>
+                  </div>
+                </div>
+
+                {capo > 0 && (
+                  <div className="baseVertFlex !items-start gap-1 text-sm">
+                    <p className="font-medium underline underline-offset-2">
+                      Reminder
+                    </p>
+                    <p>
+                      Fret values should be relative to capo on the{" "}
+                      {getOrdinalSuffix(capo)} fret.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* a bit janky to have absolute positioning on this  */}
+          <div className="baseFlex w-full !justify-between gap-4">
+            <Button
+              disabled={
+                (previewMetadata.indexOfPattern === chord.index &&
+                  previewMetadata.playing &&
+                  previewMetadata.type === "chord") ||
+                chord.value.frets.every((fret) => fret === "")
+              }
+              variant={"audio"}
+              className="baseFlex gap-2"
+              onClick={() => {
+                void playPreview({
+                  data: chord.value.frets,
+                  index: chord.index,
+                  type: "chord",
+                });
+              }}
+            >
+              <BsFillPlayFill className="h-6 w-6" />
+              Preview
+            </Button>
+
+            <Button
+              disabled={
+                chord.value.frets.every((fret) => fret === "") ||
+                chord.value.name === "" ||
+                isEqual(chord.value, chords[chord.index])
+              }
+              onClick={handleSaveChord}
+              className="px-12"
+            >
+              Save
+            </Button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+function ChordDialog() {
+  const store = useTabStoreApi();
+  const open = useTabStore((state) => state.chordBeingEdited !== null);
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(open) => {
+        if (!open) {
+          const state = store.getState();
+          if (state.audioMetadata.playing || state.previewMetadata.playing)
+            state.pauseAudio();
+          state.setChordBeingEdited(null);
+        }
+      }}
+    >
       <DialogContent
         data-tab-editor-history="chord"
         className="baseVertFlex w-auto min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[380px]"
       >
-        {chord && (
-          <>
-            {/* chord title */}
-            <div className="baseFlex w-full !items-start !justify-between">
-              <div className="baseVertFlex !items-start gap-2">
-                <div className="baseFlex gap-2">
-                  <Label htmlFor="chordName">Chord name</Label>
-                  <Input
-                    id="chordName"
-                    placeholder="(e.g. Em, Cmaj7)"
-                    value={chord.value.name}
-                    onChange={handleChordNameChange}
-                    className="w-[150px] placeholder:pb-px"
-                  />
-                </div>
-
-                <div className="baseFlex mt-1 !items-start gap-3">
-                  <Label className="mt-1">Chord color</Label>
-
-                  <div className="z-10 grid grid-cols-6 gap-2">
-                    {CHORD_COLORS.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        onClick={() => handleColorChange(color)}
-                        style={{
-                          backgroundColor: color,
-                          color: getContrastTextColor(color),
-                        }}
-                        className={`baseFlex size-7 rounded-full transition-all ${
-                          chord.value.color === color ? "" : "hover:scale-110"
-                        }`}
-                      >
-                        <AnimatePresence mode="popLayout">
-                          {chord.value.color === color && (
-                            <motion.svg
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.15 }}
-                              className="size-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={3}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </motion.svg>
-                          )}
-                        </AnimatePresence>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                variant={"modalClose"}
-                onClick={() => {
-                  if (audioMetadata.playing) pauseAudio();
-                  setChordBeingEdited(null);
-                }}
-              >
-                <X className="size-5" />
-                <span className="sr-only">Close</span>
-              </Button>
-            </div>
-
-            <div className="baseVertFlex my-2 w-full gap-2 sm:my-1">
-              <div className="baseFlex w-full !items-start !justify-between gap-4 xs:px-4">
-                <Chord
-                  chordBeingEdited={chord}
-                  highlightChord={
-                    previewMetadata.indexOfPattern === chord.index &&
-                    previewMetadata.playing &&
-                    previewMetadata.type === "chord"
-                  }
-                />
-
-                {/* ml here seems hacky */}
-                <div className="baseVertFlex h-full w-48 gap-4">
-                  <div className="baseVertFlex w-full !items-start gap-2 rounded-lg border bg-secondary p-2 text-sm shadow-sm">
-                    <div className="baseFlex w-[160px] gap-2 font-semibold">
-                      <BsKeyboard className="h-6 w-6" />
-                      Hotkeys
-                    </div>
-
-                    <div className="grid w-full grid-cols-[45px_5px_90px] gap-2">
-                      <div className="baseFlex gap-1">
-                        <kbd>A</kbd> - <kbd>G</kbd>
-                      </div>
-                      <span>-</span>
-                      <span>Major chords</span>
-
-                      <div className="baseFlex gap-1">
-                        <kbd>a</kbd> - <kbd>g</kbd>
-                      </div>
-                      <span>-</span>
-                      <span>Minor chords</span>
-
-                      <kbd className="h-min w-min place-self-end">x</kbd>
-                      <span>-</span>
-                      <span>Muted string</span>
-                    </div>
-                  </div>
-
-                  {capo > 0 && (
-                    <div className="baseVertFlex !items-start gap-1 text-sm">
-                      <p className="font-medium underline underline-offset-2">
-                        Reminder
-                      </p>
-                      <p>
-                        Fret values should be relative to capo on the{" "}
-                        {getOrdinalSuffix(capo)} fret.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* a bit janky to have absolute positioning on this  */}
-            <div className="baseFlex w-full !justify-between gap-4">
-              <Button
-                disabled={
-                  (previewMetadata.indexOfPattern === chord.index &&
-                    previewMetadata.playing &&
-                    previewMetadata.type === "chord") ||
-                  chord.value.frets.every((fret) => fret === "")
-                }
-                variant={"audio"}
-                className="baseFlex gap-2"
-                onClick={() => {
-                  void playPreview({
-                    data: chord.value.frets,
-                    index: chord.index,
-                    type: "chord",
-                  });
-                }}
-              >
-                <BsFillPlayFill className="h-6 w-6" />
-                Preview
-              </Button>
-
-              <Button
-                disabled={
-                  chord.value.frets.every((fret) => fret === "") ||
-                  chord.value.name === "" ||
-                  isEqual(chord.value, chords[chord.index])
-                }
-                onClick={handleSaveChord}
-                className="px-12"
-              >
-                Save
-              </Button>
-            </div>
-          </>
-        )}
+        <ChordDialogContent />
       </DialogContent>
     </Dialog>
   );

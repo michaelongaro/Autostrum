@@ -10,27 +10,27 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import {
-  useTabStore,
-  useTabDataGetter,
-  type ChordSection as ChordSectionType,
-  type StrummingPattern,
-  type TabSection as TabSectionType,
-  type BaseNoteLengths,
-} from "~/stores/TabStore";
 import { Separator } from "~/components/ui/separator";
-import AnimatedListItem from "./AnimatedListItem";
-import ChordSection from "./ChordSection";
-import MiscellaneousControls from "./MiscellaneousControls";
-import TabSection from "./TabSection";
 import {
   useSectionId,
   useSectionTitle,
   useSubSectionIds,
   useSubSectionTypes,
 } from "~/hooks/useTabDataSelectors";
-import { createTabNote } from "~/utils/tabNoteHelpers";
+import {
+  useTabDataGetter,
+  useTabStoreShallow,
+  type BaseNoteLengths,
+  type ChordSection as ChordSectionType,
+  type StrummingPattern,
+  type TabSection as TabSectionType,
+} from "~/stores/TabStore";
 import { cn } from "~/utils/cn";
+import { createTabNote } from "~/utils/tabNoteHelpers";
+import AnimatedListItem from "./AnimatedListItem";
+import ChordSection from "./ChordSection";
+import MiscellaneousControls from "./MiscellaneousControls";
+import TabSection from "./TabSection";
 
 interface SectionContainer {
   sectionIndex: number;
@@ -48,7 +48,7 @@ function SectionContainer({
     sectionProgression,
     setSectionProgression,
     setTabData,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     bpm: state.bpm,
     strummingPatterns: state.strummingPatterns,
     sectionProgression: state.sectionProgression,
@@ -58,7 +58,7 @@ function SectionContainer({
 
   // Boolean stays stable while playback advances within this section, so chord
   // ticks don't re-render the whole section tree.
-  const shouldOpenAccordionForPlayback = useTabStore((state) => {
+  const shouldOpenAccordionForPlayback = useTabStoreShallow((state) => {
     if (!state.audioMetadata.playing) return false;
     const playingSectionIndex =
       state.currentlyPlayingMetadata?.[state.currentChordIndex]?.location

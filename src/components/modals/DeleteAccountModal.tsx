@@ -1,24 +1,24 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { X } from "lucide-react";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { FaTrashAlt } from "react-icons/fa";
-import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
 import { IoWarningOutline } from "react-icons/io5";
-import { useTabStore } from "~/stores/TabStore";
-import { api } from "~/utils/api";
-import { X } from "lucide-react";
 import Spinner from "~/components/ui/Spinner";
-import { Label } from "~/components/ui/label";
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Label } from "~/components/ui/label";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
+import useModalScrollbarHandling from "~/hooks/useModalScrollbarHandling";
+import { useTabStoreShallow } from "~/stores/TabStore";
+import { api } from "~/utils/api";
 
 interface DeleteAccountModal {
   showDeleteAccountModal: boolean;
@@ -35,7 +35,7 @@ function DeleteAccountModal({
   const [anonymizeUserTabs, setAnonymizeUserTabs] = useState(true);
   const [deleteButtonText, setDeleteButtonText] = useState("delete");
 
-  const { isLoadingARoute } = useTabStore((state) => ({
+  const { isLoadingARoute } = useTabStoreShallow((state) => ({
     isLoadingARoute: state.isLoadingARoute,
   }));
 

@@ -1,27 +1,27 @@
-import { MdModeEditOutline } from "react-icons/md";
-import { FaTrashAlt } from "react-icons/fa";
 import { useState } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import {
-  useTabStore,
-  type StrummingPattern as StrummingPatternType,
-} from "~/stores/TabStore";
-import { Button } from "~/components/ui/button";
-import StrummingPattern from "./StrummingPattern";
+import { BsPlus } from "react-icons/bs";
+import { FaTrashAlt } from "react-icons/fa";
+import { MdModeEditOutline } from "react-icons/md";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
+import { Button } from "~/components/ui/button";
 import Logo from "~/components/ui/icons/Logo";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import {
+  useTabStoreShallow,
+  type StrummingPattern as StrummingPatternType,
+} from "~/stores/TabStore";
 import SortableMetadataList from "./SortableMetadataList";
-import { BsPlus } from "react-icons/bs";
+import StrummingPattern from "./StrummingPattern";
+import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 function StrummingPatterns() {
   const [accordionValue, setAccordionValue] = useState("closed");
@@ -43,7 +43,7 @@ function StrummingPatterns() {
     currentlyCopiedData,
     setCurrentlyCopiedData,
     setTabData,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     strummingPatterns: state.strummingPatterns,
     setStrummingPatterns: state.setStrummingPatterns,
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,

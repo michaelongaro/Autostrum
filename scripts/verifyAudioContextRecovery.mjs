@@ -543,7 +543,7 @@ test("count-in sources and delayed playback are canceled by pause, interruption,
         plays++;
       },
     });
-    await value.getState().playTabWithCountIn();
+    await value.getState().playTabWithCountIn({ countIn: true });
     assert.equal(value.getState().countInTimer.showing, true);
     assert.equal(graph.audioContext.sources.length, 3);
     if (reason === "pause") value.getState().pauseAudio();
@@ -574,7 +574,7 @@ test("count-in can complete once, but an older start cannot win over a newer sta
       plays++;
     },
   });
-  const old = value.getState().playTabWithCountIn();
+  const old = value.getState().playTabWithCountIn({ countIn: true });
   value.setState({
     ensureAudioSystemReady: async () => ({
       ...graph,
@@ -582,7 +582,7 @@ test("count-in can complete once, but an older start cannot win over a newer sta
       countInBuffer: {},
     }),
   });
-  await value.getState().playTabWithCountIn();
+  await value.getState().playTabWithCountIn({ countIn: true });
   resolveOld({ ...graph, currentInstrument: null, countInBuffer: {} });
   await old;
   assert.equal(graph.audioContext.sources.length, 3);
@@ -608,6 +608,42 @@ test("cold preparation resumes synchronously and concurrent starts share sample 
   assert.notEqual(value.getState().audioContext, graph.audioContext);
   await advance(250);
   assert.equal((await replacement).masterVolumeGainNode.gain.value, 0.4);
+});
+
+test("atomic document loading cancels count-in resources and delayed playback", async () => {
+  const { getEditorDocument } = await import("../src/stores/tab/document.ts");
+  const value = store();
+  const pendingGraph = value.getState().ensureAudioContextReady();
+  await flush();
+  await advance(100);
+  const graph = await pendingGraph;
+  let plays = 0;
+  value.setState({
+    ensureAudioSystemReady: async () => ({
+      ...graph,
+      currentInstrument: null,
+      countInBuffer: {},
+    }),
+    playTab: async () => {
+      plays++;
+    },
+  });
+  await value.getState().playTabWithCountIn({ countIn: true });
+  assert.equal(value.getState().countInTimer.showing, true);
+  let notifications = 0;
+  const unsubscribe = value.subscribe(() => notifications++);
+  value
+    .getState()
+    .loadDocument({
+      ...getEditorDocument(value.getState()),
+      title: "Replacement",
+    });
+  unsubscribe();
+  assert.equal(notifications, 1);
+  assert.equal(value.getState().countInTimer.showing, false);
+  assert.ok(graph.audioContext.sources.every((source) => source.stopped));
+  await advance(3200);
+  assert.equal(plays, 0);
 });
 
 test("pause during a sample load cancels pending playback and clears the loading state", async () => {
@@ -706,50 +742,78 @@ function previewFixture() {
   });
   context.createGain = () => ({ gain: param(), connect() {}, disconnect() {} });
   context.createBiquadFilter = () => ({
-    Q: param(), frequency: param(), connect() {}, disconnect() {},
+    Q: param(),
+    frequency: param(),
+    connect() {},
+    disconnect() {},
   });
   context.createBufferSource = () => {
     const source = {
-      context, detune: param(), connect() {}, disconnect() {},
+      context,
+      detune: param(),
+      connect() {},
+      disconnect() {},
       stops: [],
-      start(time) { this.startedAt = time; },
-      stop(time) { this.stops.push(time); },
+      start(time) {
+        this.startedAt = time;
+      },
+      stop(time) {
+        this.stops.push(time);
+      },
     };
     context.sources.push(source);
     return source;
   };
   const instrument = {
     stop() {},
-    buffers: Object.fromEntries(Array.from({ length: 128 }, (_, midi) => [midi, { duration: 4 }])),
+    buffers: Object.fromEntries(
+      Array.from({ length: 128 }, (_, midi) => [midi, { duration: 4 }]),
+    ),
   };
   const audioSystem = {
     audioContext: context,
     currentInstrument: instrument,
     masterVolumeGainNode: context.createGain(),
   };
-  value.setState({ ...audioSystem, ensureAudioSystemReady: async () => audioSystem });
+  value.setState({
+    ...audioSystem,
+    ensureAudioSystemReady: async () => audioSystem,
+  });
   return { value, context, audioSystem };
 }
 
 const previewChord = (index, extra = {}) => ({
-  data: ["0", "0", "0", "0", "0", "0"], index, type: "chord", ...extra,
+  data: ["0", "0", "0", "0", "0", "0"],
+  index,
+  type: "chord",
+  ...extra,
 });
 
 test("a rapid chord preview stops sounding and queued notes; stale completion cannot reset the newer preview", async () => {
   const { value, context } = previewFixture();
-  const first = value.getState().playPreview(previewChord(0, { customBpm: "120" }));
+  const first = value
+    .getState()
+    .playPreview(previewChord(0, { customBpm: "120" }));
   await flush();
   const oldSources = [...context.sources];
   assert.equal(oldSources.length, 6);
   await advance(20);
-  const second = value.getState().playPreview(previewChord(1, { customBpm: "30" }));
+  const second = value
+    .getState()
+    .playPreview(previewChord(1, { customBpm: "30" }));
   await flush();
   assert.equal(context.sources.length, 12);
   for (const source of oldSources) {
     const latestStop = source.stops.at(-1);
-    assert.ok(latestStop <= context.currentTime + 0.025, "old sounding voices stop within the audio fade");
+    assert.ok(
+      latestStop <= context.currentTime + 0.025,
+      "old sounding voices stop within the audio fade",
+    );
     if (source.startedAt > context.currentTime) {
-      assert.ok(latestStop < source.startedAt, "queued strum notes stop before their attack");
+      assert.ok(
+        latestStop < source.startedAt,
+        "queued strum notes stop before their attack",
+      );
     }
   }
   await advance(600);
@@ -765,7 +829,10 @@ test("a rapid chord preview stops sounding and queued notes; stale completion ca
 test("only the newest preview may start after asynchronous audio preparation", async () => {
   const { value, context, audioSystem } = previewFixture();
   const releases = [];
-  value.setState({ ensureAudioSystemReady: () => new Promise((resolve) => releases.push(resolve)) });
+  value.setState({
+    ensureAudioSystemReady: () =>
+      new Promise((resolve) => releases.push(resolve)),
+  });
   const first = value.getState().playPreview(previewChord(0));
   const second = value.getState().playPreview(previewChord(1));
   releases[1](audioSystem);
@@ -782,9 +849,12 @@ test("only the newest preview may start after asynchronous audio preparation", a
 test("replacing a tuning preview suppresses its queued note callbacks", async () => {
   const { value } = previewFixture();
   const notes = [];
-  const first = value.getState().playPreview(previewChord(0, {
-    forTuningPreview: true, onTuningPreviewNote: (index) => notes.push(index),
-  }));
+  const first = value.getState().playPreview(
+    previewChord(0, {
+      forTuningPreview: true,
+      onTuningPreviewNote: (index) => notes.push(index),
+    }),
+  );
   await flush();
   await advance(100);
   assert.deepEqual(notes, [0]);
@@ -798,10 +868,16 @@ test("replacing a tuning preview suppresses its queued note callbacks", async ()
 test("replacing a strumming preview cannot restart its old loop", async () => {
   const { value, context } = previewFixture();
   const pattern = {
-    id: "test-pattern", noteLength: "quarter",
-    strums: [{ palmMute: "", strum: "v" }, { palmMute: "", strum: "^" }],
+    id: "test-pattern",
+    noteLength: "quarter",
+    strums: [
+      { palmMute: "", strum: "v" },
+      { palmMute: "", strum: "^" },
+    ],
   };
-  const first = value.getState().playPreview({ data: pattern, index: 0, type: "strummingPattern" });
+  const first = value
+    .getState()
+    .playPreview({ data: pattern, index: 0, type: "strummingPattern" });
   await flush();
   assert.ok(context.sources.length > 0);
   const second = value.getState().playPreview(previewChord(1));
@@ -809,7 +885,11 @@ test("replacing a strumming preview cannot restart its old loop", async () => {
   const totalSources = context.sources.length;
   await advance(3500);
   await Promise.all([first, second]);
-  assert.equal(context.sources.length, totalSources, "old loop schedules no more chords");
+  assert.equal(
+    context.sources.length,
+    totalSources,
+    "old loop schedules no more chords",
+  );
   assert.equal(value.getState().previewMetadata.playing, false);
 });
 
@@ -894,7 +974,7 @@ test("count-in uses synthesized clicks without waiting for its optional audio do
       plays++;
     },
   });
-  await value.getState().playTabWithCountIn();
+  await value.getState().playTabWithCountIn({ countIn: true });
   assert.equal(graph.audioContext.sources.length, 3);
   await advance(3100);
   assert.equal(plays, 1);

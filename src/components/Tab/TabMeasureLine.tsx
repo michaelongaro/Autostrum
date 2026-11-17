@@ -8,23 +8,23 @@ import { motion } from "framer-motion";
 import { memo, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { RxDragHandleDots2 } from "react-icons/rx";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { useTabDataGetter, useTabStore } from "~/stores/TabStore";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
-import { focusEditingTabInput } from "~/utils/tabNoteHandlers";
-import { QuarterNote } from "~/utils/noteLengthIcons";
 import {
+  useMeasureLineBpmDisplay,
   useTabColumnNeighborMeta,
   useTabMeasureLineColumnData,
-  useMeasureLineBpmDisplay,
 } from "~/hooks/useTabDataSelectors";
-import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
+import {
+  useTabDataGetter,
+  useTabStore,
+  useTabStoreShallow,
+} from "~/stores/TabStore";
 import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
   EDITING_TAB_COLUMN_WIDTH_PX,
@@ -39,6 +39,10 @@ import {
   EDITING_TAB_STRING_ROW_HEIGHT_PX,
   EDITING_TAB_STRINGS_HEIGHT_PX,
 } from "~/utils/editingTabGeometry";
+import focusAndScrollIntoView from "~/utils/focusAndScrollIntoView";
+import { QuarterNote } from "~/utils/noteLengthIcons";
+import { focusEditingTabInput } from "~/utils/tabNoteHandlers";
+import { isTabMeasureLine } from "~/utils/tabNoteHelpers";
 
 interface TabMeasureLineProps {
   sectionIndex: number;
@@ -101,7 +105,7 @@ function TabMeasureLine({
     isDragging = false,
   } = drag ?? {};
 
-  const { setTabData } = useTabStore((state) => ({
+  const { setTabData } = useTabStoreShallow((state) => ({
     setTabData: state.setTabData,
   }));
 

@@ -1,19 +1,20 @@
 import { AnimatePresence, motion } from "framer-motion";
 import isEqual from "lodash.isequal";
-import { useEffect, useRef } from "react";
-import { FaTrashAlt } from "react-icons/fa";
-import { BsPlus } from "react-icons/bs";
-import { BiUpArrowAlt, BiDownArrowAlt } from "react-icons/bi";
-import {
-  getTabStore,
-  useTabStore,
-  type SectionProgression,
-} from "~/stores/TabStore";
-import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
+import { X } from "lucide-react";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
-import { BsMusicNoteList } from "react-icons/bs";
+import { useEffect, useRef } from "react";
+import { BiDownArrowAlt, BiUpArrowAlt } from "react-icons/bi";
+import { BsMusicNoteList, BsPlus } from "react-icons/bs";
+import { FaTrashAlt } from "react-icons/fa";
+import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,30 +22,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { X } from "lucide-react";
-import { Label } from "~/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "~/components/ui/dialog";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
+import { useEditorHistoryState } from "~/hooks/useEditorHistoryState";
+import { useSectionOptions } from "~/hooks/useTabDataSelectors";
+import {
+  useTabStore,
+  useTabStoreApi,
+  useTabStoreShallow,
+  type SectionProgression,
+} from "~/stores/TabStore";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 
-function SectionProgressionDialog() {
+function SectionProgressionDialogContent() {
+  const store = useTabStoreApi();
+  const sections = useSectionOptions();
   const {
     sectionProgression,
     setSectionProgression,
     showSectionProgressionDialog,
     setShowSectionProgressionDialog,
-    tabData,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     sectionProgression: state.sectionProgression,
     setSectionProgression: state.setSectionProgression,
     showSectionProgressionDialog: state.showSectionProgressionDialog,
     setShowSectionProgressionDialog: state.setShowSectionProgressionDialog,
-    tabData: state.tabData,
   }));
 
   const [localSectionProgression, setLocalSectionProgression, history] =
@@ -58,7 +59,7 @@ function SectionProgressionDialog() {
 
   useEffect(() => {
     if (!showSectionProgressionDialog) return;
-    const sectionProgression = getTabStore().sectionProgression;
+    const sectionProgression = store.getState().sectionProgression;
     const baseSectionProgression =
       sectionProgression.length === 0
         ? [
@@ -74,12 +75,7 @@ function SectionProgressionDialog() {
         : structuredClone(sectionProgression);
 
     resetHistory(baseSectionProgression);
-  }, [resetHistory, showSectionProgressionDialog]);
-
-  const sections = tabData.map((section) => ({
-    id: section.id,
-    title: section.title,
-  }));
+  }, [resetHistory, showSectionProgressionDialog, store]);
 
   function addNewSectionToProgression() {
     const newId = crypto.randomUUID();
@@ -145,99 +141,107 @@ function SectionProgressionDialog() {
   }
 
   return (
-    <Dialog
-      onOpenChange={(open) => {
-        setShowSectionProgressionDialog(open);
-      }}
-      open={showSectionProgressionDialog}
-    >
+    <div {...history.scopeProps}>
       <VisuallyHidden>
         <DialogTitle>Section progression dialog</DialogTitle>
         <DialogDescription>
           Arrange the order and repetitions of sections in this tab.
         </DialogDescription>
       </VisuallyHidden>
+      <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full !justify-between">
+        <div className="baseFlex w-full !justify-between">
+          <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
+            <BsMusicNoteList />
+            Section progression
+          </span>
 
+          <Button
+            variant={"modalClose"}
+            onClick={() => setShowSectionProgressionDialog(false)}
+          >
+            <X className="size-5" />
+          </Button>
+        </div>
+
+        <div
+          ref={scrollableSectionsRef}
+          className="baseVertFlex mt-4 max-h-[60vh] w-full !justify-start px-4 md:max-h-[65vh]"
+        >
+          <OverlayScrollbarsComponent
+            options={{
+              scrollbars: {
+                autoHide: "leave",
+                autoHideDelay: 150,
+              },
+            }}
+            defer
+            className="w-full"
+          >
+            <AnimatePresence initial={false} mode="popLayout">
+              {localSectionProgression.map((section, index) => (
+                <Section
+                  key={section.id}
+                  index={index}
+                  id={section.id}
+                  sectionId={section.sectionId}
+                  title={section.title}
+                  repetitions={section.repetitions}
+                  sections={sections}
+                  localSectionProgression={localSectionProgression}
+                  setLocalSectionProgression={setLocalSectionProgression}
+                  isNew={section.id === lastAddedIdRef.current}
+                  onEnterComplete={handleNewSectionEnterComplete}
+                />
+              ))}
+            </AnimatePresence>
+
+            {/* Sentinel to scroll into view so we always hit the true bottom */}
+            <div ref={bottomSentinelRef} className="h-0 w-full" aria-hidden />
+          </OverlayScrollbarsComponent>
+        </div>
+
+        <div className="baseFlex mt-8 w-full !justify-between gap-4">
+          <Button
+            variant={"outline"}
+            className="baseFlex gap-2 py-4 pl-2.5"
+            onClick={addNewSectionToProgression}
+          >
+            <BsPlus className="size-6" />
+            <span>Add section</span>
+          </Button>
+
+          <Button
+            disabled={
+              localSectionProgression.some((section) => section.title === "") ||
+              isEqual(localSectionProgression, sectionProgression)
+            }
+            onClick={closeDialog}
+            className="px-8"
+          >
+            Save
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SectionProgressionDialog() {
+  const store = useTabStoreApi();
+  const open = useTabStore((state) => state.showSectionProgressionDialog);
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(open) => {
+        store.getState().setShowSectionProgressionDialog(open);
+      }}
+    >
       <DialogContent
         data-tab-editor-history="local"
-        {...history.scopeProps}
+
         className="baseVertFlex w-auto min-w-[350px] max-w-[90vw] gap-4 rounded-lg border p-4 shadow-sm xs:w-[380px] xs:gap-8 md:w-[608px]"
       >
-        <div className="baseVertFlex h-full max-h-[80vh] min-h-[20rem] w-full !justify-between">
-          <div className="baseFlex w-full !justify-between">
-            <span className="baseFlex gap-2 self-start text-lg font-semibold text-foreground">
-              <BsMusicNoteList />
-              Section progression
-            </span>
-
-            <Button
-              variant={"modalClose"}
-              onClick={() => setShowSectionProgressionDialog(false)}
-            >
-              <X className="size-5" />
-            </Button>
-          </div>
-
-          <div
-            ref={scrollableSectionsRef}
-            className="baseVertFlex mt-4 max-h-[60vh] w-full !justify-start px-4 md:max-h-[65vh]"
-          >
-            <OverlayScrollbarsComponent
-              options={{
-                scrollbars: {
-                  autoHide: "leave",
-                  autoHideDelay: 150,
-                },
-              }}
-              defer
-              className="w-full"
-            >
-              <AnimatePresence initial={false} mode="popLayout">
-                {localSectionProgression.map((section, index) => (
-                  <Section
-                    key={section.id}
-                    index={index}
-                    id={section.id}
-                    sectionId={section.sectionId}
-                    title={section.title}
-                    repetitions={section.repetitions}
-                    sections={sections}
-                    localSectionProgression={localSectionProgression}
-                    setLocalSectionProgression={setLocalSectionProgression}
-                    isNew={section.id === lastAddedIdRef.current}
-                    onEnterComplete={handleNewSectionEnterComplete}
-                  />
-                ))}
-              </AnimatePresence>
-
-              {/* Sentinel to scroll into view so we always hit the true bottom */}
-              <div ref={bottomSentinelRef} className="h-0 w-full" aria-hidden />
-            </OverlayScrollbarsComponent>
-          </div>
-
-          <div className="baseFlex mt-8 w-full !justify-between gap-4">
-            <Button
-              variant={"outline"}
-              className="baseFlex gap-2 py-4 pl-2.5"
-              onClick={addNewSectionToProgression}
-            >
-              <BsPlus className="size-6" />
-              <span>Add section</span>
-            </Button>
-
-            <Button
-              disabled={
-                localSectionProgression.some(
-                  (section) => section.title === "",
-                ) || isEqual(localSectionProgression, sectionProgression)
-              }
-              onClick={closeDialog}
-              className="px-8"
-            >
-              Save
-            </Button>
-          </div>
-        </div>
+        <SectionProgressionDialogContent />
       </DialogContent>
     </Dialog>
   );

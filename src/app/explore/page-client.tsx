@@ -1,29 +1,29 @@
 "use client";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import superjson from "superjson";
-import { Separator } from "~/components/ui/separator";
-import { api } from "~/utils/api";
-import { type User } from "~/generated/browser";
+import Link from "next/link";
 import GuitarImage from "public/explore/header.jpg";
-import GenreCards from "~/components/Explore/GenreCards";
+import { BsGridFill } from "react-icons/bs";
 import { FaRankingStar } from "react-icons/fa6";
 import { IoFlash, IoStatsChart } from "react-icons/io5";
-import { BsGridFill } from "react-icons/bs";
-import type { MinimalTabRepresentation } from "~/server/api/routers/search";
+import superjson from "superjson";
+import GenreCards from "~/components/Explore/GenreCards";
 import WeeklyFeaturedUsers from "~/components/Explore/WeeklyFeaturedUsers";
+import GridTabCard from "~/components/Search/GridTabCard";
+import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
+import { Button } from "~/components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "~/components/ui/carousel";
-import GridTabCard from "~/components/Search/GridTabCard";
-import TabCardSkeleton from "~/components/Search/TabCardSkeleton";
-import Link from "next/link";
-import { Button } from "~/components/ui/button";
-import { useTabStore } from "~/stores/TabStore";
+import { Separator } from "~/components/ui/separator";
+import { type User } from "~/generated/browser";
+import type { MinimalTabRepresentation } from "~/server/api/routers/search";
+import { api } from "~/utils/api";
 
 const LENGTH_FIFTEEN_ARRAY = Array.from({ length: 15 }, (_, i) => i + 1);
 
@@ -38,7 +38,7 @@ function Explore({ json }: { json: string }) {
 
   const { userId } = useAuth();
 
-  const { color, theme } = useTabStore((state) => ({
+  const { color, theme } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
   }));
@@ -65,7 +65,8 @@ function Explore({ json }: { json: string }) {
             Explore
           </h1>
 
-          <Image unoptimized
+          <Image
+            unoptimized
             src={GuitarImage}
             loading="eager"
             alt={"Decorative acoustic guitar header"}

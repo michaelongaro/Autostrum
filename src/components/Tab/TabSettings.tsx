@@ -1,10 +1,10 @@
 import { useLocalStorageValue } from "@react-hookz/web";
 import type { Dispatch, SetStateAction } from "react";
-import TabZoomControl from "./TabZoomControl";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStore, useTabStoreShallow } from "~/stores/TabStore";
+import TabZoomControl from "./TabZoomControl";
 
 interface TabSettingsProps {
   showPinnedChords: boolean;
@@ -18,7 +18,7 @@ function TabSettings({
   setPressingOnZoomSlider,
 }: TabSettingsProps) {
   const sectionCount = useTabStore((state) => state.tabData.length);
-  const hasChords = useTabStore((state) => state.chords.length > 0);
+  const hasChords = useTabStoreShallow((state) => state.chords.length > 0);
   const localStorageZoom = useLocalStorageValue("autostrum-zoom");
   const localStorageLeftHandChordDiagrams = useLocalStorageValue(
     "autostrum-left-hand-chord-diagrams",

@@ -1,16 +1,15 @@
-import { usePathname } from "next/navigation";
 import { useLocalStorageValue } from "@react-hookz/web";
 import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 import {
-  type Dispatch,
-  type SetStateAction,
   useEffect,
   useRef,
   useState,
   useSyncExternalStore,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
-import { CgArrowsShrinkH } from "react-icons/cg";
-import { FaBook, FaListUl } from "react-icons/fa";
+import { isMobileOnly } from "react-device-detect";
 import {
   BsFillVolumeDownFill,
   BsFillVolumeMuteFill,
@@ -18,15 +17,13 @@ import {
   BsMusicNoteBeamed,
   BsMusicNoteList,
 } from "react-icons/bs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
-import { isMobileOnly } from "react-device-detect";
+import { CgArrowsShrinkH } from "react-icons/cg";
+import { FaBook, FaListUl } from "react-icons/fa";
+import { IoMdSettings } from "react-icons/io";
+import { IoColorPalette } from "react-icons/io5";
 import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import ChordDiagram from "~/components/Tab/ChordDiagram";
+import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import { Button } from "~/components/ui/button";
@@ -37,15 +34,17 @@ import {
   type CarouselApi,
 } from "~/components/ui/carousel";
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import CountIn from "~/components/ui/icons/CountIn";
 import Logo from "~/components/ui/icons/Logo";
 import { Label } from "~/components/ui/label";
+import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
 import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import { Direction, getTrackBackground, Range } from "~/components/ui/Range";
 import {
   Select,
   SelectContent,
@@ -54,21 +53,23 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
-import { useTabStore } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { getTuningName } from "~/utils/tunings";
-import { Direction, getTrackBackground, Range } from "~/components/ui/Range";
-import { IoMdSettings } from "react-icons/io";
-import { IoColorPalette } from "react-icons/io5";
-import CountIn from "~/components/ui/icons/CountIn";
-import PlaybackSectionPicker from "~/components/Tab/Playback/PlaybackSectionPicker";
 
+import PlaybackMetronomeControl from "~/components/Tab/Playback/PlaybackMetronomeControl";
 import PlaybackTunerDrawer from "~/components/Tab/Playback/PlaybackTunerDrawer";
 import ChordName from "~/components/ui/ChordName";
 import { useIPhoneSoundDrawerStore } from "~/stores/IPhoneSoundDrawerStore";
-import PlaybackMetronomeControl from "~/components/Tab/Playback/PlaybackMetronomeControl";
 
 interface PlaybackBottomMetadata {
   showBackgroundBlur: boolean;
@@ -86,21 +87,22 @@ function PlaybackBottomMetadata({
     tuning,
     audioMetadata,
     playbackMetadata,
-    viewportLabel,
     setShowGlossaryDialog,
     countInTimer,
     pauseAudio,
     enterPlaybackLoopRangeEditor,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     capo: state.capo,
     tuning: state.tuning,
     audioMetadata: state.audioMetadata,
     playbackMetadata: state.playbackMetadata,
-    viewportLabel: state.viewportLabel,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
     countInTimer: state.countInTimer,
     pauseAudio: state.pauseAudio,
     enterPlaybackLoopRangeEditor: state.enterPlaybackLoopRangeEditor,
+  }));
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
+    viewportLabel: state.viewportLabel,
   }));
 
   // Close settings popover on device orientation change
@@ -243,9 +245,8 @@ function MobileSettingsPopover({
     countInTimer,
     loopDelay,
     setLoopDelay,
-    viewportLabel,
     updateMasterVolumeGainNode,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
     audioMetadata: state.audioMetadata,
@@ -253,8 +254,10 @@ function MobileSettingsPopover({
     countInTimer: state.countInTimer,
     loopDelay: state.loopDelay,
     setLoopDelay: state.setLoopDelay,
-    viewportLabel: state.viewportLabel,
     updateMasterVolumeGainNode: state.updateMasterVolumeGainNode,
+  }));
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
+    viewportLabel: state.viewportLabel,
   }));
 
   const volume = useGetLocalStorageValues().volume;
@@ -610,7 +613,7 @@ function MobileMenuDialog() {
     chordDisplayMode,
     playPreview,
     pauseAudio,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     sectionProgression: state.sectionProgression,
     currentInstrument: state.currentInstrument,
     chords: state.chords,
@@ -1011,7 +1014,7 @@ function DesktopSettings() {
     setLoopDelay,
     enterPlaybackLoopRangeEditor,
     updateMasterVolumeGainNode,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     currentInstrumentName: state.currentInstrumentName,
     setCurrentInstrumentName: state.setCurrentInstrumentName,
     playbackSpeed: state.requestedPlaybackSpeed,

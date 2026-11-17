@@ -1,4 +1,4 @@
-import { useTabStore, type COLORS, type THEME } from "~/stores/TabStore";
+import { useTabStoreShallow, type COLORS, type THEME } from "~/stores/TabStore";
 import { cn } from "~/utils/cn";
 
 function dynamicFontSize(chordNameLength: number): number {
@@ -39,7 +39,7 @@ function ChordName({
   hideColor,
   className,
 }: ChordName) {
-  const chordDisplayMode = useTabStore((state) => {
+  const chordDisplayMode = useTabStoreShallow((state) => {
     return state.chordDisplayMode;
   });
 

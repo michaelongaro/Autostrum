@@ -6,6 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { BsFillPlayFill, BsKeyboard, BsStopFill } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import { Label } from "~/components/ui/label";
 import {
   Select,
@@ -14,9 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import {
   useTabStore,
-  subscribeTabStore,
+  useTabStoreApi,
+  useTabStoreShallow,
   type ChordSequence,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
@@ -33,13 +41,6 @@ import {
 } from "~/utils/palmMuteEditing";
 import StrummingPattern from "../Tab/StrummingPattern";
 import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import { VisuallyHidden } from "~/components/ui/visually-hidden";
 
 const xVariants = {
   hidden: { scale: 0, opacity: 0 },
@@ -82,7 +83,13 @@ const containerVariants = {
   },
 };
 
-function StrummingPatternDialog() {
+function StrummingPatternDialogContent() {
+  const previewMetadata = useTabStoreShallow((state) => ({
+    playing: state.previewMetadata.playing,
+    type: state.previewMetadata.type,
+    indexOfPattern: state.previewMetadata.indexOfPattern,
+  }));
+  const store = useTabStoreApi();
   const [lastModifiedPalmMuteNode, setLastModifiedPalmMuteNode] =
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
   const [editingPalmMuteNodes, setEditingPalmMuteNodes] = useState(false);
@@ -93,7 +100,7 @@ function StrummingPatternDialog() {
     useState(false);
 
   useEffect(() => {
-    return subscribeTabStore((state, previous) => {
+    return store.subscribe((state, previous) => {
       if (state.editorHistoryRevision === previous.editorHistoryRevision)
         return;
       const pending = recoverPendingPalmMuteEdit(
@@ -104,23 +111,22 @@ function StrummingPatternDialog() {
       setLastModifiedPalmMuteNode(pending);
       setEditingPalmMuteNodes(Boolean(pending));
     });
-  }, []);
+  }, [store]);
 
   const {
     strummingPatterns,
     setStrummingPatterns,
     strummingPatternBeingEdited,
     setStrummingPatternBeingEdited,
-    previewMetadata,
     playPreview,
     pauseAudio,
     setTabData,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     strummingPatterns: state.strummingPatterns,
     setStrummingPatterns: state.setStrummingPatterns,
     strummingPatternBeingEdited: state.strummingPatternBeingEdited,
     setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,
-    previewMetadata: state.previewMetadata,
+
     playPreview: state.playPreview,
     pauseAudio: state.pauseAudio,
     setTabData: state.setTabData,
@@ -268,331 +274,341 @@ function StrummingPatternDialog() {
   }
 
   return (
-    <Dialog
-      onOpenChange={(open) => {
-        if (!open) {
-          if (previewMetadata.playing) pauseAudio();
-          setStrummingPatternBeingEdited(null);
-          setEditingPalmMuteNodes(false);
-          setShowingDeleteStrumsButtons(false);
-          setLastModifiedPalmMuteNode(null);
-        }
-      }}
-      open={strummingPatternBeingEdited !== null}
-    >
+    <>
       <VisuallyHidden>
         <DialogTitle>Strumming pattern editor dialog</DialogTitle>
         <DialogDescription>
           Edit the note length, palm mutes, and strums of a strumming pattern.
         </DialogDescription>
       </VisuallyHidden>
+      {strummingPattern && (
+        <>
+          <Button
+            variant={"modalClose"}
+            onClick={() => {
+              if (previewMetadata.playing) pauseAudio();
+              setStrummingPatternBeingEdited(null);
+            }}
+          >
+            <X className="size-5" />
+          </Button>
 
+          <div className="baseFlex relative mt-10 w-full !items-start !justify-between sm:gap-8 md:mt-0 md:!flex-col">
+            <div className="baseFlex w-full !items-start !justify-between">
+              <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start lg:gap-4">
+                <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center">
+                  <Label htmlFor="noteLength" className="whitespace-nowrap">
+                    Note length
+                  </Label>
+                  <Select
+                    onValueChange={(value) => {
+                      if (value !== null) handleBaseNoteLengthChange(value);
+                    }}
+                    value={strummingPattern.value.baseNoteLength}
+                  >
+                    <SelectTrigger id="noteLength" className="w-[150px]">
+                      <SelectValue placeholder="Select a length" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="whole">
+                        <div className="baseFlex gap-2">
+                          <WholeNote />
+                          Whole
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="half">
+                        <div className="baseFlex gap-2">
+                          <HalfNote />
+                          Half
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="quarter">
+                        <div className="baseFlex gap-2">
+                          <QuarterNote />
+                          Quarter
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="eighth">
+                        <div className="baseFlex gap-2">
+                          <EighthNote />
+                          Eighth
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="sixteenth">
+                        <div className="baseFlex gap-2">
+                          <SixteenthNote />
+                          Sixteenth
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="baseFlex">
+                  <Button
+                    disabled={editingPalmMuteNodes}
+                    style={{
+                      borderRadius: editingPalmMuteNodes
+                        ? "0.375rem 0 0 0.375rem"
+                        : "0.375rem",
+                      transitionDelay: "0.1s",
+                    }}
+                    onClick={() => {
+                      setShowingDeleteStrumsButtons(false);
+                      toggleEditingPalmMuteNodes();
+                    }}
+                  >
+                    PM Editor
+                  </Button>
+
+                  <AnimatePresence>
+                    {editingPalmMuteNodes && (
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        transition={{
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <Button
+                          className="rounded-l-none rounded-r-md px-2 py-0"
+                          onClick={toggleEditingPalmMuteNodes}
+                        >
+                          <motion.div
+                            variants={xVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            transition={{
+                              ease: "easeInOut",
+                            }}
+                          >
+                            <IoClose className="h-6 w-6" />
+                          </motion.div>
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* toggle delete strums */}
+                <div className="baseFlex">
+                  <Button
+                    variant={"destructive"}
+                    disabled={showingDeleteStrumsButtons}
+                    style={{
+                      borderRadius: showingDeleteStrumsButtons
+                        ? "0.375rem 0 0 0.375rem"
+                        : "0.375rem",
+                      transitionDelay: "0.1s",
+                    }}
+                    className="baseFlex whitespace-nowrap"
+                    onClick={() => {
+                      if (editingPalmMuteNodes) toggleEditingPalmMuteNodes();
+                      setShowingDeleteStrumsButtons(
+                        !showingDeleteStrumsButtons,
+                      );
+                    }}
+                  >
+                    Delete strums
+                  </Button>
+
+                  <AnimatePresence>
+                    {showingDeleteStrumsButtons && (
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        transition={{
+                          ease: "easeInOut",
+                        }}
+                      >
+                        <Button
+                          variant={"destructive"}
+                          className="rounded-l-none rounded-r-md px-2 py-0"
+                          onClick={() =>
+                            setShowingDeleteStrumsButtons(
+                              !showingDeleteStrumsButtons,
+                            )
+                          }
+                        >
+                          <motion.div
+                            variants={xVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            transition={{
+                              ease: "easeInOut",
+                            }}
+                          >
+                            <IoClose className="h-6 w-6" />
+                          </motion.div>
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
+
+            <div className="baseVertFlex gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
+              <div className="baseFlex w-auto gap-2 font-semibold">
+                <BsKeyboard className="h-6 w-6" />
+                Hotkeys
+              </div>
+
+              <div className="mt-2 grid grid-cols-[46px_5px_70px] !place-items-start gap-2 md:flex md:w-full md:!place-items-end md:gap-2">
+                <div className="baseFlex gap-1">
+                  <kbd>↓</kbd> / <kbd>v</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Downstrum</p>
+
+                <div className="baseFlex gap-1">
+                  <kbd>↑</kbd> / <kbd>^</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Upstrum</p>
+
+                <div className="place-self-end">
+                  <kbd>&gt;</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Accented</p>
+
+                <div className="place-self-end">
+                  <kbd>.</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Staccato</p>
+
+                <div className="place-self-end">
+                  <kbd>s</kbd>
+                </div>
+                <p>-</p>
+                <p className="md:mr-4">Slap</p>
+
+                <div className="place-self-end">
+                  <kbd>r</kbd>
+                </div>
+                <p>-</p>
+                <p>Rest</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="baseVertFlex !items-start !justify-start sm:max-h-[15vh] md:max-h-[25vh]">
+            <OverlayScrollbarsComponent
+              options={{
+                scrollbars: { autoHide: "leave", autoHideDelay: 150 },
+              }}
+              defer
+              className="w-full"
+            >
+              {/* editing inputs of strumming pattern */}
+              <StrummingPattern
+                data={strummingPattern.value}
+                mode={"editingStrummingPattern"}
+                index={strummingPattern.index}
+                editingPalmMuteNodes={editingPalmMuteNodes}
+                setEditingPalmMuteNodes={setEditingPalmMuteNodes}
+                showingDeleteStrumsButtons={showingDeleteStrumsButtons}
+                lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
+                setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
+              />
+            </OverlayScrollbarsComponent>
+          </div>
+
+          <div className="baseFlex mt-4 w-full !justify-between gap-8">
+            <Button
+              disabled={
+                artificalPlayButtonTimeout ||
+                strummingPattern.value.strums.every(
+                  (strum) => strum.strum === "",
+                )
+              }
+              variant={"audio"}
+              className="baseFlex gap-2"
+              onClick={() => {
+                if (
+                  previewMetadata.playing &&
+                  strummingPattern.index === previewMetadata.indexOfPattern &&
+                  previewMetadata.type === "strummingPattern"
+                ) {
+                  setArtificalPlayButtonTimeout(true);
+
+                  setTimeout(() => {
+                    setArtificalPlayButtonTimeout(false);
+                  }, 300);
+                  pauseAudio();
+                } else {
+                  void playPreview({
+                    data: strummingPattern.value,
+                    index: strummingPattern.index,
+                    type: "strummingPattern",
+                  });
+                }
+              }}
+            >
+              <>
+                {previewMetadata.playing &&
+                previewMetadata.type === "strummingPattern" ? (
+                  <BsStopFill className="h-6 w-6" />
+                ) : (
+                  <BsFillPlayFill className="h-6 w-6" />
+                )}
+                Preview
+              </>
+            </Button>
+
+            {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
+            <Button
+              disabled={
+                strummingPattern.value.strums.every(
+                  (strum) => strum.strum === "",
+                ) ||
+                isEqual(
+                  strummingPattern.value,
+                  strummingPatterns[strummingPattern.index],
+                )
+              }
+              onClick={handleSaveStrummingPattern}
+              className="px-12"
+            >
+              Save
+            </Button>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+function StrummingPatternDialog() {
+  const store = useTabStoreApi();
+  const open = useTabStore(
+    (state) => state.strummingPatternBeingEdited !== null,
+  );
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(open) => {
+        if (!open) {
+          const state = store.getState();
+          if (state.audioMetadata.playing || state.previewMetadata.playing)
+            state.pauseAudio();
+          state.setStrummingPatternBeingEdited(null);
+        }
+      }}
+    >
       <DialogContent
         data-tab-editor-history="pattern"
         className="baseVertFlex sm:max-h-auto h-dvh w-full min-w-[370px] max-w-[100vw] !justify-between gap-4 overflow-y-auto border-0 p-4 text-foreground transition-all sm:max-h-[600px] sm:w-auto sm:max-w-[800px] sm:overflow-y-hidden sm:rounded-lg sm:border sm:shadow-sm"
       >
-        {strummingPattern && (
-          <>
-            <Button
-              variant={"modalClose"}
-              onClick={() => {
-                if (previewMetadata.playing) pauseAudio();
-                setStrummingPatternBeingEdited(null);
-              }}
-            >
-              <X className="size-5" />
-            </Button>
-
-            <div className="baseFlex relative mt-10 w-full !items-start !justify-between sm:gap-8 md:mt-0 md:!flex-col">
-              <div className="baseFlex w-full !items-start !justify-between">
-                <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center md:!justify-start lg:gap-4">
-                  <div className="baseVertFlex !items-start gap-2 md:!flex-row md:!items-center">
-                    <Label htmlFor="noteLength" className="whitespace-nowrap">
-                      Note length
-                    </Label>
-                    <Select
-                      onValueChange={(value) => {
-                        if (value !== null) handleBaseNoteLengthChange(value);
-                      }}
-                      value={strummingPattern.value.baseNoteLength}
-                    >
-                      <SelectTrigger id="noteLength" className="w-[150px]">
-                        <SelectValue placeholder="Select a length" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="whole">
-                          <div className="baseFlex gap-2">
-                            <WholeNote />
-                            Whole
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="half">
-                          <div className="baseFlex gap-2">
-                            <HalfNote />
-                            Half
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="quarter">
-                          <div className="baseFlex gap-2">
-                            <QuarterNote />
-                            Quarter
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="eighth">
-                          <div className="baseFlex gap-2">
-                            <EighthNote />
-                            Eighth
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="sixteenth">
-                          <div className="baseFlex gap-2">
-                            <SixteenthNote />
-                            Sixteenth
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="baseFlex">
-                    <Button
-                      disabled={editingPalmMuteNodes}
-                      style={{
-                        borderRadius: editingPalmMuteNodes
-                          ? "0.375rem 0 0 0.375rem"
-                          : "0.375rem",
-                        transitionDelay: "0.1s",
-                      }}
-                      onClick={() => {
-                        setShowingDeleteStrumsButtons(false);
-                        toggleEditingPalmMuteNodes();
-                      }}
-                    >
-                      PM Editor
-                    </Button>
-
-                    <AnimatePresence>
-                      {editingPalmMuteNodes && (
-                        <motion.div
-                          variants={containerVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          transition={{
-                            ease: "easeInOut",
-                          }}
-                        >
-                          <Button
-                            className="rounded-l-none rounded-r-md px-2 py-0"
-                            onClick={toggleEditingPalmMuteNodes}
-                          >
-                            <motion.div
-                              variants={xVariants}
-                              initial="hidden"
-                              animate="visible"
-                              exit="exit"
-                              transition={{
-                                ease: "easeInOut",
-                              }}
-                            >
-                              <IoClose className="h-6 w-6" />
-                            </motion.div>
-                          </Button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* toggle delete strums */}
-                  <div className="baseFlex">
-                    <Button
-                      variant={"destructive"}
-                      disabled={showingDeleteStrumsButtons}
-                      style={{
-                        borderRadius: showingDeleteStrumsButtons
-                          ? "0.375rem 0 0 0.375rem"
-                          : "0.375rem",
-                        transitionDelay: "0.1s",
-                      }}
-                      className="baseFlex whitespace-nowrap"
-                      onClick={() => {
-                        if (editingPalmMuteNodes) toggleEditingPalmMuteNodes();
-                        setShowingDeleteStrumsButtons(
-                          !showingDeleteStrumsButtons,
-                        );
-                      }}
-                    >
-                      Delete strums
-                    </Button>
-
-                    <AnimatePresence>
-                      {showingDeleteStrumsButtons && (
-                        <motion.div
-                          variants={containerVariants}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          transition={{
-                            ease: "easeInOut",
-                          }}
-                        >
-                          <Button
-                            variant={"destructive"}
-                            className="rounded-l-none rounded-r-md px-2 py-0"
-                            onClick={() =>
-                              setShowingDeleteStrumsButtons(
-                                !showingDeleteStrumsButtons,
-                              )
-                            }
-                          >
-                            <motion.div
-                              variants={xVariants}
-                              initial="hidden"
-                              animate="visible"
-                              exit="exit"
-                              transition={{
-                                ease: "easeInOut",
-                              }}
-                            >
-                              <IoClose className="h-6 w-6" />
-                            </motion.div>
-                          </Button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              </div>
-
-              <div className="baseVertFlex gap-1 rounded-lg border bg-secondary px-4 py-3 text-sm shadow-sm xs:px-8 md:mt-0 md:w-auto md:gap-2 md:self-center md:px-4">
-                <div className="baseFlex w-auto gap-2 font-semibold">
-                  <BsKeyboard className="h-6 w-6" />
-                  Hotkeys
-                </div>
-
-                <div className="mt-2 grid grid-cols-[46px_5px_70px] !place-items-start gap-2 md:flex md:w-full md:!place-items-end md:gap-2">
-                  <div className="baseFlex gap-1">
-                    <kbd>↓</kbd> / <kbd>v</kbd>
-                  </div>
-                  <p>-</p>
-                  <p className="md:mr-4">Downstrum</p>
-
-                  <div className="baseFlex gap-1">
-                    <kbd>↑</kbd> / <kbd>^</kbd>
-                  </div>
-                  <p>-</p>
-                  <p className="md:mr-4">Upstrum</p>
-
-                  <div className="place-self-end">
-                    <kbd>&gt;</kbd>
-                  </div>
-                  <p>-</p>
-                  <p className="md:mr-4">Accented</p>
-
-                  <div className="place-self-end">
-                    <kbd>.</kbd>
-                  </div>
-                  <p>-</p>
-                  <p className="md:mr-4">Staccato</p>
-
-                  <div className="place-self-end">
-                    <kbd>s</kbd>
-                  </div>
-                  <p>-</p>
-                  <p className="md:mr-4">Slap</p>
-
-                  <div className="place-self-end">
-                    <kbd>r</kbd>
-                  </div>
-                  <p>-</p>
-                  <p>Rest</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="baseVertFlex !items-start !justify-start sm:max-h-[15vh] md:max-h-[25vh]">
-              <OverlayScrollbarsComponent
-                options={{
-                  scrollbars: { autoHide: "leave", autoHideDelay: 150 },
-                }}
-                defer
-                className="w-full"
-              >
-                {/* editing inputs of strumming pattern */}
-                <StrummingPattern
-                  data={strummingPattern.value}
-                  mode={"editingStrummingPattern"}
-                  index={strummingPattern.index}
-                  editingPalmMuteNodes={editingPalmMuteNodes}
-                  setEditingPalmMuteNodes={setEditingPalmMuteNodes}
-                  showingDeleteStrumsButtons={showingDeleteStrumsButtons}
-                  lastModifiedPalmMuteNode={lastModifiedPalmMuteNode}
-                  setLastModifiedPalmMuteNode={setLastModifiedPalmMuteNode}
-                />
-              </OverlayScrollbarsComponent>
-            </div>
-
-            <div className="baseFlex mt-4 w-full !justify-between gap-8">
-              <Button
-                disabled={
-                  artificalPlayButtonTimeout ||
-                  strummingPattern.value.strums.every(
-                    (strum) => strum.strum === "",
-                  )
-                }
-                variant={"audio"}
-                className="baseFlex gap-2"
-                onClick={() => {
-                  if (
-                    previewMetadata.playing &&
-                    strummingPattern.index === previewMetadata.indexOfPattern &&
-                    previewMetadata.type === "strummingPattern"
-                  ) {
-                    setArtificalPlayButtonTimeout(true);
-
-                    setTimeout(() => {
-                      setArtificalPlayButtonTimeout(false);
-                    }, 300);
-                    pauseAudio();
-                  } else {
-                    void playPreview({
-                      data: strummingPattern.value,
-                      index: strummingPattern.index,
-                      type: "strummingPattern",
-                    });
-                  }
-                }}
-              >
-                <>
-                  {previewMetadata.playing &&
-                  previewMetadata.type === "strummingPattern" ? (
-                    <BsStopFill className="h-6 w-6" />
-                  ) : (
-                    <BsFillPlayFill className="h-6 w-6" />
-                  )}
-                  Preview
-                </>
-              </Button>
-
-              {/* should be disabled if lodash isEqual to the strummingPatterns original version */}
-              <Button
-                disabled={
-                  strummingPattern.value.strums.every(
-                    (strum) => strum.strum === "",
-                  ) ||
-                  isEqual(
-                    strummingPattern.value,
-                    strummingPatterns[strummingPattern.index],
-                  )
-                }
-                onClick={handleSaveStrummingPattern}
-                className="px-12"
-              >
-                Save
-              </Button>
-            </div>
-          </>
-        )}
+        <StrummingPatternDialogContent />
       </DialogContent>
     </Dialog>
   );

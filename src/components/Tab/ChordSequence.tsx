@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -7,19 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { useTabStore } from "~/stores/TabStore";
-import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import MiscellaneousControls from "./MiscellaneousControls";
-import StrummingPattern from "./StrummingPattern";
-import StrummingPatternPreview from "./StrummingPatternPreview";
-import { QuarterNote } from "~/utils/noteLengthIcons";
-import { cn } from "~/utils/cn";
 import {
   useChordSequenceData,
   useChordSequenceParentBpm,
 } from "~/hooks/useTabDataSelectors";
+import { useTabStoreShallow } from "~/stores/TabStore";
+import { cn } from "~/utils/cn";
+import { QuarterNote } from "~/utils/noteLengthIcons";
+import type { LastModifiedPalmMuteNodeLocation } from "../Tab/TabSection";
+import MiscellaneousControls from "./MiscellaneousControls";
+import StrummingPattern from "./StrummingPattern";
+import StrummingPatternPreview from "./StrummingPatternPreview";
 
 export interface ChordSequence {
   sectionIndex: number;
@@ -43,7 +43,7 @@ function ChordSequence({
     useState<LastModifiedPalmMuteNodeLocation | null>(null);
 
   const { bpm, strummingPatterns, setStrummingPatternBeingEdited, setTabData } =
-    useTabStore((state) => ({
+    useTabStoreShallow((state) => ({
       bpm: state.bpm,
       strummingPatterns: state.strummingPatterns,
       setStrummingPatternBeingEdited: state.setStrummingPatternBeingEdited,

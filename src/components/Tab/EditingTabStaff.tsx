@@ -15,7 +15,6 @@ import {
 } from "@dnd-kit/sortable";
 import type { Transform } from "@dnd-kit/utilities";
 import { useIsomorphicLayoutEffect } from "@react-hookz/web";
-import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import {
   Fragment,
   useCallback,
@@ -26,18 +25,19 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { BsArrowDown, BsArrowUp } from "react-icons/bs";
 import { Button } from "~/components/ui/button";
-import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { PrettyVerticalTuning } from "~/components/ui/PrettyTuning";
 import {
   EDITING_TAB_PLAYHEAD_HEIGHT_PX,
   useEditingTabPlayhead,
 } from "~/hooks/useEditingTabPlayhead";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import {
   EDITING_TAB_COLUMN_HEIGHT_PX,
   EDITING_TAB_FOOTER_HEIGHT_PX,
@@ -61,9 +61,9 @@ import {
   getVisibleViewportWindow,
   type VisibleRowRange,
 } from "~/utils/staticTabGeometry";
-import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 import TabMeasureLine, { SortableTabMeasureLine } from "./TabMeasureLine";
 import TabNotesColumn, { SortableTabNotesColumn } from "./TabNotesColumn";
+import type { LastModifiedPalmMuteNodeLocation } from "./TabSection";
 
 const EDITING_TAB_OVERSCAN_PX = EDITING_TAB_ROW_STRIDE_PX * 2;
 
@@ -157,7 +157,7 @@ function EditingTabStaff({
     null,
   );
 
-  const { tuning, setShowGlossaryDialog } = useTabStore((state) => ({
+  const { tuning, setShowGlossaryDialog } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
   }));
@@ -166,7 +166,7 @@ function EditingTabStaff({
   // playhead can measure it even if it sits just outside the overscan window.
   // Paused playback does not pin a row — otherwise column 0 stays mounted
   // for the life of a long section.
-  const playbackColumnIndex = useTabStore((state) => {
+  const playbackColumnIndex = useTabStoreShallow((state) => {
     if (!state.audioMetadata.playing) return -1;
     const metadata = state.currentlyPlayingMetadata;
     if (!metadata) return -1;

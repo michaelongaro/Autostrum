@@ -1,5 +1,10 @@
 import { useEffect, useRef, type RefObject } from "react";
-import { useTabStoreApi, useTabStore, type Metadata } from "~/stores/TabStore";
+import {
+  useTabStore,
+  useTabStoreApi,
+  useTabStoreShallow,
+  type Metadata,
+} from "~/stores/TabStore";
 import {
   findPlaybackSegmentIndex,
   getPlaybackCumulativeSeconds,
@@ -226,10 +231,10 @@ export function useEditingStrumPlayhead({
   const editingLoopRange = useTabStore(
     (state) => state.audioMetadata.editingLoopRange,
   );
-  const pausedChordIndex = useTabStore((state) =>
+  const pausedChordIndex = useTabStoreShallow((state) =>
     state.audioMetadata.playing ? null : state.currentChordIndex,
   );
-  const hasPlaybackMetadata = useTabStore(
+  const hasPlaybackMetadata = useTabStoreShallow(
     (state) => state.currentlyPlayingMetadata != null,
   );
 

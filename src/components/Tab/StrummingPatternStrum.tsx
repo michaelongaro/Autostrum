@@ -1,8 +1,15 @@
-import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { Check } from "lucide-react";
+import { useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { BsPlus } from "react-icons/bs";
 import { IoClose } from "react-icons/io5";
 import { Element } from "react-scroll";
+import StrummingPatternPalmMuteNode from "~/components/Tab/StrummingPatternPalmMuteNode";
+import StrumSettingsDropdown from "~/components/Tab/StrumSettingsDropdown";
+import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
+import { Button } from "~/components/ui/button";
+import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
+import { Input } from "~/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -11,22 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import ChordStrumIcon from "~/components/ui/icons/ChordStrumIcon";
-import PauseIcon from "~/components/ui/icons/PauseIcon";
-import StrummingPatternPalmMuteNode from "~/components/Tab/StrummingPatternPalmMuteNode";
-import StrumSettingsDropdown from "~/components/Tab/StrumSettingsDropdown";
-import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import { useStrumHighlight } from "~/hooks/useStrumHighlight";
 import {
   useTabStore,
+  useTabStoreShallow,
   type Chord,
   type Strum,
   type StrummingPattern as StrummingPatternType,
 } from "~/stores/TabStore";
-import { beamBreaksForStrums } from "~/utils/noteLengthBeaming";
 import { getNextChordColor } from "~/utils/chordColors";
+import { beamBreaksForStrums } from "~/utils/noteLengthBeaming";
 import renderNoteLengthGuide from "~/utils/renderNoteLengthGuide";
 import {
   encodeStrumSpreadForCompile,
@@ -119,7 +120,7 @@ function StrummingPatternStrum({
   const bpm = useTabStore((state) => state.bpm);
   const playPreview = useTabStore((state) => state.playPreview);
   const setChordBeingEdited = useTabStore((state) => state.setChordBeingEdited);
-  const chordPreviewPlaying = useTabStore(
+  const chordPreviewPlaying = useTabStoreShallow(
     (state) =>
       state.previewMetadata.playing && state.previewMetadata.type === "chord",
   );
@@ -138,10 +139,10 @@ function StrummingPatternStrum({
 
   // Narrow subscriptions: chord list only matters while editing sequences;
   // previewPlaying is only needed for the delete-strum disabled state.
-  const chords = useTabStore((state) =>
+  const chords = useTabStoreShallow((state) =>
     mode === "editingChordSequence" ? state.chords : emptyChords,
   );
-  const previewPlaying = useTabStore((state) =>
+  const previewPlaying = useTabStoreShallow((state) =>
     showingDeleteStrumsButtons ? state.previewMetadata.playing : false,
   );
 

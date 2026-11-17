@@ -1,22 +1,22 @@
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { useTabStore } from "~/stores/TabStore";
 import { motion, useReducedMotion } from "framer-motion";
-import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import ChordDiagram from "~/components/Tab/ChordDiagram";
-import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
 import { ChevronDown } from "lucide-react";
-import { BsMusicNoteBeamed } from "react-icons/bs";
+import { useState } from "react";
+import { BsMusicNoteBeamed, BsMusicNoteList } from "react-icons/bs";
+import PlayButtonIcon from "~/components/AudioControls/PlayButtonIcon";
+import ChordDiagram from "~/components/Tab/ChordDiagram";
 import StrummingPattern from "~/components/Tab/StrummingPattern";
-import { BsMusicNoteList } from "react-icons/bs";
 import type { LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
-import Logo from "~/components/ui/icons/Logo";
+import { Button } from "~/components/ui/button";
 import ChordName from "~/components/ui/ChordName";
-import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
-import styles from "./ExtraTabMetadataPane.module.css";
+import Logo from "~/components/ui/icons/Logo";
 import useExtraTabMetadataLayout, {
   type MetadataPane,
 } from "~/hooks/useExtraTabMetadataLayout";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
+import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import ExtraTabMetadataPane from "./ExtraTabMetadataPane";
+import styles from "./ExtraTabMetadataPane.module.css";
 
 function DesktopExtraTabMetadata() {
   const {
@@ -28,8 +28,7 @@ function DesktopExtraTabMetadata() {
     pauseAudio,
     playPreview,
     chordDisplayMode,
-    theme,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     sectionProgression: state.sectionProgression,
     chords: state.chords,
     strummingPatterns: state.strummingPatterns,
@@ -38,8 +37,8 @@ function DesktopExtraTabMetadata() {
     pauseAudio: state.pauseAudio,
     playPreview: state.playPreview,
     chordDisplayMode: state.chordDisplayMode,
-    theme: state.theme,
   }));
+  const { theme } = useAppPreferencesStore((state) => ({ theme: state.theme }));
 
   const [activeTabName, setActiveTabName] = useState<MetadataPane>(
     "Section progression",
@@ -209,7 +208,8 @@ function DesktopExtraTabMetadata() {
 
                         {/* preview chord button */}
                         <Button
-                          variant={"audio"} aria-label="Play/Pause preview"
+                          variant={"audio"}
+                          aria-label="Play/Pause preview"
                           disabled={
                             previewMetadata.indexOfPattern === index &&
                             previewMetadata.playing &&
@@ -263,7 +263,8 @@ function DesktopExtraTabMetadata() {
                 {strummingPatterns.map((pattern, index) => (
                   <div key={pattern.id} className="baseVertFlex !items-start">
                     <Button
-                      variant={"audio"} aria-label="Play/Pause preview"
+                      variant={"audio"}
+                      aria-label="Play/Pause preview"
                       size={"sm"}
                       disabled={artificalPlayButtonTimeout[index]}
                       onClick={() => {

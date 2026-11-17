@@ -1,16 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import TuningFork from "~/components/ui/icons/TuningFork";
-import TunerPanel from "~/components/tuner/TunerPanel";
-import { useTabStore } from "~/stores/TabStore";
 import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
-import { useTuner } from "~/hooks/useTuner";
-import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 import ToolRouteHeader from "~/components/tools/ToolRouteHeader";
+import TunerPanel from "~/components/tuner/TunerPanel";
+import TuningFork from "~/components/ui/icons/TuningFork";
+import useScreenWakeLock from "~/hooks/useScreenWakeLock";
+import { useTuner } from "~/hooks/useTuner";
+import { useTabStoreShallow } from "~/stores/TabStore";
 
 function Tuner() {
-  const { tuning, capo } = useTabStore((state) => ({
+  const { tuning, capo } = useTabStoreShallow((state) => ({
     tuning: state.tuning,
     capo: state.capo,
   }));

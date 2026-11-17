@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BsMusicNoteBeamed, BsPlus } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
 import { MdModeEditOutline } from "react-icons/md";
 import {
@@ -7,12 +8,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { useTabStore } from "~/stores/TabStore";
 import { Button } from "~/components/ui/button";
-import { getNextChordColor } from "~/utils/chordColors";
-import { Separator } from "~/components/ui/separator";
 import ChordName from "~/components/ui/ChordName";
-import { BsMusicNoteBeamed, BsPlus } from "react-icons/bs";
+import { Separator } from "~/components/ui/separator";
+import { useTabStoreShallow } from "~/stores/TabStore";
+import { getNextChordColor } from "~/utils/chordColors";
 import SortableMetadataList from "./SortableMetadataList";
 
 function Chords() {
@@ -27,7 +27,7 @@ function Chords() {
     pauseAudio,
     setCurrentlyCopiedData,
     setTabData,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     chords: state.chords,
     currentlyCopiedData: state.currentlyCopiedData,
     setChords: state.setChords,

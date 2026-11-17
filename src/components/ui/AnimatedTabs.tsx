@@ -1,7 +1,7 @@
-import { type Dispatch, type SetStateAction } from "react";
 import { motion } from "framer-motion";
-import { useTabStore } from "~/stores/TabStore";
+import { type Dispatch, type SetStateAction } from "react";
 import { Button } from "~/components/ui/button";
+import { useTabStoreShallow } from "~/stores/TabStore";
 
 interface AnimatedTabs {
   activeTabName: string;
@@ -14,11 +14,13 @@ function AnimatedTabs({
   setActiveTabName,
   tabNames,
 }: AnimatedTabs) {
-  const { playing, playingPreview, pauseAudio } = useTabStore((state) => ({
-    playing: state.audioMetadata.playing,
-    playingPreview: state.previewMetadata.playing,
-    pauseAudio: state.pauseAudio,
-  }));
+  const { playing, playingPreview, pauseAudio } = useTabStoreShallow(
+    (state) => ({
+      playing: state.audioMetadata.playing,
+      playingPreview: state.previewMetadata.playing,
+      pauseAudio: state.pauseAudio,
+    }),
+  );
 
   return (
     <div className="baseFlex gap-8">
@@ -39,7 +41,7 @@ function AnimatedTabs({
             <motion.span
               layoutId="activeTabPlaybackUnderline"
               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-              className="absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary lg:bottom-[4px] max-lg:mobilePortrait:bottom-[-8px]"
+              className="max-lg:mobilePortrait:bottom-[-8px] absolute bottom-[-4px] left-0 z-0 h-[2px] w-full rounded-full bg-primary lg:bottom-[4px]"
             />
           )}
           {tabName}

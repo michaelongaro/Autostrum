@@ -1,63 +1,65 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { FaBook } from "react-icons/fa";
-import { getTabData, useTabStore } from "~/stores/TabStore";
-import { useSectionIds } from "~/hooks/useTabDataSelectors";
+import { HiOutlineInformationCircle, HiOutlineLightBulb } from "react-icons/hi";
+import { IoMdSettings } from "react-icons/io";
+import { useInView } from "react-intersection-observer";
+import AudioControls from "~/components/AudioControls/AudioControls";
+import AudioControlsStickyBounds from "~/components/AudioControls/AudioControlsStickyBounds";
+import ChordDialog from "~/components/Dialogs/ChordDialog";
+import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
+import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
+import SectionProgressionDialog from "~/components/Dialogs/SectionProgressionDialog";
+import StrummingPatternDialog from "~/components/Dialogs/StrummingPatternDialog";
+import TipsDialog from "~/components/Dialogs/TipsDialog";
+import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
+import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
+import PinnedTabChrome, {
+  getSectionScrollMarginTop,
+} from "~/components/Tab/PinnedTabChrome";
+import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
+import TabSettings from "~/components/Tab/TabSettings";
 import { Button } from "~/components/ui/button";
-import useAutoCompileChords from "~/hooks/useAutoCompileChords";
-import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibility";
-import { Separator } from "~/components/ui/separator";
-import SectionProgression from "./SectionProgression";
-import TabMetadata from "./TabMetadata";
-import { HiOutlineLightBulb, HiOutlineInformationCircle } from "react-icons/hi";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/ui/drawer";
+import Logo from "~/components/ui/icons/Logo";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { Separator } from "~/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import {
-  Drawer,
-  DrawerTrigger,
-  DrawerContent,
-  DrawerTitle,
-  DrawerDescription,
-} from "~/components/ui/drawer";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
+import useAutoCompileChords from "~/hooks/useAutoCompileChords";
+import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibility";
+import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
+import { useSectionIds } from "~/hooks/useTabDataSelectors";
+import { useTabEditorHistory } from "~/hooks/useTabEditorHistory";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { useTabStoreShallow, useTabStoreApi } from "~/stores/TabStore";
+import { cn } from "~/utils/cn";
+import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 import Chords from "./Chords";
 import SectionContainer from "./SectionContainer";
+import SectionProgression from "./SectionProgression";
 import StrummingPatterns from "./StrummingPatterns";
-import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
-import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
-import DesktopExtraTabMetadata from "~/components/Tab/DesktopExtraTabMetadata";
-import MobileExtraTabMetadata from "~/components/Tab/MobileExtraTabMetadata";
-import TipsDialog from "~/components/Dialogs/TipsDialog";
-import AudioControls from "~/components/AudioControls/AudioControls";
-import AudioControlsStickyBounds from "~/components/AudioControls/AudioControlsStickyBounds";
-import PinnedTabChrome, {
-  getSectionScrollMarginTop,
-} from "~/components/Tab/PinnedTabChrome";
-import Logo from "~/components/ui/icons/Logo";
-import { useInView } from "react-intersection-observer";
-import { IoMdSettings } from "react-icons/io";
-import TabSettings from "~/components/Tab/TabSettings";
-import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
-import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
-import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
-import SectionProgressionDialog from "~/components/Dialogs/SectionProgressionDialog";
-import ChordDialog from "~/components/Dialogs/ChordDialog";
-import StrummingPatternDialog from "~/components/Dialogs/StrummingPatternDialog";
-import { useTabEditorHistory } from "~/hooks/useTabEditorHistory";
-import { cn } from "~/utils/cn";
+import TabMetadata from "./TabMetadata";
 
 import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
 function Tab() {
+  const store = useTabStoreApi();
   const [isPublishingOrUpdating, setIsPublishingOrUpdating] = useState(false);
   const [showTipsModal, setShowTipsModal] = useState(false);
   const [tabContentIsInView, setTabContentIsInView] = useState(false);
@@ -92,27 +94,26 @@ function Tab() {
     setShowGlossaryDialog,
     chords,
     showPlaybackModal,
-    viewportLabel,
-    color,
-    theme,
     showingAudioControls,
     setTabData,
-    audioMetadata,
+    fullTabMetadataLength,
     setShowPlaybackModal,
     editing,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     id: state.id,
     setShowGlossaryDialog: state.setShowGlossaryDialog,
     chords: state.chords,
     showPlaybackModal: state.showPlaybackModal,
+    showingAudioControls: state.showingAudioControls,
+    setTabData: state.setTabData,
+    fullTabMetadataLength: state.audioMetadata.fullTabMetadataLength,
+    setShowPlaybackModal: state.setShowPlaybackModal,
+    editing: state.editing,
+  }));
+  const { viewportLabel, color, theme } = useAppPreferencesStore((state) => ({
     viewportLabel: state.viewportLabel,
     color: state.color,
     theme: state.theme,
-    showingAudioControls: state.showingAudioControls,
-    setTabData: state.setTabData,
-    audioMetadata: state.audioMetadata,
-    setShowPlaybackModal: state.setShowPlaybackModal,
-    editing: state.editing,
   }));
 
   // IDs only — nested note edits must not re-render the entire tab tree.
@@ -149,12 +150,11 @@ function Tab() {
 
   function addNewSection() {
     const newSectionId = crypto.randomUUID();
-    const title = `Section ${getTabData().length + 1}`;
 
     setTabData((draft) => {
       draft.push({
         id: newSectionId,
-        title,
+        title: `Section ${draft.length + 1}`,
         data: [],
       });
     });
@@ -354,9 +354,7 @@ function Tab() {
               id="stickyBottomControls"
               style={{
                 opacity:
-                  audioMetadata.fullTabMetadataLength > 0 && tabContentIsInView
-                    ? 1
-                    : 0,
+                  fullTabMetadataLength > 0 && tabContentIsInView ? 1 : 0,
                 transition: "opacity 0.2s ease-in-out",
               }}
               className="baseFlex sticky bottom-4 mb-4 gap-4 lg:bottom-6"
@@ -385,7 +383,7 @@ function Tab() {
                 variant="audio"
                 className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 lg:px-10 lg:text-xl"
                 onClick={() => {
-                  primePlaybackUserGesture();
+                  primePlaybackUserGesture(store.getState());
                   setShowPlaybackModal(true);
                 }}
               >

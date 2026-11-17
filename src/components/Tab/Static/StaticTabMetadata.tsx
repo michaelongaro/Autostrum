@@ -1,31 +1,32 @@
-import { useRouter } from "next/navigation";
-import { useRouteLocation } from "~/hooks/useRouteLocation";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useRouteLocation } from "~/hooks/useRouteLocation";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import { useEffect } from "react";
-import { MdModeEditOutline } from "react-icons/md";
 import { IoIosShareAlt } from "react-icons/io";
-import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore } from "~/stores/TabStore";
-import { api } from "~/utils/api";
-import { genreColors } from "~/utils/genreColors";
-import { getTuningName } from "~/utils/tunings";
+import { MdModeEditOutline } from "react-icons/md";
+import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
+import { Badge } from "~/components/ui/badge";
 import BookmarkToggle from "~/components/ui/BookmarkToggle";
 import { Button } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
-import classes from "../TabMetadata.module.css";
-import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
-import { PrettyTuning } from "~/components/ui/PrettyTuning";
-import { QuarterNote } from "~/utils/noteLengthIcons";
-import RateTab from "~/components/ui/RateTab";
 import DifficultyBars from "~/components/ui/DifficultyBars";
-import { formatNumber } from "~/utils/formatNumber";
 import Verified from "~/components/ui/icons/Verified";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
+import RateTab from "~/components/ui/RateTab";
+import { Separator } from "~/components/ui/separator";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import { useTabStoreShallow } from "~/stores/TabStore";
+import { api } from "~/utils/api";
+import { formatNumber } from "~/utils/formatNumber";
+import { genreColors } from "~/utils/genreColors";
 import getDynamicFontSize from "~/utils/getDynamicFontSize";
-import { Badge } from "~/components/ui/badge";
-import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
+import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
+import { QuarterNote } from "~/utils/noteLengthIcons";
+import { getTuningName } from "~/utils/tunings";
+import classes from "../TabMetadata.module.css";
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
@@ -50,8 +51,7 @@ function StaticTabMetadata() {
     difficulty,
     capo,
     isLoadingARoute,
-    viewportLabel,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     id: state.id,
     createdByUserId: state.createdByUserId,
     createdAt: state.createdAt,
@@ -67,6 +67,8 @@ function StaticTabMetadata() {
     difficulty: state.difficulty,
     capo: state.capo,
     isLoadingARoute: state.isLoadingARoute,
+  }));
+  const { viewportLabel } = useAppPreferencesStore((state) => ({
     viewportLabel: state.viewportLabel,
   }));
 
@@ -140,7 +142,7 @@ function StaticTabMetadata() {
                       <Link
                         prefetch={false}
                         href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                        className="min-w-0 !h-6 !p-0"
+                        className="!h-6 min-w-0 !p-0"
                       >
                         <div className="baseFlex min-w-0 gap-1 text-lg font-medium">
                           {artistIsVerified && (
@@ -290,7 +292,7 @@ function StaticTabMetadata() {
                         <Link
                           prefetch={false}
                           href={`/artist/${encodeURIComponent(artistName)}/${artistId}/filters`}
-                          className="baseFlex min-w-0 !h-6 !justify-start !p-0"
+                          className="baseFlex !h-6 min-w-0 !justify-start !p-0"
                         >
                           <div className="baseFlex w-full min-w-0 gap-1 text-lg font-medium">
                             {artistIsVerified && (

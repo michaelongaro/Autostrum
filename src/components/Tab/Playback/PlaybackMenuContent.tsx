@@ -7,7 +7,7 @@ import StrummingPattern from "~/components/Tab/StrummingPattern";
 import { type LastModifiedPalmMuteNodeLocation } from "~/components/Tab/TabSection";
 import { Button } from "~/components/ui/button";
 import ChordName from "~/components/ui/ChordName";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 
 function PlaybackMenuContent() {
@@ -21,7 +21,7 @@ function PlaybackMenuContent() {
     pauseAudio,
     playbackModalViewingState,
     chordDisplayMode,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     sectionProgression: state.sectionProgression,
     currentInstrument: state.currentInstrument,
     chords: state.chords,
@@ -120,7 +120,8 @@ function PlaybackMenuContent() {
 
                         {/* preview chord button */}
                         <Button
-                          variant={"audio"} aria-label="Play/Pause preview"
+                          variant={"audio"}
+                          aria-label="Play/Pause preview"
                           disabled={
                             previewMetadata.indexOfPattern === index &&
                             previewMetadata.playing &&
@@ -182,7 +183,8 @@ function PlaybackMenuContent() {
                   <div key={pattern.id} className="shrink-0 overflow-hidden">
                     <div className="baseVertFlex !items-start">
                       <Button
-                        variant={"audio"} aria-label="Play/Pause preview"
+                        variant={"audio"}
+                        aria-label="Play/Pause preview"
                         size={"sm"}
                         disabled={artificalPlayButtonTimeout[index]}
                         onClick={() => {

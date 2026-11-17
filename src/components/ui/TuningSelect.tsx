@@ -1,17 +1,17 @@
+import { useState } from "react";
 import { MdModeEditOutline } from "react-icons/md";
 import { Button } from "~/components/ui/button";
+import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
-  SelectSeparator,
 } from "~/components/ui/select";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import { tuningNotes, tunings } from "~/utils/tunings";
-import { PrettyTuning } from "~/components/ui/PrettyTuning";
-import { useState } from "react";
 
 type TuningSelectProps = {
   showScientificPitchNotationInTrigger?: boolean;
@@ -22,7 +22,7 @@ function TuningSelect({
   showScientificPitchNotationInTrigger = false,
   triggerTextColor,
 }: TuningSelectProps) {
-  const { tuning, setTuning, setShowCustomTuningDialog } = useTabStore(
+  const { tuning, setTuning, setShowCustomTuningDialog } = useTabStoreShallow(
     (state) => ({
       tuning: state.tuning,
       setTuning: state.setTuning,

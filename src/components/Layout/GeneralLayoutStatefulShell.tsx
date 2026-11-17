@@ -1,20 +1,20 @@
 import { AnimatePresence } from "framer-motion";
 
+import { useAuth } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 import { useEffect } from "react";
+import IPhoneSoundDrawerController from "~/components/AudioControls/IPhoneSoundDrawerController";
+import MobileHeaderModal from "~/components/modals/MobileHeaderModal";
+import useColorAndThemeController from "~/hooks/useColorAndThemeController";
 import useFetchAndLoadSoundfonts from "~/hooks/useFetchAndLoadSoundfonts";
 import useGetLocalStorageValues from "~/hooks/useGetLocalStorageValues";
+import useGetViewportLabel from "~/hooks/useGetViewportLabel";
 import { useInitializeAudioContext } from "~/hooks/useInitializeAudioContext";
+import useScreenWakeLock from "~/hooks/useScreenWakeLock";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabStore } from "~/stores/TabStore";
+import { useTabStoreShallow } from "~/stores/TabStore";
 import DesktopHeader from "../Header/DesktopHeader";
 import MobileHeader from "../Header/MobileHeader";
-import useGetViewportLabel from "~/hooks/useGetViewportLabel";
-import useScreenWakeLock from "~/hooks/useScreenWakeLock";
-import useColorAndThemeController from "~/hooks/useColorAndThemeController";
-import dynamic from "next/dynamic";
-import { useAuth } from "@clerk/nextjs";
-import MobileHeaderModal from "~/components/modals/MobileHeaderModal";
-import IPhoneSoundDrawerController from "~/components/AudioControls/IPhoneSoundDrawerController";
 
 const PostSignupDialog = dynamic(
   () => import("~/components/Dialogs/PostSignupDialog"),
@@ -42,7 +42,7 @@ function GeneralLayoutStatefulShell() {
     setChordDisplayMode,
     showMobileHeaderModal,
     setShowMobileHeaderModal,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     setLooping: state.setLooping,
     setCountInTimerEnabled: state.setCountInTimerEnabled,
     setChordDisplayMode: state.setChordDisplayMode,

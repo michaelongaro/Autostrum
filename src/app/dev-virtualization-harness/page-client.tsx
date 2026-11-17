@@ -1,4 +1,6 @@
 "use client";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+
 import { useRouteLocation } from "~/hooks/useRouteLocation";
 
 // Dev-only harness page for verifying static tab row virtualization.
@@ -17,14 +19,14 @@ import { useRouteLocation } from "~/hooks/useRouteLocation";
 import ErrorPage from "~/components/errors/NotFoundContent";
 
 import { useEffect, useSyncExternalStore } from "react";
-import StaticTab from "~/components/Tab/Static/StaticTab";
 import PrintTabButton from "~/components/Tab/Print/PrintTabButton";
 import StaticSectionContainer from "~/components/Tab/Static/StaticSectionContainer";
+import StaticTab from "~/components/Tab/Static/StaticTab";
 import {
-  useTabStore,
+  useTabStoreShallow,
   type Section,
-  type TabNote,
   type TabMeasureLine,
+  type TabNote,
 } from "~/stores/TabStore";
 
 function note(id: string, palmMute: TabNote["palmMute"] = ""): TabNote {
@@ -156,16 +158,18 @@ export default function DevVirtualizationHarness() {
     serverHydrated,
   );
 
-  const { setId, setTabData, setBpm, color, theme, storeTabData } = useTabStore(
+  const { setId, setTabData, setBpm, storeTabData } = useTabStoreShallow(
     (state) => ({
       setId: state.setId,
       setTabData: state.setTabData,
       setBpm: state.setBpm,
-      color: state.color,
-      theme: state.theme,
       storeTabData: state.tabData,
     }),
   );
+  const { color, theme } = useAppPreferencesStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
 
   const fixture =
     typeof query.fixture === "string" ? query.fixture : "realistic";

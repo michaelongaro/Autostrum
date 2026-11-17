@@ -1,3 +1,11 @@
+import { Toggle } from "@base-ui/react/toggle";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 import {
   useCallback,
   useEffect,
@@ -7,17 +15,12 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  AnimatePresence,
-  LayoutGroup,
-  motion,
-  useReducedMotion,
-} from "framer-motion";
-import { ToggleGroup } from "@base-ui/react/toggle-group";
-import { Toggle } from "@base-ui/react/toggle";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
+import { PracticePlaybackProvider } from "~/components/tools/PracticePlaybackContext";
 import { Button } from "~/components/ui/button";
+import Logo from "~/components/ui/icons/Logo";
 import {
   Select,
   SelectContent,
@@ -27,21 +30,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import {
   getPracticeExerciseBpm,
-  getPracticeExerciseTabSection,
   getPracticeExercisesTabData,
+  getPracticeExerciseTabSection,
   groupPracticeExercisesByLevel,
   PRACTICE_TUNING,
   type PracticeExercise,
 } from "~/data/tools/practiceExercises";
-import { getTabStore, useTabStore } from "~/stores/TabStore";
-import Logo from "~/components/ui/icons/Logo";
-import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
-import GlossaryDialog from "~/components/Dialogs/GlossaryDialog";
-import { PracticePlaybackProvider } from "~/components/tools/PracticePlaybackContext";
+import useAutoCompileChords from "~/hooks/useAutoCompileChords";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { useTabStoreApi, useTabStoreShallow } from "~/stores/TabStore";
 import { generateDefaultSectionProgression } from "~/utils/chordCompilationHelpers";
+import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
@@ -54,6 +55,7 @@ function PracticePlaybackPanel({
   exercises,
   emptyStateLabel,
 }: PracticePlaybackPanelProps) {
+  const store = useTabStoreApi();
   const [selectedExerciseId, setSelectedExerciseId] = useState(
     exercises[0]?.id ?? "",
   );
@@ -100,9 +102,7 @@ function PracticePlaybackPanel({
     setVisiblePlaybackContainerWidth,
     setDraftLoopRange,
     audioMetadata,
-    color,
-    theme,
-  } = useTabStore((state) => ({
+  } = useTabStoreShallow((state) => ({
     showPlaybackModal: state.showPlaybackModal,
     setShowPlaybackModal: state.setShowPlaybackModal,
     pauseAudio: state.pauseAudio,
@@ -121,6 +121,8 @@ function PracticePlaybackPanel({
     setVisiblePlaybackContainerWidth: state.setVisiblePlaybackContainerWidth,
     setDraftLoopRange: state.setDraftLoopRange,
     audioMetadata: state.audioMetadata,
+  }));
+  const { color, theme } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
   }));
@@ -156,7 +158,7 @@ function PracticePlaybackPanel({
       const {
         showPlaybackModal: modalOpen,
         audioMetadata: currentAudioMetadata,
-      } = getTabStore();
+      } = store.getState();
 
       setSelectedExerciseId(exerciseId);
 
@@ -186,6 +188,7 @@ function PracticePlaybackPanel({
       });
     },
     [
+      store,
       exercises,
       selectedExerciseId,
       pauseAudio,
@@ -421,7 +424,7 @@ function PracticePlaybackPanel({
               className="baseFlex gap-2 px-6 *:!h-10 sm:px-8 sm:text-base"
               disabled={audioMetadata.fullTabMetadataLength <= 0}
               onClick={() => {
-                primePlaybackUserGesture();
+                primePlaybackUserGesture(store.getState());
                 setCurrentChordIndex(0);
                 setShowPlaybackModal(true);
               }}

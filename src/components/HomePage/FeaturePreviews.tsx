@@ -1,3 +1,5 @@
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import {
   useEffect,
   useId,
@@ -6,37 +8,42 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { CgArrowsShrinkH } from "react-icons/cg";
 import PlaybackAudioRange from "~/components/AudioControls/PlaybackAudioRange";
-import type { PlaybackPracticeControls } from "~/components/Tab/Playback/PlaybackModal";
 import CustomTuningDialog from "~/components/Dialogs/CustomTuningDialog";
-import TabSection from "~/components/Tab/TabSection";
-import SectionContainer from "~/components/Tab/SectionContainer";
+import DemoGlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 import AnimatedListItem from "~/components/Tab/AnimatedListItem";
-import TabZoomControl from "~/components/Tab/TabZoomControl";
-import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
-import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 import PlaybackLoopRangeActions from "~/components/Tab/Playback/PlaybackLoopRangeActions";
-import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
+import type { PlaybackPracticeControls } from "~/components/Tab/Playback/PlaybackModal";
+import EmbeddedPlaybackModal from "~/components/Tab/Playback/PlaybackModal";
+import SectionContainer from "~/components/Tab/SectionContainer";
+import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
+import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
+import TabSection from "~/components/Tab/TabSection";
+import TabZoomControl from "~/components/Tab/TabZoomControl";
 import { Button } from "~/components/ui/button";
+import PauseIcon from "~/components/ui/icons/PauseIcon";
+import PlayIcon from "~/components/ui/icons/PlayIcon";
 import { Label } from "~/components/ui/label";
+import PlaybackSpeedPopover from "~/components/ui/PlaybackSpeedPopover";
+import { Separator } from "~/components/ui/separator";
+import Spinner from "~/components/ui/Spinner";
 import { Switch } from "~/components/ui/switch";
 import { Toggle } from "~/components/ui/toggle";
-import { Separator } from "~/components/ui/separator";
-import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
-import PlayIcon from "~/components/ui/icons/PlayIcon";
-import PauseIcon from "~/components/ui/icons/PauseIcon";
-import Spinner from "~/components/ui/Spinner";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useAutoscrollToCurrentChord from "~/hooks/useAutoscrollToCurrentChord";
 import { useEditingTabPlayhead } from "~/hooks/useEditingTabPlayhead";
-import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 import type {
   ChordSection,
   TabSection as TabSectionData,
 } from "~/stores/TabStore";
+import {
+  useTabStore,
+  useTabStoreApi,
+  useTabStoreShallow,
+} from "~/stores/TabStore";
+import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
 import { getDynamicNoteLengthIcon } from "~/utils/noteLengthIcons";
 import {
   STATIC_STRUMMING_PATTERN_STRUM_WIDTH_PX,
@@ -46,8 +53,6 @@ import {
 } from "~/utils/staticTabGeometry";
 import FeatureDemoSession, { useFeatureDemo } from "./FeatureDemoSession";
 import styles from "./FeatureShowcase.module.css";
-import EmbeddedPlaybackModal from "~/components/Tab/Playback/PlaybackModal";
-import DemoGlossaryDialog from "~/components/Dialogs/GlossaryDialog";
 
 export type FeatureId =
   | "zoom"
@@ -237,7 +242,7 @@ function PracticeSection({
 function PracticeTab({ showPlayhead = false }: { showPlayhead?: boolean }) {
   const { feature, sectionIndex } = useFeatureDemo();
   const containerRef = useRef<HTMLDivElement>(null);
-  const highlightedThroughColumn = useTabStore((state) => {
+  const highlightedThroughColumn = useTabStoreShallow((state) => {
     if (!showPlayhead || state.audioMetadata.editingLoopRange) return -1;
 
     const current = state.currentlyPlayingMetadata?.[state.currentChordIndex];
@@ -252,8 +257,10 @@ function PracticeTab({ showPlayhead = false }: { showPlayhead?: boolean }) {
     // trail when playback resets to column zero with no active chord.
     return current.location.chordIndex - (state.audioMetadata.playing ? 0 : 1);
   });
-  const { subSection, color, theme } = useTabStore((state) => ({
+  const { subSection } = useTabStoreShallow((state) => ({
     subSection: state.tabData[sectionIndex]?.data[0],
+  }));
+  const { color, theme } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
   }));
@@ -307,14 +314,16 @@ function ZoomPreview() {
 function ColorsPreview() {
   const { sectionIndex } = useFeatureDemo();
   const switchId = useId();
-  const { subSection, color, theme, chordDisplayMode, setChordDisplayMode } =
-    useTabStore((state) => ({
+  const { subSection, chordDisplayMode, setChordDisplayMode } =
+    useTabStoreShallow((state) => ({
       subSection: state.tabData[sectionIndex]?.data[0],
-      color: state.color,
-      theme: state.theme,
       chordDisplayMode: state.chordDisplayMode,
       setChordDisplayMode: state.setChordDisplayMode,
     }));
+  const { color, theme } = useAppPreferencesStore((state) => ({
+    color: state.color,
+    theme: state.theme,
+  }));
   return (
     <div className="flex w-full min-w-0 flex-col gap-5">
       {subSection?.type === "chord" && (
@@ -373,7 +382,7 @@ function ColorsPreview() {
 
 function SpeedPreview() {
   const controlId = useId();
-  const { playbackSpeed, setPlaybackSpeed } = useTabStore((state) => ({
+  const { playbackSpeed, setPlaybackSpeed } = useTabStoreShallow((state) => ({
     playbackSpeed: state.requestedPlaybackSpeed,
     setPlaybackSpeed: state.setPlaybackSpeed,
   }));
@@ -408,13 +417,12 @@ function LoopControls({
 }: PlaybackPracticeControls) {
   const { sectionIndex } = useFeatureDemo();
   const store = useTabStoreApi();
-  const { audioMetadata, currentChordIndex, playbackMetadata } = useTabStore(
-    (state) => ({
+  const { audioMetadata, currentChordIndex, playbackMetadata } =
+    useTabStoreShallow((state) => ({
       audioMetadata: state.audioMetadata,
       currentChordIndex: state.currentChordIndex,
       playbackMetadata: state.playbackMetadata,
-    }),
-  );
+    }));
   return (
     <div
       className="flex w-full flex-col gap-4 px-4 pb-4 pt-2"
@@ -536,7 +544,9 @@ function HotkeysPreview() {
 }
 
 function ReorderingPreview() {
-  const sectionIds = useTabStore((state) => state.tabData.map(({ id }) => id));
+  const sectionIds = useTabStoreShallow((state) =>
+    state.tabData.map(({ id }) => id),
+  );
   return (
     <div className={styles.editorViewport} data-feature-editor-scroll>
       <div className="flex w-full min-w-0 flex-col gap-3">

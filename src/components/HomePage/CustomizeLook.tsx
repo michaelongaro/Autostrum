@@ -1,14 +1,15 @@
-import Image, { type StaticImageData } from "next/image";
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
+import { Check } from "lucide-react";
+import Image, { type StaticImageData } from "next/image";
 import { useState, type ReactNode } from "react";
 import { HiMiniComputerDesktop } from "react-icons/hi2";
 import { IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
-import { useTabStore, type COLORS } from "~/stores/TabStore";
+import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
+import { type COLORS } from "~/stores/TabStore";
 import { api } from "~/utils/api";
-import { Check } from "lucide-react";
 import {
   COLOR_HEX_VALUES,
   NEAR_WHITE_COLOR_VALUES,
@@ -59,7 +60,7 @@ function CustomizeLook() {
     setTheme,
     followsDeviceTheme,
     setFollowsDeviceTheme,
-  } = useTabStore((state) => ({
+  } = useAppPreferencesStore((state) => ({
     color: state.color,
     setColor: state.setColor,
     theme: state.theme,
@@ -118,7 +119,8 @@ function CustomizeLook() {
                     aria-pressed={selected}
                     aria-label={`Select ${colorString} color`}
                   >
-                    <Image unoptimized
+                    <Image
+                      unoptimized
                       src={COLOR_IMAGES[colorString]}
                       alt=""
                       fill
