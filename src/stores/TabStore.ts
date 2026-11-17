@@ -51,6 +51,9 @@ import {
   mapLoopRelativeChordIndexToFullTabIndex,
 } from "~/utils/loopRangeHelpers";
 
+// Boost playback output while keeping the existing volume slider range.
+const MASTER_VOLUME_GAIN_MULTIPLIER = 2;
+
 export type SectionProgression = {
   id: string; // used to identify the section for the sorting context
   sectionId: string;
@@ -892,7 +895,9 @@ export const createTabStore = (
       const previousGain = useTabStoreBase.getState().masterVolumeGainNode;
       const gain = context?.createGain() ?? null;
       if (context && gain) {
-        gain.gain.value = previousGain?.gain.value ?? (isMobileOnly ? 1.25 : 1);
+        gain.gain.value =
+          previousGain?.gain.value ??
+          (isMobileOnly ? 1.25 : 1) * MASTER_VOLUME_GAIN_MULTIPLIER;
         gain.connect(context.destination);
       }
       useTabStoreBase.setState({
@@ -1402,7 +1407,8 @@ export const createTabStore = (
 
           if (!masterVolumeGainNode) return;
 
-          masterVolumeGainNode.gain.value = newVolume;
+          masterVolumeGainNode.gain.value =
+            newVolume * MASTER_VOLUME_GAIN_MULTIPLIER;
         },
 
         // playing/pausing sound functions
