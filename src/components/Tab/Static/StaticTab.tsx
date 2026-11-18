@@ -44,7 +44,7 @@ import {
   type Section,
 } from "~/stores/TabStore";
 
-import TabScreenshotPreview from "~/components/Tab/TabScreenshotPreview";
+import { TabScreenshotPreviews } from "~/components/Tab/TabScreenshotPreview";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
@@ -347,45 +347,12 @@ function StaticTab() {
         </div>
 
         {minifiedTabData && (
-          <div className="size-full overflow-hidden">
-            <div
-              id="tabPreviewScreenshotLight"
-              data-tab-id={id}
-              data-tab-version={updatedAt?.toISOString()}
-              data-color="maple"
-              data-theme="light"
-              style={{
-                backgroundColor: "hsl(var(--screenshot-background))",
-              }}
-              className="baseFlex h-[615px] w-[1318px] grayscale"
-            >
-              <TabScreenshotPreview
-                tabData={minifiedTabData}
-                bpm={bpm}
-                color={"maple"}
-                theme={"light"}
-              />
-            </div>
-
-            <div
-              id="tabPreviewScreenshotDark"
-              data-tab-id={id}
-              data-tab-version={updatedAt?.toISOString()}
-              data-color="maple"
-              data-theme="dark"
-              style={{
-                backgroundColor: "hsl(var(--screenshot-background))",
-              }}
-              className="baseFlex h-[615px] w-[1318px] grayscale"
-            >
-              <TabScreenshotPreview
-                tabData={minifiedTabData}
-                bpm={bpm}
-                color={"maple"}
-                theme={"dark"}
-              />
-            </div>
-          </div>
+          <TabScreenshotPreviews
+            id={id}
+            version={updatedAt?.toISOString()}
+            tabData={minifiedTabData}
+            bpm={bpm}
+          />
         )}
       </div>
 

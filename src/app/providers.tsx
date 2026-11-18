@@ -1,4 +1,5 @@
 "use client";
+import GeneralLayout from "~/components/Layout/GeneralLayout";
 import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import { ClerkProvider, useAuth } from "@clerk/nextjs";
@@ -44,7 +45,9 @@ export default function Providers({ children }: { children: ReactNode }) {
         options: { showOptionalFields: true },
       }}
     >
-      <SessionProvider>{children}</SessionProvider>
+      <SessionProvider>
+        <GeneralLayout>{children}</GeneralLayout>
+      </SessionProvider>
     </ClerkProvider>
   );
 }

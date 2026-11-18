@@ -122,4 +122,38 @@ function TabScreenshotPreview({
   );
 }
 
-export default TabScreenshotPreview;
+export function TabScreenshotPreviews({
+  id,
+  version,
+  tabData,
+  bpm,
+}: {
+  id: number;
+  version?: string;
+  tabData: Section[];
+  bpm: number;
+}) {
+  return (
+    <div className="size-full overflow-hidden">
+      {(["Light", "Dark"] as const).map((mode) => (
+        <div
+          key={mode}
+          id={`tabPreviewScreenshot${mode}`}
+          data-tab-id={id}
+          data-tab-version={version}
+          data-color="maple"
+          data-theme={mode.toLowerCase()}
+          style={{ backgroundColor: "hsl(var(--screenshot-background))" }}
+          className="baseFlex h-[615px] w-[1318px] grayscale"
+        >
+          <TabScreenshotPreview
+            tabData={tabData}
+            bpm={bpm}
+            color="maple"
+            theme={mode === "Light" ? "light" : "dark"}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}

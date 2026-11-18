@@ -1,7 +1,6 @@
 import "~/styles/globals.css";
 import "overlayscrollbars/overlayscrollbars.css";
-import Providers from "./providers";
-import GeneralLayout from "~/components/Layout/GeneralLayout";
+import SiteShell from "./site-shell";
 import { createMetadata } from "~/utils/metadata";
 export const metadata = createMetadata({});
 
@@ -133,9 +132,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body>
-        <Providers>
-          <GeneralLayout>{children}</GeneralLayout>
-        </Providers>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

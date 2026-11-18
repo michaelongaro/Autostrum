@@ -51,24 +51,49 @@ async function triggerScreenshotCapture(
     return;
   }
 
-  try {
-    const response = await fetch(`${screenshotServerUrl}/screenshot/capture`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tabId,
-        tabTitle,
-        type:
-          process.env.NODE_ENV === "development" ? "development" : "production",
-        secret: screenshotSecret,
-      }),
-    });
+  const body = JSON.stringify({
+    tabId,
+    tabTitle,
+    type: process.env.NODE_ENV === "development" ? "development" : "production",
+    secret: screenshotSecret,
+  });
 
-    if (!response.ok) {
-      const error: unknown = await response.json();
-      console.error("Screenshot capture failed:", error);
+  try {
+    const maxAttempts = 3;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const response = await fetch(
+        `${screenshotServerUrl}/screenshot/capture`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        },
+      );
+
+      if (response.ok) {
+        await response.body?.cancel();
+        return;
+      }
+
+      const retryable = response.status === 502 || response.status === 503;
+      if (!retryable || attempt === maxAttempts - 1) {
+        const detail: unknown = await response.json().catch(() => undefined);
+        console.error("Screenshot capture failed:", response.status, detail);
+        return;
+      }
+
+      const retryAfter = Number(response.headers.get("Retry-After"));
+      const delay = Math.min(
+        10_000,
+        Math.max(
+          1000 * 2 ** attempt,
+          Number.isFinite(retryAfter) ? retryAfter * 1000 : 0,
+        ),
+      );
+      await response.body?.cancel();
+      await new Promise<void>((resolve) =>
+        setTimeout(resolve, delay + Math.random() * 500),
+      );
     }
   } catch (error) {
     console.error("Failed to trigger screenshot capture:", error);
