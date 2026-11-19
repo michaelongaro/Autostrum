@@ -43,6 +43,7 @@ import {
   type ImportResponse,
   type ImportTrack,
 } from "~/utils/guitarPro/types";
+import { Separator } from "~/components/ui/separator";
 
 export default function GuitarProImport() {
   const store = useTabStoreApi();
@@ -287,13 +288,14 @@ export default function GuitarProImport() {
               <span className="font-medium">
                 Drop your file here or click to browse
               </span>
-              <span className="text-sm text-foreground/75">
-                .gp3, .gp4, .gp5, .gpx, .gp · Up to 20 MB
-              </span>
+              <div className="baseFlex flex-nowrap gap-2 text-sm text-foreground/75">
+                .gp3, .gp4, .gp5, .gpx, .gp
+                <Separator className="h-4 w-[1px] bg-foreground/50" />
+                20 MB limit
+              </div>
             </button>
             <p className="text-sm text-foreground/75">
-              Files are read on your device. For older .gtp files, export to GP5
-              first.
+              For older .gtp files, export to .gp5 first.
             </p>
             {tracks.length > 0 && (
               <div className="flex flex-col gap-2">
