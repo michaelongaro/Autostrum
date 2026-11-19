@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { useEffect, useRef } from "react";
 import HeaderLogo from "~/components/Header/HeaderLogo";
 import HeroTablature from "~/components/HomePage/HeroTablature";
 import { Button } from "~/components/ui/button";
@@ -28,7 +27,8 @@ function Hero() {
           <div className="baseFlex !justify-start gap-3">
             <Button
               role="link"
-              className="px-5 md:px-6"
+              size="sm"
+              className="px-5 md:h-10 md:rounded-md md:px-6"
               nativeButton={false}
               render={
                 <Link prefetch={false} href="/explore">
@@ -39,7 +39,8 @@ function Hero() {
             <Button
               role="link"
               variant="outline"
-              className="px-5 md:px-6"
+              size="sm"
+              className="px-5 md:h-10 md:rounded-md md:px-6"
               nativeButton={false}
               render={
                 <Link prefetch={false} href="/create">
@@ -167,45 +168,24 @@ const DESKTOP_PREVIEW_WIDTH = 1100;
 const DESKTOP_PREVIEW_HEIGHT = 650;
 
 function TablatureScreenshot() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    const preview = previewRef.current;
-    if (!stage || !preview) return;
-
-    const updateScale = (width: number) => {
-      preview.style.transform = `scale(${width / DESKTOP_PREVIEW_WIDTH})`;
-    };
-
-    updateScale(stage.clientWidth);
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry) updateScale(entry.contentRect.width);
-    });
-    observer.observe(stage);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <div
       className="hidden w-[min(85svh,51rem)] min-w-0 xl:block"
       aria-hidden="true"
     >
       <div
-        ref={stageRef}
-        className="relative w-full max-w-[min(85svh,51rem)]"
+        className="relative w-full max-w-[min(85svh,51rem)] @container"
         style={{
           aspectRatio: `${DESKTOP_PREVIEW_WIDTH} / ${DESKTOP_PREVIEW_HEIGHT}`,
         }}
       >
         <div
-          ref={previewRef}
           className="heroScreenshotStage !absolute left-0 top-0 origin-top-left @container/hero-preview"
           style={{
             width: DESKTOP_PREVIEW_WIDTH,
             height: DESKTOP_PREVIEW_HEIGHT,
-            transform: "scale(0)",
+            // tan(atan2(y, x)) gives the unitless ratio y / x before hydration.
+            transform: `scale(tan(atan2(100cqw, ${DESKTOP_PREVIEW_WIDTH}px)))`,
           }}
         >
           <div className="h-full">

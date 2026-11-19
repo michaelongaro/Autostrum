@@ -9,6 +9,86 @@ test.beforeAll(async () => {
   await clerkSetup();
 });
 
+for (const signedIn of [false, true]) {
+  test(`homepage stays visible through hydration when signed ${signedIn ? "in" : "out"}`, async ({
+    page,
+  }) => {
+    test.skip(
+      signedIn && !process.env.E2E_CLERK_USER_EMAIL,
+      "Requires an existing onboarded E2E_CLERK_USER_EMAIL account",
+    );
+    await setupClerkTestingToken({ page });
+    if (signedIn) {
+      await page.goto("/tools");
+      await clerk.loaded({ page });
+      await clerk.signIn({
+        page,
+        emailAddress: process.env.E2E_CLERK_USER_EMAIL!,
+      });
+    }
+
+    let releaseScripts!: () => void;
+    const scriptsReady = new Promise<void>((resolve) => {
+      releaseScripts = resolve;
+    });
+    await page.route("**/_next/static/chunks/**", async (route) => {
+      if (route.request().resourceType() === "script") await scriptsReady;
+      await route.continue();
+    });
+
+    try {
+      await page.goto("/", { waitUntil: "commit" });
+      const header = page.locator("#desktopHeader");
+      const preview = page.locator(
+        ".heroScreenshotStage:not(.heroScreenshotMobile)",
+      );
+      const explore = page.getByRole("link", { name: "Explore tabs" });
+      await expect(header).toBeVisible();
+      await expect(preview).toBeVisible();
+      await expect(explore).toHaveCSS("height", "40px");
+
+      const stableHomepage = await preview.evaluateHandle((frame) => {
+        const header = document.getElementById("desktopHeader")!;
+        const width = frame.getBoundingClientRect().width;
+        const stageWidth = frame.parentElement!.getBoundingClientRect().width;
+        const result = { width, stageWidth, stable: true, recording: true };
+        function checkFrame() {
+          result.stable &&=
+            frame.isConnected &&
+            header.isConnected &&
+            header.getBoundingClientRect().height === 64 &&
+            Math.abs(frame.getBoundingClientRect().width - width) < 1;
+          if (result.recording) requestAnimationFrame(checkFrame);
+        }
+        checkFrame();
+        return result;
+      });
+      expect(
+        await stableHomepage.evaluate(({ width, stageWidth }) =>
+          Math.abs(width - stageWidth),
+        ),
+      ).toBeLessThan(1);
+
+      releaseScripts();
+      await expect(
+        header.getByRole("button", {
+          name: signedIn ? "Account menu" : "Sign in",
+        }),
+      ).toBeVisible();
+      await expect(explore).toHaveCSS("height", "40px");
+      expect(
+        await stableHomepage.evaluate((result) => {
+          result.recording = false;
+          return result.stable;
+        }),
+      ).toBe(true);
+    } finally {
+      releaseScripts();
+      await page.unrouteAll({ behavior: "wait" });
+    }
+  });
+}
+
 test("resolving authentication preserves the page that has already faded in", async ({
   page,
 }) => {

@@ -31,7 +31,6 @@ import HeaderLogo from "~/components/Header/HeaderLogo";
 import { getTabDocument } from "~/utils/drafts/tabDraftState";
 import { saveTabForSignIn } from "~/utils/tabSignInHandoff";
 import { api } from "~/utils/api";
-import { AnimatePresence, motion } from "framer-motion";
 import Logo from "~/components/ui/icons/Logo";
 import { isThemeTransitionPointerEvent } from "~/utils/updateCSSThemeVars";
 import { CiCompass1 } from "react-icons/ci";
@@ -46,7 +45,11 @@ function DesktopHeader({ prefetchSearch }: { prefetchSearch: boolean }) {
     });
 
   const [userPopoverOpen, setUserPopoverOpen] = useState(false);
-  const [userProfileImageLoaded, setUserProfileImageLoaded] = useState(false);
+  const [loadedProfileImage, setLoadedProfileImage] = useState<string>();
+  const profileImage = currentUser
+    ? getProfileImageSrc(currentUser.profileImageUrl)
+    : "";
+  const showProfileImage = loadedProfileImage === profileImage;
 
   return (
     <nav
@@ -261,33 +264,18 @@ function DesktopHeader({ prefetchSearch }: { prefetchSearch: boolean }) {
           </PopoverContent>
         </Popover>
 
-        <AnimatePresence initial={false} mode="popLayout">
+        <div className={classes.authentication}>
           {(isSignedIn === undefined || isLoadingCurrentUser) && (
-            <motion.div
-              key={"loadingAuth"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                opacity: { duration: 0.1, ease: "easeInOut" },
-              }}
-              className={`${classes.authentication} pulseAnimation baseFlex size-12 shrink-0 rounded-full`}
+            <span
+              aria-hidden="true"
+              className="baseFlex size-12 rounded-full bg-secondary text-secondary-foreground shadow-primaryButton"
             >
-              <div className="pulseAnimation size-10 shrink-0 rounded-full"></div>
-            </motion.div>
+              <FaUser className="size-5" />
+            </span>
           )}
 
           {isSignedIn === false && (
-            <motion.div
-              key="notSignedIn"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                opacity: { duration: 0.1, ease: "easeInOut" },
-              }}
-              className={`${classes.authentication} baseFlex shrink-0`}
-            >
+            <div className="baseFlex size-12">
               <TooltipProvider delay={150}>
                 <Tooltip>
                   <TooltipTrigger
@@ -296,6 +284,7 @@ function DesktopHeader({ prefetchSearch }: { prefetchSearch: boolean }) {
                         <Button
                           aria-label="Sign in"
                           variant={"headerNavigation"}
+                          size="lg"
                           className="!size-12 !rounded-full !p-0"
                           onClick={() => {
                             if (asPath.split("?")[0] === "/create")
@@ -312,59 +301,40 @@ function DesktopHeader({ prefetchSearch }: { prefetchSearch: boolean }) {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </motion.div>
+            </div>
           )}
 
           {isSignedIn && currentUser && (
-            <motion.div
-              key="signedIn"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                opacity: { duration: 0.1, ease: "easeInOut" },
-              }}
-              className={`${classes.authentication} baseFlex shrink-0`}
-            >
+            <div className="baseFlex size-12">
               <Popover open={userPopoverOpen} onOpenChange={setUserPopoverOpen}>
                 <PopoverTrigger
                   render={
                     <Button
                       aria-label="Account menu"
-                      variant={"ghost"}
-                      className={`${classes.authentication} baseFlex !size-12 shrink-0 !rounded-full !p-0`}
+                      variant={showProfileImage ? "ghost" : "headerNavigation"}
+                      size="lg"
+                      className="baseFlex relative !size-12 shrink-0 !rounded-full !p-0"
                     >
-                      <div className="grid shrink-0 grid-cols-1 grid-rows-1">
-                        <Image unoptimized
-                          src={getProfileImageSrc(currentUser.profileImageUrl)}
+                      {!showProfileImage && (
+                        <FaUser
+                          aria-hidden="true"
+                          className="absolute size-5"
+                        />
+                      )}
+                      {profileImage && (
+                        <Image
+                          unoptimized
+                          src={profileImage}
                           alt={`${currentUser.username}'s profile picture`}
                           width={300}
                           height={300}
-                          onLoad={() => {
-                            setTimeout(() => {
-                              setUserProfileImageLoaded(true);
-                            }, 100); // unsure if this is necessary, but it felt too flickery without it
-                          }}
+                          onLoad={() => setLoadedProfileImage(profileImage)}
                           style={{
-                            opacity: userProfileImageLoaded ? 1 : 0,
-                            transition: "opacity 0.3s ease-in-out",
+                            visibility: showProfileImage ? "visible" : "hidden",
                           }}
-                          className="col-start-1 col-end-2 row-start-1 row-end-2 !size-10 rounded-full object-cover object-center"
+                          className="size-10 rounded-full object-cover object-center"
                         />
-
-                        <AnimatePresence>
-                          {!userProfileImageLoaded && (
-                            <motion.div
-                              key={"gridTabCardSkeletonImageLoader-lg"}
-                              initial={{ opacity: 1 }}
-                              animate={{ opacity: 0 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="pulseAnimation z-10 col-start-1 col-end-2 row-start-1 row-end-2 size-10 rounded-full"
-                            ></motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
+                      )}
                     </Button>
                   }
                 />
@@ -389,8 +359,9 @@ function DesktopHeader({ prefetchSearch }: { prefetchSearch: boolean }) {
                           }}
                           className="baseFlex !h-10 gap-2 !px-0"
                         >
-                          <Image unoptimized
-                            src={getProfileImageSrc(currentUser.profileImageUrl)}
+                          <Image
+                            unoptimized
+                            src={profileImage}
                             alt="User profile image"
                             className="!size-8 rounded-full object-cover object-center"
                             width={300}
@@ -541,9 +512,9 @@ function DesktopHeader({ prefetchSearch }: { prefetchSearch: boolean }) {
                   </div>
                 </PopoverContent>
               </Popover>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
     </nav>
   );

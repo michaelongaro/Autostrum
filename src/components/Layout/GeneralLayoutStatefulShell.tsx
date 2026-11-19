@@ -2,7 +2,7 @@ import { AnimatePresence } from "framer-motion";
 
 import { useAuth } from "@clerk/nextjs";
 import dynamic from "next/dynamic";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import IPhoneSoundDrawerController from "~/components/AudioControls/IPhoneSoundDrawerController";
 import MobileHeaderModal from "~/components/modals/MobileHeaderModal";
 import useColorAndThemeController from "~/hooks/useColorAndThemeController";
@@ -83,7 +83,11 @@ function GeneralLayoutStatefulShell() {
         )}
       </AnimatePresence>
 
-      {isSignedIn && <PostSignupDialog />}
+      {isSignedIn && (
+        <Suspense fallback={null}>
+          <PostSignupDialog />
+        </Suspense>
+      )}
       <IPhoneSoundDrawerController />
     </>
   );
