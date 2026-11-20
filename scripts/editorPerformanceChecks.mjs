@@ -23,11 +23,21 @@ export async function verifyEditorPerformance() {
       }),
     );
   };
-  const firstNote = () => document.getElementById("input-0-0-0-1");
+  const firstNote = () => {
+    const columnId = getStore().tabData[0].data[0].data[0].id;
+    return document.querySelector(
+      `[data-editing-tab-column="${columnId}"] #input-0-0-0-1`,
+    );
+  };
   await window.editorPerformance.seed("short");
   const input = firstNote();
   input.scrollIntoView({ block: "center" });
-  await wait(200);
+  const body = input.closest("[data-editor-section-body]");
+  await until(() => body.style.contentVisibility === "auto");
+  check(
+    body.style.contentVisibility === "auto",
+    "Section containment is active before note editing",
+  );
   input.focus();
   Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(
     input,
@@ -39,6 +49,22 @@ export async function verifyEditorPerformance() {
     getStore().tabData[0].data[0].data[0].firstString === "7",
     "Editing commits through the real input handler",
   );
+  check(
+    body.style.contentVisibility === "auto",
+    "Editing a fret keeps section containment active",
+  );
+  const staff = input.closest("[data-editing-tab-staff]");
+  const card = staff.parentElement;
+  const animationClip = card.parentElement.parentElement;
+  const cardBounds = card.getBoundingClientRect();
+  for (const clip of [body, animationClip]) {
+    const bounds = clip.getBoundingClientRect();
+    check(
+      cardBounds.left - bounds.left >= 1 &&
+        bounds.right - cardBounds.right >= 1,
+      "Tab block borders have clearance inside the clipping wrapper",
+    );
+  }
   press(input, "z", { ctrlKey: true });
   await wait(100);
   check(
@@ -62,7 +88,6 @@ export async function verifyEditorPerformance() {
   input.scrollIntoView({ block: "center" });
   await wait(250);
 
-  const staff = input.closest("[data-editing-tab-staff]");
   check(
     staff.dataset.editingTabVirtualized === "true",
     "Short multirow blocks use row virtualization",
@@ -89,7 +114,6 @@ export async function verifyEditorPerformance() {
   press(firstNote(), "d", { altKey: true });
   await wait(400);
 
-  const body = document.getElementById("sectionIndex0");
   const pm = [...body.querySelectorAll("button")].find(
     (button) => button.textContent.trim() === "PM Editor",
   );

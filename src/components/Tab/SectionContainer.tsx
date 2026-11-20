@@ -274,6 +274,11 @@ function SectionContainer({
                 {subSectionIds.map((subSectionId, index) => (
                   <AnimatedListItem
                     key={subSectionId}
+                    // Keep card borders inside the animation and containment clips.
+                    className={cn(
+                      "w-full",
+                      presentation === "full" && "px-0.5",
+                    )}
                     contentClassName="mb-4 w-full"
                   >
                     {subSectionTypes[index] === "chord" ? (

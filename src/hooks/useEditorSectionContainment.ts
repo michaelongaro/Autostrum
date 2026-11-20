@@ -19,6 +19,13 @@ export function useEditorSectionContainment(
       return;
 
     let timer: ReturnType<typeof setTimeout>;
+    // Fall back to remeasuring unfocused sections on browsers without the event.
+    let isSkipped =
+      typeof ContentVisibilityAutoStateChangeEvent === "undefined";
+    function handleVisibilityChange(event: Event) {
+      isSkipped = (event as ContentVisibilityAutoStateChangeEvent).skipped;
+    }
+
     function scheduleMeasurement() {
       if (!body) return;
       clearTimeout(timer);
@@ -41,11 +48,20 @@ export function useEditorSectionContainment(
       }, 450);
     }
 
+    body.addEventListener(
+      "contentvisibilityautostatechange",
+      handleVisibilityChange,
+    );
     scheduleMeasurement();
-    // History can change an offscreen section. Invalidate its remembered size
-    // without making the section shell subscribe/render on every note edit.
+    // The browser updates the remembered size while the section is rendered.
+    // Toggling containment during a note edit can change how thin lines paint.
+    // Remeasure skipped sections so offscreen history edits still update layout.
     const unsubscribe = store.subscribe((state, previous) => {
-      if (state.tabData[sectionIndex] !== previous.tabData[sectionIndex]) {
+      if (
+        state.tabData[sectionIndex] !== previous.tabData[sectionIndex] &&
+        isSkipped &&
+        !body.contains(document.activeElement)
+      ) {
         scheduleMeasurement();
       }
     });
@@ -53,6 +69,10 @@ export function useEditorSectionContainment(
     return () => {
       unsubscribe();
       clearTimeout(timer);
+      body.removeEventListener(
+        "contentvisibilityautostatechange",
+        handleVisibilityChange,
+      );
       window.removeEventListener("resize", scheduleMeasurement);
       body.style.contentVisibility = "";
       body.style.containIntrinsicSize = "";
