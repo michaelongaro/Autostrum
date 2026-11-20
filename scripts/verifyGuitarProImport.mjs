@@ -86,6 +86,89 @@ function assertSustain(column) {
 }
 
 {
+  const chord = [
+    { string: 1, fret: 2 },
+    { string: 3, fret: 3 },
+    { string: 6, fret: 4 },
+  ];
+  const strokes = [
+    { brushType: model.BrushType.BrushDown, brushDuration: 361 },
+    { brushType: model.BrushType.BrushUp, brushDuration: 60 },
+    { brushType: model.BrushType.ArpeggioDown, brushDuration: 111 },
+    {
+      brushType: model.BrushType.ArpeggioUp,
+      brushDuration: 720,
+      pickStroke: model.PickStroke.Down,
+    },
+    { pickStroke: model.PickStroke.Down },
+    { pickStroke: model.PickStroke.Up },
+    { brushType: model.BrushType.ArpeggioDown },
+    { pickStroke: model.PickStroke.Up, notes: [chord[0]] },
+  ];
+  const score = sustainScore(
+    [strokes.slice(0, 4), strokes.slice(4)].map((measure) => [
+      measure.map((stroke) => ({
+        duration: model.Duration.Quarter,
+        notes: chord,
+        ...stroke,
+      })),
+    ]),
+  );
+  score.masterBars[0].tempoAutomations.push(
+    model.Automation.buildTempoAutomation(false, 0, 120, 2),
+    model.Automation.buildTempoAutomation(false, 0.5, 90, 2),
+  );
+
+  const bytes = new exporter.Gp7Exporter().export(score);
+  const parsed = readGuitarProScore(bytes, "strums.gp");
+  const result = convert(parsed);
+  const notes = columns(result.document).filter((c) => c.type === "note");
+  assert.deepEqual(
+    notes.map((note) => note.chordEffects),
+    ["v", "^", "v~", "^~", "v", "^", "v~", ""],
+  );
+  assert.deepEqual(
+    notes.map((note) => note.strumSpreadAuto),
+    [false, false, false, false, true, true, true, false],
+  );
+  assert.ok(
+    result.warnings.some((warning) =>
+      /without a defined duration/.test(warning),
+    ),
+  );
+
+  const attacks = [];
+  const handler = new Proxy(
+    {
+      addNote(_track, start, _length, key) {
+        attacks.push({ start, key });
+      },
+    },
+    { get: (handler, key) => handler[key] ?? (() => {}) },
+  );
+  new midi.MidiFileGenerator(parsed, new Settings(), handler).generate();
+  for (const [i, tempo] of [120, 120, 90, 90].entries()) {
+    const midiAttacks = attacks
+      .slice(i * chord.length, (i + 1) * chord.length)
+      .sort((a, b) => a.start - b.start);
+    const spreadTicks = midiAttacks.at(-1).start - midiAttacks[0].start;
+    const spread = Number(tabNoteToArray(notes[i])[10]);
+    assert.ok(Math.abs(spread - (spreadTicks * 60) / (960 * tempo)) < 1e-9);
+    assert.deepEqual(
+      midiAttacks.map((attack) => attack.key),
+      i % 2 === 0 ? [42, 53, 68] : [68, 53, 42],
+    );
+  }
+  assert.deepEqual(
+    notes.slice(4).map((note) => tabNoteToArray(note)[10]),
+    ["auto", "auto", "auto", ""],
+  );
+  console.log(
+    "PASS strums: GP file bytes preserve direction, arpeggiation and MIDI attack spread through audio compilation",
+  );
+}
+
+{
   const score = sustainScore([
     [
       [

@@ -12,10 +12,10 @@ import {
   parsePalmMuteSettings,
 } from "~/utils/palmMuteAudio";
 import {
-  calculateAutomaticStrumSpreadSeconds,
   chordEffectCharsForNoteAudio,
+  isStrumEffect,
   parseCompiledStrumSpread,
-  remapStrumSpreadForType,
+  resolveEffectiveStrumSpreadSeconds,
 } from "~/utils/strumEffectHelpers";
 
 export type StoppablePlaybackNode = { stop(when?: number): void };
@@ -146,8 +146,8 @@ function resolveChordDelayMultiplier({
   bpm: number;
   forTuningPreview?: boolean;
 }): number {
-  const effects = currColumn[7] ?? "";
-  if (!effects.includes("v") && !effects.includes("^")) {
+  const effects = currColumn[7];
+  if (!isStrumEffect(effects)) {
     return 0;
   }
 
@@ -155,27 +155,16 @@ function resolveChordDelayMultiplier({
     return TUNING_PREVIEW_NOTE_DELAY_SECONDS;
   }
 
-  const compiledSpread = parseCompiledStrumSpread(currColumn[10]);
-  const arpeggiated = effects.includes("~");
-  const strumQuickly = effects.includes(">") || effects.includes(".");
-
-  let totalSpreadSeconds: number;
-  if (compiledSpread.mode === "manual") {
-    totalSpreadSeconds = remapStrumSpreadForType(
-      compiledSpread.seconds,
-      arpeggiated,
-    );
-  } else {
-    // "auto" or missing slot (legacy compiled columns)
-    totalSpreadSeconds = calculateAutomaticStrumSpreadSeconds(
-      bpm,
-      arpeggiated,
-      strumQuickly,
-    );
-  }
-
   const soundedNotes = countSoundedStrumNotes(currColumn);
   if (soundedNotes <= 1) return 0;
+
+  const spread = parseCompiledStrumSpread(currColumn[10]);
+  const totalSpreadSeconds = resolveEffectiveStrumSpreadSeconds({
+    effects,
+    bpm,
+    strumSpreadAuto: spread.mode !== "manual",
+    strumSpreadSeconds: spread.mode === "manual" ? spread.seconds : undefined,
+  });
   return totalSpreadSeconds / (soundedNotes - 1);
 }
 

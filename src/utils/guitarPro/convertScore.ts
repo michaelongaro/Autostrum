@@ -12,6 +12,7 @@ import type { ImportPreview, ImportTrack } from "./types";
 
 const MAX_MEASURES = 4000;
 const MAX_COLUMNS = 30000;
+const TICKS_PER_QUARTER = 960;
 // alphaTab numbers strings low-to-high. Autostrum stores note rows top-to-bottom
 // (firstString is high E), although its tuning metadata is still low-to-high.
 const stringKeys = [
@@ -121,7 +122,7 @@ export function getMeasureOrder(bars: model.MasterBar[]): number[] {
 }
 
 function nearestLength(ticks: number, warnings: Set<string>): FullNoteLengths {
-  const quarters = ticks / 960;
+  const quarters = ticks / TICKS_PER_QUARTER;
   let best = lengths[0]!;
   for (const length of lengths)
     if (Math.abs(length[1] - quarters) < Math.abs(best[1] - quarters))
@@ -459,24 +460,62 @@ export function convertScore(
         if (!sounding.every((note) => note.isPalmMute))
           column.palmMuteSettings = { strings: mutedStrings };
       }
-      for (const beat of new Set(sounding.map((note) => note.beat))) {
-        if (beat.isLetRing)
-          warnings.add("Let-ring notes use the editor’s normal sustain.");
-        if (beat.brushType !== model.BrushType.None) {
-          const down =
-            beat.brushType === model.BrushType.BrushDown ||
-            beat.brushType === model.BrushType.ArpeggioDown;
-          column.chordEffects = down ? "v" : "^";
-          if (
-            beat.brushType === model.BrushType.ArpeggioDown ||
-            beat.brushType === model.BrushType.ArpeggioUp
-          )
-            column.chordEffects += "~";
-          column.strumSpreadAuto = true;
+      const soundingBeats = beats.filter((beat) =>
+        sounding.some((note) => note.beat === beat),
+      );
+      const brushedBeat = soundingBeats.find(
+        (beat) => beat.brushType !== model.BrushType.None,
+      );
+      const strumBeat =
+        brushedBeat ??
+        soundingBeats.find(
+          (beat) =>
+            beat.pickStroke !== model.PickStroke.None &&
+            sounding.filter((note) => note.beat === beat).length > 1,
+        );
+      if (strumBeat) {
+        const { brushType, brushDuration, pickStroke } = strumBeat;
+        const down = brushedBeat
+          ? brushType === model.BrushType.BrushDown ||
+            brushType === model.BrushType.ArpeggioDown
+          : pickStroke === model.PickStroke.Down;
+        const arpeggiated =
+          brushType === model.BrushType.ArpeggioDown ||
+          brushType === model.BrushType.ArpeggioUp;
+        column.chordEffects = `${down ? "v" : "^"}${arpeggiated ? "~" : ""}`;
+        column.strumSpreadAuto =
+          !brushedBeat || !Number.isFinite(brushDuration) || brushDuration <= 0;
+
+        if (!column.strumSpreadAuto) {
+          // Match alphaTab's MIDI onset spacing, which divides the total
+          // duration into whole-tick gaps between freshly attacked strings.
+          const sourceGaps =
+            strumBeat.notes.filter((note) => !note.isTieDestination).length - 1;
+          const importedGaps =
+            sounding.filter((note) => note.beat === strumBeat).length - 1;
+          const spreadTicks =
+            Math.trunc(brushDuration / Math.max(1, sourceGaps)) * importedGaps;
+          const lastAttack = Math.min(
+            spreadTicks,
+            Math.max(0, strumBeat.playbackDuration - 1),
+          );
+          column.strumSpreadSeconds =
+            (lastAttack / TICKS_PER_QUARTER) * (60 / currentTempo);
+          if (lastAttack < spreadTicks)
+            warnings.add("Strums longer than their beat are shortened to fit.");
+        } else if (brushedBeat && sounding.length > 1) {
           warnings.add(
-            "Brush and arpeggio directions use Autostrum’s automatic strum timing.",
+            "Brushes or arpeggios without a defined duration use automatic strum timing.",
           );
         }
+        if (soundingBeats.length > 1)
+          warnings.add(
+            "When voices play together, one strum direction and duration apply to the combined notes.",
+          );
+      }
+      for (const beat of soundingBeats) {
+        if (beat.isLetRing)
+          warnings.add("Let-ring notes use the editor’s normal sustain.");
         if (beat.vibrato !== model.VibratoType.None || beat.hasWhammyBar) {
           for (const key of stringKeys)
             if (/^\d+$/.test(column[key])) column[key] += "~";

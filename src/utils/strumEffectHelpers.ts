@@ -160,11 +160,16 @@ export function resolveEffectiveStrumSpreadSeconds({
     Boolean(effects?.includes(">")) || Boolean(effects?.includes("."));
   const auto = strumSpreadAuto ?? true;
 
-  if (auto || strumSpreadSeconds === null || strumSpreadSeconds === undefined) {
+  if (
+    auto ||
+    strumSpreadSeconds == null ||
+    !Number.isFinite(strumSpreadSeconds)
+  ) {
     return calculateAutomaticStrumSpreadSeconds(bpm, arpeggiated, strumQuickly);
   }
 
-  return remapStrumSpreadForType(strumSpreadSeconds, arpeggiated);
+  // Authored durations can fall outside the editor's slider range.
+  return Math.max(0, strumSpreadSeconds);
 }
 
 /** Encode for compiled playback column slot [10]. */
@@ -180,13 +185,15 @@ export function encodeStrumSpreadForCompile({
   if (!isStrumEffect(effects)) return "";
 
   const auto = strumSpreadAuto ?? true;
-  if (auto || strumSpreadSeconds === null || strumSpreadSeconds === undefined) {
+  if (
+    auto ||
+    strumSpreadSeconds == null ||
+    !Number.isFinite(strumSpreadSeconds)
+  ) {
     return "auto";
   }
 
-  return String(
-    remapStrumSpreadForType(strumSpreadSeconds, isArpeggiatedStrum(effects)),
-  );
+  return String(Math.max(0, strumSpreadSeconds));
 }
 
 export function parseCompiledStrumSpread(

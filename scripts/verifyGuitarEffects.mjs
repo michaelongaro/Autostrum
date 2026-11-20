@@ -626,6 +626,33 @@ test("Muted strings occupy their correct position in a strum", () => {
   phrase(env, [chord]);
   assert.ok(sampleNodes(env)[1].startedAt > sampleNodes(env)[0].startedAt);
 });
+
+test("Explicit chord spreads preserve attack timing and direction outside slider bounds", () => {
+  for (const [chordEffects, spread] of [
+    ["v", 0.25],
+    ["^~", 0.025],
+    ["v~", 0],
+  ]) {
+    const env = setup();
+    const chord = column("5", { chordEffects });
+    chord[3] = "4";
+    chord[6] = "3";
+    chord[10] = String(spread);
+    const startTime = 0.2;
+    phrase(env, [chord], { startTime });
+    const direction = chordEffects.startsWith("v") ? [5, 2, 0] : [0, 2, 5];
+    const samples = sampleNodes(env);
+    assert.deepEqual(
+      samples,
+      direction.map((index) => env.strings[index]),
+    );
+    assert.deepEqual(
+      samples.map((node) => node.startedAt),
+      [startTime, startTime + spread / 2, startTime + spread],
+    );
+  }
+});
+
 test("Entry slides and upper-fret bends include capo in their target", () => {
   for (const note of ["/5", "20b"]) {
     const env = setup();

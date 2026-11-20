@@ -15,7 +15,7 @@ Parsing and conversion run in a lazily loaded browser worker. The original file 
 
 ## Conversion
 
-Preserves title, artist in the artist combobox, album in the description, tuning, capo, section markers, measure boundaries, ordinary frets, rests, supported dotted rhythms, dead notes, vibrato, adjacent hammer-ons/pull-offs/slides, palm muting, brush direction and tempo changes. Repeats and alternate endings expand into editable measures. Users still choose a genre and review before publishing.
+Preserves title, artist in the artist combobox, album in the description, tuning, capo, section markers, measure boundaries, ordinary frets, rests, supported dotted rhythms, dead notes, vibrato, adjacent hammer-ons/pull-offs/slides, palm muting, brush and arpeggio direction and duration, and tempo changes. Repeats and alternate endings expand into editable measures. Users still choose a genre and review before publishing.
 
 When importing, the artist name is trimmed and matched case-insensitively against existing artists. Matches retain the saved ID, canonical spelling and verification status. Otherwise the name becomes a new artist entry in the combobox, created in the database on publication using the existing flow. A failed lookup leaves the draft untouched and allows retrying; canceling a pending lookup prevents it from replacing the draft.
 
@@ -35,7 +35,7 @@ Each import reports the relevant adjustments before applying them:
 | Multiple note effects | Prefer an adjacent transition, vibrato, accent, then staccato. |
 | Slide-ins and pick slides | Ordinary fretted note. |
 | Partial palm muting | Preserve the muted strings in playback metadata; isolated muted notes use a short mute line. The editor's mute line still marks the column. |
-| Brush/arpeggio speed | Automatic Autostrum strum timing. |
+| Strum timing | Brushes and arpeggios with a defined duration use their source spacing at the imported tempo. Strums that extend past their source beat are shortened. Chord pickstrokes and strokes without a duration use automatic timing. A merged voice onset shares one strum across the column. |
 | Let ring | Normal editor sustain. |
 | Mid-measure tempo | Step at the next note boundary, shown with a measure line. |
 | Gradual tempo ramps | Stepped changes; BPM rounded and limited to 1–400. |

@@ -21,6 +21,7 @@ import {
   getStrumSpreadMarkValues,
   isArpeggiatedStrum,
   remapStrumSpreadForType,
+  resolveEffectiveStrumSpreadSeconds,
 } from "~/utils/strumEffectHelpers";
 
 interface StrumSettingsDropdownProps {
@@ -60,9 +61,13 @@ function StrumSettingsDropdown({
     arpeggiated,
     strumQuickly,
   );
-  const displayValue = strumSpreadAuto
-    ? autoValue
-    : remapStrumSpreadForType(strumSpreadSeconds ?? autoValue, arpeggiated);
+  const displayValue = resolveEffectiveStrumSpreadSeconds({
+    effects,
+    bpm,
+    strumSpreadAuto,
+    strumSpreadSeconds,
+  });
+  const sliderValue = Math.max(min, Math.min(max, displayValue));
   const markValues = getStrumSpreadMarkValues(arpeggiated);
   const step = 0.01;
 
@@ -116,7 +121,7 @@ function StrumSettingsDropdown({
             step={step}
             min={min}
             max={max}
-            values={[displayValue]}
+            values={[sliderValue]}
             disabled={strumSpreadAuto}
             onChange={(values) => {
               const next = values[0];
@@ -161,7 +166,7 @@ function StrumSettingsDropdown({
                     height: "8px",
                     width: "100%",
                     background: getTrackBackground({
-                      values: [displayValue],
+                      values: [sliderValue],
                       colors: ["hsl(var(--primary))", "hsl(var(--gray) / 0.5)"],
                       min,
                       max,
