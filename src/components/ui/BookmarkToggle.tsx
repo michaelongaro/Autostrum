@@ -1,5 +1,7 @@
 import { usePathname } from "next/navigation";
 
+import { useMediaQuery } from "@react-hookz/web";
+import { motion } from "framer-motion";
 import { useState } from "react";
 import {
   Popover,
@@ -9,6 +11,7 @@ import {
 import { IoBookmarkOutline, IoBookmark } from "react-icons/io5";
 import type { UserMetadata } from "~/server/api/routers/user";
 import { api } from "~/utils/api";
+import { cn } from "~/utils/cn";
 import { Button } from "./button";
 import type { InfiniteQueryParams } from "~/server/api/routers/search";
 
@@ -36,6 +39,8 @@ function BookmarkToggle({
   const [showUnregisteredPopover, setShowUnregisteredPopover] = useState(false);
   const [unregisteredPopoverTimeoutId, setUnregisteredPopoverTimeoutId] =
     useState<NodeJS.Timeout | null>(null);
+  const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const animateFill = isBookmarked && !reduceMotion;
 
   const asPath = usePathname();
   const ctx = api.useUtils();
@@ -213,29 +218,66 @@ function BookmarkToggle({
               }
             }}
           >
-            <span className="baseFlex gap-2">
-              <span
-                aria-hidden="true"
-                className="relative h-[18px] w-[18px] shrink-0 md:h-5 md:w-5"
-              >
-                <IoBookmarkOutline className="absolute inset-0 size-full" />
-                <span
-                  className="absolute inset-0 transition-[clip-path] duration-300 motion-reduce:transition-none"
-                  style={{
-                    clipPath: isBookmarked
-                      ? "inset(0 0 0 0)"
-                      : "inset(0 0 100% 0)",
-                    transitionTimingFunction: "ease-in-out",
-                  }}
-                >
-                  <IoBookmark className="size-full" />
-                </span>
-              </span>
+            <span aria-hidden="true" className="grid place-items-center">
               {showText && (
-                <span className="hidden md:block">
-                  {isBookmarked ? "Bookmarked" : "Bookmark"}
+                // Reserve room for the full label, the desktop icon, and the gap.
+                <span className="invisible col-start-1 row-start-1 hidden whitespace-nowrap pl-7 md:block">
+                  Bookmark<span className="inline-block">ed</span>
                 </span>
               )}
+              <span className="baseFlex col-start-1 row-start-1 gap-2">
+                <motion.span
+                  className="relative size-[18px] shrink-0 md:size-5"
+                  initial={false}
+                  animate={{
+                    scale: animateFill ? [null, 0.95, 1.11, 0.99, 1] : 1,
+                  }}
+                  transition={
+                    animateFill
+                      ? {
+                          duration: 0.42,
+                          times: [0, 0.16, 0.57, 0.82, 1],
+                          ease: "easeOut",
+                        }
+                      : { duration: reduceMotion ? 0 : 0.15, ease: "easeOut" }
+                  }
+                >
+                  <IoBookmarkOutline className="absolute inset-0 size-full" />
+                  <span
+                    className="absolute inset-0 transition-[clip-path] duration-300 motion-reduce:transition-none"
+                    style={{
+                      clipPath: isBookmarked
+                        ? "inset(0 0 0 0)"
+                        : "inset(0 0 100% 0)",
+                      transitionTimingFunction: "ease-in-out",
+                    }}
+                  >
+                    <IoBookmark className="size-full" />
+                  </span>
+                </motion.span>
+                {showText && (
+                  <span className="hidden whitespace-nowrap md:block">
+                    Bookmark
+                    <span
+                      className={cn(
+                        "motion-safe:ease-out inline-grid motion-safe:transition-[grid-template-columns] motion-safe:duration-200",
+                        isBookmarked ? "grid-cols-[1fr]" : "grid-cols-[0fr]",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "motion-safe:ease-out min-w-0 text-start motion-safe:transition-[opacity,transform,filter] motion-safe:duration-200",
+                          isBookmarked
+                            ? "opacity-100"
+                            : "opacity-0 motion-safe:translate-x-1 motion-safe:blur-[1.5px]",
+                        )}
+                      >
+                        ed
+                      </span>
+                    </span>
+                  </span>
+                )}
+              </span>
             </span>
           </Button>
         }
