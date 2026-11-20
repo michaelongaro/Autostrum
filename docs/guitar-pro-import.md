@@ -1,6 +1,6 @@
 # Guitar Pro import
 
-On `/create`, **Import** sits beside Preview and Publish. It opens a desktop dialog or mobile drawer titled **Import a Guitar Pro tab**. Preview and Publish stay together at the top right; Import sits to the left of Preview when space permits, otherwise right-aligned below Publish. Users can drop or browse for one file, select a fretted track/staff, review the conversion report, and import. Replacing a draft is one undoable action. Importing does not publish the tab.
+On `/create` and `/tab/[id]/edit`, **Import** sits next to the Preview and Publish or Save controls when space permits. It opens a desktop dialog or mobile drawer titled **Import a Guitar Pro tab**. Users can drop or browse for one file, select a fretted track or staff, and import. Replacing a draft is one undoable action. Use Publish to create a new tab or Save to update the existing tab after reviewing the import.
 
 ## Formats and processing
 

@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { exporter, importer } from "@coderline/alphatab/core";
 import { test, expect } from "@playwright/test";
 import { clerk, clerkSetup } from "@clerk/testing/playwright";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -60,9 +62,7 @@ test.afterAll(async () => {
   await db?.$disconnect();
 });
 
-test("publish a tab, verify persistence, delete it, verify removal", async ({
-  page,
-}) => {
+test("publish a tab, import into it, and delete it", async ({ page }) => {
   console.info(`Tab lifecycle fixture: ${title}`);
 
   await test.step("Sign in to the existing, onboarded test account", async () => {
@@ -130,8 +130,90 @@ test("publish a tab, verify persistence, delete it, verify removal", async ({
     await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
   });
 
-  await test.step("Delete through the editor confirmation dialog", async () => {
+  await test.step("Import a Guitar Pro track into the existing tab", async () => {
+    const score = importer.ScoreLoader.loadScoreFromBytes(
+      new Uint8Array(
+        readFileSync(
+          new URL(
+            "../fixtures/guitar-pro/guitarpro7-notes.gp",
+            import.meta.url,
+          ),
+        ),
+      ),
+    );
+    // Keep cleanup scoped to this test's unique tab title and owner.
+    score.title = title;
+    score.artist = "";
+    const file = {
+      name: "replacement.gp",
+      mimeType: "application/octet-stream",
+      buffer: Buffer.from(new exporter.Gp7Exporter().export(score)),
+    };
+
     await page.goto(`/tab/${tabId}/edit`);
+    const importTrigger = page.getByRole("button", {
+      name: "Import",
+      exact: true,
+    });
+    const dialog = page.getByRole("dialog", {
+      name: "Import a Guitar Pro tab",
+    });
+    const replace = dialog.getByRole("button", {
+      name: "Replace draft & import",
+    });
+    const firstString = page
+      .locator("#input-0-0-0-1")
+      .filter({ visible: true })
+      .first();
+    const fileInput = dialog.locator('input[type="file"]');
+
+    const desktopViewport = page.viewportSize()!;
+    await page.setViewportSize({ width: 390, height: desktopViewport.height });
+    await importTrigger.click();
+    await expect(dialog).toHaveAttribute("data-slot", "drawer-content");
+    await fileInput.setInputFiles(file);
+    await expect(replace).toBeEnabled();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(firstString).toHaveValue("3");
+
+    await page.setViewportSize(desktopViewport);
+    await importTrigger.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog).not.toHaveAttribute("data-slot", "drawer-content");
+    await fileInput.setInputFiles(file);
+    await replace.click();
+    await expect(dialog).toBeHidden();
+    const sixthString = page
+      .locator("#input-0-0-0-6")
+      .filter({ visible: true })
+      .first();
+    await expect(sixthString).toHaveValue("1");
+
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(firstString).toHaveValue("3");
+    await page.keyboard.press("ControlOrMeta+Shift+z");
+    await expect(sixthString).toHaveValue("1");
+
+    const published = await db.tab.findUniqueOrThrow({ where: { id: tabId } });
+    expect(JSON.stringify(published.tabData)).toContain('"firstString":"3"');
+    await page.getByLabel("Genre", { exact: false }).click();
+    await page.getByRole("option", { name: "Rock", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect
+      .poll(async () => {
+        const updated = await db.tab.findUniqueOrThrow({
+          where: { id: tabId },
+        });
+        return JSON.stringify(updated.tabData);
+      })
+      .toContain('"sixthString":"1"');
+    await expect(
+      page.getByRole("button", { name: "Save", exact: true }),
+    ).toBeEnabled();
+  });
+
+  await test.step("Delete through the editor confirmation dialog", async () => {
     await page
       .getByRole("button", {
         name: "Miscellaneous tab actions dropdown trigger",

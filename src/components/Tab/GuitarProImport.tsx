@@ -185,6 +185,7 @@ export default function GuitarProImport() {
 
   const replacesDraft =
     open && !isDefaultTabDocument(getTabDocument(store.getState()));
+  const isPublishedTab = store.getState().id !== -1;
 
   async function importTrack() {
     if (!preview || applying) return;
@@ -378,9 +379,8 @@ export default function GuitarProImport() {
         </SurfaceContent>
       </Surface>
       <span className="sr-only" role="status">
-        {imported
-          ? "Guitar Pro track imported. Review your tab and choose a genre before publishing."
-          : ""}
+        {imported &&
+          `Guitar Pro track imported. Review your tab and choose a genre before ${isPublishedTab ? "saving" : "publishing"}.`}
       </span>
     </>
   );
