@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { FaBook } from "react-icons/fa";
 import { HiOutlineInformationCircle, HiOutlineLightBulb } from "react-icons/hi";
 import { IoMdSettings } from "react-icons/io";
@@ -47,7 +48,11 @@ import useSpacebarAudioControl from "~/hooks/useSpacebarAudioControl";
 import { useSectionIds } from "~/hooks/useTabDataSelectors";
 import { useTabEditorHistory } from "~/hooks/useTabEditorHistory";
 import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
-import { useTabStoreShallow, useTabStoreApi } from "~/stores/TabStore";
+import {
+  useTabStoreShallow,
+  useTabStoreApi,
+  type TabDocument,
+} from "~/stores/TabStore";
 import { cn } from "~/utils/cn";
 import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 import Chords from "./Chords";
@@ -67,6 +72,7 @@ function Tab() {
   const [settingsPopoverIsOpen, setSettingsPopoverIsOpen] = useState(false);
   const [showPinnedChords, setShowPinnedChords] = useState(false);
   const [pressingOnZoomSlider, setPressingOnZoomSlider] = useState(false);
+  const [importRevision, setImportRevision] = useState(0);
 
   const prefersReducedMotion = useReducedMotion();
 
@@ -136,7 +142,7 @@ function Tab() {
     showPinnedChordsBar,
   });
 
-  useAutoCompileChords();
+  const flushCompilation = useAutoCompileChords();
   useSpacebarAudioControl({ useHoveredChordLocation: true });
   useTabEditorHistory(isPublishingOrUpdating);
 
@@ -147,6 +153,16 @@ function Tab() {
       setTabContentIsInView(inView);
     },
   });
+
+  function importTab(document: TabDocument) {
+    flushSync(() => {
+      store.getState().importDocument(document);
+      flushCompilation();
+      // Replace the section list in one commit so a bulk import does not
+      // animate out the old sections or expand each new section from scratch.
+      setImportRevision((revision) => revision + 1);
+    });
+  }
 
   function addNewSection() {
     const newSectionId = crypto.randomUUID();
@@ -183,7 +199,10 @@ function Tab() {
           isPublishingOrUpdating && "pointer-events-none brightness-90",
         )}
       >
-        <TabMetadata setIsPublishingOrUpdating={setIsPublishingOrUpdating} />
+        <TabMetadata
+          setIsPublishingOrUpdating={setIsPublishingOrUpdating}
+          importTab={importTab}
+        />
 
         <Separator
           className={`mt-2 bg-border ${editing ? "w-[calc(100%-16px)] md:w-[calc(100%-56px)]" : "h-px w-[calc(100%-16px)] w-full lg:mb-4 lg:h-[2px] lg:w-[calc(100%-56px)]"}`}
@@ -271,7 +290,7 @@ function Tab() {
             )}
           >
             {editing ? (
-              <AnimatePresence initial={false}>
+              <AnimatePresence key={importRevision} initial={false}>
                 {sectionIds.map((sectionId, index) => (
                   <motion.div
                     key={sectionId}

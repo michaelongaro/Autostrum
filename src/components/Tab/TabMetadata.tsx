@@ -66,7 +66,11 @@ import {
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
-import { useTabDataGetter, useTabStoreShallow } from "~/stores/TabStore";
+import {
+  useTabDataGetter,
+  useTabStoreShallow,
+  type TabDocument,
+} from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
 import { genreColors } from "~/utils/genreColors";
@@ -98,9 +102,10 @@ const difficultyDescriptions = [
 
 type TabMetadata = {
   setIsPublishingOrUpdating: Dispatch<SetStateAction<boolean>>;
+  importTab: (document: TabDocument) => void;
 };
 
-function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
+function TabMetadata({ setIsPublishingOrUpdating, importTab }: TabMetadata) {
   const getTabData = useTabDataGetter();
   const draftActions = useDraftActions();
   const { userId } = useAuth();
@@ -611,7 +616,7 @@ function TabMetadata({ setIsPublishingOrUpdating }: TabMetadata) {
             )}
 
             <div className="flex shrink-0">
-              <GuitarProImport />
+              <GuitarProImport importTab={importTab} />
             </div>
 
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">

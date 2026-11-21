@@ -103,7 +103,9 @@ try {
     grid
       .locator(":scope > div")
       .filter({ has: page.getByText(title, { exact: true }) });
-  await expect(grid.locator(":scope > div")).toHaveCount(tabs.length);
+  await expect(grid.locator(":scope > div")).toHaveCount(tabs.length, {
+    timeout: 30_000,
+  });
   for (const title of ["Missing images", "Storage failure"]) {
     await expect(card(title).getByRole("status")).toHaveText(
       "Preview unavailable",
@@ -131,10 +133,21 @@ try {
   await expect(card("Pending JPEG").getByRole("status")).toHaveCount(0);
 
   // A revisit must retry missing assets, since capture may have completed later.
+  const retainedMask = await card("Masks without JPEG")
+    .locator('[data-screenshot-renderer="masks"]')
+    .elementHandle();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   repaired = true;
   await page.getByRole("button", { name: "Table view", exact: true }).click();
-  await expect(grid).toHaveCount(0);
+  await expect(grid).toBeHidden();
   await page.getByRole("button", { name: "Grid view", exact: true }).click();
+  assert.equal(
+    await card("Masks without JPEG")
+      .locator('[data-screenshot-renderer="masks"]')
+      .evaluate((element, previous) => element === previous, retainedMask),
+    true,
+    "switching layouts keeps the decoded screenshot mounted",
+  );
   for (const { title } of tabs) {
     await expect(card(title).locator(".pulseAnimation")).toHaveCount(0);
     await expect(card(title).getByRole("status")).toHaveCount(0);

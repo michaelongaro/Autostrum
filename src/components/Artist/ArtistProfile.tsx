@@ -1,8 +1,8 @@
 import { useRouter } from "next/navigation";
 import { useRouteLocation } from "~/hooks/useRouteLocation";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect } from "react";
 import { BsMusicNoteBeamed } from "react-icons/bs";
 import { FaEye } from "react-icons/fa";
 import SearchResults from "~/components/Search/SearchResults";
@@ -11,57 +11,46 @@ import Verified from "~/components/ui/icons/Verified";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { api } from "~/utils/api";
+import { decodeRouteSegment } from "~/utils/decodeRouteSegment";
+import { formatNumber } from "~/utils/formatNumber";
 import getDynamicFontSize from "~/utils/getDynamicFontSize";
 
-interface ArtistProfile {
-  uniqueKey: string;
-}
+function ArtistProfile({ uniqueKey }: { uniqueKey: string }) {
+  const { pathname, query } = useRouteLocation();
+  const router = useRouter();
+  const utils = api.useContext();
+  // The pathname preserves the original segment encoding, so decode only once.
+  const name = decodeRouteSegment(pathname.split("/")[2] ?? "");
+  const id = query.id ? Number(query.id) : undefined;
 
-function ArtistProfile({ uniqueKey }: ArtistProfile) {
-  const { query } = useRouteLocation();
-  const { replace } = useRouter();
-
-  const [artistHasBeenFound, setArtistHasBeenFound] = useState(false);
-
-  const { data: artist, isFetching: isFetchingArtist } =
-    api.artist.getByNameAndOrId.useQuery(
-      {
-        id: query.id ? parseInt(query.id as string) : undefined,
-        name: query.name ? (query.name as string) : undefined,
-      },
-      {
-        enabled:
-          (query.id !== undefined || query.name !== undefined) &&
-          !artistHasBeenFound, // do not want to refetch upon history.replaceState() below
-      },
-    );
+  const { data: artist, isError } = api.artist.getByNameAndOrId.useQuery(
+    { id, name },
+    { enabled: id !== undefined || Boolean(name) },
+  );
+  const loading = artist === undefined && !isError;
 
   const { data: relatedArtists, isFetching: isFetchingRelatedArtists } =
-    api.search.getRelatedArtistsByName.useQuery(
-      query.name ? (query.name as string) : "",
-      {
-        enabled: artist === null, // only fetch once initial query is complete and has no results
-      },
-    );
+    api.search.getRelatedArtistsByName.useQuery(name, {
+      enabled: artist === null,
+    });
 
   const isAboveMediumViewportWidth = useViewportWidthBreakpoint(768);
 
   useEffect(() => {
-    setArtistHasBeenFound(Boolean(artist));
-  }, [artist]);
+    if (!artist || !name || id !== undefined) return;
 
-  useEffect(() => {
-    if (!artist) return;
-
+    // The canonical route can render the same artist immediately during navigation.
+    utils.artist.getByNameAndOrId.setData({ id: artist.id, name }, artist);
     const currentUrl = new URL(window.location.href);
+    currentUrl.pathname = `/artist/${encodeURIComponent(name)}/${artist.id}/filters`;
+    router.replace(currentUrl.pathname + currentUrl.search, { scroll: false });
+  }, [artist, id, name, router, utils]);
 
-    // if the id is not present in the url, add it after the name parameter
-    // (used to limit search results to this specific artist)
-    if (query.name && !query.id) {
-      currentUrl.pathname = `/artist/${encodeURIComponent(query.name as string)}/${artist.id}/filters`;
-      replace(currentUrl.pathname + currentUrl.search, { scroll: false });
-    }
-  }, [artist, query, replace]);
+  const displayName = artist?.name ?? name;
+  const stats = [
+    { label: "Song", Icon: BsMusicNoteBeamed, value: artist?.totalTabs ?? 0 },
+    { label: "View", Icon: FaEye, value: artist?.totalViews ?? 0 },
+  ];
 
   return (
     <motion.div
@@ -73,113 +62,66 @@ function ArtistProfile({ uniqueKey }: ArtistProfile) {
       className={`${styles.pageShell} baseVertFlex my-12 min-h-[650px] !justify-start md:my-24 md:p-0`}
     >
       <div className="baseVertFlex w-full gap-4">
-        <AnimatePresence mode="popLayout">
-          {isFetchingArtist ? (
-            <motion.div
-              key={"artistMetadataLoading"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="baseVertFlex w-full !items-start gap-2 px-4 md:!flex-row md:!items-end md:!justify-between md:px-0"
+        <div
+          aria-busy={loading}
+          className="baseVertFlex w-full !items-start gap-2 px-4 md:!flex-row md:!items-end md:!justify-between md:px-0"
+        >
+          <div className="baseVertFlex min-w-0 max-w-full !items-start gap-1 sm:gap-0">
+            <div className="baseFlex h-6 gap-2">
+              Artist
+              {artist?.isVerified && <Verified className="size-5" />}
+            </div>
+            <h1
+              title={displayName}
+              style={{
+                fontSize: getDynamicFontSize(
+                  displayName,
+                  isAboveMediumViewportWidth ? 26 : 20,
+                  isAboveMediumViewportWidth ? 36 : 30,
+                  50,
+                ),
+              }}
+              className="h-10 max-w-full truncate font-semibold leading-10 tracking-tight md:h-12 md:leading-[48px]"
             >
-              <div className="baseVertFlex !items-start gap-1 sm:gap-0">
-                <div className="baseFlex h-6 gap-1 text-primary">Artist</div>
+              {displayName}
+            </h1>
+          </div>
 
-                <div className="pulseAnimation h-[45px] w-36 rounded-md md:h-[54px]"></div>
-              </div>
-
-              <div className="baseFlex gap-4 font-medium sm:text-lg">
-                <div className="baseFlex">
-                  <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <div className="pulseAnimation ml-3 mr-2 h-5 w-8 rounded-md"></div>
-                  <span>Songs</span>
-                </div>
-
-                <Separator
-                  orientation="vertical"
-                  className="h-6 w-[1px] bg-foreground/50"
-                />
-
-                <div className="baseFlex">
-                  <FaEye className="size-4 sm:size-5" />
-                  <div className="pulseAnimation ml-3 mr-2 h-5 w-10 rounded-md"></div>
-                  <span>Views</span>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key={"artistMetadataLoaded"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="baseVertFlex w-full !items-start gap-2 px-4 md:!flex-row md:!items-end md:!justify-between md:px-0"
-            >
-              <div className="baseVertFlex !items-start gap-1 text-foreground sm:gap-0">
-                <div className="baseFlex h-6 gap-2">
-                  {artist && artist.isVerified && (
-                    <Verified className="mb-[1px] size-5" />
-                  )}
-                  Artist
-                </div>
-
-                <h1
-                  style={{
-                    fontSize: getDynamicFontSize(
-                      artist ? artist.name : (query.name as string),
-                      isAboveMediumViewportWidth ? 26 : 20,
-                      isAboveMediumViewportWidth ? 36 : 30,
-                      50,
-                    ),
-                  }}
-                  className="baseFlex font-semibold tracking-tight"
-                >
-                  {artist ? artist.name : query.name}
-                </h1>
-              </div>
-
-              <div className="baseFlex gap-4 font-medium sm:text-lg">
-                <div className="baseFlex">
-                  <BsMusicNoteBeamed className="size-4 sm:size-5" />
-                  <span className="ml-3 mr-2">
-                    {artist ? artist.totalTabs : 0}
+          <div className="baseFlex h-7 shrink-0 gap-2 font-medium sm:gap-4 sm:text-lg">
+            {stats.map(({ label, Icon, value }, index) => (
+              <Fragment key={label}>
+                {index > 0 && (
+                  <Separator
+                    orientation="vertical"
+                    className="h-6 w-px bg-foreground/50"
+                  />
+                )}
+                <div className="baseFlex gap-2">
+                  <Icon aria-hidden="true" className="size-4 sm:size-5" />
+                  <span
+                    className="baseFlex w-[4ch] !justify-end tabular-nums"
+                    title={loading ? undefined : value.toLocaleString()}
+                  >
+                    {loading ? (
+                      <span
+                        aria-hidden="true"
+                        className="pulseAnimation h-5 w-full rounded-md"
+                      />
+                    ) : (
+                      formatNumber(value)
+                    )}
                   </span>
-                  <span>
-                    {artist
-                      ? artist.totalTabs === 1
-                        ? "Song"
-                        : "Songs"
-                      : "Songs"}
+                  <span className="w-[3.25rem]">
+                    {value === 1 ? label : `${label}s`}
                   </span>
                 </div>
-
-                <Separator
-                  orientation="vertical"
-                  className="h-6 w-[1px] bg-foreground/50"
-                />
-
-                <div className="baseFlex">
-                  <FaEye className="size-4 sm:size-5" />
-                  <span className="ml-3 mr-2">
-                    {artist ? artist.totalViews : 0}
-                  </span>
-                  <span>
-                    {artist
-                      ? artist.totalViews === 1
-                        ? "View"
-                        : "Views"
-                      : "Views"}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </Fragment>
+            ))}
+          </div>
+        </div>
 
         <SearchResults
-          isFetchingArtistId={isFetchingArtist}
+          isFetchingArtistId={loading || (Boolean(artist) && id === undefined)}
           relatedArtists={relatedArtists}
           isFetchingRelatedArtists={isFetchingRelatedArtists}
         />

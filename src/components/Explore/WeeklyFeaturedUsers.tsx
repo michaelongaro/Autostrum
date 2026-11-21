@@ -235,7 +235,7 @@ function WeeklyFeaturedUsers({
             aria-current={index === selectedIndex ? "true" : undefined}
             onClick={() => carouselApi?.scrollTo(index)}
             style={{ width: index === 0 ? "36px" : "12px", height: "12px" }}
-            className="relative overflow-hidden rounded-full bg-accent/50 !p-0 hover:bg-accent focus-visible:bg-accent/90 active:bg-accent/80"
+            className="relative shrink-0 overflow-hidden rounded-full bg-foreground/55 !p-0 hover:bg-foreground/70 aria-[current=true]:bg-foreground/60"
           >
             <div
               ref={(element) => {
@@ -247,7 +247,7 @@ function WeeklyFeaturedUsers({
                 transformOrigin: "left center",
                 opacity: index === 0 ? 1 : 0,
               }}
-              className="absolute left-0 top-0 z-10 h-full w-full rounded-full bg-accent"
+              className="pointer-events-none absolute inset-0 rounded-full bg-foreground"
             />
           </Button>
         ))}

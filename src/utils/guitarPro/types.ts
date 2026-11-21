@@ -22,8 +22,8 @@ export type ImportRequest =
 
 export type ImportResponse =
   | { type: "tracks"; tracks: ImportTrack[] }
-  | { type: "preview"; preview: ImportPreview }
-  | { type: "error"; message: string };
+  | { type: "preview"; trackId: string; preview: ImportPreview }
+  | { type: "error"; trackId?: string; message: string };
 
 export function validateGuitarProFile(file: { name: string; size: number }) {
   if (!/\.(gp[34578]?|gpx)$/i.test(file.name))

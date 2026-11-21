@@ -51,6 +51,7 @@ function getTabScreenshotCacheKey(
 }
 
 interface GridTabCard {
+  active?: boolean;
   minimalTab: MinimalTabRepresentation;
   currentUser: UserMetadata | null | undefined;
   color: COLORS;
@@ -63,6 +64,7 @@ interface GridTabCard {
 }
 
 function GridTabCard({
+  active = true,
   minimalTab,
   currentUser,
   color,
@@ -119,6 +121,25 @@ function GridTabCard({
   const [failedScreenshotCacheKey, setFailedScreenshotCacheKey] = useState<
     string | null
   >(null);
+  const [wasActive, setWasActive] = useState(active);
+  const [maskAttempt, setMaskAttempt] = useState(0);
+  const [jpegAttempt, setJpegAttempt] = useState(0);
+  if (active !== wasActive) {
+    setWasActive(active);
+    if (active) {
+      // Capture may have completed while in table view. Retry failed sources
+      // without remounting the renderer for any screenshot already on screen.
+      if (
+        maskState?.key === screenshotMaskCacheKey &&
+        maskState.status === "error"
+      ) {
+        setMaskAttempt(maskAttempt + 1);
+      }
+      if (failedScreenshotCacheKey === screenshotCacheKey) {
+        setJpegAttempt(jpegAttempt + 1);
+      }
+    }
+  }
   const gradientScreenshotLoaded =
     loadedTabScreenshotKeys.has(screenshotCacheKey) ||
     revealedScreenshotCacheKey === screenshotCacheKey;
@@ -289,7 +310,7 @@ function GridTabCard({
                   </defs>
                 </svg>
                 <TabScreenshotImage
-                  key={screenshotCacheKey}
+                  key={`${screenshotCacheKey}:${jpegAttempt}`}
                   eager={eagerScreenshot}
                   tabId={minimalTab.id}
                   theme={theme}
@@ -302,7 +323,7 @@ function GridTabCard({
                 />
                 {screenshotRenderer === "masks" && (
                   <TabScreenshotMasks
-                    key={getMaskAtlasSource(minimalTab.id, screenshotVersion)}
+                    key={`${getMaskAtlasSource(minimalTab.id, screenshotVersion)}:${maskAttempt}`}
                     tabId={minimalTab.id}
                     version={screenshotVersion}
                     width={getDynamicWidth()}

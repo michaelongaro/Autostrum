@@ -1,5 +1,5 @@
 import debounce from "lodash.debounce";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTabStore, useTabStoreApi } from "~/stores/TabStore";
 import {
   compileTabPlayback,
@@ -10,8 +10,13 @@ import {
 export default function useAutoCompileChords() {
   const store = useTabStoreApi();
   const editing = useTabStore((state) => state.editing);
+  const flush = useRef<(() => void) | null>(null);
   useEffect(() => {
     const run = debounce(() => compileTabPlayback(store), editing ? 1000 : 0);
+    flush.current = () => {
+      run.flush();
+      run.cancel();
+    };
     run();
     const unsubscribe = store.subscribe((state, previous) => {
       if (!playbackCompilationInputsChanged(state, previous)) return;
@@ -25,6 +30,9 @@ export default function useAutoCompileChords() {
     return () => {
       unsubscribe();
       run.cancel();
+      flush.current = null;
     };
   }, [editing, store]);
+
+  return () => flush.current?.();
 }

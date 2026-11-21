@@ -45,7 +45,7 @@ function ToolCardGrid({ tools }: ToolCardGridProps) {
               {toolIcons[tool.id] && (
                 <span
                   aria-hidden="true"
-                  className="inline-flex text-foreground motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover/tool:-rotate-6 motion-safe:group-focus-visible/tool:-rotate-6"
+                  className="inline-flex text-foreground"
                 >
                   {toolIcons[tool.id]}
                 </span>

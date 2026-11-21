@@ -23,12 +23,14 @@ self.onmessage = (event: MessageEvent<ImportRequest>) => {
       if (!score) throw new Error("Choose a Guitar Pro file first.");
       send({
         type: "preview",
+        trackId: event.data.trackId,
         preview: convertScore(score, event.data.trackId, fileName),
       });
     }
   } catch (error) {
     send({
       type: "error",
+      trackId: event.data.type === "convert" ? event.data.trackId : undefined,
       message:
         error instanceof Error &&
         !/format|end of|offset|bounds|signature|zip|xml|undefined|invalid/i.test(

@@ -76,9 +76,7 @@ for (const width of [1440, 390, 320]) {
     else
       await expect(dialog).not.toHaveAttribute("data-slot", "drawer-content");
     await expect(
-      dialog.getByText(
-        "Files are read on your device. For older .gtp files, export to GP5 first.",
-      ),
+      dialog.getByText("For older .gtp files, export to .gp5 first."),
     ).toBeVisible();
     const fileInput = dialog.locator('input[type="file"]');
     await expect(
@@ -112,11 +110,30 @@ for (const width of [1440, 390, 320]) {
     }, bytes);
     await dialog.dispatchEvent("drop", { dataTransfer: transfer });
     await transfer.dispose();
-    await expect(dialog.getByText(/4 measures/)).toBeVisible();
-    await dialog.getByText(/Review import adjustments/).click();
-    await expect(
-      dialog.getByText(/Tempo changes inside measures/),
-    ).toBeVisible();
+    await expect(dialog.getByText("Measures", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("4", { exact: true })).toBeVisible();
+    await expect(dialog.getByText(/Review import adjustments/)).toHaveCount(0);
+    await expect(dialog.getByText("Track", { exact: true })).toHaveCount(0);
+    const metadata = await dialog.locator("dt").evaluateAll((labels) =>
+      labels.map((label) => {
+        const bounds = label.getBoundingClientRect();
+        return { text: label.textContent, x: bounds.x, y: bounds.y };
+      }),
+    );
+    expect(metadata.map(({ text }) => text)).toEqual([
+      "Tempo",
+      "Measures",
+      "Capo",
+      "Tuning",
+    ]);
+    expect(new Set(metadata.map(({ y }) => y)).size).toBe(width >= 768 ? 1 : 2);
+    const firstTuningNote = await dialog
+      .locator("dd")
+      .last()
+      .locator("p")
+      .first()
+      .boundingBox();
+    expect(firstTuningNote?.x).toBe(metadata.at(-1)?.x);
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
     await expect(page.locator("#title")).toHaveValue("Existing draft");
 
@@ -125,6 +142,9 @@ for (const width of [1440, 390, 320]) {
     await expect(
       dialog.getByRole("button", { name: "Replace draft & import" }),
     ).toBeEnabled();
+    await expect(
+      dialog.getByRole("combobox", { name: "Track to import" }),
+    ).toHaveCount(0);
     await dialog
       .getByRole("button", { name: "Replace draft & import" })
       .click();
@@ -148,6 +168,7 @@ test("import selects a matching artist or fills a new artist entry", async ({
 }) => {
   await page.goto("/create");
   const lookups: string[] = [];
+  let releaseLookup: (() => void) | undefined;
   await page.route(
     (url) => url.pathname.includes("artist.getByNameAndOrId"),
     async (route) => {
@@ -156,6 +177,9 @@ test("import selects a matching artist or fills a new artist entry", async ({
       ) as Record<string, { json: { name: string } }>;
       const name = input["0"]!.json.name;
       lookups.push(name);
+      await new Promise<void>((resolve) => {
+        releaseLookup = resolve;
+      });
       const artist =
         name.toLowerCase() === "papa roach"
           ? { id: 12345, name: "Papa Roach", isVerified: true }
@@ -180,8 +204,81 @@ test("import selects a matching artist or fills a new artist entry", async ({
     });
     await expect(importButton).toBeEnabled();
     await importButton.click();
+    const pending = dialog.getByRole("button", { name: "Importing…" });
+    await expect(pending).toHaveAttribute("aria-busy", "true");
+    await expect(pending).toBeDisabled();
+    await expect(pending.locator("svg")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeVisible();
+    await expect.poll(() => lookups.at(-1)).toBe(source!.trim());
+    releaseLookup?.();
+    await page.waitForFunction(() => {
+      const editor = document.querySelector("#mainTabComponent");
+      const firstNote =
+        editor?.querySelector<HTMLInputElement>('input[id$="-6"]');
+      return (
+        firstNote?.value === "1" && firstNote.getBoundingClientRect().height > 0
+      );
+    });
     await expect(dialog).not.toBeVisible();
     await expect(page.locator("#artistCombobox")).toContainText(selected!);
   }
   expect(lookups).toEqual(["pApA rOaCh", "A New Imported Artist"]);
+});
+
+test("switching tracks keeps the preview and dialog in place", async ({
+  page,
+}) => {
+  const bytes = readFileSync(path.join(fixtures, "guitarpro7-notes.gp"));
+  const score = importer.ScoreLoader.loadScoreFromBytes(new Uint8Array(bytes));
+  const second = importer.ScoreLoader.loadScoreFromBytes(new Uint8Array(bytes))
+    .tracks[0]!;
+  score.tracks[0]!.name = "First track";
+  second.name = "Second track";
+  second.staves[0]!.capo = 1;
+  score.addTrack(second);
+
+  await page.addInitScript(() => {
+    window.Worker = class extends Worker {
+      private conversions = 0;
+
+      postMessage(
+        message: { type?: string },
+        options?: StructuredSerializeOptions | Transferable[],
+      ) {
+        if (message.type === "convert" && ++this.conversions > 1) {
+          setTimeout(() => super.postMessage(message), 400);
+        } else if (Array.isArray(options)) {
+          super.postMessage(message, options);
+        } else {
+          super.postMessage(message, options);
+        }
+      }
+    };
+  });
+  await page.goto("/create");
+  await page.getByRole("button", { name: "Import", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: headline });
+  await dialog.locator('input[type="file"]').setInputFiles({
+    name: "two-tracks.gp",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from(new exporter.Gp7Exporter().export(score)),
+  });
+  const button = dialog.getByRole("button", {
+    name: "Import track",
+    exact: true,
+  });
+  const picker = dialog.getByRole("combobox", { name: "Track to import" });
+  await expect(button).toBeEnabled();
+  const before = await dialog.boundingBox();
+  const footerBefore = await button.boundingBox();
+  await picker.click();
+  await page.getByRole("option", { name: /Second track/ }).click();
+  await expect(button).toBeDisabled();
+  await expect(dialog.getByText("None", { exact: true })).toBeVisible();
+  expect(await dialog.boundingBox()).toEqual(before);
+  await expect(dialog.getByText("1st fret", { exact: true })).toBeVisible();
+  await expect(button).toBeEnabled();
+  expect(await dialog.boundingBox()).toEqual(before);
+  expect(await button.boundingBox()).toEqual(footerBefore);
 });

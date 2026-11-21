@@ -50,14 +50,25 @@ import SearchFilterCarousel from "./SearchFilterCarousel";
 import styles from "./SearchResults.module.css";
 import TableTabView from "./TableTabView";
 
-const opacityVariants = {
-  expanded: {
-    opacity: 1,
-  },
-  closed: {
-    opacity: 0,
-  },
-};
+function ResultsCount({ count, loading }: { count: number; loading: boolean }) {
+  return (
+    <div
+      className="relative flex h-6 min-w-0 flex-1 items-center"
+      aria-busy={loading}
+    >
+      {loading ? (
+        <span
+          aria-hidden="true"
+          className="pulseAnimation h-6 w-36 max-w-full rounded-md !bg-panel-foreground/35 lg:w-48"
+        />
+      ) : (
+        <span className="truncate">
+          {count} {count === 1 ? "tab" : "tabs"} found
+        </span>
+      )}
+    </div>
+  );
+}
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 const difficultyDescriptions = [
@@ -101,21 +112,10 @@ function SearchResults({
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const [gateUntilWindowIsAvailable, setGateUntilWindowIsAvailable] =
-    useState(true);
-
-  const [searchResultsCount, setSearchResultsCount] = useState(0);
-
-  useEffect(() => {
-    setGateUntilWindowIsAvailable(false);
-  }, []);
-
+  const isFetchingProfile =
+    isFetchingUserMetadata || isFetchingArtistId || isFetchingRelatedArtists;
   const disableFiltersAndLayoutToggle =
-    isFetchingUserMetadata ||
-    userDoesNotExist ||
-    isFetchingArtistId ||
-    isFetchingRelatedArtists ||
-    relatedArtists !== undefined;
+    isFetchingProfile || userDoesNotExist || relatedArtists !== undefined;
 
   const {
     searchQuery,
@@ -162,33 +162,46 @@ function SearchResults({
     getInfiniteQueryParams(),
     {
       getNextPageParam: (lastPage) => lastPage.data.nextCursor,
-      onSuccess: (data) => {
-        setSearchResultsCount(data?.pages?.[0]?.count ?? 0);
-      },
       enabled:
         searchParamsParsed &&
         !renderSearch404 &&
+        (!asPath.includes("/artist") || Boolean(query.id)) &&
         (!asPath.includes("/profile/tabs") || !!currentUser) &&
         (!asPath.includes("/profile/bookmarks") || !!userId),
       // need to wait for currentUser to be fetched before trying to search when
       // on current user's tabs page
     },
   );
+  const searchResultsCount = tabResults?.pages[0]?.count ?? 0;
+  const waitingForResults = Boolean(
+    !tabResults &&
+    (isFetching || !searchParamsParsed || isFetchingUserMetadata),
+  );
+  const loadingResultsCount = Boolean(isFetchingProfile || waitingForResults);
 
-  const layoutType = useLocalStorageValue("autostrum-layout", {
-    defaultValue: "grid",
-    initializeWithValue: true,
-  });
+  const layoutPreference = useLocalStorageValue<"grid" | "table">(
+    "autostrum-layout",
+    {
+      defaultValue: "grid",
+      initializeWithValue: false,
+    },
+  );
+  const layout = layoutPreference.value === "table" ? "table" : "grid";
 
   const layoutTransition = useRef<ViewTransition | null>(null);
   const requestedLayout = useRef<"grid" | "table" | null>(null);
+  const [keepGridMounted, setKeepGridMounted] = useState(false);
 
   function changeLayout(nextLayout: "grid" | "table") {
-    if (nextLayout === (requestedLayout.current ?? layoutType.value)) return;
+    if (nextLayout === (requestedLayout.current ?? layout)) return;
     requestedLayout.current = nextLayout;
     layoutTransition.current?.skipTransition();
 
-    const update = () => flushSync(() => layoutType.set(nextLayout));
+    const update = () =>
+      flushSync(() => {
+        if (layout === "grid") setKeepGridMounted(true);
+        layoutPreference.set(nextLayout);
+      });
     if (
       typeof document.startViewTransition !== "function" ||
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -366,10 +379,6 @@ function SearchResults({
         localFilters.sortBy === sortBy)
     );
   }
-
-  // FYI: I really dislike this, but suppressing the hydration error
-  // for localstorage layout was an even worse approach.
-  if (gateUntilWindowIsAvailable) return null;
 
   return (
     <div className="baseFlex min-h-[calc(100dvh-4rem-6rem-56px)] w-full !items-start gap-4 md:min-h-[calc(100dvh-4rem-12rem-56px)]">
@@ -720,17 +729,12 @@ function SearchResults({
           ref={stickyStylesSentinelRef}
           className="absolute top-0 h-[1px]"
         ></div>
-        {viewportLabel.includes("mobile") ? (
+        {viewportLabel.includes("mobile") && (
           // mobile: # of results / filter drawer trigger
           <motion.div
             ref={mobileToolbarRef}
-            initial={false}
-            animate={{
-              paddingBottom: "0.75rem",
-            }}
-            transition={{ duration: 0.5, ease: "linear" }}
             className={cn(
-              "baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-panel pt-3 text-panel-foreground md:border-x lg:!hidden",
+              "baseVertFlex sticky top-16 z-20 w-full !justify-between border-b-0 border-t bg-panel py-3 text-panel-foreground md:border-x lg:!hidden",
               styles.accentPanel,
               stickyHeaderNotActive ? "md:rounded-t-lg" : "rounded-t-none",
             )}
@@ -738,32 +742,10 @@ function SearchResults({
             <AnimatePresence initial={false}>
               <div className="baseFlex w-full !justify-between gap-2 px-4">
                 {/* # of results */}
-                <AnimatePresence mode="popLayout">
-                  <motion.div
-                    key={
-                      isFetching && !isFetchingNextPage
-                        ? "mobileSearchResultsCountSkeleton"
-                        : "mobileSearchResultsCount"
-                    }
-                    variants={opacityVariants}
-                    initial="closed"
-                    animate="expanded"
-                    exit="closed"
-                    transition={{ duration: 0.3 }}
-                  >
-                    <>
-                      {isFetching && !isFetchingNextPage ? (
-                        <div className="pulseAnimation h-6 w-36 rounded-md !bg-panel-foreground/35"></div>
-                      ) : (
-                        <span>
-                          {`${searchResultsCount} tab${
-                            searchResultsCount === 1 ? "" : "s"
-                          } found`}
-                        </span>
-                      )}
-                    </>
-                  </motion.div>
-                </AnimatePresence>
+                <ResultsCount
+                  count={searchResultsCount}
+                  loading={loadingResultsCount}
+                />
 
                 <div className="baseFlex gap-2">
                   {/* layout type selector */}
@@ -773,7 +755,7 @@ function SearchResults({
                       data-search-layout-toggle=""
                       aria-label="Search results layout"
                       variant="accent"
-                      value={layoutType.value === "grid" ? "grid" : "table"}
+                      value={layout}
                       onValueChange={changeLayout}
                       disabled={disableFiltersAndLayoutToggle}
                       size="sm"
@@ -936,108 +918,78 @@ function SearchResults({
               </div>
             </AnimatePresence>
           </motion.div>
-        ) : (
-          // lg+: # of results / view type toggle
-          <div ref={desktopToolbarRef} className={styles.stickyHeader}>
-            <div
-              aria-hidden="true"
-              className={`pageBackgroundGradient ${styles.backdrop}`}
-            />
-            <motion.div
-              initial={false}
-              animate={{
-                paddingBottom: "0.75rem",
-              }}
-              transition={{ duration: 0.5, ease: "linear" }}
-              className={cn(
-                "baseVertFlex w-full !justify-between rounded-t-lg border bg-panel pt-3 text-panel-foreground",
-                styles.accentPanel,
-                layoutType.value === "table" && "border-b-0",
-              )}
-            >
-              <AnimatePresence initial={false}>
-                <div className="baseFlex w-full !justify-between gap-2 px-4">
-                  {/* # of results */}
-                  <AnimatePresence mode="popLayout">
-                    <motion.div
-                      key={
-                        isFetching && !isFetchingNextPage
-                          ? "desktopSearchResultsCountSkeleton"
-                          : "desktopSearchResultsCount"
-                      }
-                      variants={opacityVariants}
-                      initial="closed"
-                      animate="expanded"
-                      exit="closed"
-                      transition={{ duration: 0.3 }}
-                    >
-                      <>
-                        {isFetching && !isFetchingNextPage ? (
-                          <div className="pulseAnimation h-6 w-48 rounded-md !bg-panel-foreground/35"></div>
-                        ) : (
-                          <span>
-                            {`${searchResultsCount} tab${
-                              searchResultsCount === 1 ? "" : "s"
-                            } found`}
-                          </span>
-                        )}
-                      </>
-                    </motion.div>
-                  </AnimatePresence>
-
-                  {/* layout type toggle */}
-                  <div className="baseFlex gap-3">
-                    <Label>Layout</Label>
-                    <AnimatedToggleGroup
-                      data-search-layout-toggle=""
-                      aria-label="Search results layout"
-                      variant="accent"
-                      value={layoutType.value === "grid" ? "grid" : "table"}
-                      onValueChange={changeLayout}
-                      disabled={disableFiltersAndLayoutToggle}
-                      size="sm"
-                      options={[
-                        {
-                          value: "grid",
-                          ariaLabel: "Grid view",
-                          label: (
-                            <>
-                              <BsGridFill className="size-4 shrink-0" />
-                              Grid
-                            </>
-                          ),
-                        },
-                        {
-                          value: "table",
-                          ariaLabel: "Table view",
-                          label: (
-                            <>
-                              <TableViewIcon className="size-4 shrink-0" />
-                              Table
-                            </>
-                          ),
-                        },
-                      ]}
-                    />
-                  </div>
-                </div>
-              </AnimatePresence>
-            </motion.div>
-          </div>
         )}
+        <div
+          ref={desktopToolbarRef}
+          className={cn("hidden lg:block", styles.stickyHeader)}
+        >
+          <div
+            aria-hidden="true"
+            className={`pageBackgroundGradient ${styles.backdrop}`}
+          />
+          <motion.div
+            className={cn(
+              "baseVertFlex w-full !justify-between rounded-t-lg border bg-panel py-3 text-panel-foreground",
+              styles.accentPanel,
+              layout === "table" && "border-b-transparent",
+            )}
+          >
+            <AnimatePresence initial={false}>
+              <div className="baseFlex w-full !justify-between gap-2 px-4">
+                {/* # of results */}
+                <ResultsCount
+                  count={searchResultsCount}
+                  loading={loadingResultsCount}
+                />
+
+                {/* layout type toggle */}
+                <div className="baseFlex gap-3">
+                  <Label>Layout</Label>
+                  <AnimatedToggleGroup
+                    data-search-layout-toggle=""
+                    aria-label="Search results layout"
+                    variant="accent"
+                    value={layout}
+                    onValueChange={changeLayout}
+                    disabled={disableFiltersAndLayoutToggle}
+                    size="sm"
+                    options={[
+                      {
+                        value: "grid",
+                        ariaLabel: "Grid view",
+                        label: (
+                          <>
+                            <BsGridFill className="size-4 shrink-0" />
+                            Grid
+                          </>
+                        ),
+                      },
+                      {
+                        value: "table",
+                        ariaLabel: "Table view",
+                        label: (
+                          <>
+                            <TableViewIcon className="size-4 shrink-0" />
+                            Table
+                          </>
+                        ),
+                      },
+                    ]}
+                  />
+                </div>
+              </div>
+            </AnimatePresence>
+          </motion.div>
+        </div>
 
         {/* search results body */}
         <AnimatePresence mode="popLayout">
           <div className="size-full !border-t-0 border-b bg-background shadow-lg md:rounded-b-lg md:border">
             {renderSearch404 ? (
-              <Render404Page
-                layoutType={layoutType.value as "grid" | "table"}
-              />
+              <Render404Page layoutType={layout} />
             ) : (
               <Fragment key={"searchResultsBody"}>
-                {isFetchingUserMetadata ||
-                isFetchingArtistId ||
-                isFetchingRelatedArtists ? (
+                {isFetchingArtistId || isFetchingRelatedArtists ? (
                   <motion.div
                     key={"searchResultsSpinner"}
                     initial={{ opacity: 0 }}
@@ -1046,7 +998,12 @@ function SearchResults({
                     }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="baseFlex size-full min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]"
+                    className={cn(
+                      "baseFlex size-full",
+                      layout === "table"
+                        ? "min-h-[calc(100dvh-4rem-6rem-56px-60px-45px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px-45px)]"
+                        : "min-h-[calc(100dvh-4rem-6rem-56px-60px)] md:min-h-[calc(100dvh-4rem-12rem-56px-60px)]",
+                    )}
                   >
                     <Spinner className="size-8" />
                   </motion.div>
@@ -1147,48 +1104,51 @@ function SearchResults({
                       </motion.div>
                     )}
 
-                    {!relatedArtists &&
-                      !userDoesNotExist &&
-                      searchParamsParsed && (
-                        <div
-                          data-search-layout={layoutType.value}
-                          className="w-full min-w-0"
-                        >
-                          {layoutType.value === "grid" && (
-                            <GridTabView
-                              searchQuery={searchQuery}
-                              tabResults={tabResults}
-                              isFetching={isFetching}
-                              isFetchingNextPage={isFetchingNextPage}
-                              hasNextPage={hasNextPage}
-                              fetchNextPage={fetchNextPage}
-                              getInfiniteQueryParams={getInfiniteQueryParams}
-                              currentUser={currentUser}
-                              color={color}
-                              theme={theme}
-                            />
-                          )}
+                    {!relatedArtists && !userDoesNotExist && (
+                      <div
+                        data-search-layout={layout}
+                        aria-busy={waitingForResults}
+                        className="w-full min-w-0"
+                      >
+                        {(layout === "grid" || keepGridMounted) && (
+                          <GridTabView
+                            active={layout === "grid"}
+                            showInitialSkeleton={
+                              pathname.startsWith("/user/") && waitingForResults
+                            }
+                            searchQuery={searchQuery}
+                            tabResults={tabResults}
+                            isFetching={isFetching || waitingForResults}
+                            isFetchingNextPage={isFetchingNextPage}
+                            hasNextPage={hasNextPage}
+                            fetchNextPage={fetchNextPage}
+                            getInfiniteQueryParams={getInfiniteQueryParams}
+                            currentUser={currentUser}
+                            color={color}
+                            theme={theme}
+                          />
+                        )}
 
-                          {layoutType.value === "table" && (
-                            <TableTabView
-                              searchQuery={searchQuery}
-                              tabResults={tabResults}
-                              isFetching={isFetching}
-                              isFetchingNextPage={isFetchingNextPage}
-                              hasNextPage={hasNextPage}
-                              fetchNextPage={fetchNextPage}
-                              getInfiniteQueryParams={getInfiniteQueryParams}
-                              currentUser={currentUser}
-                              stickyToolbarRef={
-                                viewportLabel.includes("mobile")
-                                  ? mobileToolbarRef
-                                  : desktopToolbarRef
-                              }
-                              asPath={asPath}
-                            />
-                          )}
-                        </div>
-                      )}
+                        {layout === "table" && (
+                          <TableTabView
+                            searchQuery={searchQuery}
+                            tabResults={tabResults}
+                            isFetching={isFetching || waitingForResults}
+                            isFetchingNextPage={isFetchingNextPage}
+                            hasNextPage={hasNextPage}
+                            fetchNextPage={fetchNextPage}
+                            getInfiniteQueryParams={getInfiniteQueryParams}
+                            currentUser={currentUser}
+                            stickyToolbarRef={
+                              viewportLabel.includes("mobile")
+                                ? mobileToolbarRef
+                                : desktopToolbarRef
+                            }
+                            asPath={asPath}
+                          />
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
               </Fragment>
