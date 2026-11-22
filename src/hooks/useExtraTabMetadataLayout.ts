@@ -5,7 +5,8 @@ export type MetadataPane =
 
 type PaneSize = { height: number; collapsedHeight: number };
 
-const SECTION_PROGRESSION_HEIGHT = 96;
+const DEFAULT_PANE_HEIGHT = 96;
+const COLLAPSED_SECTION_COUNT = 3;
 const NEXT_ROW_PREVIEW_HEIGHT = 24;
 
 export default function useExtraTabMetadataLayout(
@@ -29,13 +30,26 @@ export default function useExtraTabMetadataLayout(
     function measure() {
       const next: Partial<Record<MetadataPane, PaneSize>> = {};
       for (const pane of panes) {
+        const name = pane.dataset.metadataPane as MetadataPane;
         const rect = pane.getBoundingClientRect();
         const items = pane.querySelector("[data-metadata-items]")?.children;
         const firstTop = items?.[0]?.getBoundingClientRect().top;
-        let collapsedHeight = SECTION_PROGRESSION_HEIGHT;
-        if (items && firstTop !== undefined) {
-          // A single row keeps its natural height, including pane padding.
-          collapsedHeight = rect.height;
+        let collapsedHeight = rect.height;
+        if (name === "Section progression") {
+          const lastVisibleItem =
+            items && items.length > COLLAPSED_SECTION_COUNT
+              ? items.item(COLLAPSED_SECTION_COUNT - 1)
+              : null;
+          if (lastVisibleItem) {
+            const paddingBottom = parseFloat(
+              getComputedStyle(pane).paddingBottom,
+            );
+            collapsedHeight =
+              lastVisibleItem.getBoundingClientRect().bottom -
+              rect.top +
+              paddingBottom;
+          }
+        } else if (items && firstTop !== undefined) {
           for (const item of items) {
             const itemRect = item.getBoundingClientRect();
             if (itemRect.top - firstTop > 1) {
@@ -48,7 +62,7 @@ export default function useExtraTabMetadataLayout(
             }
           }
         }
-        next[pane.dataset.metadataPane as MetadataPane] = {
+        next[name] = {
           height: Math.ceil(rect.height),
           collapsedHeight: Math.ceil(collapsedHeight),
         };
@@ -73,7 +87,7 @@ export default function useExtraTabMetadataLayout(
   }, []);
 
   const collapsedHeight =
-    sizes[activePane]?.collapsedHeight ?? SECTION_PROGRESSION_HEIGHT;
+    sizes[activePane]?.collapsedHeight ?? DEFAULT_PANE_HEIGHT;
   const naturalHeight = sizes[activePane]?.height ?? collapsedHeight;
   const hasOverflow = naturalHeight > collapsedHeight + 1;
   const hasAnyOverflow = Object.values(sizes).some(

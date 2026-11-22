@@ -67,7 +67,7 @@ function DesktopExtraTabMetadata() {
           variant={"text"}
           aria-pressed={activeTabName === "Section progression"}
           onClick={() => setActiveTabName("Section progression")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Section progression" ? "" : "opacity-80 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <BsMusicNoteList className="size-4" />
           Section progression
@@ -84,7 +84,7 @@ function DesktopExtraTabMetadata() {
           variant={"text"}
           aria-pressed={activeTabName === "Chords"}
           onClick={() => setActiveTabName("Chords")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Chords" ? "" : "opacity-80 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <BsMusicNoteBeamed className="size-4" />
           Chords
@@ -101,7 +101,7 @@ function DesktopExtraTabMetadata() {
           variant={"text"}
           aria-pressed={activeTabName === "Strumming patterns"}
           onClick={() => setActiveTabName("Strumming patterns")}
-          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Strumming patterns" ? "" : "opacity-80 hover:opacity-100"}`}
+          className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
         >
           <Logo className="z-0 size-4" />
           Strumming patterns
@@ -139,13 +139,9 @@ function DesktopExtraTabMetadata() {
           >
             <div className="baseFlex w-full">
               {sectionProgression.length === 0 ? (
-                <p className="baseFlex h-24 text-gray">
-                  No section progression specified
-                </p>
+                <p className="text-gray">No section progression specified</p>
               ) : (
-                <div
-                  className={`baseVertFlex min-h-24 gap-2 ${sectionProgression.length > 3 ? "!justify-start" : ""}`}
-                >
+                <div data-metadata-items className="baseVertFlex gap-2">
                   {sectionProgression.map((section) => (
                     <div
                       key={section.id}

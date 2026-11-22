@@ -129,7 +129,7 @@ function MobileExtraTabMetadata() {
                   carouselContentApi?.scrollTo(0, !!reduceMotion);
                   setActiveTabName("Section progression");
                 }}
-                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Section progression" ? "" : "opacity-80 hover:opacity-100"}`}
+                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50"
               >
                 <BsMusicNoteList className="size-4" />
                 Section progression
@@ -156,7 +156,7 @@ function MobileExtraTabMetadata() {
                   carouselContentApi?.scrollTo(1, !!reduceMotion);
                   setActiveTabName("Chords");
                 }}
-                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Chords" ? "" : "opacity-80 hover:opacity-100"}`}
+                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50"
               >
                 <BsMusicNoteBeamed className="size-4" />
                 Chords
@@ -183,7 +183,7 @@ function MobileExtraTabMetadata() {
                   carouselContentApi?.scrollTo(2, !!reduceMotion);
                   setActiveTabName("Strumming patterns");
                 }}
-                className={`baseFlex relative gap-2 text-nowrap !px-0 font-medium ${activeTabName === "Strumming patterns" ? "" : "opacity-80 hover:opacity-100"}`}
+                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50"
               >
                 <Logo className="z-0 size-4" />
                 Strumming patterns
@@ -235,7 +235,7 @@ function MobileExtraTabMetadata() {
           duration: reduceMotion ? 0 : 0.25,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className={`w-full overflow-hidden ${hasOverflow && !tabContentExpanded ? styles.overflowFade : ""}`}
+        className={`w-full overflow-hidden ${activeTabName !== "Section progression" && hasOverflow && !tabContentExpanded ? styles.overflowFade : ""}`}
         style={{ overflowAnchor: "none" }}
       >
         <Carousel
@@ -251,13 +251,11 @@ function MobileExtraTabMetadata() {
               >
                 <div className="baseFlex w-full">
                   {sectionProgression.length === 0 ? (
-                    <p className="baseFlex h-24 text-gray">
+                    <p className="text-gray">
                       No section progression specified
                     </p>
                   ) : (
-                    <div
-                      className={`baseVertFlex min-h-24 gap-2 ${sectionProgression.length > 3 ? "!justify-start" : ""}`}
-                    >
+                    <div data-metadata-items className="baseVertFlex gap-2">
                       {sectionProgression.map((section) => (
                         <div
                           key={section.id}

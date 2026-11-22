@@ -68,9 +68,11 @@ function StaticTabMetadata() {
     capo: state.capo,
     isLoadingARoute: state.isLoadingARoute,
   }));
-  const { viewportLabel } = useAppPreferencesStore((state) => ({
+  const { theme, viewportLabel } = useAppPreferencesStore((state) => ({
+    theme: state.theme,
     viewportLabel: state.viewportLabel,
   }));
+  const editButtonVariant = theme === "light" ? "headerGhost" : "default";
 
   const { data: dynamicMetadata } =
     api.tab.getRatingBookmarkAndViewCount.useQuery(id, {
@@ -162,6 +164,7 @@ function StaticTabMetadata() {
             <div className="baseFlex shrink-0 gap-3">
               {userId && createdByUserId === userId && (
                 <Button
+                  variant={editButtonVariant}
                   disabled={isLoadingARoute}
                   className="baseFlex gap-2 whitespace-nowrap text-nowrap"
                   onClick={() => void push(`/tab/${id}/edit`)}
@@ -411,6 +414,7 @@ function StaticTabMetadata() {
 
             {userId && createdByUserId === userId && (
               <Button
+                variant={editButtonVariant}
                 disabled={isLoadingARoute}
                 className="baseFlex h-10 gap-2"
                 onClick={() => void push(`/tab/${id}/edit`)}

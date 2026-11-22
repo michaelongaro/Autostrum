@@ -12,7 +12,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-action shadow-primaryButton text-primary-foreground hover:bg-action/90 active:brightness-75",
+          "bg-action !shadow-primaryButton text-primary-foreground hover:bg-action/90 active:brightness-75",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary-hover !shadow-primaryButton hover:text-secondary-foreground active:bg-secondary-active",
         outline:
@@ -25,6 +25,8 @@ const buttonVariants = cva(
           "bg-audio/85 border border-audio text-audio-foreground hover:bg-audio shadow-none active:brightness-75 disabled:bg-gray disabled:opacity-75 disabled:border-gray",
         destructive:
           "bg-destructive/75 border border-destructive text-destructive-foreground !shadow-primaryButton hover:bg-destructive active:brightness-75",
+        headerGhost:
+          "text-accent-foreground shadow-none hover:bg-black/10 active:bg-black/20 focus-visible:ring-accent-foreground",
         modalClose:
           "baseFlex !size-5 absolute right-4 shadow-none top-4 rounded-sm !p-0 text-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-foreground/70 disabled:pointer-events-none",
         headerNavigation:

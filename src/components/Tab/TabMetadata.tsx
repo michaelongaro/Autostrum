@@ -185,9 +185,11 @@ function TabMetadata({ setIsPublishingOrUpdating, importTab }: TabMetadata) {
     setCurrentChordIndex: state.setCurrentChordIndex,
     tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
   }));
-  const { viewportLabel } = useAppPreferencesStore((state) => ({
+  const { theme, viewportLabel } = useAppPreferencesStore((state) => ({
+    theme: state.theme,
     viewportLabel: state.viewportLabel,
   }));
+  const editButtonVariant = theme === "light" ? "headerGhost" : "default";
 
   const isEditorPreview = asPath.includes("create") || asPath.includes("edit");
 
@@ -1046,6 +1048,7 @@ function TabMetadata({ setIsPublishingOrUpdating, importTab }: TabMetadata) {
                   {((userId && createdByUserId === userId) ||
                     asPath.includes("create")) && (
                     <Button
+                      variant={editButtonVariant}
                       disabled={isLoadingARoute}
                       className="baseFlex gap-2 whitespace-nowrap text-nowrap"
                       onClick={() => {
@@ -1307,6 +1310,7 @@ function TabMetadata({ setIsPublishingOrUpdating, importTab }: TabMetadata) {
                 {((userId && createdByUserId === userId) ||
                   asPath.includes("create")) && (
                   <Button
+                    variant={editButtonVariant}
                     disabled={isLoadingARoute}
                     className="baseFlex h-10 gap-2 whitespace-nowrap"
                     onClick={() => {

@@ -26,8 +26,10 @@ function ExtraTabMetadataPane({
       animate={{ opacity: desktop && !active ? 0 : 1 }}
       transition={{ duration: reduceMotion ? 0 : 0.15 }}
       className={cn(
-        "baseVertFlex w-full !justify-start",
-        name !== "Section progression" && "[&:has([data-metadata-items])]:py-3",
+        "baseVertFlex w-full",
+        name === "Section progression"
+          ? "min-h-24 py-2"
+          : "!justify-start [&:has([data-metadata-items])]:py-3",
         styles.pane,
         desktop && "absolute inset-x-0 top-0",
         !active && "pointer-events-none",
