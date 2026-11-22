@@ -252,7 +252,7 @@ function StaticTab({
 
                   <Button
                     variant="audio"
-                    className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-lg hover:brightness-90 lg:px-10 lg:text-xl"
+                    className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-primaryButton hover:brightness-90 lg:px-10 lg:text-xl"
                     onClick={() => {
                       // Unlock AudioContext + preload the modal chunk inside this
                       // gesture so the first Play is not blocked on Safari resume/lazy JS.
