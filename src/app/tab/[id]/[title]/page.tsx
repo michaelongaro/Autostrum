@@ -15,14 +15,21 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props) {
   const data = await getTabPageData((await params).id);
   return data
-    ? createMetadata({ ...data.openGraphData, path: data.openGraphData.url })
+    ? createMetadata(data.metadata)
     : createMetadata({ title: "Tab not found | Autostrum", noIndex: true });
 }
 
 async function Page({ params }: Props) {
   const data = await getTabPageData((await params).id);
   if (!data) notFound();
-  return <PageClient json={superjson.stringify(data)} />;
+  return (
+    <PageClient
+      tabJson={superjson.stringify(data.tab)}
+      arrangement={data.arrangement}
+      relatedTabSections={data.relatedTabSections}
+      relatedArtist={data.relatedArtist}
+    />
+  );
 }
 
 export default withPageScrollTarget(Page);

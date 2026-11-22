@@ -1,12 +1,15 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import GridTabCard from "~/components/Search/GridTabCard";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { GridTabCardContent } from "~/components/Search/GridTabCard";
 import { Button } from "~/components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
 } from "~/components/ui/carousel";
+import type { MinimalTabRepresentation } from "~/server/api/routers/search";
 import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import { api } from "~/utils/api";
@@ -16,6 +19,7 @@ import {
   type RelatedTabSection,
   type RelatedTabSectionKind,
 } from "~/utils/relatedTabs";
+import type { TabScreenshotRenderer } from "~/utils/tabScreenshotMasks";
 
 interface RelatedArtist {
   id: number;
@@ -23,7 +27,7 @@ interface RelatedArtist {
 }
 
 interface RelatedTabsProps {
-  sections: RelatedTabSection<RelatedTabCandidate>[];
+  sections: RelatedTabSection<RelatedTabCandidate & MinimalTabRepresentation>[];
   artist: RelatedArtist | null;
 }
 
@@ -49,8 +53,31 @@ function sectionHasMoreArtistTabs(
   );
 }
 
+function RelatedTabsScreenshotRenderer({
+  onChange,
+}: {
+  onChange: (renderer: TabScreenshotRenderer | undefined) => void;
+}) {
+  const params = useSearchParams();
+  const renderers = params.getAll("screenshotRenderer");
+  const renderer = renderers.length === 1 ? renderers[0] : undefined;
+
+  useEffect(() => {
+    onChange(
+      renderer === "gradient-map" || renderer === "masks"
+        ? renderer
+        : undefined,
+    );
+  }, [onChange, renderer]);
+
+  return null;
+}
+
 function RelatedTabs({ sections, artist }: RelatedTabsProps) {
   const { userId } = useAuth();
+  const pathname = usePathname();
+  const [screenshotRenderer, setScreenshotRenderer] =
+    useState<TabScreenshotRenderer>();
   const { color, theme } = useAppPreferencesStore((state) => ({
     color: state.color,
     theme: state.theme,
@@ -70,6 +97,10 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
       aria-label="Related tabs"
       className="baseVertFlex mt-12 w-full !items-start gap-8 border-y bg-background py-8 shadow-lg md:rounded-xl md:border-x"
     >
+      {/* Keep the URL-driven screenshot override outside the card render path. */}
+      <Suspense fallback={null}>
+        <RelatedTabsScreenshotRenderer onChange={setScreenshotRenderer} />
+      </Suspense>
       {sections.map((section) => {
         const heading = relatedTabSectionHeading(section.kind, artistName);
         const showMoreArtistTabs =
@@ -145,11 +176,14 @@ function RelatedTabs({ sections, artist }: RelatedTabsProps) {
                     key={tab.id}
                     className="basis-auto first:ml-4 md:first:ml-8"
                   >
-                    <GridTabCard
+                    <GridTabCardContent
                       minimalTab={tab}
                       currentUser={currentUser}
                       color={color}
                       theme={theme}
+                      pathname={pathname}
+                      screenshotRenderer={screenshotRenderer}
+                      animateOnMount={false}
                     />
                   </CarouselItem>
                 ))}

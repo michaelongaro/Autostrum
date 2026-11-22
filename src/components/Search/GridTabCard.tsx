@@ -63,7 +63,19 @@ interface GridTabCard {
   ref?: React.RefObject<HTMLDivElement>;
 }
 
-function GridTabCard({
+function GridTabCard(props: GridTabCard) {
+  const { query, asPath } = useRouteLocation();
+  return (
+    <GridTabCardContent
+      {...props}
+      pathname={asPath}
+      username={query.username}
+      screenshotRenderer={query.screenshotRenderer}
+    />
+  );
+}
+
+export function GridTabCardContent({
   active = true,
   minimalTab,
   currentUser,
@@ -74,16 +86,22 @@ function GridTabCard({
   pinnedTabType,
   infiniteQueryParams,
   ref,
-}: GridTabCard) {
-  const { query, asPath } = useRouteLocation();
-
+  pathname,
+  username,
+  screenshotRenderer: requestedRenderer,
+  animateOnMount = true,
+}: GridTabCard & {
+  pathname: string;
+  username?: string | string[];
+  screenshotRenderer?: string | string[];
+  animateOnMount?: boolean;
+}) {
   const isAboveExtraSmallViewportWidth = useViewportWidthBreakpoint(450);
   const screenshotFilterId = `tab-screenshot-${useId()}`;
   const screenshotGradientMap = getTabScreenshotGradientMap(color, theme);
   const screenshotRenderer =
-    query.screenshotRenderer === "gradient-map" ||
-    query.screenshotRenderer === "masks"
-      ? query.screenshotRenderer
+    requestedRenderer === "gradient-map" || requestedRenderer === "masks"
+      ? requestedRenderer
       : DEFAULT_TAB_SCREENSHOT_RENDERER;
   const screenshotVersion = getTabScreenshotVersion(minimalTab.updatedAt);
   const screenshotCacheKey = getTabScreenshotCacheKey(
@@ -197,10 +215,9 @@ function GridTabCard({
   }
 
   function allowedToRenderArtistLink() {
-    const isArtistPage = asPath.includes("/artist");
-    const isProfileTabsPage = asPath.includes("/profile/tabs");
-    const isCreatedByVisitedUser =
-      query.username === minimalTab.createdBy?.username;
+    const isArtistPage = pathname.includes("/artist");
+    const isProfileTabsPage = pathname.includes("/profile/tabs");
+    const isCreatedByVisitedUser = username === minimalTab.createdBy?.username;
     const isForPinnedTab = pinnedTabType !== undefined;
     const artistIsNotAttached = minimalTab.artist === null;
 
@@ -243,7 +260,7 @@ function GridTabCard({
     <motion.div
       ref={ref}
       key={`${minimalTab.id}gridTabCard`}
-      initial={tabScreenshotLoaded ? false : { opacity: 0 }}
+      initial={!animateOnMount || tabScreenshotLoaded ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
@@ -361,7 +378,7 @@ function GridTabCard({
             </div>
           </Link>
 
-          {asPath.includes("/profile/tabs") && (
+          {pathname.includes("/profile/tabs") && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

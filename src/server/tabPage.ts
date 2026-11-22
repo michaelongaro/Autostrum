@@ -1,12 +1,8 @@
 import { cache } from "react";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
+import type { Section } from "~/stores/TabStore";
 import { selectRelatedTabSections } from "~/utils/relatedTabs";
-import { SITE_URL } from "~/utils/seo";
-interface OpenGraphData {
-  title: string;
-  url: string;
-  description: string;
-}
+
 export const getTabPageData = cache(async (idParam: string) => {
   const { prisma } = await import("~/server/db");
 
@@ -78,7 +74,8 @@ export const getTabPageData = cache(async (idParam: string) => {
     relatedRows.map(toRelatedTabCandidate),
   );
 
-  const openGraphData = buildOpenGraphData(tab);
+  const metadata = buildTabMetadata(tab);
+  const arrangement = getArrangementType(tab.tabData);
   const relatedArtistName = tab.artist?.name.trim() ?? "";
   const relatedArtist =
     tab.artist && relatedArtistName
@@ -94,7 +91,8 @@ export const getTabPageData = cache(async (idParam: string) => {
 
   return {
     tab: tabWithArtistMetadata,
-    openGraphData,
+    metadata,
+    arrangement,
     relatedTabSections,
     relatedArtist,
   };
@@ -152,20 +150,37 @@ function toRelatedTabCandidate(tab: {
   };
 }
 
-function buildOpenGraphData(tab: {
+function buildTabMetadata(tab: {
   id: number;
   title: string;
   genre: string;
   artist: { name: string } | null;
-}): OpenGraphData {
+}) {
   const artistName = tab.artist?.name.trim();
   const byArtist = artistName ? ` by ${artistName}` : "";
   const genre = tab.genre.trim();
   const genrePrefix = genre ? `${genre} ` : "";
 
   return {
-    title: `${tab.title}${byArtist} | Autostrum`,
-    url: `${SITE_URL}/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
-    description: `View the ${genrePrefix}guitar tab for ${tab.title}${byArtist} on Autostrum.`,
+    title: `${tab.title} Guitar Tab${byArtist} | Autostrum`,
+    path: `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
+    description: `Play the ${genrePrefix}guitar tab for ${tab.title}${byArtist} with interactive playback on Autostrum.`,
   };
+}
+
+function getArrangementType(tabData: unknown) {
+  if (!Array.isArray(tabData)) return "Guitar tab";
+
+  let hasTab = false;
+  let hasChords = false;
+  for (const section of tabData as (Partial<Section> | null)[]) {
+    if (!Array.isArray(section?.data)) continue;
+    for (const part of section.data) {
+      if (part?.type === "tab") hasTab = true;
+      if (part?.type === "chord") hasChords = true;
+    }
+  }
+
+  if (hasTab && hasChords) return "Tab and chords";
+  return hasChords ? "Chords" : "Guitar tab";
 }

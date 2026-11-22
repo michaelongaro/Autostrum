@@ -62,7 +62,10 @@ test.afterAll(async () => {
   await db?.$disconnect();
 });
 
-test("publish a tab, import into it, and delete it", async ({ page }) => {
+test("publish a tab, import into it, and delete it", async ({
+  browser,
+  page,
+}) => {
   console.info(`Tab lifecycle fixture: ${title}`);
 
   await test.step("Sign in to the existing, onboarded test account", async () => {
@@ -128,6 +131,26 @@ test("publish a tab, import into it, and delete it", async ({ page }) => {
     // A reload also exercises the published page's database read path.
     await page.reload();
     await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+  });
+
+  await test.step("Expose the published tab to visitors without JavaScript", async () => {
+    const tabUrl = new URL(page.url());
+    const guest = await browser.newContext({ javaScriptEnabled: false });
+    try {
+      const tabPage = await guest.newPage();
+      await tabPage.goto(tabUrl.href);
+      await expect(tabPage).toHaveTitle(`${title} Guitar Tab | Autostrum`);
+      await expect(tabPage.getByRole("heading", { name: title })).toBeVisible();
+      await expect(tabPage.getByText("Arrangement Guitar tab")).toBeVisible();
+      await expect(tabPage.getByText("Tuning", { exact: true })).toBeVisible();
+      await expect(tabPage.getByText("Capo", { exact: true })).toBeVisible();
+      await expect(tabPage.locator('link[rel="canonical"]')).toHaveAttribute(
+        "href",
+        `https://www.autostrum.com${tabUrl.pathname}`,
+      );
+    } finally {
+      await guest.close();
+    }
   });
 
   await test.step("Import a Guitar Pro track into the existing tab", async () => {

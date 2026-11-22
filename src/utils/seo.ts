@@ -1,6 +1,4 @@
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_DOMAIN_URL ?? "https://www.autostrum.com"
-).replace(/\/$/, "");
+export const SITE_URL = "https://www.autostrum.com";
 
 export const DEFAULT_SEO_TITLE =
   "Autostrum | Guitar Tabs, Playback & Practice Tools";

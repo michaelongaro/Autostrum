@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { FaBook } from "react-icons/fa";
 import { IoMdSettings } from "react-icons/io";
@@ -35,8 +36,8 @@ import {
 } from "~/components/ui/tooltip";
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
-import { useRouteLocation } from "~/hooks/useRouteLocation";
 import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibility";
+import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 import {
   useTabStoreApi,
@@ -49,9 +50,15 @@ import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
-function StaticTab() {
+function StaticTab({
+  publishedTab,
+  arrangement,
+}: {
+  publishedTab?: TabWithArtistMetadata;
+  arrangement?: string;
+}) {
   const store = useTabStoreApi();
-  const { asPath } = useRouteLocation();
+  const pathname = usePathname();
 
   const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
     {},
@@ -149,7 +156,7 @@ function StaticTab() {
   });
 
   const minifiedTabData: Section[] | undefined =
-    id === -1 || !asPath.includes("screenshot")
+    id === -1 || !pathname.startsWith("/screenshot-preview/")
       ? undefined
       : tabData.slice(0, 2);
 
@@ -159,7 +166,10 @@ function StaticTab() {
         id={"mainTabComponent"}
         className="baseVertFlex relative w-full border-y bg-background shadow-lg md:rounded-xl md:border"
       >
-        <StaticTabMetadata />
+        <StaticTabMetadata
+          publishedTab={publishedTab}
+          arrangement={arrangement}
+        />
 
         <Separator className="mt-2 h-px w-full bg-border lg:mb-4 lg:h-[2px] lg:w-[96%]" />
 

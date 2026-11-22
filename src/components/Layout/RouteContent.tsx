@@ -21,15 +21,20 @@ function RouteReset({ pathname }: { pathname: string }) {
 
 export default function RouteContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const isPublicTab =
+    /^\/tab\/\d+\/[^/]+$/.test(pathname) && !pathname.endsWith("/edit");
+  const content = (
+    <>
+      {/* Run the reset as a preceding sibling, before page hydration effects. */}
+      <RouteReset pathname={pathname} />
+      {children}
+    </>
+  );
 
   return (
     <ClientErrorBoundary resetKey={pathname}>
-      <Suspense fallback={null}>
-        {/* Run the reset as a preceding sibling, before page hydration effects.
-            Keeping it in this boundary also handles streamed initial loads. */}
-        <RouteReset pathname={pathname} />
-        {children}
-      </Suspense>
+      {/* Render the public song content in place before JavaScript runs. */}
+      {isPublicTab ? content : <Suspense fallback={null}>{content}</Suspense>}
     </ClientErrorBoundary>
   );
 }

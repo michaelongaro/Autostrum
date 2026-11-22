@@ -1,6 +1,6 @@
-export const dynamic = "force-dynamic";
+import { SITE_URL } from "~/utils/seo";
 
-const SITE_URL = "https://www.autostrum.com";
+export const dynamic = "force-dynamic";
 const MAX_URLS_PER_SITEMAP = 50000;
 
 function escapeXml(str: string): string {

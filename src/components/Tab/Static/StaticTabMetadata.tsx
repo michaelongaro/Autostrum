@@ -1,8 +1,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useRouteLocation } from "~/hooks/useRouteLocation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 
 import { useEffect } from "react";
@@ -18,6 +17,7 @@ import { PrettyTuning } from "~/components/ui/PrettyTuning";
 import RateTab from "~/components/ui/RateTab";
 import { Separator } from "~/components/ui/separator";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
+import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { useTabStoreShallow } from "~/stores/TabStore";
 import { api } from "~/utils/api";
 import { formatNumber } from "~/utils/formatNumber";
@@ -25,33 +25,23 @@ import { genreColors } from "~/utils/genreColors";
 import getDynamicFontSize from "~/utils/getDynamicFontSize";
 import { getOrdinalSuffix } from "~/utils/getOrdinalSuffix";
 import { QuarterNote } from "~/utils/noteLengthIcons";
-import { getTuningName } from "~/utils/tunings";
+import { getTuningName, normalizeTuningValue } from "~/utils/tunings";
 import classes from "../TabMetadata.module.css";
 
 const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
-function StaticTabMetadata() {
+function StaticTabMetadata({
+  publishedTab,
+  arrangement,
+}: {
+  publishedTab?: TabWithArtistMetadata;
+  arrangement?: string;
+}) {
   const { userId } = useAuth();
-  const { asPath } = useRouteLocation();
-  const { push } = useRouter();
+  const isScreenshot = usePathname().startsWith("/screenshot-preview/");
+  const router = useRouter();
 
-  const {
-    id,
-    createdByUserId,
-    createdAt,
-    title,
-    artistId,
-    artistName,
-    artistIsVerified,
-    description,
-    genre,
-    tuning,
-    bpm,
-    key,
-    difficulty,
-    capo,
-    isLoadingARoute,
-  } = useTabStoreShallow((state) => ({
+  const storeMetadata = useTabStoreShallow((state) => ({
     id: state.id,
     createdByUserId: state.createdByUserId,
     createdAt: state.createdAt,
@@ -68,6 +58,24 @@ function StaticTabMetadata() {
     capo: state.capo,
     isLoadingARoute: state.isLoadingARoute,
   }));
+  const {
+    id,
+    createdByUserId,
+    createdAt,
+    title,
+    artistId,
+    artistName,
+    artistIsVerified,
+    description,
+    genre,
+    tuning: rawTuning,
+    bpm,
+    key,
+    difficulty,
+    capo,
+  } = publishedTab ?? storeMetadata;
+  const tuning = normalizeTuningValue(rawTuning);
+  const { isLoadingARoute } = storeMetadata;
   const { theme, viewportLabel } = useAppPreferencesStore((state) => ({
     theme: state.theme,
     viewportLabel: state.viewportLabel,
@@ -124,14 +132,14 @@ function StaticTabMetadata() {
         {overLargeViewportThreshold ? (
           <div className="baseFlex w-full !justify-between gap-4">
             <div className="baseFlex min-w-0 flex-1 flex-wrap !items-baseline !justify-start gap-2">
-              <div
+              <h1
                 style={{
                   fontSize: getDynamicFontSize(title, 20, 24, 50),
                 }}
                 className="max-w-full break-words font-bold [overflow-wrap:anywhere]"
               >
                 {title}
-              </div>
+              </h1>
 
               {artistName && (
                 <div className="baseFlex min-w-0 max-w-full gap-2 text-lg">
@@ -167,122 +175,120 @@ function StaticTabMetadata() {
                   variant={editButtonVariant}
                   disabled={isLoadingARoute}
                   className="baseFlex gap-2 whitespace-nowrap text-nowrap"
-                  onClick={() => void push(`/tab/${id}/edit`)}
+                  onClick={() => void router.push(`/tab/${id}/edit`)}
                 >
                   Edit
                   <MdModeEditOutline className="size-5" />
                 </Button>
               )}
 
-              {!asPath.includes("create") && !asPath.includes("edit") && (
-                <AnimatePresence mode="popLayout">
-                  {dynamicMetadata ? (
-                    <motion.div
-                      key={"crossfadeRateTab"}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{
-                        duration: 0.25,
-                      }}
-                      className="baseFlex h-10 w-28"
-                    >
-                      <RateTab
-                        tabId={id}
-                        averageRating={dynamicMetadata.averageRating}
-                        ratingsCount={dynamicMetadata.ratingsCount}
-                        currentUser={currentUser}
-                        userRating={dynamicMetadata.userRating}
-                        tabCreatorUserId={createdByUserId ?? undefined}
-                        customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
-                      />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key={"crossfadeRateTabPlaceholder"}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{
-                        duration: 0.25,
-                      }}
-                      className="baseFlex h-10 w-28"
-                    >
-                      <div className="pulseAnimation size-full rounded-md"></div>
-                    </motion.div>
-                  )}
-
-                  {dynamicMetadata ? (
-                    <motion.div
-                      key={"crossfadeBookmarkToggle"}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{
-                        duration: 0.25,
-                      }}
-                      className="baseFlex h-10 w-36"
-                    >
-                      <BookmarkToggle
-                        tabId={id}
-                        createdByUserId={createdByUserId}
-                        currentUser={currentUser}
-                        showText={true}
-                        isBookmarked={dynamicMetadata.bookmarked}
-                        customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
-                      />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key={"crossfadeBookmarkTogglePlaceholder"}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{
-                        duration: 0.25,
-                      }}
-                      className="baseFlex h-10 w-36"
-                    >
-                      <div className="pulseAnimation size-full rounded-md"></div>
-                    </motion.div>
-                  )}
-
-                  <Button
-                    aria-label="Share tab"
-                    variant={"secondary"}
-                    size={"icon"}
-                    disabled={isLoadingARoute}
-                    onClick={async () => {
-                      try {
-                        await navigator.share({
-                          title,
-                          text: `Check out this tab I found on Autostrum!`,
-                          url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
-                        });
-                      } catch (error) {
-                        console.error("Error sharing tab:", error);
-                      }
+              <AnimatePresence mode="popLayout">
+                {dynamicMetadata ? (
+                  <motion.div
+                    key={"crossfadeRateTab"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      duration: 0.25,
                     }}
+                    className="baseFlex h-10 w-28"
                   >
-                    <IoIosShareAlt className="size-5" />
-                  </Button>
-                </AnimatePresence>
-              )}
-              {!asPath.includes("screenshot") && <PrintTabButton />}
+                    <RateTab
+                      tabId={id}
+                      averageRating={dynamicMetadata.averageRating}
+                      ratingsCount={dynamicMetadata.ratingsCount}
+                      currentUser={currentUser}
+                      userRating={dynamicMetadata.userRating}
+                      tabCreatorUserId={createdByUserId ?? undefined}
+                      customClassName={`${classes.rating} baseFlex w-28 gap-2 px-3 py-1`}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={"crossfadeRateTabPlaceholder"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      duration: 0.25,
+                    }}
+                    className="baseFlex h-10 w-28"
+                  >
+                    <div className="pulseAnimation size-full rounded-md"></div>
+                  </motion.div>
+                )}
+
+                {dynamicMetadata ? (
+                  <motion.div
+                    key={"crossfadeBookmarkToggle"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      duration: 0.25,
+                    }}
+                    className="baseFlex h-10 w-36"
+                  >
+                    <BookmarkToggle
+                      tabId={id}
+                      createdByUserId={createdByUserId}
+                      currentUser={currentUser}
+                      showText={true}
+                      isBookmarked={dynamicMetadata.bookmarked}
+                      customClassName={`${classes.bookmark} baseFlex w-full gap-2 px-3 py-1`}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={"crossfadeBookmarkTogglePlaceholder"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      duration: 0.25,
+                    }}
+                    className="baseFlex h-10 w-36"
+                  >
+                    <div className="pulseAnimation size-full rounded-md"></div>
+                  </motion.div>
+                )}
+
+                <Button
+                  aria-label="Share tab"
+                  variant={"secondary"}
+                  size={"icon"}
+                  disabled={isLoadingARoute}
+                  onClick={async () => {
+                    try {
+                      await navigator.share({
+                        title,
+                        text: `Check out this tab I found on Autostrum!`,
+                        url: `${window.location.origin}/tab/${id}/${encodeURIComponent(title)}`,
+                      });
+                    } catch (error) {
+                      console.error("Error sharing tab:", error);
+                    }
+                  }}
+                >
+                  <IoIosShareAlt className="size-5" />
+                </Button>
+              </AnimatePresence>
+              {!isScreenshot && <PrintTabButton />}
             </div>
           </div>
         ) : (
           <div className="baseVertFlex relative w-full min-w-0 !items-start gap-4 xs:!flex-row xs:!items-end">
             <div className="baseVertFlex w-full min-w-0 !items-start gap-4">
               <div className="baseVertFlex w-full !items-start gap-2">
-                <div
+                <h1
                   style={{
                     fontSize: getDynamicFontSize(title, 20, 24, 50),
                   }}
                   className="max-w-full break-words font-bold [overflow-wrap:anywhere]"
                 >
                   {title}
-                </div>
+                </h1>
 
                 {artistName && (
                   <div className="baseFlex w-full min-w-0 !justify-start gap-2 text-lg">
@@ -406,7 +412,7 @@ function StaticTabMetadata() {
                     >
                       <IoIosShareAlt className="size-5" />
                     </Button>
-                    {!asPath.includes("screenshot") && <PrintTabButton />}
+                    {!isScreenshot && <PrintTabButton />}
                   </div>
                 </div>
               </AnimatePresence>
@@ -417,7 +423,7 @@ function StaticTabMetadata() {
                 variant={editButtonVariant}
                 disabled={isLoadingARoute}
                 className="baseFlex h-10 gap-2"
-                onClick={() => void push(`/tab/${id}/edit`)}
+                onClick={() => void router.push(`/tab/${id}/edit`)}
               >
                 Edit
                 <MdModeEditOutline className="size-5" />
@@ -447,6 +453,11 @@ function StaticTabMetadata() {
                 </span>
               )}
             </div>
+            {arrangement && (
+              <p className="text-sm md:text-base">
+                <span className="font-semibold">Arrangement</span> {arrangement}
+              </p>
+            )}
           </div>
 
           <div
