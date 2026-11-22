@@ -309,6 +309,7 @@ function StrummingPatternStrum({
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent
+                  className="[--select-list-max-height:15rem]"
                   finalFocus={() => {
                     if (openingChordDialog.current) {
                       openingChordDialog.current = false;
@@ -317,7 +318,7 @@ function StrummingPatternStrum({
                     return true;
                   }}
                 >
-                  <SelectGroup className="max-h-60 overflow-y-auto overflow-x-hidden">
+                  <SelectGroup>
                     {chords.map((chord) => (
                       <SelectItem
                         key={chord.name}

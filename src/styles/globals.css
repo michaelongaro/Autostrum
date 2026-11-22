@@ -4,6 +4,35 @@
 @tailwind components;
 @tailwind utilities;
 
+@media (forced-colors: none) {
+  [data-scroll-fade-top="false"] {
+    --scroll-fade-top-stops: black, black;
+  }
+
+  [data-scroll-fade-bottom="false"] {
+    --scroll-fade-bottom-stops: black, black;
+  }
+
+  [data-scroll-fade-top="true"] {
+    --scroll-fade-top-stops: transparent,
+      black min(var(--scroll-fade-size, 20px), 45%);
+  }
+
+  [data-scroll-fade-bottom="true"] {
+    --scroll-fade-bottom-stops: black
+        calc(100% - min(var(--scroll-fade-size, 20px), 45%)),
+      transparent;
+  }
+
+  :is([data-scroll-fade-top="true"], [data-scroll-fade-bottom="true"]) {
+    mask-image: linear-gradient(
+      to bottom,
+      var(--scroll-fade-top-stops),
+      var(--scroll-fade-bottom-stops)
+    );
+  }
+}
+
 /* Full glyph coverage is fetched only when a name needs a glyph outside the
    small UI subset. Keep the original fonts available for international tabs. */
 @font-face {

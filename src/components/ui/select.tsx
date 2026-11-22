@@ -5,6 +5,7 @@ import { Check, ChevronDown } from "lucide-react";
 import { cn } from "~/utils/cn";
 import { Separator } from "~/components/ui/separator";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-react";
+import { overlayScrollFadeEvents } from "~/utils/scrollFade";
 import { DialogContentContext } from "./dialog-content-context";
 
 function Select<Value, Multiple extends boolean | undefined = false>({
@@ -135,8 +136,9 @@ const SelectContent = React.forwardRef<
                   y: "scroll",
                 },
               }}
+              events={overlayScrollFadeEvents}
               defer
-              className="max-h-[300px] w-full"
+              className="max-h-[min(var(--select-list-max-height,300px),max(0px,calc(var(--available-height,310px)-10px)))] w-full [--scroll-fade-size:10px] [&_[data-overlayscrollbars-viewport]]:scroll-py-2.5"
             >
               {children}
             </OverlayScrollbarsComponent>

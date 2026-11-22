@@ -383,7 +383,7 @@ function Section({
                   {title || "Select a section"}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent className="max-h-60 overflow-y-auto">
+              <SelectContent className="[--select-list-max-height:230px]">
                 {sections.map((section) => {
                   return (
                     <SelectItem key={section.id} value={section.id}>

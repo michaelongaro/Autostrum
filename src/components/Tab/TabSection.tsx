@@ -392,7 +392,7 @@ function TabSection({
                     >
                       <SelectValue placeholder="Select a length" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectContent className="[--select-list-max-height:230px]">
                       <SelectItem value="whole">
                         <div className="baseFlex gap-2">
                           <WholeNote />

@@ -9,6 +9,10 @@ import { Button } from "~/components/ui/button";
 import ChordName from "~/components/ui/ChordName";
 import { useTabStoreShallow } from "~/stores/TabStore";
 import formatSecondsToMinutes from "~/utils/formatSecondsToMinutes";
+import {
+  observeVerticalScrollFade,
+  overlayScrollFadeEvents,
+} from "~/utils/scrollFade";
 
 function PlaybackMenuContent() {
   const {
@@ -48,41 +52,48 @@ function PlaybackMenuContent() {
       {playbackModalViewingState === "Section progression" && (
         <motion.div
           key="Section progression"
+          ref={observeVerticalScrollFade}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="baseVertFlex h-full max-h-[calc(100dvh-rem)] w-full gap-2 overflow-y-auto"
+          className="h-full min-h-0 w-full overflow-y-auto"
         >
-          {sectionProgression.length === 0 ? (
-            <p className="text-lg font-semibold text-gray">
-              No section progression found.
-            </p>
-          ) : (
-            <div className="baseVertFlex gap-2">
-              {sectionProgression.map((section) => (
-                <div
-                  key={section.id}
-                  className="baseFlex w-full !justify-start gap-2"
-                >
-                  <div className="baseFlex w-24 gap-2">
-                    <span className="text-gray">
-                      {formatSecondsToMinutes(section.startSeconds)}
-                    </span>
-                    <span className="text-gray">-</span>
-                    <span className="text-gray">
-                      {formatSecondsToMinutes(section.endSeconds)}
-                    </span>
-                  </div>
+          <div className="baseVertFlex min-h-full gap-2">
+            {sectionProgression.length === 0 ? (
+              <p className="text-lg font-semibold text-gray">
+                No section progression found.
+              </p>
+            ) : (
+              <div className="baseVertFlex gap-2">
+                {sectionProgression.map((section) => (
+                  <div
+                    key={section.id}
+                    className="baseFlex w-full !justify-start gap-2"
+                  >
+                    <div className="baseFlex w-24 gap-2">
+                      <span className="text-gray">
+                        {formatSecondsToMinutes(section.startSeconds)}
+                      </span>
+                      <span className="text-gray">-</span>
+                      <span className="text-gray">
+                        {formatSecondsToMinutes(section.endSeconds)}
+                      </span>
+                    </div>
 
-                  <div className="baseFlex gap-2">
-                    <p className="text-nowrap font-semibold">{section.title}</p>
-                    {section.repetitions > 1 && <p>({section.repetitions}x)</p>}
+                    <div className="baseFlex gap-2">
+                      <p className="text-nowrap font-semibold">
+                        {section.title}
+                      </p>
+                      {section.repetitions > 1 && (
+                        <p>({section.repetitions}x)</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </motion.div>
       )}
 
@@ -96,8 +107,11 @@ function PlaybackMenuContent() {
           className="baseVertFlex size-full overflow-y-hidden py-8"
         >
           {chords.length > 0 ? (
-            <div className="baseFlex max-h-[calc(100dvh-6rem)] w-full flex-wrap gap-8 overflow-y-auto px-8">
-              <>
+            <div
+              ref={observeVerticalScrollFade}
+              className="max-h-[calc(100dvh-6rem)] w-full overflow-y-auto px-8"
+            >
+              <div className="baseFlex w-full flex-wrap gap-8">
                 {chords.map((chord, index) => (
                   <div key={chord.id} className="baseFlex">
                     <div className="baseVertFlex gap-3">
@@ -153,7 +167,7 @@ function PlaybackMenuContent() {
                     </div>
                   </div>
                 ))}
-              </>
+              </div>
             </div>
           ) : (
             <div>No chords were specified for this tab.</div>
@@ -175,6 +189,7 @@ function PlaybackMenuContent() {
               options={{
                 scrollbars: { autoHide: "leave", autoHideDelay: 150 },
               }}
+              events={overlayScrollFadeEvents}
               defer
               className="w-full"
             >

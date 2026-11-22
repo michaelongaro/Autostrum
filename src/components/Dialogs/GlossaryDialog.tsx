@@ -35,6 +35,7 @@ import {
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useTabStoreShallow } from "~/stores/TabStore";
+import { observeVerticalScrollFade } from "~/utils/scrollFade";
 import {
   EighthNote,
   EighthRest,
@@ -810,6 +811,7 @@ function MobileGlossary({ editing }: { editing: boolean }) {
       >
         <CarouselContent className="ml-0 h-full touch-pan-y">
           <CarouselItem
+            ref={observeVerticalScrollFade}
             aria-label="Modifier Glossary"
             className="h-full overflow-y-auto overscroll-y-contain pl-0"
           >
@@ -821,6 +823,7 @@ function MobileGlossary({ editing }: { editing: boolean }) {
             </div>
           </CarouselItem>
           <CarouselItem
+            ref={observeVerticalScrollFade}
             aria-label="Note Lengths"
             className="h-full overflow-y-auto overscroll-y-contain pl-0"
           >
