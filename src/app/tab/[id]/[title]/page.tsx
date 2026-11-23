@@ -25,7 +25,6 @@ async function Page({ params }: Props) {
   return (
     <PageClient
       tabJson={superjson.stringify(data.tab)}
-      arrangement={data.arrangement}
       relatedTabSections={data.relatedTabSections}
       relatedArtist={data.relatedArtist}
     />

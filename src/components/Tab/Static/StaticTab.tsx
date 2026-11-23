@@ -52,10 +52,8 @@ import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
 function StaticTab({
   publishedTab,
-  arrangement,
 }: {
   publishedTab?: TabWithArtistMetadata;
-  arrangement?: string;
 }) {
   const store = useTabStoreApi();
   const pathname = usePathname();
@@ -166,10 +164,7 @@ function StaticTab({
         id={"mainTabComponent"}
         className="baseVertFlex relative w-full border-y bg-background shadow-lg md:rounded-xl md:border"
       >
-        <StaticTabMetadata
-          publishedTab={publishedTab}
-          arrangement={arrangement}
-        />
+        <StaticTabMetadata publishedTab={publishedTab} />
 
         <Separator className="mt-2 h-px w-full bg-border lg:mb-4 lg:h-[2px] lg:w-[96%]" />
 

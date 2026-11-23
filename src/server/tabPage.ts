@@ -1,6 +1,5 @@
 import { cache } from "react";
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
-import type { Section } from "~/stores/TabStore";
 import { selectRelatedTabSections } from "~/utils/relatedTabs";
 
 export const getTabPageData = cache(async (idParam: string) => {
@@ -75,7 +74,6 @@ export const getTabPageData = cache(async (idParam: string) => {
   );
 
   const metadata = buildTabMetadata(tab);
-  const arrangement = getArrangementType(tab.tabData);
   const relatedArtistName = tab.artist?.name.trim() ?? "";
   const relatedArtist =
     tab.artist && relatedArtistName
@@ -92,7 +90,6 @@ export const getTabPageData = cache(async (idParam: string) => {
   return {
     tab: tabWithArtistMetadata,
     metadata,
-    arrangement,
     relatedTabSections,
     relatedArtist,
   };
@@ -166,21 +163,4 @@ function buildTabMetadata(tab: {
     path: `/tab/${tab.id}/${encodeURIComponent(tab.title)}`,
     description: `Play the ${genrePrefix}guitar tab for ${tab.title}${byArtist} with interactive playback on Autostrum.`,
   };
-}
-
-function getArrangementType(tabData: unknown) {
-  if (!Array.isArray(tabData)) return "Guitar tab";
-
-  let hasTab = false;
-  let hasChords = false;
-  for (const section of tabData as (Partial<Section> | null)[]) {
-    if (!Array.isArray(section?.data)) continue;
-    for (const part of section.data) {
-      if (part?.type === "tab") hasTab = true;
-      if (part?.type === "chord") hasChords = true;
-    }
-  }
-
-  if (hasTab && hasChords) return "Tab and chords";
-  return hasChords ? "Chords" : "Guitar tab";
 }

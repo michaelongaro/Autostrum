@@ -11,10 +11,9 @@ type TabPageData = NonNullable<Awaited<ReturnType<typeof getTabPageData>>>;
 
 export default function ViewIndividualTab({
   tabJson,
-  arrangement,
   relatedTabSections,
   relatedArtist,
-}: Pick<TabPageData, "arrangement" | "relatedTabSections" | "relatedArtist"> & {
+}: Pick<TabPageData, "relatedTabSections" | "relatedArtist"> & {
   tabJson: string;
 }) {
   const tab = superjson.parse<TabWithArtistMetadata>(tabJson);
@@ -22,7 +21,7 @@ export default function ViewIndividualTab({
 
   return (
     <div className="baseVertFlex my-12 min-h-[650px] w-full !justify-start md:my-24 md:w-[85%] md:p-0 2xl:w-[70%]">
-      <StaticTab publishedTab={tab} arrangement={arrangement} />
+      <StaticTab publishedTab={tab} />
       <RelatedTabs sections={relatedTabSections} artist={relatedArtist} />
     </div>
   );

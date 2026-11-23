@@ -141,7 +141,9 @@ test("publish a tab, import into it, and delete it", async ({
       await tabPage.goto(tabUrl.href);
       await expect(tabPage).toHaveTitle(`${title} Guitar Tab | Autostrum`);
       await expect(tabPage.getByRole("heading", { name: title })).toBeVisible();
-      await expect(tabPage.getByText("Arrangement Guitar tab")).toBeVisible();
+      await expect(
+        tabPage.getByText("Arrangement", { exact: true }),
+      ).toHaveCount(0);
       await expect(tabPage.getByText("Tuning", { exact: true })).toBeVisible();
       await expect(tabPage.getByText("Capo", { exact: true })).toBeVisible();
       await expect(tabPage.locator('link[rel="canonical"]')).toHaveAttribute(

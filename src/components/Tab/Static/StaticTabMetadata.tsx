@@ -32,10 +32,8 @@ const DIFFICULTIES = ["Beginner", "Easy", "Intermediate", "Advanced", "Expert"];
 
 function StaticTabMetadata({
   publishedTab,
-  arrangement,
 }: {
   publishedTab?: TabWithArtistMetadata;
-  arrangement?: string;
 }) {
   const { userId } = useAuth();
   const isScreenshot = usePathname().startsWith("/screenshot-preview/");
@@ -453,11 +451,6 @@ function StaticTabMetadata({
                 </span>
               )}
             </div>
-            {arrangement && (
-              <p className="text-sm md:text-base">
-                <span className="font-semibold">Arrangement</span> {arrangement}
-              </p>
-            )}
           </div>
 
           <div
