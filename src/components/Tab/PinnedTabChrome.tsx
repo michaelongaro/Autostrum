@@ -10,6 +10,7 @@ interface PinnedTabChromeProps {
   showSectionNavigation: boolean;
   chords: Chord[];
   showPinnedChords: boolean;
+  reserveSectionNavigationSpace?: boolean;
 }
 
 export function getSectionScrollMarginTop({
@@ -35,6 +36,7 @@ function PinnedTabChrome({
   showSectionNavigation,
   chords,
   showPinnedChords,
+  reserveSectionNavigationSpace = false,
 }: PinnedTabChromeProps) {
   const showPinnedChordsBar = showPinnedChords && chords.length > 0;
 
@@ -44,7 +46,7 @@ function PinnedTabChrome({
     return pinnedChords?.getBoundingClientRect().height ?? 0;
   }, [showPinnedChordsBar]);
 
-  if (!showSectionNavigation) {
+  if (!showSectionNavigation && !reserveSectionNavigationSpace) {
     return (
       <PinnedChordsCarousel
         chords={chords}
@@ -55,10 +57,14 @@ function PinnedTabChrome({
 
   return (
     <div className="baseVertFlex sticky top-16 z-20 w-full !justify-start gap-2">
-      <PinnedSectionNavigation
-        getAdditionalStickyOffset={getPinnedChordsStickyOffset}
-        showPinnedChordsBar={showPinnedChordsBar}
-      />
+      {showSectionNavigation ? (
+        <PinnedSectionNavigation
+          getAdditionalStickyOffset={getPinnedChordsStickyOffset}
+          showPinnedChordsBar={showPinnedChordsBar}
+        />
+      ) : (
+        <div aria-hidden="true" className="h-[37px] lg:h-9" />
+      )}
 
       <PinnedChordsCarousel
         chords={chords}

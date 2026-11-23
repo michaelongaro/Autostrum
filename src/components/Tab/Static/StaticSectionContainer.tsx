@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import StaticChordSection from "~/components/Tab/Static/StaticChordSection";
 import StaticTabSection from "~/components/Tab/Static/StaticTabSection";
 import {
@@ -49,6 +49,14 @@ function StaticSectionContainer({
   const sectionData = sectionDataProp ?? sectionFromStore;
 
   const zoom = useGetLocalStorageValues().zoom;
+  const sectionContentRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    sectionContentRef.current?.style.setProperty(
+      "--tab-zoom",
+      String(Number.isFinite(zoom) && zoom > 0 ? zoom : 1),
+    );
+  }, [zoom]);
 
   const sectionHeading = (
     <div className="baseFlex w-full !justify-start gap-4">
@@ -69,8 +77,9 @@ function StaticSectionContainer({
 
   const sectionContent = (
     <div
+      ref={sectionContentRef}
       style={{
-        zoom: zoom,
+        zoom: "var(--tab-zoom, 1)",
       }}
       className="baseVertFlex w-full gap-3"
     >

@@ -48,6 +48,7 @@ function DesktopExtraTabMetadata() {
   const { contentRef, height, hasOverflow } = useExtraTabMetadataLayout(
     activeTabName,
     tabContentExpanded,
+    sectionProgression.length,
   );
 
   const [artificalPlayButtonTimeout, setArtificalPlayButtonTimeout] = useState<
@@ -65,6 +66,7 @@ function DesktopExtraTabMetadata() {
       <div className="baseFlex !items-start gap-16 rounded-lg bg-accent px-8 py-1">
         <Button
           variant={"text"}
+          size="default"
           aria-pressed={activeTabName === "Section progression"}
           onClick={() => setActiveTabName("Section progression")}
           className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Section progression" ? "" : "opacity-50 hover:opacity-100"}`}
@@ -82,6 +84,7 @@ function DesktopExtraTabMetadata() {
 
         <Button
           variant={"text"}
+          size="default"
           aria-pressed={activeTabName === "Chords"}
           onClick={() => setActiveTabName("Chords")}
           className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Chords" ? "" : "opacity-50 hover:opacity-100"}`}
@@ -99,6 +102,7 @@ function DesktopExtraTabMetadata() {
 
         <Button
           variant={"text"}
+          size="default"
           aria-pressed={activeTabName === "Strumming patterns"}
           onClick={() => setActiveTabName("Strumming patterns")}
           className={`baseFlex relative gap-2 text-nowrap !px-0 text-lg font-medium text-primary-foreground hover:!text-primary-foreground/90 active:!text-primary-foreground/80 ${activeTabName === "Strumming patterns" ? "" : "opacity-50 hover:opacity-100"}`}
@@ -145,7 +149,7 @@ function DesktopExtraTabMetadata() {
                   {sectionProgression.map((section) => (
                     <div
                       key={section.id}
-                      className="baseFlex w-full !justify-start gap-2"
+                      className="baseFlex h-6 w-full !justify-start gap-2"
                     >
                       <div className="baseFlex w-24 gap-2 text-gray">
                         <p>{formatSecondsToMinutes(section.startSeconds)}</p>

@@ -146,6 +146,13 @@ test("publish a tab, import into it, and delete it", async ({
       ).toHaveCount(0);
       await expect(tabPage.getByText("Tuning", { exact: true })).toBeVisible();
       await expect(tabPage.getByText("Capo", { exact: true })).toBeVisible();
+      await expect(
+        tabPage
+          .locator("#sectionIndex0 [data-static-tab-body]")
+          .getByText("3", {
+            exact: true,
+          }),
+      ).toBeVisible();
       await expect(tabPage.locator('link[rel="canonical"]')).toHaveAttribute(
         "href",
         `https://www.autostrum.com${tabUrl.pathname}`,

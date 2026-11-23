@@ -12,6 +12,7 @@ const NEXT_ROW_PREVIEW_HEIGHT = 24;
 export default function useExtraTabMetadataLayout(
   activePane: MetadataPane,
   expanded: boolean,
+  progressionCount: number,
 ) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [sizes, setSizes] = useState<Partial<Record<MetadataPane, PaneSize>>>(
@@ -86,9 +87,19 @@ export default function useExtraTabMetadataLayout(
     return () => observer.disconnect();
   }, []);
 
+  // Progression rows are 24px tall with 8px gaps and 16px of pane padding.
+  // Match the collapsed viewport before the first DOM measurement.
+  const progressionHeight = (count: number) =>
+    Math.max(DEFAULT_PANE_HEIGHT, count * 24 + Math.max(0, count - 1) * 8 + 16);
+  const isProgression = activePane === "Section progression";
   const collapsedHeight =
-    sizes[activePane]?.collapsedHeight ?? DEFAULT_PANE_HEIGHT;
-  const naturalHeight = sizes[activePane]?.height ?? collapsedHeight;
+    sizes[activePane]?.collapsedHeight ??
+    (isProgression
+      ? progressionHeight(Math.min(progressionCount, COLLAPSED_SECTION_COUNT))
+      : DEFAULT_PANE_HEIGHT);
+  const naturalHeight =
+    sizes[activePane]?.height ??
+    (isProgression ? progressionHeight(progressionCount) : collapsedHeight);
   const hasOverflow = naturalHeight > collapsedHeight + 1;
   const hasAnyOverflow = Object.values(sizes).some(
     (size) => size.height > size.collapsedHeight + 1,

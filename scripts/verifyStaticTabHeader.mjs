@@ -52,7 +52,7 @@ for (const [engineName, engine] of [
     await page
       .locator('#devVirtualizationHarness[data-ready="true"]')
       .waitFor();
-    await page.getByRole("button", { name: "Rate toggle" }).waitFor();
+    await page.getByRole("button", { name: /^Rate this tab/ }).waitFor();
     for (const [title, artistName] of [
       ["Wish You Were Here", "Pink Floyd"],
       [

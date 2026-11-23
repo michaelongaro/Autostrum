@@ -37,7 +37,7 @@ import {
 import { VisuallyHidden } from "~/components/ui/visually-hidden";
 import useAutoCompileChords from "~/hooks/useAutoCompileChords";
 import useSectionNavigationVisibility from "~/hooks/useSectionNavigationVisibility";
-import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
+import useViewportWidthBreakpoint from "~/hooks/useViewportWidthBreakpoint";
 import { useAppPreferencesStore } from "~/stores/AppPreferencesStore";
 import {
   useTabStoreApi,
@@ -50,13 +50,10 @@ import { primePlaybackUserGesture } from "~/utils/primePlaybackUserGesture";
 
 import PlaybackModal from "~/components/Tab/Playback/PlaybackModal";
 
-function StaticTab({
-  publishedTab,
-}: {
-  publishedTab?: TabWithArtistMetadata;
-}) {
+function StaticTab() {
   const store = useTabStoreApi();
   const pathname = usePathname();
+  const desktopViewport = useViewportWidthBreakpoint(1024);
 
   const [sectionHeights, setSectionHeights] = useState<Record<string, number>>(
     {},
@@ -116,6 +113,7 @@ function StaticTab({
     bpm,
     chords,
     tabData,
+    tabIsEffectivelyEmpty,
     audioMetadata,
     showPlaybackModal,
     setShowPlaybackModal,
@@ -126,6 +124,7 @@ function StaticTab({
     bpm: state.bpm,
     chords: state.chords,
     tabData: state.tabData,
+    tabIsEffectivelyEmpty: state.tabIsEffectivelyEmpty,
     audioMetadata: state.audioMetadata,
     showPlaybackModal: state.showPlaybackModal,
     setShowPlaybackModal: state.setShowPlaybackModal,
@@ -148,6 +147,7 @@ function StaticTab({
   });
 
   const showPinnedChordsBar = showPinnedChords && chords.length > 0;
+  const reserveSectionNavigationSpace = tabData.length >= 2;
   const sectionScrollMarginTop = getSectionScrollMarginTop({
     showSectionNavigation,
     showPinnedChordsBar,
@@ -164,28 +164,34 @@ function StaticTab({
         id={"mainTabComponent"}
         className="baseVertFlex relative w-full border-y bg-background shadow-lg md:rounded-xl md:border"
       >
-        <StaticTabMetadata publishedTab={publishedTab} />
+        <StaticTabMetadata />
 
         <Separator className="mt-2 h-px w-full bg-border lg:mb-4 lg:h-[2px] lg:w-[96%]" />
 
-        {viewportLabel.includes("mobile") ? (
-          <MobileExtraTabMetadata />
-        ) : (
-          <DesktopExtraTabMetadata />
+        {desktopViewport !== true && (
+          <div className="w-full lg:hidden">
+            <MobileExtraTabMetadata />
+          </div>
+        )}
+        {desktopViewport !== false && (
+          <div className="hidden w-full justify-center lg:flex">
+            <DesktopExtraTabMetadata />
+          </div>
         )}
 
         <Separator
-          className={`h-px w-full bg-border lg:h-[2px] lg:w-[96%] ${showSectionNavigation ? "mt-2" : "my-2"}`}
+          className={`h-px w-full bg-border lg:h-[2px] lg:w-[96%] ${reserveSectionNavigationSpace ? "mt-2" : "my-2"}`}
         />
 
         <div
           ref={tabContentRef}
-          className={`baseVertFlex relative size-full scroll-m-24 !justify-start gap-4 ${showSectionNavigation ? "" : "mt-2"}`}
+          className={`baseVertFlex relative size-full scroll-m-24 !justify-start gap-4 ${reserveSectionNavigationSpace ? "" : "mt-2"}`}
         >
           <PinnedTabChrome
             showSectionNavigation={showSectionNavigation}
             chords={chords}
             showPinnedChords={showPinnedChords}
+            reserveSectionNavigationSpace={reserveSectionNavigationSpace}
           />
 
           {tabData.map((section, index) =>
@@ -214,141 +220,149 @@ function StaticTab({
             ),
           )}
 
-          <AnimatePresence>
-            {audioMetadata.fullTabMetadataLength > 0 &&
-              (tabContentIsInView || relatedTabsInView) && (
-                <motion.div
-                  id="stickyBottomControls"
-                  initial={{ y: 100 }}
-                  animate={{ y: 0 }}
-                  exit={{ y: 100 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="baseFlex sticky bottom-4 top-4 mb-4 gap-4 lg:bottom-6"
-                >
-                  <TooltipProvider delay={150}>
-                    <Tooltip>
-                      <TooltipTrigger
-                        render={
-                          <Button
-                            variant={"secondary"}
-                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
-                            aria-label="Glossary"
-                            onClick={() => setShowGlossaryDialog(true)}
-                          >
-                            <FaBook className="size-4" />
-                          </Button>
-                        }
-                      />
-                      <TooltipContent side={"top"}>
-                        <span>Glossary</span>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <Button
-                    variant="audio"
-                    className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-primaryButton hover:brightness-90 lg:px-10 lg:text-xl"
-                    onClick={() => {
-                      // Unlock AudioContext + preload the modal chunk inside this
-                      // gesture so the first Play is not blocked on Safari resume/lazy JS.
-                      primePlaybackUserGesture(store.getState());
-                      setShowPlaybackModal(true);
-                    }}
-                  >
-                    <Logo className="size-[18px] lg:size-5" />
-                    Practice
-                  </Button>
-
-                  {viewportLabel.includes("mobile") ? (
-                    <Drawer
-                      open={drawerOpen}
-                      onOpenChange={(open) => {
-                        setDrawerOpen(open);
-                      }}
-                      swipeDisabled={pressingOnZoomSlider}
-                      disablePointerDismissal={pressingOnZoomSlider}
+          {!tabIsEffectivelyEmpty && (
+            <div className="baseFlex sticky bottom-4 top-4 mb-4 h-[50px] lg:bottom-6">
+              <AnimatePresence>
+                {audioMetadata.fullTabMetadataLength > 0 &&
+                  (tabContentIsInView || relatedTabsInView) && (
+                    <motion.div
+                      id="stickyBottomControls"
+                      initial={{ y: 100 }}
+                      animate={{ y: 0 }}
+                      exit={{ y: 100 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="baseFlex gap-4"
                     >
-                      <DrawerTrigger
-                        aria-label="Tab settings"
-                        render={
-                          <Button
-                            variant={"secondary"}
-                            className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
-                          >
-                            <IoMdSettings className="size-5" />
-                          </Button>
-                        }
-                      />
-
-                      <DrawerContent className="baseVertFlex z-50 !items-start gap-2 p-4 pb-6">
-                        <VisuallyHidden>
-                          <DrawerTitle>Tab settings</DrawerTitle>
-                          <DrawerDescription>
-                            Change the tab zoom, whether chords and section
-                            navigation are pinned, and whether left-hand chord
-                            diagrams are shown.
-                          </DrawerDescription>
-                        </VisuallyHidden>
-
-                        <div className="baseFlex gap-2 font-medium">
-                          <IoMdSettings className="size-4" />
-                          Tab settings
-                        </div>
-                        <Separator className="mb-2 w-full bg-primary" />
-
-                        <TabSettings
-                          showPinnedChords={showPinnedChords}
-                          setShowPinnedChords={setShowPinnedChords}
-                          setPressingOnZoomSlider={setPressingOnZoomSlider}
-                        />
-                      </DrawerContent>
-                    </Drawer>
-                  ) : (
-                    <TooltipProvider delay={150}>
-                      <Tooltip open={settingsPopoverIsOpen ? false : undefined}>
-                        <TooltipTrigger
-                          render={
-                            <div className="baseFlex">
-                              <Popover
-                                open={settingsPopoverIsOpen}
-                                onOpenChange={setSettingsPopoverIsOpen}
+                      <TooltipProvider delay={150}>
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <Button
+                                variant={"secondary"}
+                                className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                                aria-label="Glossary"
+                                onClick={() => setShowGlossaryDialog(true)}
                               >
-                                <PopoverTrigger
-                                  aria-label="Tab settings"
-                                  render={
-                                    <Button
-                                      variant={"secondary"}
-                                      className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
-                                    >
-                                      <IoMdSettings className="size-5" />
-                                    </Button>
-                                  }
-                                />
-                                <PopoverContent
-                                  className="baseVertFlex p-3"
-                                  side="top"
-                                >
-                                  <TabSettings
-                                    showPinnedChords={showPinnedChords}
-                                    setShowPinnedChords={setShowPinnedChords}
-                                    setPressingOnZoomSlider={
-                                      setPressingOnZoomSlider
-                                    }
-                                  />
-                                </PopoverContent>
-                              </Popover>
+                                <FaBook className="size-4" />
+                              </Button>
+                            }
+                          />
+                          <TooltipContent side={"top"}>
+                            <span>Glossary</span>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <Button
+                        variant="audio"
+                        className="baseFlex gap-3 !rounded-full bg-audio px-8 py-6 text-lg shadow-primaryButton hover:brightness-90 lg:px-10 lg:text-xl"
+                        onClick={() => {
+                          // Unlock AudioContext + preload the modal chunk inside this
+                          // gesture so the first Play is not blocked on Safari resume/lazy JS.
+                          primePlaybackUserGesture(store.getState());
+                          setShowPlaybackModal(true);
+                        }}
+                      >
+                        <Logo className="size-[18px] lg:size-5" />
+                        Practice
+                      </Button>
+
+                      {viewportLabel.includes("mobile") ? (
+                        <Drawer
+                          open={drawerOpen}
+                          onOpenChange={(open) => {
+                            setDrawerOpen(open);
+                          }}
+                          swipeDisabled={pressingOnZoomSlider}
+                          disablePointerDismissal={pressingOnZoomSlider}
+                        >
+                          <DrawerTrigger
+                            aria-label="Tab settings"
+                            render={
+                              <Button
+                                variant={"secondary"}
+                                className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                              >
+                                <IoMdSettings className="size-5" />
+                              </Button>
+                            }
+                          />
+
+                          <DrawerContent className="baseVertFlex z-50 !items-start gap-2 p-4 pb-6">
+                            <VisuallyHidden>
+                              <DrawerTitle>Tab settings</DrawerTitle>
+                              <DrawerDescription>
+                                Change the tab zoom, whether chords and section
+                                navigation are pinned, and whether left-hand
+                                chord diagrams are shown.
+                              </DrawerDescription>
+                            </VisuallyHidden>
+
+                            <div className="baseFlex gap-2 font-medium">
+                              <IoMdSettings className="size-4" />
+                              Tab settings
                             </div>
-                          }
-                        />
-                        <TooltipContent side={"top"}>
-                          <span>Settings</span>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                            <Separator className="mb-2 w-full bg-primary" />
+
+                            <TabSettings
+                              showPinnedChords={showPinnedChords}
+                              setShowPinnedChords={setShowPinnedChords}
+                              setPressingOnZoomSlider={setPressingOnZoomSlider}
+                            />
+                          </DrawerContent>
+                        </Drawer>
+                      ) : (
+                        <TooltipProvider delay={150}>
+                          <Tooltip
+                            open={settingsPopoverIsOpen ? false : undefined}
+                          >
+                            <TooltipTrigger
+                              render={
+                                <div className="baseFlex">
+                                  <Popover
+                                    open={settingsPopoverIsOpen}
+                                    onOpenChange={setSettingsPopoverIsOpen}
+                                  >
+                                    <PopoverTrigger
+                                      aria-label="Tab settings"
+                                      render={
+                                        <Button
+                                          variant={"secondary"}
+                                          className="baseFlex !size-11 gap-2 !rounded-full border !p-0 !shadow-md"
+                                        >
+                                          <IoMdSettings className="size-5" />
+                                        </Button>
+                                      }
+                                    />
+                                    <PopoverContent
+                                      className="baseVertFlex p-3"
+                                      side="top"
+                                    >
+                                      <TabSettings
+                                        showPinnedChords={showPinnedChords}
+                                        setShowPinnedChords={
+                                          setShowPinnedChords
+                                        }
+                                        setPressingOnZoomSlider={
+                                          setPressingOnZoomSlider
+                                        }
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
+                              }
+                            />
+                            <TooltipContent side={"top"}>
+                              <span>Settings</span>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </motion.div>
                   )}
-                </motion.div>
-              )}
-          </AnimatePresence>
+              </AnimatePresence>
+            </div>
+          )}
         </div>
 
         {minifiedTabData && (

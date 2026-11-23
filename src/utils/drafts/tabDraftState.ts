@@ -1,7 +1,9 @@
 import type { TabWithArtistMetadata } from "~/server/api/routers/tab";
 import { getTabStore } from "~/stores/TabStore";
+import { initializeEmptyChordSequences } from "~/stores/tab/document";
 import { ensureSectionProgression } from "~/utils/sectionProgression";
 import type { TabDocument } from "~/utils/tabDocument";
+import { normalizeTuningValue } from "~/utils/tunings";
 import { updateElapsedSecondsInSectionProgression } from "~/utils/updateElapsedSecondsInSectionProgression";
 import { emptyTabDocument } from "./draftDocument";
 
@@ -63,7 +65,7 @@ export function applyTabDocument(
   );
 }
 
-export function hydratePublishedTab(tab?: TabWithArtistMetadata | null) {
+export function preparePublishedTab(tab?: TabWithArtistMetadata | null) {
   const identity = {
     id: tab?.id ?? -1,
     createdByUserId: tab?.createdByUserId ?? null,
@@ -72,8 +74,7 @@ export function hydratePublishedTab(tab?: TabWithArtistMetadata | null) {
     originalTabData: tab ? structuredClone(tab) : null,
   };
   if (!tab) {
-    applyTabDocument(emptyTabDocument(), identity);
-    return;
+    return { document: emptyTabDocument(), identity };
   }
   // Published JSON predates the draft format. Keep its existing hydration
   // behavior; strict validation belongs at draft storage/API boundaries.
@@ -81,13 +82,20 @@ export function hydratePublishedTab(tab?: TabWithArtistMetadata | null) {
     ...tab,
     artistName: tab.artistName,
     artistIsVerified: tab.artistIsVerified,
+    tuning: normalizeTuningValue(tab.tuning),
     chords: tab.chords as unknown as TabDocument["chords"],
     strummingPatterns:
       tab.strummingPatterns as unknown as TabDocument["strummingPatterns"],
-    tabData: tab.tabData as unknown as TabDocument["tabData"],
+    tabData: structuredClone(tab.tabData) as unknown as TabDocument["tabData"],
     sectionProgression:
       tab.sectionProgression as unknown as TabDocument["sectionProgression"],
   };
+  if (document.tabData.length === 0) {
+    document.tabData = [
+      { id: `empty-${tab.id}`, title: "Section 1", data: [] },
+    ];
+  }
+  initializeEmptyChordSequences(document);
   document.sectionProgression =
     updateElapsedSecondsInSectionProgression({
       tabData: document.tabData,
@@ -97,5 +105,10 @@ export function hydratePublishedTab(tab?: TabWithArtistMetadata | null) {
       ),
       baselineBpm: document.bpm,
     }) ?? [];
+  return { document, identity };
+}
+
+export function hydratePublishedTab(tab?: TabWithArtistMetadata | null) {
+  const { document, identity } = preparePublishedTab(tab);
   applyTabDocument(document, identity);
 }

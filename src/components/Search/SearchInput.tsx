@@ -252,6 +252,7 @@ function SearchInput({
         <Button
           aria-label="Submit search"
           variant={"text"}
+          size="sm"
           onClick={() => {
             debouncedSetSearch.flush();
             adjustQueryParams({
@@ -271,7 +272,7 @@ function SearchInput({
               setEnterButtonBeingPressed(false);
             }
           }}
-          className={`${enterButtonBeingPressed ? "!brightness-75" : ""}`}
+          className={`md:h-10 md:px-4 ${enterButtonBeingPressed ? "!brightness-75" : ""}`}
         >
           <BiSearchAlt2 className="mt-1 size-[22px] lg:mt-0 lg:size-6" />
         </Button>

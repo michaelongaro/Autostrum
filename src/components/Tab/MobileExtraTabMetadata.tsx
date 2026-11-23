@@ -51,7 +51,11 @@ function MobileExtraTabMetadata() {
   const reduceMotion = useReducedMotion();
   const underlineId = useId();
   const { contentRef, height, hasOverflow, hasAnyOverflow } =
-    useExtraTabMetadataLayout(activeTabName, tabContentExpanded);
+    useExtraTabMetadataLayout(
+      activeTabName,
+      tabContentExpanded,
+      sectionProgression.length,
+    );
 
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [carouselContentApi, setCarouselContentApi] =
@@ -117,19 +121,20 @@ function MobileExtraTabMetadata() {
               },
             },
           }}
-          className={`baseFlex min-w-0 flex-1 ${hasAnyOverflow ? "max-w-[90%]" : "w-full"}`}
+          className="baseFlex min-w-0 max-w-[90%] flex-1"
         >
           <CarouselContent className="pl-3">
             <CarouselItem className="baseFlex basis-auto">
               <Button
                 variant={"text"}
+                size="sm"
                 aria-pressed={activeTabName === "Section progression"}
                 onClick={() => {
                   carouselApi?.scrollTo(0, !!reduceMotion);
                   carouselContentApi?.scrollTo(0, !!reduceMotion);
                   setActiveTabName("Section progression");
                 }}
-                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50"
+                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50 md:h-10"
               >
                 <BsMusicNoteList className="size-4" />
                 Section progression
@@ -150,13 +155,14 @@ function MobileExtraTabMetadata() {
             <CarouselItem className="baseFlex basis-auto">
               <Button
                 variant={"text"}
+                size="sm"
                 aria-pressed={activeTabName === "Chords"}
                 onClick={() => {
                   carouselApi?.scrollTo(1, !!reduceMotion);
                   carouselContentApi?.scrollTo(1, !!reduceMotion);
                   setActiveTabName("Chords");
                 }}
-                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50"
+                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50 md:h-10"
               >
                 <BsMusicNoteBeamed className="size-4" />
                 Chords
@@ -177,13 +183,14 @@ function MobileExtraTabMetadata() {
             <CarouselItem className="baseFlex basis-auto pr-3">
               <Button
                 variant={"text"}
+                size="sm"
                 aria-pressed={activeTabName === "Strumming patterns"}
                 onClick={() => {
                   carouselApi?.scrollTo(2, !!reduceMotion);
                   carouselContentApi?.scrollTo(2, !!reduceMotion);
                   setActiveTabName("Strumming patterns");
                 }}
-                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50"
+                className="baseFlex relative gap-2 text-nowrap !px-0 font-medium aria-[pressed=false]:opacity-50 md:h-10"
               >
                 <Logo className="z-0 size-4" />
                 Strumming patterns
@@ -203,26 +210,25 @@ function MobileExtraTabMetadata() {
           </CarouselContent>
         </Carousel>
 
-        {hasAnyOverflow && (
-          <Button
-            variant={"text"}
-            aria-label={
-              hasOverflow && tabContentExpanded
-                ? "Collapse extra tab metadata"
-                : "Expand extra tab metadata"
-            }
-            aria-expanded={hasOverflow && tabContentExpanded}
-            onClick={() => setTabContentExpanded((prev) => !prev)}
-            disabled={!hasOverflow}
-            className="baseFlex mr-[9px] shrink-0 !p-0"
-          >
-            <ChevronDown
-              className={`size-[18px] transition-transform motion-reduce:transition-none ${
-                hasOverflow && tabContentExpanded ? "rotate-180" : ""
-              }`}
-            />
-          </Button>
-        )}
+        <Button
+          variant={"text"}
+          size="sm"
+          aria-label={
+            hasOverflow && tabContentExpanded
+              ? "Collapse extra tab metadata"
+              : "Expand extra tab metadata"
+          }
+          aria-expanded={hasOverflow && tabContentExpanded}
+          onClick={() => setTabContentExpanded((prev) => !prev)}
+          disabled={!hasOverflow}
+          className={`baseFlex mr-[9px] shrink-0 !p-0 md:h-10 ${hasAnyOverflow ? "" : "invisible"}`}
+        >
+          <ChevronDown
+            className={`size-[18px] transition-transform motion-reduce:transition-none ${
+              hasOverflow && tabContentExpanded ? "rotate-180" : ""
+            }`}
+          />
+        </Button>
       </div>
 
       {/* tab content */}
@@ -259,7 +265,7 @@ function MobileExtraTabMetadata() {
                       {sectionProgression.map((section) => (
                         <div
                           key={section.id}
-                          className="baseFlex w-full !justify-start gap-2"
+                          className="baseFlex h-6 w-full !justify-start gap-2"
                         >
                           <div className="baseFlex w-24 gap-2 text-gray">
                             <p>

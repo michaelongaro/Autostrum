@@ -256,6 +256,17 @@ export function GridTabCardContent({
     return 129;
   }
 
+  const cardWidth = largeVariant
+    ? "w-[400px]"
+    : pinnedTabType !== undefined
+      ? "w-[320px] xs:w-[330px]"
+      : "w-[280px] xs:w-[330px]";
+  const screenshotHeight = largeVariant
+    ? "h-[185px]"
+    : pinnedTabType !== undefined
+      ? "h-[152px]"
+      : "h-[129px] xs:h-[152px]";
+
   return (
     <motion.div
       ref={ref}
@@ -264,11 +275,7 @@ export function GridTabCardContent({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      style={{
-        width: `${getDynamicWidth()}px`,
-        minWidth: `${getDynamicWidth()}px`,
-      }}
-      className="baseVertFlex overflow-hidden rounded-md border shadow-sm"
+      className={`baseVertFlex shrink-0 overflow-hidden rounded-md border shadow-sm ${cardWidth}`}
     >
       {/* tab preview screenshot */}
       {pinnedTabType !== "withoutScreenshot" && (
@@ -280,11 +287,7 @@ export function GridTabCardContent({
           >
             {/* tab preview screenshot */}
             <div
-              style={{
-                width: getDynamicWidth(),
-                height: getDynamicHeight(),
-              }}
-              className="relative grid grid-cols-1 grid-rows-1 border-b"
+              className={`relative grid grid-cols-1 grid-rows-1 border-b ${cardWidth} ${screenshotHeight}`}
             >
               <div
                 style={{
@@ -332,7 +335,11 @@ export function GridTabCardContent({
                   tabId={minimalTab.id}
                   theme={theme}
                   version={screenshotVersion}
-                  width={getDynamicWidth()}
+                  sizes={
+                    largeVariant
+                      ? "400px"
+                      : `(min-width: 450px) 330px, ${pinnedTabType !== undefined ? 320 : 280}px`
+                  }
                   title={minimalTab.title}
                   filterId={screenshotFilterId}
                   onLoad={() => revealTabScreenshot(screenshotCacheKey)}

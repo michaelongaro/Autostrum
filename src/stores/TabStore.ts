@@ -531,13 +531,23 @@ export const TabStoreContext = createContext<ReturnType<
 export const useTabStoreApi = () =>
   useContext(TabStoreContext) ?? useTabStoreBase;
 
+export const TabStoreSnapshotContext = createContext<Pick<
+  StoreApi<TabState>,
+  "getState" | "getInitialState" | "subscribe"
+> | null>(null);
+
+function useTabStoreSnapshotApi() {
+  const store = useTabStoreApi();
+  return useContext(TabStoreSnapshotContext) ?? store;
+}
+
 export const useTabStore = <T>(selector: (state: TabState) => T): T => {
-  return useStore(useTabStoreApi(), selector);
+  return useStore(useTabStoreSnapshotApi(), selector);
 };
 
 /** Composite object/array selections must opt into shallow equality. */
 export const useTabStoreShallow = <T>(selector: (state: TabState) => T): T =>
-  useStore(useTabStoreApi(), useShallow(selector));
+  useTabStore(useShallow(selector));
 
 export const useTabDataGetter = () => {
   const store = useTabStoreApi();

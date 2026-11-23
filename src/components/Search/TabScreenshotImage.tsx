@@ -8,7 +8,7 @@ interface TabScreenshotImageProps {
   tabId: number;
   theme: "light" | "dark";
   version: string;
-  width: number;
+  sizes: string;
   title: string;
   filterId: string;
   onLoad: () => void;
@@ -20,7 +20,7 @@ export default function TabScreenshotImage({
   tabId,
   theme,
   version,
-  width,
+  sizes,
   title,
   filterId,
   onLoad,
@@ -35,14 +35,14 @@ export default function TabScreenshotImage({
   // even if the app later enables global image optimization for other images.
   return (
     <picture className="absolute inset-0">
-      <source srcSet={srcSet} sizes={`${width}px`} type="image/jpeg" />
+      <source srcSet={srcSet} sizes={sizes} type="image/jpeg" />
       <Image
         src={getTabScreenshotSrc(tabId, theme, version, 800)}
         alt={`screenshot of ${title}`}
         fill
         loading={eager ? "eager" : "lazy"}
         unoptimized
-        sizes={`${width}px`}
+        sizes={sizes}
         onLoad={onLoad}
         onError={onError}
         style={{ filter: `url("#${filterId}")` }}

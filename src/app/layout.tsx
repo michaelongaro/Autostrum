@@ -55,6 +55,11 @@ const themeInitializerScript = `
         : storedTheme;
 
     const root = document.documentElement;
+    const storedZoom = window.localStorage.getItem("autostrum-zoom") ?? "1";
+    const tabZoom = Number(storedZoom.replace(/^"|"$/g, ""));
+    if (Number.isFinite(tabZoom) && tabZoom > 0) {
+      root.style.setProperty("--tab-zoom", String(tabZoom));
+    }
     root.setAttribute("data-color", color);
     root.setAttribute("data-theme", theme);
 
