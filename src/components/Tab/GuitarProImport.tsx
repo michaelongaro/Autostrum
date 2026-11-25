@@ -58,7 +58,7 @@ export default function GuitarProImport({
   importTab: (document: TabDocument) => void;
 }) {
   const store = useTabStoreApi();
-  const utils = api.useContext();
+  const utils = api.useUtils();
   const isDesktop = useViewportWidthBreakpoint(768);
   const [open, setOpen] = useState(false);
   const [dragging, setDragging] = useState(false);

@@ -19,7 +19,7 @@ import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import { prisma } from "~/server/db";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { flattenError, ZodError } from "zod";
 import { waitUntil } from "@vercel/functions";
 
 export async function createTRPCContext({
@@ -45,7 +45,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
       data: {
         ...shape.data,
         zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+          error.cause instanceof ZodError ? flattenError(error.cause) : null,
       },
     };
   },

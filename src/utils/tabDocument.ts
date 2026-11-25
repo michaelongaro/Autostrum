@@ -196,7 +196,7 @@ export const tabDocumentSchema = z
 export type TabDocument = z.input<typeof tabDocumentSchema>;
 
 export const draftReferenceSchema = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   revision: z.number().int().positive(),
 });
 export type DraftReference = z.infer<typeof draftReferenceSchema>;

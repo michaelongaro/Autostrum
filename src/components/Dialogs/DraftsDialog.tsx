@@ -78,7 +78,7 @@ function DraftList({
   ownerId: string;
   library: ReturnType<typeof useDraftLibrary>;
 }) {
-  const utils = api.useContext();
+  const utils = api.useUtils();
   const { cloud, local, accountDrafts, recoveryCopies } = library;
   const discard = api.draft.discard.useMutation();
   const [target, setTarget] = useState<DiscardTarget | null>(null);

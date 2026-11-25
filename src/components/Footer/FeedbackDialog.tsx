@@ -105,7 +105,7 @@ export default function FeedbackDialog() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (feedback.isLoading || feedback.isSuccess) return;
+    if (feedback.isPending || feedback.isSuccess) return;
 
     const result = feedbackInputSchema.safeParse({ category, message });
     if (!result.success) {
@@ -167,7 +167,7 @@ export default function FeedbackDialog() {
             key="form"
             onSubmit={handleSubmit}
             noValidate
-            aria-busy={feedback.isLoading}
+            aria-busy={feedback.isPending}
             initial={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: reduceMotion ? 0 : -8 }}
@@ -176,7 +176,7 @@ export default function FeedbackDialog() {
           >
             <FieldGroup>
               <Field
-                data-disabled={feedback.isLoading}
+                data-disabled={feedback.isPending}
                 className="flex-row items-center gap-3"
               >
                 <FieldLabel id={`${id}-type`}>Type</FieldLabel>
@@ -186,7 +186,7 @@ export default function FeedbackDialog() {
                   onValueChange={(values) => {
                     if (values[0]) setCategory(values[0]);
                   }}
-                  disabled={feedback.isLoading}
+                  disabled={feedback.isPending}
                   className="flex items-center gap-2"
                 >
                   {categories.map((item) => (
@@ -220,7 +220,7 @@ export default function FeedbackDialog() {
 
               <Field
                 data-invalid={!!validationError}
-                data-disabled={feedback.isLoading}
+                data-disabled={feedback.isPending}
               >
                 <FieldLabel htmlFor={`${id}-message`}>Content</FieldLabel>
                 <Textarea
@@ -239,7 +239,7 @@ export default function FeedbackDialog() {
                   className="h-36 min-h-24 resize-y"
                   maxLength={FEEDBACK_MAX_LENGTH}
                   required
-                  disabled={feedback.isLoading}
+                  disabled={feedback.isPending}
                   aria-invalid={!!validationError}
                   aria-describedby={`${id}-hint${validationError ? ` ${id}-error` : ""}`}
                 />
@@ -270,20 +270,20 @@ export default function FeedbackDialog() {
                 <Button
                   type="button"
                   variant="outline"
-                  disabled={feedback.isLoading}
+                  disabled={feedback.isPending}
                   onClick={() => handleOpenChange(false)}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={feedback.isLoading || !message.trim()}
-                  aria-label={feedback.isLoading ? "Sending…" : "Send feedback"}
+                  disabled={feedback.isPending || !message.trim()}
+                  aria-label={feedback.isPending ? "Sending…" : "Send feedback"}
                   className="w-36 shrink-0 overflow-hidden"
                 >
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.span
-                      key={feedback.isLoading ? "sending" : "send"}
+                      key={feedback.isPending ? "sending" : "send"}
                       initial={{ opacity: 0, y: reduceMotion ? 0 : 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: reduceMotion ? 0 : -6 }}
@@ -291,7 +291,7 @@ export default function FeedbackDialog() {
                       className="inline-flex items-center justify-center gap-2 whitespace-nowrap"
                       aria-hidden="true"
                     >
-                      {feedback.isLoading ? (
+                      {feedback.isPending ? (
                         <>
                           Sending…
                           <Spinner className="size-4" />
@@ -314,7 +314,7 @@ export default function FeedbackDialog() {
     <Root
       open={open}
       onOpenChange={(nextOpen, details) => {
-        if (feedback.isLoading && !nextOpen) {
+        if (feedback.isPending && !nextOpen) {
           details.cancel();
           return;
         }
@@ -328,7 +328,7 @@ export default function FeedbackDialog() {
       {desktop ? (
         <DialogContent
           className="max-h-[85dvh] overflow-hidden p-0 motion-reduce:transition-none"
-          renderCloseButton={!feedback.isLoading}
+          renderCloseButton={!feedback.isPending}
         >
           {content}
         </DialogContent>

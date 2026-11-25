@@ -58,7 +58,7 @@ function MobileHeader() {
     theme: state.theme,
   }));
 
-  const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
+  const { data: currentUser, isLoading: isLoadingCurrentUser } =
     api.user.getById.useQuery(userId!, {
       enabled: !!userId,
     });

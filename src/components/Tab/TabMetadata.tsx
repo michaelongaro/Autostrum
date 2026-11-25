@@ -216,7 +216,7 @@ function TabMetadata({ setIsPublishingOrUpdating, importTab }: TabMetadata) {
   const [deleteButtonText, setDeleteButtonText] = useState("Delete");
   const [showDeleteAlertDialog, setShowDeleteAlertDialog] = useState(false);
 
-  const { mutate: publishTab, isLoading: isPublishing } =
+  const { mutate: publishTab, isPending: isPublishing } =
     api.tab.create.useMutation({
       onSuccess: (tab) => {
         draftActions?.completePublication(tab);
@@ -247,7 +247,7 @@ function TabMetadata({ setIsPublishingOrUpdating, importTab }: TabMetadata) {
       },
     });
 
-  const { mutate: updateTab, isLoading: isUpdating } =
+  const { mutate: updateTab, isPending: isUpdating } =
     api.tab.update.useMutation({
       onSuccess: (tab) => {
         draftActions?.completePublication(tab);
@@ -278,7 +278,7 @@ function TabMetadata({ setIsPublishingOrUpdating, importTab }: TabMetadata) {
       },
     });
 
-  const { mutate: deleteTab, isLoading: isDeleting } =
+  const { mutate: deleteTab, isPending: isDeleting } =
     api.tab.delete.useMutation({
       onSuccess: () => {
         setTimeout(() => {

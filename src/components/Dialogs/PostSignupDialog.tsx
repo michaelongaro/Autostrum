@@ -28,7 +28,7 @@ function PostSignupDialog() {
 
   const { color } = useAppPreferencesStore((state) => ({ color: state.color }));
 
-  const { data: userIsRegistered, isLoading: isLoadingUserRegistrationStatus } =
+  const { data: userIsRegistered, isPending: isLoadingUserRegistrationStatus } =
     api.user.isUserRegistered.useQuery(undefined, {
       enabled: isLoaded && isSignedIn,
     });

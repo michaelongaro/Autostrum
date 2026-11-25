@@ -100,7 +100,7 @@ function DraftEditorSession({
   children: ReactNode;
 }) {
   const location = useRouteLocation();
-  const utils = api.useContext();
+  const utils = api.useUtils();
   const { mutateAsync: saveDraft } = api.draft.save.useMutation({
     retry: false,
   });

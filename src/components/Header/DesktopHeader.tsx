@@ -39,7 +39,7 @@ function DesktopHeader({ prefetchSearch }: { prefetchSearch: boolean }) {
   const { userId, isSignedIn } = useAuth();
   const asPath = usePathname();
 
-  const { data: currentUser, isInitialLoading: isLoadingCurrentUser } =
+  const { data: currentUser, isLoading: isLoadingCurrentUser } =
     api.user.getById.useQuery(userId!, {
       enabled: !!userId,
     });

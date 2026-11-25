@@ -18,7 +18,7 @@ import getDynamicFontSize from "~/utils/getDynamicFontSize";
 function ArtistProfile({ uniqueKey }: { uniqueKey: string }) {
   const { pathname, query } = useRouteLocation();
   const router = useRouter();
-  const utils = api.useContext();
+  const utils = api.useUtils();
   // The pathname preserves the original segment encoding, so decode only once.
   const name = decodeRouteSegment(pathname.split("/")[2] ?? "");
   const id = query.id ? Number(query.id) : undefined;

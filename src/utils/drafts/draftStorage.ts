@@ -6,13 +6,13 @@ export const DRAFTS_CHANGED_EVENT = "autostrum:drafts-changed";
 
 export const recoveryRecordSchema = z.object({
   version: z.literal(1),
-  id: z.string().uuid(),
-  writerId: z.string().uuid(),
+  id: z.guid(),
+  writerId: z.guid(),
   ownerId: z.string().min(1),
   sourceTabId: z.number().int().positive().nullable(),
   baseUpdatedAt: z.string().datetime().nullable(),
   revision: z.number().int().min(0),
-  mutationId: z.string().uuid(),
+  mutationId: z.guid(),
   updatedAt: z.string().datetime(),
   synced: z.boolean(),
   document: tabDocumentSchema,

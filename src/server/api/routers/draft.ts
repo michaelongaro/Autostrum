@@ -4,7 +4,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { tabDocumentSchema } from "~/utils/tabDocument";
 import { isDefaultTabDocument } from "~/utils/drafts/draftDocument";
 
-const idSchema = z.string().uuid();
+const idSchema = z.guid();
 const revisionSchema = z.number().int().min(0);
 const privateDraftProcedure = protectedProcedure.use(({ ctx, next }) => {
   ctx.resHeaders.set("Cache-Control", "private, no-store");
